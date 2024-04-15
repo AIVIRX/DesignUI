@@ -93,7 +93,7 @@ struct ContentView: View {
                 }
                 
                 SearchPage()
-                .tabItem {
+                .tabItem { 
                     Label("", systemImage: "plus.square.dashed")
                 }
                 SearchPage()
