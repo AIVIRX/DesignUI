@@ -6,8 +6,9 @@
 //
 
 import SwiftUI
-import FirebaseCore
 import Firebase
+import FirebaseCore
+import FirebaseFirestore
 import AppTrackingTransparency
 
 
@@ -28,11 +29,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                     }
                 }
             }
-            else{
-                
-            }
         })
         FirebaseApp.configure()
+        
         return true
     }
 }
@@ -42,7 +41,7 @@ struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            loginPage()
         }
     }
 }

@@ -15,10 +15,10 @@
 		ECADF6112BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF6102BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion */; };
 		ECADF6132BCC6AD00096753A /* FirebaseAnalyticsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF6122BCC6AD00096753A /* FirebaseAnalyticsSwift */; };
 		ECADF6152BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF6142BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport */; };
-		ECADF6172BCC6AD00096753A /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF6162BCC6AD00096753A /* FirebaseAppCheck */; };
 		ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */; };
 		ECADF61C2BCC87AC0096753A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ECADF61B2BCC87AC0096753A /* GoogleService-Info.plist */; };
 		ECADF61E2BCCAD2E0096753A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF61D2BCCAD2E0096753A /* FirebaseAuth */; };
+		ECD56F6A2BCEBBF0005668E1 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = ECD56F692BCEBBF0005668E1 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,7 +41,7 @@
 				ECADF60F2BCC6AD00096753A /* FirebaseAnalytics in Frameworks */,
 				ECADF6112BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion in Frameworks */,
 				ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */,
-				ECADF6172BCC6AD00096753A /* FirebaseAppCheck in Frameworks */,
+				ECD56F6A2BCEBBF0005668E1 /* FirebaseFirestore in Frameworks */,
 				ECADF61E2BCCAD2E0096753A /* FirebaseAuth in Frameworks */,
 				ECADF6152BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
 			);
@@ -117,8 +117,8 @@
 				ECADF6102BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion */,
 				ECADF6122BCC6AD00096753A /* FirebaseAnalyticsSwift */,
 				ECADF6142BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport */,
-				ECADF6162BCC6AD00096753A /* FirebaseAppCheck */,
 				ECADF61D2BCCAD2E0096753A /* FirebaseAuth */,
+				ECD56F692BCEBBF0005668E1 /* FirebaseFirestore */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* DesignUI.app */;
@@ -317,6 +317,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DesignUi;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used for analytics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -326,8 +328,8 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -356,6 +358,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DesignUi;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used for analytics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -365,8 +369,8 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -437,15 +441,15 @@
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalyticsWithoutAdIdSupport;
 		};
-		ECADF6162BCC6AD00096753A /* FirebaseAppCheck */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAppCheck;
-		};
 		ECADF61D2BCCAD2E0096753A /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		ECD56F692BCEBBF0005668E1 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
