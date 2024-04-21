@@ -12,6 +12,7 @@ import FirebaseFirestore
 import AppTrackingTransparency
 
 
+#if os(iOS)
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -45,3 +46,23 @@ struct DesignUIApp: App {
         }
     }
 }
+#endif
+
+
+#if os(macOS)
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        FirebaseApp.configure()
+    }
+}
+
+@main
+struct DesignUIApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+#endif

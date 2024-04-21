@@ -1,5 +1,123 @@
 {
   "sourceLanguage" : "en",
-  "strings" : {},
+  "strings" : {
+    "" : {
+
+    },
+    "%@" : {
+
+    },
+    "A simple login menu." : {
+
+    },
+    "Author" : {
+
+    },
+    "Author Name" : {
+
+    },
+    "By %@" : {
+
+    },
+    "Code" : {
+
+    },
+    "Code Snippet:" : {
+
+    },
+    "Contact Us" : {
+
+    },
+    "Copy Code" : {
+
+    },
+    "Crypto Profit Loss Calculator" : {
+
+    },
+    "Delete Account" : {
+
+    },
+    "Description" : {
+
+    },
+    "Description:" : {
+
+    },
+    "Designs" : {
+
+    },
+    "Discovery Beyond Limits. Explore DesignUI" : {
+
+    },
+    "Done" : {
+
+    },
+    "Enter new description" : {
+
+    },
+    "Enter new name" : {
+
+    },
+    "Featured" : {
+
+    },
+    "General" : {
+
+    },
+    "Hello, world!" : {
+
+    },
+    "Liked Content" : {
+
+    },
+    "Likes" : {
+
+    },
+    "Log Out" : {
+
+    },
+    "Login Screen UI" : {
+
+    },
+    "Privacy & Support" : {
+
+    },
+    "Privacy Policy" : {
+
+    },
+    "Pro" : {
+
+    },
+    "Search" : {
+
+    },
+    "Settings" : {
+
+    },
+    "SF Symbols" : {
+
+    },
+    "Share CodeShare UI" : {
+
+    },
+    "Support Us" : {
+
+    },
+    "TaskNow - Simple To Do List" : {
+
+    },
+    "Thumbnail" : {
+
+    },
+    "Title" : {
+
+    },
+    "Unlock all the features!" : {
+
+    },
+    "Upload Design" : {
+
+    }
+  },
   "version" : "1.0"
 }
