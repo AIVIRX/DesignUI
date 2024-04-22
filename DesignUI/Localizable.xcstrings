@@ -1,13 +1,13 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     "%@" : {
 
     },
     "A simple login menu." : {
+
+    },
+    "Activity" : {
 
     },
     "Author" : {
@@ -46,6 +46,9 @@
     "Designs" : {
 
     },
+    "Discover" : {
+
+    },
     "Discovery Beyond Limits. Explore DesignUI" : {
 
     },
@@ -67,10 +70,7 @@
     "Hello, world!" : {
 
     },
-    "Liked Content" : {
-
-    },
-    "Likes" : {
+    "Home" : {
 
     },
     "Log Out" : {
@@ -86,6 +86,9 @@
 
     },
     "Pro" : {
+
+    },
+    "Profile" : {
 
     },
     "Search" : {
@@ -113,6 +116,9 @@
 
     },
     "Unlock all the features!" : {
+
+    },
+    "Upload" : {
 
     },
     "Upload Design" : {

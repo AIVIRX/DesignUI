@@ -253,27 +253,27 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             HomeView()
                 .tabItem {
-                    Label("", systemImage: "house")
+                    Label("Home", systemImage: "house")
                 }
             
             DiscoverView()
                 .tabItem {
-                    Label("", systemImage: "magnifyingglass")
+                    Label("Discover", systemImage: "magnifyingglass")
                 }
             
             UploadDesignPage()
                 .tabItem {
-                    Label("", systemImage: "plus.square.dashed")
+                    Label("Upload", systemImage: "plus.square.dashed")
                 }
             
             LikedPostsView()
                 .tabItem {
-                    Label("", systemImage: "bookmark")
+                    Label("Activity", systemImage: "bookmark")
                 }
             
             ProfilePage()
                 .tabItem {
-                    Label("", systemImage: "person.crop.circle.fill")
+                    Label("Profile", systemImage: "person.crop.circle.fill")
                 }
         }
     }
@@ -1128,8 +1128,11 @@ struct ProfilePage: View {
     @State private var isEditingDescription: Bool = false
     @State private var newDescription: String = ""
     @State private var showToast = false
+    @State private var selectedTab: Int = 0
+    let tabs = ["Posts", "Saved", "Liked"]
+    
+    
     var body: some View {
-        NavigationStack {
             ScrollView {
                 VStack(alignment: .center, spacing: 20) {
                     if let userData = userData {
@@ -1165,7 +1168,6 @@ struct ProfilePage: View {
                                     .padding(.leading, 4)
                                 }
                             }
-                            
                             HStack {
                                 if isEditingDescription {
                                     TextField("Enter new description", text: $newDescription, onCommit: {
@@ -1193,15 +1195,36 @@ struct ProfilePage: View {
                         }
                     }
                     
-                    Text("Likes")
-                        .foregroundColor(.gray)
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 30)
+                    // Tab Bar
+                    HStack(spacing: 0) {
+                        ForEach(0..<tabs.count) { index in
+                            Button(action: {
+                                selectedTab = index
+                            }) {
+                                Text(tabs[index])
+                                    .foregroundColor(selectedTab == index ? .blue : .gray)
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 30)
+                            }
+                            .background(selectedTab == index ? Color.blue.opacity(0.2) : Color.clear)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                    }
                 }
                 .padding(.bottom, 10)
                 .toast(isPresenting: $showToast) {
                     AlertToast(displayMode: .hud, type: .regular, title: "Updated")
                 }
+                // Content based on selected tab
+                               if selectedTab == 0 {
+                                   HomeView()
+                               } else if selectedTab == 1 {
+                                   DiscoverView()
+                               } else if selectedTab == 2 {
+                                LikedPostsView()
+                               } else {
+                                   EmptyView()
+                               }
                 Spacer()
                     .padding()
                 
@@ -1225,7 +1248,6 @@ struct ProfilePage: View {
                     fetchUserData()
                 }
             }
-        }
     }
     
     private func fetchUserData() {
@@ -1291,6 +1313,7 @@ struct ProfilePage: View {
             }
         }
     }
+
 }
 
 struct LikedPostsView: View {
@@ -1298,7 +1321,6 @@ struct LikedPostsView: View {
     @State private var isLoadingMore = false
     @State private var isAllLoaded = false
     @State private var lastDocument: DocumentSnapshot? = nil
-    
     var body: some View {
         GeometryReader { geo in
             ScrollView {
@@ -1314,83 +1336,17 @@ struct LikedPostsView: View {
                         likes: post.likes,
                         views: post.views,
                         codeSnippet: post.codeSnippet
-                    )}
-                .frame(maxWidth: geo.size.width)
+                    )
+                    .frame(maxWidth: geo.size.width)}
+                
+                
                 if isLoadingMore && !isAllLoaded {
                     ProgressView()
-                        .onAppear(perform: loadMoreLikedPosts)
+        //load more                .onAppear(perform: )
                 }
             }
-            .navigationTitle("Liked Content")
-            .onAppear(perform: loadInitialLikedPosts)
+     //load initial posts       .onAppear(perform: )
         }
-    }
-    
-    private func loadInitialLikedPosts() {
-        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
-        
-        Firestore.firestore().collection("users").document(currentUserID).collection("likedPosts")
-            .order(by: "time", descending: true)
-            .limit(to: 10) // Adjust the limit as needed
-            .getDocuments { snapshot, error in
-                guard let documents = snapshot?.documents else {
-                    print("Error fetching initial liked posts: \(error?.localizedDescription ?? "Unknown error")")
-                    return
-                }
-                likedPosts = documents.compactMap { document in
-                    let data = document.data()
-                    let likedPostID = document.documentID
-                    let likedPostTitle = data["title"] as? String ?? ""
-                    let likedPostDesc = data["description"] as? String ?? ""
-                    let likedPostImage = data["imageURL"] as? String ?? ""
-                    let likedPostAuthor = data["author"] as? String ?? ""
-                    let likedPostLikes = data["likes"] as? Int ?? 0
-                    let likedPostViews = data["views"] as? Int ?? 0
-                    let likedPostSnippet = data["codeSnippet"] as? String ?? ""
-                    return LikedPost(id: likedPostID, imageURL: likedPostImage, title: likedPostTitle, author: likedPostAuthor, description: likedPostDesc, likes: likedPostLikes, views: likedPostViews, codeSnippet: likedPostSnippet)
-                }
-                lastDocument = snapshot?.documents.last
-            }
-    }
-    
-    private func loadMoreLikedPosts() {
-        guard let currentUserID = Auth.auth().currentUser?.uid,
-              let lastDocument = lastDocument else {
-            isLoadingMore = false
-            return
-        }
-        
-        isLoadingMore = true
-        
-        Firestore.firestore().collection("users").document(currentUserID).collection("likedPosts")
-            .order(by: "time", descending: true)
-            .start(afterDocument: lastDocument)
-            .limit(to: 10) // Adjust the limit as needed
-            .getDocuments { snapshot, error in
-                guard let documents = snapshot?.documents else {
-                    print("Error fetching more liked posts: \(error?.localizedDescription ?? "Unknown error")")
-                    self.isLoadingMore = false
-                    return
-                }
-                let moreLikedPosts = documents.compactMap { document in
-                    let data = document.data()
-                    let likedPostID =  document.documentID
-                    let likedPostTitle = data["postTitle"] as? String ?? ""
-                    let likedPostDesc = data["postDesc"] as? String ?? ""
-                    let likedPostImage = data["postImageURL"] as? String ?? ""
-                    let likedPostAuthor = data["postAuthor"] as? String ?? ""
-                    let likedPostLikes = data["postLikes"] as? Int ?? 0
-                    let likedPostViews = data["postViews"] as? Int ?? 0
-                    let likedPostSnippet = data["postCodeSnippet"] as? String ?? ""
-                    return LikedPost(id: likedPostID, imageURL: likedPostImage, title: likedPostTitle, author: likedPostAuthor, description: likedPostDesc, likes: likedPostLikes, views: likedPostViews, codeSnippet: likedPostSnippet)
-                }
-                likedPosts.append(contentsOf: moreLikedPosts)
-                self.isLoadingMore = false
-                self.lastDocument = snapshot?.documents.last
-                if documents.isEmpty {
-                    self.isAllLoaded = true
-                }
-            }
     }
 }
 
@@ -1427,69 +1383,71 @@ struct LikedPostRow: View {
     
     var body: some View {
         NavigationLink(destination: DetailView(id: id, imageURL: imageURL, title: title, description: description, author: author,likes: $likes, views: views, codeSnippet: codeSnippet, isLiked: $isLiked)) {
-            VStack(alignment: .leading){
-                // Load image from URL
-                AsyncImage(url: URL(string: imageURL)) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width * 1.0, height: 300)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                } placeholder: {
-                    // Placeholder while loading
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.gray)
-                        .frame(width: geo.size.width * 1.0, height: 300)
-                        .overlay {
-                            ProgressView()
-                                .foregroundColor(.white)
-                        }
-                }
-                
-                VStack(alignment: .leading){
-                    Text(title)
-                        .font(.headline)
-                        .lineLimit(/*@START_MENU_TOKEN@*/2/*@END_MENU_TOKEN@*/)
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.leading)
-                    Spacer()
-                    HStack{
-                        Text(author)
-                            .font(.system(size: 15))
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        HStack(spacing: 5){
-                            //likes
-                            if isLiked {
-                                Image(systemName: "heart.fill")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.red)
-                            } else {
-                                Image(systemName: "heart")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.gray)
+            HStack{
+                Spacer()
+                VStack(alignment: .center){
+                    AsyncImage(url: URL(string: imageURL)) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width - 20, height: 250)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } placeholder: {
+                        // Placeholder while loading
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.gray)
+                            .frame(width: geo.size.width - 20, height: 300)
+                            .overlay {
+                                ProgressView()
+                                    .foregroundColor(.white)
                             }
-                            
-                            Text(formatNumber(likes))
-                                .font(.caption).bold()
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    
+                    VStack(alignment: .leading){
+                        Text(title)
+                            .font(.headline)
+                            .lineLimit(/*@START_MENU_TOKEN@*/2/*@END_MENU_TOKEN@*/)
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.leading)
+                        HStack{
+                            Text(author)
                                 .font(.system(size: 15))
                                 .foregroundColor(.secondary)
-                            HStack{
-                                Image(systemName: "eye")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 10))
-                                Text(formatNumber(views) + " Views")
+                            
+                            Spacer()
+                            
+                            //hearts & views
+                            HStack(spacing: 5){
+                                //likes
+                                if isLiked {
+                                    Image(systemName: "heart.fill")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.red)
+                                } else {
+                                    Image(systemName: "heart")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                Text(formatNumber(likes))
                                     .font(.caption).bold()
+                                    .font(.system(size: 15))
                                     .foregroundColor(.secondary)
+                                HStack{
+                                    Image(systemName: "eye")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 15))
+                                    Text(formatNumber(views) + " Views")
+                                        .font(.caption).bold()
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding()
+                Spacer()
+            }.padding(.vertical, 8)
         }
         .onAppear {
             postsRef = Firestore.firestore().collection("posts").document(id)
