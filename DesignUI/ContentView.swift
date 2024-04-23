@@ -24,6 +24,8 @@ struct loginPage: View {
     @State private var nonce: String?
     @Environment(\.colorScheme) private var scheme
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
+    @State private var showUsernamePrompt: Bool = true
+    @State private var username: String = ""
     var body: some View {
         NavigationStack {
             if isLoggedIn {
@@ -43,17 +45,8 @@ struct loginPage: View {
                     .mask{
                         Rectangle()
                             .fill(LinearGradient(
-                                colors: [
-                                    .white,
-                                    .white,
-                                    .white,
-                                    .white,
-                                    .white.opacity(0.9),
-                                    .white.opacity(0.6),
-                                    .white.opacity(0.2),
-                                    .clear,
-                                    .clear
-                                ],
+                                colors: [.white, .white, .white, .white, .white.opacity(0.9), .white.opacity(0.6), .white.opacity(0.2), .clear, .clear
+                                        ],
                                 startPoint: .top,
                                 endPoint: .bottom))
                     }
@@ -89,7 +82,6 @@ struct loginPage: View {
                             Text(uid)
                                 .font(.headline)
                         }
-                        
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(20)
@@ -98,7 +90,6 @@ struct loginPage: View {
                     checkLoggedIn()
                 }
             }
-            
         }
         .alert(errorMessage, isPresented: $showAlert){}
         .overlay {
@@ -188,8 +179,9 @@ struct loginPage: View {
                                 "followersCount": 0,
                                 "followingCount": 0,
                                 "likesCount": 0,
-                                "bio": ""
-                                // Add other user data as needed
+                                "username": "",
+                                "bio": "",
+                                "imageURL": ""
                             ]
                             
                             // Create a subcollection for liked posts
@@ -244,6 +236,30 @@ struct loginPage: View {
         }.joined()
         
         return hashString
+    }
+}
+
+struct UsernamePickerView: View {
+    @Binding var username: String
+    var onSubmitUsername: () -> Void
+
+    var body: some View {
+        VStack {
+            TextField("Enter username", text: $username)
+                .padding()
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            Button(action: {
+                onSubmitUsername() // Call the onSubmitUsername closure
+            }) {
+                Text("Submit")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+            }
+        }
+        .padding()
     }
 }
 
@@ -356,6 +372,7 @@ struct DesignCards: View {
     @State private var isLiked: Bool = false
     @State private var isProcessingLike = false
     @State private var isViewed: Bool = false
+    @State private var image: UIImage?
     
     private func formatNumber(_ number: Int) -> String {
         let formatter = NumberFormatter()
@@ -376,21 +393,23 @@ struct DesignCards: View {
     var body: some View {
         NavigationLink(destination: DetailView(id: id, imageURL: imageURL, title: title, description: description, author: author,likes: $likes, views: views, codeSnippet: codeSnippet, isLiked: $isLiked)) {
             VStack(alignment: .leading){
-                // Load image from URL
-                AsyncImage(url: URL(string: imageURL)) { image in
-                    image
+                // Load image from URL using AsyncImage
+                if let image = image {
+                    Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 160, height: 100)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
-                } placeholder: {
-                    // Placeholder while loading
+                } else {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.gray)
                         .frame(width: 160, height: 100)
                         .overlay {
                             ProgressView()
                                 .foregroundColor(.white)
+                        }
+                        .onAppear {
+                            loadImage()
                         }
                 }
                 
@@ -406,7 +425,7 @@ struct DesignCards: View {
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)
                         Spacer()
-
+                        
                         HStack(spacing: 5){
                             //likes
                             if isLiked {
@@ -441,6 +460,23 @@ struct DesignCards: View {
             fetchViews()
         }
     }
+    
+    private func loadImage() {
+            guard let url = URL(string: imageURL) else {
+                print("Invalid image URL")
+                return
+            }
+            
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                if let data = data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self.image = image
+                    }
+                } else {
+                    print("Error loading image: \(error?.localizedDescription ?? "Unknown error")")
+                }
+            }.resume()
+        }
     
     private func fetchLikes() {
         let postsRef = Firestore.firestore().collection("posts").document(id)
@@ -717,6 +753,7 @@ struct DetailView: View {
             // Like
             userLikedPostsRef.document(id).setData([
                 "time": Timestamp(),
+                "id":id,
                 "title": title,
                 "author": author,
                 "codeSnippet": codeSnippet,
@@ -821,34 +858,19 @@ struct UploadDesignPage: View {
                     
                     Text("Title")
                         .bold()
-                    TextField("Login Screen UI", text: $title)
-                        .padding()
-                        .bold()
-                        .frame(height: 50)
-                        .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                    TextFieldWithCounter(placehold: "Login Screen UI", text: $title, maxLength: 20)
                     
                     Text("Author")
                         .bold()
-                    TextField("Author Name", text: $author)
-                        .padding()
-                        .bold()
-                        .frame(height: 50)
-                        .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                    TextFieldWithCounter(placehold: "Author Name", text: $author, maxLength: 15)
                     
                     Text("Description")
                         .bold()
-                    TextField("A simple login menu.", text: $description)
-                        .padding()
-                        .bold()
-                        .frame(height: 50)
-                        .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                    TextFieldWithCounter(placehold: "A simple login menu.", text: $description, maxLength: 200)
                     
                     Text("Code")
                         .bold()
-                    TextEditor(text: $codeSnippet)
-                        .padding()
-                        .frame(height: 100)
-                        .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                    TextEditorWithCounter(text: $codeSnippet, maxLength: 500)
                     
                 }
                 .toolbar{
@@ -876,6 +898,54 @@ struct UploadDesignPage: View {
         }
         .padding(7)
         .navigationTitle("Upload Design")
+    }
+    
+    // Custom TextField with character counter
+    struct TextFieldWithCounter: View {
+        let placehold: String
+        @Binding var text: String
+        let maxLength: Int
+        
+        var body: some View {
+            VStack(alignment: .leading) {
+                TextField(placehold, text: $text)
+                    .padding()
+                    .bold()
+                    .frame(height: 50)
+                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                Text("\(text.count)/\(maxLength)")
+                    .font(.caption)
+                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+            }
+            .onChange(of: text) {
+                if text.count > maxLength {
+                    text = String(text.prefix(maxLength))
+                }
+            }
+        }
+    }
+
+    // Custom TextEditor with character counter
+    struct TextEditorWithCounter: View {
+        @Binding var text: String
+        let maxLength: Int
+        
+        var body: some View {
+            VStack(alignment: .leading) {
+                TextEditor(text: $text)
+                    .padding()
+                    .frame(height: 100)
+                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                Text("\(text.count)/\(maxLength)")
+                    .font(.caption)
+                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+            }
+            .onChange(of: text) {
+                if text.count > maxLength {
+                    text = String(text.prefix(maxLength))
+                }
+            }
+        }
     }
     
     func uploadDesign() {
@@ -930,7 +1000,7 @@ struct UploadDesignPage: View {
         let userDataRef = db.collection("users").document(user.uid)
         let codeSnippetWithLineBreaks = codeSnippet.replacingOccurrences(of: "\\n", with: "\n")
         
-        let newPostRef = db.collection("posts").document() // Auto-generated document ID for new post
+        let newPostRef = db.collection("posts").document()
         
         newPostRef.setData([
             "postid": newPostRef.documentID,
@@ -1117,137 +1187,136 @@ struct UserData: Codable {
     var followingCount: Int
     var likesCount: Int
     var bio: String
-    // Other properties you may have
+    var username: String
+    var imageURL: String
 }
 
 struct ProfilePage: View {
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
     @State private var userData: UserData?
-    @State private var isEditingName: Bool = false
-    @State private var newName: String = ""
-    @State private var isEditingDescription: Bool = false
-    @State private var newDescription: String = ""
     @State private var showToast = false
     @State private var selectedTab: Int = 0
-    let tabs = ["Posts", "Saved", "Liked"]
-    
-    
+    @State private var showEditProfile = false
+    @State private var imageURL: URL?
+
+
+    let tabs = ["Posts", "Liked"]
     var body: some View {
-            ScrollView {
-                VStack(alignment: .center, spacing: 20) {
-                    if let userData = userData {
-                        VStack(alignment: .center) {
-                            Image("SwiftUI")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 90, height: 90)
-                                .clipShape(Circle())
-                                .shadow(radius: 5)
-                            
-                            HStack {
-                                if isEditingName {
-                                    TextField("Enter new name", text: $newName, onCommit: {
-                                        updateNameInFirestore()
-                                        fetchUserData()
-                                    })
-                                    .font(.headline).bold()
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(5)
-                                    .multilineTextAlignment(.center)
-                                } else {
-                                    Text(userData.displayName)
-                                        .font(.title)
-                                        .bold()
-                                    Button(action: {
-                                        isEditingName = true
-                                        newName = userData.displayName // Initialize text field with current name
-                                    }) {
-                                        Image(systemName: "pencil")
-                                            .foregroundColor(.blue)
-                                    }
-                                    .padding(.leading, 4)
-                                }
-                            }
-                            HStack {
-                                if isEditingDescription {
-                                    TextField("Enter new description", text: $newDescription, onCommit: {
-                                        updateDescriptionInFirestore()
-                                        fetchUserData()
-                                    })
-                                    .font(.headline).bold()
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(5)
-                                    .multilineTextAlignment(.center)
-                                } else {
-                                    Text(userData.bio)
-                                        .font(.body)
-                                        .multilineTextAlignment(.center)
-                                    Button(action: {
-                                        isEditingDescription = true
-                                        newDescription = userData.bio // Initialize text field with current description
-                                    }) {
-                                        Image(systemName: "pencil")
-                                            .foregroundColor(.blue)
-                                    }
-                                    .padding(.leading, 4)
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Tab Bar
-                    HStack(spacing: 0) {
-                        ForEach(0..<tabs.count) { index in
-                            Button(action: {
-                                selectedTab = index
-                            }) {
-                                Text(tabs[index])
-                                    .foregroundColor(selectedTab == index ? .blue : .gray)
-                                    .padding(.vertical, 10)
-                                    .padding(.horizontal, 30)
-                            }
-                            .background(selectedTab == index ? Color.blue.opacity(0.2) : Color.clear)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                    }
-                }
-                .padding(.bottom, 10)
-                .toast(isPresenting: $showToast) {
-                    AlertToast(displayMode: .hud, type: .regular, title: "Updated")
-                }
-                // Content based on selected tab
-                               if selectedTab == 0 {
-                                   HomeView()
-                               } else if selectedTab == 1 {
-                                   DiscoverView()
-                               } else if selectedTab == 2 {
-                                LikedPostsView()
-                               } else {
-                                   EmptyView()
-                               }
-                Spacer()
-                    .padding()
-                
-                Button("Log Out") {
-                    try? Auth.auth().signOut()
-                    isLoggedIn = false
-                }
-                
-                Button("Delete Account") {
-                    let user = Auth.auth().currentUser
-                    user?.delete { error in
-                        if let error = error {
-                            print(error)
-                        } else {
-                            // Account deleted.
-                            isLoggedIn = false
-                        }
-                    }
-                }
+        VStack(alignment: .center, spacing: 20) {
+            userDataView
+            
+            tabBarView
+            
+            contentView
+            
+            logoutButton
+            
+            deleteAccountButton
                 .onAppear {
                     fetchUserData()
                 }
+        }
+    }
+
+    private var userDataView: some View {
+        if let userData = userData {
+            return AnyView(
+                VStack(alignment: .center) {
+                    AsyncImage(url: URL(string: userData.imageURL)) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 100, height: 100)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .clipped()
+                        } placeholder:{
+                        Circle()
+                            .fill(Color.gray)
+                            .frame(width: 100, height: 100)
+                            .overlay {
+                                ProgressView()
+                                    .foregroundColor(.white)
+                            }
+                    }
+                    Text(userData.displayName)
+                        .font(.title).bold()
+                    Text("@" + userData.username)
+                        .font(.subheadline).bold()
+                    Text(userData.bio)
+                        .font(.body)
+                        .padding(.top, 10)
+                    
+                    Button("Edit Profile") {
+                        showEditProfile = true
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .padding(.bottom, 10)
+                .sheet(isPresented: $showEditProfile) {
+                    EditProfileView(displayname: userData.displayName, username: userData.username, bio: userData.bio)
+                }
+                .toast(isPresenting: $showToast) {
+                    AlertToast(displayMode: .hud, type: .regular, title: "Updated")
+                }
+            )
+        } else {
+            return AnyView(EmptyView())
+        }
+    }
+
+    private var tabBarView: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<tabs.count) { index in
+                Button(action: {
+                    selectedTab = index
+                }) {
+                    Text(tabs[index])
+                        .foregroundColor(selectedTab == index ? .blue : .gray)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 30)
+                }
+                .background(selectedTab == index ? Color.blue.opacity(0.2) : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
             }
+        }
+    }
+    
+    private var contentView: some View {
+        Group {
+            if selectedTab == 0 {
+                HomeView()
+            } else if selectedTab == 1 {
+                LikedPostsView()
+            } else {
+                EmptyView()
+            }
+        }
+    }
+    
+    private var logoutButton: some View {
+        Button("Log Out") {
+            try? Auth.auth().signOut()
+            isLoggedIn = false
+        }
+    }
+                
+    private var deleteAccountButton: some View {
+        Button("Delete Account") {
+            let user = Auth.auth().currentUser
+            Firestore.firestore().collection("users").document(user?.uid ?? "").delete()
+            user?.delete { error in
+                if let error = error {
+                    //account deletion error
+                    print(error)
+                } else {
+                    // Account deleted.
+                    isLoggedIn = false
+                }
+            }
+        }
     }
     
     private func fetchUserData() {
@@ -1273,81 +1342,296 @@ struct ProfilePage: View {
             }
         }
     }
-    
-    private func updateNameInFirestore() {
-        guard let user = Auth.auth().currentUser else {
-            print("User not authenticated")
-            return
-        }
-        
-        let db = Firestore.firestore()
-        let uid = user.uid
-        let userRef = db.collection("users").document(uid)
-        
-        userRef.updateData(["displayName": newName]) { error in
-            if let error = error {
-                print("Error updating user name: \(error.localizedDescription)")
-            } else {
-                showToast = true
-                isEditingName = false
-            }
-        }
-    }
-
-    private func updateDescriptionInFirestore() {
-        guard let user = Auth.auth().currentUser else {
-            print("User not authenticated")
-            return
-        }
-        
-        let db = Firestore.firestore()
-        let uid = user.uid
-        let userRef = db.collection("users").document(uid)
-        
-        userRef.updateData(["bio": newDescription]) { error in
-            if let error = error {
-                print("Error updating user description: \(error.localizedDescription)")
-            } else {
-                showToast = true
-                isEditingDescription = false
-            }
-        }
-    }
-
 }
+
+struct EditProfileView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var displayname: String
+    @State private var username: String
+    @State private var bio: String
+    @State private var selectedImage: UIImage?
+    @State private var imageURL: URL?
+    @State private var isShowingImagePicker = false
+    @State private var errorMessage: String?
+    @State private var isLoading = false
+    @State private var showToast = false
+    
+    // Make the initializer public
+        public init(displayname: String, username: String, bio: String) {
+            _displayname = State(initialValue: displayname)
+            _username = State(initialValue: username)
+            _bio = State(initialValue: bio)
+        }
+    
+    var body: some View {
+        VStack(alignment: .center) {
+            if let image = selectedImage {
+                Button(action: {
+                    selectedImage = nil
+                    isShowingImagePicker = true
+                }) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 50, height: 50)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            } else {
+                Button(action: {
+                    isShowingImagePicker = true
+                }) {
+                    RoundedRectangle(cornerRadius: 12)
+                        .foregroundColor(.clear)
+                        .overlay(
+                            Image(systemName: "plus.circle.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.blue)
+                        )
+                        .frame(height: 200)
+                }
+                .padding()
+                .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0, dash: [5])))
+                .sheet(isPresented: $isShowingImagePicker) {
+                    ImagePicker(selectedImage: $selectedImage)
+                }
+            }
+            
+            TextField("Display Name", text: $displayname)
+                .padding()
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            TextField("Username", text: $username)
+                .padding()
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            TextField("Bio", text: $bio)
+                .padding()
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            Button("Save Changes") {
+                saveChanges()
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(8)
+        }
+        .padding()
+    }
+
+    func saveChanges() {
+        // Update user data in Firestore
+        let db = Firestore.firestore()
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            // Handle error: User not authenticated
+            return
+        }
+
+        let userRef = db.collection("users").document(currentUserID)
+        userRef.setData([
+            "displayName": displayname,
+            "username": username,
+            "bio": bio,
+            "imageURL": imageURL?.absoluteString ?? ""
+        ], merge: true) { error in
+            if let error = error {
+                // Handle error while saving to Firestore
+                print("Error updating user profile: \(error.localizedDescription)")
+            } else {
+                // Successfully saved to Firestore
+                presentationMode.wrappedValue.dismiss() // Dismiss the edit profile view
+            }
+        }
+
+        // Upload image to Firebase Storage
+        guard let image = selectedImage,
+              let imageData = image.jpegData(compressionQuality: 0.3) else {
+            errorMessage = "Please select an image."
+            return
+        }
+
+        isLoading = true
+        let storageRef = Storage.storage().reference().child("profile_images/\(UUID().uuidString).jpg")
+
+        storageRef.putData(imageData, metadata: nil) { metadata, error in
+            isLoading = false
+            if let error = error {
+                errorMessage = error.localizedDescription
+                return
+            }
+
+            storageRef.downloadURL { url, error in
+                if let error = error {
+                    errorMessage = error.localizedDescription
+                    return
+                }
+
+                guard let downloadURL = url else {
+                    errorMessage = "Failed to get download URL."
+                    return
+                }
+
+                imageURL = downloadURL // Save the image URL
+            }
+        }
+    }
+
+    func saveDesignToFirestore(user: User, imageURL: String) {
+        let db = Firestore.firestore()
+        let userDataRef = db.collection("users").document(user.uid)
+        
+        let newPostRef = db.collection("posts").document()
+        
+        userDataRef.setData([
+            "displayName": displayname,
+            "username": username,
+            "bio": bio,
+            "imageURL": imageURL,
+        ]) { error in
+            if let error = error {
+                errorMessage = error.localizedDescription
+                return
+            }
+            
+            // Update user's designs array in Firestore
+            userDataRef.updateData(["designs": FieldValue.arrayUnion([db.collection("posts").document().documentID])]) { error in
+                if let error = error {
+                    errorMessage = error.localizedDescription
+                } else {
+                    // Design uploaded successfully
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+        }
+    }
+    
+}
+
+
 
 struct LikedPostsView: View {
     @State private var likedPosts: [LikedPost] = []
     @State private var isLoadingMore = false
     @State private var isAllLoaded = false
     @State private var lastDocument: DocumentSnapshot? = nil
+    @State private var scrolledToBottom = false // Track if scrolled to bottom
     var body: some View {
         GeometryReader { geo in
-            ScrollView {
-                ForEach(likedPosts) { post in
-                    LikedPostRow(
-                        post: post,
-                        id: post.id,
-                        geo: geo,
-                        imageURL: post.imageURL,
-                        title: post.title,
-                        author: post.author,
-                        description: post.description,
-                        likes: post.likes,
-                        views: post.views,
-                        codeSnippet: post.codeSnippet
-                    )
-                    .frame(maxWidth: geo.size.width)}
-                
-                
-                if isLoadingMore && !isAllLoaded {
-                    ProgressView()
-        //load more                .onAppear(perform: )
+            ScrollView{
+                VStack{
+                    ForEach(likedPosts) { post in
+                        LikedPostRow(
+                            post: post,
+                            id: post.id,
+                            geo: geo,
+                            imageURL: post.imageURL,
+                            title: post.title,
+                            author: post.author,
+                            description: post.description,
+                            likes: post.likes,
+                            views: post.views,
+                            codeSnippet: post.codeSnippet
+                        )
+                    }
+                    if isLoadingMore && !isAllLoaded {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    if !likedPosts.isEmpty && !isAllLoaded {
+                        Button("Load More") {
+                            loadMorePosts()
+                        }
+                        .bold()
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                        
+                    }
                 }
             }
-     //load initial posts       .onAppear(perform: )
+            .onAppear {
+                if likedPosts.isEmpty {
+                    loadInitialPosts()
+                }
+            }
+            
+        }
+        .onDisappear {
+            likedPosts.removeAll()
+            isAllLoaded = false
         }
     }
+        private func loadInitialPosts() {
+            let db = Firestore.firestore()
+            db.collection("users").document(Auth.auth().currentUser?.uid ?? "").collection("likedPosts")
+                .order(by: "time") // Assuming there's a timestamp field for ordering
+                .limit(to: 3)
+                .getDocuments { snapshot, error in
+                    if let error = error {
+                        print("Error getting initial posts: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    guard let documents = snapshot?.documents else {
+                        print("No initial posts found")
+                        return
+                    }
+                    
+                    likedPosts = documents.compactMap { document in
+                        do {
+                            return try document.data(as: LikedPost.self)
+                        } catch {
+                            print("Error decoding post: \(error.localizedDescription)")
+                            return nil
+                        }
+                    }
+                    
+                    if let lastDocument = documents.last {
+                        self.lastDocument = lastDocument
+                    }
+                }
+        }
+        
+        private func loadMorePosts() {
+            guard let lastDocument = lastDocument else { return }
+            
+            let db = Firestore.firestore()
+            db.collection("users").document(Auth.auth().currentUser?.uid ?? "").collection("likedPosts")
+                .order(by: "time") // Assuming there's a timestamp field for ordering
+                .start(afterDocument: lastDocument)
+                .limit(to: 2)
+                .getDocuments { snapshot, error in
+                    if let error = error {
+                        print("Error getting more posts: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    guard let documents = snapshot?.documents else {
+                        print("No more posts found")
+                        return
+                    }
+                    
+                    let morePosts = documents.compactMap { document in
+                        do {
+                            return try document.data(as: LikedPost.self)
+                        } catch {
+                            print("Error decoding post: \(error.localizedDescription)")
+                            return nil
+                        }
+                    }
+                    
+                    likedPosts.append(contentsOf: morePosts)
+                    
+                    if documents.isEmpty {
+                        isAllLoaded = true
+                    } else if let lastDocument = documents.last {
+                        self.lastDocument = lastDocument
+                    }
+                    
+                    isLoadingMore = false
+                }
+        }
 }
 
 struct LikedPostRow: View {
@@ -1364,6 +1648,7 @@ struct LikedPostRow: View {
     @State private var postsRef: DocumentReference? = nil
     @State private var isLiked: Bool = false
     @State private var isProcessingLike = false
+    
     private func formatNumber(_ number: Int) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -1383,72 +1668,74 @@ struct LikedPostRow: View {
     
     var body: some View {
         NavigationLink(destination: DetailView(id: id, imageURL: imageURL, title: title, description: description, author: author,likes: $likes, views: views, codeSnippet: codeSnippet, isLiked: $isLiked)) {
-            HStack{
-                Spacer()
-                VStack(alignment: .center){
-                    AsyncImage(url: URL(string: imageURL)) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: geo.size.width - 20, height: 250)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } placeholder: {
-                        // Placeholder while loading
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.gray)
-                            .frame(width: geo.size.width - 20, height: 300)
-                            .overlay {
-                                ProgressView()
-                                    .foregroundColor(.white)
-                            }
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            HStack(){
+                AsyncImage(url: URL(string: imageURL)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 200, height: 113)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                } placeholder: {
+                    // Placeholder while loading
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.gray)
+                        .frame(width: 200, height: 113)
+                        .overlay {
+                            ProgressView()
+                                .foregroundColor(.white)
+                        }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                
+                VStack(alignment: .leading){
+                    Text(title)
+                        .font(.title2).bold()
+                        .lineLimit(/*@START_MENU_TOKEN@*/2/*@END_MENU_TOKEN@*/)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
                     
-                    VStack(alignment: .leading){
-                        Text(title)
-                            .font(.headline)
-                            .lineLimit(/*@START_MENU_TOKEN@*/2/*@END_MENU_TOKEN@*/)
-                            .foregroundColor(.primary)
-                            .multilineTextAlignment(.leading)
+                    Spacer()
+                    
+                    //likes & views
+                    HStack{
+                        Text(author)
+                            .font(.system(size: 15))
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        //hearts & views
                         HStack{
-                            Text(author)
+                            //likes
+                            if isLiked {
+                                Image(systemName: "heart.fill")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(.red)
+                            } else {
+                                Image(systemName: "heart")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Text(formatNumber(likes))
+                                .font(.caption).bold()
                                 .font(.system(size: 15))
                                 .foregroundColor(.secondary)
-                            
-                            Spacer()
-                            
-                            //hearts & views
-                            HStack(spacing: 5){
-                                //likes
-                                if isLiked {
-                                    Image(systemName: "heart.fill")
-                                        .font(.system(size: 15))
-                                        .foregroundColor(.red)
-                                } else {
-                                    Image(systemName: "heart")
-                                        .font(.system(size: 15))
-                                        .foregroundColor(.gray)
-                                }
-                                
-                                Text(formatNumber(likes))
+                            HStack{
+                                Image(systemName: "eye")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 14))
+                                Text(formatNumber(views))
                                     .font(.caption).bold()
-                                    .font(.system(size: 15))
                                     .foregroundColor(.secondary)
-                                HStack{
-                                    Image(systemName: "eye")
-                                        .foregroundColor(.gray)
-                                        .font(.system(size: 15))
-                                    Text(formatNumber(views) + " Views")
-                                        .font(.caption).bold()
-                                        .foregroundColor(.secondary)
-                                }
                             }
                         }
                     }
                 }
-                Spacer()
-            }.padding(.vertical, 8)
+            }
+            .frame(height: 113)
         }
+        .padding(8)
         .onAppear {
             postsRef = Firestore.firestore().collection("posts").document(id)
             fetchLikes()
@@ -1510,7 +1797,7 @@ struct LikedPostRow: View {
     }
 }
 
-struct LikedPost: Identifiable {
+struct LikedPost: Decodable, Identifiable {
     let id: String
     let imageURL: String
     let title: String

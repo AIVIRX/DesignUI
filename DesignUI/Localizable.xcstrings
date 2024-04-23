@@ -4,8 +4,15 @@
     "%@" : {
 
     },
-    "A simple login menu." : {
-
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
     },
     "Activity" : {
 
@@ -13,7 +20,7 @@
     "Author" : {
 
     },
-    "Author Name" : {
+    "Bio" : {
 
     },
     "By %@" : {
@@ -52,13 +59,16 @@
     "Discovery Beyond Limits. Explore DesignUI" : {
 
     },
+    "Display Name" : {
+
+    },
     "Done" : {
 
     },
-    "Enter new description" : {
+    "Edit Profile" : {
 
     },
-    "Enter new name" : {
+    "Enter username" : {
 
     },
     "Featured" : {
@@ -73,10 +83,10 @@
     "Home" : {
 
     },
-    "Log Out" : {
+    "Load More" : {
 
     },
-    "Login Screen UI" : {
+    "Log Out" : {
 
     },
     "Privacy & Support" : {
@@ -91,6 +101,9 @@
     "Profile" : {
 
     },
+    "Save Changes" : {
+
+    },
     "Search" : {
 
     },
@@ -101,6 +114,9 @@
 
     },
     "Share CodeShare UI" : {
+
+    },
+    "Submit" : {
 
     },
     "Support Us" : {
@@ -122,6 +138,9 @@
 
     },
     "Upload Design" : {
+
+    },
+    "Username" : {
 
     }
   },
