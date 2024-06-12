@@ -6,13 +6,10 @@
 //
 
 import SwiftUI
-import Firebase
-import FirebaseCore
-import FirebaseFirestore
 import AppTrackingTransparency
+import GoogleMobileAds
+import AdSupport
 
-
-#if os(iOS)
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -23,46 +20,34 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                     switch status {
                     case .authorized:
                         print("TRACKING ENABLED")
+                        GADMobileAds.sharedInstance().start(completionHandler: nil)
+                        print(ASIdentifierManager.shared().advertisingIdentifier.uuidString)
                     case .denied:
                         print("TRACKING DISABLED")
+                        GADMobileAds.sharedInstance().start(completionHandler: nil)
+                        print(ASIdentifierManager.shared().advertisingIdentifier.uuidString)
                     default:
                         print("DEFAULT TRACKING")
                     }
                 }
             }
+            else{
+                GADMobileAds.sharedInstance().start(completionHandler: nil)
+            }
         })
-        FirebaseApp.configure()
-        
         return true
     }
 }
 
 @main
-struct DesignUIApp: App {
+struct CryptoProfitCalculatorApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    var body: some Scene {
-        WindowGroup {
-            loginPage()
-        }
-    }
-}
-#endif
-
-
-#if os(macOS)
-class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        FirebaseApp.configure()
-    }
-}
-
-@main
-struct DesignUIApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var store = Store()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(store)
         }
     }
 }
-#endif

@@ -4,29 +4,30 @@
 //
 //  Created by Maicol Cabreja on 6/11/24.
 //
-
 import SwiftUI
+import AlertToast
 
 struct DetailView: View {
     var id: String
-    var imageURL: String
+    var mediaURL: String
     var title: String
     var description: String
     var author: String
     var codeSnippet: String
-    var published: String
+    var creationDate: String
     var type: DesignType
     @Binding var isLiked: Bool
     @State private var isCopied: Bool = false
+    
     var body: some View {
         GeometryReader { geometry in
-            ScrollView{
+            ScrollView {
                 VStack(alignment: .leading) {
-                    if type == .image{
-                        Image(imageURL)
+                    if type == .image {
+                        Image(mediaURL)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width * 1.0, height: 250)
+                            .frame(width: geometry.size.width, height: 250)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                             .clipped()
                     }
@@ -39,7 +40,7 @@ struct DetailView: View {
                                 .lineLimit(2)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        Text(published)
+                        Text(creationDate)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
@@ -51,7 +52,7 @@ struct DetailView: View {
                     Text("Description:")
                         .font(.title2).bold()
                         .padding(.top)
-                    Text("\(description)")
+                    Text(description)
                         .font(.body)
                         .foregroundColor(.primary)
                     
@@ -59,8 +60,8 @@ struct DetailView: View {
                         .font(.title2).bold()
                         .padding(.top)
                     
-                    ScrollView{
-                        VStack(alignment: .leading){
+                    ScrollView {
+                        VStack(alignment: .leading) {
                             Text(codeSnippet)
                                 .font(.body)
                                 .padding()
@@ -83,14 +84,25 @@ struct DetailView: View {
                     .foregroundStyle(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12.0))
                     .padding(.top, 10)
-                    
                 }
                 .toast(isPresenting: $isCopied) {
                     AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
                 }
             }
+            .padding(7)
         }
-        .padding(7)
+        .cornerRadius(20)
     }
-    func copyToClipboard(_ text: String) { UIPasteboard.general.string = text }
+
+    func copyToClipboard(_ text: String) {
+        UIPasteboard.general.string = text
+    }
+}
+
+struct ScrollOffsetKey: PreferenceKey {
+    typealias Value = CGFloat
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
 }

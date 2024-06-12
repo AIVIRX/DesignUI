@@ -16,7 +16,7 @@ class Store: NSObject, ObservableObject{
     @Published var allRecipes  = [Recipe]()
     
     private let allProductIdentifiers = Set([
-        "UIRemoveAds" //one time payment to remove ads forever
+        "UIRemoveAds" 
     ])
     
     var completedPurchases = [String](){

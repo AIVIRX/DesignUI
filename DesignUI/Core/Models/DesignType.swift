@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+enum DesignType {
+    case gif
+    case image
+    case fetched
+}

@@ -3,54 +3,62 @@
 //  DesignUI
 //
 //  Created by Maicol Cabreja on 6/11/24.
-//
-
+//import SwiftUI
 import SwiftUI
 
 struct DesignCards: View {
     var id: String
-    var image: String
+    var media: String
     var title: String
     var author: String
     var description: String
     var codeSnippet: String
     var published: String
     var type: DesignType
-    @State private var designPost: DesignPost
+    var tags: [String]?
     @State private var isLiked: Bool = false
-    init(id: String, image: String, title: String, author: String, description: String, codeSnippet: String, published: String, type: DesignType) {
+
+    init(id: String, media: String, title: String, author: String, description: String, codeSnippet: String, published: String, type: DesignType, tags: [String]?) {
         self.id = id
-        self.image = image
+        self.media = media
         self.title = title
         self.author = author
         self.description = description
         self.codeSnippet = codeSnippet
         self.published = published
         self.type = type
-        self._designPost = State(initialValue: DesignPost(id: id, image: image, title: title, author: author, description: description, codeSnippet: codeSnippet, published: "", type: .image))
+        self.tags = tags
     }
-    
+
     var body: some View {
-        NavigationLink(destination: DetailView(id: id, imageURL: image, title: title, description: description, author: author, codeSnippet: codeSnippet, published: published, type: type, isLiked: $isLiked)) {
-            // Your view content here
-            VStack(alignment: .leading){
-                
-                if type == .image{
-                    Image(image)
+        NavigationLink(destination: DetailView(
+            id: id,
+            mediaURL: media,
+            title: title,
+            description: description,
+            author: author,
+            codeSnippet: codeSnippet,
+            creationDate: published,
+            type: type,
+            isLiked: $isLiked
+        )) {
+            VStack(alignment: .leading) {
+                if type == .image {
+                    Image(media)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 160, height: 130)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .scaledToFill()
                 }
-                VStack(alignment: .leading){
+                VStack(alignment: .leading) {
                     Text(title)
                         .font(.headline)
-                        .lineLimit(/*@START_MENU_TOKEN@*/2/*@END_MENU_TOKEN@*/)
+                        .lineLimit(2)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
                     Spacer()
-                    HStack{
+                    HStack {
                         Text(author)
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)

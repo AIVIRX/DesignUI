@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@" : {
-
-    },
     "By %@" : {
 
     },
@@ -17,9 +14,6 @@
 
     },
     "Copy Code" : {
-
-    },
-    "Crypto Profit Calculator" : {
 
     },
     "Crypto Profit Loss Calculator" : {
@@ -62,6 +56,9 @@
 
     },
     "Shop" : {
+
+    },
+    "Snippets UI" : {
 
     },
     "Support Us" : {
