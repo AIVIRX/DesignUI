@@ -4,6 +4,7 @@
 //
 //  Created by Maicol Cabreja on 6/11/24.
 //
+
 import SwiftUI
 import AlertToast
 
@@ -18,6 +19,7 @@ struct DetailView: View {
     var type: DesignType
     @Binding var isLiked: Bool
     @State private var isCopied: Bool = false
+    @State private var showShareSheet: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -84,6 +86,22 @@ struct DetailView: View {
                     .foregroundStyle(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12.0))
                     .padding(.top, 10)
+                    
+                    Button(action: {
+                        showShareSheet = true
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share")
+                                .padding(8)
+                                .frame(maxWidth: .infinity)
+                                .font(.headline).bold()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .foregroundStyle(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12.0))
+                    .padding(.top, 10)
                 }
                 .toast(isPresenting: $isCopied) {
                     AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
@@ -99,10 +117,3 @@ struct DetailView: View {
     }
 }
 
-struct ScrollOffsetKey: PreferenceKey {
-    typealias Value = CGFloat
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}

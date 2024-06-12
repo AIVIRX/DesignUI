@@ -39,7 +39,7 @@ struct ContentView: View {
                         
                         ScrollView(.horizontal, showsIndicators: false) {
                             
-                            HStack(spacing: 3) {
+                            LazyHStack(spacing: 3) {
                                 ForEach(designPosts) { post in
                                     DesignCards(
                                         id: post.id,
@@ -66,7 +66,7 @@ struct ContentView: View {
                             .padding(.leading, 3)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 3) {
+                            LazyHStack(spacing: 3) {
                                 ForEach(componentPosts) { post in
                                     DesignCards(
                                         id: post.id,
