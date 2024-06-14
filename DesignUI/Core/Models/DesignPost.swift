@@ -6,7 +6,7 @@
 //
 import Foundation
 
-struct DesignPost: Identifiable {
+struct DesignPost: Identifiable, Codable {
     let id: String
     let media: String
     let title: String
@@ -14,9 +14,6 @@ struct DesignPost: Identifiable {
     let description: String
     let codeSnippet: String
     let creationDate: String
-    let type: DesignType
-    var likes: String?
-    var isFavorited: Bool?
-    var viewCount: String?
+    let type: String
     let tags: [String]?
 }

@@ -6,10 +6,293 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
+import AlertToast
+import FirebaseAuth
+import FirebaseStorage
 
 struct UploadDesignView: View {
+    @State private var postID: String = ""
+    @State private var title: String = ""
+    @State private var description: String = ""
+    @State private var codeSnippet: String = ""
+    @State private var author: String = ""
+    @State private var selectedImage: UIImage?
+    @State private var isShowingImagePicker = false
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @Environment(\.presentationMode) var presentationMode
+    @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
+    @State private var showToast = false
+    var isUploadEnabled: Bool {
+        return !title.isEmpty && !author.isEmpty && !description.isEmpty && !codeSnippet.isEmpty && selectedImage != nil
+    }
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(alignment: .leading){
+                    Text("Thumbnail")
+                        .bold()
+                    if let image = selectedImage {
+                        Button(action: {
+                            selectedImage = nil
+                            isShowingImagePicker = true
+                        }) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: geometry.size.width * 1.0, height: 250)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                    } else {
+                        Button(action: {
+                            isShowingImagePicker = true
+                        }) {
+                            RoundedRectangle(cornerRadius: 12)
+                                .foregroundColor(.clear)
+                                .overlay(
+                                    Image(systemName: "plus.circle.fill")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 50, height: 50)
+                                        .foregroundColor(.blue)
+                                )
+                                .frame(height: 200)
+                        }
+                        .padding()
+                        .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0, dash: [5])))
+                        .sheet(isPresented: $isShowingImagePicker) {
+                            ImagePicker(selectedImage: $selectedImage)
+                        }
+                    }
+                    
+                    Text("Title")
+                        .bold()
+                    TextFieldWithCounter(placehold: "Login Screen UI", text: $title, maxLength: 20)
+                    
+                    Text("Author")
+                        .bold()
+                    TextFieldWithCounter(placehold: "Author Name", text: $author, maxLength: 15)
+                    
+                    Text("Description")
+                        .bold()
+                    TextFieldWithCounter(placehold: "A simple login menu.", text: $description, maxLength: 200)
+                    
+                    Text("Code")
+                        .bold()
+                    TextEditorWithCounter(text: $codeSnippet, maxLength: 500)
+                    
+                }
+                .toolbar{
+                    ToolbarItemGroup(placement: .keyboard){ Spacer()
+                        Button("Done") {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
+                
+                Button(action: { uploadDesign() }) {
+                    Text("Upload Design")
+                        .padding(8)
+                        .frame(maxWidth: .infinity)
+                        .font(.headline).bold()
+                }
+                .buttonStyle(.borderedProminent)
+                .foregroundStyle(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12.0))
+                .disabled(!isUploadEnabled)
+                .toast(isPresenting: $showToast) {
+                    AlertToast(displayMode: .hud, type: .complete(Color.green), title: "Upload Successful")
+                }
+            }
+        }
+        .padding(7)
+        .navigationTitle("Upload Design")
+    }
+    
+    // Custom TextField with character counter
+    struct TextFieldWithCounter: View {
+        let placehold: String
+        @Binding var text: String
+        let maxLength: Int
+        
+        var body: some View {
+            VStack(alignment: .leading) {
+                TextField(placehold, text: $text)
+                    .padding()
+                    .bold()
+                    .frame(height: 50)
+                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                Text("\(text.count)/\(maxLength)")
+                    .font(.caption)
+                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+            }
+            .onChange(of: text) {
+                if text.count > maxLength {
+                    text = String(text.prefix(maxLength))
+                }
+            }
+        }
+    }
+    
+    // Custom TextEditor with character counter
+    struct TextEditorWithCounter: View {
+        @Binding var text: String
+        let maxLength: Int
+        
+        var body: some View {
+            VStack(alignment: .leading) {
+                TextEditor(text: $text)
+                    .padding()
+                    .frame(height: 100)
+                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                Text("\(text.count)/\(maxLength)")
+                    .font(.caption)
+                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+            }
+            .onChange(of: text) {
+                if text.count > maxLength {
+                    text = String(text.prefix(maxLength))
+                }
+            }
+        }
+    }
+    
+    func generateUniqueImageID() -> String {
+        let uuid = UUID().uuidString
+        let timestamp = Date().timeIntervalSince1970
+        return "\(uuid)_\(timestamp)"
+    }
+    
+    func uploadDesign() {
+        let user = Auth.auth().currentUser
+        if let user = user {
+            let uid = user.uid
+        
+        guard let image = selectedImage,
+              
+                let imageData = image.jpegData(compressionQuality: 0.3) else {
+            print("Please select an image.")
+            
+            return
+        }
+        
+        isLoading = true
+        let uniqueImageID = generateUniqueImageID()
+        let storageRef = Storage.storage().reference().child("design_images/\(uid)/\(uniqueImageID).jpg")
+        
+        storageRef.putData(imageData, metadata: nil) { metadata, error in
+            isLoading = false
+            if let error = error {
+                print(error.localizedDescription)
+                return
+            }
+            
+            storageRef.downloadURL { url, error in
+                if let error = error {
+                    print("\(error.localizedDescription)")
+                    return
+                }
+                
+                guard let downloadURL = url else {
+                    print("Failed to get download URL.")
+                    return
+                }
+                
+                // Save design data to Firestore
+                saveDesignToFirestore(user: user, imageURL: downloadURL.absoluteString)
+                DispatchQueue.main.async {
+                    title = ""
+                    author = ""
+                    description = ""
+                    codeSnippet = ""
+                    selectedImage = nil
+                }
+                showToast = true
+            }
+        }
+    }}
+    
+    func saveDesignToFirestore(user: User, imageURL: String) {
+        let db = Firestore.firestore()
+        let userDataRef = db.collection("users").document(user.uid)
+        let codeSnippetWithLineBreaks = codeSnippet.replacingOccurrences(of: "\\n", with: "\n")
+        
+        let newPostRef = db.collection("CommunityPosts").document()
+        newPostRef.setData([
+            "id": newPostRef.documentID,
+            "title": title,
+            "description": description,
+            "author": author,
+            "codeSnippet": codeSnippetWithLineBreaks,
+            "media": imageURL,
+            "creationDate": Date().toFormattedString(),
+            "type": "fetched",
+            "tags": [""],
+            "userId": user.uid
+        ]) { error in
+            if let error = error {
+                errorMessage = error.localizedDescription
+                return
+            }
+            
+            // Update user's designs array in Firestore
+            userDataRef.updateData(["designs": FieldValue.arrayUnion([db.collection("CommunityPosts").document().documentID])]) { error in
+                if let error = error {
+                    print(error.localizedDescription)
+                } else {
+                    // Design uploaded successfully
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+        }
+    }
+}
+
+extension Date {
+    func toFormattedString() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM dd, yyyy"
+        return dateFormatter.string(from: self)
+    }
+}
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Environment(\.presentationMode) var presentationMode
+    @Binding var selectedImage: UIImage?
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
+        // Update the view controller if needed
+    }
+
+    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage = image
+            }
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
     }
 }
 

@@ -18,38 +18,23 @@ struct LoginView: View {
     @State private var nonce: String?
     @Environment(\.colorScheme) private var scheme
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
-    @State private var showUsernamePrompt: Bool = true
-    @State private var username: String = ""
     var body: some View {
         NavigationStack {
             if isLoggedIn {
-                ContentView()
+                // Show user profile information
+                Text("Welcome, User!")
+                // Add more profile details here
             } else {
-                ZStack(alignment: .bottom){
-                    GeometryReader {
-                        let size = $0.size
-                        
-                        Image ("Swiftyui")
-                            .resizable()
-                            .aspectRatio (contentMode: .fill)
-                            .offset (y: -60)
-                            .frame(width: size.width, height: size.height)
-                    }
-                    //Gradient Masking
-                    .mask{
-                        Rectangle()
-                            .fill(LinearGradient(
-                                colors: [.white, .white, .white, .white, .white.opacity(0.9), .white.opacity(0.6), .white.opacity(0.2), .clear, .clear
-                                        ],
-                                startPoint: .top,
-                                endPoint: .bottom))
-                    }
-                    .ignoresSafeArea()
-                    
-                    //Sign In Button
-                    VStack(alignment: .leading){
-                        Text("Discovery Beyond Limits. Explore DesignUI")
-                            .font(.title).bold()
+                VStack{
+                Text("Snippets UI Profile")
+                    .font(.largeTitle).bold()
+                Text("View Liked Designs And More!")
+                    .padding(5).bold()
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(Color.gray)
+                    .shadow(radius: 5)
+                    .padding()
+                    .ignoresSafeArea(.all)
                         
                         SignInWithAppleButton(.signIn){ request in
                             let nonce = randomNonceString()
@@ -64,8 +49,6 @@ struct LoginView: View {
                                 showError(error.localizedDescription)
                             }
                         }
-                        .overlay{
-                        }
                         .frame(height: 50)
                         .clipShape(.capsule)
                         .padding(.top,  10)
@@ -79,7 +62,6 @@ struct LoginView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(20)
-                }
                 .onAppear {
                     checkLoggedIn()
                 }
@@ -208,29 +190,22 @@ struct LoginView: View {
         var randomBytes = [UInt8](repeating: 0, count: length)
         let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
         if errorCode != errSecSuccess {
-            fatalError(
-                "Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)"
-            )
+            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
         }
-        
-        let charset: [Character] =
-        Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
-        let nonce = randomBytes.map { byte in
-            // Pick a random character from the set, wrapping around if needed.
-            charset[Int(byte) % charset.count]
-        }
+
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        let nonce = randomBytes.map { byte in charset[Int(byte) % charset.count] }
         return String(nonce)
     }
-    
+
+    @available(iOS 13, *)
     private func sha256(_ input: String) -> String {
         let inputData = Data(input.utf8)
         let hashedData = SHA256.hash(data: inputData)
-        let hashString = hashedData.compactMap {
-            String(format: "%02x", $0)
-        }.joined()
-        
+        let hashString = hashedData.compactMap { String(format: "%02x", $0) }.joined()
         return hashString
     }
+
 }
 
 

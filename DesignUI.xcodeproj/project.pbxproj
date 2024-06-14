@@ -7,71 +7,80 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EC1C748B2C0FC068000C9E9A /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1C748A2C0FC068000C9E9A /* Recipe.swift */; };
-		EC1C748D2C0FC08C000C9E9A /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1C748C2C0FC08C000C9E9A /* Store.swift */; };
-		EC1C748F2C0FC0A5000C9E9A /* BannerAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1C748E2C0FC0A5000C9E9A /* BannerAds.swift */; };
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
 		EC3EA75A2BD05AC8009C1F65 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = EC3EA7592BD05AC8009C1F65 /* AlertToast */; };
-		EC40403D2BE08DCF009F1AB4 /* GIFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC40403C2BE08DCF009F1AB4 /* GIFView.swift */; };
-		EC7BA3CF2BD0B6E8007A6C91 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = EC7BA3CE2BD0B6E8007A6C91 /* Localizable.xcstrings */; };
-		ECADF5FF2BCAE9610096753A /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECADF5FE2BCAE9610096753A /* DesignUIApp.swift */; };
-		ECADF6032BCAE9630096753A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECADF6022BCAE9630096753A /* Assets.xcassets */; };
-		ECADF6072BCAE9630096753A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECADF6062BCAE9630096753A /* Preview Assets.xcassets */; };
-		ECADF60F2BCC6AD00096753A /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF60E2BCC6AD00096753A /* FirebaseAnalytics */; };
-		ECADF6112BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF6102BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion */; };
-		ECADF6132BCC6AD00096753A /* FirebaseAnalyticsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF6122BCC6AD00096753A /* FirebaseAnalyticsSwift */; };
-		ECADF6152BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = ECADF6142BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport */; };
+		EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */; };
+		EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */; };
+		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
+		EC7D7BD72C19E3F0003134B1 /* Store Config.storekit in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD62C19E3EF003134B1 /* Store Config.storekit */; };
+		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
+		EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BDA2C19E454003134B1 /* Constants.swift */; };
+		EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BDC2C19E45B003134B1 /* Store.swift */; };
+		EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE02C19E49A003134B1 /* Recipe.swift */; };
+		EC7D7BE32C19E4B8003134B1 /* GIFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE22C19E4B8003134B1 /* GIFView.swift */; };
+		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
+		EC7D7BE72C19E4D1003134B1 /* DesignType.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE62C19E4D1003134B1 /* DesignType.swift */; };
+		EC7D7BE92C19E4FB003134B1 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE82C19E4FB003134B1 /* Login.swift */; };
+		EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEA2C19E506003134B1 /* HomeView.swift */; };
+		EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */; };
+		EC7D7BEF2C19E51D003134B1 /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEE2C19E51D003134B1 /* StoreView.swift */; };
+		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
+		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
+		EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF42C19E546003134B1 /* DesignCards.swift */; };
+		EC7D7BF72C19E54F003134B1 /* ColorPaletteGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF62C19E54F003134B1 /* ColorPaletteGeneratorView.swift */; };
+		EC7D7BF92C19E553003134B1 /* ColorRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF82C19E553003134B1 /* ColorRectangle.swift */; };
+		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
+		EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFC2C19E581003134B1 /* SymbolRow.swift */; };
+		EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */; };
+		EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C022C19E5BD003134B1 /* BannerAds.swift */; };
+		EC7D7C062C19E6CA003134B1 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C052C19E6CA003134B1 /* Color+Extensions.swift */; };
+		EC7D7C0A2C19E7B5003134B1 /* Preview Content.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */; };
+		EC7D7C0C2C19EA84003134B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7C0B2C19EA84003134B1 /* GoogleService-Info.plist */; };
+		EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C0E2C19F610003134B1 /* Profile.swift */; };
 		ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */; };
 		ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECC9BC842C0FE0D40052D471 /* AdSupport.framework */; };
-		ECD13FD62C18BB7300105B3E /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FD52C18BB7300105B3E /* Color+Extensions.swift */; };
-		ECD13FD92C18BBCD00105B3E /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FD82C18BBCD00105B3E /* Constants.swift */; };
-		ECD13FDC2C18BC5900105B3E /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FDB2C18BC5900105B3E /* DesignPost.swift */; };
-		ECD13FDE2C18BC7D00105B3E /* DesignType.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FDD2C18BC7D00105B3E /* DesignType.swift */; };
-		ECD13FE12C18BCE500105B3E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FE02C18BCE500105B3E /* HomeView.swift */; };
-		ECD13FE32C18BD2900105B3E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FE22C18BD2900105B3E /* SettingsView.swift */; };
-		ECD13FE52C18BD4E00105B3E /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FE42C18BD4E00105B3E /* StoreView.swift */; };
-		ECD13FE92C18BE2A00105B3E /* RecipeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FE82C18BE2A00105B3E /* RecipeRow.swift */; };
-		ECD13FEC2C18BE6C00105B3E /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FEB2C18BE6C00105B3E /* DesignCards.swift */; };
-		ECD13FEE2C18BE9500105B3E /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FED2C18BE9500105B3E /* DetailView.swift */; };
-		ECD13FF12C18BEEA00105B3E /* ColorPaletteGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FF02C18BEEA00105B3E /* ColorPaletteGeneratorView.swift */; };
-		ECD13FF32C18BEF700105B3E /* ColorRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FF22C18BEF700105B3E /* ColorRectangle.swift */; };
-		ECD13FF62C18BF4900105B3E /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FF52C18BF4900105B3E /* SFIconsView.swift */; };
-		ECD13FF82C18BF5600105B3E /* SymbolRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FF72C18BF5600105B3E /* SymbolRow.swift */; };
-		ECD13FFB2C18BF9700105B3E /* LargeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD13FFA2C18BF9700105B3E /* LargeCardView.swift */; };
-		ECFCFF482BD35B9200199FA6 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECFCFF472BD35B9200199FA6 /* StoreKit.framework */; };
+		ECCDD4162C1B94F700869B70 /* PostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDD4152C1B94F700869B70 /* PostsView.swift */; };
+		ECCDD4182C1B951C00869B70 /* LikedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDD4172C1B951C00869B70 /* LikedView.swift */; };
+		ECCDD41B2C1BBA5F00869B70 /* UploadDesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDD41A2C1BBA5F00869B70 /* UploadDesignView.swift */; };
+		ECCDD41D2C1BBADC00869B70 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = ECCDD41C2C1BBADC00869B70 /* FirebaseStorage */; };
+		ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		EC1C748A2C0FC068000C9E9A /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
-		EC1C748C2C0FC08C000C9E9A /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
-		EC1C748E2C0FC0A5000C9E9A /* BannerAds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAds.swift; sourceTree = "<group>"; };
-		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		EC40403C2BE08DCF009F1AB4 /* GIFView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFView.swift; sourceTree = "<group>"; };
-		EC7BA3CE2BD0B6E8007A6C91 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		EC7BA3D02BD0BD78007A6C91 /* Store Config.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Store Config.storekit"; sourceTree = "<group>"; };
+		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
+		EC7D7BD62C19E3EF003134B1 /* Store Config.storekit */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Store Config.storekit"; sourceTree = "<group>"; };
+		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		EC7D7BDA2C19E454003134B1 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		EC7D7BDC2C19E45B003134B1 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
+		EC7D7BE02C19E49A003134B1 /* Recipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
+		EC7D7BE22C19E4B8003134B1 /* GIFView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GIFView.swift; sourceTree = "<group>"; };
+		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
+		EC7D7BE62C19E4D1003134B1 /* DesignType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignType.swift; sourceTree = "<group>"; };
+		EC7D7BE82C19E4FB003134B1 /* Login.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
+		EC7D7BEA2C19E506003134B1 /* HomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeRow.swift; sourceTree = "<group>"; };
+		EC7D7BEE2C19E51D003134B1 /* StoreView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
+		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
+		EC7D7BF42C19E546003134B1 /* DesignCards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
+		EC7D7BF62C19E54F003134B1 /* ColorPaletteGeneratorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorPaletteGeneratorView.swift; sourceTree = "<group>"; };
+		EC7D7BF82C19E553003134B1 /* ColorRectangle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorRectangle.swift; sourceTree = "<group>"; };
+		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
+		EC7D7BFC2C19E581003134B1 /* SymbolRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SymbolRow.swift; sourceTree = "<group>"; };
+		EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LargeCardView.swift; sourceTree = "<group>"; };
+		EC7D7C022C19E5BD003134B1 /* BannerAds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BannerAds.swift; sourceTree = "<group>"; };
+		EC7D7C042C19E620003134B1 /* DesignUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesignUI.entitlements; sourceTree = "<group>"; };
+		EC7D7C052C19E6CA003134B1 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Color+Extensions.swift"; path = "DesignUI/Color+Extensions.swift"; sourceTree = SOURCE_ROOT; };
+		EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content.xcassets"; sourceTree = "<group>"; };
+		EC7D7C0B2C19EA84003134B1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		EC7D7C0E2C19F610003134B1 /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* DesignUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DesignUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		ECADF5FE2BCAE9610096753A /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
-		ECADF6022BCAE9630096753A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		ECADF6042BCAE9630096753A /* DesignUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesignUI.entitlements; sourceTree = "<group>"; };
-		ECADF6062BCAE9630096753A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		ECC9BC842C0FE0D40052D471 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
-		ECD13FD52C18BB7300105B3E /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
-		ECD13FD82C18BBCD00105B3E /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		ECD13FDB2C18BC5900105B3E /* DesignPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
-		ECD13FDD2C18BC7D00105B3E /* DesignType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignType.swift; sourceTree = "<group>"; };
-		ECD13FE02C18BCE500105B3E /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		ECD13FE22C18BD2900105B3E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		ECD13FE42C18BD4E00105B3E /* StoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
-		ECD13FE82C18BE2A00105B3E /* RecipeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeRow.swift; sourceTree = "<group>"; };
-		ECD13FEB2C18BE6C00105B3E /* DesignCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
-		ECD13FED2C18BE9500105B3E /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
-		ECD13FF02C18BEEA00105B3E /* ColorPaletteGeneratorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPaletteGeneratorView.swift; sourceTree = "<group>"; };
-		ECD13FF22C18BEF700105B3E /* ColorRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorRectangle.swift; sourceTree = "<group>"; };
-		ECD13FF52C18BF4900105B3E /* SFIconsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
-		ECD13FF72C18BF5600105B3E /* SymbolRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolRow.swift; sourceTree = "<group>"; };
-		ECD13FFA2C18BF9700105B3E /* LargeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeCardView.swift; sourceTree = "<group>"; };
-		ECFCFF472BD35B9200199FA6 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		ECCDD4152C1B94F700869B70 /* PostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsView.swift; sourceTree = "<group>"; };
+		ECCDD4172C1B951C00869B70 /* LikedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedView.swift; sourceTree = "<group>"; };
+		ECCDD41A2C1BBA5F00869B70 /* UploadDesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadDesignView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,21 +88,45 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ECADF6132BCC6AD00096753A /* FirebaseAnalyticsSwift in Frameworks */,
-				ECFCFF482BD35B9200199FA6 /* StoreKit.framework in Frameworks */,
+				EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */,
 				ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */,
-				ECADF60F2BCC6AD00096753A /* FirebaseAnalytics in Frameworks */,
-				ECADF6112BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion in Frameworks */,
 				EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */,
 				ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */,
+				ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */,
+				ECCDD41D2C1BBADC00869B70 /* FirebaseStorage in Frameworks */,
+				EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */,
 				EC3EA75A2BD05AC8009C1F65 /* AlertToast in Frameworks */,
-				ECADF6152BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC7D7B692C19DC14003134B1 /* Login */ = {
+			isa = PBXGroup;
+			children = (
+				EC7D7BE82C19E4FB003134B1 /* Login.swift */,
+			);
+			path = Login;
+			sourceTree = "<group>";
+		};
+		EC7D7C0D2C19F600003134B1 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				EC7D7C0E2C19F610003134B1 /* Profile.swift */,
+				ECCDD4152C1B94F700869B70 /* PostsView.swift */,
+				ECCDD4172C1B951C00869B70 /* LikedView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		EC7D7C142C1A50F5003134B1 /* AuthHelpers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = AuthHelpers;
+			sourceTree = "<group>";
+		};
 		ECADF5F22BCAE9610096753A = {
 			isa = PBXGroup;
 			children = (
@@ -114,11 +147,12 @@
 		ECADF5FD2BCAE9610096753A /* DesignUI */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FD32C18BA7B00105B3E /* Core */,
 				EC1C74932C0FC211000C9E9A /* Info.plist */,
-				ECADF5FE2BCAE9610096753A /* DesignUIApp.swift */,
-				ECADF6042BCAE9630096753A /* DesignUI.entitlements */,
-				EC7BA3D02BD0BD78007A6C91 /* Store Config.storekit */,
+				EC7D7C0B2C19EA84003134B1 /* GoogleService-Info.plist */,
+				ECD13FD32C18BA7B00105B3E /* Core */,
+				EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */,
+				EC7D7C042C19E620003134B1 /* DesignUI.entitlements */,
+				EC7D7BD62C19E3EF003134B1 /* Store Config.storekit */,
 				ECADF6052BCAE9630096753A /* Preview Content */,
 			);
 			path = DesignUI;
@@ -127,7 +161,7 @@
 		ECADF6052BCAE9630096753A /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
-				ECADF6062BCAE9630096753A /* Preview Assets.xcassets */,
+				EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */,
 			);
 			path = "Preview Content";
 			sourceTree = "<group>";
@@ -136,10 +170,17 @@
 			isa = PBXGroup;
 			children = (
 				ECC9BC842C0FE0D40052D471 /* AdSupport.framework */,
-				ECFCFF472BD35B9200199FA6 /* StoreKit.framework */,
 				ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		ECCDD4192C1BBA3100869B70 /* UploadDesigns */ = {
+			isa = PBXGroup;
+			children = (
+				ECCDD41A2C1BBA5F00869B70 /* UploadDesignView.swift */,
+			);
+			path = UploadDesigns;
 			sourceTree = "<group>";
 		};
 		ECD13FD32C18BA7B00105B3E /* Core */ = {
@@ -158,7 +199,7 @@
 		ECD13FD42C18BB3100105B3E /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FD52C18BB7300105B3E /* Color+Extensions.swift */,
+				EC7D7C052C19E6CA003134B1 /* Color+Extensions.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -166,10 +207,10 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FD82C18BBCD00105B3E /* Constants.swift */,
-				EC1C748C2C0FC08C000C9E9A /* Store.swift */,
-				EC1C748A2C0FC068000C9E9A /* Recipe.swift */,
-				EC40403C2BE08DCF009F1AB4 /* GIFView.swift */,
+				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
+				EC7D7BDC2C19E45B003134B1 /* Store.swift */,
+				EC7D7BE02C19E49A003134B1 /* Recipe.swift */,
+				EC7D7BE22C19E4B8003134B1 /* GIFView.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -177,8 +218,8 @@
 		ECD13FDA2C18BC3200105B3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FDB2C18BC5900105B3E /* DesignPost.swift */,
-				ECD13FDD2C18BC7D00105B3E /* DesignType.swift */,
+				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
+				EC7D7BE62C19E4D1003134B1 /* DesignType.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -186,6 +227,10 @@
 		ECD13FDF2C18BCCF00105B3E /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				ECCDD4192C1BBA3100869B70 /* UploadDesigns */,
+				EC7D7C142C1A50F5003134B1 /* AuthHelpers */,
+				EC7D7C0D2C19F600003134B1 /* Profile */,
+				EC7D7B692C19DC14003134B1 /* Login */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
 				ECD13FEA2C18BE5C00105B3E /* DesignDetail */,
@@ -198,7 +243,7 @@
 		ECD13FE62C18BDF300105B3E /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FE02C18BCE500105B3E /* HomeView.swift */,
+				EC7D7BEA2C19E506003134B1 /* HomeView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -206,9 +251,9 @@
 		ECD13FE72C18BE0C00105B3E /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FE22C18BD2900105B3E /* SettingsView.swift */,
-				ECD13FE42C18BD4E00105B3E /* StoreView.swift */,
-				ECD13FE82C18BE2A00105B3E /* RecipeRow.swift */,
+				EC7D7BF02C19E520003134B1 /* SettingsView.swift */,
+				EC7D7BEE2C19E51D003134B1 /* StoreView.swift */,
+				EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -216,8 +261,8 @@
 		ECD13FEA2C18BE5C00105B3E /* DesignDetail */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FEB2C18BE6C00105B3E /* DesignCards.swift */,
-				ECD13FED2C18BE9500105B3E /* DetailView.swift */,
+				EC7D7BF22C19E543003134B1 /* DetailView.swift */,
+				EC7D7BF42C19E546003134B1 /* DesignCards.swift */,
 			);
 			path = DesignDetail;
 			sourceTree = "<group>";
@@ -225,8 +270,8 @@
 		ECD13FEF2C18BEC300105B3E /* ColorPaletteGenerator */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FF02C18BEEA00105B3E /* ColorPaletteGeneratorView.swift */,
-				ECD13FF22C18BEF700105B3E /* ColorRectangle.swift */,
+				EC7D7BF62C19E54F003134B1 /* ColorPaletteGeneratorView.swift */,
+				EC7D7BF82C19E553003134B1 /* ColorRectangle.swift */,
 			);
 			path = ColorPaletteGenerator;
 			sourceTree = "<group>";
@@ -234,8 +279,8 @@
 		ECD13FF42C18BF3500105B3E /* SFIcons */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FF52C18BF4900105B3E /* SFIconsView.swift */,
-				ECD13FF72C18BF5600105B3E /* SymbolRow.swift */,
+				EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */,
+				EC7D7BFC2C19E581003134B1 /* SymbolRow.swift */,
 			);
 			path = SFIcons;
 			sourceTree = "<group>";
@@ -243,8 +288,8 @@
 		ECD13FF92C18BF8800105B3E /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				ECD13FFA2C18BF9700105B3E /* LargeCardView.swift */,
-				EC1C748E2C0FC0A5000C9E9A /* BannerAds.swift */,
+				EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */,
+				EC7D7C022C19E5BD003134B1 /* BannerAds.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -252,8 +297,7 @@
 		ECD13FFE2C18C12400105B3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				ECADF6022BCAE9630096753A /* Assets.xcassets */,
-				EC7BA3CE2BD0B6E8007A6C91 /* Localizable.xcstrings */,
+				EC7D7BD82C19E426003134B1 /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -275,12 +319,12 @@
 			);
 			name = DesignUI;
 			packageProductDependencies = (
-				ECADF60E2BCC6AD00096753A /* FirebaseAnalytics */,
-				ECADF6102BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion */,
-				ECADF6122BCC6AD00096753A /* FirebaseAnalyticsSwift */,
-				ECADF6142BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport */,
 				EC3EA7592BD05AC8009C1F65 /* AlertToast */,
 				EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */,
+				EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */,
+				EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */,
+				ECCDD41C2C1BBADC00869B70 /* FirebaseStorage */,
+				ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* DesignUI.app */;
@@ -353,6 +397,7 @@
 				ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				EC3EA7582BD05AC8009C1F65 /* XCRemoteSwiftPackageReference "AlertToast" */,
 				EC1C74902C0FC0DE000C9E9A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				ECCDD41E2C1BECD400869B70 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -368,9 +413,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ECADF6072BCAE9630096753A /* Preview Assets.xcassets in Resources */,
-				ECADF6032BCAE9630096753A /* Assets.xcassets in Resources */,
-				EC7BA3CF2BD0B6E8007A6C91 /* Localizable.xcstrings in Resources */,
+				EC7D7BD72C19E3F0003134B1 /* Store Config.storekit in Resources */,
+				EC7D7C0C2C19EA84003134B1 /* GoogleService-Info.plist in Resources */,
+				EC7D7C0A2C19E7B5003134B1 /* Preview Content.xcassets in Resources */,
+				EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,26 +427,31 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ECD13FF82C18BF5600105B3E /* SymbolRow.swift in Sources */,
-				EC1C748D2C0FC08C000C9E9A /* Store.swift in Sources */,
-				ECD13FEC2C18BE6C00105B3E /* DesignCards.swift in Sources */,
-				ECD13FF62C18BF4900105B3E /* SFIconsView.swift in Sources */,
-				EC1C748F2C0FC0A5000C9E9A /* BannerAds.swift in Sources */,
-				ECD13FF12C18BEEA00105B3E /* ColorPaletteGeneratorView.swift in Sources */,
-				ECD13FE12C18BCE500105B3E /* HomeView.swift in Sources */,
-				ECADF5FF2BCAE9610096753A /* DesignUIApp.swift in Sources */,
-				ECD13FE52C18BD4E00105B3E /* StoreView.swift in Sources */,
-				ECD13FFB2C18BF9700105B3E /* LargeCardView.swift in Sources */,
-				ECD13FE92C18BE2A00105B3E /* RecipeRow.swift in Sources */,
-				ECD13FD62C18BB7300105B3E /* Color+Extensions.swift in Sources */,
-				ECD13FEE2C18BE9500105B3E /* DetailView.swift in Sources */,
-				EC40403D2BE08DCF009F1AB4 /* GIFView.swift in Sources */,
-				EC1C748B2C0FC068000C9E9A /* Recipe.swift in Sources */,
-				ECD13FDC2C18BC5900105B3E /* DesignPost.swift in Sources */,
-				ECD13FE32C18BD2900105B3E /* SettingsView.swift in Sources */,
-				ECD13FF32C18BEF700105B3E /* ColorRectangle.swift in Sources */,
-				ECD13FD92C18BBCD00105B3E /* Constants.swift in Sources */,
-				ECD13FDE2C18BC7D00105B3E /* DesignType.swift in Sources */,
+				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
+				EC7D7BF92C19E553003134B1 /* ColorRectangle.swift in Sources */,
+				EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */,
+				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
+				EC7D7BE92C19E4FB003134B1 /* Login.swift in Sources */,
+				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
+				ECCDD4182C1B951C00869B70 /* LikedView.swift in Sources */,
+				ECCDD4162C1B94F700869B70 /* PostsView.swift in Sources */,
+				EC7D7BE32C19E4B8003134B1 /* GIFView.swift in Sources */,
+				ECCDD41B2C1BBA5F00869B70 /* UploadDesignView.swift in Sources */,
+				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
+				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
+				EC7D7BE72C19E4D1003134B1 /* DesignType.swift in Sources */,
+				EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */,
+				EC7D7C062C19E6CA003134B1 /* Color+Extensions.swift in Sources */,
+				EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */,
+				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
+				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
+				EC7D7BF72C19E54F003134B1 /* ColorPaletteGeneratorView.swift in Sources */,
+				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
+				EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */,
+				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
+				EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */,
+				EC7D7BEF2C19E51D003134B1 /* StoreView.swift in Sources */,
+				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -544,7 +595,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Snippets UI";
+				INFOPLIST_KEY_CFBundleDisplayName = "UI Seeker";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used for analytics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -589,7 +640,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Snippets UI";
+				INFOPLIST_KEY_CFBundleDisplayName = "UI Seeker";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used for analytics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -667,6 +718,14 @@
 				minimumVersion = 10.24.0;
 			};
 		};
+		ECCDD41E2C1BECD400869B70 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.4;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -680,25 +739,25 @@
 			package = EC3EA7582BD05AC8009C1F65 /* XCRemoteSwiftPackageReference "AlertToast" */;
 			productName = AlertToast;
 		};
-		ECADF60E2BCC6AD00096753A /* FirebaseAnalytics */ = {
+		EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
+			productName = FirebaseAuth;
 		};
-		ECADF6102BCC6AD00096753A /* FirebaseAnalyticsOnDeviceConversion */ = {
+		EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalyticsOnDeviceConversion;
+			productName = FirebaseFirestore;
 		};
-		ECADF6122BCC6AD00096753A /* FirebaseAnalyticsSwift */ = {
+		ECCDD41C2C1BBADC00869B70 /* FirebaseStorage */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalyticsSwift;
+			productName = FirebaseStorage;
 		};
-		ECADF6142BCC6AD00096753A /* FirebaseAnalyticsWithoutAdIdSupport */ = {
+		ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalyticsWithoutAdIdSupport;
+			package = ECCDD41E2C1BECD400869B70 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

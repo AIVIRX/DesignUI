@@ -3,8 +3,11 @@
 //  DesignUI
 //
 //  Created by Maicol Cabreja on 6/11/24.
-//import SwiftUI
+//
+
 import SwiftUI
+import SDWebImage
+import SDWebImageSwiftUI
 
 struct DesignCards: View {
     var id: String
@@ -14,11 +17,11 @@ struct DesignCards: View {
     var description: String
     var codeSnippet: String
     var published: String
-    var type: DesignType
+    var type: String
     var tags: [String]?
     @State private var isLiked: Bool = false
 
-    init(id: String, media: String, title: String, author: String, description: String, codeSnippet: String, published: String, type: DesignType, tags: [String]?) {
+    init(id: String, media: String, title: String, author: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]?) {
         self.id = id
         self.media = media
         self.title = title
@@ -43,13 +46,36 @@ struct DesignCards: View {
             isLiked: $isLiked
         )) {
             VStack(alignment: .leading) {
-                if type == .image {
+                if type == "image" {
                     Image(media)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 160, height: 130)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .scaledToFill()
+                }
+                if type == "fetched" {
+                    WebImage(url: URL(string: media)) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 160, height: 130)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 160, height: 130)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .scaledToFill()
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 160, height: 130)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .scaledToFill()
+                        }
+                    }
                 }
                 VStack(alignment: .leading) {
                     Text(title)

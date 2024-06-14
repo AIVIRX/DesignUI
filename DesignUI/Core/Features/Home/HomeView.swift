@@ -5,18 +5,42 @@
 //  Created by Maicol Cabreja on 6/11/24.
 //
 import SwiftUI
+import FirebaseFirestore
 
 struct ContentView: View {
+    
+    var body: some View {
+        TabView {
+            HomeView()
+                .tabItem {
+                    Label("Home", systemImage: "house.fill")
+                }
+            
+            UploadDesignView()
+                .tabItem{
+                    Label("Upload", systemImage: "plus.square.dashed")
+                }
+            
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.crop.circle.fill")
+                }
+        }
+    }
+}
+
+struct HomeView: View {
     @EnvironmentObject private var store: Store
     @State private var designPosts: [DesignPost] = []
     @State private var componentPosts: [DesignPost] = []
+    @State private var communityPosts: [DesignPost] = []
     @State private var isRefreshing: Bool = false
     @Environment(\.refresh) private var refresh
     @State private var isNewDesignsLoaded = false
     @State private var teamName = "UI Snippet Team"
-    @Namespace var namespace
     @State private var selectedPost: DesignPost?
-
+    @State private var errorMessage: String = ""
+    @State private var isLoading: Bool = false
     var body: some View {
         NavigationStack {
             VStack {
@@ -36,9 +60,7 @@ struct ContentView: View {
                             .fontWeight(.heavy)
                             .padding(.top, 30)
                             .padding(.leading, 3)
-                        
                         ScrollView(.horizontal, showsIndicators: false) {
-                            
                             LazyHStack(spacing: 3) {
                                 ForEach(designPosts) { post in
                                     DesignCards(
@@ -68,6 +90,33 @@ struct ContentView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             LazyHStack(spacing: 3) {
                                 ForEach(componentPosts) { post in
+                                    DesignCards(
+                                        id: post.id,
+                                        media: post.media,
+                                        title: post.title,
+                                        author: post.author,
+                                        description: post.description,
+                                        codeSnippet: post.codeSnippet,
+                                        published: post.creationDate,
+                                        type: post.type,
+                                        tags: post.tags
+                                    )
+                                }
+                            }
+                        }
+                        .scrollClipDisabled()
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        Text("Community")
+                            .font(.title2)
+                            .fontWeight(.heavy)
+                            .padding(.top, 30)
+                            .padding(.leading, 3)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHStack(spacing: 3) {
+                                ForEach(communityPosts) { post in
                                     DesignCards(
                                         id: post.id,
                                         media: post.media,
@@ -115,7 +164,7 @@ struct ContentView: View {
                         description: "This provides a simple and modern Article template, perfect for showcasing articles or blog content in your app. The template includes a title, publication date, cover image, subheadings, and body text.",
                         codeSnippet: "",
                         creationDate: "April 30, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -126,7 +175,7 @@ struct ContentView: View {
                         description: "Simple template for a profile. Includes 5 views to organize profile info",
                         codeSnippet: "",
                         creationDate: "May 1, 2023",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -137,7 +186,7 @@ struct ContentView: View {
                         description: "Simple settings menu view. Used to showcase settings within an app",
                         codeSnippet: "",
                         creationDate: "May 1, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -148,7 +197,7 @@ struct ContentView: View {
                         description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
                         codeSnippet: "",
                         creationDate: "May 1, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -159,7 +208,7 @@ struct ContentView: View {
                         description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
                         codeSnippet: "",
                         creationDate: "May 1, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -170,7 +219,7 @@ struct ContentView: View {
                         description: "Simple template for a profile. Includes 5 views to organize profile info",
                         codeSnippet: "",
                         creationDate: "May 1, 2023",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                 ]
@@ -183,7 +232,7 @@ struct ContentView: View {
                         description: "Like button with bouncing effect.",
                         codeSnippet: "",
                         creationDate: "May 2, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -194,7 +243,7 @@ struct ContentView: View {
                         description: "Counter with ",
                         codeSnippet: "",
                         creationDate: "May 2, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -205,7 +254,7 @@ struct ContentView: View {
                         description: " ",
                         codeSnippet: "",
                         creationDate: "May 2, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -216,7 +265,7 @@ struct ContentView: View {
                         description: " ",
                         codeSnippet: "",
                         creationDate: "May 2, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -227,7 +276,7 @@ struct ContentView: View {
                         description: " ",
                         codeSnippet: "",
                         creationDate: "May 2, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -238,7 +287,7 @@ struct ContentView: View {
                         description: " ",
                         codeSnippet: "",
                         creationDate: "May 2, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                     DesignPost(
@@ -249,7 +298,7 @@ struct ContentView: View {
                         description: " ",
                         codeSnippet: "",
                         creationDate: "May 2, 2024",
-                        type: .image,
+                        type: "image",
                         tags: nil
                     ),
                 ]
@@ -257,9 +306,32 @@ struct ContentView: View {
                 addNewDesigns(newDesigns)
                 isNewDesignsLoaded = true
             }
+            Task {
+                await fetchCommunityPosts()
+            }
         }
     }
-
+    
+    private func fetchCommunityPosts() async {
+        let db = Firestore.firestore()
+        do {
+            let querySnapshot = try await db.collection("CommunityPosts").getDocuments()
+            print("Fetched \(querySnapshot.documents.count) community posts")
+            for document in querySnapshot.documents {
+                print("Document ID: \(document.documentID)")
+                if let post = try? document.data(as: DesignPost.self) {
+                    DispatchQueue.main.async {
+                        print("Appending post: \(post.title)")
+                        self.communityPosts.append(post)
+                    }
+                } else {
+                                    print("Failed to decode document with ID: \(document.documentID)")
+                }
+            }
+        } catch {
+            print("Error getting documents: \(error)")
+        }
+    }
 
     
     func addNewDesigns(_ newDesigns: [DesignPost]) {
