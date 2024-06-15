@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
 		EC3EA75A2BD05AC8009C1F65 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = EC3EA7592BD05AC8009C1F65 /* AlertToast */; };
+		EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38922C1CBD820018C802 /* EditProfile.swift */; };
+		EC4F38952C1CC2EC0018C802 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38942C1CC2EC0018C802 /* User.swift */; };
 		EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */; };
 		EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
@@ -48,6 +50,8 @@
 
 /* Begin PBXFileReference section */
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EC4F38922C1CBD820018C802 /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
+		EC4F38942C1CC2EC0018C802 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD62C19E3EF003134B1 /* Store Config.storekit */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Store Config.storekit"; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -116,6 +120,7 @@
 				EC7D7C0E2C19F610003134B1 /* Profile.swift */,
 				ECCDD4152C1B94F700869B70 /* PostsView.swift */,
 				ECCDD4172C1B951C00869B70 /* LikedView.swift */,
+				EC4F38922C1CBD820018C802 /* EditProfile.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -220,6 +225,7 @@
 			children = (
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
 				EC7D7BE62C19E4D1003134B1 /* DesignType.swift */,
+				EC4F38942C1CC2EC0018C802 /* User.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -432,6 +438,7 @@
 				EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC7D7BE92C19E4FB003134B1 /* Login.swift in Sources */,
+				EC4F38952C1CC2EC0018C802 /* User.swift in Sources */,
 				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
 				ECCDD4182C1B951C00869B70 /* LikedView.swift in Sources */,
 				ECCDD4162C1B94F700869B70 /* PostsView.swift in Sources */,
@@ -450,6 +457,7 @@
 				EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */,
+				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC7D7BEF2C19E51D003134B1 /* StoreView.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
 			);

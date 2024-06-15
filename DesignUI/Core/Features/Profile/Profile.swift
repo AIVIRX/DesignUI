@@ -29,7 +29,6 @@ class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelega
     }
 }
 
-
 struct ProfileView: View {
     @EnvironmentObject var store: Store
     @State private var isLoggedIn = true
@@ -41,58 +40,74 @@ struct ProfileView: View {
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
     @State private var showDeletionConfirmation = false
     @State private var showSignOutConfirmation = false
+    @State private var showEditProfile = false
     @State private var selectedTab = 1
-    @Environment(\.colorScheme) var colorScheme
+    @State private var user: UserModel?
     var body: some View {
         VStack {
             if isLoggedIn {
-                    // Show user profile information
-                    Text("Welcome, \(Auth.auth().currentUser?.displayName ?? "New User")")
-                    
+                if let user = user {
                     VStack {
-                                // Profile header
-                                VStack {
-                                    // Circular profile image
-                                    Image("profile_image") // Replace with your image name
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 100, height: 100)
-                                        .clipShape(Circle())
-                                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                                        .shadow(radius: 10)
-                                    
-                                    // Name
-                                    Text("John Doe") // Replace with your name
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                    
-                                    // Bio
-                                    Text("iOS Developer | Swift Enthusiast | UI/UX Designer")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                        .multilineTextAlignment(.center)
-                                        .padding([.leading, .trailing], 20)
+                        // Profile header
+                        VStack {
+                            // Circular profile image
+                            Image("profile_image") // Replace with your image name
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                .shadow(radius: 10)
+                            
+                            // Name
+                            Text(user.displayName) // Replace with your name
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            // Bio
+                            Text(user.bio)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding([.leading, .trailing], 20)
+                            
+                            //Edit User Account
+                            Button(action: {
+                                showEditProfile.toggle()
+                            }) {
+                                HStack{
+                                    Text("Edit Profile")
                                 }
                                 .padding()
-                                
-                                // Tabs
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(10)
+                                .foregroundColor(.blue)
+                            }
+                            .sheet(isPresented: $showEditProfile) {
+                                EditProfileView(displayName: user.displayName, bio: user.bio)
+                            }
+                            Divider()
+                        }
+                        
+                        // Tabs
                         HStack {
                             
-//                                        TabButton(title: "Posts", isSelected: selectedTab == 0) {
-//                                            selectedTab = 0
-//                                        }
-                                        TabButton(title: "Liked", isSelected: selectedTab == 1) {
-                                            selectedTab = 1
-                                        }
-                                    }
-                                    .padding()
-                                    
-                                    // Tab views
-                                    if selectedTab == 0 {
-                                        PostsView()
-                                    } else {
-                                        LikedView()
-                                    }
+                            //                                        TabButton(title: "Posts", isSelected: selectedTab == 0) {
+                            //                                            selectedTab = 0
+                            // }
+                            TabButton(title: "Liked", isSelected: selectedTab == 1) {
+                                selectedTab = 1
+                            }
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
+                        }
+                        
+                        // Tab views
+                        if selectedTab == 0 {
+                            PostsView()
+                        } else {
+                            LikedView()
+                        }
                         
                         //Sign Out
                         Button(action: {
@@ -101,8 +116,8 @@ struct ProfileView: View {
                             HStack{
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
                                 Text("Sign Out")
-                                    
-                           }
+                                
+                            }
                             .padding()
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(10)
@@ -117,32 +132,37 @@ struct ProfileView: View {
                                 },
                                 secondaryButton: .cancel()
                             )}
-                               
                         
                         
-                    //delete User Account
-                    Button(action: {
-                        showDeletionConfirmation.toggle()
-                    }) {
-                        HStack{
-                            Image(systemName: "trash")
-                            Text("Delete Account")
+                        
+                        //delete User Account
+                        Button(action: {
+                            showDeletionConfirmation.toggle()
+                        }) {
+                            HStack{
+                                Image(systemName: "trash")
+                                Text("Delete Account")
+                            }
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(10)
+                            .foregroundColor(.red)
                         }
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .foregroundColor(.red)
-                    }
-                    .alert(isPresented: $showDeletionConfirmation) {
-                        Alert(
-                            title: Text("Delete Account"),
-                            message: Text("Are you sure you want to delete your account? This action cannot be undone."),
-                            primaryButton: .destructive(Text("Delete")) {
-                                deleteCurrentUser()
-                            },
-                            secondaryButton: .cancel()
-                        )}
-                }
+                        .alert(isPresented: $showDeletionConfirmation) {
+                            Alert(
+                                title: Text("Delete Account"),
+                                message: Text("Are you sure you want to delete your account? This action cannot be undone."),
+                                primaryButton: .destructive(Text("Delete")) {
+                                    deleteCurrentUser()
+                                },
+                                secondaryButton: .cancel()
+                            )}}} else {
+                                // Loading state or empty state
+                                Text("Loading...")
+                                    .onAppear {
+                                        fetchUserData()
+                                    }
+                            }
             } else {
                 VStack {
                     Text("Snippets UI Profile")
@@ -172,9 +192,9 @@ struct ProfileView: View {
                         }
                     }
                     .signInWithAppleButtonStyle(buttonStyle)
-                          .frame(height: 50)
-                          .clipShape(Capsule())
-                          .padding(.top, 10)
+                    .frame(height: 50)
+                    .clipShape(Capsule())
+                    .padding(.top, 10)
                     
                     let user = Auth.auth().currentUser
                     if let user = user {
@@ -199,12 +219,32 @@ struct ProfileView: View {
     }
     
     private var buttonStyle: SignInWithAppleButton.Style {
-           switch colorScheme {
+           switch scheme {
            case .light: return .black
            case .dark: return .white
            @unknown default: return .black
            }
        }
+    
+    // Fetch User Data from Firestore
+        func fetchUserData() {
+            guard let user = Auth.auth().currentUser else { return }
+            let db = Firestore.firestore()
+            let userDocRef = db.collection("users").document(user.uid)
+            userDocRef.addSnapshotListener { documentSnapshot, error in
+                if let error = error {
+                    showError(error.localizedDescription)
+                    return
+                }
+                guard let document = documentSnapshot, document.exists, let data = document.data() else {
+                    showError("Document does not exist")
+                    return
+                }
+                let displayName = data["displayName"] as? String ?? "New User"
+                let bio = data["bio"] as? String ?? ""
+                self.user = UserModel(id: user.uid, displayName: displayName, bio: bio)
+            }
+        }
     
     // User is already logged in
     func checkLoggedIn() {
@@ -280,7 +320,7 @@ struct ProfileView: View {
                             print("Creating New User document - New User")
                             let userData: [String: Any] = [
                                 "uid": user.uid,
-                                "displayName": user.displayName ?? "New User",
+                                "displayName": "New User",
                                 "email": user.email ?? "",
                                 "followersCount": 0,
                                 "followingCount": 0,
@@ -443,8 +483,6 @@ struct ProfileView: View {
         }
     }
 }
-
-
 
 #Preview {
     ProfileView()

@@ -144,11 +144,11 @@ struct HomeView: View {
                 })
                 Spacer()
                 
-                if !store.completedPurchases.isEmpty {
-                    AdView(adUnitID: "nil").frame(width: 320, height: 50)
-                } else {
-                    AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50)
-                }
+//                if !store.completedPurchases.isEmpty {
+//                    AdView(adUnitID: "nil").frame(width: 320, height: 50)
+//                } else {
+//                    AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50)
+//                }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())

@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+struct UserModel: Identifiable {
+    var id: String
+    var displayName: String
+    var bio: String
+}
