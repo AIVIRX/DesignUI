@@ -31,7 +31,7 @@ class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelega
 
 struct ProfileView: View {
     @EnvironmentObject var store: Store
-    @State private var isLoggedIn = true
+    @State private var isLoggedIn = false
     @State private var errorMessage: String = ""
     @State private var showAlert: Bool = false
     @State private var isLoading: Bool = false
@@ -44,176 +44,178 @@ struct ProfileView: View {
     @State private var selectedTab = 1
     @State private var user: UserModel?
     var body: some View {
-        VStack {
-            if isLoggedIn {
-                if let user = user {
-                    VStack {
-                        // Profile header
+        NavigationView {
+            VStack {
+                if isLoggedIn {
+                    if let user = user {
                         VStack {
-                            // Circular profile image
-                            Image("profile_image") // Replace with your image name
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 100, height: 100)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                                .shadow(radius: 10)
+                            // Profile header
+                            VStack {
+                                // Circular profile image
+                                Image("profile_image") // Replace with your image name
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 100, height: 100)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                    .shadow(radius: 10)
+                                
+                                // Name
+                                Text(user.displayName) // Replace with your name
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                
+                                // Bio
+                                Text(user.bio)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding([.leading, .trailing], 20)
+                                
+                                //Edit User Account
+                                Button(action: {
+                                    showEditProfile.toggle()
+                                }) {
+                                    HStack{
+                                        Text("Edit Profile")
+                                    }
+                                    .padding()
+                                    .background(Color.gray.opacity(0.2))
+                                    .cornerRadius(10)
+                                    .foregroundColor(.blue)
+                                }
+                                .sheet(isPresented: $showEditProfile) {
+                                    EditProfileView(displayName: user.displayName, bio: user.bio)
+                                }
+                                Divider()
+                            }
                             
-                            // Name
-                            Text(user.displayName) // Replace with your name
-                                .font(.title)
-                                .fontWeight(.bold)
+                            // Tabs
+                            HStack {
+                                
+                                //                                        TabButton(title: "Posts", isSelected: selectedTab == 0) {
+                                //                                            selectedTab = 0
+                                // }
+                                TabButton(title: "Liked", isSelected: selectedTab == 1) {
+                                    selectedTab = 1
+                                }
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(10)
+                            }
                             
-                            // Bio
-                            Text(user.bio)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding([.leading, .trailing], 20)
+                            // Tab views
+                            if selectedTab == 0 {
+                                PostsView()
+                            } else {
+                                LikedView()
+                            }
                             
-                            //Edit User Account
+                            //Sign Out
                             Button(action: {
-                                showEditProfile.toggle()
+                                showSignOutConfirmation.toggle()
                             }) {
                                 HStack{
-                                    Text("Edit Profile")
+                                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    Text("Sign Out")
+                                    
                                 }
                                 .padding()
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(10)
-                                .foregroundColor(.blue)
+                                .foregroundColor(.red)
                             }
-                            .sheet(isPresented: $showEditProfile) {
-                                EditProfileView(displayName: user.displayName, bio: user.bio)
-                            }
-                            Divider()
-                        }
-                        
-                        // Tabs
-                        HStack {
+                            .alert(isPresented: $showSignOutConfirmation) {
+                                Alert(
+                                    title: Text("Sign Out"),
+                                    message: Text("Are you sure you want to sign out from your account?"),
+                                    primaryButton: .destructive(Text("Sign out")) {
+                                        signOutUser()
+                                    },
+                                    secondaryButton: .cancel()
+                                )}
                             
-                            //                                        TabButton(title: "Posts", isSelected: selectedTab == 0) {
-                            //                                            selectedTab = 0
-                            // }
-                            TabButton(title: "Liked", isSelected: selectedTab == 1) {
-                                selectedTab = 1
+                            
+                            
+                            //delete User Account
+                            Button(action: {
+                                showDeletionConfirmation.toggle()
+                            }) {
+                                HStack{
+                                    Image(systemName: "trash")
+                                    Text("Delete Account")
+                                }
+                                .padding()
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(10)
+                                .foregroundColor(.red)
                             }
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(10)
-                        }
-                        
-                        // Tab views
-                        if selectedTab == 0 {
-                            PostsView()
-                        } else {
-                            LikedView()
-                        }
-                        
-                        //Sign Out
-                        Button(action: {
-                            showSignOutConfirmation.toggle()
-                        }) {
-                            HStack{
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                Text("Sign Out")
-                                
-                            }
+                            .alert(isPresented: $showDeletionConfirmation) {
+                                Alert(
+                                    title: Text("Delete Account"),
+                                    message: Text("Are you sure you want to delete your account? This action cannot be undone."),
+                                    primaryButton: .destructive(Text("Delete")) {
+                                        deleteCurrentUser()
+                                    },
+                                    secondaryButton: .cancel()
+                                )}}} else {
+                                    // Loading state or empty state
+                                    Text("Loading...")
+                                        .onAppear {
+                                            fetchUserData()
+                                        }
+                                }
+                } else {
+                    VStack {
+                        Text("Snippets UI Profile")
+                            .font(.largeTitle).bold()
+                        Text("View Liked Designs And More!")
+                            .padding(5).bold()
+                        RoundedRectangle(cornerRadius: 22)
+                            .fill(Color.gray)
+                            .shadow(radius: 5)
                             .padding()
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                            .foregroundColor(.red)
-                        }
-                        .alert(isPresented: $showSignOutConfirmation) {
-                            Alert(
-                                title: Text("Sign Out"),
-                                message: Text("Are you sure you want to sign out from your account?"),
-                                primaryButton: .destructive(Text("Sign out")) {
-                                    signOutUser()
-                                },
-                                secondaryButton: .cancel()
-                            )}
+                            .ignoresSafeArea(.all)
+                            .frame(height: 450)
                         
                         
                         
-                        //delete User Account
-                        Button(action: {
-                            showDeletionConfirmation.toggle()
-                        }) {
-                            HStack{
-                                Image(systemName: "trash")
-                                Text("Delete Account")
+                        SignInWithAppleButton(.signIn){ request in
+                            let nonce = randomNonceString()
+                            self.nonce =  nonce
+                            request.requestedScopes = [.email, .fullName]
+                            request.nonce = sha256(nonce)
+                        } onCompletion: { result in
+                            switch result {
+                            case .success(let authorization):
+                                loginWithFirebase(authorization)
+                            case .failure(let error):
+                                showError(error.localizedDescription)
                             }
-                            .padding()
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                            .foregroundColor(.red)
                         }
-                        .alert(isPresented: $showDeletionConfirmation) {
-                            Alert(
-                                title: Text("Delete Account"),
-                                message: Text("Are you sure you want to delete your account? This action cannot be undone."),
-                                primaryButton: .destructive(Text("Delete")) {
-                                    deleteCurrentUser()
-                                },
-                                secondaryButton: .cancel()
-                            )}}} else {
-                                // Loading state or empty state
-                                Text("Loading...")
-                                    .onAppear {
-                                        fetchUserData()
-                                    }
-                            }
-            } else {
-                VStack {
-                    Text("Snippets UI Profile")
-                        .font(.largeTitle).bold()
-                    Text("View Liked Designs And More!")
-                        .padding(5).bold()
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(Color.gray)
-                        .shadow(radius: 5)
-                        .padding()
-                        .ignoresSafeArea(.all)
-                        .frame(height: 450)
-                    
-                    
-                    
-                    SignInWithAppleButton(.signIn){ request in
-                        let nonce = randomNonceString()
-                        self.nonce =  nonce
-                        request.requestedScopes = [.email, .fullName]
-                        request.nonce = sha256(nonce)
-                    } onCompletion: { result in
-                        switch result {
-                        case .success(let authorization):
-                            loginWithFirebase(authorization)
-                        case .failure(let error):
-                            showError(error.localizedDescription)
+                        .signInWithAppleButtonStyle(buttonStyle)
+                        .frame(height: 50)
+                        .clipShape(Capsule())
+                        .padding(.top, 10)
+                        
+                        let user = Auth.auth().currentUser
+                        if let user = user {
+                            let uid = user.uid
+                            Text(uid)
+                                .font(.headline)
                         }
                     }
-                    .signInWithAppleButtonStyle(buttonStyle)
-                    .frame(height: 50)
-                    .clipShape(Capsule())
-                    .padding(.top, 10)
-                    
-                    let user = Auth.auth().currentUser
-                    if let user = user {
-                        let uid = user.uid
-                        Text(uid)
-                            .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
+                    .onAppear {
+                        checkLoggedIn()
                     }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(20)
-                .onAppear {
-                    checkLoggedIn()
                 }
             }
-        }
-        .alert(errorMessage, isPresented: $showAlert){}
-        .overlay {
-            if isLoading {
-                LoadingScreen()
+            .alert(errorMessage, isPresented: $showAlert){}
+            .overlay {
+                if isLoading {
+                    LoadingScreen()
+                }
             }
         }
     }

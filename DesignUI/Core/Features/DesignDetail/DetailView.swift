@@ -1,4 +1,6 @@
 import SwiftUI
+import FirebaseAuth
+import FirebaseFirestore
 import AlertToast
 import SDWebImage
 import SDWebImageSwiftUI
@@ -15,6 +17,8 @@ struct DetailView: View {
     @Binding var isLiked: Bool
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
+    @State private var likesCount: Int = 0
+    @State private var isLiking: Bool = false
     
     var body: some View {
             ScrollView {
@@ -60,13 +64,24 @@ struct DetailView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             
                             Button(action: {
-                                isLiked.toggle()
+                                if !isLiking {
+                                    isLiking = true
+                                    toggleLike()
+                                }
                             }) {
-                                Image(systemName: isLiked ? "heart.fill" : "heart")
-                                    .foregroundColor(isLiked ? .red : .gray)
-                                    .font(.title)
+                                if type == "fetched"{
+                                    VStack{
+                                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                                            .foregroundColor(isLiked ? .red : .gray)
+                                            .font(.title)
+                                        Text("\(likesCount)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                             }
                         }
+                        
                         Text(creationDate)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
@@ -139,11 +154,82 @@ struct DetailView: View {
                 }
             }
             .padding(7)
-        }
-    }
+            .onAppear(perform: fetchLikeStatus)
+            }
 
     func copyToClipboard(_ text: String) {
         UIPasteboard.general.string = text
+    }
+
+    func fetchLikeStatus() {
+        guard let user = Auth.auth().currentUser else { return }
+        let db = Firestore.firestore()
+        let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
+        
+        userLikedPostRef.getDocument { likedDocument, error in
+            if let likedDocument = likedDocument, likedDocument.exists {
+                isLiked = true
+            } else {
+                isLiked = false
+            }
+            
+            // Fetch the likes count from the post document
+            let postRef = db.collection("CommunityPosts").document(id)
+            postRef.getDocument { document, error in
+                if let document = document, document.exists {
+                    if let data = document.data(), let likes = data["likesCount"] as? Int {
+                        DispatchQueue.main.async {
+                            self.likesCount = likes
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+    func toggleLike() {
+            guard let user = Auth.auth().currentUser else { return }
+            let db = Firestore.firestore()
+            let postRef = db.collection("CommunityPosts").document(id)
+            let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
+            
+            db.runTransaction({ (transaction, errorPointer) -> Any? in
+                let postDocument: DocumentSnapshot
+                do {
+                    postDocument = try transaction.getDocument(postRef)
+                } catch let error as NSError {
+                    print("Error getting post document: \(error)")
+                    return nil
+                }
+                
+                guard let oldLikesCount = postDocument.data()?["likesCount"] as? Int else {
+                    return nil
+                }
+                
+                if self.isLiked {
+                    // Unlike the post
+                    transaction.updateData(["likesCount": oldLikesCount - 1], forDocument: postRef)
+                    transaction.deleteDocument(userLikedPostRef)
+                } else {
+                    // Like the post
+                    transaction.updateData(["likesCount": oldLikesCount + 1], forDocument: postRef)
+                    transaction.setData(["likedBy":user.uid], forDocument: userLikedPostRef)
+                }
+                
+                return nil
+            }) { (object, error) in
+                if let error = error {
+                    print("Transaction failed: \(error)")
+                } else {
+                    self.isLiked.toggle()
+                    self.likesCount += self.isLiked ? 1 : -1
+                }
+                self.isLiking = false
+            }
+        }
     }
 
 
