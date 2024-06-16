@@ -94,6 +94,12 @@ struct SettingsView: View {
                 AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50).padding([.top], 10)
             }
         }
-        .navigationTitle("Settings")
+        .navigationTitle("")
     }
+}
+
+#Preview{
+    let store = Store()
+    return SettingsView()
+        .environmentObject(store)
 }

@@ -135,11 +135,10 @@ struct HomeView: View {
                     }
                 }
                 .padding(5)
-                .navigationBarTitle("Snippets UI")
-                .navigationBarTitleDisplayMode(.inline)
                 .navigationBarItems(trailing: HStack {
                     NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gear")
+                            .font(.system(size: 20))
                     }
                 })
                 Spacer()
@@ -342,3 +341,7 @@ struct HomeView: View {
         componentPosts.append(contentsOf: newComp)
     }
 }
+
+//#Preview{
+//    ContentView()
+//}

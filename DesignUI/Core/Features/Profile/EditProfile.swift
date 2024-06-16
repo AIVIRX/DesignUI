@@ -81,6 +81,8 @@ struct EditProfileView: View {
                 TextField(placehold, text: $text)
                     .padding()
                     .frame(height: 50)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.none)
                     .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
                 HStack {
                     Spacer()
@@ -109,10 +111,15 @@ struct EditProfileView: View {
                 TextEditor(text: $text)
                     .padding()
                     .frame(height: 100)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.none)
                     .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-                Text("\(text.count)/\(maxLength)")
-                    .font(.caption)
-                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+                HStack{
+                    Spacer()
+                    Text("\(text.count)/\(maxLength)")
+                        .font(.caption)
+                        .foregroundColor(text.count > maxLength ? .red : .secondary)
+                }
             }
             .onChange(of: text) {
                 if text.count > maxLength {

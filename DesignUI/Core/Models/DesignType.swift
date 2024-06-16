@@ -7,6 +7,6 @@
 
 import Foundation
 
-enum DesignType: String, Codable {
-    case gif, image, fetched
-}
+//enum DesignType: String, Codable {
+//    case gif, image, fetched
+//}

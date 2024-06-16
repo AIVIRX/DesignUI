@@ -211,6 +211,14 @@ struct ProfileView: View {
                     }
                 }
             }
+            .padding(5)
+            .navigationBarTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: HStack {
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gear")
+                }
+            })
             .alert(errorMessage, isPresented: $showAlert){}
             .overlay {
                 if isLoading {
@@ -219,6 +227,8 @@ struct ProfileView: View {
             }
         }
     }
+                                        
+                                        
     
     private var buttonStyle: SignInWithAppleButton.Style {
            switch scheme {

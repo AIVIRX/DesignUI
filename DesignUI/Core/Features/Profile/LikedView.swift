@@ -6,11 +6,6 @@
 //
 
 import SwiftUI
-
-import FirebaseFirestore
-import FirebaseAuth
-
-import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
 
@@ -20,7 +15,7 @@ class LikedPostsViewModel: ObservableObject {
     @Published var lastDocument: DocumentSnapshot?
 
     private let db = Firestore.firestore()
-    private let batchSize = 10
+    private let batchSize = 1
     
     struct Post: Identifiable {
         var id: String
@@ -32,8 +27,13 @@ class LikedPostsViewModel: ObservableObject {
         var type: String
     }
     
-    func fetchLikedPosts() {
+    func fetchLikedPosts(reset: Bool = false) {
         guard let user = Auth.auth().currentUser else { return }
+        
+        if reset {
+            likedPosts = []
+            lastDocument = nil
+        }
         
         isLoading = true
         
@@ -91,7 +91,9 @@ class LikedPostsViewModel: ObservableObject {
                     let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, author: author, creationDate: creationDate, type: type)
                     
                     DispatchQueue.main.async {
-                        self.likedPosts.append(post)
+                        if !self.likedPosts.contains(where: { $0.id == id }) {
+                            self.likedPosts.append(post)
+                        }
                     }
                 }
                 dispatchGroup.leave()
@@ -104,16 +106,14 @@ class LikedPostsViewModel: ObservableObject {
     }
 }
 
-
-import SwiftUI
-
 struct LikedView: View {
     @StateObject private var viewModel = LikedPostsViewModel()
     
+    @State private var isLiked: Bool = true
     var body: some View {
         List {
             ForEach(viewModel.likedPosts) { post in
-                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: post.creationDate, type: post.type, isLiked: .constant(true))) {
+                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: post.creationDate, type: post.type, isLiked: $isLiked)) {
                     VStack(alignment: .leading) {
                         Text(post.title)
                             .font(.headline)
@@ -140,23 +140,11 @@ struct LikedView: View {
                 }
             }
         }
-        .navigationBarTitle("Liked Posts")
         .onAppear {
-            if viewModel.likedPosts.isEmpty {
-                viewModel.fetchLikedPosts()
-            }
+            viewModel.fetchLikedPosts(reset: true)
         }
     }
 }
-
-#Preview {
-    LikedView()
-}
-
-#Preview {
-    LikedView()
-}
-
 
 #Preview {
     LikedView()

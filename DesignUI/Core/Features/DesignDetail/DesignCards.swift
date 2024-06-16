@@ -32,7 +32,6 @@ struct DesignCards: View {
         self.type = type
         self.tags = tags
     }
-
     var body: some View {
         NavigationLink(destination: DetailView(
             id: id,
