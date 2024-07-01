@@ -15,7 +15,7 @@ class LikedPostsViewModel: ObservableObject {
     @Published var lastDocument: DocumentSnapshot?
 
     private let db = Firestore.firestore()
-    private let batchSize = 1
+    private let batchSize = 2
     
     struct Post: Identifiable {
         var id: String

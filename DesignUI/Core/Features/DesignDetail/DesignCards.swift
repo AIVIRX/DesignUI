@@ -51,6 +51,10 @@ struct DesignCards: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 160, height: 130)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.secondary, lineWidth: 0.2)
+                        )
                         .scaledToFill()
                 }
                 if type == "fetched" {
@@ -65,6 +69,10 @@ struct DesignCards: View {
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 160, height: 130)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.secondary, lineWidth: 0.2)
+                                )
                                 .scaledToFill()
                         case .failure:
                             Image(systemName: "photo")
@@ -72,6 +80,10 @@ struct DesignCards: View {
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 160, height: 130)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.secondary, lineWidth: 0.2)
+                                )
                                 .scaledToFill()
                         }
                     }
@@ -96,4 +108,10 @@ struct DesignCards: View {
             .padding(3)
         }
     }
+}
+
+#Preview{
+    let store = Store()
+    return ContentView()
+        .environmentObject(store)
 }

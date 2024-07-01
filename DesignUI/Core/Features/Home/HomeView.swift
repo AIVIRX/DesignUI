@@ -8,7 +8,6 @@ import SwiftUI
 import FirebaseFirestore
 
 struct ContentView: View {
-    
     var body: some View {
         TabView {
             HomeView()
@@ -34,8 +33,6 @@ struct HomeView: View {
     @State private var designPosts: [DesignPost] = []
     @State private var componentPosts: [DesignPost] = []
     @State private var communityPosts: [DesignPost] = []
-    @State private var isRefreshing: Bool = false
-    @Environment(\.refresh) private var refresh
     @State private var isNewDesignsLoaded = false
     @State private var teamName = "UI Snippet Team"
     @State private var selectedPost: DesignPost?
@@ -46,108 +43,115 @@ struct HomeView: View {
             VStack {
                 ScrollView(.vertical, showsIndicators: true) {
                     VStack(alignment: .leading) {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 3) {
-                                LargeCardView(destination: SFIconsView(), name: "SF Symbols")
-                                LargeCardView(destination: ColorPaletteGeneratorView(), name: "Color Palette")
-                            }
+                        HStack(spacing: 3) {
+                            LargeCardView(
+                                name: "Shop",
+                                height: 100,
+                                fontSize: 35,
+                                padding: 10,
+                                colors: [.cyan, .purple, .black, .purple, .pink],
+                                destination: StoreView()
+                            )
+                            .frame(maxWidth: .infinity)
                         }
                     }
-                    
-                    VStack(alignment: .leading) {
-                        Text("Featured")
-                            .font(.title2)
-                            .fontWeight(.heavy)
-                            .padding(.top, 30)
-                            .padding(.leading, 3)
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 3) {
-                                ForEach(designPosts) { post in
-                                    DesignCards(
-                                        id: post.id,
-                                        media: post.media,
-                                        title: post.title,
-                                        author: post.author,
-                                        description: post.description,
-                                        codeSnippet: post.codeSnippet,
-                                        published: post.creationDate,
-                                        type: post.type,
-                                        tags: post.tags
-                                    )
+                    VStack{
+                        VStack(alignment: .leading) {
+                            Text("Featured")
+                                .font(.title2)
+                                .fontWeight(.heavy)
+                                .padding(.top, 20)
+                                .padding(.leading, 3)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                LazyHStack(spacing: 3) {
+                                    ForEach(designPosts) { post in
+                                        DesignCards(
+                                            id: post.id,
+                                            media: post.media,
+                                            title: post.title,
+                                            author: post.author,
+                                            description: post.description,
+                                            codeSnippet: post.codeSnippet,
+                                            published: post.creationDate,
+                                            type: post.type,
+                                            tags: post.tags
+                                        )
+                                    }
                                 }
                             }
+                            .scrollClipDisabled()
                         }
-                        .scrollClipDisabled()
-                    }
-                    
-                    VStack(alignment: .leading) {
-                        Text("Components")
-                            .font(.title2)
-                            .fontWeight(.heavy)
-                            .padding(.top, 30)
-                            .padding(.leading, 3)
                         
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 3) {
-                                ForEach(componentPosts) { post in
-                                    DesignCards(
-                                        id: post.id,
-                                        media: post.media,
-                                        title: post.title,
-                                        author: post.author,
-                                        description: post.description,
-                                        codeSnippet: post.codeSnippet,
-                                        published: post.creationDate,
-                                        type: post.type,
-                                        tags: post.tags
-                                    )
+                        VStack(alignment: .leading) {
+                            Text("Components")
+                                .font(.title2)
+                                .fontWeight(.heavy)
+                                .padding(.top, 20)
+                                .padding(.leading, 3)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                LazyHStack(spacing: 3) {
+                                    ForEach(componentPosts) { post in
+                                        DesignCards(
+                                            id: post.id,
+                                            media: post.media,
+                                            title: post.title,
+                                            author: post.author,
+                                            description: post.description,
+                                            codeSnippet: post.codeSnippet,
+                                            published: post.creationDate,
+                                            type: post.type,
+                                            tags: post.tags
+                                        )
+                                    }
                                 }
                             }
+                            .scrollClipDisabled()
                         }
-                        .scrollClipDisabled()
-                    }
-                    
-                    VStack(alignment: .leading) {
-                        Text("Community")
-                            .font(.title2)
-                            .fontWeight(.heavy)
-                            .padding(.top, 30)
-                            .padding(.leading, 3)
                         
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 3) {
-                                ForEach(communityPosts) { post in
-                                    DesignCards(
-                                        id: post.id,
-                                        media: post.media,
-                                        title: post.title,
-                                        author: post.author,
-                                        description: post.description,
-                                        codeSnippet: post.codeSnippet,
-                                        published: post.creationDate,
-                                        type: post.type,
-                                        tags: post.tags
-                                    )
+                        VStack(alignment: .leading) {
+                            Text("Community")
+                                .font(.title2)
+                                .fontWeight(.heavy)
+                                .padding(.top, 20)
+                                .padding(.leading, 3)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                LazyHStack(spacing: 3) {
+                                    ForEach(communityPosts) { post in
+                                        DesignCards(
+                                            id: post.id,
+                                            media: post.media,
+                                            title: post.title,
+                                            author: post.author,
+                                            description: post.description,
+                                            codeSnippet: post.codeSnippet,
+                                            published: post.creationDate,
+                                            type: post.type,
+                                            tags: post.tags
+                                        )
+                                    }
                                 }
                             }
+                            .scrollClipDisabled()
                         }
-                        .scrollClipDisabled()
-                    }
+                    }.padding(.leading,10)
                 }
-                .padding(5)
+                
                 .navigationBarItems(trailing: HStack {
                     NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gear")
+                        Image(systemName: "gearshape")
                             .font(.system(size: 20))
+                            .foregroundStyle(Color.gray)
                     }
                 })
                 Spacer()
                 
-//                if !store.completedPurchases.isEmpty {
-//                    AdView(adUnitID: "nil").frame(width: 320, height: 50)
-//                } else {
-//                    AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50)
-//                }
+                //                if !store.completedPurchases.isEmpty {
+                //                    AdView(adUnitID: "nil").frame(width: 320, height: 50)
+                //                } else {
+                //                    AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50)
+                //                }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -332,7 +336,6 @@ struct HomeView: View {
         }
     }
 
-    
     func addNewDesigns(_ newDesigns: [DesignPost]) {
         designPosts.append(contentsOf: newDesigns)
     }
@@ -342,6 +345,8 @@ struct HomeView: View {
     }
 }
 
-//#Preview{
-//    ContentView()
-//}
+#Preview{
+    let store = Store()
+    return ContentView()
+        .environmentObject(store)
+}
