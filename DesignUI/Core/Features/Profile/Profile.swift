@@ -40,14 +40,23 @@ struct ProfileView: View {
     @State private var showAlert: Bool = false
     @State private var isLoading: Bool = false
     @State private var nonce: String?
-    @Environment(\.colorScheme) private var scheme
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
+    @Environment(\.colorScheme) var colorScheme
     @State private var showDeletionConfirmation = false
     @State private var showSignOutConfirmation = false
     @State private var activeAlert: ActiveAlert?
     @State private var showEditProfile = false
     @State private var selectedTab = 1
     @State private var user: UserModel?
+    
+    // Preview-specific initializer
+    init(preview: Bool = false) {
+        if preview {
+            _isLoggedIn = State(initialValue: true)
+            _user = State(initialValue: UserModel(id: "722", displayName: "John Doe", bio: "This is a sample bio."))
+        }
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -62,7 +71,7 @@ struct ProfileView: View {
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: 100, height: 100)
                                     .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                    .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black , lineWidth: 2))
                                     .shadow(radius: 10)
                                 
                                 // Name
@@ -92,18 +101,36 @@ struct ProfileView: View {
                                 .sheet(isPresented: $showEditProfile) {
                                     EditProfileView(displayName: user.displayName, bio: user.bio)
                                 }
-                                Divider()
                             }
                             
                             // Tabs
                             HStack {
-                                
-                                TabButton(imageName: "square.grid.3x3", isSelected: selectedTab == 0) {
-                                    selectedTab = 0
+                                GeometryReader { geometry in
+                                    HStack(spacing: 0) {
+                                        TabButton(imageName: "square.grid.3x3", isSelected: selectedTab == 0) {
+                                            withAnimation {
+                                                selectedTab = 0
+                                            }
+                                        }
+                                        .frame(width: geometry.size.width / 2)
+                                        
+                                        TabButton(imageName: "heart", isSelected: selectedTab == 1) {
+                                            withAnimation {
+                                                selectedTab = 1
+                                            }
+                                        }
+                                        .frame(width: geometry.size.width / 2)
+                                    }
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .foregroundColor((colorScheme == .dark ? .white : .black))
+                                            .frame(width: geometry.size.width / 2 - 20, height: 4)
+                                            .offset(x: selectedTab == 0 ? -100 : 100, y: 28)
+                                            .animation(.easeInOut(duration: 0.25), value: UUID()
+                                            )
+                                    )
                                 }
-                                TabButton(imageName: "heart", isSelected: selectedTab == 1) {
-                                    selectedTab = 1
-                                }
+                                .frame(height: 50)
                             }
                             
                             // Tab views
@@ -165,7 +192,6 @@ struct ProfileView: View {
                     }
                 }
             }
-            .padding(5)
             .navigationBarTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: HStack {
@@ -234,7 +260,7 @@ struct ProfileView: View {
     }
     
     private var buttonStyle: SignInWithAppleButton.Style {
-        switch scheme {
+        switch colorScheme {
         case .light: return .black
         case .dark: return .white
         @unknown default: return .black
@@ -491,12 +517,13 @@ struct ProfileView: View {
                 Image(systemName: isSelected ? "\(imageName).fill" : "\(imageName)")
                     .foregroundColor(isSelected ? (colorScheme == .dark ? .white : .black) : .gray)
                     .font(.system(size: 20))
-                    .padding(5)
-                RoundedRectangle(cornerRadius: 2)
-                    .foregroundColor(isSelected ? (colorScheme == .dark ? .white : .black) : .clear)
-                    .frame(height: 4)
+                    .padding()
+                
+//                    RoundedRectangle(cornerRadius: 10)
+//                        .foregroundColor(isSelected ? (colorScheme == .dark ? .white : .black) : .clear)
+//                        .frame(height: 4)
+//                        .padding(.horizontal, 5)
             }
-            .padding()
             .onTapGesture {
                 action()
             }
@@ -505,5 +532,5 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
+    ProfileView(preview: true)
 }
