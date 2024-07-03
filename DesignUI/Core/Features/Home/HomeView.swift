@@ -8,24 +8,32 @@ import SwiftUI
 import FirebaseFirestore
 
 struct ContentView: View {
-    
+    @Environment(\.colorScheme) var colorScheme
+    @State private var selectedIndex = 0
     var body: some View {
-        TabView {
+        TabView(selection: $selectedIndex) {
             HomeView()
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
+                    Label("Home", systemImage: selectedIndex == 0 ? "house.fill" : "house")
+                    .environment(\.symbolVariants, .none)
                 }
+                .tag(0)
             
             UploadDesignView()
-                .tabItem{
-                    Label("Upload", systemImage: "plus.square.dashed")
+                .tabItem {
+                    Label("Upload", systemImage: selectedIndex == 1 ? "plus.square.fill" : "plus.square.dashed")
+                    .environment(\.symbolVariants, .none)
                 }
+                .tag(1)
             
             ProfileView()
                 .tabItem {
-                    Label("Profile", systemImage: "person.crop.circle.fill")
+                    Label("Profile", systemImage: selectedIndex == 2 ? "person.crop.circle.fill" : "person.crop.circle")
+                    .environment(\.symbolVariants, .none)
                 }
+                .tag(2)
         }
+        .accentColor(colorScheme == .dark ? .white : .black)
     }
 }
 
@@ -35,10 +43,11 @@ struct HomeView: View {
     @State private var componentPosts: [DesignPost] = []
     @State private var communityPosts: [DesignPost] = []
     @State private var isNewDesignsLoaded = false
-    @State private var teamName = "UI Snippet Team"
+    @State private var teamName = "Dock UI Team"
     @State private var selectedPost: DesignPost?
     @State private var errorMessage: String = ""
     @State private var isLoading: Bool = false
+    @Environment(\.colorScheme) var colorScheme
     var body: some View {
         NavigationStack {
             VStack {
@@ -61,7 +70,7 @@ struct HomeView: View {
                             Text("Featured")
                                 .font(.title2)
                                 .fontWeight(.heavy)
-                                .padding(.top, 20)
+                                .padding(.top, 10)
                                 .padding(.leading, 3)
                             ScrollView(.horizontal, showsIndicators: false) {
                                 LazyHStack(spacing: 3) {
@@ -138,15 +147,15 @@ struct HomeView: View {
                         }
                     }.padding(.leading,10)
                 }
-                
+                .navigationTitle("Dock UI")
+                .navigationBarTitleDisplayMode(.inline)
                 .navigationBarItems(trailing: HStack {
                     NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gearshape")
                             .font(.system(size: 20))
-                            .foregroundStyle(Color.gray)
+                            .foregroundStyle(colorScheme == .dark ? .white : .black)
                     }
                 })
-                Spacer()
                 
                 //                if !store.completedPurchases.isEmpty {
                 //                    AdView(adUnitID: "nil").frame(width: 320, height: 50)
@@ -154,6 +163,7 @@ struct HomeView: View {
                 //                    AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50)
                 //                }
             }
+            .accentColor(.none)
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {

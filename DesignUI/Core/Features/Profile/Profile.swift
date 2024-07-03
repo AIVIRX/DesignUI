@@ -58,7 +58,7 @@ struct ProfileView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 if isLoggedIn {
                     if let user = user {
@@ -215,7 +215,7 @@ struct ProfileView: View {
                     } label: {
                         Image(systemName: "person.badge.key")
                             .font(.system(size: 20))
-                            .foregroundStyle(Color.gray)
+                            .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
                     }
                 }
                 
@@ -223,7 +223,7 @@ struct ProfileView: View {
                 NavigationLink(destination: SettingsView()) {
                     Image(systemName: "gearshape")
                         .font(.system(size: 20))
-                        .foregroundStyle(Color.gray)
+                        .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
                 }
             })
             .alert(isPresented: $showAlert) {

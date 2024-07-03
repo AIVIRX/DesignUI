@@ -123,9 +123,12 @@ struct UploadDesignView: View {
                     .bold()
                     .frame(height: 50)
                     .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-                Text("\(text.count)/\(maxLength)")
-                    .font(.caption)
-                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+                HStack{
+                    Spacer()
+                    Text("\(text.count)/\(maxLength)")
+                        .font(.caption)
+                        .foregroundColor(text.count > maxLength ? .red : .secondary)
+                }
             }
             .onChange(of: text) {
                 if text.count > maxLength {
@@ -146,9 +149,12 @@ struct UploadDesignView: View {
                     .padding()
                     .frame(height: 100)
                     .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-                Text("\(text.count)/\(maxLength)")
-                    .font(.caption)
-                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+                HStack{
+                    Spacer()
+                    Text("\(text.count)/\(maxLength)")
+                        .font(.caption)
+                        .foregroundColor(text.count > maxLength ? .red : .secondary)
+                }
             }
             .onChange(of: text) {
                 if text.count > maxLength {

@@ -152,6 +152,8 @@ struct DetailView: View {
                 .toast(isPresenting: $isCopied) {
                     AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
                 }
+                .environment(\.symbolVariants, .none)
+                .accentColor(.none)
             }
             .padding(7)
             .onAppear(perform: fetchLikeStatus)
