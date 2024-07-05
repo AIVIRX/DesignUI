@@ -8,6 +8,8 @@
 import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
+import SDWebImage
+import SDWebImageSwiftUI
 
 class LikedPostsViewModel: ObservableObject {
     @Published var likedPosts: [Post] = []
@@ -111,16 +113,51 @@ struct LikedView: View {
     
     @State private var isLiked: Bool = true
     var body: some View {
-        List {
+        ScrollView {
             ForEach(viewModel.likedPosts) { post in
                 NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: post.creationDate, type: post.type, isLiked: $isLiked)) {
-                    VStack(alignment: .leading) {
-                        Text(post.title)
-                            .font(.headline)
-                        Text(post.description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
+                        HStack{
+                            WebImage(url: URL(string: post.mediaURL)) { phase in
+                                switch phase {
+                                case .empty:
+                                    ProgressView()
+                                        .frame(width: 130, height: 100)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 130, height: 100)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.secondary, lineWidth: 0.2)
+                                        )
+                                case .failure:
+                                    Image(systemName: "photo")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 130, height: 100)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.secondary, lineWidth: 0.2)
+                                        )
+                                        .scaledToFill()
+                                }
+                            }
+                            
+                            VStack(alignment:.leading) {
+                                Text(post.title)
+                                    .font(.title3)
+                                Text(post.description)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(8)
+                        .padding()
                 }
             }
             
@@ -130,13 +167,23 @@ struct LikedView: View {
                         viewModel.fetchLikedPosts()
                     }
             } else if viewModel.likedPosts.isEmpty {
-                Text("No liked posts found.")
-                    .foregroundColor(.gray)
+                VStack{
+                    Text("No liked posts found.")
+                        .foregroundColor(.gray)
+                    Image(systemName: "heart.slash")
+                        .font(.system(size: 25))
+                }
             } else {
                 Button(action: {
                     viewModel.fetchLikedPosts()
                 }) {
                     Text("Load More")
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(.ultraThickMaterial)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
                 }
             }
         }

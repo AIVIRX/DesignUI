@@ -91,9 +91,10 @@ struct DesignCards: View {
                 VStack(alignment: .leading) {
                     Text(title)
                         .font(.headline)
-                        .lineLimit(2)
+                        .lineLimit(1)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
+                        .truncationMode(.tail)
                     Spacer()
                     HStack {
                         Text(author)
