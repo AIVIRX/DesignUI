@@ -94,9 +94,9 @@ struct ProfileView: View {
                                         Text("Edit Profile")
                                     }
                                     .padding()
-                                    .background(Color.gray.opacity(0.2))
+                                    .background(.thinMaterial)
                                     .cornerRadius(10)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.primary)
                                 }
                                 .sheet(isPresented: $showEditProfile) {
                                     EditProfileView(displayName: user.displayName, bio: user.bio)
@@ -107,7 +107,7 @@ struct ProfileView: View {
                             HStack {
                                 GeometryReader { geometry in
                                     HStack(spacing: 0) {
-                                        TabButton(imageName: "square.grid.3x3", isSelected: selectedTab == 0) {
+                                        TabButton(imageName: "arrow.triangle.2.circlepath.icloud", isSelected: selectedTab == 0) {
                                             withAnimation {
                                                 selectedTab = 0
                                             }
@@ -192,7 +192,7 @@ struct ProfileView: View {
                     }
                 }
             }
-            .navigationBarTitle("")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: HStack {
                 // Account Manager Dropdown (only if logged in)

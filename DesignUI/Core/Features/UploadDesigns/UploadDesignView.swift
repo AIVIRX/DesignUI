@@ -185,7 +185,7 @@ struct UploadDesignView: View {
         
         isLoading = true
         let uniqueImageID = generateUniqueImageID()
-        let storageRef = Storage.storage().reference().child("design_images/\(uid)/\(uniqueImageID).jpg")
+        let storageRef = Storage.storage().reference().child("users/\(uid)/\(uniqueImageID).jpg")
         
         storageRef.putData(imageData, metadata: nil) { metadata, error in
             isLoading = false

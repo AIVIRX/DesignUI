@@ -169,10 +169,17 @@ struct LikedView: View {
             } else if viewModel.likedPosts.isEmpty {
                 VStack{
                     Text("No liked posts found.")
-                        .foregroundColor(.gray)
+                        .font(.headline)
                     Image(systemName: "heart.slash")
-                        .font(.system(size: 25))
+                        .font(.system(size: 30))
+                        .padding()
                 }
+                .foregroundColor(.primary)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(.ultraThickMaterial)
+                .cornerRadius(8)
+                .padding(.horizontal)
             } else {
                 Button(action: {
                     viewModel.fetchLikedPosts()
