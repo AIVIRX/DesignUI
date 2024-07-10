@@ -15,6 +15,7 @@ class LikedPostsViewModel: ObservableObject {
     @Published var likedPosts: [Post] = []
     @Published var isLoading: Bool = false
     @Published var lastDocument: DocumentSnapshot?
+    @Published var hasMorePosts: Bool = true
 
     private let db = Firestore.firestore()
     private let batchSize = 2
@@ -35,7 +36,10 @@ class LikedPostsViewModel: ObservableObject {
         if reset {
             likedPosts = []
             lastDocument = nil
+            hasMorePosts = true
         }
+        
+        guard hasMorePosts else { return }
         
         isLoading = true
         
@@ -57,6 +61,10 @@ class LikedPostsViewModel: ObservableObject {
                 return
             }
             
+            if documents.count < self.batchSize {
+                self.hasMorePosts = false
+            }
+            
             if let last = documents.last {
                 self.lastDocument = last
             }
@@ -67,7 +75,7 @@ class LikedPostsViewModel: ObservableObject {
     }
     
     private func fetchPostDetails(for postIDs: [String]) {
-        let postRef = db.collection("CommunityPosts")
+        let postRef = db.collection("posts")
         
         let dispatchGroup = DispatchGroup()
         
@@ -110,54 +118,54 @@ class LikedPostsViewModel: ObservableObject {
 
 struct LikedView: View {
     @StateObject private var viewModel = LikedPostsViewModel()
-    
     @State private var isLiked: Bool = true
+    
     var body: some View {
         ScrollView {
             ForEach(viewModel.likedPosts) { post in
                 NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: post.creationDate, type: post.type, isLiked: $isLiked)) {
-                        HStack{
-                            WebImage(url: URL(string: post.mediaURL)) { phase in
-                                switch phase {
-                                case .empty:
-                                    ProgressView()
-                                        .frame(width: 130, height: 100)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 130, height: 100)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.secondary, lineWidth: 0.2)
-                                        )
-                                case .failure:
-                                    Image(systemName: "photo")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 130, height: 100)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.secondary, lineWidth: 0.2)
-                                        )
-                                        .scaledToFill()
-                                }
-                            }
-                            
-                            VStack(alignment:.leading) {
-                                Text(post.title)
-                                    .font(.title3)
-                                Text(post.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                    HStack {
+                        WebImage(url: URL(string: post.mediaURL)) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView()
+                                    .frame(width: 130, height: 100)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 130, height: 100)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.secondary, lineWidth: 0.2)
+                                    )
+                            case .failure:
+                                Image(systemName: "photo")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 130, height: 100)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.secondary, lineWidth: 0.2)
+                                    )
+                                    .scaledToFill()
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(8)
-                        .padding()
+                        
+                        VStack(alignment: .leading) {
+                            Text(post.title)
+                                .font(.title3)
+                            Text(post.description)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(8)
+                    .padding()
                 }
             }
             
@@ -167,7 +175,7 @@ struct LikedView: View {
                         viewModel.fetchLikedPosts()
                     }
             } else if viewModel.likedPosts.isEmpty {
-                VStack{
+                VStack {
                     Text("No liked posts found.")
                         .font(.headline)
                     Image(systemName: "heart.slash")
@@ -180,7 +188,7 @@ struct LikedView: View {
                 .background(.ultraThickMaterial)
                 .cornerRadius(8)
                 .padding(.horizontal)
-            } else {
+            } else if viewModel.hasMorePosts {
                 Button(action: {
                     viewModel.fetchLikedPosts()
                 }) {
@@ -188,7 +196,7 @@ struct LikedView: View {
                         .foregroundColor(.white)
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(.ultraThickMaterial)
+                        .background(.ultraThinMaterial)
                         .cornerRadius(8)
                         .padding(.horizontal)
                 }

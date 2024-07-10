@@ -52,11 +52,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
+    @StateObject private var userStore = UserStore()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
+                .environmentObject(userStore)
         }
     }
 }

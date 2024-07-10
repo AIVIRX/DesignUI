@@ -329,7 +329,7 @@ struct HomeView: View {
     private func fetchCommunityPosts() async {
         let db = Firestore.firestore()
         do {
-            let querySnapshot = try await db.collection("CommunityPosts").getDocuments()
+            let querySnapshot = try await db.collection("posts").getDocuments()
             print("Fetched \(querySnapshot.documents.count) community posts")
             for document in querySnapshot.documents {
                 print("Document ID: \(document.documentID)")
@@ -339,14 +339,14 @@ struct HomeView: View {
                         self.communityPosts.append(post)
                     }
                 } else {
-                                    print("Failed to decode document with ID: \(document.documentID)")
+                    print("Failed to decode document with ID: \(document.documentID)")
                 }
             }
         } catch {
             print("Error getting documents: \(error)")
         }
     }
-
+    
     func addNewDesigns(_ newDesigns: [DesignPost]) {
         designPosts.append(contentsOf: newDesigns)
     }

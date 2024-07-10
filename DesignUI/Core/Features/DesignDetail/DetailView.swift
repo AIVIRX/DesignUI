@@ -21,143 +21,141 @@ struct DetailView: View {
     @State private var isLiking: Bool = false
     
     var body: some View {
-            ScrollView {
+        ScrollView {
+            VStack(alignment: .leading) {
+                if type == "image" {
+                    Image(mediaURL)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity, maxHeight: 250)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .clipped()
+                }
+                if type == "fetched" {
+                    WebImage(url: URL(string: mediaURL)) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(maxWidth: .infinity, maxHeight: 250)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .clipped()
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .clipped()
+                        }
+                    }
+                }
+            
                 VStack(alignment: .leading) {
-                    if type == "image" {
-                        Image(mediaURL)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: .infinity, maxHeight: 250)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .clipped()
-                    }
-                    if type == "fetched" {
-                        WebImage(url: URL(string: mediaURL)) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    .clipped()
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    .clipped()
+                    HStack {
+                        Text(title)
+                            .font(.title)
+                            .bold()
+                            .lineLimit(2)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Button(action: {
+                            if !isLiking {
+                                isLiking = true
+                                toggleLike()
+                            }
+                        }) {
+                            VStack{
+                                Image(systemName: isLiked ? "heart.fill" : "heart")
+                                    .foregroundColor(isLiked ? .red : .gray)
+                                    .font(.title)
+                                Text("\(likesCount)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
                             }
                         }
                     }
+                    
+                    Text(creationDate)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("By \(author)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
                 
+                Text("Description:")
+                    .font(.title2).bold()
+                    .padding(.top)
+                Text(description)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                
+                Text("Code Snippet:")
+                    .font(.title2).bold()
+                    .padding(.top)
+                
+                ScrollView {
                     VStack(alignment: .leading) {
-                        HStack {
-                            Text(title)
-                                .font(.title)
-                                .bold()
-                                .lineLimit(2)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            Button(action: {
-                                if !isLiking {
-                                    isLiking = true
-                                    toggleLike()
-                                }
-                            }) {
-                                if type == "fetched"{
-                                    VStack{
-                                        Image(systemName: isLiked ? "heart.fill" : "heart")
-                                            .foregroundColor(isLiked ? .red : .gray)
-                                            .font(.title)
-                                        Text("\(likesCount)")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Text(creationDate)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("By \(author)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        Text(codeSnippet)
+                            .font(.body)
+                            .padding()
                     }
-                    
-                    Text("Description:")
-                        .font(.title2).bold()
-                        .padding(.top)
-                    Text(description)
-                        .font(.body)
-                        .foregroundColor(.primary)
-                    
-                    Text("Code Snippet:")
-                        .font(.title2).bold()
-                        .padding(.top)
-                    
-                    ScrollView {
-                        VStack(alignment: .leading) {
-                            Text(codeSnippet)
-                                .font(.body)
-                                .padding()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: 200)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-                    
-                    Button(action: {
-                        copyToClipboard(codeSnippet)
-                        isCopied = true
-                    }) {
-                        Text("Copy Code")
+                }
+                .frame(maxWidth: .infinity, maxHeight: 200)
+                .background(Color.gray.opacity(0.2))
+                .cornerRadius(8)
+                
+                Button(action: {
+                    copyToClipboard(codeSnippet)
+                    isCopied = true
+                }) {
+                    Text("Copy Code")
+                        .padding(8)
+                        .font(.headline).bold()
+                        .background(Color.blue) // Button background color
+                        .foregroundColor(.white) // Button text color
+                        .cornerRadius(12)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .foregroundStyle(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12.0))
+                .padding(.top, 10)
+                
+                Button(action: {
+                    showShareSheet = true
+                }) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Share")
                             .padding(8)
                             .font(.headline).bold()
                             .background(Color.blue) // Button background color
                             .foregroundColor(.white) // Button text color
                             .cornerRadius(12)
-                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .foregroundStyle(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12.0))
-                    .padding(.top, 10)
-                    
-                    Button(action: {
-                        showShareSheet = true
-                    }) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Share")
-                                .padding(8)
-                                .font(.headline).bold()
-                                .background(Color.blue) // Button background color
-                                .foregroundColor(.white) // Button text color
-                                .cornerRadius(12)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .foregroundStyle(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12.0))
-                    .padding(.top, 10)
+                    .frame(maxWidth: .infinity)
                 }
-                .toast(isPresenting: $isCopied) {
-                    AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
-                }
-                .environment(\.symbolVariants, .none)
-                .accentColor(.none)
+                .buttonStyle(.borderedProminent)
+                .foregroundStyle(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12.0))
+                .padding(.top, 10)
             }
-            .padding(7)
-            .onAppear(perform: fetchLikeStatus)
+            .toast(isPresenting: $isCopied) {
+                AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
             }
+            .environment(\.symbolVariants, .none)
+            .accentColor(.none)
+        }
+        .padding(7)
+        .onAppear(perform: fetchLikeStatus)
+    }
 
     func copyToClipboard(_ text: String) {
         UIPasteboard.general.string = text
@@ -176,7 +174,7 @@ struct DetailView: View {
             }
             
             // Fetch the likes count from the post document
-            let postRef = db.collection("CommunityPosts").document(id)
+            let postRef = db.collection("posts").document(id)
             postRef.getDocument { document, error in
                 if let document = document, document.exists {
                     if let data = document.data(), let likes = data["likesCount"] as? Int {
@@ -189,51 +187,48 @@ struct DetailView: View {
         }
     }
 
-
-
-
     func toggleLike() {
-            guard let user = Auth.auth().currentUser else { return }
-            let db = Firestore.firestore()
-            let postRef = db.collection("CommunityPosts").document(id)
-            let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
-            
-            db.runTransaction({ (transaction, errorPointer) -> Any? in
-                let postDocument: DocumentSnapshot
-                do {
-                    postDocument = try transaction.getDocument(postRef)
-                } catch let error as NSError {
-                    print("Error getting post document: \(error)")
-                    return nil
-                }
-                
-                guard let oldLikesCount = postDocument.data()?["likesCount"] as? Int else {
-                    return nil
-                }
-                
-                if self.isLiked {
-                    // Unlike the post
-                    transaction.updateData(["likesCount": oldLikesCount - 1], forDocument: postRef)
-                    transaction.deleteDocument(userLikedPostRef)
-                } else {
-                    // Like the post
-                    transaction.updateData(["likesCount": oldLikesCount + 1], forDocument: postRef)
-                    transaction.setData(["likedBy":user.uid], forDocument: userLikedPostRef)
-                }
-                
+        guard let user = Auth.auth().currentUser else { return }
+        let db = Firestore.firestore()
+        let postRef = db.collection("posts").document(id)
+        let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
+        
+        db.runTransaction({ (transaction, errorPointer) -> Any? in
+            let postDocument: DocumentSnapshot
+            do {
+                postDocument = try transaction.getDocument(postRef)
+            } catch let error as NSError {
+                print("Error getting post document: \(error)")
                 return nil
-            }) { (object, error) in
-                if let error = error {
-                    print("Transaction failed: \(error)")
-                } else {
+            }
+            
+            guard let oldLikesCount = postDocument.data()?["likesCount"] as? Int else {
+                return nil
+            }
+            
+            if self.isLiked {
+                // Unlike the post
+                transaction.updateData(["likesCount": oldLikesCount - 1], forDocument: postRef)
+                transaction.deleteDocument(userLikedPostRef)
+            } else {
+                // Like the post
+                transaction.updateData(["likesCount": oldLikesCount + 1], forDocument: postRef)
+                transaction.setData(["likedBy": user.uid, "timestamp": FieldValue.serverTimestamp()], forDocument: userLikedPostRef)
+            }
+            return nil
+        }) { (object, error) in
+            if let error = error {
+                print("Transaction failed: \(error)")
+            } else {
+                DispatchQueue.main.async {
                     self.isLiked.toggle()
                     self.likesCount += self.isLiked ? 1 : -1
+                    self.isLiking = false
                 }
-                self.isLiking = false
             }
         }
     }
-
+}
 
 #Preview {
     DetailView(

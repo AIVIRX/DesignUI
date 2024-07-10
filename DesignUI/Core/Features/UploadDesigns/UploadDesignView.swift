@@ -4,7 +4,6 @@
 //
 //  Created by Maicol Cabreja on 6/13/24.
 //
-
 import SwiftUI
 import FirebaseFirestore
 import AlertToast
@@ -25,7 +24,7 @@ struct UploadDesignView: View {
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
     @State private var showToast = false
     var isUploadEnabled: Bool {
-        return !title.isEmpty && !author.isEmpty && !description.isEmpty && !codeSnippet.isEmpty && selectedImage != nil
+        return !title.isEmpty && !author.isEmpty && !description.isEmpty && !codeSnippet.isEmpty && selectedImage != nil && !isLoading
     }
     var body: some View {
         GeometryReader { geometry in
@@ -92,19 +91,28 @@ struct UploadDesignView: View {
                 }
                 
                 Button(action: { uploadDesign() }) {
-                    Text("Upload Design")
-                        .padding(8)
-                        .frame(maxWidth: .infinity)
-                        .font(.headline).bold()
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                    } else {
+                        Text("Upload Design")
+                            .padding(8)
+                            .font(.headline).bold()
+                            .frame(maxWidth: .infinity)
+                    }
+                        
                 }
                 .buttonStyle(.borderedProminent)
-                .foregroundStyle(Color.white)
+                .background(isUploadEnabled ? Color.blue : Color.gray) // Ensure background color changes based on enabled state
+                .foregroundColor(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12.0))
                 .disabled(!isUploadEnabled)
                 .toast(isPresenting: $showToast) {
                     AlertToast(displayMode: .hud, type: .complete(Color.green), title: "Upload Successful")
                 }
             }
+            .environment(\.symbolVariants, .none)
+            .accentColor(.none)
         }
         .padding(7)
         .navigationTitle("Upload Design")
@@ -115,7 +123,6 @@ struct UploadDesignView: View {
         let placehold: String
         @Binding var text: String
         let maxLength: Int
-        
         var body: some View {
             VStack(alignment: .leading) {
                 TextField(placehold, text: $text)
@@ -142,7 +149,6 @@ struct UploadDesignView: View {
     struct TextEditorWithCounter: View {
         @Binding var text: String
         let maxLength: Int
-        
         var body: some View {
             VStack(alignment: .leading) {
                 TextEditor(text: $text)
@@ -175,56 +181,58 @@ struct UploadDesignView: View {
         if let user = user {
             let uid = user.uid
         
-        guard let image = selectedImage,
-              
-                let imageData = image.jpegData(compressionQuality: 0.3) else {
-            print("Please select an image.")
-            
-            return
-        }
-        
-        isLoading = true
-        let uniqueImageID = generateUniqueImageID()
-        let storageRef = Storage.storage().reference().child("users/\(uid)/\(uniqueImageID).jpg")
-        
-        storageRef.putData(imageData, metadata: nil) { metadata, error in
-            isLoading = false
-            if let error = error {
-                print(error.localizedDescription)
+            guard let image = selectedImage,
+                  let imageData = image.jpegData(compressionQuality: 0.3) else {
+                print("Please select an image.")
                 return
             }
-            
-            storageRef.downloadURL { url, error in
+        
+            isLoading = true
+            let uniqueImageID = generateUniqueImageID()
+            let storageRef = Storage.storage().reference().child("users/\(uid)/\(uniqueImageID).jpg")
+        
+            storageRef.putData(imageData, metadata: nil) { metadata, error in
                 if let error = error {
-                    print("\(error.localizedDescription)")
+                    isLoading = false
+                    print(error.localizedDescription)
                     return
                 }
+            
+                storageRef.downloadURL { url, error in
+                    if let error = error {
+                        isLoading = false
+                        print("\(error.localizedDescription)")
+                        return
+                    }
                 
-                guard let downloadURL = url else {
-                    print("Failed to get download URL.")
-                    return
-                }
+                    guard let downloadURL = url else {
+                        isLoading = false
+                        print("Failed to get download URL.")
+                        return
+                    }
                 
-                // Save design data to Firestore
-                saveDesignToFirestore(user: user, imageURL: downloadURL.absoluteString)
-                DispatchQueue.main.async {
-                    title = ""
-                    author = ""
-                    description = ""
-                    codeSnippet = ""
-                    selectedImage = nil
+                    // Save design data to Firestore
+                    saveDesignToFirestore(user: user, imageURL: downloadURL.absoluteString)
+                    DispatchQueue.main.async {
+                        title = ""
+                        author = ""
+                        description = ""
+                        codeSnippet = ""
+                        selectedImage = nil
+                        isLoading = false
+                        showToast = true
+                    }
                 }
-                showToast = true
             }
         }
-    }}
+    }
     
     func saveDesignToFirestore(user: User, imageURL: String) {
         let db = Firestore.firestore()
         let userDataRef = db.collection("users").document(user.uid)
         let codeSnippetWithLineBreaks = codeSnippet.replacingOccurrences(of: "\\n", with: "\n")
         
-        let newPostRef = db.collection("CommunityPosts").document()
+        let newPostRef = db.collection("posts").document()
         newPostRef.setData([
             "id": newPostRef.documentID,
             "title": title,
@@ -235,15 +243,18 @@ struct UploadDesignView: View {
             "creationDate": Date().toFormattedString(),
             "type": "fetched",
             "tags": [""],
-            "userId": user.uid
+            "userId": user.uid,
+            "likesCount": 0
         ]) { error in
             if let error = error {
+                isLoading = false
                 errorMessage = error.localizedDescription
                 return
             }
             
             // Update user's designs array in Firestore
-            userDataRef.updateData(["designs": FieldValue.arrayUnion([db.collection("CommunityPosts").document().documentID])]) { error in
+            userDataRef.updateData(["designs": FieldValue.arrayUnion([newPostRef.documentID])]) { error in
+                isLoading = false
                 if let error = error {
                     print(error.localizedDescription)
                 } else {

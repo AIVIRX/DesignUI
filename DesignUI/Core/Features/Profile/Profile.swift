@@ -29,123 +29,105 @@ class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelega
     }
 }
 
-enum ActiveAlert {
-    case signOut, deleteAccount
-}
+import SwiftUI
+import AuthenticationServices
+import FirebaseFirestore
+import FirebaseAuth
+import CryptoKit
 
 struct ProfileView: View {
-    @EnvironmentObject var store: Store
-    @State private var isLoggedIn = false
+    @EnvironmentObject var userStore: UserStore
     @State private var errorMessage: String = ""
-    @State private var showAlert: Bool = false
-    @State private var isLoading: Bool = false
+    @State private var showErrorAlert: Bool = false
+    @State private var showEditProfile = false
+    @State private var selectedTab = 1
     @State private var nonce: String?
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
     @Environment(\.colorScheme) var colorScheme
-    @State private var showDeletionConfirmation = false
-    @State private var showSignOutConfirmation = false
-    @State private var activeAlert: ActiveAlert?
-    @State private var showEditProfile = false
-    @State private var selectedTab = 1
-    @State private var user: UserModel?
-    
-    // Preview-specific initializer
-    init(preview: Bool = false) {
-        if preview {
-            _isLoggedIn = State(initialValue: true)
-            _user = State(initialValue: UserModel(id: "722", displayName: "John Doe", bio: "This is a sample bio."))
-        }
-    }
-    
+
     var body: some View {
         NavigationStack {
             VStack {
-                if isLoggedIn {
-                    if let user = user {
+                if let user = userStore.user {
+                    VStack {
+                        // Profile header
                         VStack {
-                            // Profile header
-                            VStack {
-                                // Circular profile image
-                                Image("profile_image") // Replace with your image name
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 100, height: 100)
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black , lineWidth: 2))
-                                    .shadow(radius: 10)
-                                
-                                // Name
-                                Text(user.displayName) // Replace with your name
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                
-                                // Bio
-                                Text(user.bio)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .padding([.leading, .trailing], 20)
-                                
-                                //Edit User Account
-                                Button(action: {
-                                    showEditProfile.toggle()
-                                }) {
-                                    HStack{
-                                        Text("Edit Profile")
-                                    }
-                                    .padding()
-                                    .background(.thinMaterial)
-                                    .cornerRadius(10)
-                                    .foregroundColor(.primary)
+                            // Circular profile image
+                            Image("profile_image") // Replace with your image name
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black , lineWidth: 2))
+                                .shadow(radius: 10)
+
+                            // Name
+                            Text(user.displayName) // Replace with your name
+                                .font(.title)
+                                .fontWeight(.bold)
+
+                            // Bio
+                            Text(user.bio)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding([.leading, .trailing], 20)
+
+                            // Edit User Account
+                            Button(action: {
+                                showEditProfile.toggle()
+                            }) {
+                                HStack {
+                                    Text("Edit Profile")
                                 }
-                                .sheet(isPresented: $showEditProfile) {
-                                    EditProfileView(displayName: user.displayName, bio: user.bio)
-                                }
+                                .padding()
+                                .background(.thinMaterial)
+                                .cornerRadius(10)
+                                .foregroundColor(.primary)
                             }
-                            
-                            // Tabs
-                            HStack {
-                                GeometryReader { geometry in
-                                    HStack(spacing: 0) {
-                                        TabButton(imageName: "arrow.triangle.2.circlepath.icloud", isSelected: selectedTab == 0) {
-                                            withAnimation {
-                                                selectedTab = 0
-                                            }
-                                        }
-                                        .frame(width: geometry.size.width / 2)
-                                        
-                                        TabButton(imageName: "heart", isSelected: selectedTab == 1) {
-                                            withAnimation {
-                                                selectedTab = 1
-                                            }
-                                        }
-                                        .frame(width: geometry.size.width / 2)
-                                    }
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .foregroundColor((colorScheme == .dark ? .white : .black))
-                                            .frame(width: geometry.size.width / 2 - 20, height: 4)
-                                            .offset(x: selectedTab == 0 ? -100 : 100, y: 28)
-                                            .animation(.easeInOut(duration: 0.25), value: UUID()
-                                            )
-                                    )
-                                }
-                                .frame(height: 50)
-                            }
-                            
-                            // Tab views
-                            if selectedTab == 0 {
-                                PostsView()
-                            } else {
-                                LikedView()
+                            .sheet(isPresented: $showEditProfile) {
+                                EditProfileView(displayName: user.displayName, bio: user.bio)
                             }
                         }
-                    } else {
-                        // Loading state or empty state
-                        Text("Loading...")
-                            .onAppear {
-                                fetchUserData()
+
+                        // Tabs
+                        HStack {
+                            GeometryReader { geometry in
+                                HStack(spacing: 0) {
+                                    TabButton(imageName: "arrow.triangle.2.circlepath.icloud", isSelected: selectedTab == 0) {
+                                        withAnimation {
+                                            selectedTab = 0
+                                        }
+                                    }
+                                    .frame(width: geometry.size.width / 2)
+
+                                    TabButton(imageName: "heart", isSelected: selectedTab == 1) {
+                                        withAnimation {
+                                            selectedTab = 1
+                                        }
+                                    }
+                                    .frame(width: geometry.size.width / 2)
+                                }
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .foregroundColor((colorScheme == .dark ? .white : .black))
+                                        .frame(width: geometry.size.width / 2 - 20, height: 4)
+                                        .offset(x: selectedTab == 0 ? -100 : 100, y: 28)
+                                        .animation(.easeInOut(duration: 0.25), value: UUID())
+                                )
                             }
+                            .frame(height: 50)
+                        }
+
+                        // Tab views
+                        if selectedTab == 0 {
+                            PostsView()
+                        } else {
+                            LikedView()
+                        }
+                    }
+                    .onAppear {
+                        print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
                     }
                 } else {
                     VStack {
@@ -159,10 +141,10 @@ struct ProfileView: View {
                             .padding()
                             .ignoresSafeArea(.all)
                             .frame(height: 450)
-                        
-                        SignInWithAppleButton(.signIn){ request in
+
+                        SignInWithAppleButton(.signIn) { request in
                             let nonce = randomNonceString()
-                            self.nonce =  nonce
+                            self.nonce = nonce
                             request.requestedScopes = [.email, .fullName]
                             request.nonce = sha256(nonce)
                         } onCompletion: { result in
@@ -177,7 +159,7 @@ struct ProfileView: View {
                         .frame(height: 50)
                         .clipShape(Capsule())
                         .padding(.top, 10)
-                        
+
                         let user = Auth.auth().currentUser
                         if let user = user {
                             let uid = user.uid
@@ -189,36 +171,13 @@ struct ProfileView: View {
                     .padding(20)
                     .onAppear {
                         checkLoggedIn()
+                        print("User is not logged in or user data is not available")
                     }
                 }
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: HStack {
-                // Account Manager Dropdown (only if logged in)
-                if isLoggedIn {
-                    Menu {
-                        Button(action: {
-                            activeAlert = .signOut
-                            showAlert = true
-                        }) {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                        }
-                        
-                        Button(role: .destructive, action: {
-                            activeAlert = .deleteAccount
-                            showAlert = true
-                        }) {
-                            Label("Delete Account", systemImage: "trash")
-                                .foregroundStyle(Color.red)
-                        }
-                    } label: {
-                        Image(systemName: "person.badge.key")
-                            .font(.system(size: 20))
-                            .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
-                    }
-                }
-                
                 // Settings
                 NavigationLink(destination: SettingsView()) {
                     Image(systemName: "gearshape")
@@ -226,39 +185,16 @@ struct ProfileView: View {
                         .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
                 }
             })
-            .alert(isPresented: $showAlert) {
-                switch activeAlert {
-                case .signOut:
-                    return Alert(
-                        title: Text("Sign Out"),
-                        message: Text("Are you sure you want to sign out from your account?"),
-                        primaryButton: .destructive(Text("Sign out")) {
-                            signOutUser()
-                        },
-                        secondaryButton: .cancel()
-                    )
-                case .deleteAccount:
-                    return Alert(
-                        title: Text("Delete Account"),
-                        message: Text("Are you sure you want to delete your account? This action cannot be undone."),
-                        primaryButton: .destructive(Text("Delete")) {
-                            deleteCurrentUser()
-                        },
-                        secondaryButton: .cancel()
-                    )
-                case .none:
-                    return Alert(title: Text("Error"))
-                }
-            }
-            //.alert(errorMessage, isPresented: $showAlert) {}
-            .overlay {
-                if isLoading {
-                    LoadingScreen()
-                }
+            .alert(isPresented: $showErrorAlert) {
+                Alert(
+                    title: Text("Error"),
+                    message: Text(errorMessage),
+                    dismissButton: .default(Text("OK"))
+                )
             }
         }
     }
-    
+
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black
@@ -266,70 +202,23 @@ struct ProfileView: View {
         @unknown default: return .black
         }
     }
-    
-    // Fetch User Data from Firestore
-    func fetchUserData() {
-        guard let user = Auth.auth().currentUser else { return }
-        let db = Firestore.firestore()
-        let userDocRef = db.collection("users").document(user.uid)
-        userDocRef.addSnapshotListener { documentSnapshot, error in
-            if let error = error {
-                showError(error.localizedDescription)
-                return
-            }
-            guard let document = documentSnapshot, document.exists, let data = document.data() else {
-                showError("Document does not exist")
-                return
-            }
-            let displayName = data["displayName"] as? String ?? "New User"
-            let bio = data["bio"] as? String ?? ""
-            self.user = UserModel(id: user.uid, displayName: displayName, bio: bio)
-        }
-    }
-    
-    // User is already logged in
-    func checkLoggedIn() {
-        if Auth.auth().currentUser != nil {
-            isLoggedIn = true
-        }
-    }
-    
-    //loading screen
-    @ViewBuilder
-    func LoadingScreen() -> some View {
-        ZStack{
-            Rectangle()
-                .fill(.ultraThinMaterial)
-            ProgressView()
-                .frame(width: 45, height: 45)
-                .background(.background, in: .rect(cornerRadius:5))
-        }
-    }
-    
-    //Show Error
-    func showError(_ message: String){
+
+    func showError(_ message: String) {
         errorMessage = message
-        showAlert.toggle()
-        isLoading = false
+        showErrorAlert = true
     }
-    
-    //Login With Firebase
-    func loginWithFirebase(_ authorization: ASAuthorization){
+
+    func loginWithFirebase(_ authorization: ASAuthorization) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            //showing loading screen until login completes with firebase
-            isLoading = true
             guard let nonce else {
-                //fatalError("Invalid state: A login callback was received, but no login request was sent.")
                 showError("Cannot Process Your Request")
                 return
             }
             guard let appleIDToken = appleIDCredential.identityToken else {
-                //print("Unable to fetch identity token")
                 showError("Cannot Process Your Request")
                 return
             }
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                //print("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
                 showError("Cannot Process Your Request")
                 return
             }
@@ -338,64 +227,28 @@ struct ProfileView: View {
             // Sign in with Firebase.
             Auth.auth().signIn(with: credential) { (authResult, error) in
                 if let error {
-                    // Error. If error.code == .MissingOrInvalidNonce, make sure
-                    // you're sending the SHA256-hashed nonce as a hex string with
-                    // your request to Apple.
                     showError(error.localizedDescription)
                     return
                 }
                 // User is signed in to Firebase with Apple.
-                isLoading = false
-                isLoggedIn = true
-                
-                // Check if the user document already exists
                 if let user = Auth.auth().currentUser {
-                    let db = Firestore.firestore()
-                    let userDocRef = db.collection("users").document(user.uid)
-                    userDocRef.getDocument { (document, error) in
-                        if let document = document, document.exists {
-                            print("User document already exists")
-                            isLoggedIn = true
-                        } else {
-                            // Create a Firestore document for the user
-                            print("Creating New User document - New User")
-                            let userData: [String: Any] = [
-                                "uid": user.uid,
-                                "displayName": "New User",
-                                "email": user.email ?? "",
-                                "followersCount": 0,
-                                "followingCount": 0,
-                                "likesCount": 0,
-                                "username": "",
-                                "bio": "",
-                                "imageURL": ""
-                            ]
-                            
-                            // Create a subcollection for liked posts
-                            let likedPostsCollectionRef = userDocRef.collection("likedPosts")
-                            
-                            userDocRef.setData(userData) { error in
-                                if let error = error {
-                                    print("Error creating user document: \(error.localizedDescription)")
-                                } else {
-                                    print("User document created successfully!")
-                                    // Create an empty document in the likedPosts subcollection
-                                    likedPostsCollectionRef.addDocument(data: [:]) { error in
-                                        if let error = error {
-                                            print("Error creating likedPosts document: \(error.localizedDescription)")
-                                        } else {
-                                            print("LikedPosts document created successfully!")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    let userData = UserModel(id: user.uid, displayName: user.displayName ?? "New User", bio: "")
+                    userStore.signIn(user: userData)
                 }
             }
         }
     }
-    
+
+    func checkLoggedIn() {
+        if let user = Auth.auth().currentUser {
+            print("User is logged in: \(user.uid)")
+            let userData = UserModel(id: user.uid, displayName: user.displayName ?? "New User", bio: "")
+            userStore.signIn(user: userData)
+        } else {
+            print("User is not logged in")
+        }
+    }
+
     private func randomNonceString(length: Int = 32) -> String {
         precondition(length > 0)
         var randomBytes = [UInt8](repeating: 0, count: length)
@@ -403,12 +256,12 @@ struct ProfileView: View {
         if errorCode != errSecSuccess {
             fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
         }
-        
+
         let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
         let nonce = randomBytes.map { byte in charset[Int(byte) % charset.count] }
         return String(nonce)
     }
-    
+
     @available(iOS 13, *)
     private func sha256(_ input: String) -> String {
         let inputData = Data(input.utf8)
@@ -416,121 +269,27 @@ struct ProfileView: View {
         let hashString = hashedData.compactMap { String(format: "%02x", $0) }.joined()
         return hashString
     }
-    
-    private func deleteCurrentUser() {
-        let nonce = randomNonceString()
-        self.nonce = nonce
-        let appleIDProvider = ASAuthorizationAppleIDProvider()
-        let request = appleIDProvider.createRequest()
-        request.requestedScopes = [.fullName, .email]
-        request.nonce = sha256(nonce)
-        
-        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
-        authorizationController.delegate = authorizationDelegate
-        authorizationDelegate.onCompletion = { result in
-            switch result {
-            case .success(let authorization):
-                self.handleAppleSignIn(authorization)
-            case .failure(let error):
-                self.showError(error.localizedDescription)
-            }
+}
+
+struct TabButton: View {
+    var imageName: String
+    var isSelected: Bool
+    var action: () -> Void
+    @Environment(\.colorScheme) var colorScheme
+    var body: some View {
+        VStack {
+            Image(systemName: isSelected ? "\(imageName).fill" : "\(imageName)")
+                .foregroundColor(isSelected ? (colorScheme == .dark ? .white : .black) : .gray)
+                .font(.system(size: 20))
+                .padding()
         }
-        authorizationDelegate.presentationAnchorProvider = {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
-            }
-            return ASPresentationAnchor()
-        }
-        authorizationController.performRequests()
-    }
-    
-    private func signOutUser() {
-        let firebaseAuth = Auth.auth()
-        do {
-            try firebaseAuth.signOut()
-            updateUI()
-        } catch let signOutError as NSError {
-            print("Error signing out: %@", signOutError)
-        }
-    }
-    
-    func handleAppleSignIn(_ authorization: ASAuthorization) {
-        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-            showError("Unable to retrieve AppleIDCredential")
-            return
-        }
-        
-        guard let nonce = nonce else {
-            fatalError("Invalid state: A login callback was received, but no login request was sent.")
-        }
-        
-        guard let appleIDToken = appleIDCredential.identityToken else {
-            showError("Unable to fetch identity token")
-            return
-        }
-        
-        guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-            showError("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
-            return
-        }
-        
-        // Initialize a fresh Apple credential with Firebase.
-        let credential = OAuthProvider.credential(
-            withProviderID: "apple.com",
-            idToken: idTokenString,
-            rawNonce: nonce
-        )
-        
-        // Reauthenticate current Apple user with fresh Apple credential.
-        Auth.auth().currentUser?.reauthenticate(with: credential) { authResult, error in
-            if let error = error {
-                self.showError(error.localizedDescription)
-                return
-            }
-            // Apple user successfully re-authenticated.
-            self.performDeleteUser()
-        }
-    }
-    
-    private func performDeleteUser() {
-        Task {
-            do {
-                try await Auth.auth().currentUser?.delete()
-                updateUI()
-            } catch {
-                showError(error.localizedDescription)
-            }
-        }
-    }
-    
-    private func updateUI() {
-        isLoggedIn = false
-    }
-    
-    struct TabButton: View {
-        var imageName: String
-        var isSelected: Bool
-        var action: () -> Void
-        @Environment(\.colorScheme) var colorScheme
-        var body: some View {
-            VStack{
-                Image(systemName: isSelected ? "\(imageName).fill" : "\(imageName)")
-                    .foregroundColor(isSelected ? (colorScheme == .dark ? .white : .black) : .gray)
-                    .font(.system(size: 20))
-                    .padding()
-                
-//                    RoundedRectangle(cornerRadius: 10)
-//                        .foregroundColor(isSelected ? (colorScheme == .dark ? .white : .black) : .clear)
-//                        .frame(height: 4)
-//                        .padding(.horizontal, 5)
-            }
-            .onTapGesture {
-                action()
-            }
+        .onTapGesture {
+            action()
         }
     }
 }
 
 #Preview {
-    ProfileView(preview: true)
+    ProfileView()
+        .environmentObject(UserStore())
 }
