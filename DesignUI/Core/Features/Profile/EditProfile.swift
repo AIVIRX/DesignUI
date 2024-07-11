@@ -10,6 +10,7 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct EditProfileView: View {
+    @EnvironmentObject var userStore: UserStore
     @State private var newDisplayName: String
     @State private var initialDisplayName: String
     @State private var isLoading: Bool = false
@@ -50,9 +51,9 @@ struct EditProfileView: View {
     }
     
     func saveProfile() {
-        guard let user = Auth.auth().currentUser else { return }
+        guard let user = userStore.user else { return }
         let db = Firestore.firestore()
-        let userDocRef = db.collection("users").document(user.uid)
+        let userDocRef = db.collection("users").document(user.id)
         
         isLoading = true
         
@@ -65,7 +66,10 @@ struct EditProfileView: View {
                 print("Error updating profile: \(error.localizedDescription)")
             } else {
                 print("Profile updated successfully")
-                presentationMode.wrappedValue.dismiss()
+                // Update the local user data
+                userStore.fetchUserData(uid: user.id) { _ in
+                    presentationMode.wrappedValue.dismiss()
+                }
             }
         }
     }
@@ -129,7 +133,6 @@ struct EditProfileView: View {
         }
     }
 }
-
 
 #Preview {
     EditProfileView(displayName: "John Doe", bio: "Software Programmer Living In New York City")
