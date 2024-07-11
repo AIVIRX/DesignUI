@@ -43,7 +43,7 @@ struct HomeView: View {
     @State private var componentPosts: [DesignPost] = []
     @State private var communityPosts: [DesignPost] = []
     @State private var isNewDesignsLoaded = false
-    @State private var teamName = "Dock UI Team"
+    @State private var teamName = "Dock UI"
     @State private var selectedPost: DesignPost?
     @State private var errorMessage: String = ""
     @State private var isLoading: Bool = false
@@ -79,7 +79,7 @@ struct HomeView: View {
                                             id: post.id,
                                             media: post.media,
                                             title: post.title,
-                                            author: post.author,
+                                            authorUID: post.author,
                                             description: post.description,
                                             codeSnippet: post.codeSnippet,
                                             published: post.creationDate,
@@ -106,7 +106,7 @@ struct HomeView: View {
                                             id: post.id,
                                             media: post.media,
                                             title: post.title,
-                                            author: post.author,
+                                            authorUID: post.author,
                                             description: post.description,
                                             codeSnippet: post.codeSnippet,
                                             published: post.creationDate,
@@ -133,7 +133,7 @@ struct HomeView: View {
                                             id: post.id,
                                             media: post.media,
                                             title: post.title,
-                                            author: post.author,
+                                            authorUID: post.author,
                                             description: post.description,
                                             codeSnippet: post.codeSnippet,
                                             published: post.creationDate,

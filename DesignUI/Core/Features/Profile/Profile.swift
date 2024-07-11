@@ -32,12 +32,12 @@ struct ProfileView: View {
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
     @State private var showEditProfile = false
+    @State private var showAccountSettings = false
     @State private var selectedTab = 1
     @State private var nonce: String?
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
     @State private var isLoading = false
     @Environment(\.colorScheme) var colorScheme
-    
     var body: some View {
         NavigationStack {
             VStack {
@@ -61,10 +61,6 @@ struct ProfileView: View {
                                 .font(.title)
                                 .fontWeight(.bold)
                             
-                            Text(user.id)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            
                             // Bio
                             Text(user.bio)
                                 .font(.subheadline)
@@ -87,6 +83,11 @@ struct ProfileView: View {
                             .sheet(isPresented: $showEditProfile) {
                                 EditProfileView(displayName: user.displayName, bio: user.bio)
                                     .environmentObject(userStore)
+                                    .presentationDetents([.medium, .large])
+                            }
+                            .sheet(isPresented: $showAccountSettings) {
+                                AccountSettings()
+                                    .presentationDetents([.medium, .large])
                             }
                         }
                         
@@ -179,10 +180,13 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: HStack {
                 // Settings
-                NavigationLink(destination: SettingsView()) {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 20))
+                Button(action: {
+                    showAccountSettings.toggle()
+                }) {
+                    Image(systemName: "person.2.badge.gearshape.fill")
+                        .font(.system(size: 15))
                         .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
+                        .presentationDetents([.medium, .large])
                 }
             })
             .alert(isPresented: $showErrorAlert) {
@@ -294,7 +298,6 @@ struct ProfileView: View {
         }
     }
 
-    
     private func randomNonceString(length: Int = 32) -> String {
         precondition(length > 0)
         var randomBytes = [UInt8](repeating: 0, count: length)

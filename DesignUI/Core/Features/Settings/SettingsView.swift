@@ -8,10 +8,51 @@
 //  DesignUI
 
 import SwiftUI
+import MessageUI
 import AuthenticationServices
 import FirebaseAuth
 import CryptoKit
 import StoreKit
+
+struct MailView: UIViewControllerRepresentable {
+    @Environment(\.presentationMode) var presentationMode
+    @Binding var result: Result<MFMailComposeResult, Error>?
+
+    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        @Binding var presentationMode: PresentationMode
+        @Binding var result: Result<MFMailComposeResult, Error>?
+
+        init(presentationMode: Binding<PresentationMode>, result: Binding<Result<MFMailComposeResult, Error>?>) {
+            _presentationMode = presentationMode
+            _result = result
+        }
+
+        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+            defer {
+                $presentationMode.wrappedValue.dismiss()
+            }
+            guard error == nil else {
+                self.result = .failure(error!)
+                return
+            }
+            self.result = .success(result)
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(presentationMode: presentationMode, result: $result)
+    }
+
+    func makeUIViewController(context: UIViewControllerRepresentableContext<MailView>) -> MFMailComposeViewController {
+        let vc = MFMailComposeViewController()
+        vc.mailComposeDelegate = context.coordinator
+        vc.setToRecipients(["support@aivirx.com"])
+        vc.setSubject("DockUI")
+        return vc
+    }
+
+    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: UIViewControllerRepresentableContext<MailView>) {}
+}
 
 struct SettingsView: View {
     @EnvironmentObject var userStore: UserStore
@@ -23,7 +64,9 @@ struct SettingsView: View {
     @State private var showErrorAlert: Bool = false
     @State private var nonce: String?
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
-
+    @State private var result: Result<MFMailComposeResult, Error>? = nil
+    @State private var isShowingMailView = false
+    @Environment(\.dismiss) var dismiss
     var body: some View {
         NavigationStack {
             Form {
@@ -69,9 +112,12 @@ struct SettingsView: View {
                     Link(destination: URL(string: "https://www.aivirx.com/crypto-profit-loss-calculator/privacy-policy")!) {
                         Text("Privacy Policy")
                     }
-                    Link(destination: URL(string: "https://www.aivirx.com/contact")!) {
+                    Button(action: {
+                        isShowingMailView.toggle()
+                    }) {
                         Text("Contact Us")
                     }
+                    .disabled(!MFMailComposeViewController.canSendMail())
                 }
 
                 Section("Account") {
@@ -87,6 +133,7 @@ struct SettingsView: View {
                             primaryButton: .destructive(
                                 Text("Sign Out"),
                                 action: signOutUser
+                                
                             ),
                             secondaryButton: .cancel()
                         )
@@ -120,6 +167,9 @@ struct SettingsView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
+            .sheet(isPresented: $isShowingMailView) {
+                MailView(result: $result)
+            }
         }
     }
 
@@ -128,6 +178,7 @@ struct SettingsView: View {
         do {
             try firebaseAuth.signOut()
             userStore.signOut()
+            dismiss()
         } catch let signOutError as NSError {
             showError(signOutError.localizedDescription)
         }
@@ -203,6 +254,7 @@ struct SettingsView: View {
             do {
                 try await Auth.auth().currentUser?.delete()
                 userStore.signOut()
+                dismiss()
             } catch {
                 showError(error.localizedDescription)
             }

@@ -15,7 +15,6 @@ struct UploadDesignView: View {
     @State private var title: String = ""
     @State private var description: String = ""
     @State private var codeSnippet: String = ""
-    @State private var author: String = ""
     @State private var selectedImage: UIImage?
     @State private var isShowingImagePicker = false
     @State private var isLoading = false
@@ -24,7 +23,7 @@ struct UploadDesignView: View {
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
     @State private var showToast = false
     var isUploadEnabled: Bool {
-        return !title.isEmpty && !author.isEmpty && !description.isEmpty && !codeSnippet.isEmpty && selectedImage != nil && !isLoading
+        return !title.isEmpty && !description.isEmpty && !codeSnippet.isEmpty && selectedImage != nil && !isLoading
     }
     var body: some View {
         GeometryReader { geometry in
@@ -68,10 +67,6 @@ struct UploadDesignView: View {
                     Text("Title")
                         .bold()
                     TextFieldWithCounter(placehold: "Login Screen UI", text: $title, maxLength: 20)
-                    
-                    Text("Author")
-                        .bold()
-                    TextFieldWithCounter(placehold: "Author Name", text: $author, maxLength: 15)
                     
                     Text("Description")
                         .bold()
@@ -215,7 +210,6 @@ struct UploadDesignView: View {
                     saveDesignToFirestore(user: user, imageURL: downloadURL.absoluteString)
                     DispatchQueue.main.async {
                         title = ""
-                        author = ""
                         description = ""
                         codeSnippet = ""
                         selectedImage = nil
@@ -237,7 +231,7 @@ struct UploadDesignView: View {
             "id": newPostRef.documentID,
             "title": title,
             "description": description,
-            "author": author,
+            "author": user.uid,
             "codeSnippet": codeSnippetWithLineBreaks,
             "media": imageURL,
             "creationDate": Date().toFormattedString(),

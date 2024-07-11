@@ -29,7 +29,7 @@ struct EditProfileView: View {
     
     var body: some View {
         VStack {
-            TextFieldWithCounter(placehold: "Name", text: $newDisplayName, maxLength: 15)
+            TextFieldWithCounter(placeholder: "Name", text: $newDisplayName, maxLength: 15)
             
             TextEditorWithCounter(label: "Bio", text: $newBio, maxLength: 80)
             
@@ -57,9 +57,11 @@ struct EditProfileView: View {
         
         isLoading = true
         
+        let cleanedBio = removeBlankLines(from: newBio)
+        
         userDocRef.updateData([
             "displayName": newDisplayName,
-            "bio": newBio
+            "bio": cleanedBio
         ]) { error in
             isLoading = false
             if let error = error {
@@ -74,15 +76,21 @@ struct EditProfileView: View {
         }
     }
     
+    func removeBlankLines(from text: String) -> String {
+        let lines = text.split(separator: "\n")
+        let nonEmptyLines = lines.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        return nonEmptyLines.joined(separator: "\n")
+    }
+    
     struct TextFieldWithCounter: View {
-        let placehold: String
+        let placeholder: String
         @Binding var text: String
         let maxLength: Int
         var body: some View {
             VStack(alignment: .leading) {
-                Text(placehold)
+                Text(placeholder)
                     .font(.headline)
-                TextField(placehold, text: $text)
+                TextField(placeholder, text: $text)
                     .padding()
                     .frame(height: 50)
                     .autocorrectionDisabled()

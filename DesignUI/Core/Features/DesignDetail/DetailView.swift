@@ -62,20 +62,21 @@ struct DetailView: View {
                             .bold()
                             .lineLimit(2)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        Button(action: {
-                            if !isLiking {
-                                isLiking = true
-                                toggleLike()
-                            }
-                        }) {
-                            VStack{
-                                Image(systemName: isLiked ? "heart.fill" : "heart")
-                                    .foregroundColor(isLiked ? .red : .gray)
-                                    .font(.title)
-                                Text("\(likesCount)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                        if type == "fetched" {
+                            Button(action: {
+                                if !isLiking {
+                                    isLiking = true
+                                    toggleLike()
+                                }
+                            }) {
+                                VStack{
+                                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                                        .foregroundColor(isLiked ? .red : .gray)
+                                        .font(.title)
+                                    Text("\(likesCount)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
                     }
