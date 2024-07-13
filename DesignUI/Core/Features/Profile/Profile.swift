@@ -4,6 +4,7 @@
 //
 //  Created by Maicol Cabreja on 6/12/24.
 //
+
 import SwiftUI
 import AuthenticationServices
 import FirebaseFirestore
@@ -27,6 +28,13 @@ class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelega
     }
 }
 
+struct AlertItem: Identifiable {
+    var id = UUID()
+    var title: Text
+    var message: Text?
+    var dismissButton: Alert.Button?
+}
+
 struct ProfileView: View {
     @EnvironmentObject var userStore: UserStore
     @State private var errorMessage: String = ""
@@ -37,7 +45,11 @@ struct ProfileView: View {
     @State private var nonce: String?
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
     @State private var isLoading = false
+    @State private var showDeleteAccountAlert = false
+    @State private var showSignOutAlert = false
+    @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -85,9 +97,38 @@ struct ProfileView: View {
                                     .environmentObject(userStore)
                                     .presentationDetents([.medium, .large])
                             }
-                            .sheet(isPresented: $showAccountSettings) {
-                                AccountSettings()
-                                    .presentationDetents([.medium, .large])
+                            
+                            Menu {
+                                Button("Sign out"){
+                                    self.alertItem = AlertItem(title: Text("Sign Out"), message: Text("Are you sure you want to sign out?"))
+                                }
+                                
+//                                .alert(isPresented: $showSignOutAlert) {
+//                                    Alert(
+//                                        title: Text("Sign Out"),
+//                                        message: Text("Are you sure you want to sign out?"),
+//                                        primaryButton: .destructive(Text("Sign Out")) {
+//                                            signOutUser()
+//                                        },
+//                                        secondaryButton: .cancel()
+//                                    )
+//                                }
+                                
+                                Button("Delete account"){
+                                    showDeleteAccountAlert.toggle()
+                                }
+//                                .alert(isPresented: $showDeleteAccountAlert) {
+//                                    Alert(
+//                                        title: Text("Delete Account"),
+//                                        message: Text("Are you sure you want to delete your account? This action cannot be undone."),
+//                                        primaryButton: .destructive(Text("Delete")) {
+//                                            deleteCurrentUser()
+//                                        },
+//                                        secondaryButton: .cancel()
+//                                    )
+//                                }
+                            } label: {
+                                Label("", systemImage: "paperplane")
                             }
                         }
                         
@@ -127,6 +168,7 @@ struct ProfileView: View {
                             LikedView()
                         }
                     }
+                    
                     .onAppear {
                         print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
                     }
@@ -178,17 +220,6 @@ struct ProfileView: View {
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: HStack {
-                // Settings
-                Button(action: {
-                    showAccountSettings.toggle()
-                }) {
-                    Image(systemName: "person.2.badge.gearshape.fill")
-                        .font(.system(size: 15))
-                        .foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
-                        .presentationDetents([.medium, .large])
-                }
-            })
             .alert(isPresented: $showErrorAlert) {
                 Alert(
                     title: Text("Error"),
@@ -196,9 +227,98 @@ struct ProfileView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
+            .alert(item: $alertItem) { alertItem in
+                Alert(title: alertItem.title, message: alertItem.message, dismissButton: alertItem.dismissButton)
+            }
         }
     }
     
+    private func signOutUser() {
+        let firebaseAuth = Auth.auth()
+        do {
+            try firebaseAuth.signOut()
+            userStore.signOut()
+        } catch let signOutError as NSError {
+            showError(signOutError.localizedDescription)
+        }
+    }
+
+    private func deleteCurrentUser() {
+        let nonce = randomNonceString()
+        self.nonce = nonce
+        let appleIDProvider = ASAuthorizationAppleIDProvider()
+        let request = appleIDProvider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = sha256(nonce)
+
+        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
+        authorizationController.delegate = authorizationDelegate
+        authorizationDelegate.onCompletion = { result in
+            switch result {
+            case .success(let authorization):
+                self.handleAppleSignIn(authorization)
+            case .failure(let error):
+                self.showError(error.localizedDescription)
+            }
+        }
+        authorizationDelegate.presentationAnchorProvider = {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
+            }
+            return ASPresentationAnchor()
+        }
+        authorizationController.performRequests()
+    }
+
+    func handleAppleSignIn(_ authorization: ASAuthorization) {
+        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+            showError("Unable to retrieve AppleIDCredential")
+            return
+        }
+
+        guard let nonce = nonce else {
+            fatalError("Invalid state: A login callback was received, but no login request was sent.")
+        }
+
+        guard let appleIDToken = appleIDCredential.identityToken else {
+            showError("Unable to fetch identity token")
+            return
+        }
+
+        guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
+            showError("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
+            return
+        }
+
+        // Initialize a fresh Apple credential with Firebase.
+        let credential = OAuthProvider.credential(
+            withProviderID: "apple.com",
+            idToken: idTokenString,
+            rawNonce: nonce
+        )
+
+        // Reauthenticate current Apple user with fresh Apple credential.
+        Auth.auth().currentUser?.reauthenticate(with: credential) { authResult, error in
+            if let error = error {
+                self.showError(error.localizedDescription)
+                return
+            }
+            // Apple user successfully re-authenticated.
+            self.performDeleteUser()
+        }
+    }
+
+    private func performDeleteUser() {
+        Task {
+            do {
+                try await Auth.auth().currentUser?.delete()
+                userStore.signOut()
+            } catch {
+                showError(error.localizedDescription)
+            }
+        }
+    }
+
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black

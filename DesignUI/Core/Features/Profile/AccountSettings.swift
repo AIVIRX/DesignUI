@@ -23,7 +23,6 @@ struct AccountSettings: View {
     @State private var showErrorAlert: Bool = false
     @State private var nonce: String?
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
-    @State private var result: Result<MFMailComposeResult, Error>? = nil
     @State private var isShowingMailView = false
     @Environment(\.presentationMode) var presentationMode
     var body: some View {
@@ -63,20 +62,14 @@ struct AccountSettings: View {
                 
                 
                 HStack {
-                                        Button(role: .destructive, action: {
-                                            // Dismiss the sheet first
-                                            presentationMode.wrappedValue.dismiss()
-                                            // Add a slight delay to ensure the sheet is dismissed
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                                showDeleteAccountAlert = true
-                                            }
-                                        }) {
+                    Button(role: .destructive, action: {
+                        showDeleteAccountAlert = true
+                    }) {
                         HStack{
                             Label("Delete Account", systemImage: "trash")
                                 .foregroundStyle(Color.red)
                                 .padding()
                                 .font(.headline).bold()
-                            
                         }
                         .frame(maxWidth: .infinity)
                         
@@ -108,9 +101,6 @@ struct AccountSettings: View {
                     message: Text(errorMessage),
                     dismissButton: .default(Text("OK"))
                 )
-            }
-            .sheet(isPresented: $isShowingMailView) {
-                MailView(result: $result)
             }
         }
     }
