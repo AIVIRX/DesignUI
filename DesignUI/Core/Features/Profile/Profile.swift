@@ -32,7 +32,8 @@ struct AlertItem: Identifiable {
     var id = UUID()
     var title: Text
     var message: Text?
-    var dismissButton: Alert.Button?
+    var primaryButton: Alert.Button
+    var secondaryButton: Alert.Button?
 }
 
 struct ProfileView: View {
@@ -49,7 +50,6 @@ struct ProfileView: View {
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
-
     var body: some View {
         NavigationStack {
             VStack {
@@ -75,60 +75,62 @@ struct ProfileView: View {
                             
                             // Bio
                             Text(user.bio)
-                                .font(.subheadline)
+                                .font(.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding([.leading, .trailing], 20)
                             
                             // Edit User Account
-                            Button(action: {
-                                showEditProfile.toggle()
-                            }) {
-                                HStack {
-                                    Text("Edit Profile")
+                            HStack{
+                                Button(action: {
+                                    showEditProfile.toggle()
+                                }) {
+                                    HStack {
+                                        Text("Edit Profile")
+                                    }
+                                    .font(.system(size: 15))
+                                    .padding(10)
+                                    .background(.thickMaterial)
+                                    .cornerRadius(10)
+                                    .foregroundColor(.primary)
                                 }
-                                .padding()
-                                .background(.thinMaterial)
-                                .cornerRadius(10)
-                                .foregroundColor(.primary)
-                            }
-                            .sheet(isPresented: $showEditProfile) {
-                                EditProfileView(displayName: user.displayName, bio: user.bio)
-                                    .environmentObject(userStore)
-                                    .presentationDetents([.medium, .large])
-                            }
-                            
-                            Menu {
-                                Button("Sign out"){
-                                    self.alertItem = AlertItem(title: Text("Sign Out"), message: Text("Are you sure you want to sign out?"))
+                                .sheet(isPresented: $showEditProfile) {
+                                    EditProfileView(displayName: user.displayName, bio: user.bio)
+                                        .environmentObject(userStore)
+                                        .presentationDetents([.medium, .large])
                                 }
                                 
-//                                .alert(isPresented: $showSignOutAlert) {
-//                                    Alert(
-//                                        title: Text("Sign Out"),
-//                                        message: Text("Are you sure you want to sign out?"),
-//                                        primaryButton: .destructive(Text("Sign Out")) {
-//                                            signOutUser()
-//                                        },
-//                                        secondaryButton: .cancel()
-//                                    )
-//                                }
-                                
-                                Button("Delete account"){
-                                    showDeleteAccountAlert.toggle()
+                                Menu {
+                                    Button("Sign out", action: {
+                                        alertItem = AlertItem(
+                                            title: Text("Sign Out"),
+                                            message: Text("Are you sure you want to sign out?"),
+                                            primaryButton: .destructive(Text("Sign Out")) {
+                                                signOutUser()
+                                            },
+                                            secondaryButton: .cancel()
+                                        )
+                                    })
+                                    
+                                    
+                                    Button("Delete Account", action: {
+                                        alertItem = AlertItem(
+                                            title: Text("Delete Account"),
+                                            message: Text("Are you sure you want to delete your account? This action cannot be undone."),
+                                            primaryButton: .destructive(Text("Delete")) {
+                                                deleteCurrentUser()
+                                            },
+                                            secondaryButton: .cancel()
+                                        )
+                                    })
+                                } label: {
+                                    Label("", systemImage: "person.2.badge.gearshape.fill")
+                                        .font(.system(size: 15))
+                                        .padding(10)
+                                        .background(.thickMaterial)
+                                        .cornerRadius(10)
+                                        .foregroundColor(.primary)
                                 }
-//                                .alert(isPresented: $showDeleteAccountAlert) {
-//                                    Alert(
-//                                        title: Text("Delete Account"),
-//                                        message: Text("Are you sure you want to delete your account? This action cannot be undone."),
-//                                        primaryButton: .destructive(Text("Delete")) {
-//                                            deleteCurrentUser()
-//                                        },
-//                                        secondaryButton: .cancel()
-//                                    )
-//                                }
-                            } label: {
-                                Label("", systemImage: "paperplane")
                             }
                         }
                         
@@ -168,7 +170,6 @@ struct ProfileView: View {
                             LikedView()
                         }
                     }
-                    
                     .onAppear {
                         print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
                     }
@@ -228,7 +229,8 @@ struct ProfileView: View {
                 )
             }
             .alert(item: $alertItem) { alertItem in
-                Alert(title: alertItem.title, message: alertItem.message, dismissButton: alertItem.dismissButton)
+                Alert(title: alertItem.title,message: alertItem.message,primaryButton: alertItem.primaryButton,secondaryButton: alertItem.secondaryButton ?? .default(Text("OK"))
+                )
             }
         }
     }
