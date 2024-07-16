@@ -18,7 +18,7 @@ class LikedPostsViewModel: ObservableObject {
     @Published var hasMorePosts: Bool = true
 
     private let db = Firestore.firestore()
-    private let batchSize = 2
+    private let batchSize = 5
     
     struct Post: Identifiable {
         var id: String
@@ -26,8 +26,10 @@ class LikedPostsViewModel: ObservableObject {
         var description: String
         var mediaURL: String
         var author: String
-        var creationDate: String
+        var creationDate: Timestamp
         var type: String
+        var likesCount: Int
+        var viewCount: Int
     }
     
     func fetchLikedPosts(reset: Bool = false) {
@@ -43,7 +45,7 @@ class LikedPostsViewModel: ObservableObject {
         
         isLoading = true
         
-        var query: Query = db.collection("users").document(user.uid).collection("likedPosts").limit(to: batchSize)
+        var query: Query = db.collection("users").document(user.uid).collection("likedPosts").order(by: "timestamp", descending: true).limit(to: batchSize)
         
         if let lastDocument = lastDocument {
             query = query.start(afterDocument: lastDocument)
@@ -95,10 +97,12 @@ class LikedPostsViewModel: ObservableObject {
                     let description = data?["description"] as? String ?? "No Description"
                     let mediaURL = data?["media"] as? String ?? ""
                     let author = data?["author"] as? String ?? "Unknown Author"
-                    let creationDate = data?["creationDate"] as? String ?? "Unknown Date"
+                    let creationDate = data?["creationDate"] as? Timestamp ?? Timestamp(date: Date())
                     let type = data?["type"] as? String ?? "Unknown Type"
+                    let likesCount = data?["likesCount"] as? Int ?? 0
+                    let viewCount = data?["viewCount"] as? Int ?? 0
                     
-                    let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, author: author, creationDate: creationDate, type: type)
+                    let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, author: author, creationDate: creationDate, type: type, likesCount: likesCount, viewCount: viewCount)
                     
                     DispatchQueue.main.async {
                         if !self.likedPosts.contains(where: { $0.id == id }) {
@@ -116,14 +120,15 @@ class LikedPostsViewModel: ObservableObject {
     }
 }
 
+
 struct LikedView: View {
     @StateObject private var viewModel = LikedPostsViewModel()
     @State private var isLiked: Bool = true
-    
+
     var body: some View {
         ScrollView {
             ForEach(viewModel.likedPosts) { post in
-                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: post.creationDate, type: post.type, isLiked: $isLiked)) {
+                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: formattedDate(from: post.creationDate), type: post.type, isLiked: $isLiked)) {
                     HStack {
                         WebImage(url: URL(string: post.mediaURL)) { phase in
                             switch phase {
@@ -153,19 +158,43 @@ struct LikedView: View {
                                     .scaledToFill()
                             }
                         }
-                        
                         VStack(alignment: .leading) {
                             Text(post.title)
-                                .font(.title3)
+                                .font(.title3).bold()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .lineLimit(1)
                             Text(post.description)
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(2)
+                            
+                            Spacer()
+                            
+                            HStack {
+                                Image(systemName: "heart")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                Text("\(post.likesCount)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                Image(systemName: "eye")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                Text("\(post.viewCount)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 2)
                         }
+                        .padding(5)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.ultraThinMaterial)
                     .cornerRadius(8)
-                    .padding()
+                    .padding([.vertical, .horizontal], 5)
                 }
             }
             
@@ -205,6 +234,13 @@ struct LikedView: View {
         .onAppear {
             viewModel.fetchLikedPosts(reset: true)
         }
+    }
+
+    private func formattedDate(from timestamp: Timestamp) -> String {
+        let date = timestamp.dateValue()
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        return formatter.string(from: date)
     }
 }
 

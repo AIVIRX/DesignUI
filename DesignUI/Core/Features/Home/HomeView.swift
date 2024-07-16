@@ -82,7 +82,7 @@ struct HomeView: View {
                                             authorUID: post.author,
                                             description: post.description,
                                             codeSnippet: post.codeSnippet,
-                                            published: post.creationDate,
+                                            published: formattedDate(from: post.creationDate),
                                             type: post.type,
                                             tags: post.tags
                                         )
@@ -109,7 +109,7 @@ struct HomeView: View {
                                             authorUID: post.author,
                                             description: post.description,
                                             codeSnippet: post.codeSnippet,
-                                            published: post.creationDate,
+                                            published: formattedDate(from: post.creationDate),
                                             type: post.type,
                                             tags: post.tags
                                         )
@@ -136,7 +136,7 @@ struct HomeView: View {
                                             authorUID: post.author,
                                             description: post.description,
                                             codeSnippet: post.codeSnippet,
-                                            published: post.creationDate,
+                                            published: formattedDate(from: post.creationDate),
                                             type: post.type,
                                             tags: post.tags
                                         )
@@ -177,7 +177,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "This provides a simple and modern Article template, perfect for showcasing articles or blog content in your app. The template includes a title, publication date, cover image, subheadings, and body text.",
                         codeSnippet: "",
-                        creationDate: "April 30, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -188,7 +188,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "Simple template for a profile. Includes 5 views to organize profile info",
                         codeSnippet: "",
-                        creationDate: "May 1, 2023",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -199,7 +199,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "Simple settings menu view. Used to showcase settings within an app",
                         codeSnippet: "",
-                        creationDate: "May 1, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -210,7 +210,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
                         codeSnippet: "",
-                        creationDate: "May 1, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -221,7 +221,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
                         codeSnippet: "",
-                        creationDate: "May 1, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -232,7 +232,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "Simple template for a profile. Includes 5 views to organize profile info",
                         codeSnippet: "",
-                        creationDate: "May 1, 2023",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -245,7 +245,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "Like button with bouncing effect.",
                         codeSnippet: "",
-                        creationDate: "May 2, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -256,7 +256,7 @@ struct HomeView: View {
                         author: teamName,
                         description: "Counter with ",
                         codeSnippet: "",
-                        creationDate: "May 2, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -267,7 +267,7 @@ struct HomeView: View {
                         author: teamName,
                         description: " ",
                         codeSnippet: "",
-                        creationDate: "May 2, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -278,7 +278,7 @@ struct HomeView: View {
                         author: teamName,
                         description: " ",
                         codeSnippet: "",
-                        creationDate: "May 2, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -289,7 +289,7 @@ struct HomeView: View {
                         author: teamName,
                         description: " ",
                         codeSnippet: "",
-                        creationDate: "May 2, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -300,7 +300,7 @@ struct HomeView: View {
                         author: teamName,
                         description: " ",
                         codeSnippet: "",
-                        creationDate: "May 2, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -311,7 +311,7 @@ struct HomeView: View {
                         author: teamName,
                         description: " ",
                         codeSnippet: "",
-                        creationDate: "May 2, 2024",
+                        creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
@@ -326,10 +326,27 @@ struct HomeView: View {
         }
     }
     
+    var sortedDesignPosts: [DesignPost] {
+            designPosts.sorted(by: { $0.creationDate.dateValue() < $1.creationDate.dateValue() })
+        }
+
+        func formattedDate(from timestamp: Timestamp) -> String {
+            let date = timestamp.dateValue()
+            let formatter = DateFormatter()
+            formatter.dateStyle = .long
+            return formatter.string(from: date)
+        }
+    
     private func fetchCommunityPosts() async {
         let db = Firestore.firestore()
         do {
-            let querySnapshot = try await db.collection("posts").getDocuments()
+            // Clear the current posts before fetching new ones
+            DispatchQueue.main.async {
+                self.communityPosts.removeAll()
+            }
+
+            // Fetch documents and order them by the "creationDate" field in ascending order
+            let querySnapshot = try await db.collection("posts").order(by: "creationDate", descending: true).getDocuments()
             print("Fetched \(querySnapshot.documents.count) community posts")
             for document in querySnapshot.documents {
                 print("Document ID: \(document.documentID)")
@@ -346,6 +363,7 @@ struct HomeView: View {
             print("Error getting documents: \(error)")
         }
     }
+
     
     func addNewDesigns(_ newDesigns: [DesignPost]) {
         designPosts.append(contentsOf: newDesigns)

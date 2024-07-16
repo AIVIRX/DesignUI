@@ -60,13 +60,18 @@ struct ProfileView: View {
                         // Profile header
                         VStack {
                             // Circular profile image
-                            Image("profile_image") // Replace with your image name
+                            Image(getFirstChar(user.displayName)) // Replace with your image name
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 100, height: 100)
                                 .clipShape(Circle())
                                 .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
                                 .shadow(radius: 10)
+                                .overlay{
+                                    Text(getFirstChar(user.displayName))
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                }
                             
                             // Name
                             Text(user.displayName)
@@ -88,8 +93,9 @@ struct ProfileView: View {
                                     HStack {
                                         Text("Edit Profile")
                                     }
-                                    .font(.system(size: 15))
-                                    .padding(10)
+                                    .font(.system(size: 16))
+                                    .bold()
+                                    .padding()
                                     .background(.thickMaterial)
                                     .cornerRadius(10)
                                     .foregroundColor(.primary)
@@ -101,7 +107,7 @@ struct ProfileView: View {
                                 }
                                 
                                 Menu {
-                                    Button("Sign out", action: {
+                                    Button(action: {
                                         alertItem = AlertItem(
                                             title: Text("Sign Out"),
                                             message: Text("Are you sure you want to sign out?"),
@@ -110,10 +116,11 @@ struct ProfileView: View {
                                             },
                                             secondaryButton: .cancel()
                                         )
-                                    })
+                                    }) {
+                                        Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                    }
                                     
-                                    
-                                    Button("Delete Account", action: {
+                                    Button(role: .destructive, action: {
                                         alertItem = AlertItem(
                                             title: Text("Delete Account"),
                                             message: Text("Are you sure you want to delete your account? This action cannot be undone."),
@@ -122,14 +129,19 @@ struct ProfileView: View {
                                             },
                                             secondaryButton: .cancel()
                                         )
-                                    })
+                                    }) {
+                                        Label("Delete Account", systemImage: "trash")
+                                    }
                                 } label: {
-                                    Label("", systemImage: "person.2.badge.gearshape.fill")
-                                        .font(.system(size: 15))
-                                        .padding(10)
-                                        .background(.thickMaterial)
-                                        .cornerRadius(10)
-                                        .foregroundColor(.primary)
+                                    HStack {
+                                        Image(systemName: "gearshape.fill")
+                                            .font(.system(size: 16))
+                                            .bold()
+                                            .padding()
+                                            .background(.thickMaterial)
+                                            .cornerRadius(10)
+                                            .foregroundColor(.primary)
+                                    }
                                 }
                             }
                         }
@@ -233,6 +245,10 @@ struct ProfileView: View {
                 )
             }
         }
+    }
+    
+    func getFirstChar(_ deckName : String) -> String {
+        return String(deckName.prefix(1))
     }
     
     private func signOutUser() {

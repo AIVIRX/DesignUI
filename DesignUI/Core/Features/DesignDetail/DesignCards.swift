@@ -91,6 +91,7 @@ struct DesignCards: View {
                         }
                     }
                 }
+                
                 VStack(alignment: .leading) {
                     Text(title)
                         .font(.body).bold()
@@ -145,7 +146,7 @@ struct DesignCards: View {
         authorUID: "sampleUID",
         description: "Sample description of the design.",
         codeSnippet: "Sample code snippet.",
-        published: "2024-06-11",
+        published: "Timestamp(date: Date())",
         type: "image",
         tags: ["tag1", "tag2"]
     )

@@ -234,11 +234,19 @@ struct UploadDesignView: View {
             "author": user.uid,
             "codeSnippet": codeSnippetWithLineBreaks,
             "media": imageURL,
-            "creationDate": Date().toFormattedString(),
+            "creationDate": Timestamp(date: Date()),
             "type": "fetched",
             "tags": [""],
             "userId": user.uid,
-            "likesCount": 0
+            "likesCount": 0,
+            "repostCount": 0,
+            "sharesCount": 0,
+            "viewCount": 0,
+            "ReportCount": 0,
+            "editedTimestamp": Timestamp(),
+            "isPaywalled": false,
+            "visibility": "public",
+            
         ]) { error in
             if let error = error {
                 isLoading = false

@@ -18,7 +18,10 @@ struct DetailView: View {
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
     @State private var likesCount: Int = 0
+    @State private var viewCount: Int = 0
     @State private var isLiking: Bool = false
+    
+    
     
     var body: some View {
         ScrollView {
@@ -54,7 +57,7 @@ struct DetailView: View {
                         }
                     }
                 }
-            
+                
                 VStack(alignment: .leading) {
                     HStack {
                         Text(title)
@@ -85,6 +88,10 @@ struct DetailView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
+                    Text("\(viewCount) views")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
                     Text("By \(author)")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -96,6 +103,7 @@ struct DetailView: View {
                 Text(description)
                     .font(.body)
                     .foregroundColor(.primary)
+                
                 
                 Text("Code Snippet:")
                     .font(.title2).bold()
@@ -129,24 +137,24 @@ struct DetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12.0))
                 .padding(.top, 10)
                 
-                Button(action: {
-                    showShareSheet = true
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up")
-                        Text("Share")
-                            .padding(8)
-                            .font(.headline).bold()
-                            .background(Color.blue) // Button background color
-                            .foregroundColor(.white) // Button text color
-                            .cornerRadius(12)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .foregroundStyle(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12.0))
-                .padding(.top, 10)
+                //                Button(action: {
+                //                    showShareSheet = true
+                //                }) {
+                //                    HStack {
+                //                        Image(systemName: "square.and.arrow.up")
+                //                        Text("Share")
+                //                            .padding(8)
+                //                            .font(.headline).bold()
+                //                            .background(Color.blue) // Button background color
+                //                            .foregroundColor(.white) // Button text color
+                //                            .cornerRadius(12)
+                //                    }
+                //                    .frame(maxWidth: .infinity)
+                //                }
+                //                .buttonStyle(.borderedProminent)
+                //                .foregroundStyle(Color.white)
+                //                .clipShape(RoundedRectangle(cornerRadius: 12.0))
+                //                .padding(.top, 10)
             }
             .toast(isPresenting: $isCopied) {
                 AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
@@ -155,39 +163,57 @@ struct DetailView: View {
             .accentColor(.none)
         }
         .padding(7)
-        .onAppear(perform: fetchLikeStatus)
+        .onAppear{
+            fetchLikeStatusAndViewCount()
+            incrementViewCount()
+        }
     }
-
+    
     func copyToClipboard(_ text: String) {
         UIPasteboard.general.string = text
     }
-
-    func fetchLikeStatus() {
+    
+    func fetchLikeStatusAndViewCount() {
         guard let user = Auth.auth().currentUser else { return }
         let db = Firestore.firestore()
         let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
+        let postRef = db.collection("posts").document(id)
         
+        // Use Firestore's batch to get both documents
+        var isLikedStatus = false
+        var likesCount = 0
+        var viewCount = 0
+        
+        // Fetch user liked status and post details in parallel
         userLikedPostRef.getDocument { likedDocument, error in
             if let likedDocument = likedDocument, likedDocument.exists {
-                isLiked = true
+                isLikedStatus = true
             } else {
-                isLiked = false
+                isLikedStatus = false
             }
             
-            // Fetch the likes count from the post document
-            let postRef = db.collection("posts").document(id)
             postRef.getDocument { document, error in
                 if let document = document, document.exists {
-                    if let data = document.data(), let likes = data["likesCount"] as? Int {
-                        DispatchQueue.main.async {
-                            self.likesCount = likes
+                    if let data = document.data() {
+                        if let likes = data["likesCount"] as? Int {
+                            likesCount = likes
+                        }
+                        if let views = data["viewCount"] as? Int {
+                            viewCount = views
                         }
                     }
+                }
+                
+                // Update UI on the main thread
+                DispatchQueue.main.async {
+                    self.isLiked = isLikedStatus
+                    self.likesCount = likesCount
+                    self.viewCount = viewCount
                 }
             }
         }
     }
-
+    
     func toggleLike() {
         guard let user = Auth.auth().currentUser else { return }
         let db = Firestore.firestore()
@@ -209,12 +235,12 @@ struct DetailView: View {
             
             if self.isLiked {
                 // Unlike the post
-                transaction.updateData(["likesCount": oldLikesCount - 1], forDocument: postRef)
+                transaction.updateData(["likesCount": FieldValue.increment(Int64(-1))], forDocument: postRef)
                 transaction.deleteDocument(userLikedPostRef)
             } else {
                 // Like the post
-                transaction.updateData(["likesCount": oldLikesCount + 1], forDocument: postRef)
-                transaction.setData(["likedBy": user.uid, "timestamp": FieldValue.serverTimestamp()], forDocument: userLikedPostRef)
+                transaction.updateData(["likesCount": FieldValue.increment(Int64(1))], forDocument: postRef)
+                transaction.setData(["likedBy": user.uid, "timestamp": Timestamp(date: Date())], forDocument: userLikedPostRef)
             }
             return nil
         }) { (object, error) in
@@ -226,6 +252,21 @@ struct DetailView: View {
                     self.likesCount += self.isLiked ? 1 : -1
                     self.isLiking = false
                 }
+            }
+        }
+    }
+    
+    func incrementViewCount() {
+        let db = Firestore.firestore()
+        let postRef = db.collection("posts").document(id)
+        
+        postRef.updateData([
+            "viewCount": FieldValue.increment(Int64(1))
+        ]) { error in
+            if let error = error {
+                print("Error updating view count: \(error)")
+            } else {
+                print("View count incremented successfully")
             }
         }
     }
@@ -318,7 +359,7 @@ struct DetailView: View {
            .padding(.top, 10)
        }
     """,
-        creationDate: "April 1, 2024",
+        creationDate: "Timestamp(date: Date())",
         type: "image",
         isLiked: .constant(true)
     )

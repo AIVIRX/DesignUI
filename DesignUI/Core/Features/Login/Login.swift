@@ -152,12 +152,16 @@ struct LoginView: View {
                                 "uid": user.uid,
                                 "displayName": user.displayName ?? "Anonymous",
                                 "email": user.email ?? "",
+                                "createdAt": Timestamp(),
+                                "postsCount": 0,
                                 "followersCount": 0,
                                 "followingCount": 0,
                                 "likesCount": 0,
                                 "username": "",
                                 "bio": "",
-                                "imageURL": ""
+                                "imageURL": "",
+                                "status": "active",
+                                "isVerified": false
                             ]
                             
                             // Create a subcollection for liked posts
@@ -205,7 +209,6 @@ struct LoginView: View {
         let hashString = hashedData.compactMap { String(format: "%02x", $0) }.joined()
         return hashString
     }
-
 }
 
 
