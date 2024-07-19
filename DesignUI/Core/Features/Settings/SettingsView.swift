@@ -119,43 +119,6 @@ struct SettingsView: View {
                     }
                     .disabled(!MFMailComposeViewController.canSendMail())
                 }
-
-                Section("Account") {
-                    Button(action: {
-                        showSignOutAlert = true
-                    }) {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                    }
-                    .alert(isPresented: $showSignOutAlert) {
-                        Alert(
-                            title: Text("Sign Out"),
-                            message: Text("Are you sure you want to sign out from your account?"),
-                            primaryButton: .destructive(
-                                Text("Sign Out"),
-                                action: signOutUser
-                                
-                            ),
-                            secondaryButton: .cancel()
-                        )
-                    }
-
-                    Button(role: .destructive, action: {
-                        showDeleteAccountAlert = true
-                    }) {
-                        Label("Delete Account", systemImage: "trash")
-                            .foregroundStyle(Color.red)
-                    }
-                    .alert(isPresented: $showDeleteAccountAlert) {
-                        Alert(
-                            title: Text("Delete Account"),
-                            message: Text("Are you sure you want to delete your account? This action cannot be undone."),
-                            primaryButton: .destructive(Text("Delete")) {
-                                deleteCurrentUser()
-                            },
-                            secondaryButton: .cancel()
-                        )
-                    }
-                }
             }
             .accentColor(colorScheme == .dark ? .white : .black)
             .navigationBarTitle("Settings")

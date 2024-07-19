@@ -30,6 +30,7 @@ class LikedPostsViewModel: ObservableObject {
         var type: String
         var likesCount: Int
         var viewCount: Int
+        var likeTimestamp: Timestamp
     }
     
     func fetchLikedPosts(reset: Bool = false) {
@@ -46,7 +47,6 @@ class LikedPostsViewModel: ObservableObject {
         isLoading = true
         
         var query: Query = db.collection("users").document(user.uid).collection("likedPosts").order(by: "timestamp", descending: true).limit(to: batchSize)
-        
         if let lastDocument = lastDocument {
             query = query.start(afterDocument: lastDocument)
         }
@@ -71,17 +71,22 @@ class LikedPostsViewModel: ObservableObject {
                 self.lastDocument = last
             }
             
-            let postIDs = documents.map { $0.documentID }
-            self.fetchPostDetails(for: postIDs)
+            let likedPostInfos = documents.map { doc -> (String, Timestamp) in
+                let postID = doc.documentID
+                let likeTimestamp = doc.get("timestamp") as? Timestamp ?? Timestamp(date: Date())
+                return (postID, likeTimestamp)
+            }
+            
+            self.fetchPostDetails(for: likedPostInfos)
         }
     }
     
-    private func fetchPostDetails(for postIDs: [String]) {
+    private func fetchPostDetails(for likedPostInfos: [(postID: String, likeTimestamp: Timestamp)]) {
         let postRef = db.collection("posts")
         
         let dispatchGroup = DispatchGroup()
         
-        for postID in postIDs {
+        for (postID, likeTimestamp) in likedPostInfos {
             dispatchGroup.enter()
             postRef.document(postID).getDocument { (document, error) in
                 if let error = error {
@@ -102,11 +107,13 @@ class LikedPostsViewModel: ObservableObject {
                     let likesCount = data?["likesCount"] as? Int ?? 0
                     let viewCount = data?["viewCount"] as? Int ?? 0
                     
-                    let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, author: author, creationDate: creationDate, type: type, likesCount: likesCount, viewCount: viewCount)
+                    let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, author: author, creationDate: creationDate, type: type, likesCount: likesCount, viewCount: viewCount, likeTimestamp: likeTimestamp)
                     
                     DispatchQueue.main.async {
                         if !self.likedPosts.contains(where: { $0.id == id }) {
                             self.likedPosts.append(post)
+                            // Sort the likedPosts array after adding a new post based on likeTimestamp
+                            self.likedPosts.sort { $0.likeTimestamp.dateValue() > $1.likeTimestamp.dateValue() }
                         }
                     }
                 }

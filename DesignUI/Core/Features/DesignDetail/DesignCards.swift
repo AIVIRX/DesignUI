@@ -121,7 +121,6 @@ struct DesignCards: View {
     func fetchAuthorName() {
         let db = Firestore.firestore()
         let userDocRef = db.collection("users").document(authorUID)
-        
         userDocRef.getDocument { document, error in
             if let document = document, document.exists {
                 let data = document.data()

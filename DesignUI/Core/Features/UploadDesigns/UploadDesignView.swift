@@ -172,42 +172,44 @@ struct UploadDesignView: View {
     }
     
     func uploadDesign() {
-        let user = Auth.auth().currentUser
-        if let user = user {
+            guard let user = Auth.auth().currentUser else {
+                print("No user logged in.")
+                return
+            }
+            
             let uid = user.uid
-        
-            guard let image = selectedImage,
-                  let imageData = image.jpegData(compressionQuality: 0.3) else {
+            
+            guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.3) else {
                 print("Please select an image.")
                 return
             }
-        
+            
             isLoading = true
-            let uniqueImageID = generateUniqueImageID()
+            let uniqueImageID = UUID().uuidString
             let storageRef = Storage.storage().reference().child("users/\(uid)/\(uniqueImageID).jpg")
-        
+            
             storageRef.putData(imageData, metadata: nil) { metadata, error in
                 if let error = error {
                     isLoading = false
                     print(error.localizedDescription)
                     return
                 }
-            
+                
                 storageRef.downloadURL { url, error in
                     if let error = error {
                         isLoading = false
                         print("\(error.localizedDescription)")
                         return
                     }
-                
+                    
                     guard let downloadURL = url else {
                         isLoading = false
                         print("Failed to get download URL.")
                         return
                     }
-                
+                    
                     // Save design data to Firestore
-                    saveDesignToFirestore(user: user, imageURL: downloadURL.absoluteString)
+                    saveDesignToFirestore(uid: uid, imageURL: downloadURL.absoluteString)
                     DispatchQueue.main.async {
                         title = ""
                         description = ""
@@ -219,11 +221,10 @@ struct UploadDesignView: View {
                 }
             }
         }
-    }
     
-    func saveDesignToFirestore(user: User, imageURL: String) {
+    func saveDesignToFirestore(uid: String, imageURL: String) {
         let db = Firestore.firestore()
-        let userDataRef = db.collection("users").document(user.uid)
+        let userDataRef = db.collection("users").document(uid)
         let codeSnippetWithLineBreaks = codeSnippet.replacingOccurrences(of: "\\n", with: "\n")
         
         let newPostRef = db.collection("posts").document()
@@ -231,13 +232,13 @@ struct UploadDesignView: View {
             "id": newPostRef.documentID,
             "title": title,
             "description": description,
-            "author": user.uid,
+            "author": uid,
             "codeSnippet": codeSnippetWithLineBreaks,
             "media": imageURL,
             "creationDate": Timestamp(date: Date()),
             "type": "fetched",
             "tags": [""],
-            "userId": user.uid,
+            "userId": uid,
             "likesCount": 0,
             "repostCount": 0,
             "sharesCount": 0,
@@ -245,8 +246,7 @@ struct UploadDesignView: View {
             "ReportCount": 0,
             "editedTimestamp": Timestamp(),
             "isPaywalled": false,
-            "visibility": "public",
-            
+            "visibility": "public"
         ]) { error in
             if let error = error {
                 isLoading = false

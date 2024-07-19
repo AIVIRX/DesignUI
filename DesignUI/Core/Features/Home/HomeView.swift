@@ -18,8 +18,7 @@ struct ContentView: View {
                     .environment(\.symbolVariants, .none)
                 }
                 .tag(0)
-            
-            UploadDesignView()
+            UsersListView()
                 .tabItem {
                     Label("Upload", systemImage: selectedIndex == 1 ? "plus.square.fill" : "plus.square.dashed")
                     .environment(\.symbolVariants, .none)

@@ -20,9 +20,6 @@ struct DetailView: View {
     @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
     @State private var isLiking: Bool = false
-    
-    
-    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
@@ -66,19 +63,21 @@ struct DetailView: View {
                             .lineLimit(2)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         if type == "fetched" {
-                            Button(action: {
-                                if !isLiking {
-                                    isLiking = true
-                                    toggleLike()
-                                }
-                            }) {
-                                VStack{
-                                    Image(systemName: isLiked ? "heart.fill" : "heart")
-                                        .foregroundColor(isLiked ? .red : .gray)
-                                        .font(.title)
-                                    Text("\(likesCount)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                            if Auth.auth().currentUser != nil{
+                                Button(action: {
+                                    if !isLiking {
+                                        isLiking = true
+                                        toggleLike()
+                                    }
+                                }) {
+                                    VStack{
+                                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                                            .foregroundColor(isLiked ? .red : .gray)
+                                            .font(.title)
+                                        Text("\(likesCount)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
                         }
@@ -229,7 +228,7 @@ struct DetailView: View {
                 return nil
             }
             
-            guard let oldLikesCount = postDocument.data()?["likesCount"] as? Int else {
+            guard postDocument.data()?["likesCount"] is Int else {
                 return nil
             }
             
