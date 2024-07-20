@@ -5,6 +5,8 @@ import AlertToast
 import SDWebImage
 import SDWebImageSwiftUI
 
+
+
 struct DetailView: View {
     var id: String
     var mediaURL: String
@@ -17,9 +19,14 @@ struct DetailView: View {
     @Binding var isLiked: Bool
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
+    @State private var repostCount: Int = 0
+    @State private var shareCount: Int = 0
     @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
     @State private var isLiking: Bool = false
+    @State private var showReportAlert = false
+    @State private var alertItem: AlertItem?
+    @Environment(\.colorScheme) var colorScheme
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
@@ -54,7 +61,6 @@ struct DetailView: View {
                         }
                     }
                 }
-                
                 VStack(alignment: .leading) {
                     HStack {
                         Text(title)
@@ -82,14 +88,15 @@ struct DetailView: View {
                             }
                         }
                     }
-                    
                     Text(creationDate)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
-                    Text("\(viewCount) views")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    if Auth.auth().currentUser != nil{
+                        Text("\(viewCount) views")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                     
                     Text("By \(author)")
                         .font(.subheadline)
@@ -161,6 +168,28 @@ struct DetailView: View {
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
         }
+        .navigationBarItems(trailing:
+            Button(action: {
+            alertItem = AlertItem(
+                title: Text("Report Content"),
+                message: Text("Are you sure you want to Report this post?"),
+                primaryButton: .destructive(Text("Report")) {
+                    reportPost(postId: id)
+                },
+                secondaryButton: .cancel()
+            )
+        }) {
+            Label("Report", systemImage: "flag")
+        }
+            .alert(item: $alertItem) { alertItem in
+                        Alert(
+                            title: alertItem.title,
+                            message: alertItem.message,
+                            primaryButton: alertItem.primaryButton,
+                            secondaryButton: alertItem.secondaryButton ?? .cancel()
+                        )
+                    }
+        )
         .padding(7)
         .onAppear{
             fetchLikeStatusAndViewCount()
@@ -266,6 +295,22 @@ struct DetailView: View {
                 print("Error updating view count: \(error)")
             } else {
                 print("View count incremented successfully")
+            }
+        }
+    }
+    
+    func reportPost(postId: String) {
+        let db = Firestore.firestore()
+        let reportData: [String: Any] = [
+            "postId": postId,
+            "timestamp": Timestamp(date: Date())
+        ]
+        
+        db.collection("reportedPosts").addDocument(data: reportData) { error in
+            if let error = error {
+                print("Error reporting post: \(error.localizedDescription)")
+            } else {
+                print("Post reported successfully")
             }
         }
     }

@@ -165,6 +165,7 @@ struct LikedView: View {
                                     .scaledToFill()
                             }
                         }
+                        
                         VStack(alignment: .leading) {
                             Text(post.title)
                                 .font(.title3).bold()
@@ -176,7 +177,7 @@ struct LikedView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .multilineTextAlignment(.leading)
                                 .lineLimit(2)
-                            
+
                             Spacer()
                             
                             HStack {

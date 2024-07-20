@@ -28,13 +28,7 @@ class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelega
     }
 }
 
-struct AlertItem: Identifiable {
-    var id = UUID()
-    var title: Text
-    var message: Text?
-    var primaryButton: Alert.Button
-    var secondaryButton: Alert.Button?
-}
+
 
 struct ProfileView: View {
     @EnvironmentObject var userStore: UserStore
@@ -45,16 +39,24 @@ struct ProfileView: View {
     @State private var selectedTab = 1
     @State private var nonce: String?
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
-    @State private var isLoading = false
+    @State private var isLoading = true
     @State private var showDeleteAccountAlert = false
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
+    
+    private var buttonStyle: SignInWithAppleButton.Style {
+        switch colorScheme {
+        case .light: return .black
+        case .dark: return .white
+        @unknown default: return .black
+        }
+    }
     var body: some View {
         NavigationStack {
             VStack {
                 if isLoading {
-                    ProgressView("Loading...")
+                    ProgressView("")
                 } else if let user = userStore.user {
                     VStack {
                         // Profile header
@@ -67,7 +69,7 @@ struct ProfileView: View {
                                 .clipShape(Circle())
                                 .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
                                 .shadow(radius: 10)
-                                .overlay{
+                                .overlay {
                                     Text(getFirstChar(user.displayName))
                                         .font(.title)
                                         .fontWeight(.bold)
@@ -86,7 +88,7 @@ struct ProfileView: View {
                                 .padding([.leading, .trailing], 20)
                             
                             // Edit User Account
-                            HStack{
+                            HStack {
                                 Button(action: {
                                     showEditProfile.toggle()
                                 }) {
@@ -186,42 +188,41 @@ struct ProfileView: View {
                         print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
                     }
                 } else {
-                    VStack {
-                        Text("Snippets UI Profile")
-                            .font(.largeTitle).bold()
-                        Text("View Liked Designs And More!")
-                            .padding(5).bold()
-                        RoundedRectangle(cornerRadius: 22)
-                            .fill(Color.gray)
-                            .shadow(radius: 5)
-                            .padding()
-                            .ignoresSafeArea(.all)
-                            .frame(height: 450)
-                        
-                        SignInWithAppleButton(.signIn) { request in
-                            let nonce = randomNonceString()
-                            self.nonce = nonce
-                            request.requestedScopes = [.email, .fullName]
-                            request.nonce = sha256(nonce)
-                        } onCompletion: { result in
-                            switch result {
-                            case .success(let authorization):
-                                loginWithFirebase(authorization)
-                            case .failure(let error):
-                                showError(error.localizedDescription)
+                    VStack{
+                        VStack(alignment: .center) {
+                            
+                            TitleView()
+                            
+                            InformationContainerView()
+                            
+                            Spacer()
+                            
+                            SignInWithAppleButton(.signIn) { request in
+                                let nonce = randomNonceString()
+                                self.nonce = nonce
+                                request.requestedScopes = [.email, .fullName]
+                                request.nonce = sha256(nonce)
+                            } onCompletion: { result in
+                                switch result {
+                                case .success(let authorization):
+                                    loginWithFirebase(authorization)
+                                case .failure(let error):
+                                    showError(error.localizedDescription)
+                                }
+                            }
+                            .signInWithAppleButtonStyle(buttonStyle)
+                            .frame(height: 50)
+                            .clipShape(Capsule())
+                            .padding(.top, 10)
+                            
+                            let user = Auth.auth().currentUser
+                            if let user = user {
+                                let uid = user.uid
+                                Text(uid)
+                                    .font(.headline)
                             }
                         }
-                        .signInWithAppleButtonStyle(buttonStyle)
-                        .frame(height: 50)
-                        .clipShape(Capsule())
-                        .padding(.top, 10)
                         
-                        let user = Auth.auth().currentUser
-                        if let user = user {
-                            let uid = user.uid
-                            Text(uid)
-                                .font(.headline)
-                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(20)
@@ -241,9 +242,11 @@ struct ProfileView: View {
                 )
             }
             .alert(item: $alertItem) { alertItem in
-                Alert(title: alertItem.title,message: alertItem.message,primaryButton: alertItem.primaryButton,secondaryButton: alertItem.secondaryButton ?? .default(Text("OK"))
-                )
+                Alert(title: alertItem.title, message: alertItem.message, primaryButton: alertItem.primaryButton, secondaryButton: alertItem.secondaryButton ?? .default(Text("OK")))
             }
+        }
+        .onAppear {
+            checkLoggedIn()
         }
     }
     
@@ -336,14 +339,6 @@ struct ProfileView: View {
             }
         }
     }
-
-    private var buttonStyle: SignInWithAppleButton.Style {
-        switch colorScheme {
-        case .light: return .black
-        case .dark: return .white
-        @unknown default: return .black
-        }
-    }
     
     func showError(_ message: String) {
         errorMessage = message
@@ -415,14 +410,15 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        isLoading = false
                     }
                 }
-                isLoading = false
             }
         }
     }
     
     func checkLoggedIn() {
+        isLoading = true
         if let user = Auth.auth().currentUser {
             print("User is logged in: \(user.uid)")
             userStore.fetchUserData(uid: user.uid) { fetchedUser in
@@ -430,9 +426,11 @@ struct ProfileView: View {
                     let userData = UserModel(id: user.uid, displayName: user.displayName ?? "New User", bio: "")
                     userStore.signIn(user: userData)
                 }
+                isLoading = false
             }
         } else {
             print("User is not logged in")
+            isLoading = false
         }
     }
 
@@ -476,7 +474,107 @@ struct TabButton: View {
     }
 }
 
+struct LikedPost: Identifiable {
+    var id: String
+    var img: String
+    var title: String
+    var description: String
+}
+
+struct InformationDetailView: View {
+    var title: String = "title"
+    var subTitle: String = "subTitle"
+    var imageName: String = "car"
+
+    var body: some View {
+        HStack(alignment: .center) {
+            Image(systemName: imageName)
+                .font(.largeTitle)
+                .foregroundColor(.mainColor)
+                .frame(width: 40, height: 40)
+                .padding()
+                .accessibility(hidden: true)
+
+            VStack(alignment: .leading) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .accessibility(addTraits: .isHeader)
+
+                Text(subTitle)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.top)
+    }
+}
+
+struct TitleView: View {
+    var body: some View {
+        VStack {
+            Image("AppLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 90, height: 90, alignment: .center)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .accessibility(hidden: true)
+            
+            Text("Dock UI")
+                .customTitleText()
+            
+            Text("Accounts")
+                .customTitleText()
+                .foregroundColor(.mainColor)
+        }
+        .padding(.top,8)
+    }
+}
+
+struct InformationContainerView: View {
+    var body: some View {
+        VStack(alignment: .leading) {
+            InformationDetailView(title: "Likes", subTitle: "Sign in to like posts and see the likes. View all your liked posts in your profile.", imageName: "heart")
+
+            InformationDetailView(title: "History", subTitle: "Sign in to view your history and see all the posts you’ve opened.", imageName: "clock.arrow.circlepath")
+
+            InformationDetailView(title: "Customization", subTitle: "Customize your profile with a display name, & bio. Make your profile truly yours!", imageName: "person.fill")
+        }
+    }
+}
+
+struct ButtonModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .foregroundColor(.white)
+            .font(.headline)
+            .padding()
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .center)
+            .background(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .fill(Color.mainColor))
+            .padding(.bottom)
+    }
+}
+
+extension View {
+    func customButton() -> ModifiedContent<Self, ButtonModifier> {
+        return modifier(ButtonModifier())
+    }
+}
+
+extension Text {
+    func customTitleText() -> Text {
+        self
+            .fontWeight(.black)
+            .font(.system(size: 36))
+    }
+}
+
+extension Color {
+    static var mainColor = Color(UIColor.systemIndigo)
+}
+
 #Preview {
-    ProfileView()
-        .environmentObject(UserStore())
+    InformationContainerView()
 }
