@@ -95,7 +95,7 @@ struct UploadDesignView: View {
                             .font(.headline).bold()
                             .frame(maxWidth: .infinity)
                     }
-                        
+                    
                 }
                 .buttonStyle(.borderedProminent)
                 .background(isUploadEnabled ? Color.blue : Color.gray) // Ensure background color changes based on enabled state
@@ -172,59 +172,58 @@ struct UploadDesignView: View {
     }
     
     func uploadDesign() {
-            guard let user = Auth.auth().currentUser else {
-                print("No user logged in.")
+        guard let user = Auth.auth().currentUser else {
+            print("No user logged in.")
+            return
+        }
+        
+        
+        
+        guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.3) else {
+            print("Please select an image.")
+            return
+        }
+        
+        isLoading = true
+        let uniqueImageID = UUID().uuidString
+        let storageRef = Storage.storage().reference().child("users/\(user.uid)/\(uniqueImageID).jpg")
+        
+        storageRef.putData(imageData, metadata: nil) { metadata, error in
+            if let error = error {
+                isLoading = false
+                print(error.localizedDescription)
                 return
             }
             
-            let uid = user.uid
-            
-            guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.3) else {
-                print("Please select an image.")
-                return
-            }
-            
-            isLoading = true
-            let uniqueImageID = UUID().uuidString
-            let storageRef = Storage.storage().reference().child("users/\(uid)/\(uniqueImageID).jpg")
-            
-            storageRef.putData(imageData, metadata: nil) { metadata, error in
+            storageRef.downloadURL { url, error in
                 if let error = error {
                     isLoading = false
-                    print(error.localizedDescription)
+                    print("\(error.localizedDescription)")
                     return
                 }
                 
-                storageRef.downloadURL { url, error in
-                    if let error = error {
-                        isLoading = false
-                        print("\(error.localizedDescription)")
-                        return
-                    }
-                    
-                    guard let downloadURL = url else {
-                        isLoading = false
-                        print("Failed to get download URL.")
-                        return
-                    }
-                    
-                    // Save design data to Firestore
-                    saveDesignToFirestore(uid: uid, imageURL: downloadURL.absoluteString)
-                    DispatchQueue.main.async {
-                        title = ""
-                        description = ""
-                        codeSnippet = ""
-                        selectedImage = nil
-                        isLoading = false
-                        showToast = true
-                    }
+                guard let downloadURL = url else {
+                    isLoading = false
+                    print("Failed to get download URL.")
+                    return
+                }
+                
+                // Save design data to Firestore
+                saveDesignToFirestore(uid: user.uid, imageURL: downloadURL.absoluteString)
+                DispatchQueue.main.async {
+                    title = ""
+                    description = ""
+                    codeSnippet = ""
+                    selectedImage = nil
+                    isLoading = false
+                    showToast = true
                 }
             }
         }
+    }
     
     func saveDesignToFirestore(uid: String, imageURL: String) {
         let db = Firestore.firestore()
-        let userDataRef = db.collection("users").document(uid)
         let codeSnippetWithLineBreaks = codeSnippet.replacingOccurrences(of: "\\n", with: "\n")
         
         let newPostRef = db.collection("posts").document()
@@ -254,19 +253,52 @@ struct UploadDesignView: View {
                 return
             }
             
-            // Update user's designs array in Firestore
-            userDataRef.updateData(["designs": FieldValue.arrayUnion([newPostRef.documentID])]) { error in
-                isLoading = false
-                if let error = error {
-                    print(error.localizedDescription)
-                } else {
-                    // Design uploaded successfully
-                    presentationMode.wrappedValue.dismiss()
+            // Design uploaded successfully
+            isLoading = false
+            presentationMode.wrappedValue.dismiss()
+        }
+    }
+    
+    struct ImagePicker: UIViewControllerRepresentable {
+        @Environment(\.presentationMode) var presentationMode
+        @Binding var selectedImage: UIImage?
+
+        func makeCoordinator() -> Coordinator {
+            Coordinator(self)
+        }
+
+        func makeUIViewController(context: Context) -> UIImagePickerController {
+            let picker = UIImagePickerController()
+            picker.delegate = context.coordinator
+            picker.sourceType = .photoLibrary
+            return picker
+        }
+
+        func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
+            // Update the view controller if needed
+        }
+
+        class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+            let parent: ImagePicker
+            
+            init(_ parent: ImagePicker) {
+                self.parent = parent
+            }
+
+            func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+                if let image = info[.originalImage] as? UIImage {
+                    parent.selectedImage = image
                 }
+                parent.presentationMode.wrappedValue.dismiss()
+            }
+            
+            func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+                parent.presentationMode.wrappedValue.dismiss()
             }
         }
     }
 }
+
 
 extension Date {
     func toFormattedString() -> String {
@@ -276,44 +308,7 @@ extension Date {
     }
 }
 
-struct ImagePicker: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) var presentationMode
-    @Binding var selectedImage: UIImage?
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
-        picker.sourceType = .photoLibrary
-        return picker
-    }
-
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
-        // Update the view controller if needed
-    }
-
-    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        let parent: ImagePicker
-        
-        init(_ parent: ImagePicker) {
-            self.parent = parent
-        }
-
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[.originalImage] as? UIImage {
-                parent.selectedImage = image
-            }
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-        
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-    }
-}
 
 #Preview {
     UploadDesignView()

@@ -10,6 +10,8 @@ import AuthenticationServices
 import FirebaseFirestore
 import FirebaseAuth
 import CryptoKit
+import SDWebImage
+import SDWebImageSwiftUI
 
 class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     var onCompletion: ((Result<ASAuthorization, Error>) -> Void)?
@@ -28,8 +30,6 @@ class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelega
     }
 }
 
-
-
 struct ProfileView: View {
     @EnvironmentObject var userStore: UserStore
     @State private var errorMessage: String = ""
@@ -44,7 +44,6 @@ struct ProfileView: View {
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
-    
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black
@@ -61,24 +60,55 @@ struct ProfileView: View {
                     VStack {
                         // Profile header
                         VStack {
-                            // Circular profile image
-                            Image(getFirstChar(user.displayName)) // Replace with your image name
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 100, height: 100)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
-                                .shadow(radius: 10)
-                                .overlay {
-                                    Text(getFirstChar(user.displayName))
-                                        .font(.title)
-                                        .fontWeight(.bold)
+                            if user.profileImage != ""{
+                                WebImage(url: URL(string: user.profileImage)) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        ProgressView()
+                                            .frame(width: 160, height: 130)
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(Circle())
+                                            .overlay(Circle().strokeBorder(colorScheme == .light ? Color.black : Color.primary, style: StrokeStyle(lineWidth: 2.0)))
+                                            .shadow(radius: 10)
+                                    case .failure:
+                                        Image(systemName: "photo")
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(Circle())
+                                            .overlay(Circle().strokeBorder(colorScheme == .light ? Color.black : Color.primary, style: StrokeStyle(lineWidth: 2.0)))
+                                            .shadow(radius: 10)
+                                    }
                                 }
-                            
-                            // Name
-                            Text(user.displayName)
-                                .font(.title)
-                                .fontWeight(.bold)
+                            } else {
+                                // Circular profile image
+                                Image(getFirstChar(user.displayName)) // Replace with your image name
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 100, height: 100)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
+                                    .shadow(radius: 10)
+                                    .overlay {
+                                        Text(getFirstChar(user.displayName))
+                                            .font(.title)
+                                            .fontWeight(.bold)
+                                    }
+                            }
+                            HStack{
+                                // Name
+                                Text(user.displayName)
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                
+                                if user.isVerified{
+                                    Image(systemName: "checkmark.seal.fill")
+                                }
+                            }
                             
                             // Bio
                             Text(user.bio)
@@ -105,7 +135,7 @@ struct ProfileView: View {
                                 .sheet(isPresented: $showEditProfile) {
                                     EditProfileView(displayName: user.displayName, bio: user.bio)
                                         .environmentObject(userStore)
-                                        .presentationDetents([.medium, .large])
+                                        .presentationDetents([.large])
                                 }
                                 
                                 Menu {
@@ -381,13 +411,16 @@ struct ProfileView: View {
                             let userData: [String: Any] = [
                                 "uid": user.uid,
                                 "displayName": "New User",
-                                "email": user.email ?? "",
                                 "followersCount": 0,
                                 "followingCount": 0,
                                 "likesCount": 0,
                                 "username": "",
                                 "bio": "",
-                                "imageURL": ""
+                                "imageURL": "",
+                                "visibility": "public",
+                                "createdAt": Timestamp(),
+                                "websiteURL": "",
+                                "isVerified": false,
                             ]
                             let db = Firestore.firestore()
                             let userDocRef = db.collection("users").document(user.uid)
@@ -405,7 +438,7 @@ struct ProfileView: View {
                                             print("LikedPosts document created successfully!")
                                         }
                                     }
-                                    let newUser = UserModel(id: user.uid, displayName: "New User", bio: "")
+                                    let newUser = UserModel(id: user.uid, profileImage: "", displayName: "New User", bio: "", isVerified: false)
                                     userStore.signIn(user: newUser)
                                 }
                             }
@@ -423,7 +456,7 @@ struct ProfileView: View {
             print("User is logged in: \(user.uid)")
             userStore.fetchUserData(uid: user.uid) { fetchedUser in
                 if fetchedUser == nil {
-                    let userData = UserModel(id: user.uid, displayName: user.displayName ?? "New User", bio: "")
+                    let userData = UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "New User", bio: "", isVerified: false)
                     userStore.signIn(user: userData)
                 }
                 isLoading = false

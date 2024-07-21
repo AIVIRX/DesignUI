@@ -92,13 +92,13 @@ struct DetailView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
-                    if Auth.auth().currentUser != nil{
+                    if Auth.auth().currentUser != nil && type != "image" {
                         Text("\(viewCount) views")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     
-                    Text("By \(author)")
+                    Text("\(author)")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }

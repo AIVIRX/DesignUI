@@ -21,7 +21,7 @@ struct DesignCards: View {
     var type: String
     var tags: [String]?
     @State private var isLiked: Bool = false
-    @State private var authorName: String = "DockUI Team"
+    @State private var authorName: String = "Dock UI Team"
 
     init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]?) {
         self.id = id
@@ -99,10 +99,13 @@ struct DesignCards: View {
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
                         .truncationMode(.tail)
+                    
                     HStack {
                         Text(authorName)
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 13))
                         Spacer()
                     }
                 }

@@ -9,6 +9,8 @@ import Foundation
 
 struct UserModel: Identifiable {
     var id: String
+    var profileImage: String
     var displayName: String
     var bio: String
+    var isVerified: Bool
 }

@@ -4,6 +4,8 @@
 //
 //  Created by Maicol Cabreja on 6/11/24.
 //
+
+
 import SwiftUI
 import FirebaseFirestore
 
@@ -18,7 +20,7 @@ struct ContentView: View {
                     .environment(\.symbolVariants, .none)
                 }
                 .tag(0)
-            UsersListView()
+            UploadDesignView()
                 .tabItem {
                     Label("Upload", systemImage: selectedIndex == 1 ? "plus.square.fill" : "plus.square.dashed")
                     .environment(\.symbolVariants, .none)
@@ -41,12 +43,16 @@ struct HomeView: View {
     @State private var designPosts: [DesignPost] = []
     @State private var componentPosts: [DesignPost] = []
     @State private var communityPosts: [DesignPost] = []
+    @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var isNewDesignsLoaded = false
     @State private var teamName = "Dock UI"
     @State private var selectedPost: DesignPost?
     @State private var errorMessage: String = ""
     @State private var isLoading: Bool = false
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.requestReview) var requestReview
+    private let postsLimit = 2
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -64,7 +70,7 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity)
                         }
                     }
-                    VStack{
+                    VStack {
                         VStack(alignment: .leading) {
                             Text("Featured")
                                 .font(.title2)
@@ -118,33 +124,61 @@ struct HomeView: View {
                             .scrollClipDisabled()
                         }
                         
-                        VStack(alignment: .leading) {
-                            Text("Community")
-                                .font(.title2)
-                                .fontWeight(.heavy)
-                                .padding(.top, 20)
-                                .padding(.leading, 3)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 3) {
-                                    ForEach(communityPosts) { post in
-                                        DesignCards(
-                                            id: post.id,
-                                            media: post.media,
-                                            title: post.title,
-                                            authorUID: post.author,
-                                            description: post.description,
-                                            codeSnippet: post.codeSnippet,
-                                            published: formattedDate(from: post.creationDate),
-                                            type: post.type,
-                                            tags: post.tags
-                                        )
+                        if !communityPosts.isEmpty {
+                            VStack(alignment: .leading) {
+                                Text("Community")
+                                    .font(.title2)
+                                    .fontWeight(.heavy)
+                                    .padding(.top, 20)
+                                    .padding(.leading, 3)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    LazyHStack(spacing: 3) {
+                                        ForEach(communityPosts) { post in
+                                            DesignCards(
+                                                id: post.id,
+                                                media: post.media,
+                                                title: post.title,
+                                                authorUID: post.author,
+                                                description: post.description,
+                                                codeSnippet: post.codeSnippet,
+                                                published: formattedDate(from: post.creationDate),
+                                                type: post.type,
+                                                tags: post.tags
+                                            )
+                                        }
+                                        if !isLoading {
+                                            Button(action: {
+                                                Task {
+                                                    await fetchCommunityPosts()
+                                                }
+                                            }) {
+                                                Text("Show More")
+                                                    .padding()
+                                                    .frame(maxWidth: .infinity)
+                                                    .background(Color.blue)
+                                                    .foregroundColor(.white)
+                                                    .cornerRadius(10)
+                                            }
+                                            .padding(.top, 10)
+                                            .padding(.horizontal, 3)
+                                        } else {
+                                            ProgressView()
+                                                .padding(.top, 10)
+                                                .padding(.horizontal, 3)
+                                        }
                                     }
                                 }
+                                .scrollClipDisabled()
                             }
-                            .scrollClipDisabled()
                         }
-                    }.padding(.leading,10)
+                        
+                        Text("Version 1.0")
+                            .padding()
+                            .foregroundStyle(Color.gray)
+                            .font(.caption)
+                    }
+                    .padding(.leading, 10)
                 }
                 .navigationTitle("Dock UI")
                 .navigationBarTitleDisplayMode(.inline)
@@ -155,12 +189,6 @@ struct HomeView: View {
                             .foregroundStyle(colorScheme == .dark ? .white : .black)
                     }
                 })
-                
-                //                if !store.completedPurchases.isEmpty {
-                //                    AdView(adUnitID: "nil").frame(width: 320, height: 50)
-                //                } else {
-                //                    AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50)
-                //                }
             }
             .accentColor(.none)
         }
@@ -319,6 +347,7 @@ struct HomeView: View {
                 addNewDesigns(newDesigns)
                 isNewDesignsLoaded = true
             }
+            
             Task {
                 await fetchCommunityPosts()
             }
@@ -326,43 +355,48 @@ struct HomeView: View {
     }
     
     var sortedDesignPosts: [DesignPost] {
-            designPosts.sorted(by: { $0.creationDate.dateValue() < $1.creationDate.dateValue() })
-        }
-
-        func formattedDate(from timestamp: Timestamp) -> String {
-            let date = timestamp.dateValue()
-            let formatter = DateFormatter()
-            formatter.dateStyle = .long
-            return formatter.string(from: date)
-        }
+        designPosts.sorted(by: { $0.creationDate.dateValue() < $1.creationDate.dateValue() })
+    }
+    
+    func formattedDate(from timestamp: Timestamp) -> String {
+        let date = timestamp.dateValue()
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        return formatter.string(from: date)
+    }
     
     private func fetchCommunityPosts() async {
         let db = Firestore.firestore()
+        
+        guard !isLoading else { return }
+        
+        isLoading = true
+        
         do {
-            // Clear the current posts before fetching new ones
-            DispatchQueue.main.async {
-                self.communityPosts.removeAll()
+            var query = db.collection("posts").order(by: "creationDate", descending: true).limit(to: postsLimit)
+            
+            if let lastDocument = lastFetchedDocument {
+                query = query.start(afterDocument: lastDocument)
             }
-
-            // Fetch documents and order them by the "creationDate" field in ascending order
-            let querySnapshot = try await db.collection("posts").order(by: "creationDate", descending: true).getDocuments()
-            print("Fetched \(querySnapshot.documents.count) community posts")
-            for document in querySnapshot.documents {
-                print("Document ID: \(document.documentID)")
-                if let post = try? document.data(as: DesignPost.self) {
-                    DispatchQueue.main.async {
-                        print("Appending post: \(post.title)")
-                        self.communityPosts.append(post)
-                    }
-                } else {
-                    print("Failed to decode document with ID: \(document.documentID)")
-                }
+            
+            let querySnapshot = try await query.getDocuments()
+            if querySnapshot.documents.isEmpty {
+                isLoading = false
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.lastFetchedDocument = querySnapshot.documents.last
+                self.communityPosts.append(contentsOf: querySnapshot.documents.compactMap { document in
+                    try? document.data(as: DesignPost.self)
+                })
             }
         } catch {
             print("Error getting documents: \(error)")
         }
+        
+        isLoading = false
     }
-
     
     func addNewDesigns(_ newDesigns: [DesignPost]) {
         designPosts.append(contentsOf: newDesigns)

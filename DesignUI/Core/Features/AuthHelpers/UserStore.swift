@@ -12,11 +12,9 @@ import FirebaseFirestore
 class UserStore: ObservableObject {
     @Published var user: UserModel? = nil
     
-    
-    
     func fetchCurrentUser() -> UserModel? {
         if let user = Auth.auth().currentUser {
-            return UserModel(id: user.uid, displayName: user.displayName ?? "New User", bio: "")
+            return UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "New User", bio: "", isVerified: false)
         }
         return nil
     }
@@ -39,9 +37,11 @@ class UserStore: ObservableObject {
         userDocRef.getDocument { document, error in
             if let document = document, document.exists {
                 let data = document.data()
+                let profileURL = data?["imageURL"] as? String ?? ""
                 let displayName = data?["displayName"] as? String ?? "New User"
                 let bio = data?["bio"] as? String ?? ""
-                let user = UserModel(id: uid, displayName: displayName, bio: bio)
+                let verified = data?["isVerified"] as? Bool ?? false
+                let user = UserModel(id: uid, profileImage: profileURL, displayName: displayName, bio: bio, isVerified: verified)
                 DispatchQueue.main.async {
                     self.user = user
                 }

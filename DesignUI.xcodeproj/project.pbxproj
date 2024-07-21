@@ -28,13 +28,10 @@
 		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
 		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
 		EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF42C19E546003134B1 /* DesignCards.swift */; };
-		EC7D7BF72C19E54F003134B1 /* ColorPaletteGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF62C19E54F003134B1 /* ColorPaletteGeneratorView.swift */; };
-		EC7D7BF92C19E553003134B1 /* ColorRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF82C19E553003134B1 /* ColorRectangle.swift */; };
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
 		EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFC2C19E581003134B1 /* SymbolRow.swift */; };
 		EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */; };
 		EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C022C19E5BD003134B1 /* BannerAds.swift */; };
-		EC7D7C062C19E6CA003134B1 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C052C19E6CA003134B1 /* Color+Extensions.swift */; };
 		EC7D7C0A2C19E7B5003134B1 /* Preview Content.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */; };
 		EC7D7C0C2C19EA84003134B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7C0B2C19EA84003134B1 /* GoogleService-Info.plist */; };
 		EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C0E2C19F610003134B1 /* Profile.swift */; };
@@ -70,14 +67,11 @@
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC7D7BF42C19E546003134B1 /* DesignCards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
-		EC7D7BF62C19E54F003134B1 /* ColorPaletteGeneratorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorPaletteGeneratorView.swift; sourceTree = "<group>"; };
-		EC7D7BF82C19E553003134B1 /* ColorRectangle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorRectangle.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
 		EC7D7BFC2C19E581003134B1 /* SymbolRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SymbolRow.swift; sourceTree = "<group>"; };
 		EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LargeCardView.swift; sourceTree = "<group>"; };
 		EC7D7C022C19E5BD003134B1 /* BannerAds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BannerAds.swift; sourceTree = "<group>"; };
 		EC7D7C042C19E620003134B1 /* DesignUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesignUI.entitlements; sourceTree = "<group>"; };
-		EC7D7C052C19E6CA003134B1 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Color+Extensions.swift"; path = "DesignUI/Color+Extensions.swift"; sourceTree = SOURCE_ROOT; };
 		EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content.xcassets"; sourceTree = "<group>"; };
 		EC7D7C0B2C19EA84003134B1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		EC7D7C0E2C19F610003134B1 /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
@@ -211,18 +205,9 @@
 				ECD13FDF2C18BCCF00105B3E /* Features */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
 				ECD13FD72C18BBB900105B3E /* Utilities */,
-				ECD13FD42C18BB3100105B3E /* Extensions */,
 				ECD13FFE2C18C12400105B3E /* Resources */,
 			);
 			path = Core;
-			sourceTree = "<group>";
-		};
-		ECD13FD42C18BB3100105B3E /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				EC7D7C052C19E6CA003134B1 /* Color+Extensions.swift */,
-			);
-			path = Extensions;
 			sourceTree = "<group>";
 		};
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
@@ -256,7 +241,6 @@
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
 				ECD13FEA2C18BE5C00105B3E /* DesignDetail */,
-				ECD13FEF2C18BEC300105B3E /* ColorPaletteGenerator */,
 				ECD13FF42C18BF3500105B3E /* SFIcons */,
 			);
 			path = Features;
@@ -287,15 +271,6 @@
 				EC7D7BF42C19E546003134B1 /* DesignCards.swift */,
 			);
 			path = DesignDetail;
-			sourceTree = "<group>";
-		};
-		ECD13FEF2C18BEC300105B3E /* ColorPaletteGenerator */ = {
-			isa = PBXGroup;
-			children = (
-				EC7D7BF62C19E54F003134B1 /* ColorPaletteGeneratorView.swift */,
-				EC7D7BF82C19E553003134B1 /* ColorRectangle.swift */,
-			);
-			path = ColorPaletteGenerator;
 			sourceTree = "<group>";
 		};
 		ECD13FF42C18BF3500105B3E /* SFIcons */ = {
@@ -451,7 +426,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
-				EC7D7BF92C19E553003134B1 /* ColorRectangle.swift in Sources */,
 				EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC7D7BE92C19E4FB003134B1 /* Login.swift in Sources */,
@@ -465,11 +439,9 @@
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
 				EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */,
-				EC7D7C062C19E6CA003134B1 /* Color+Extensions.swift in Sources */,
 				EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
-				EC7D7BF72C19E54F003134B1 /* ColorPaletteGeneratorView.swift in Sources */,
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
 				EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */,
 				ECCCD0212C3E1F37008972F2 /* UserStore.swift in Sources */,
