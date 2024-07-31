@@ -75,7 +75,7 @@ struct ProfileView: View {
                                             .overlay(Circle().strokeBorder(colorScheme == .light ? Color.black : Color.primary, style: StrokeStyle(lineWidth: 2.0)))
                                             .shadow(radius: 10)
                                     case .failure:
-                                        Image(systemName: "photo")
+                                        Image(systemName: "")
                                             .resizable()
                                             .scaledToFill()
                                             .frame(width: 100, height: 100)
@@ -110,12 +110,21 @@ struct ProfileView: View {
                                 }
                             }
                             
-                            // Bio
-                            Text(user.bio)
+                            // Username
+                            Text("@\(user.username)")
                                 .font(.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding([.leading, .trailing], 20)
+                                .padding(.bottom, 10)
+                            
+                            // Bio
+                            Text(user.bio)
+                                .font(.body)
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.center)
+                                .padding([.leading, .trailing], 20)
+                                .padding(.bottom, 10)
                             
                             // Edit User Account
                             HStack {
@@ -133,7 +142,7 @@ struct ProfileView: View {
                                     .foregroundColor(.primary)
                                 }
                                 .sheet(isPresented: $showEditProfile) {
-                                    EditProfileView(displayName: user.displayName, bio: user.bio)
+                                    EditProfileView(displayName: user.displayName, bio: user.bio, username: user.username)
                                         .environmentObject(userStore)
                                         .presentationDetents([.large])
                                 }
@@ -438,7 +447,7 @@ struct ProfileView: View {
                                             print("LikedPosts document created successfully!")
                                         }
                                     }
-                                    let newUser = UserModel(id: user.uid, profileImage: "", displayName: "New User", bio: "", isVerified: false)
+                                    let newUser = UserModel(id: user.uid, profileImage: "", displayName: "New User", username: "", bio: "", isVerified: false)
                                     userStore.signIn(user: newUser)
                                 }
                             }
@@ -456,7 +465,7 @@ struct ProfileView: View {
             print("User is logged in: \(user.uid)")
             userStore.fetchUserData(uid: user.uid) { fetchedUser in
                 if fetchedUser == nil {
-                    let userData = UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "New User", bio: "", isVerified: false)
+                    let userData = UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "New User", username: "", bio: "", isVerified: false)
                     userStore.signIn(user: userData)
                 }
                 isLoading = false

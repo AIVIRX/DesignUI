@@ -5,8 +5,6 @@ import AlertToast
 import SDWebImage
 import SDWebImageSwiftUI
 
-
-
 struct DetailView: View {
     var id: String
     var mediaURL: String
@@ -16,6 +14,7 @@ struct DetailView: View {
     var codeSnippet: String
     var creationDate: String
     var type: String
+    var isAuthorVerified: Bool
     @Binding var isLiked: Bool
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
@@ -98,11 +97,19 @@ struct DetailView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Text("\(author)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    HStack {
+                        Text("\(author)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        if isAuthorVerified || type == "image" {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 13))
+                                .foregroundColor(.blue)
+                        }
+                    }
                 }
-                
+            
                 Text("Description:")
                     .font(.title2).bold()
                     .padding(.top)
@@ -404,7 +411,7 @@ struct DetailView: View {
        }
     """,
         creationDate: "Timestamp(date: Date())",
-        type: "image",
+        type: "image", isAuthorVerified: true,
         isLiked: .constant(true)
     )
 }

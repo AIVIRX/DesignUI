@@ -7,10 +7,11 @@
 
 import Foundation
 
-struct UserModel: Identifiable {
+struct UserModel {
     var id: String
     var profileImage: String
     var displayName: String
+    var username: String
     var bio: String
     var isVerified: Bool
 }

@@ -22,6 +22,7 @@ struct DesignCards: View {
     var tags: [String]?
     @State private var isLiked: Bool = false
     @State private var authorName: String = "Dock UI Team"
+    @State private var isAuthorVerified: Bool = false
 
     init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]?) {
         self.id = id
@@ -45,6 +46,7 @@ struct DesignCards: View {
             codeSnippet: codeSnippet,
             creationDate: published,
             type: type,
+            isAuthorVerified: isAuthorVerified, 
             isLiked: $isLiked
         )) {
             VStack(alignment: .leading) {
@@ -104,8 +106,12 @@ struct DesignCards: View {
                         Text(authorName)
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 13))
+                        
+                        if isAuthorVerified ||  type == "image"{
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 13))
+                                .foregroundColor(.blue)
+                        }
                         Spacer()
                     }
                 }
@@ -128,12 +134,15 @@ struct DesignCards: View {
             if let document = document, document.exists {
                 let data = document.data()
                 let displayName = data?["displayName"] as? String ?? "Unknown Author"
+                let isVerified = data?["isVerified"] as? Bool ?? false
                 DispatchQueue.main.async {
                     self.authorName = displayName
+                    self.isAuthorVerified = isVerified
                 }
             } else {
                 DispatchQueue.main.async {
                     self.authorName = "Unknown Author"
+                    self.isAuthorVerified = false
                 }
             }
         }

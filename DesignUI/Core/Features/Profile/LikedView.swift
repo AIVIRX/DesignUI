@@ -135,7 +135,7 @@ struct LikedView: View {
     var body: some View {
         ScrollView {
             ForEach(viewModel.likedPosts) { post in
-                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: formattedDate(from: post.creationDate), type: post.type, isLiked: $isLiked)) {
+                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: formattedDate(from: post.creationDate), type: post.type, isAuthorVerified: true, isLiked: $isLiked)) { //todo
                     HStack {
                         WebImage(url: URL(string: post.mediaURL)) { phase in
                             switch phase {

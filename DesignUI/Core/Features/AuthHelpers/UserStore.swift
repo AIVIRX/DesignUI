@@ -14,7 +14,7 @@ class UserStore: ObservableObject {
     
     func fetchCurrentUser() -> UserModel? {
         if let user = Auth.auth().currentUser {
-            return UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "New User", bio: "", isVerified: false)
+            return UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "", username: user.displayName ?? "", bio: "", isVerified: false)
         }
         return nil
     }
@@ -23,11 +23,26 @@ class UserStore: ObservableObject {
         self.user = user
     }
     
-    func updateUser(displayName: String, bio: String) {
+    func updateUser(displayName: String, username: String, bio: String) {
         guard var currentUser = self.user else { return }
         currentUser.displayName = displayName
+        currentUser.username = username
         currentUser.bio = bio
         self.user = currentUser
+        
+        let db = Firestore.firestore()
+        let userDocRef = db.collection("users").document(currentUser.id)
+        
+        userDocRef.updateData([
+            "displayName": displayName,
+            "username": username,
+            "bio": bio,
+            "updatedAt": Timestamp()
+        ]) { error in
+            if let error = error {
+                print("Error updating user: \(error)")
+            }
+        }
     }
     
     func fetchUserData(uid: String, completion: @escaping (UserModel?) -> Void) {
@@ -39,9 +54,10 @@ class UserStore: ObservableObject {
                 let data = document.data()
                 let profileURL = data?["imageURL"] as? String ?? ""
                 let displayName = data?["displayName"] as? String ?? "New User"
+                let username = data?["username"] as? String ?? ""
                 let bio = data?["bio"] as? String ?? ""
                 let verified = data?["isVerified"] as? Bool ?? false
-                let user = UserModel(id: uid, profileImage: profileURL, displayName: displayName, bio: bio, isVerified: verified)
+                let user = UserModel(id: uid, profileImage: profileURL, displayName: displayName, username: username, bio: bio, isVerified: verified)
                 DispatchQueue.main.async {
                     self.user = user
                 }

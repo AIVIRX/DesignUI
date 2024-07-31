@@ -23,15 +23,23 @@ struct EditProfileView: View {
     @State private var isLoading: Bool = false
     @State private var newBio: String
     @State private var initialBio: String
+    @State private var newUsername: String
+    @State private var initialUsername: String
+    @State private var isUsernameValid: Bool = true
+    @State private var isUsernameUnique: Bool = true
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
-    init(displayName: String, bio: String) {
+
+    init(displayName: String, bio: String, username: String) {
         self._newDisplayName = State(initialValue: displayName)
         self._initialDisplayName = State(initialValue: displayName)
         self._newBio = State(initialValue: bio)
         self._initialBio = State(initialValue: bio)
+        self._newUsername = State(initialValue: username)
+        self._initialUsername = State(initialValue: username)
     }
+
     var body: some View {
         VStack {
             ZStack {
@@ -95,21 +103,25 @@ struct EditProfileView: View {
             }
             
             TextFieldWithCounter(placeholder: "Name", text: $newDisplayName, maxLength: 15)
+            TextFieldWithValidation(placeholder: "Username", text: $newUsername, maxLength: 15, isValid: $isUsernameValid, isUnique: $isUsernameUnique)
+                .onChange(of: newUsername) { newValue in
+                    validateUsernameFormat()
+                }
             TextEditorWithCounter(label: "Bio", text: $newBio, maxLength: 80)
             
             Spacer()
             
             Button(action: {
-                saveProfile()
+                validateAndSaveProfile()
             }) {
                 Text(isLoading ? "Saving..." : "Save")
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(isLoading || (newDisplayName == initialDisplayName && newBio == initialBio && selectedImage == nil) ? Color.gray : Color.blue)
+                    .background(isLoading || !isUsernameValid || !isUsernameUnique || (newDisplayName == initialDisplayName && newBio == initialBio && newUsername == initialUsername && selectedImage == nil) ? Color.gray : Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .disabled(isLoading || (newDisplayName == initialDisplayName && newBio == initialBio && selectedImage == nil))
+            .disabled(isLoading || !isUsernameValid || !isUsernameUnique || (newDisplayName == initialDisplayName && newBio == initialBio && newUsername == initialUsername && selectedImage == nil))
         }
         .padding()
         .sheet(isPresented: $showImagePicker, content: {
@@ -132,6 +144,41 @@ struct EditProfileView: View {
         }
     }
     
+    func validateAndSaveProfile() {
+        validateUsernameUniqueness { isUnique in
+            if isUnique {
+                saveProfile()
+            } else {
+                isUsernameUnique = false
+                errorMessage = "Username is already taken."
+            }
+        }
+    }
+
+    func validateUsernameFormat() {
+        let usernameRegex = "^[a-zA-Z0-9_]{1,15}$"
+        isUsernameValid = NSPredicate(format: "SELF MATCHES %@", usernameRegex).evaluate(with: newUsername)
+    }
+
+    func validateUsernameUniqueness(completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        db.collection("users").whereField("username", isEqualTo: newUsername).getDocuments { snapshot, error in
+            if let error = error {
+                print("Error checking username uniqueness: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            
+            if let snapshot = snapshot, !snapshot.documents.isEmpty {
+                isUsernameUnique = snapshot.documents.first?.documentID == userStore.user?.id
+            } else {
+                isUsernameUnique = true
+            }
+            
+            completion(isUsernameUnique)
+        }
+    }
+
     func saveProfile() {
         guard let user = userStore.user else { return }
         let db = Firestore.firestore()
@@ -143,7 +190,8 @@ struct EditProfileView: View {
         
         var updates: [String: Any] = [
             "displayName": newDisplayName,
-            "bio": cleanedBio
+            "bio": cleanedBio,
+            "username": newUsername
         ]
         
         // Handle image upload if a new image is selected
@@ -213,104 +261,146 @@ struct EditProfileView: View {
         let nonEmptyLines = lines.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         return nonEmptyLines.joined(separator: "\n")
     }
-    
-    struct TextFieldWithCounter: View {
-        let placeholder: String
-        @Binding var text: String
-        let maxLength: Int
-        var body: some View {
-            VStack(alignment: .leading) {
-                Text(placeholder)
-                    .font(.headline)
+}
+
+struct TextFieldWithCounter: View {
+    let placeholder: String
+    @Binding var text: String
+    let maxLength: Int
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(placeholder)
+                .font(.headline)
+            TextField(placeholder, text: $text)
+                .padding()
+                .frame(height: 50)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.none)
+                .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+            HStack {
+                Spacer()
+                Text("\(text.count)/\(maxLength)")
+                    .font(.caption)
+                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+            }
+        }
+        .onChange(of: text) {
+            if text.count > maxLength {
+                text = String(text.prefix(maxLength))
+            }
+        }
+    }
+}
+
+struct TextFieldWithValidation: View {
+    let placeholder: String
+    @Binding var text: String
+    let maxLength: Int
+    @Binding var isValid: Bool
+    @Binding var isUnique: Bool
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(placeholder)
+                .font(.headline)
+            ZStack(alignment: .trailing) {
                 TextField(placeholder, text: $text)
                     .padding()
                     .frame(height: 50)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.none)
                     .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-                HStack {
-                    Spacer()
-                    Text("\(text.count)/\(maxLength)")
-                        .font(.caption)
-                        .foregroundColor(text.count > maxLength ? .red : .secondary)
+                if !isValid {
+                    Image(systemName: "xmark.circle")
+                        .foregroundColor(.red)
+                        .padding(.trailing, 10)
+                } else if isValid && isUnique {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundColor(.green)
+                        .padding(.trailing, 10)
                 }
             }
-            .onChange(of: text) {
-                if text.count > maxLength {
-                    text = String(text.prefix(maxLength))
-                }
+            HStack {
+                Spacer()
+                Text("\(text.count)/\(maxLength)")
+                    .font(.caption)
+                    .foregroundColor(text.count > maxLength ? .red : .secondary)
             }
         }
-    }
-    
-    struct TextEditorWithCounter: View {
-        let label: String
-        @Binding var text: String
-        let maxLength: Int
-        
-        var body: some View {
-            VStack(alignment: .leading) {
-                Text(label)
-                    .font(.headline)
-                TextEditor(text: $text)
-                    .padding()
-                    .frame(height: 100)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.none)
-                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-                HStack{
-                    Spacer()
-                    Text("\(text.count)/\(maxLength)")
-                        .font(.caption)
-                        .foregroundColor(text.count > maxLength ? .red : .secondary)
-                }
-            }
-            .onChange(of: text) {
-                if text.count > maxLength {
-                    text = String(text.prefix(maxLength))
-                }
+        .onChange(of: text) {
+            if text.count > maxLength {
+                text = String(text.prefix(maxLength))
             }
         }
-    }
-    
-    struct ImagePicker: UIViewControllerRepresentable {
-        @Binding var selectedImage: UIImage?
-        var onImagePicked: (UIImage) -> Void
-        
-        class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-            let parent: ImagePicker
-            
-            init(parent: ImagePicker) {
-                self.parent = parent
-            }
-            
-            func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-                if let uiImage = info[.originalImage] as? UIImage {
-                    parent.selectedImage = uiImage
-                    parent.onImagePicked(uiImage)
-                }
-                picker.dismiss(animated: true)
-            }
-            
-            func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-                picker.dismiss(animated: true)
-            }
-        }
-        
-        func makeCoordinator() -> Coordinator {
-            return Coordinator(parent: self)
-        }
-        
-        func makeUIViewController(context: Context) -> UIImagePickerController {
-            let picker = UIImagePickerController()
-            picker.delegate = context.coordinator
-            return picker
-        }
-        
-        func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
     }
 }
 
+struct TextEditorWithCounter: View {
+    let label: String
+    @Binding var text: String
+    let maxLength: Int
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(label)
+                .font(.headline)
+            TextEditor(text: $text)
+                .padding()
+                .frame(height: 100)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.none)
+                .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+            HStack{
+                Spacer()
+                Text("\(text.count)/\(maxLength)")
+                    .font(.caption)
+                    .foregroundColor(text.count > maxLength ? .red : .secondary)
+            }
+        }
+        .onChange(of: text) {
+            if text.count > maxLength {
+                text = String(text.prefix(maxLength))
+            }
+        }
+    }
+}
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var selectedImage: UIImage?
+    var onImagePicked: (UIImage) -> Void
+    
+    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: ImagePicker
+        
+        init(parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let uiImage = info[.originalImage] as? UIImage {
+                parent.selectedImage = uiImage
+                parent.onImagePicked(uiImage)
+            }
+            picker.dismiss(animated: true)
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(parent: self)
+    }
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+}
+
 #Preview {
-    EditProfileView(displayName: "John Doe", bio: "Software Programmer Living In New York City")
+    EditProfileView(displayName: "John Doe", bio: "Software Programmer Living In New York City", username: "john_doe")
 }
