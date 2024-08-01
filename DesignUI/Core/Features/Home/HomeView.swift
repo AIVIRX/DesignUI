@@ -203,14 +203,60 @@ struct HomeView: View {
                         title: "Article Template",
                         author: teamName,
                         description: "This provides a simple and modern Article template, perfect for showcasing articles or blog content in your app. The template includes a title, publication date, cover image, subheadings, and body text.",
-                        codeSnippet: "",
+                        codeSnippet: """
+                        //Article Template
+                        struct ArticleView: View {
+                            var body: some View {
+                                ScrollView {
+                                    VStack(alignment: .leading) {
+                                        // Title
+                                        Text("Best Places To Visit In New York City")
+                                            .font(.system(size: 36))
+                                            .fontWeight(.heavy)
+                                            .foregroundStyle(.primary)
+                                        
+                                        // Publish Date
+                                        Text("Published: April 1, 2024")
+                                            .font(.system(size: 20))
+                                            .fontWeight(.heavy)
+                                            .foregroundStyle(.secondary)
+                                        
+                                        // Cover Image
+                                        Image("IMG_1027_Original")
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 250)
+                                            .clipShape(RoundedRectangle(cornerSize: CGSize(width: 10, height: 10)))
+                                            .clipped()
+                                        
+                                        // Introduction
+                                        Text("New York City offers a plethora of iconic and captivating destinations for travelers in 2024. Here are the top must-visit places that should be on your list!")
+                                            .font(.system(size: 22))
+                                            .padding(.top, 10)
+                                        
+                                        // Subheading
+                                        Text("Times Square:")
+                                            .font(.system(size: 30))
+                                            .fontWeight(.heavy)
+                                            .padding(.top, 10)
+                                        
+                                        // Body
+                                        Text("Known for its dazzling lights, Broadway theaters, and vibrant atmosphere, Times Square is the epitome of New York City's energy. From shopping to dining and entertainment, this hub has something for everyone.")
+                                            .font(.system(size: 22))
+                                    }
+                                    .padding(10)
+                                }
+                            }
+                        }
+                        """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
-                        media: "ProfileTemplate",
+                        media: "testshot",
                         title: "Profile Template",
                         author: teamName,
                         description: "Simple template for a profile. Includes 5 views to organize profile info",
@@ -221,7 +267,7 @@ struct HomeView: View {
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
-                        media: "SettingsTemplate",
+                        media: "testshot",
                         title: "Settings Template",
                         author: teamName,
                         description: "Simple settings menu view. Used to showcase settings within an app",
@@ -232,7 +278,7 @@ struct HomeView: View {
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
-                        media: "LoginScreen",
+                        media: "testshot",
                         title: "Login Screen",
                         author: teamName,
                         description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
@@ -264,6 +310,7 @@ struct HomeView: View {
                         tags: nil
                     ),
                 ]
+                
                 let newComp = [
                     DesignPost(
                         id:  UUID().uuidString,
@@ -271,7 +318,31 @@ struct HomeView: View {
                         title: "Like Button",
                         author: teamName,
                         description: "Like button with bouncing effect.",
-                        codeSnippet: "",
+                        codeSnippet: """
+                        //Like Button w Animation
+                        struct LikeAnim: View {
+                            @State var isLiked = false
+                            var body: some View {
+                                
+                                    Button{
+                                        self.isLiked.toggle()
+                                    } label: {
+                                        ZStack {
+                                            like(image: Image(systemName: "heart.fill"), show: isLiked)
+                                            like(image: Image(systemName: "heart"), show: !isLiked)
+                                        }
+                                }
+                            }
+                            func like(image: Image, show: Bool) -> some View {
+                                    image
+                                        .foregroundColor(isLiked ? .red : .gray)
+                                        .font(.system(size: 60))
+                                        .scaleEffect(show ? 1 : 0)
+                                        .opacity(show ? 1 : 0)
+                                        .animation(.interpolatingSpring(stiffness: 1000, damping: 20), value: show)
+                                }
+                        }
+                        """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
@@ -282,7 +353,35 @@ struct HomeView: View {
                         title: "Counter",
                         author: teamName,
                         description: "Counter with ",
-                        codeSnippet: "",
+                        codeSnippet: """
+//Counter
+struct CounterView: View {
+    @State private var count = 0
+    
+    var body: some View {
+        HStack {
+            Button(action: {
+                count -= 1
+            }) {
+                Image(systemName: "minus.circle")
+                    .foregroundStyle(Color.primary)
+            }
+            
+            Text("\\(count)")
+                .padding(5)
+            
+            Button(action: {
+                count += 1
+            }) {
+                Image(systemName: "plus.circle")
+                    .foregroundStyle(Color.primary)
+            }
+        }
+        //font size
+        .font(.system(size: 35)).bold()
+    }
+}
+""",
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
@@ -292,30 +391,47 @@ struct HomeView: View {
                         media: "ColorPicker",
                         title: "Color Picker",
                         author: teamName,
-                        description: " ",
-                        codeSnippet: "",
-                        creationDate: Timestamp(date: Date()),
-                        type: "image",
-                        tags: nil
-                    ),
-                    DesignPost(
-                        id:  UUID().uuidString,
-                        media: "OptionPicker",
-                        title: "Option Picker",
-                        author: teamName,
-                        description: " ",
-                        codeSnippet: "",
-                        creationDate: Timestamp(date: Date()),
-                        type: "image",
-                        tags: nil
-                    ),
-                    DesignPost(
-                        id:  UUID().uuidString,
-                        media: "ProgressBar",
-                        title: "Progress Bar",
-                        author: teamName,
-                        description: " ",
-                        codeSnippet: "",
+                        description: "",
+                        codeSnippet: """
+                        //Color Picker
+                        struct ColorPickerView: View {
+                            let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .indigo, .cyan, .gray, .black]
+                            
+                            @State private var selectedColor: Color?
+                            
+                            var body: some View {
+                                VStack {
+                                    Text("Color Picker")
+                                        .font(.title).bold()
+                                        .padding()
+                                    
+                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 10) {
+                                        ForEach(colors, id: \\.self) { color in
+                                            Circle()
+                                                .fill(color)
+                                                .frame(width: 40, height: 40)
+                                                .overlay(
+                                                    selectedColor == color ?
+                                                    Image(systemName: "checkmark.circle")
+                                                        .foregroundColor(.white)
+                                                        .font(.system(size: 30, weight: .bold)) :
+                                                        nil
+                                                )
+                                                .onTapGesture {
+                                                    selectedColor = color
+                                                }
+                                        }
+                                    }
+                                    
+                                      Text("Selected Color: \\(selectedColor?.description ?? "None")")
+                                        .font(.title3).bold()
+                                        .padding()
+                                    
+                                }
+                                .frame(width: 300)
+                            }
+                        }
+                        """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
@@ -326,7 +442,165 @@ struct HomeView: View {
                         title: "Text Field w/ Limit",
                         author: teamName,
                         description: " ",
-                        codeSnippet: "",
+                        codeSnippet: """
+//Textfield with counter
+struct TextFieldView: View {
+    @State private var inputText = ""
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            //Textfield with counter
+            TextFieldWithCounter(placehold: "Enter a Username", text: $inputText, maxLength: 50)
+                .padding()
+        }
+        .padding()
+        .navigationBarTitle("Custom TextField", displayMode: .inline)
+    }
+    
+    // Custom TextField with character counter
+    struct TextFieldWithCounter: View {
+        let placehold: String
+        @Binding var text: String
+        let maxLength: Int
+        
+        var body: some View {
+            VStack(alignment: .leading) {
+                TextField(placehold, text: $text)
+                    .padding()
+                    .bold()
+                    .frame(height: 50)
+                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.black, style: StrokeStyle(lineWidth: 2.0)))
+                HStack{
+                    Spacer()
+                    Text("\\(text.count)/\\(maxLength)")
+                        .font(.system(size: 15)).bold()
+                        .foregroundColor(text.count > maxLength ? .red : .primary)
+                }
+            }
+            .onChange(of: text) {
+                if text.count > maxLength {
+                    text = String(text.prefix(maxLength))
+                }
+            }
+        }
+    }
+}
+"""
+                        ,
+                        creationDate: Timestamp(date: Date()),
+                        type: "image",
+                        tags: nil
+                    ),
+                    DesignPost(
+                        id:  UUID().uuidString,
+                        media: "ProgressBar",
+                        title: "Progress Bar",
+                        author: teamName,
+                        description: " ",
+                        codeSnippet: """
+//Progress Bar
+struct ProgressView: View {
+    @State private var progressValue = 0.5
+
+    var body: some View {
+        VStack {
+            Text("Progress Bar")
+                .font(.title).bold()
+                .padding()
+            
+            ProgressBar(progress: progressValue, barColor: .blue)
+                .frame(height: 20)
+                .padding()
+            
+            HStack {
+                // Decrease progress
+                Button(action: {
+                    withAnimation {
+                        progressValue = max(progressValue - 0.1, 0)
+                    }
+                }) {
+                    Text("Decrease")
+                }
+                .padding()
+                
+                Spacer()
+                
+                // Increase progress
+                Button(action: {
+                    withAnimation {
+                        progressValue = min(progressValue + 0.1, 1)
+                    }
+                }) {
+                    Text("Increase")
+                }
+                .padding()
+            }
+        }
+    }
+    
+    // Progress bar
+    struct ProgressBar: View {
+        var progress: Double
+        var barColor: Color
+        var barHeight: CGFloat = 10
+
+        var body: some View {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .frame(width: geometry.size.width, height: barHeight)
+                        .opacity(0.3)
+                        .foregroundColor(Color.gray)
+                    
+                    Rectangle()
+                        .frame(width: min(CGFloat(progress) * geometry.size.width, geometry.size.width), height: barHeight)
+                        .foregroundColor(barColor)
+                        .cornerRadius(barHeight / 2)
+                        .animation(.linear, value: progress)
+                }
+                .cornerRadius(barHeight / 2)
+            }
+        }
+    }
+}
+""",
+                        creationDate: Timestamp(date: Date()),
+                        type: "image",
+                        tags: nil
+                    ),
+                    DesignPost(
+                        id:  UUID().uuidString,
+                        media: "OptionPicker",
+                        title: "Option Picker",
+                        author: teamName,
+                        description: "",
+                        codeSnippet: """
+                        //Option Picker
+                        struct PickerView: View {
+                            @State private var selectedOption = 0
+                            let options = ["Option 1", "Option 2"]
+
+                            var body: some View {
+                                VStack {
+                                    Text("Select an Option")
+                                        .font(.title).bold()
+                                        .padding()
+                                    
+                                    Picker("Select an option", selection: $selectedOption) {
+                                        ForEach(options.indices, id: \\.self) { index in
+                                            Text(options[index]).tag(index)
+                                        }
+                                    }
+                                    .pickerStyle(SegmentedPickerStyle())
+                                    
+                                    Text("Selected: \\(options[selectedOption])")
+                                        .font(.title3).bold()
+                                        .padding()
+                                }
+                                .padding()
+                            }
+                        }
+                        """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil
@@ -337,7 +611,31 @@ struct HomeView: View {
                         title: "Toggle Switch",
                         author: teamName,
                         description: " ",
-                        codeSnippet: "",
+                        codeSnippet: """
+//Button Switch
+struct SwitchView: View {
+    @State private var isSwitchOn = false
+
+    var body: some View {
+        VStack {
+            Text("Toggle Switch")
+                .font(.title).bold()
+                .padding()
+            
+            Toggle(isOn: $isSwitchOn) {
+                Text("Switch").bold()
+            }
+            .padding()
+            
+            Text("Switch is \\(isSwitchOn ? "On" : "Off")")
+                .font(.title3).bold()
+                .padding()
+        }
+        .padding()
+        .navigationBarTitle("Toggle Switch", displayMode: .inline)
+    }
+}
+""",
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: nil

@@ -29,37 +29,49 @@ struct DetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                if type == "image" {
-                    Image(mediaURL)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(maxWidth: .infinity, maxHeight: 250)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .clipped()
-                }
-                if type == "fetched" {
-                    WebImage(url: URL(string: mediaURL)) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(maxWidth: .infinity, maxHeight: 250)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                .clipped()
-                        case .failure:
-                            Image(systemName: "photo")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                .clipped()
-                        }
+                RoundedRectangle(cornerRadius: 15)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 280)
+                        .foregroundStyle(.thinMaterial)
+                    .overlay{
+                        RoundedRectangle(cornerRadius: 15)
+                            .frame(width: 115,height: 250)
+                            .foregroundStyle(Color.clear)
+                            .overlay{
+                                if type == "image" {
+                                    Image(mediaURL)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxWidth: .infinity, maxHeight: 270)
+                                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                                        .clipped()
+                                        .shadow(radius: 8)
+                                }
+                                if type == "fetched" {
+                                    WebImage(url: URL(string: mediaURL)) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView()
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                        case .failure:
+                                            Image(systemName: "photo")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                        }
+                                    }
+                                }
+                            }
                     }
-                }
                 VStack(alignment: .leading) {
                     HStack {
                         Text(title)
@@ -115,8 +127,6 @@ struct DetailView: View {
                     .padding(.top)
                 Text(description)
                     .font(.body)
-                    .foregroundColor(.primary)
-                
                 
                 Text("Code Snippet:")
                     .font(.title2).bold()
@@ -140,7 +150,6 @@ struct DetailView: View {
                     Text("Copy Code")
                         .padding(8)
                         .font(.headline).bold()
-                        .background(Color.blue) // Button background color
                         .foregroundColor(.white) // Button text color
                         .cornerRadius(12)
                         .frame(maxWidth: .infinity)
@@ -326,7 +335,7 @@ struct DetailView: View {
 #Preview {
     DetailView(
         id: "722M",
-        mediaURL: "String",
+        mediaURL: "testshot",
         title: "Design Template",
         description: "This is a placeholder for a design",
         author: "Aivirx",

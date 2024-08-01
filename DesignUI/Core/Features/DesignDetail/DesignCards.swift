@@ -53,14 +53,13 @@ struct DesignCards: View {
                 if type == "image" {
                     Image(media)
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 160, height: 130)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 139, height: 300)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.secondary, lineWidth: 0.2)
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.gray, lineWidth: 0.8)
                         )
-                        .scaledToFill()
                 }
                 if type == "fetched" {
                     WebImage(url: URL(string: media)) { phase in
@@ -117,8 +116,8 @@ struct DesignCards: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: 160)
-            .padding(3)
+            .frame(width: 150)
+            .padding(0)
             .onAppear {
                 if type == "fetched" {
                     fetchAuthorName()
@@ -152,12 +151,12 @@ struct DesignCards: View {
 #Preview {
     DesignCards(
         id: "123",
-        media: "https://example.com/image.jpg",
+        media: "ArticleTemplate",
         title: "Sample Title",
         authorUID: "sampleUID",
         description: "Sample description of the design.",
         codeSnippet: "Sample code snippet.",
-        published: "Timestamp(date: Date())",
+        published: "\(Timestamp(date: Date()))",
         type: "image",
         tags: ["tag1", "tag2"]
     )
