@@ -15,6 +15,7 @@ struct DetailView: View {
     var creationDate: String
     var type: String
     var isAuthorVerified: Bool
+    var tags: [String]
     @Binding var isLiked: Bool
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
@@ -26,6 +27,7 @@ struct DetailView: View {
     @State private var showReportAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
@@ -91,7 +93,7 @@ struct DetailView: View {
                                         Image(systemName: isLiked ? "heart.fill" : "heart")
                                             .foregroundColor(isLiked ? .red : .gray)
                                             .font(.title)
-                                        Text("\(likesCount)")
+                                        Text("\(formatCount(likesCount))")
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }
@@ -104,7 +106,7 @@ struct DetailView: View {
                         .foregroundColor(.secondary)
                     
                     if Auth.auth().currentUser != nil && type != "image" {
-                        Text("\(viewCount) views")
+                        Text("\(formatCount(viewCount)) views")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -120,6 +122,8 @@ struct DetailView: View {
                                 .foregroundColor(.blue)
                         }
                     }
+                    
+                    TagView(tags: tags)
                 }
             
                 Text("Description:")
@@ -143,9 +147,13 @@ struct DetailView: View {
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
                 
+                Spacer()
                 Button(action: {
                     copyToClipboard(codeSnippet)
                     isCopied = true
+                    
+                    let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                        impactMed.impactOccurred()
                 }) {
                     Text("Copy Code")
                         .padding(8)
@@ -158,25 +166,6 @@ struct DetailView: View {
                 .foregroundStyle(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12.0))
                 .padding(.top, 10)
-                
-                //                Button(action: {
-                //                    showShareSheet = true
-                //                }) {
-                //                    HStack {
-                //                        Image(systemName: "square.and.arrow.up")
-                //                        Text("Share")
-                //                            .padding(8)
-                //                            .font(.headline).bold()
-                //                            .background(Color.blue) // Button background color
-                //                            .foregroundColor(.white) // Button text color
-                //                            .cornerRadius(12)
-                //                    }
-                //                    .frame(maxWidth: .infinity)
-                //                }
-                //                .buttonStyle(.borderedProminent)
-                //                .foregroundStyle(Color.white)
-                //                .clipShape(RoundedRectangle(cornerRadius: 12.0))
-                //                .padding(.top, 10)
             }
             .toast(isPresenting: $isCopied) {
                 AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
@@ -330,6 +319,68 @@ struct DetailView: View {
             }
         }
     }
+    
+    func formatCount(_ count: Int) -> String {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        
+        if count >= 1_000_000_000 {
+            let formattedCount = Double(count) / 1_000_000_000
+            numberFormatter.maximumFractionDigits = 2
+            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)B"
+        } else if count >= 1_000_000 {
+            let formattedCount = Double(count) / 1_000_000
+            numberFormatter.maximumFractionDigits = 2
+            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)M"
+        } else if count >= 1_000 {
+            let formattedCount = Double(count) / 1_000
+            numberFormatter.maximumFractionDigits = 2
+            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)K"
+        } else {
+            return "\(count)"
+        }
+    }
+}
+
+struct TagView: View {
+    var tags: [String]
+    
+    var body: some View {
+        if tags != [""]{
+            HStack {
+                ForEach(tags, id: \.self) { tag in
+                    Text("\(tag)")
+                        .font(.system(size: 13)).bold()
+                        .padding(5)
+                        .background(color(for: tag))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+            }
+        }
+    }
+    
+    func color(for tag: String) -> Color {
+        switch tag {
+        case "Template":
+            return .gray
+        case "UIKit":
+            return .orange
+        case "SwiftUI":
+            return .red
+        case "Animation":
+            return .purple
+        case "Component":
+            return .blue
+        default:
+            return .gray
+        }
+    }
+}
+
+
+#Preview{
+    TagView(tags: ["Template", "Animation"])
 }
 
 #Preview {
@@ -420,7 +471,7 @@ struct DetailView: View {
        }
     """,
         creationDate: "Timestamp(date: Date())",
-        type: "image", isAuthorVerified: true,
+        type: "image", isAuthorVerified: true, tags: ["Template", "Animation"],
         isLiked: .constant(true)
     )
 }

@@ -5,34 +5,25 @@
 //  Created by Maicol Cabreja on 6/11/24.
 //
 
-
 import SwiftUI
 import FirebaseFirestore
+import StatefulTabView
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var selectedIndex = 0
     var body: some View {
-        TabView(selection: $selectedIndex) {
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: selectedIndex == 0 ? "house.fill" : "house")
-                    .environment(\.symbolVariants, .none)
-                }
-                .tag(0)
-            UploadDesignView()
-                .tabItem {
-                    Label("Upload", systemImage: selectedIndex == 1 ? "plus.square.fill" : "plus.square.dashed")
-                    .environment(\.symbolVariants, .none)
-                }
-                .tag(1)
-            
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: selectedIndex == 2 ? "person.crop.circle.fill" : "person.crop.circle")
-                    .environment(\.symbolVariants, .none)
-                }
-                .tag(2)
+        
+        StatefulTabView{
+            Tab(title: "Home", systemImageName: "house.fill") {
+                HomeView()
+            }
+            Tab(title: "Upload", systemImageName: "plus.square.dashed") {
+                UploadDesignView()
+            }
+            Tab(title: "Profile", systemImageName: "person.crop.circle") {
+                ProfileView()
+            }
         }
         .accentColor(colorScheme == .dark ? .white : .black)
     }
@@ -173,10 +164,16 @@ struct HomeView: View {
                             }
                         }
                         
-                        Text("Version 1.0")
-                            .padding()
-                            .foregroundStyle(Color.gray)
-                            .font(.caption)
+                        VStack{
+                            Text("v1.0")
+                                .foregroundStyle(Color.gray)
+                                .font(.body)
+                            
+                            Text("Made in New York City")
+                                .foregroundStyle(Color.gray)
+                                .font(.body)
+                        }
+                        .padding()
                     }
                     .padding(.leading, 10)
                 }
@@ -197,6 +194,28 @@ struct HomeView: View {
             store.loadStoredPurchases()
             if !isNewDesignsLoaded {
                 let newDesigns = [
+                    DesignPost(
+                        id:  UUID().uuidString,
+                        media: "LoginScreen",
+                        title: "Login Screen",
+                        author: teamName,
+                        description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
+                        codeSnippet: "",
+                        creationDate: Timestamp(date: Date()),
+                        type: "image",
+                        tags: ["Template","SwiftUI"]
+                    ),
+                    DesignPost(
+                        id:  UUID().uuidString,
+                        media: "WhatsNew",
+                        title: "What's New",
+                        author: teamName,
+                        description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
+                        codeSnippet: "",
+                        creationDate: Timestamp(date: Date()),
+                        type: "image",
+                        tags: ["Template","SwiftUI"]
+                    ),
                     DesignPost(
                         id:  UUID().uuidString,
                         media: "ArticleTemplate",
@@ -252,51 +271,29 @@ struct HomeView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Template","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
-                        media: "testshot",
-                        title: "Profile Template",
-                        author: teamName,
-                        description: "Simple template for a profile. Includes 5 views to organize profile info",
-                        codeSnippet: "",
-                        creationDate: Timestamp(date: Date()),
-                        type: "image",
-                        tags: nil
-                    ),
-                    DesignPost(
-                        id:  UUID().uuidString,
-                        media: "testshot",
+                        media: "SettingsTemplate",
                         title: "Settings Template",
                         author: teamName,
                         description: "Simple settings menu view. Used to showcase settings within an app",
                         codeSnippet: "",
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Template","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
-                        media: "testshot",
-                        title: "Login Screen",
+                        media: "ProfileTemplate",
+                        title: "Profile Template",
                         author: teamName,
-                        description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
+                        description: "Simple template for a profile. Includes 5 views to organize profile info",
                         codeSnippet: "",
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
-                    ),
-                    DesignPost(
-                        id:  UUID().uuidString,
-                        media: "WhatsNew",
-                        title: "What's New",
-                        author: teamName,
-                        description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
-                        codeSnippet: "",
-                        creationDate: Timestamp(date: Date()),
-                        type: "image",
-                        tags: nil
+                        tags: ["Template","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -307,7 +304,7 @@ struct HomeView: View {
                         codeSnippet: "",
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Template","SwiftUI"]
                     ),
                 ]
                 
@@ -345,7 +342,7 @@ struct HomeView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Component", "Animation","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -384,7 +381,7 @@ struct CounterView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Component", "SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -434,7 +431,7 @@ struct CounterView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Component","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -489,7 +486,7 @@ struct TextFieldView: View {
                         ,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Component","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -566,7 +563,7 @@ struct ProgressView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Component","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -603,7 +600,7 @@ struct ProgressView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Component","SwiftUI"]
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -638,7 +635,7 @@ struct SwitchView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: nil
+                        tags: ["Component","SwiftUI"]
                     ),
                 ]
                 addNewAnims(newComp)

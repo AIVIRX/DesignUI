@@ -104,7 +104,7 @@ struct EditProfileView: View {
             
             TextFieldWithCounter(placeholder: "Name", text: $newDisplayName, maxLength: 15)
             TextFieldWithValidation(placeholder: "Username", text: $newUsername, maxLength: 15, isValid: $isUsernameValid, isUnique: $isUsernameUnique)
-                .onChange(of: newUsername) { newValue in
+                .onChange(of: newUsername) {
                     validateUsernameFormat()
                 }
             TextEditorWithCounter(label: "Bio", text: $newBio, maxLength: 80)

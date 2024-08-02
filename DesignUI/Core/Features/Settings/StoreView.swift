@@ -6,38 +6,105 @@
 //
 
 import SwiftUI
+import RevenueCat
+import RevenueCatUI
 
-struct StoreView: View {
-    @EnvironmentObject private var store: Store
+@MainActor
+class StoreViewModel: ObservableObject {
+    @Published var offerings: Offerings?
+    @Published var errorMessage: String?
     
-    var body: some View {
-        VStack {
-            List(store.allRecipes, id: \.self) { recipe in
-                Group {
-                    if !recipe.isLocked {
-                        RecipeRow(recipe: recipe) { }
-                    } else {
-                        RecipeRow(recipe: recipe) {
-                            if let product = store.product(for: recipe.id) {
-                                store.purchaseProduct(product)
-                            }
-                        }
-                    }
-                }
-                .navigationBarItems(trailing: Button("Restore") {
-                    store.retorePurchases()
-                })
-                .onAppear {
-                    store.loadStoredPurchases()
-                }
-            }
-            
-            if !store.completedPurchases.isEmpty {
-                AdView(adUnitID: "nil").frame(width: 320, height: 50)
+    init() {
+        fetchOfferings()
+    }
+    
+    func fetchOfferings() {
+        Purchases.shared.getOfferings { [weak self] (offerings, error) in
+            if let error = error {
+                self?.errorMessage = error.localizedDescription
             } else {
-                AdView(adUnitID: AdUnitID.testAds).frame(width: 320, height: 50).padding([.top], 10)
+                self?.offerings = offerings
             }
         }
-        .navigationTitle("Shop")
     }
+}
+
+struct StoreView: View {
+    @State private var offerings: Offerings?
+    @State private var isPurchasing = false
+    @State private var purchaseSuccess = false
+    @State private var purchaseError: Error?
+
+    var body: some View {
+        VStack {
+            if let offerings = offerings {
+                ForEach(offerings.current?.availablePackages ?? [], id: \.identifier) { package in
+                    VStack {
+                        Text(package.storeProduct.localizedTitle)
+                            .font(.headline)
+                        Text(package.storeProduct.localizedDescription)
+                            .font(.subheadline)
+                        Text(package.storeProduct.localizedPriceString)
+                            .font(.title2)
+                        
+                        Button(action: {
+                            purchase(package: package)
+                        }) {
+                            Text("Buy \(package.storeProduct.localizedTitle)")
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        .disabled(isPurchasing)
+                    }
+                    .padding()
+                }
+            } else {
+                Text("Loading subscriptions...")
+            }
+
+            if purchaseSuccess {
+                Text("Purchase successful!")
+                    .foregroundColor(.green)
+            }
+
+            if let error = purchaseError {
+                Text("Purchase failed: \(error.localizedDescription)")
+                    .foregroundColor(.red)
+            }
+        }
+        .onAppear(perform: fetchOfferings)
+    }
+
+    private func fetchOfferings() {
+        Purchases.shared.getOfferings { (offerings, error) in
+            if let error = error {
+                print("Error fetching offerings: \(error)")
+            } else {
+                self.offerings = offerings
+            }
+        }
+    }
+
+    private func purchase(package: Package) {
+        isPurchasing = true
+        purchaseSuccess = false
+        purchaseError = nil
+
+        Purchases.shared.purchase(package: package) { (transaction, customerInfo, error, userCancelled) in
+            isPurchasing = false
+            if let error = error {
+                self.purchaseError = error
+            } else if userCancelled {
+                self.purchaseError = NSError(domain: "com.yourapp", code: 0, userInfo: [NSLocalizedDescriptionKey: "User cancelled the purchase."])
+            } else {
+                self.purchaseSuccess = true
+            }
+        }
+    }
+}
+
+#Preview{
+    StoreView()
 }

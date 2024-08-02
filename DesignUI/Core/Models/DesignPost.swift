@@ -17,5 +17,5 @@ struct DesignPost: Identifiable, Codable {
     let codeSnippet: String
     let creationDate: Timestamp
     let type: String
-    let tags: [String]?
+    let tags: [String]
 }

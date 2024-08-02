@@ -25,12 +25,14 @@ class LikedPostsViewModel: ObservableObject {
         var title: String
         var description: String
         var mediaURL: String
-        var author: String
+        var authorUID: String
+        var authorDisplayName: String
         var creationDate: Timestamp
         var type: String
         var likesCount: Int
         var viewCount: Int
         var likeTimestamp: Timestamp
+        var tags: [String]
     }
     
     func fetchLikedPosts(reset: Bool = false) {
@@ -101,19 +103,22 @@ class LikedPostsViewModel: ObservableObject {
                     let title = data?["title"] as? String ?? "No Title"
                     let description = data?["description"] as? String ?? "No Description"
                     let mediaURL = data?["media"] as? String ?? ""
-                    let author = data?["author"] as? String ?? "Unknown Author"
+                    let authorUID = data?["author"] as? String ?? "Unknown Author"
                     let creationDate = data?["creationDate"] as? Timestamp ?? Timestamp(date: Date())
                     let type = data?["type"] as? String ?? "Unknown Type"
                     let likesCount = data?["likesCount"] as? Int ?? 0
                     let viewCount = data?["viewCount"] as? Int ?? 0
+                    let tags = data?["tags"] as? [String] ?? [""]
                     
-                    let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, author: author, creationDate: creationDate, type: type, likesCount: likesCount, viewCount: viewCount, likeTimestamp: likeTimestamp)
-                    
-                    DispatchQueue.main.async {
-                        if !self.likedPosts.contains(where: { $0.id == id }) {
-                            self.likedPosts.append(post)
-                            // Sort the likedPosts array after adding a new post based on likeTimestamp
-                            self.likedPosts.sort { $0.likeTimestamp.dateValue() > $1.likeTimestamp.dateValue() }
+                    self.fetchAuthorName(for: authorUID) { authorDisplayName in
+                        let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, authorUID: authorUID, authorDisplayName: authorDisplayName, creationDate: creationDate, type: type, likesCount: likesCount, viewCount: viewCount, likeTimestamp: likeTimestamp, tags: tags)
+                        
+                        DispatchQueue.main.async {
+                            if !self.likedPosts.contains(where: { $0.id == id }) {
+                                self.likedPosts.append(post)
+                                // Sort the likedPosts array after adding a new post based on likeTimestamp
+                                self.likedPosts.sort { $0.likeTimestamp.dateValue() > $1.likeTimestamp.dateValue() }
+                            }
                         }
                     }
                 }
@@ -125,17 +130,28 @@ class LikedPostsViewModel: ObservableObject {
             self.isLoading = false
         }
     }
+    
+    private func fetchAuthorName(for uid: String, completion: @escaping (String) -> Void) {
+        let userDocRef = db.collection("users").document(uid)
+        userDocRef.getDocument { document, error in
+            if let document = document, document.exists {
+                let data = document.data()
+                let displayName = data?["displayName"] as? String ?? "Unknown Author"
+                completion(displayName)
+            } else {
+                completion("Unknown Author")
+            }
+        }
+    }
 }
-
 
 struct LikedView: View {
     @StateObject private var viewModel = LikedPostsViewModel()
     @State private var isLiked: Bool = true
-
     var body: some View {
         ScrollView {
             ForEach(viewModel.likedPosts) { post in
-                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.author, codeSnippet: "", creationDate: formattedDate(from: post.creationDate), type: post.type, isAuthorVerified: true, isLiked: $isLiked)) { //todo
+                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.authorDisplayName, codeSnippet: "", creationDate: formattedDate(from: post.creationDate), type: post.type, isAuthorVerified: true, tags: post.tags, isLiked: $isLiked)) {
                     HStack {
                         WebImage(url: URL(string: post.mediaURL)) { phase in
                             switch phase {
@@ -184,14 +200,14 @@ struct LikedView: View {
                                 Image(systemName: "heart")
                                     .font(.system(size: 16))
                                     .foregroundColor(.gray)
-                                Text("\(post.likesCount)")
+                                Text("\(formatCount(post.likesCount))")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 
                                 Image(systemName: "eye")
                                     .font(.system(size: 16))
                                     .foregroundColor(.gray)
-                                Text("\(post.viewCount)")
+                                Text("\(formatCount(post.viewCount))")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
@@ -243,7 +259,28 @@ struct LikedView: View {
             viewModel.fetchLikedPosts(reset: true)
         }
     }
-
+    
+    func formatCount(_ count: Int) -> String {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        
+        if count >= 1_000_000_000 {
+            let formattedCount = Double(count) / 1_000_000_000
+            numberFormatter.maximumFractionDigits = 2
+            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)B"
+        } else if count >= 1_000_000 {
+            let formattedCount = Double(count) / 1_000_000
+            numberFormatter.maximumFractionDigits = 2
+            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)M"
+        } else if count >= 1_000 {
+            let formattedCount = Double(count) / 1_000
+            numberFormatter.maximumFractionDigits = 2
+            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)K"
+        } else {
+            return "\(count)"
+        }
+    }
+    
     private func formattedDate(from timestamp: Timestamp) -> String {
         let date = timestamp.dateValue()
         let formatter = DateFormatter()

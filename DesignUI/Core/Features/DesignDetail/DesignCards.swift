@@ -19,12 +19,12 @@ struct DesignCards: View {
     var codeSnippet: String
     var published: String
     var type: String
-    var tags: [String]?
+    var tags: [String]
     @State private var isLiked: Bool = false
-    @State private var authorName: String = "Dock UI Team"
+    @State private var authorName: String = "DockUI Team"
     @State private var isAuthorVerified: Bool = false
 
-    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]?) {
+    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]) {
         self.id = id
         self.media = media
         self.title = title
@@ -47,6 +47,7 @@ struct DesignCards: View {
             creationDate: published,
             type: type,
             isAuthorVerified: isAuthorVerified, 
+            tags: tags, 
             isLiked: $isLiked
         )) {
             VStack(alignment: .leading) {
@@ -123,7 +124,10 @@ struct DesignCards: View {
                     fetchAuthorName()
                 }
             }
-        }
+        }.simultaneousGesture(TapGesture().onEnded {
+            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                impactHeavy.impactOccurred()
+        })
     }
     
     func fetchAuthorName() {

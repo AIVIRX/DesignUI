@@ -1,5 +1,5 @@
 {
-  "identifier" : "5436B3F3",
+  "identifier" : "69649B5B",
   "nonRenewingSubscriptions" : [
 
   ],
@@ -24,7 +24,7 @@
     "_applicationInternalID" : "6496860953",
     "_developerTeamID" : "5C778DVBP3",
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 739242068.65903902,
+    "_lastSynchronizedDate" : 744260299.14143002,
     "_locale" : "en_US",
     "_storefront" : "USA",
     "_storeKitErrors" : [
@@ -76,7 +76,65 @@
     ]
   },
   "subscriptionGroups" : [
+    {
+      "id" : "21520340",
+      "localizations" : [
 
+      ],
+      "name" : "DockUI Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "34.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6596777447",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlocks All Premium Features!",
+              "displayName" : "Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "rc_3499_1y",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Annual $34.99",
+          "subscriptionGroupID" : "21520340",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6596778790",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlock All Premium Features",
+              "displayName" : "Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "rc_499_1m",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly $4.99",
+          "subscriptionGroupID" : "21520340",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
   ],
   "version" : {
     "major" : 3,
