@@ -249,7 +249,9 @@ struct ProfileView: View {
                                     showError(error.localizedDescription)
                                 }
                             }
-                            .signInWithAppleButtonStyle(buttonStyle)
+                                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                            
+                            
                             .frame(height: 50)
                             .clipShape(Capsule())
                             .padding(.top, 10)
