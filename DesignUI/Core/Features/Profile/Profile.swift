@@ -44,6 +44,7 @@ struct ProfileView: View {
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
+    @State private var signInAppleButtonId = UUID().uuidString
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black
@@ -249,9 +250,11 @@ struct ProfileView: View {
                                     showError(error.localizedDescription)
                                 }
                             }
-                                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
-                            
-                            
+                            .id(signInAppleButtonId)
+                            .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                            .onChange(of: colorScheme, { oldValue, newValue in
+                                signInAppleButtonId = UUID().uuidString
+                            })
                             .frame(height: 50)
                             .clipShape(Capsule())
                             .padding(.top, 10)
