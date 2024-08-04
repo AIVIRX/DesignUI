@@ -8,6 +8,8 @@
 import SwiftUI
 import FirebaseFirestore
 import StatefulTabView
+import SDWebImage
+import SDWebImageSwiftUI
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
@@ -37,95 +39,28 @@ struct HomeView: View {
     @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var isNewDesignsLoaded = false
     @State private var teamName = "Dock UI"
-    @State private var selectedPost: DesignPost?
     @State private var errorMessage: String = ""
     @State private var isLoading: Bool = false
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.requestReview) var requestReview
+    @Environment(\.requestReview) var requestReview    
+    @State private var searchText = ""
+    @State private var showSearchResults = false
     private let postsLimit = 2
-
     var body: some View {
         NavigationStack {
-            VStack {
-                ScrollView(.vertical, showsIndicators: true) {
-                    VStack(alignment: .leading) {
-                        HStack(spacing: 3) {
-                            LargeCardView(
-                                name: "Shop",
-                                height: 100,
-                                fontSize: 35,
-                                padding: 10,
-                                colors: [.cyan, .purple, .black, .purple, .pink],
-                                destination: StoreView()
-                            )
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    VStack {
-                        VStack(alignment: .leading) {
-                            Text("Featured")
-                                .font(.title2)
-                                .fontWeight(.heavy)
-                                .padding(.top, 10)
-                                .padding(.leading, 3)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 3) {
-                                    ForEach(designPosts) { post in
-                                        DesignCards(
-                                            id: post.id,
-                                            media: post.media,
-                                            title: post.title,
-                                            authorUID: post.author,
-                                            description: post.description,
-                                            codeSnippet: post.codeSnippet,
-                                            published: formattedDate(from: post.creationDate),
-                                            type: post.type,
-                                            tags: post.tags
-                                        )
-                                    }
-                                }
-                            }
-                            .scrollClipDisabled()
-                        }
-                        
-                        VStack(alignment: .leading) {
-                            Text("Components")
-                                .font(.title2)
-                                .fontWeight(.heavy)
-                                .padding(.top, 20)
-                                .padding(.leading, 3)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 3) {
-                                    ForEach(componentPosts) { post in
-                                        DesignCards(
-                                            id: post.id,
-                                            media: post.media,
-                                            title: post.title,
-                                            authorUID: post.author,
-                                            description: post.description,
-                                            codeSnippet: post.codeSnippet,
-                                            published: formattedDate(from: post.creationDate),
-                                            type: post.type,
-                                            tags: post.tags
-                                        )
-                                    }
-                                }
-                            }
-                            .scrollClipDisabled()
-                        }
-                        
-                        if !communityPosts.isEmpty {
+            if showSearchResults == false{
+                VStack {
+                    ScrollView(.vertical, showsIndicators: true) {
+                        VStack {
                             VStack(alignment: .leading) {
-                                Text("Community")
+                                Text("Featured")
                                     .font(.title2)
                                     .fontWeight(.heavy)
-                                    .padding(.top, 20)
+                                    .padding(.top, 10)
                                     .padding(.leading, 3)
-                                
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     LazyHStack(spacing: 3) {
-                                        ForEach(communityPosts) { post in
+                                        ForEach(designPosts) { post in
                                             DesignCards(
                                                 id: post.id,
                                                 media: post.media,
@@ -138,58 +73,125 @@ struct HomeView: View {
                                                 tags: post.tags
                                             )
                                         }
-                                        if !isLoading {
-                                            Button(action: {
-                                                Task {
-                                                    await fetchCommunityPosts()
-                                                }
-                                            }) {
-                                                Text("Show More")
-                                                    .padding()
-                                                    .frame(maxWidth: .infinity)
-                                                    .background(Color.blue)
-                                                    .foregroundColor(.white)
-                                                    .cornerRadius(10)
-                                            }
-                                            .padding(.top, 10)
-                                            .padding(.horizontal, 3)
-                                        } else {
-                                            ProgressView()
-                                                .padding(.top, 10)
-                                                .padding(.horizontal, 3)
+                                    }
+                                }
+                                .scrollClipDisabled()
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text("Components")
+                                    .font(.title2)
+                                    .fontWeight(.heavy)
+                                    .padding(.top, 20)
+                                    .padding(.leading, 3)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    LazyHStack(spacing: 3) {
+                                        ForEach(componentPosts) { post in
+                                            DesignCards(
+                                                id: post.id,
+                                                media: post.media,
+                                                title: post.title,
+                                                authorUID: post.author,
+                                                description: post.description,
+                                                codeSnippet: post.codeSnippet,
+                                                published: formattedDate(from: post.creationDate),
+                                                type: post.type,
+                                                tags: post.tags
+                                            )
                                         }
                                     }
                                 }
                                 .scrollClipDisabled()
                             }
-                        }
-                        
-                        VStack{
-                            Text("v1.0")
-                                .foregroundStyle(Color.gray)
-                                .font(.body)
                             
-                            Text("Made in New York City")
-                                .foregroundStyle(Color.gray)
-                                .font(.body)
+                            if !communityPosts.isEmpty {
+                                VStack(alignment: .leading) {
+                                    Text("Community")
+                                        .font(.title2)
+                                        .fontWeight(.heavy)
+                                        .padding(.top, 20)
+                                        .padding(.leading, 3)
+                                    
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        LazyHStack(spacing: 3) {
+                                            ForEach(communityPosts) { post in
+                                                DesignCards(
+                                                    id: post.id,
+                                                    media: post.media,
+                                                    title: post.title,
+                                                    authorUID: post.author,
+                                                    description: post.description,
+                                                    codeSnippet: post.codeSnippet,
+                                                    published: formattedDate(from: post.creationDate),
+                                                    type: post.type,
+                                                    tags: post.tags
+                                                )
+                                            }
+                                            if !isLoading {
+                                                Button(action: {
+                                                    Task {
+                                                        await fetchCommunityPosts()
+                                                    }
+                                                }) {
+                                                    Text("Show More")
+                                                        .padding()
+                                                        .frame(maxWidth: .infinity)
+                                                        .background(Color.blue)
+                                                        .foregroundColor(.white)
+                                                        .cornerRadius(10)
+                                                }
+                                                .padding(.top, 10)
+                                                .padding(.horizontal, 3)
+                                            } else {
+                                                ProgressView()
+                                                    .padding(.top, 10)
+                                                    .padding(.horizontal, 3)
+                                            }
+                                        }
+                                    }
+                                    .scrollClipDisabled()
+                                }
+                            }
+                            
+                            VStack{
+                                Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
+                                    .foregroundStyle(Color.gray)
+                                    .font(.body)
+                                
+                                Text("Made in New York City")
+                                    .foregroundStyle(Color.gray)
+                                    .font(.body)
+                            }
+                            .padding()
                         }
-                        .padding()
+                        .padding(.leading, 10)
                     }
-                    .padding(.leading, 10)
+                    .navigationTitle("Dock UI")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarItems(trailing: HStack {
+                        NavigationLink(destination: SettingsView()) {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 20))
+                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                        }
+                    })
                 }
-                .navigationTitle("Dock UI")
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(trailing: HStack {
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 20))
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                    }
-                })
+                .accentColor(.none)
             }
-            .accentColor(.none)
+            else {
+                SearchResultsView(searchText: $searchText, designPosts: designPosts, componentPosts: componentPosts, communityPosts: communityPosts)
+            }
         }
+        .searchable(text: $searchText, prompt: "Search")
         .navigationViewStyle(StackNavigationViewStyle())
+        .onChange(of: searchText) { newValue in
+            if newValue.isEmpty {
+                showSearchResults = false
+            } else {
+                showSearchResults = true
+            }
+        }
         .onAppear {
             store.loadStoredPurchases()
             if !isNewDesignsLoaded {
@@ -649,15 +651,126 @@ struct SwitchView: View {
         }
     }
     
-    var sortedDesignPosts: [DesignPost] {
-        designPosts.sorted(by: { $0.creationDate.dateValue() < $1.creationDate.dateValue() })
+    struct SearchResultsView: View {
+        @Binding var searchText: String
+        var designPosts: [DesignPost]
+        var componentPosts: [DesignPost]
+        var communityPosts: [DesignPost]
+        var body: some View {
+            NavigationView {
+                
+                ForEach(filteredPosts(posts: communityPosts)) { post in
+                    NavigationLink(destination: SearchResultCard(
+                        id: post.id,
+                        media: post.media,
+                        title: post.title,
+                        authorUID: post.author,
+                        description: post.description,
+                        codeSnippet: post.codeSnippet,
+                        published: formattedDate(from: post.creationDate),
+                        type: post.type,
+                        tags: post.tags
+                    )) {
+                        HStack {
+                            WebImage(url: URL(string: post.media)) { phase in
+                                switch phase {
+                                case .empty:
+                                    ProgressView()
+                                        .frame(width: 130, height: 100)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 130, height: 100)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.secondary, lineWidth: 0.2)
+                                        )
+                                case .failure:
+                                    Image(systemName: "photo")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 130, height: 100)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.secondary, lineWidth: 0.2)
+                                        )
+                                        .scaledToFill()
+                                }
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text(post.title)
+                                    .font(.title3).bold()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .lineLimit(1)
+                                Text(post.description)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(2)
+
+                                Spacer()
+                            }
+                            .padding(5)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(8)
+                        .padding([.vertical, .horizontal], 5)
+                    }
+                }
+                
+                ForEach(filteredPosts(posts: designPosts)) { post in
+                    DesignCards(
+                        id: post.id,
+                        media: post.media,
+                        title: post.title,
+                        authorUID: post.author,
+                        description: post.description,
+                        codeSnippet: post.codeSnippet,
+                        published: formattedDate(from: post.creationDate),
+                        type: post.type,
+                        tags: post.tags
+                    )
+                }
+                
+                ForEach(filteredPosts(posts: componentPosts)) { post in
+                    DesignCards(
+                        id: post.id,
+                        media: post.media,
+                        title: post.title,
+                        authorUID: post.author,
+                        description: post.description,
+                        codeSnippet: post.codeSnippet,
+                        published: formattedDate(from: post.creationDate),
+                        type: post.type,
+                        tags: post.tags
+                    )
+                }
+                
+            }
+            .navigationTitle("Search Results")
+
+        }
+        
+        private func filteredPosts(posts: [DesignPost]) -> [DesignPost] {
+            guard !searchText.isEmpty else {
+                return posts
+            }
+            return posts.filter { post in
+                post.title.localizedCaseInsensitiveContains(searchText) ||
+                post.description.localizedCaseInsensitiveContains(searchText) ||
+                post.tags.contains(where: { $0.localizedCaseInsensitiveContains(searchText) })
+            }
+        }
     }
     
-    func formattedDate(from timestamp: Timestamp) -> String {
-        let date = timestamp.dateValue()
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        return formatter.string(from: date)
+    var sortedDesignPosts: [DesignPost] {
+        designPosts.sorted(by: { $0.creationDate.dateValue() < $1.creationDate.dateValue() })
     }
     
     private func fetchCommunityPosts() async {
@@ -700,6 +813,21 @@ struct SwitchView: View {
     func addNewAnims(_ newComp: [DesignPost]) {
         componentPosts.append(contentsOf: newComp)
     }
+}
+
+extension Bundle {
+    /// Retrieves the build version number from the app's Info.plist.
+    /// - Returns: A string representing the build version number, or nil if not found.
+    var releaseVersionNumber: String? {
+        return infoDictionary?["CFBundleShortVersionString"] as? String
+    }
+}
+
+func formattedDate(from timestamp: Timestamp) -> String {
+    let date = timestamp.dateValue()
+    let formatter = DateFormatter()
+    formatter.dateStyle = .long
+    return formatter.string(from: date)
 }
 
 #Preview{

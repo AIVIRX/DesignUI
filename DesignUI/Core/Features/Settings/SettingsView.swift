@@ -56,6 +56,7 @@ struct MailView: UIViewControllerRepresentable {
 
 struct SettingsView: View {
     @EnvironmentObject var userStore: UserStore
+    @StateObject private var viewModel = StoreViewModel()
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @State private var showSignOutAlert: Bool = false
@@ -66,10 +67,35 @@ struct SettingsView: View {
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
     @State private var result: Result<MFMailComposeResult, Error>? = nil
     @State private var isShowingMailView = false
+    @State private var showPaywall = false
     @Environment(\.dismiss) var dismiss
+    @State private var isPresentedManageSubscription = false
     var body: some View {
         NavigationStack {
             Form {
+                Section() {
+                    Button {
+                        showPaywall = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "cart")
+                                .font(.system(size: 20)).bold()
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.white)
+                                .background(Color.orange)
+                                .clipShape(RoundedRectangle(cornerSize: CGSize(width: 5, height: 5)))
+                            Text(viewModel.isSubscribed == true ? "Premium is Active!" : "Upgrade")
+                        }
+                    }
+                    
+                    Button("Manage Subscription") {
+                        // 2
+                        isPresentedManageSubscription = true
+                        
+                    }
+                    
+                }
+                
                 Section(header: Text("Review")) {
                     Button {
                         requestReview()
@@ -133,6 +159,11 @@ struct SettingsView: View {
             .sheet(isPresented: $isShowingMailView) {
                 MailView(result: $result)
             }
+            .sheet(isPresented: $showPaywall){
+                StoreView()
+            }
+            .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
+
         }
     }
 

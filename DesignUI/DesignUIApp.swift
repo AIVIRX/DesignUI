@@ -9,9 +9,12 @@ import SwiftUI
 import AppTrackingTransparency
 import GoogleMobileAds
 import AdSupport
+import FirebaseAuth
 import FirebaseCore
 import RevenueCat
-
+import Firebase
+import FirebaseAnalytics
+import RevenueCatUI
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
@@ -22,9 +25,34 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         requestTrackingAuthorization()
         initializeGoogleMobileAds()
         configureFirebase()
-        return true
-    }
-    
+        
+        // Add state change listener for Firebase Authentication
+            Auth.auth().addStateDidChangeListener { (auth, user) in
+
+                if let uid = user?.uid {
+
+                    // identify Purchases SDK with new Firebase user
+                    Purchases.shared.logIn(uid, completion: { (info, created, error) in
+                        if let error {
+                            print("Sign in error: \(error.localizedDescription)")
+                        } else {
+                            print("User \(uid) signed in")
+                        }
+                    })
+                }
+            }
+        // Set the reserved $firebaseAppInstanceId attribute from Firebase Analytics
+            let instanceID = Analytics.appInstanceID()
+            if let unwrapped = instanceID {
+                print("Instance ID -> " + unwrapped)
+                print("Setting Attributes")
+                Purchases.shared.attribution.setFirebaseAppInstanceID(unwrapped)
+            } else {
+                print("Instance ID -> NOT FOUND!")
+            }
+                return true
+            }
+        
     private func requestTrackingAuthorization() {
         if #available(iOS 14, *) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
