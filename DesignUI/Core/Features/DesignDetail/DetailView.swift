@@ -1,7 +1,7 @@
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
-import AlertToast
+import Drops
 import SDWebImage
 import SDWebImageSwiftUI
 
@@ -154,11 +154,13 @@ struct DetailView: View {
                     
                     let impactMed = UIImpactFeedbackGenerator(style: .medium)
                         impactMed.impactOccurred()
+                    
+                    Drops.show("Code Copied ✅")
                 }) {
                     Text("Copy Code")
                         .padding(8)
                         .font(.headline).bold()
-                        .foregroundColor(.white) // Button text color
+                        .foregroundColor(.white)
                         .cornerRadius(12)
                         .frame(maxWidth: .infinity)
                 }
@@ -166,9 +168,6 @@ struct DetailView: View {
                 .foregroundStyle(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12.0))
                 .padding(.top, 10)
-            }
-            .toast(isPresenting: $isCopied) {
-                AlertToast(displayMode: .alert, type: .regular, title: "Code Copied ✅")
             }
             .environment(\.symbolVariants, .none)
             .accentColor(.none)

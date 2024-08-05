@@ -45,7 +45,7 @@ struct HomeView: View {
     @Environment(\.requestReview) var requestReview    
     @State private var searchText = ""
     @State private var showSearchResults = false
-    private let postsLimit = 2
+    private let postsLimit = 5
     var body: some View {
         NavigationStack {
             if showSearchResults == false{
@@ -53,6 +53,7 @@ struct HomeView: View {
                     ScrollView(.vertical, showsIndicators: true) {
                         VStack {
                             VStack(alignment: .leading) {
+                                QuickActionCard()
                                 Text("Featured")
                                     .font(.title2)
                                     .fontWeight(.heavy)
@@ -60,7 +61,7 @@ struct HomeView: View {
                                     .padding(.leading, 3)
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     LazyHStack(spacing: 3) {
-                                        ForEach(designPosts) { post in
+                                        ForEach(designPosts){ post in
                                             DesignCards(
                                                 id: post.id,
                                                 media: post.media,
@@ -134,19 +135,36 @@ struct HomeView: View {
                                                         await fetchCommunityPosts()
                                                     }
                                                 }) {
-                                                    Text("Show More")
-                                                        .padding()
-                                                        .frame(maxWidth: .infinity)
-                                                        .background(Color.blue)
-                                                        .foregroundColor(.white)
-                                                        .cornerRadius(10)
+                                                    VStack{
+                                                        Image(systemName: "arrowshape.right.circle")
+                                                            .foregroundStyle(.primary)
+                                                        Text("Show more")
+                                                            .padding()
+                                                            .frame(maxWidth: .infinity)
+                                                            
+                                                    }
+                                                    .foregroundColor(.gray)
+                                                    .cornerRadius(10)
+                                                    .frame(width: 139, height: 180)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 20)
+                                                            .stroke(Color.gray, lineWidth: 0.8)
+                                                    )
                                                 }
-                                                .padding(.top, 10)
-                                                .padding(.horizontal, 3)
                                             } else {
-                                                ProgressView()
-                                                    .padding(.top, 10)
-                                                    .padding(.horizontal, 3)
+                                                VStack{
+                                                    ProgressView()
+                                                        .padding(.top, 10)
+                                                        .padding(.horizontal, 3)
+                                                }
+                                                .cornerRadius(10)
+                                                .frame(width: 139, height: 180)
+                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 20)
+                                                        .stroke(Color.gray, lineWidth: 0.8)
+                                                )
                                             }
                                         }
                                     }
@@ -186,7 +204,7 @@ struct HomeView: View {
         .searchable(text: $searchText, prompt: "Search")
         .navigationViewStyle(StackNavigationViewStyle())
         .onChange(of: searchText) { newValue in
-            if newValue.isEmpty {
+            if newValue.trimmingCharacters(in: .whitespaces).isEmpty {
                 showSearchResults = false
             } else {
                 showSearchResults = true
@@ -657,104 +675,101 @@ struct SwitchView: View {
         var componentPosts: [DesignPost]
         var communityPosts: [DesignPost]
         var body: some View {
-            NavigationView {
-                
-                ForEach(filteredPosts(posts: communityPosts)) { post in
-                    NavigationLink(destination: SearchResultCard(
-                        id: post.id,
-                        media: post.media,
-                        title: post.title,
-                        authorUID: post.author,
-                        description: post.description,
-                        codeSnippet: post.codeSnippet,
-                        published: formattedDate(from: post.creationDate),
-                        type: post.type,
-                        tags: post.tags
-                    )) {
-                        HStack {
-                            WebImage(url: URL(string: post.media)) { phase in
-                                switch phase {
-                                case .empty:
-                                    ProgressView()
-                                        .frame(width: 130, height: 100)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 130, height: 100)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.secondary, lineWidth: 0.2)
-                                        )
-                                case .failure:
-                                    Image(systemName: "photo")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 130, height: 100)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.secondary, lineWidth: 0.2)
-                                        )
-                                        .scaledToFill()
+                ScrollView{
+                    ForEach(filteredPosts(posts: communityPosts)) { post in
+                        NavigationLink(destination: SearchResultCard(
+                            id: post.id,
+                            media: post.media,
+                            title: post.title,
+                            authorUID: post.author,
+                            description: post.description,
+                            codeSnippet: post.codeSnippet,
+                            published: formattedDate(from: post.creationDate),
+                            type: post.type,
+                            tags: post.tags
+                        )) {
+                            HStack {
+                                WebImage(url: URL(string: post.media)) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        ProgressView()
+                                            .frame(width: 130, height: 100)
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 130, height: 100)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.secondary, lineWidth: 0.2)
+                                            )
+                                    case .failure:
+                                        Image(systemName: "photo")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 130, height: 100)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.secondary, lineWidth: 0.2)
+                                            )
+                                            .scaledToFill()
+                                    }
                                 }
+                                
+                                VStack(alignment: .leading) {
+                                    Text(post.title)
+                                        .font(.title3).bold()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .lineLimit(1)
+                                    Text(post.description)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .multilineTextAlignment(.leading)
+                                        .lineLimit(2)
+                                    
+                                    Spacer()
+                                }
+                                .padding(5)
                             }
-                            
-                            VStack(alignment: .leading) {
-                                Text(post.title)
-                                    .font(.title3).bold()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .lineLimit(1)
-                                Text(post.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .multilineTextAlignment(.leading)
-                                    .lineLimit(2)
-
-                                Spacer()
-                            }
-                            .padding(5)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(8)
+                            .padding([.vertical, .horizontal], 5)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(8)
-                        .padding([.vertical, .horizontal], 5)
+                    }
+                    
+                    ForEach(filteredPosts(posts: designPosts)) { post in
+                        SearchResultCard(
+                            id: post.id,
+                            media: post.media,
+                            title: post.title,
+                            authorUID: post.author,
+                            description: post.description,
+                            codeSnippet: post.codeSnippet,
+                            published: formattedDate(from: post.creationDate),
+                            type: post.type,
+                            tags: post.tags
+                        )
+                    }
+                    
+                    ForEach(filteredPosts(posts: componentPosts)) { post in
+                        SearchResultCard(
+                            id: post.id,
+                            media: post.media,
+                            title: post.title,
+                            authorUID: post.author,
+                            description: post.description,
+                            codeSnippet: post.codeSnippet,
+                            published: formattedDate(from: post.creationDate),
+                            type: post.type,
+                            tags: post.tags
+                        )
                     }
                 }
-                
-                ForEach(filteredPosts(posts: designPosts)) { post in
-                    DesignCards(
-                        id: post.id,
-                        media: post.media,
-                        title: post.title,
-                        authorUID: post.author,
-                        description: post.description,
-                        codeSnippet: post.codeSnippet,
-                        published: formattedDate(from: post.creationDate),
-                        type: post.type,
-                        tags: post.tags
-                    )
-                }
-                
-                ForEach(filteredPosts(posts: componentPosts)) { post in
-                    DesignCards(
-                        id: post.id,
-                        media: post.media,
-                        title: post.title,
-                        authorUID: post.author,
-                        description: post.description,
-                        codeSnippet: post.codeSnippet,
-                        published: formattedDate(from: post.creationDate),
-                        type: post.type,
-                        tags: post.tags
-                    )
-                }
-                
-            }
-            .navigationTitle("Search Results")
-
+                .navigationTitle("Search Results")
         }
         
         private func filteredPosts(posts: [DesignPost]) -> [DesignPost] {

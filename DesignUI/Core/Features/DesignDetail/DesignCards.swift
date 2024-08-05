@@ -71,25 +71,23 @@ struct DesignCards: View {
                         case .success(let image):
                             image
                                 .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 160, height: 130)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 139, height: 300)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary, lineWidth: 0.2)
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray, lineWidth: 0.8)
                                 )
-                                .scaledToFill()
                         case .failure:
                             Image(systemName: "photo")
                                 .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 160, height: 130)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 139, height: 300)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary, lineWidth: 0.2)
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray, lineWidth: 0.8)
                                 )
-                                .scaledToFill()
                         }
                     }
                 }

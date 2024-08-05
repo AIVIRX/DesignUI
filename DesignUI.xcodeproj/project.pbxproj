@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilters = (ios, macos, ); productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
-		EC3EA75A2BD05AC8009C1F65 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = EC3EA7592BD05AC8009C1F65 /* AlertToast */; };
+		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
+		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
+		EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */; };
 		EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38922C1CBD820018C802 /* EditProfile.swift */; };
 		EC4F38952C1CC2EC0018C802 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38942C1CC2EC0018C802 /* User.swift */; };
 		EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */; };
@@ -57,6 +59,7 @@
 
 /* Begin PBXFileReference section */
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionCard.swift; sourceTree = "<group>"; };
 		EC4F38922C1CBD820018C802 /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
 		EC4F38942C1CC2EC0018C802 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
@@ -111,10 +114,11 @@
 				ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */,
 				EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */,
 				ECCDD41D2C1BBADC00869B70 /* FirebaseStorage in Frameworks */,
+				EC495DF02C5FF92500A6A52C /* Drops in Frameworks */,
 				EC91C8AC2C5C3280000E20E3 /* RevenueCatUI in Frameworks */,
 				EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */,
-				EC3EA75A2BD05AC8009C1F65 /* AlertToast in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
+				EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */,
 				EC961BA12C499EC2002D10DD /* FirebaseFirestoreSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -265,6 +269,7 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BEA2C19E506003134B1 /* HomeView.swift */,
+				EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -344,7 +349,6 @@
 			);
 			name = DesignUI;
 			packageProductDependencies = (
-				EC3EA7592BD05AC8009C1F65 /* AlertToast */,
 				EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */,
 				EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */,
 				EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */,
@@ -355,6 +359,8 @@
 				EC91C8A92C5C327F000E20E3 /* RevenueCat */,
 				EC91C8AB2C5C3280000E20E3 /* RevenueCatUI */,
 				ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */,
+				EC495DEF2C5FF92500A6A52C /* Drops */,
+				EC495DF12C601E8300A6A52C /* FirebaseAppCheck */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* DesignUI.app */;
@@ -430,6 +436,7 @@
 				ECCDD41E2C1BECD400869B70 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */,
 				EC91C8A82C5C327F000E20E3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -483,6 +490,7 @@
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */,
 				ECD043112C5EEE7A00865D12 /* FeaturesContainerView.swift in Sources */,
+				EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */,
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC961B9F2C499905002D10DD /* DBTest.swift in Sources */,
 				EC7D7BEF2C19E51D003134B1 /* StoreView.swift in Sources */,
@@ -749,6 +757,14 @@
 				minimumVersion = 1.3.9;
 			};
 		};
+		EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/omaralbeik/Drops.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.7.0;
+			};
+		};
 		EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/NicholasBellucci/StatefulTabView";
@@ -789,10 +805,15 @@
 			package = EC1C74902C0FC0DE000C9E9A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
 		};
-		EC3EA7592BD05AC8009C1F65 /* AlertToast */ = {
+		EC495DEF2C5FF92500A6A52C /* Drops */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = EC3EA7582BD05AC8009C1F65 /* XCRemoteSwiftPackageReference "AlertToast" */;
-			productName = AlertToast;
+			package = EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */;
+			productName = Drops;
+		};
+		EC495DF12C601E8300A6A52C /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
 		};
 		EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

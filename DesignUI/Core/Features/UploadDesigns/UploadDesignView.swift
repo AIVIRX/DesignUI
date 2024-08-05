@@ -6,7 +6,7 @@
 //
 import SwiftUI
 import FirebaseFirestore
-import AlertToast
+import Drops
 import FirebaseAuth
 import FirebaseStorage
 
@@ -102,9 +102,7 @@ struct UploadDesignView: View {
                 .foregroundColor(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12.0))
                 .disabled(!isUploadEnabled)
-                .toast(isPresenting: $showToast) {
-                    AlertToast(displayMode: .hud, type: .complete(Color.green), title: "Upload Successful")
-                }
+                
             }
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
@@ -177,7 +175,8 @@ struct UploadDesignView: View {
             return
         }
         
-        
+        Drops.show("Code Copied ✅")
+
         
         guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.3) else {
             print("Please select an image.")

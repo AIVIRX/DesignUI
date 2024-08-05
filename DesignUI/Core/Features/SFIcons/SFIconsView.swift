@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import AlertToast
+import Drops
 
 struct SFIconsView: View {
     @State private var searchText = ""
@@ -32,17 +32,18 @@ struct SFIconsView: View {
                         ForEach(filteredSymbols, id: \.self) { symbol in
                             SymbolButton(symbol: symbol, onCopy: { copiedSymbol in
                                 copyToClipboard(copiedSymbol)
-                                showToast = true
                             })
+                            .onTapGesture {
+                                Drops.show("Copied")
+
+                            }
                         }
                     }
                     .padding()
                 }
             }
             .padding(5)
-            .toast(isPresenting: $showToast) {
-                AlertToast(displayMode: .hud, type: .regular, title: "Copied")
-            }
+            
         }
     }
     func copyToClipboard(_ text: String) {

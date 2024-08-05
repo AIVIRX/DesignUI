@@ -50,53 +50,54 @@ struct SearchResultCard: View {
             tags: tags,
             isLiked: $isLiked
         )) {
-            VStack(alignment: .leading) {
-                if type == "image" {
-                    Image(media)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 139, height: 300)
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.gray, lineWidth: 0.8)
-                        )
-                }
-                if type == "fetched" {
-                    WebImage(url: URL(string: media)) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(width: 160, height: 130)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 160, height: 130)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary, lineWidth: 0.2)
-                                )
-                                .scaledToFill()
-                        case .failure:
-                            Image(systemName: "photo")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 160, height: 130)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary, lineWidth: 0.2)
-                                )
-                                .scaledToFill()
-                        }
+            VStack{
+                RoundedRectangle(cornerRadius: 15)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 280)
+                    .foregroundStyle(.thinMaterial)
+                    .overlay{
+                        RoundedRectangle(cornerRadius: 15)
+                            .frame(width: 115,height: 250)
+                            .foregroundStyle(Color.clear)
+                            .overlay{
+                                if type == "image" {
+                                    Image(media)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxWidth: .infinity, maxHeight: 270)
+                                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                                        .clipped()
+                                        .shadow(radius: 8)
+                                }
+                                if type == "fetched" {
+                                    WebImage(url: URL(string: media)) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView()
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                        case .failure:
+                                            Image(systemName: "photo")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                        }
+                                    }
+                                }
+                            }
                     }
-                }
                 
                 VStack(alignment: .leading) {
                     Text(title)
-                        .font(.body).bold()
+                        .font(.title3).bold()
                         .lineLimit(1)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
@@ -104,7 +105,7 @@ struct SearchResultCard: View {
                     
                     HStack {
                         Text(authorName)
-                            .font(.system(size: 15))
+                            .font(.system(size: 20))
                             .foregroundColor(.secondary)
                         
                         if isAuthorVerified ||  type == "image"{
@@ -116,18 +117,19 @@ struct SearchResultCard: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(width: 150)
-            .padding(0)
-            .onAppear {
-                if type == "fetched" {
-                    fetchAuthorName()
+                .padding(0)
+                .onAppear {
+                    if type == "fetched" {
+                        fetchAuthorName()
+                    }
                 }
             }
-        }.simultaneousGesture(TapGesture().onEnded {
-            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+            .padding(8)
+            .simultaneousGesture(TapGesture().onEnded {
+                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
-        })
+            })
+        }
     }
     
     func fetchAuthorName() {
