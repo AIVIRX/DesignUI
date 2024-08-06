@@ -127,15 +127,6 @@
       }
     },
     {
-      "identity" : "purchases-ios-spm",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/RevenueCat/purchases-ios-spm.git",
-      "state" : {
-        "revision" : "56f136a1385a2fe17998d0b34b3db26debeb8ec4",
-        "version" : "5.2.2"
-      }
-    },
-    {
       "identity" : "sdwebimage",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SDWebImage/SDWebImage.git",

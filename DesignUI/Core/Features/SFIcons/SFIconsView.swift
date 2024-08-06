@@ -33,10 +33,6 @@ struct SFIconsView: View {
                             SymbolButton(symbol: symbol, onCopy: { copiedSymbol in
                                 copyToClipboard(copiedSymbol)
                             })
-                            .onTapGesture {
-                                Drops.show("Copied")
-
-                            }
                         }
                     }
                     .padding()
@@ -58,6 +54,9 @@ struct SymbolButton: View {
     var body: some View {
         Button(action: {
             onCopy(symbol)
+            Drops.show("Copied")
+            let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                impactMed.impactOccurred()
         }) {
             VStack {
                 Image(systemName: symbol)

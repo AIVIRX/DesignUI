@@ -192,25 +192,20 @@ struct ProfileView: View {
                         HStack {
                             GeometryReader { geometry in
                                 HStack(spacing: 0) {
-                                    TabButton(imageName: "arrow.triangle.2.circlepath.icloud", isSelected: selectedTab == 0) {
-                                        withAnimation {
-                                            selectedTab = 0
-                                        }
-                                    }
-                                    .frame(width: geometry.size.width / 2)
+                                    
                                     
                                     TabButton(imageName: "heart", isSelected: selectedTab == 1) {
                                         withAnimation {
                                             selectedTab = 1
                                         }
                                     }
-                                    .frame(width: geometry.size.width / 2)
+                                    .frame(width: geometry.size.width )
                                 }
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
                                         .foregroundColor((colorScheme == .dark ? .white : .black))
                                         .frame(width: geometry.size.width / 2 - 20, height: 4)
-                                        .offset(x: selectedTab == 0 ? -100 : 100, y: 28)
+                                        .offset(y: 28)
                                         .animation(.easeInOut(duration: 0.25), value: UUID())
                                 )
                             }
@@ -584,9 +579,7 @@ struct InformationContainerView: View {
         VStack(alignment: .leading) {
             InformationDetailView(title: "Likes", subTitle: "Sign in to like posts and see the likes. View all your liked posts in your profile.", imageName: "heart")
 
-            InformationDetailView(title: "History", subTitle: "Sign in to view your history and see all the posts you’ve opened.", imageName: "clock.arrow.circlepath")
-
-            InformationDetailView(title: "Customization", subTitle: "Customize your profile with a display name, & bio. Make your profile truly yours!", imageName: "person.fill")
+            InformationDetailView(title: "Customization", subTitle: "Customize your profile with a display name, bio & profile image. Make your profile truly yours!", imageName: "person.fill")
         }
     }
 }
@@ -623,5 +616,5 @@ extension Color {
 }
 
 #Preview {
-    InformationContainerView()
+    ProfileView()
 }

@@ -17,17 +17,17 @@ struct ContentView: View {
     var body: some View {
         
         StatefulTabView{
-            Tab(title: "Home", systemImageName: "house.fill") {
-                HomeView()
+                Tab(systemImageName: "house.fill") {
+                    HomeView()
+                }
+//                Tab(systemImageName: "plus.square.dashed") {
+//                    UploadDesignView()
+//                }
+                Tab(systemImageName: "person.crop.circle") {
+                    ProfileView()
+                }
             }
-            Tab(title: "Upload", systemImageName: "plus.square.dashed") {
-                UploadDesignView()
-            }
-            Tab(title: "Profile", systemImageName: "person.crop.circle") {
-                ProfileView()
-            }
-        }
-        .accentColor(colorScheme == .dark ? .white : .black)
+            .accentColor(colorScheme == .dark ? .white : .black)
     }
 }
 
@@ -45,7 +45,7 @@ struct HomeView: View {
     @Environment(\.requestReview) var requestReview    
     @State private var searchText = ""
     @State private var showSearchResults = false
-    private let postsLimit = 5
+    private let postsLimit = 25
     var body: some View {
         NavigationStack {
             if showSearchResults == false{
@@ -129,48 +129,12 @@ struct HomeView: View {
                                                     tags: post.tags
                                                 )
                                             }
-                                            if !isLoading {
-                                                Button(action: {
-                                                    Task {
-                                                        await fetchCommunityPosts()
-                                                    }
-                                                }) {
-                                                    VStack{
-                                                        Image(systemName: "arrowshape.right.circle")
-                                                            .foregroundStyle(.primary)
-                                                        Text("Show more")
-                                                            .padding()
-                                                            .frame(maxWidth: .infinity)
-                                                            
-                                                    }
-                                                    .foregroundColor(.gray)
-                                                    .cornerRadius(10)
-                                                    .frame(width: 139, height: 180)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 20)
-                                                            .stroke(Color.gray, lineWidth: 0.8)
-                                                    )
-                                                }
-                                            } else {
-                                                VStack{
-                                                    ProgressView()
-                                                        .padding(.top, 10)
-                                                        .padding(.horizontal, 3)
-                                                }
-                                                .cornerRadius(10)
-                                                .frame(width: 139, height: 180)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 20)
-                                                        .stroke(Color.gray, lineWidth: 0.8)
-                                                )
-                                            }
                                         }
                                     }
                                     .scrollClipDisabled()
                                 }
                             }
+                            
                             
                             VStack{
                                 Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
@@ -181,7 +145,7 @@ struct HomeView: View {
                                     .foregroundStyle(Color.gray)
                                     .font(.body)
                             }
-                            .padding()
+                            .padding(.top, 15)
                         }
                         .padding(.leading, 10)
                     }
@@ -196,12 +160,28 @@ struct HomeView: View {
                     })
                 }
                 .accentColor(.none)
+                
+                if !store.completedPurchases.isEmpty{
+                    
+                }else{
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        AdView(adUnitID: "ca-app-pub-2043555402127024/3752508096")
+                            .frame(width:320, height: 50)
+                            .padding(3)
+                    }
+                    
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        AdView(adUnitID: "ca-app-pub-2043555402127024/3752508096")
+                            .frame(width:320, height: 50)
+                            .padding(3)
+                    }
+                }
             }
             else {
                 SearchResultsView(searchText: $searchText, designPosts: designPosts, componentPosts: componentPosts, communityPosts: communityPosts)
             }
         }
-        .searchable(text: $searchText, prompt: "Search")
+        //.searchable(text: $searchText, prompt: "Search")
         .navigationViewStyle(StackNavigationViewStyle())
         .onChange(of: searchText) { newValue in
             if newValue.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -219,8 +199,90 @@ struct HomeView: View {
                         media: "LoginScreen",
                         title: "Login Screen",
                         author: teamName,
-                        description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
-                        codeSnippet: "",
+                        description: "Basic Login Screen with Sign In With Apple Button, other options button, and background image.",
+                        codeSnippet: """
+                        //Login Template
+                        struct LoginView: View {
+                            
+                            @Environment(\\.colorScheme) var colorScheme
+                            
+                            var body: some View {
+                                GeometryReader { geo in
+                                ZStack(alignment: .bottom){
+                                    
+                                    //background Image
+                                        Image("IMG_1027_Original")
+                                            .resizable()
+                                            .offset(y: -100)
+                                            .aspectRatio (contentMode: .fill)
+                                            .frame(width: geo.size.width, height: geo.size.height)
+                                    }
+                                    
+                                    //Gradient Masking
+                                    .mask{
+                                        Rectangle()
+                                            .fill(LinearGradient(
+                                                colors: [.gray, .gray, .gray, .gray, .gray.opacity(1.0), .gray.opacity(0.7), .gray.opacity(0.3), .clear, .clear
+                                                        ],
+                                                startPoint: .top,
+                                                endPoint: .bottom))
+                                    }
+                                    .ignoresSafeArea()
+                                    
+                                    VStack(alignment: .leading){
+                                        Spacer()
+                                        //Tagline
+                                        Text("Discover New York City! Beyond Limits!")
+                                            .font(.title).bold()
+                                        
+                                        // Sign Up with Apple button
+                                        Button(action: {
+                                            // Handle Sign Up with Apple action
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "applelogo")
+                                                    .foregroundColor(buttonTextColor)
+                                                Text("Sign in with Apple")
+                                                    .foregroundColor(buttonTextColor)
+                                            }
+                                            .frame(width: geo.size.width - 80)
+                                            .padding()
+                                            .background(buttonBackgroundColor)
+                                            .cornerRadius(5)
+                                        }
+                                        .clipShape(.capsule)
+                                        .padding(.top,  10)
+                                        
+                                        Button(action: {
+                                            // Handle Sign Up with Apple action
+                                        }) {
+                                            HStack {
+                                                Text("Other Options")
+                                                    .foregroundColor(buttonTextColor)
+                                            }
+                                            .frame(width: geo.size.width - 80)
+                                            .padding()
+                                            .background(buttonBackgroundColor)
+                                            .cornerRadius(5)
+                                        }
+                                        .clipShape(.capsule)
+                                        .padding(.top,  10)
+                                        
+                                    }
+                                    .frame(maxWidth: geo.size.width, alignment: .leading)
+                                    .padding(20)
+                                }
+                            }
+                            
+                            var buttonBackgroundColor: Color {
+                                    colorScheme == .dark ? .white : .black
+                                }
+                                
+                                var buttonTextColor: Color {
+                                    colorScheme == .dark ? .black : .white
+                                }
+                        }
+""",
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: ["Template","SwiftUI"]
@@ -230,8 +292,76 @@ struct HomeView: View {
                         media: "WhatsNew",
                         title: "What's New",
                         author: teamName,
-                        description: "Basic Login Screen with Sign In With Apple Button, other options button and cover image.",
-                        codeSnippet: "",
+                        description: "Showcases new changes and features to your users.",
+                        codeSnippet: """
+                        //Whats New View
+                        struct WhatsNewView: View {
+                            var body: some View {
+                                VStack{
+                                    VStack(alignment: .center) {
+                                        
+                                        Text("What's New")
+                                            .font(.title).bold()
+                                        
+                                        VStack(alignment: .leading) {
+                                            InformationDetailView(title: "Travel", subTitle: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ", imageName: "airplane.departure")
+                                            
+                                            InformationDetailView(title: "Transit", subTitle: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.", imageName: "lightrail.fill")
+                                            
+                                            InformationDetailView(title: "Store ", subTitle: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", imageName: "folder.fill.badge.person.crop")
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Button(action: {
+                                            print("Continue button tapped")
+                                        }) {
+                                            Text("Continue")
+                                                .frame(width: 300)
+                                                .bold()
+                                                .padding()
+                                                .foregroundColor(.white)
+                                                .background(Color.blue)
+                                                .cornerRadius(15)
+                                        }
+                                        
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(20)
+                                }
+                            }
+                            
+                            struct InformationDetailView: View {
+                                var title: String = "title"
+                                var subTitle: String = "subTitle"
+                                var imageName: String = "car"
+
+                                var body: some View {
+                                    HStack(alignment: .center) {
+                                        Image(systemName: imageName)
+                                            .font(.largeTitle)
+                                            .foregroundColor(.indigo)
+                                            .frame(width: 40, height: 40)
+                                            .padding()
+                                            .accessibility(hidden: true)
+
+                                        VStack(alignment: .leading) {
+                                            Text(title)
+                                                .font(.headline).bold()
+                                                .foregroundColor(.primary)
+                                                .accessibility(addTraits: .isHeader)
+
+                                            Text(subTitle)
+                                                .font(.body)
+                                                .foregroundColor(.secondary)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                        }
+                                    }
+                                    .padding(.top)
+                                }
+                            }
+                        }
+""",
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: ["Template","SwiftUI"]
@@ -298,8 +428,47 @@ struct HomeView: View {
                         media: "SettingsTemplate",
                         title: "Settings Template",
                         author: teamName,
-                        description: "Simple settings menu view. Used to showcase settings within an app",
-                        codeSnippet: "",
+                        description: "Simple settings menu. Used to showcase settings within an app.",
+                        codeSnippet: """
+                        //Settings Template
+                        struct SettingsView: View {
+                            var body: some View {
+                                NavigationView {
+                                    List {
+                                        Section(header: Text("Account")) {
+                                            SettingsItem(symbolName: "person.circle", title: "Profile")
+                                            SettingsItem(symbolName: "lock.circle", title: "Change Password")
+                                            SettingsItem(symbolName: "creditcard.circle", title: "Payment Methods")
+                                        }
+                                        
+                                        Section(header: Text("App Settings")) {
+                                            SettingsItem(symbolName: "gearshape", title: "General")
+                                            SettingsItem(symbolName: "bell", title: "Notifications")
+                                            SettingsItem(symbolName: "paintbrush", title: "Appearance")
+                                        }
+                                        
+                                        Section(header: Text("Legal")) {
+                                            SettingsItem(symbolName: "message.circle", title: "Contact Us")
+                                            SettingsItem(symbolName: "shield.lefthalf.fill", title: "Privacy Policy")
+                                            SettingsItem(symbolName: "doc.plaintext", title: "Terms of Service")
+                                        }
+                                    }
+                                    .listStyle(GroupedListStyle())
+                                    .navigationBarTitle("Settings")
+                                }
+                            }
+                        }
+                        struct SettingsItem: View {
+                            let symbolName: String
+                            let title: String
+                            var body: some View {
+                                NavigationLink(destination: Text(title)) {
+                                    Label(title, systemImage: symbolName)
+                                        .font(.headline)
+                                }
+                            }
+                        }
+                        """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: ["Template","SwiftUI"]
@@ -309,8 +478,131 @@ struct HomeView: View {
                         media: "ProfileTemplate",
                         title: "Profile Template",
                         author: teamName,
-                        description: "Simple template for a profile. Includes 5 views to organize profile info",
-                        codeSnippet: "",
+                        description: "Simple template for a profile. Includes 3 views to organize a profile's information.",
+                        codeSnippet: """
+                        //profile Template
+                        struct ProfileView: View {
+                            var body: some View {
+                                ScrollView{
+                                    VStack(spacing: 20) {
+                                        ProfileHeaderView()
+                                        ProfileDetailsView()
+                                        Divider()
+                                        PostsView()
+                                        Spacer()
+                                    }
+                                    .padding(8)
+                                }
+                            }
+                        }
+
+                        struct ProfileHeaderView: View {
+                            var body: some View {
+                                VStack(spacing: 10) {
+                                    //profile image
+                                    Image("profilepfp")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(Circle())
+                                        .shadow(radius: 10)
+                                    //display name
+                                    Text("John Doe")
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                    //username
+                                    Text("@johndoe")
+                                        .font(.subheadline)
+                                        .foregroundColor(.primary)
+                                }
+                            }
+                        }
+
+                        struct ProfileDetailsView: View {
+                            var body: some View {
+                                VStack(alignment: .center, spacing: 20) {
+                                    
+                                    HStack(spacing:20){
+                                        Spacer()
+                                        //posts
+                                        VStack{
+                                            Text("590").bold()
+                                            Text("Posts")
+                                        }
+                                        
+                                        .frame(width: 80)
+                                        //followers
+                                        VStack{
+                                            Text("420").bold()
+                                            Text("Followers")
+                                        }
+                                        .frame(width: 80)
+                                        
+                                        //following
+                                        VStack{
+                                            Text("269").bold()
+                                            Text("Following")
+                                        }
+                                        .frame(width: 80)
+                                        
+                                        Spacer()
+                                    }
+                                    
+                                    //biography
+                                    HStack(alignment: .center){
+                                        Text("Making it easier for people to be insipred and design iOS apps. Discover Designs Today!")
+                                            .font(.body).fontWeight(.regular)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    
+                                    //location
+                                    HStack {
+                                        //website
+                                        VStack(alignment: .center, spacing: 5) {
+                                            Text("www.aivirx.com")
+                                                .font(.headline)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        struct PostsView: View {
+                            var body: some View {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    ForEach(0..<5) { index in
+                                        PostRow(index: index)
+                                    }
+                                }
+                            }
+                        }
+
+                        struct PostRow: View {
+                            let index: Int
+                            var body: some View {
+                                //post image
+                                
+                                VStack(alignment: .leading){
+                                    Image("IMG_1027_Original")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 380, height: 240)
+                                        .cornerRadius(10)
+                                    //post title
+                                    VStack(alignment: .leading) {
+                                        Text("A Day In The City")
+                                            .font(.headline)
+                                        //post description
+                                        Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+                                            .font(.body)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding(.bottom, 20)
+                            }
+                        }
+                        """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: ["Template","SwiftUI"]
@@ -320,8 +612,38 @@ struct HomeView: View {
                         media: "NavigationBar",
                         title: "Navigation Bar",
                         author: teamName,
-                        description: "Simple template for a profile. Includes 5 views to organize profile info",
-                        codeSnippet: "",
+                        description: "Organize your important views by having them in a navigation menu.",
+                        codeSnippet: """
+                        struct NavigationBar: View {
+                            var body: some View {
+                                TabView() {
+                                    //First Tab
+                                    ViewOne()
+                                        .tabItem {
+                                            Label("Home", systemImage: "house")
+                                        }
+                                    
+                                    //Second tab
+                                    ViewTwo()
+                                        .tabItem {
+                                            Label("Discover", systemImage: "magnifyingglass")
+                                        }
+                                    
+                                    //Second tab
+                                    ViewThree()
+                                        .tabItem {
+                                            Label("Activity", systemImage: "bell")
+                                        }
+                                    
+                                    //Third Tab
+                                    ViewFour()
+                                        .tabItem {
+                                            Label("Settings", systemImage: "gear")
+                                        }
+                                }
+                            }
+                        }
+                        """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
                         tags: ["Template","SwiftUI"]
@@ -369,7 +691,7 @@ struct HomeView: View {
                         media: "Counter",
                         title: "Counter",
                         author: teamName,
-                        description: "Counter with ",
+                        description: "Counter with with incrementing and decrementing buttons",
                         codeSnippet: """
 //Counter
 struct CounterView: View {
@@ -408,7 +730,7 @@ struct CounterView: View {
                         media: "ColorPicker",
                         title: "Color Picker",
                         author: teamName,
-                        description: "",
+                        description: "Color Picker with checkmark showing the currently picked color",
                         codeSnippet: """
                         //Color Picker
                         struct ColorPickerView: View {
@@ -458,7 +780,7 @@ struct CounterView: View {
                         media: "FieldLimit",
                         title: "Text Field w/ Limit",
                         author: teamName,
-                        description: " ",
+                        description: "A text field with a character counter and a character limit.",
                         codeSnippet: """
 //Textfield with counter
 struct TextFieldView: View {
@@ -513,7 +835,7 @@ struct TextFieldView: View {
                         media: "ProgressBar",
                         title: "Progress Bar",
                         author: teamName,
-                        description: " ",
+                        description: "Progress bar with increase and decrease buttons that change the progress",
                         codeSnippet: """
 //Progress Bar
 struct ProgressView: View {
@@ -590,7 +912,7 @@ struct ProgressView: View {
                         media: "OptionPicker",
                         title: "Option Picker",
                         author: teamName,
-                        description: "",
+                        description: "Allow users to pick between options",
                         codeSnippet: """
                         //Option Picker
                         struct PickerView: View {
@@ -627,7 +949,7 @@ struct ProgressView: View {
                         media: "ToggleSwitch",
                         title: "Toggle Switch",
                         author: teamName,
-                        description: " ",
+                        description: "Can be used to allow users to enable or disable things.",
                         codeSnippet: """
 //Button Switch
 struct SwitchView: View {
@@ -689,34 +1011,15 @@ struct SwitchView: View {
                             tags: post.tags
                         )) {
                             HStack {
-                                WebImage(url: URL(string: post.media)) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        ProgressView()
-                                            .frame(width: 130, height: 100)
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 130, height: 100)
-                                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .stroke(Color.secondary, lineWidth: 0.2)
-                                            )
-                                    case .failure:
-                                        Image(systemName: "photo")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 130, height: 100)
-                                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .stroke(Color.secondary, lineWidth: 0.2)
-                                            )
-                                            .scaledToFill()
-                                    }
-                                }
+                                Image(post.media)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 130, height: 250)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.secondary, lineWidth: 0.2)
+                                    )
                                 
                                 VStack(alignment: .leading) {
                                     Text(post.title)
@@ -755,8 +1058,10 @@ struct SwitchView: View {
                         )
                     }
                     
+                            
+                    
                     ForEach(filteredPosts(posts: componentPosts)) { post in
-                        SearchResultCard(
+                        NavigationLink(destination: SearchResultCard(
                             id: post.id,
                             media: post.media,
                             title: post.title,
@@ -766,7 +1071,39 @@ struct SwitchView: View {
                             published: formattedDate(from: post.creationDate),
                             type: post.type,
                             tags: post.tags
-                        )
+                        )) {
+                            HStack {
+                                Image(post.media)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 130, height: 100)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.secondary, lineWidth: 0.2)
+                                    )
+                                
+                                VStack(alignment: .leading) {
+                                    Text(post.title)
+                                        .font(.title3).bold()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .lineLimit(1)
+                                    Text(post.description)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .multilineTextAlignment(.leading)
+                                        .lineLimit(2)
+                                    
+                                    Spacer()
+                                }
+                                .padding(5)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(8)
+                            .padding([.vertical, .horizontal], 5)
+                        }
                     }
                 }
                 .navigationTitle("Search Results")
@@ -837,6 +1174,7 @@ extension Bundle {
         return infoDictionary?["CFBundleShortVersionString"] as? String
     }
 }
+
 
 func formattedDate(from timestamp: Timestamp) -> String {
     let date = timestamp.dateValue()

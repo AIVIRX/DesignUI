@@ -56,7 +56,6 @@ struct MailView: UIViewControllerRepresentable {
 
 struct SettingsView: View {
     @EnvironmentObject var userStore: UserStore
-    @StateObject private var viewModel = StoreViewModel()
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @State private var showSignOutAlert: Bool = false
@@ -69,31 +68,21 @@ struct SettingsView: View {
     @State private var isShowingMailView = false
     @State private var showPaywall = false
     @Environment(\.dismiss) var dismiss
-    @State private var isPresentedManageSubscription = false
     var body: some View {
         NavigationStack {
             Form {
                 Section() {
-                    Button {
-                        showPaywall = true
-                    } label: {
+                    NavigationLink(destination: OldStoreView()) {
                         HStack {
                             Image(systemName: "cart")
                                 .font(.system(size: 20)).bold()
                                 .frame(width: 30, height: 30)
                                 .foregroundStyle(.white)
                                 .background(Color.orange)
-                                .clipShape(RoundedRectangle(cornerSize: CGSize(width: 5, height: 5)))
-                            Text(viewModel.isSubscribed == true ? "Premium is Active!" : "Upgrade")
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
+                            Text("Shop")
                         }
                     }
-                    
-                    Button("Manage Subscription") {
-                        // 2
-                        isPresentedManageSubscription = true
-                        
-                    }
-                    
                 }
                 
                 Section(header: Text("Review")) {
@@ -106,12 +95,12 @@ struct SettingsView: View {
                                 .frame(width: 30, height: 30)
                                 .foregroundStyle(.yellow)
                                 .background(Color.indigo)
-                                .clipShape(RoundedRectangle(cornerSize: CGSize(width: 5, height: 5)))
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
                             Text("Rate Us")
                         }
                     }
                 }
-
+                
                 Section(header: Text("Our Apps")) {
                     Link(destination: URL(string: "https://apps.apple.com/af/app/tasknow-simple-to-do-list/id1639588217")!) {
                         HStack {
@@ -122,20 +111,20 @@ struct SettingsView: View {
                             Text("Crypto Profit Loss Calculator")
                         }
                     }
-
+                    
                     Link(destination: URL(string: "https://apps.apple.com/us/app/tasknow-simple-to-do-list/id1639588217")!) {
                         HStack {
                             Image("TaskNowLogo")
                                 .resizable()
                                 .frame(width: 30, height: 30)
-                                .cornerRadius(10)
+                                .cornerRadius(5)
                             Text("TaskNow - Simple To Do List")
                         }
                     }
                 }
-
+                
                 Section("Privacy & Support") {
-                    Link(destination: URL(string: "https://www.aivirx.com/crypto-profit-loss-calculator/privacy-policy")!) {
+                    Link(destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!) {
                         Text("Privacy Policy")
                     }
                     Button(action: {
@@ -159,11 +148,6 @@ struct SettingsView: View {
             .sheet(isPresented: $isShowingMailView) {
                 MailView(result: $result)
             }
-            .sheet(isPresented: $showPaywall){
-                StoreView()
-            }
-            .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
-
         }
     }
 

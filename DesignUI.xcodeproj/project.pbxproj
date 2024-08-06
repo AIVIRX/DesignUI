@@ -24,7 +24,6 @@
 		EC7D7BE92C19E4FB003134B1 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE82C19E4FB003134B1 /* Login.swift */; };
 		EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEA2C19E506003134B1 /* HomeView.swift */; };
 		EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */; };
-		EC7D7BEF2C19E51D003134B1 /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEE2C19E51D003134B1 /* StoreView.swift */; };
 		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
 		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
 		EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF42C19E546003134B1 /* DesignCards.swift */; };
@@ -36,14 +35,14 @@
 		EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C0E2C19F610003134B1 /* Profile.swift */; };
 		EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8728342C4B5881006FF808 /* AlertItem.swift */; };
 		EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; productRef = EC91C8A62C5C1393000E20E3 /* StatefulTabView */; };
-		EC91C8AA2C5C327F000E20E3 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = EC91C8A92C5C327F000E20E3 /* RevenueCat */; };
-		EC91C8AC2C5C3280000E20E3 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = EC91C8AB2C5C3280000E20E3 /* RevenueCatUI */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		EC961B9F2C499905002D10DD /* DBTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC961B9E2C499905002D10DD /* DBTest.swift */; };
 		EC961BA12C499EC2002D10DD /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */; };
+		EC9AAD532C61720C00796358 /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9AAD522C61720C00796358 /* StoreView.swift */; };
 		ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */; };
 		ECBBCD382C5ABCB50074022A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */; };
 		ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECC9BC842C0FE0D40052D471 /* AdSupport.framework */; };
+		ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */; };
 		ECCCD0212C3E1F37008972F2 /* UserStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCCD0202C3E1F37008972F2 /* UserStore.swift */; };
 		ECCDD4162C1B94F700869B70 /* PostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDD4152C1B94F700869B70 /* PostsView.swift */; };
 		ECCDD4182C1B951C00869B70 /* LikedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDD4172C1B951C00869B70 /* LikedView.swift */; };
@@ -71,7 +70,6 @@
 		EC7D7BE82C19E4FB003134B1 /* Login.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		EC7D7BEA2C19E506003134B1 /* HomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeRow.swift; sourceTree = "<group>"; };
-		EC7D7BEE2C19E51D003134B1 /* StoreView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC7D7BF42C19E546003134B1 /* DesignCards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
@@ -86,10 +84,12 @@
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EC91C8AF2C5C82C6000E20E3 /* StoreConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreConfig.storekit; sourceTree = "<group>"; };
 		EC961B9E2C499905002D10DD /* DBTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBTest.swift; sourceTree = "<group>"; };
+		EC9AAD522C61720C00796358 /* StoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* DesignUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DesignUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ECC9BC842C0FE0D40052D471 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
+		ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OldStoreView.swift; sourceTree = "<group>"; };
 		ECCCD0202C3E1F37008972F2 /* UserStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStore.swift; sourceTree = "<group>"; };
 		ECCDD4152C1B94F700869B70 /* PostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsView.swift; sourceTree = "<group>"; };
 		ECCDD4172C1B951C00869B70 /* LikedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedView.swift; sourceTree = "<group>"; };
@@ -110,12 +110,10 @@
 				ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */,
 				EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */,
 				ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */,
-				EC91C8AA2C5C327F000E20E3 /* RevenueCat in Frameworks */,
 				ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */,
 				EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */,
 				ECCDD41D2C1BBADC00869B70 /* FirebaseStorage in Frameworks */,
 				EC495DF02C5FF92500A6A52C /* Drops in Frameworks */,
-				EC91C8AC2C5C3280000E20E3 /* RevenueCatUI in Frameworks */,
 				EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
 				EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */,
@@ -234,8 +232,6 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
-				EC7D7BDC2C19E45B003134B1 /* Store.swift */,
-				EC7D7BE02C19E49A003134B1 /* Recipe.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -324,10 +320,13 @@
 		ECD2F5C22C5D8087005CE290 /* Shop */ = {
 			isa = PBXGroup;
 			children = (
-				EC7D7BEE2C19E51D003134B1 /* StoreView.swift */,
+				EC9AAD522C61720C00796358 /* StoreView.swift */,
+				ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */,
 				ECD0430F2C5EEE7A00865D12 /* FeaturesContainerView.swift */,
 				ECD043102C5EEE7A00865D12 /* FeaturesView.swift */,
 				ECD043132C5EF5D100865D12 /* StoreViewModel.swift */,
+				EC7D7BDC2C19E45B003134B1 /* Store.swift */,
+				EC7D7BE02C19E49A003134B1 /* Recipe.swift */,
 			);
 			path = Shop;
 			sourceTree = "<group>";
@@ -356,8 +355,6 @@
 				ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */,
 				EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */,
 				EC91C8A62C5C1393000E20E3 /* StatefulTabView */,
-				EC91C8A92C5C327F000E20E3 /* RevenueCat */,
-				EC91C8AB2C5C3280000E20E3 /* RevenueCatUI */,
 				ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */,
 				EC495DEF2C5FF92500A6A52C /* Drops */,
 				EC495DF12C601E8300A6A52C /* FirebaseAppCheck */,
@@ -435,7 +432,6 @@
 				EC1C74902C0FC0DE000C9E9A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				ECCDD41E2C1BECD400869B70 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */,
-				EC91C8A82C5C327F000E20E3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
@@ -479,6 +475,7 @@
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
+				EC9AAD532C61720C00796358 /* StoreView.swift in Sources */,
 				EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */,
 				EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
@@ -486,6 +483,7 @@
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
 				ECD043122C5EEE7A00865D12 /* FeaturesView.swift in Sources */,
 				EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */,
+				ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */,
 				ECCCD0212C3E1F37008972F2 /* UserStore.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */,
@@ -493,7 +491,6 @@
 				EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */,
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC961B9F2C499905002D10DD /* DBTest.swift in Sources */,
-				EC7D7BEF2C19E51D003134B1 /* StoreView.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -773,14 +770,6 @@
 				minimumVersion = 0.1.10;
 			};
 		};
-		EC91C8A82C5C327F000E20E3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.2.2;
-			};
-		};
 		ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -829,16 +818,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */;
 			productName = StatefulTabView;
-		};
-		EC91C8A92C5C327F000E20E3 /* RevenueCat */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC91C8A82C5C327F000E20E3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = RevenueCat;
-		};
-		EC91C8AB2C5C3280000E20E3 /* RevenueCatUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC91C8A82C5C327F000E20E3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = RevenueCatUI;
 		};
 		EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */ = {
 			isa = XCSwiftPackageProductDependency;

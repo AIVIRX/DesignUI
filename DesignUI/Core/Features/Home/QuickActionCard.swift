@@ -11,23 +11,19 @@ struct QuickActionCard: View {
     @State private var showPaywall = false
     var body: some View {
         VStack {
-            // Card
             VStack {
-                // Horizontal stack for buttons
                 HStack {
                     NavigationLink(destination: SFIconsView()) {
                         VStack{
                             Image(systemName: "square.grid.3x3.fill")
                                 .font(.system(size: 20))
                                 .padding()
-                                .foregroundColor(.primary)
+                                .foregroundColor(.white)
                                 .background(
                                     RoundedRectangle(
                                         cornerRadius: 10,
                                         style: .continuous
-                                    )
-                                    .fill(.thinMaterial)
-                                )
+                                    ))
                             
                             Text("Symbols")
                                 .font(.body)
@@ -35,53 +31,48 @@ struct QuickActionCard: View {
                         }
                     }
                     .padding(.horizontal)
+                    .buttonStyle(PlainButtonStyle())
+
+//                    NavigationLink(destination: SFIconsView()) {
+//                        VStack{
+//                            Image(systemName: "square.dashed.inset.fill")
+//                                .font(.system(size: 20))
+//                                .padding()
+//                                .foregroundColor(.white)
+//                                .background(
+//                                    RoundedRectangle(
+//                                        cornerRadius: 10,
+//                                        style: .continuous
+//                                    ))
+//                            
+//                            Text("App Icon")
+//                                .font(.body)
+//                                .foregroundStyle(Color.primary)
+//                        }
+//                    }
+//                    .padding(.horizontal)
+//                    .buttonStyle(PlainButtonStyle())
                     
-                    NavigationLink(destination: SFIconsView()) {
-                        VStack{
-                            Image(systemName: "square.dashed.inset.fill")
-                                .font(.system(size: 20))
-                                .padding()
-                                .foregroundColor(.primary)
-                                .background(
-                                    RoundedRectangle(
-                                        cornerRadius: 10,
-                                        style: .continuous
-                                    )
-                                    .fill(.thinMaterial)
-                                )
-                            
-                            Text("App Icon")
-                                .font(.body)
-                                .foregroundStyle(Color.primary)
-                        }
-                    }
-                    .padding(.horizontal)
-                    
-                    Button {
-                        showPaywall = true
-                    } label: {
+                    NavigationLink(destination: OldStoreView()){
                         VStack{
                             Image(systemName: "cart")
                                 .font(.system(size: 20))
                                 .padding()
-                                .foregroundColor(.primary)
+                                .foregroundColor(.white)
                                 .background(
                                     RoundedRectangle(
                                         cornerRadius: 10,
                                         style: .continuous
-                                    )
-                                    .fill(.thinMaterial)
-                                )
+                                    ))
                             
-                            Text("Premium")
+                            Text("Shop")
                                 .font(.body)
                                 .foregroundStyle(Color.primary)
                         }
-                        .sheet(isPresented: $showPaywall){
-                            StoreView()
-                        }
                     }
                     .padding(.horizontal)
+                    .buttonStyle(PlainButtonStyle())
+
                 }
             }
             .padding()
@@ -91,7 +82,8 @@ struct QuickActionCard: View {
             .cornerRadius(12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(.systemBackground))
+        .environment(\.symbolVariants, .none)
+        .accentColor(.none)
     }
 }
 

@@ -50,50 +50,43 @@ struct SearchResultCard: View {
             tags: tags,
             isLiked: $isLiked
         )) {
-            VStack{
-                RoundedRectangle(cornerRadius: 15)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 280)
-                    .foregroundStyle(.thinMaterial)
-                    .overlay{
-                        RoundedRectangle(cornerRadius: 15)
-                            .frame(width: 115,height: 250)
-                            .foregroundStyle(Color.clear)
-                            .overlay{
-                                if type == "image" {
-                                    Image(media)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(maxWidth: .infinity, maxHeight: 270)
-                                        .clipShape(RoundedRectangle(cornerRadius: 15))
-                                        .clipped()
-                                        .shadow(radius: 8)
-                                }
-                                if type == "fetched" {
-                                    WebImage(url: URL(string: media)) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView()
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                .clipped()
-                                        case .failure:
-                                            Image(systemName: "photo")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                .clipped()
-                                        }
-                                    }
-                                }
+            HStack{
+                
+                if type == "image" {
+                                Image(media)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 130, height: 250)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.secondary, lineWidth: 0.2)
+                                    )
                             }
+                
+                if type == "fetched" {
+                    WebImage(url: URL(string: media)) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(maxWidth: .infinity, maxHeight: 250)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .clipped()
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .clipped()
+                        }
                     }
+                }
                 
                 VStack(alignment: .leading) {
                     Text(title)
@@ -115,6 +108,8 @@ struct SearchResultCard: View {
                         }
                         Spacer()
                     }
+                    
+                    Spacer()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(0)
