@@ -7,6 +7,8 @@
 
 import Foundation
 import SwiftUI
+
+#if os(iOS)
 import GoogleMobileAds
 
 
@@ -72,3 +74,4 @@ extension UIApplication{
         return root
     }
 }
+#endif

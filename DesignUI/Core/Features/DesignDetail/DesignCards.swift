@@ -35,7 +35,6 @@ struct DesignCards: View {
         self.type = type
         self.tags = tags
     }
-    
     var body: some View {
         NavigationLink(destination: DetailView(
             id: id,
@@ -51,7 +50,7 @@ struct DesignCards: View {
             isLiked: $isLiked
         )) {
             VStack(alignment: .leading) {
-                
+                #if os(iOS)
                 if UIDevice.current.userInterfaceIdiom == .phone {
                     if type == "image" {
                         Image(media)
@@ -69,7 +68,7 @@ struct DesignCards: View {
                             switch phase {
                             case .empty:
                                 ProgressView()
-                                    .frame(width: 160, height: 130)
+                                    .frame(width: 139, height: 300)
                             case .success(let image):
                                 image
                                     .resizable()
@@ -112,12 +111,12 @@ struct DesignCards: View {
                             switch phase {
                             case .empty:
                                 ProgressView()
-                                    .frame(width: 160, height: 130)
+                                    .frame(width: 185, height: 400)
                             case .success(let image):
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 139, height: 300)
+                                    .frame(width: 185, height: 400)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -127,7 +126,7 @@ struct DesignCards: View {
                                 Image(systemName: "photo")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 139, height: 300)
+                                    .frame(width: 185, height: 400)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -137,6 +136,50 @@ struct DesignCards: View {
                         }
                     }
                 }
+                #endif
+                
+                #if os(macOS)
+                    if type == "image" {
+                        Image(media)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 185, height: 400)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.gray, lineWidth: 0.8)
+                            )
+                    }
+                    if type == "fetched" {
+                        WebImage(url: URL(string: media)) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView()
+                                    .frame(width: 185, height: 400)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 185, height: 400)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(Color.gray, lineWidth: 0.8)
+                                    )
+                            case .failure:
+                                Image(systemName: "photo")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 185, height: 400)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(Color.gray, lineWidth: 0.8)
+                                    )
+                            }
+                        }
+                    }
+                #endif
                 
                 VStack(alignment: .leading) {
                     Text(title)
@@ -161,20 +204,27 @@ struct DesignCards: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 150 : 225)
-            .padding(0)
+            
+//            #if os(iOS)
+//            .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 150 : 225)
+//            #endif
+            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 5 : 10)
             .onAppear {
                 if type == "fetched" {
                     fetchAuthorName()
                 }
             }
-        }.simultaneousGesture(TapGesture().onEnded {
+            
+        }
+        .buttonStyle(PlainButtonStyle())
+
+        #if os(iOS)
+        .simultaneousGesture(TapGesture().onEnded {
             let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
         })
+        #endif
     }
-    
-    
     
     func fetchAuthorName() {
         let db = Firestore.firestore()
@@ -197,8 +247,6 @@ struct DesignCards: View {
         }
     }
 }
-
-
 
 #Preview {
     DesignCards(

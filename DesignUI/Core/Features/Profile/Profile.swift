@@ -272,7 +272,9 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .alert(isPresented: $showErrorAlert) {
                 Alert(
                     title: Text("Error"),
@@ -322,9 +324,21 @@ struct ProfileView: View {
             }
         }
         authorizationDelegate.presentationAnchorProvider = {
+            #if os(iOS)
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                 return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
             }
+            #endif
+            
+            #if os(macOS)
+            if let keyWindow = NSApplication.shared.keyWindow {
+                return keyWindow
+            } else {
+                return NSApplication.shared.windows.first ?? NSWindow()
+            }
+
+            #endif
+            
             return ASPresentationAnchor()
         }
         authorizationController.performRequests()
@@ -612,7 +626,13 @@ extension Text {
 }
 
 extension Color {
+    #if os(iOS)
     static var mainColor = Color(UIColor.systemIndigo)
+    #endif
+    
+    #if os(macOS)
+    static var mainColor = Color(NSColor.systemIndigo)
+    #endif
 }
 
 #Preview {

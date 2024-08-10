@@ -7,27 +7,148 @@
 
 import SwiftUI
 import FirebaseFirestore
+#if os(iOS)
 import StatefulTabView
+#endif
 import SDWebImage
 import SDWebImageSwiftUI
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
-    @State private var selectedIndex = 0
+    @State private var selectedView: String? = "Home"
+    @Environment(\.requestReview) var requestReview
+    @State private var isHovered: Bool = false
     var body: some View {
         
+#if os(iOS)
         StatefulTabView{
-                Tab(systemImageName: "house.fill") {
-                    HomeView()
-                }
-//                Tab(systemImageName: "plus.square.dashed") {
-//                    UploadDesignView()
-//                }
-                Tab(systemImageName: "person.crop.circle") {
-                    ProfileView()
-                }
+            Tab(systemImageName: "house.fill") {
+                HomeView()
             }
-            .accentColor(colorScheme == .dark ? .white : .black)
+            
+            //            Tab(systemImageName: "plus.square.dashed") {
+            //                UploadDesignView()
+            //            }
+            
+            Tab(systemImageName: "person.crop.circle") {
+                ProfileView()
+            }
+        }
+        .accentColor(colorScheme == .dark ? .white : .black)
+#endif
+        
+#if os(macOS)
+        NavigationSplitView {
+            List {
+                SidebarItem(title: "Home", systemImage: "house", selectedView: $selectedView)
+                SidebarItem(title: "Profile", systemImage: "person.circle", selectedView: $selectedView)
+                SidebarItem(title: "Settings", systemImage: "gear", selectedView: $selectedView)
+                Divider()
+                SidebarItem(title: "SF Symbols", systemImage: "plus.square.dashed", selectedView: $selectedView)
+                
+                Label("Rate Us", systemImage: "star")
+                            .bold()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 10)
+                            .background(
+                                ZStack {
+                                    // Background with rounded corners
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(isHovered ? Color.gray.opacity(0.2) : Color.clear)
+                                }
+                            )
+                            .foregroundColor(Color.white)
+                            .contentShape(Rectangle())
+                            .onHover { hovering in
+                                isHovered = hovering
+                            }
+                            .onTapGesture {
+                                requestReview()
+                            }
+                
+                SidebarItem(title: "Shop", systemImage: "cart", selectedView: $selectedView)
+                Divider()
+                Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
+                    .foregroundStyle(.gray)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .cornerRadius(8)
+                    .contentShape(Rectangle())
+                
+                Link("Contact Us", destination: URL(string: "https://www.aivirx.com/contact")!)
+                    .foregroundStyle(.gray)
+                    .foregroundStyle(.gray)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .cornerRadius(8)
+                    .contentShape(Rectangle())
+            }
+            .listStyle(SidebarListStyle())
+            .navigationSplitViewColumnWidth(min: 260, ideal: 260, max: 260)
+            .layoutPriority(1)
+        } detail: {
+            if let selectedView = selectedView {
+                switch selectedView {
+                case "Home":
+                    HomeView()
+                case "Profile":
+                    ProfileView()
+                case "SF Symbols":
+                    SFIconsView()
+                case "Shop":
+                    OldStoreView()
+                default:
+                    Text("Select a view")
+                }
+            } else {
+                Text("Select a view")
+            }
+        }
+#endif
+        
+    }
+    
+    struct SidebarItem: View {
+        var title: String
+        var systemImage: String
+        @Binding var selectedView: String?
+        @State var isHover = false
+        var body: some View {
+            
+            Button(action: {
+                selectedView = title
+            }) {
+                Label(title, systemImage: systemImage)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+            }
+            .buttonStyle(SidebarButtonStyle(isSelected: selectedView == title))
+        }
+    }
+    
+    struct SidebarButtonStyle: ButtonStyle {
+        var isSelected: Bool
+        @State private var isHovered: Bool = false
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .padding(.vertical, 8)
+                .padding(.horizontal, 10)
+                .background(isSelected ? Color.white.opacity(0.8) : (configuration.isPressed ? Color.gray.opacity(0.2) : (isHovered ? Color.gray.opacity(0.2) : Color.clear))
+                )
+                .cornerRadius(8)
+                .foregroundColor(isSelected ? Color.black : Color.white)
+                .contentShape(Rectangle())
+                .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+        }
     }
 }
 
@@ -38,17 +159,16 @@ struct HomeView: View {
     @State private var communityPosts: [DesignPost] = []
     @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var isNewDesignsLoaded = false
+    @State private var hasMoreCommunityPosts = false
     @State private var teamName = "Dock UI"
     @State private var errorMessage: String = ""
     @State private var isLoading: Bool = false
-    @Environment(\.colorScheme) var colorScheme
-    @Environment(\.requestReview) var requestReview    
     @State private var searchText = ""
     @State private var showSearchResults = false
-    private let postsLimit = 25
+    @Environment(\.colorScheme) var colorScheme
+    private let postsLimit = 10
     var body: some View {
         NavigationStack {
-            if showSearchResults == false{
                 VStack {
                     ScrollView(.vertical, showsIndicators: true) {
                         VStack {
@@ -129,12 +249,35 @@ struct HomeView: View {
                                                     tags: post.tags
                                                 )
                                             }
+                                            // Show More Button
+                                            if hasMoreCommunityPosts {
+                                                Button(action: {
+                                                    Task {
+                                                        await fetchCommunityPosts()
+                                                    }
+                                                }) {
+                                                    VStack{
+                                                        Image(systemName: "arrowshape.right.circle")
+                                                            .font(.title3)
+                                                        
+                                                        Text("Show More")
+                                                            .foregroundColor(.blue)
+                                                            .padding(.vertical, 10)
+                                                            .frame(maxWidth: .infinity)
+                                                    }
+                                                    .frame(width: 139, height: 150)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 20)
+                                                            .stroke(Color.gray, lineWidth: 0.8)
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                     .scrollClipDisabled()
                                 }
                             }
-                            
                             
                             VStack{
                                 Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
@@ -150,6 +293,7 @@ struct HomeView: View {
                         .padding(.leading, 10)
                     }
                     .navigationTitle("Dock UI")
+#if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     .navigationBarItems(trailing: HStack {
                         NavigationLink(destination: SettingsView()) {
@@ -158,38 +302,14 @@ struct HomeView: View {
                                 .foregroundStyle(colorScheme == .dark ? .white : .black)
                         }
                     })
+#endif
                 }
                 .accentColor(.none)
-                
-                if !store.completedPurchases.isEmpty{
-                    
-                }else{
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        AdView(adUnitID: "ca-app-pub-2043555402127024/3752508096")
-                            .frame(width:320, height: 50)
-                            .padding(3)
-                    }
-                    
-                    if UIDevice.current.userInterfaceIdiom == .pad {
-                        AdView(adUnitID: "ca-app-pub-2043555402127024/3752508096")
-                            .frame(width:320, height: 50)
-                            .padding(3)
-                    }
-                }
-            }
-            else {
-                SearchResultsView(searchText: $searchText, designPosts: designPosts, componentPosts: componentPosts, communityPosts: communityPosts)
-            }
         }
-        //.searchable(text: $searchText, prompt: "Search")
+        
+#if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
-        .onChange(of: searchText) { newValue in
-            if newValue.trimmingCharacters(in: .whitespaces).isEmpty {
-                showSearchResults = false
-            } else {
-                showSearchResults = true
-            }
-        }
+#endif
         .onAppear {
             store.loadStoredPurchases()
             if !isNewDesignsLoaded {
@@ -1126,46 +1246,52 @@ struct SwitchView: View {
     }
     
     private func fetchCommunityPosts() async {
-        let db = Firestore.firestore()
-        
-        guard !isLoading else { return }
-        
-        isLoading = true
-        
-        do {
-            var query = db.collection("posts").order(by: "creationDate", descending: true).limit(to: postsLimit)
+            let db = Firestore.firestore()
             
-            if let lastDocument = lastFetchedDocument {
-                query = query.start(afterDocument: lastDocument)
+            guard !isLoading else { return }
+            
+            isLoading = true
+            
+            do {
+                var query = db.collection("posts").order(by: "creationDate", descending: true).limit(to: postsLimit)
+                
+                if let lastDocument = lastFetchedDocument {
+                    query = query.start(afterDocument: lastDocument)
+                }
+                
+                let querySnapshot = try await query.getDocuments()
+                if querySnapshot.documents.isEmpty {
+                    DispatchQueue.main.async {
+                        self.hasMoreCommunityPosts = false
+                    }
+                    isLoading = false
+                    return
+                }
+                
+                DispatchQueue.main.async {
+                    self.lastFetchedDocument = querySnapshot.documents.last
+                    self.communityPosts.append(contentsOf: querySnapshot.documents.compactMap { document in
+                        try? document.data(as: DesignPost.self)
+                    })
+                    
+                    // Check if more posts are available
+                    self.hasMoreCommunityPosts = querySnapshot.documents.count == postsLimit
+                }
+            } catch {
+                print("Error getting documents: \(error)")
             }
             
-            let querySnapshot = try await query.getDocuments()
-            if querySnapshot.documents.isEmpty {
-                isLoading = false
-                return
-            }
-            
-            DispatchQueue.main.async {
-                self.lastFetchedDocument = querySnapshot.documents.last
-                self.communityPosts.append(contentsOf: querySnapshot.documents.compactMap { document in
-                    try? document.data(as: DesignPost.self)
-                })
-            }
-        } catch {
-            print("Error getting documents: \(error)")
+            isLoading = false
         }
         
-        isLoading = false
+        func addNewDesigns(_ newDesigns: [DesignPost]) {
+            designPosts.append(contentsOf: newDesigns)
+        }
+        
+        func addNewAnims(_ newComp: [DesignPost]) {
+            componentPosts.append(contentsOf: newComp)
+        }
     }
-    
-    func addNewDesigns(_ newDesigns: [DesignPost]) {
-        designPosts.append(contentsOf: newDesigns)
-    }
-    
-    func addNewAnims(_ newComp: [DesignPost]) {
-        componentPosts.append(contentsOf: newComp)
-    }
-}
 
 extension Bundle {
     /// Retrieves the build version number from the app's Info.plist.
@@ -1174,7 +1300,6 @@ extension Bundle {
         return infoDictionary?["CFBundleShortVersionString"] as? String
     }
 }
-
 
 func formattedDate(from timestamp: Timestamp) -> String {
     let date = timestamp.dateValue()

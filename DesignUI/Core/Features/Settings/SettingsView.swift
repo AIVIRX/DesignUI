@@ -8,12 +8,15 @@
 //  DesignUI
 
 import SwiftUI
+#if os(iOS)
 import MessageUI
+#endif
 import AuthenticationServices
 import FirebaseAuth
 import CryptoKit
 import StoreKit
 
+#if os(iOS)
 struct MailView: UIViewControllerRepresentable {
     @Environment(\.presentationMode) var presentationMode
     @Binding var result: Result<MFMailComposeResult, Error>?
@@ -53,8 +56,9 @@ struct MailView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: UIViewControllerRepresentableContext<MailView>) {}
 }
-
+#endif
 struct SettingsView: View {
+    @EnvironmentObject private var store: Store
     @EnvironmentObject var userStore: UserStore
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
@@ -64,89 +68,117 @@ struct SettingsView: View {
     @State private var showErrorAlert: Bool = false
     @State private var nonce: String?
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
+#if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
+#endif
     @State private var isShowingMailView = false
     @State private var showPaywall = false
     @Environment(\.dismiss) var dismiss
     var body: some View {
         NavigationStack {
-            Form {
-                Section() {
-                    NavigationLink(destination: OldStoreView()) {
-                        HStack {
-                            Image(systemName: "cart")
-                                .font(.system(size: 20)).bold()
-                                .frame(width: 30, height: 30)
-                                .foregroundStyle(.white)
-                                .background(Color.orange)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
-                            Text("Shop")
-                        }
-                    }
-                }
-                
-                Section(header: Text("Review")) {
-                    Button {
-                        requestReview()
-                    } label: {
-                        HStack {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 20))
-                                .frame(width: 30, height: 30)
-                                .foregroundStyle(.yellow)
-                                .background(Color.indigo)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
-                            Text("Rate Us")
-                        }
-                    }
-                }
-                
-                Section(header: Text("Our Apps")) {
-                    Link(destination: URL(string: "https://apps.apple.com/af/app/tasknow-simple-to-do-list/id1639588217")!) {
-                        HStack {
-                            Image("CryptoProfitLogo")
-                                .resizable()
-                                .frame(width: 30, height: 30)
-                                .cornerRadius(5)
-                            Text("Crypto Profit Loss Calculator")
+            VStack{
+                Form {
+                    Section() {
+                        NavigationLink(destination: OldStoreView()) {
+                            HStack {
+                                Image(systemName: "cart")
+                                    .font(.system(size: 20)).bold()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.white)
+                                    .background(Color.orange)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                Text("Shop")
+                            }
                         }
                     }
                     
-                    Link(destination: URL(string: "https://apps.apple.com/us/app/tasknow-simple-to-do-list/id1639588217")!) {
-                        HStack {
-                            Image("TaskNowLogo")
-                                .resizable()
-                                .frame(width: 30, height: 30)
-                                .cornerRadius(5)
-                            Text("TaskNow - Simple To Do List")
+                    Section(header: Text("Review")) {
+                        Button {
+                            requestReview()
+                        } label: {
+                            HStack {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 20))
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.yellow)
+                                    .background(Color.indigo)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                Text("Rate Us")
+                            }
                         }
                     }
+                    
+                    Section(header: Text("Our Apps")) {
+                        Link(destination: URL(string: "https://apps.apple.com/us/app/crypto-profit-loss-calculator/id1638849680")!) {
+                            HStack {
+                                Image("CryptoProfitLogo")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .cornerRadius(5)
+                                Text("Crypto Profit Loss Calculator")
+                            }
+                        }
+                        
+                        Link(destination: URL(string: "https://apps.apple.com/us/app/tasknow-simple-to-do-list/id1639588217")!) {
+                            HStack {
+                                Image("TaskNowLogo")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .cornerRadius(5)
+                                Text("TaskNow - Simple To Do List")
+                            }
+                        }
+                    }
+                    
+                    Section("Privacy & Support") {
+                        Link(destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!) {
+                            Text("Privacy Policy")
+                        }
+                        Button(action: {
+                            isShowingMailView.toggle()
+                        }) {
+                            Text("Contact Us")
+                        }
+#if os(iOS)
+                        .disabled(!MFMailComposeViewController.canSendMail())
+                        #endif
+                    }
                 }
+                .accentColor(colorScheme == .dark ? .white : .black)
+#if os(iOS)
+                .navigationBarTitle("Settings")
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .alert(isPresented: $showErrorAlert) {
+                    Alert(
+                        title: Text("Error"),
+                        message: Text(errorMessage),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
+#if os(iOS)
+                .sheet(isPresented: $isShowingMailView) {
+                    MailView(result: $result)
+                }
+#endif
                 
-                Section("Privacy & Support") {
-                    Link(destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!) {
-                        Text("Privacy Policy")
+#if os(iOS)
+                if !store.completedPurchases.isEmpty{
+                    
+                } else {
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        AdView(adUnitID: AdUnitID.settingsPageAds)
+                            .frame(width: 320, height: 50)
+                            .padding(3)
                     }
-                    Button(action: {
-                        isShowingMailView.toggle()
-                    }) {
-                        Text("Contact Us")
+                    
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        AdView(adUnitID: AdUnitID.settingsPageAds)
+                            .frame(width: 468, height: 60)
+                            .padding(3)
                     }
-                    .disabled(!MFMailComposeViewController.canSendMail())
                 }
-            }
-            .accentColor(colorScheme == .dark ? .white : .black)
-            .navigationBarTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .alert(isPresented: $showErrorAlert) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text(errorMessage),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-            .sheet(isPresented: $isShowingMailView) {
-                MailView(result: $result)
+#endif
             }
         }
     }
@@ -180,12 +212,23 @@ struct SettingsView: View {
                 self.showError(error.localizedDescription)
             }
         }
+        #if os(iOS)
         authorizationDelegate.presentationAnchorProvider = {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                 return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
             }
             return ASPresentationAnchor()
         }
+        #endif
+        
+        #if os(macOS)
+        authorizationDelegate.presentationAnchorProvider = {
+            if let keyWindow = NSApplication.shared.keyWindow {
+                return keyWindow
+            }
+            return NSApplication.shared.windows.first ?? NSWindow()
+        }
+        #endif
         authorizationController.performRequests()
     }
 
@@ -263,20 +306,6 @@ struct SettingsView: View {
         let hashedData = SHA256.hash(data: inputData)
         let hashString = hashedData.compactMap { String(format: "%02x", $0) }.joined()
         return hashString
-    }
-}
-
-struct SupportView: View {
-    var body: some View {
-        Text("Support Information")
-            .navigationBarTitle("Support")
-    }
-}
-
-struct PrivacyPolicyView: View {
-    var body: some View {
-        Text("Privacy Policy")
-            .navigationBarTitle("Privacy Policy")
     }
 }
 

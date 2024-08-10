@@ -20,7 +20,6 @@ struct SFIconsView: View {
     }
     
     var body: some View {
-        NavigationView {
             VStack {
                 TextField("Search", text: $searchText)
                     .padding()
@@ -40,10 +39,17 @@ struct SFIconsView: View {
             }
             .padding(5)
             
-        }
+        
     }
+    
     func copyToClipboard(_ text: String) {
+        #if os(iOS)
         UIPasteboard.general.string = text
+        #elseif os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        #endif
     }
 }
 
@@ -54,9 +60,19 @@ struct SymbolButton: View {
     var body: some View {
         Button(action: {
             onCopy(symbol)
-            Drops.show("Copied")
+            #if os(iOS)
+            let drop = Drop(
+                title: "Copied",
+                icon: UIImage(systemName: "doc.on.doc.fill")
+            )
+            
+            Drops.show(drop)
+            #endif
+            
+            #if os(iOS)
             let impactMed = UIImpactFeedbackGenerator(style: .medium)
                 impactMed.impactOccurred()
+            #endif
         }) {
             VStack {
                 Image(systemName: symbol)
@@ -64,7 +80,9 @@ struct SymbolButton: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 40, height: 40)
                     .padding()
+                #if os(iOS)
                     .background(Color(UIColor.systemGray5))
+                #endif
                     .cornerRadius(10)
                 
                 Text(symbol)

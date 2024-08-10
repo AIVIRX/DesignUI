@@ -20,11 +20,9 @@ struct QuickActionCard: View {
                                 .padding()
                                 .foregroundColor(.white)
                                 .background(
-                                    RoundedRectangle(
-                                        cornerRadius: 10,
-                                        style: .continuous
-                                    ))
-                            
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .fill(Color.blue) // Replace 'Color.blue' with your desired color
+                                )
                             Text("Symbols")
                                 .font(.body)
                                 .foregroundStyle(Color.primary)
@@ -32,38 +30,17 @@ struct QuickActionCard: View {
                     }
                     .padding(.horizontal)
                     .buttonStyle(PlainButtonStyle())
-
-//                    NavigationLink(destination: SFIconsView()) {
-//                        VStack{
-//                            Image(systemName: "square.dashed.inset.fill")
-//                                .font(.system(size: 20))
-//                                .padding()
-//                                .foregroundColor(.white)
-//                                .background(
-//                                    RoundedRectangle(
-//                                        cornerRadius: 10,
-//                                        style: .continuous
-//                                    ))
-//                            
-//                            Text("App Icon")
-//                                .font(.body)
-//                                .foregroundStyle(Color.primary)
-//                        }
-//                    }
-//                    .padding(.horizontal)
-//                    .buttonStyle(PlainButtonStyle())
                     
                     NavigationLink(destination: OldStoreView()){
                         VStack{
                             Image(systemName: "cart")
-                                .font(.system(size: 20))
+                                .font(.system(size: 20)).bold()
                                 .padding()
                                 .foregroundColor(.white)
                                 .background(
-                                    RoundedRectangle(
-                                        cornerRadius: 10,
-                                        style: .continuous
-                                    ))
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .fill(Color.orange) // Replace 'Color.blue' with your desired color
+                                )
                             
                             Text("Shop")
                                 .font(.body)

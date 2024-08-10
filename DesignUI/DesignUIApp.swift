@@ -7,13 +7,16 @@
 
 import SwiftUI
 import AppTrackingTransparency
+#if os(iOS)
 import GoogleMobileAds
+#endif
 import AdSupport
 import FirebaseAuth
 import FirebaseCore
 import Firebase
 import FirebaseAnalytics
 
+#if os(iOS)
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -67,4 +70,53 @@ struct DesignUIApp: App {
         }
     }
 }
+#endif
+
+#if os(macOS)
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        
+        requestTrackingAuthorization()
+        configureFirebase()
+    }
+        
+    private func requestTrackingAuthorization() {
+        if #available(iOS 14, *) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                ATTrackingManager.requestTrackingAuthorization { status in
+                    switch status {
+                    case .authorized:
+                        print("TRACKING ENABLED \(ASIdentifierManager.shared().advertisingIdentifier.uuidString)")
+                    case .denied:
+                        print("TRACKING DISABLED \(ASIdentifierManager.shared().advertisingIdentifier.uuidString)")
+                    default:
+                        print("DEFAULT TRACKING \(ASIdentifierManager.shared().advertisingIdentifier.uuidString)")
+                    }
+                }
+            }
+        } else {
+            print("iOS version is below 14.0, no tracking authorization needed.")
+        }
+    }
+    
+    private func configureFirebase() {
+        FirebaseApp.configure()
+    }
+}
+
+@main
+struct DesignUIApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var store = Store()
+    @StateObject private var userStore = UserStore()
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(store)
+                .environmentObject(userStore)
+        }
+    }
+}
+#endif
 

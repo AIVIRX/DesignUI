@@ -14,7 +14,14 @@ import SDWebImageSwiftUI
 
 struct EditProfileView: View {
     @EnvironmentObject var userStore: UserStore
+    #if os(iOS)
     @State private var selectedImage: UIImage?
+    #endif
+    
+    #if os(macOS)
+    @State private var selectedImage: NSImage?
+    #endif
+    
     @State private var showImagePicker = false
     @State private var currentImageURL: String = ""
     @State private var newImageURL: String = ""
@@ -44,6 +51,7 @@ struct EditProfileView: View {
         VStack {
             ZStack {
                 if let selectedImage = selectedImage {
+                    #if os(iOS)
                     Image(uiImage: selectedImage)
                         .resizable()
                         .scaledToFill()
@@ -51,6 +59,16 @@ struct EditProfileView: View {
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.white, lineWidth: 4))
                         .shadow(radius: 10)
+                    #endif
+#if os(macOS)
+                    Image(nsImage: selectedImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 100, height: 100)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                        .shadow(radius: 10)
+                    #endif
                 } else if !currentImageURL.isEmpty {
                     WebImage(url: URL(string: currentImageURL)) { phase in
                         switch phase {
@@ -147,7 +165,9 @@ struct EditProfileView: View {
     func validateAndSaveProfile() {
         validateUsernameUniqueness { isUnique in
             if isUnique {
+#if os(iOS)
                 saveProfile()
+                #endif
             } else {
                 isUsernameUnique = false
                 errorMessage = "Username is already taken."
@@ -178,7 +198,7 @@ struct EditProfileView: View {
             completion(isUsernameUnique)
         }
     }
-
+#if os(iOS)
     func saveProfile() {
         guard let user = userStore.user else { return }
         let db = Firestore.firestore()
@@ -228,7 +248,7 @@ struct EditProfileView: View {
             updateFirestore(userDocRef: userDocRef, updates: updates)
         }
     }
-    
+    #endif
     func updateFirestore(userDocRef: DocumentReference, updates: [String: Any]) {
         userDocRef.updateData(updates) { error in
             if let error = error {
@@ -275,7 +295,9 @@ struct TextFieldWithCounter: View {
                 .padding()
                 .frame(height: 50)
                 .autocorrectionDisabled()
+            #if os(iOS)
                 .textInputAutocapitalization(.none)
+            #endif
                 .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
             HStack {
                 Spacer()
@@ -307,7 +329,9 @@ struct TextFieldWithValidation: View {
                     .padding()
                     .frame(height: 50)
                     .autocorrectionDisabled()
+#if os(iOS)
                     .textInputAutocapitalization(.none)
+                #endif
                     .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
                 if !isValid {
                     Image(systemName: "xmark.circle")
@@ -347,7 +371,9 @@ struct TextEditorWithCounter: View {
                 .padding()
                 .frame(height: 100)
                 .autocorrectionDisabled()
+#if os(iOS)
                 .textInputAutocapitalization(.none)
+            #endif
                 .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
             HStack{
                 Spacer()
@@ -364,6 +390,7 @@ struct TextEditorWithCounter: View {
     }
 }
 
+#if os(iOS)
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
     var onImagePicked: (UIImage) -> Void
@@ -400,6 +427,48 @@ struct ImagePicker: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 }
+#endif
+
+#if os(macOS)
+struct ImagePicker: NSViewControllerRepresentable {
+    @Binding var selectedImage: NSImage?
+    var onImagePicked: (NSImage) -> Void
+    
+    class Coordinator: NSObject, NSOpenSavePanelDelegate {
+        let parent: ImagePicker
+        
+        init(parent: ImagePicker) {
+            self.parent = parent
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(parent: self)
+    }
+    
+    func makeNSViewController(context: Context) -> NSViewController {
+        let viewController = NSViewController()
+        DispatchQueue.main.async {
+            let openPanel = NSOpenPanel()
+            openPanel.delegate = context.coordinator
+            openPanel.canChooseFiles = true
+            openPanel.canChooseDirectories = false
+            openPanel.allowedContentTypes = [.png, .jpeg, .bmp, .gif, .tiff]
+            openPanel.allowsMultipleSelection = false
+            openPanel.begin { response in
+                if response == .OK, let url = openPanel.url, let image = NSImage(contentsOf: url) {
+                    selectedImage = image
+                }
+            }
+        }
+        return viewController
+    }
+    
+    func updateNSViewController(_ nsViewController: NSViewController, context: Context) {}
+}
+#endif
+
+
 
 #Preview {
     EditProfileView(displayName: "John Doe", bio: "Software Programmer Living In New York City", username: "john_doe")

@@ -74,6 +74,7 @@ struct DetailView: View {
                                 }
                             }
                     }
+                
                 VStack(alignment: .leading) {
                     HStack {
                         Text(title)
@@ -90,6 +91,7 @@ struct DetailView: View {
                                     }
                                 }) {
                                     VStack{
+                                        
                                         Image(systemName: isLiked ? "heart.fill" : "heart")
                                             .foregroundColor(isLiked ? .red : .gray)
                                             .font(.title)
@@ -152,10 +154,18 @@ struct DetailView: View {
                     copyToClipboard(codeSnippet)
                     isCopied = true
                     
+                    #if os(iOS)
                     let impactMed = UIImpactFeedbackGenerator(style: .medium)
                         impactMed.impactOccurred()
-                    
-                    Drops.show("Code Copied ✅")
+                    #endif
+                    #if os(iOS)
+                    let drop = Drop(
+                        title: "Copied Code",
+                        icon: UIImage(systemName: "doc.on.doc.fill")
+                    )
+
+                    Drops.show(drop)
+                    #endif
                 }) {
                     Text("Copy Code")
                         .padding(8)
@@ -172,6 +182,7 @@ struct DetailView: View {
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
         }
+#if os(iOS)
         .navigationBarItems(trailing:
             Button(action: {
             alertItem = AlertItem(
@@ -194,6 +205,7 @@ struct DetailView: View {
                         )
                     }
         )
+        #endif
         .padding(7)
         .onAppear{
             fetchLikeStatusAndViewCount()
@@ -202,8 +214,15 @@ struct DetailView: View {
     }
     
     func copyToClipboard(_ text: String) {
+        #if os(iOS)
         UIPasteboard.general.string = text
+        #elseif os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        #endif
     }
+
     
     func fetchLikeStatusAndViewCount() {
         guard let user = Auth.auth().currentUser else { return }

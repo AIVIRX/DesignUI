@@ -23,14 +23,35 @@ struct OldStoreView: View {
                         }
                     }
                 }
+#if os(iOS)
                 .navigationBarItems(trailing: Button("Restore"){
                     store.retorePurchases()
                 })
+#endif
                 .onAppear{
                     store.loadStoredPurchases()
                 }
             }
         }
         .navigationTitle("Shop")
+        
+        
+#if os(iOS)
+        if !store.completedPurchases.isEmpty{
+            
+        } else {
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                AdView(adUnitID: AdUnitID.shopPageAds)
+                    .frame(width: 320, height: 50)
+                    .padding(3)
+            }
+            
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                AdView(adUnitID: AdUnitID.shopPageAds)
+                    .frame(width: 468, height: 60)
+                    .padding(3)
+            }
+        }
+#endif
     }
 }

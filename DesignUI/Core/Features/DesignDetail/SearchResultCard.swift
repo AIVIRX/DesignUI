@@ -120,10 +120,13 @@ struct SearchResultCard: View {
                 }
             }
             .padding(8)
+            
+            #if os(iOS)
             .simultaneousGesture(TapGesture().onEnded {
                 let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
             })
+            #endif
         }
     }
     

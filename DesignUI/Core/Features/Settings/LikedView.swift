@@ -18,7 +18,7 @@ class LikedPostsViewModel: ObservableObject {
     @Published var hasMorePosts: Bool = true
 
     private let db = Firestore.firestore()
-    private let batchSize = 5
+    private let batchSize = 2
     
     struct Post: Identifiable {
         var id: String
