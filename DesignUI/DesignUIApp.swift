@@ -115,6 +115,11 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(userStore)
+            
+            
+        }
+        Window("What's New", id: "whats-new") {
+            Text("New in this version…")
         }
     }
 }

@@ -20,6 +20,7 @@ struct DesignCards: View {
     var published: String
     var type: String
     var tags: [String]
+    @State private var isHovered: Bool = false
     @State private var isLiked: Bool = false
     @State private var authorName: String = "DockUI Team"
     @State private var isAuthorVerified: Bool = false
@@ -93,7 +94,6 @@ struct DesignCards: View {
                         }
                     }
                 }
-                
                 if UIDevice.current.userInterfaceIdiom == .pad {
                     if type == "image" {
                         Image(media)
@@ -139,46 +139,59 @@ struct DesignCards: View {
                 #endif
                 
                 #if os(macOS)
-                    if type == "image" {
-                        Image(media)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 185, height: 400)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.gray, lineWidth: 0.8)
-                            )
-                    }
-                    if type == "fetched" {
-                        WebImage(url: URL(string: media)) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                                    .frame(width: 185, height: 400)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 185, height: 400)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray, lineWidth: 0.8)
-                                    )
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 185, height: 400)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray, lineWidth: 0.8)
-                                    )
-                            }
+                if type == "image" {
+                    Image(media)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 185, height: 400)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.gray, lineWidth: 0.8)
+                        )
+                        .scaleEffect(isHovered ? 1.02 : 1.0)
+                        .colorMultiply(isHovered ? Color.white : Color(white: 0.95))
+
+                        .animation(.easeInOut(duration: 0.2), value: isHovered)
+                        .onHover { hovering in
+                            isHovered = hovering
+                        }
+                }
+                if type == "fetched" {
+                    WebImage(url: URL(string: media)) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 185, height: 400)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 185, height: 400)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray, lineWidth: 0.8)
+                                )
+                                .scaleEffect(isHovered ? 1.02 : 1.0)  // Scale effect on hover
+                                .colorMultiply(isHovered ? Color.white : Color(white: 0.95))
+                                .animation(.easeInOut(duration: 0.2), value: isHovered)  // Animation
+                                .onHover { hovering in
+                                    isHovered = hovering
+                                }
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 185, height: 400)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray, lineWidth: 0.8)
+                                )
                         }
                     }
+                }
                 #endif
                 
                 VStack(alignment: .leading) {
@@ -208,7 +221,14 @@ struct DesignCards: View {
 //            #if os(iOS)
 //            .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 150 : 225)
 //            #endif
+            #if os(iOS)
             .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 5 : 10)
+            #endif
+            
+            #if os(macOS)
+            .padding(.horizontal, 10)
+                #endif
+            
             .onAppear {
                 if type == "fetched" {
                     fetchAuthorName()

@@ -54,6 +54,7 @@ struct ProfileView: View {
     }
     var body: some View {
         NavigationStack {
+            ScrollView{
             VStack {
                 if isLoading {
                     ProgressView("")
@@ -230,7 +231,6 @@ struct ProfileView: View {
                             
                             InformationContainerView()
                             
-                            Spacer()
                             
                             SignInWithAppleButton(.signIn) { request in
                                 let nonce = randomNonceString()
@@ -272,9 +272,9 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("")
-            #if os(iOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
+#endif
             .alert(isPresented: $showErrorAlert) {
                 Alert(
                     title: Text("Error"),
@@ -285,6 +285,7 @@ struct ProfileView: View {
             .alert(item: $alertItem) { alertItem in
                 Alert(title: alertItem.title, message: alertItem.message, primaryButton: alertItem.primaryButton, secondaryButton: alertItem.secondaryButton ?? .default(Text("OK")))
             }
+        }
         }
         .onAppear {
             checkLoggedIn()
@@ -328,6 +329,8 @@ struct ProfileView: View {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                 return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
             }
+            
+            return ASPresentationAnchor()
             #endif
             
             #if os(macOS)
@@ -339,7 +342,7 @@ struct ProfileView: View {
 
             #endif
             
-            return ASPresentationAnchor()
+            
         }
         authorizationController.performRequests()
     }
@@ -635,6 +638,3 @@ extension Color {
     #endif
 }
 
-#Preview {
-    ProfileView()
-}

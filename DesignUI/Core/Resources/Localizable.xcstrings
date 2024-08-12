@@ -6436,6 +6436,9 @@
         }
       }
     },
+    "New in this version…" : {
+
+    },
     "No liked posts found." : {
       "localizations" : {
         "ar" : {
@@ -10726,6 +10729,9 @@
         }
       }
     },
+    "SF Symbols" : {
+
+    },
     "Shop" : {
       "localizations" : {
         "ar" : {
@@ -14301,6 +14307,9 @@
           }
         }
       }
+    },
+    "What's New" : {
+
     }
   },
   "version" : "1.0"

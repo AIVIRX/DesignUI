@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "ECADF5FA2BCAE9610096753A"
-               BuildableName = "DesignUI.app"
+               BuildableName = "Dock UI.app"
                BlueprintName = "DesignUI"
                ReferencedContainer = "container:DesignUI.xcodeproj">
             </BuildableReference>
@@ -44,7 +44,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "ECADF5FA2BCAE9610096753A"
-            BuildableName = "DesignUI.app"
+            BuildableName = "Dock UI.app"
             BlueprintName = "DesignUI"
             ReferencedContainer = "container:DesignUI.xcodeproj">
          </BuildableReference>
@@ -61,7 +61,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "ECADF5FA2BCAE9610096753A"
-            BuildableName = "DesignUI.app"
+            BuildableName = "Dock UI.app"
             BlueprintName = "DesignUI"
             ReferencedContainer = "container:DesignUI.xcodeproj">
          </BuildableReference>

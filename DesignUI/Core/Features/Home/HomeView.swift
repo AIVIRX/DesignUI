@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var selectedView: String? = "Home"
     @Environment(\.requestReview) var requestReview
     @State private var isHovered: Bool = false
+    @State private var path = NavigationPath()
     var body: some View {
         
 #if os(iOS)
@@ -40,35 +41,61 @@ struct ContentView: View {
 #if os(macOS)
         NavigationSplitView {
             List {
-                SidebarItem(title: "Home", systemImage: "house", selectedView: $selectedView)
-                SidebarItem(title: "Profile", systemImage: "person.circle", selectedView: $selectedView)
-                SidebarItem(title: "Settings", systemImage: "gear", selectedView: $selectedView)
-                Divider()
-                SidebarItem(title: "SF Symbols", systemImage: "plus.square.dashed", selectedView: $selectedView)
                 
-                Label("Rate Us", systemImage: "star")
-                            .bold()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 10)
-                            .background(
-                                ZStack {
-                                    // Background with rounded corners
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(isHovered ? Color.gray.opacity(0.2) : Color.clear)
-                                }
-                            )
-                            .foregroundColor(Color.white)
-                            .contentShape(Rectangle())
-                            .onHover { hovering in
-                                isHovered = hovering
-                            }
-                            .onTapGesture {
-                                requestReview()
-                            }
+                NavigationLink {
+                    HomeView()
+                } label: {
+                    Label("Home", systemImage: "house")
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .tint(Color.white)
                 
-                SidebarItem(title: "Shop", systemImage: "cart", selectedView: $selectedView)
+                NavigationLink {
+                    ProfileView()
+                } label: {
+                    Label("Profile", systemImage: "person.circle")
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .tint(Color.white)
+                
                 Divider()
+                
+                NavigationLink {
+                    SFIconsView()
+                } label: {
+                    Label("SF Symbols", systemImage: "plus.square.dashed")
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .tint(Color.white)
+                
+                
+                NavigationLink {
+                    OldStoreView()
+                } label: {
+                    Label("Shop", systemImage: "cart")
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .tint(Color.white)
+                
+                                
+                Divider()
+                
+                Text("Rate Us")
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .foregroundStyle(.gray)
+                    .cornerRadius(8)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        requestReview()
+                    }
+                
                 Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
                     .foregroundStyle(.gray)
                     .bold()
@@ -89,28 +116,15 @@ struct ContentView: View {
                     .contentShape(Rectangle())
             }
             .listStyle(SidebarListStyle())
+            .animation(.default)
             .navigationSplitViewColumnWidth(min: 260, ideal: 260, max: 260)
+            //.frame(minWidth: 300)
             .layoutPriority(1)
         } detail: {
-            if let selectedView = selectedView {
-                switch selectedView {
-                case "Home":
-                    HomeView()
-                case "Profile":
-                    ProfileView()
-                case "SF Symbols":
-                    SFIconsView()
-                case "Shop":
-                    OldStoreView()
-                default:
-                    Text("Select a view")
-                }
-            } else {
-                Text("Select a view")
-            }
+            Text("Select a view")
         }
 #endif
-        
+
     }
     
     struct SidebarItem: View {
@@ -118,17 +132,18 @@ struct ContentView: View {
         var systemImage: String
         @Binding var selectedView: String?
         @State var isHover = false
+        @Environment(\.dismiss) private var dismiss
         var body: some View {
+                Button(action: {
+                    selectedView = title
+                }) {
+                    Label(title, systemImage: systemImage)
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                }
+                .buttonStyle(SidebarButtonStyle(isSelected: selectedView == title))
             
-            Button(action: {
-                selectedView = title
-            }) {
-                Label(title, systemImage: systemImage)
-                    .bold()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-            }
-            .buttonStyle(SidebarButtonStyle(isSelected: selectedView == title))
         }
     }
     
@@ -173,9 +188,19 @@ struct HomeView: View {
                     ScrollView(.vertical, showsIndicators: true) {
                         VStack {
                             VStack(alignment: .leading) {
+                                
+                                #if os(iOS)
                                 QuickActionCard()
+                                #endif
+                                
                                 Text("Featured")
+#if os(iOS)
                                     .font(.title2)
+                                #endif
+                                
+#if os(macOS)
+                                    .font(.title)
+                                #endif
                                     .fontWeight(.heavy)
                                     .padding(.top, 10)
                                     .padding(.leading, 3)
@@ -201,7 +226,13 @@ struct HomeView: View {
                             
                             VStack(alignment: .leading) {
                                 Text("Components")
+#if os(iOS)
                                     .font(.title2)
+                                #endif
+                                
+#if os(macOS)
+                                    .font(.title)
+                                #endif
                                     .fontWeight(.heavy)
                                     .padding(.top, 20)
                                     .padding(.leading, 3)
@@ -229,7 +260,13 @@ struct HomeView: View {
                             if !communityPosts.isEmpty {
                                 VStack(alignment: .leading) {
                                     Text("Community")
-                                        .font(.title2)
+#if os(iOS)
+                                    .font(.title2)
+                                #endif
+                                
+#if os(macOS)
+                                    .font(.title)
+                                #endif
                                         .fontWeight(.heavy)
                                         .padding(.top, 20)
                                         .padding(.leading, 3)
@@ -306,7 +343,8 @@ struct HomeView: View {
                 }
                 .accentColor(.none)
         }
-        
+        .navigationViewStyle(DefaultNavigationViewStyle())
+
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
 #endif

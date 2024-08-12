@@ -33,11 +33,31 @@ struct DetailView: View {
             VStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
+                #if os(iOS)
                         .frame(height: 280)
+                #endif
+                
+                #if os(macOS)
+                        .frame(height: 400)
+                #endif
+                
+                
+                #if os(iOS)
                         .foregroundStyle(.thinMaterial)
+                #endif
+                
+                #if os(macOS)
+                        .foregroundStyle(Color.gray.opacity(0.2))
+                #endif
                     .overlay{
                         RoundedRectangle(cornerRadius: 15)
+#if os(iOS)
                             .frame(width: 115,height: 250)
+                        #endif
+                        
+#if os(iOS)
+                            .frame(width: 135,height: 270)
+                        #endif
                             .foregroundStyle(Color.clear)
                             .overlay{
                                 if type == "image" {
@@ -54,12 +74,12 @@ struct DetailView: View {
                                         switch phase {
                                         case .empty:
                                             ProgressView()
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .frame(maxWidth: .infinity, maxHeight: 350)
                                         case .success(let image):
                                             image
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .frame(maxWidth: .infinity, maxHeight: 350)
                                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                                 .clipped()
                                         case .failure:
