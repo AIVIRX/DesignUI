@@ -263,7 +263,7 @@ struct ProfileView: View {
                         }
                         
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                     .padding(20)
                     .onAppear {
                         checkLoggedIn()

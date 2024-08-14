@@ -115,11 +115,12 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(userStore)
-            
-            
-        }
-        Window("What's New", id: "whats-new") {
-            Text("New in this version…")
+                .frame(minWidth: 1280, minHeight: 720)
+                .onAppear {
+                    if let window = NSApplication.shared.windows.first {
+                        window.minSize = NSSize(width: 1280, height: 720)
+                    }
+                }
         }
     }
 }
