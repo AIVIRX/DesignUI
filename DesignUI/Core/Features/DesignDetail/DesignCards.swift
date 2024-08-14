@@ -24,6 +24,7 @@ struct DesignCards: View {
     @State private var isLiked: Bool = false
     @State private var authorName: String = "DockUI Team"
     @State private var isAuthorVerified: Bool = false
+    @State private var startAnimation: Bool = false
 
     init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]) {
         self.id = id

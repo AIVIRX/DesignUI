@@ -44,6 +44,8 @@ struct ProfileView: View {
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
+    @State private var startAnimation: Bool = false
+
     @State private var signInAppleButtonId = UUID().uuidString
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
@@ -286,9 +288,16 @@ struct ProfileView: View {
                 Alert(title: alertItem.title, message: alertItem.message, primaryButton: alertItem.primaryButton, secondaryButton: alertItem.secondaryButton ?? .default(Text("OK")))
             }
         }
+    
+            .offset(y: startAnimation ? 0 : 100)
         }
+        
         .onAppear {
             checkLoggedIn()
+            withAnimation(.easeInOut(duration: 0.5)) {
+                startAnimation = true
+            }
+
         }
     }
     
