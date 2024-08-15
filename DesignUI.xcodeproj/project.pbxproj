@@ -56,6 +56,7 @@
 		ECD043182C5F21D900865D12 /* SearchResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD043172C5F21D900865D12 /* SearchResultCard.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
+		ECF625472C6D5C6C0057FB6B /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF625462C6D5C6C0057FB6B /* SwiftUIView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -102,6 +103,7 @@
 		ECD043172C5F21D900865D12 /* SearchResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultCard.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		ECF625462C6D5C6C0057FB6B /* SwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -308,6 +310,7 @@
 			children = (
 				EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */,
 				EC7D7C022C19E5BD003134B1 /* BannerAds.swift */,
+				ECF625462C6D5C6C0057FB6B /* SwiftUIView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -487,6 +490,7 @@
 				EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */,
 				EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
+				ECF625472C6D5C6C0057FB6B /* SwiftUIView.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
 				ECD043122C5EEE7A00865D12 /* FeaturesView.swift in Sources */,

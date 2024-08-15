@@ -44,7 +44,9 @@ struct ProfileView: View {
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
+    
     @State private var startAnimation: Bool = false
+    @State private var opacity: Double = 0.0
 
     @State private var signInAppleButtonId = UUID().uuidString
     private var buttonStyle: SignInWithAppleButton.Style {
@@ -252,9 +254,12 @@ struct ProfileView: View {
                             .onChange(of: colorScheme, { oldValue, newValue in
                                 signInAppleButtonId = UUID().uuidString
                             })
-                            .frame(height: 50)
+                            .font(.title)
                             .clipShape(Capsule())
-                            .padding(.top, 10)
+                            .clipped()
+                            .frame(height: 30) // Adjust width and height
+                            .padding(.top, 10) // Adjust as necessary
+                            .background(.clear)
                             
                             let user = Auth.auth().currentUser
                             if let user = user {
@@ -273,7 +278,7 @@ struct ProfileView: View {
                     }
                 }
             }
-            .navigationTitle("")
+            .navigationTitle("Profile")
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
@@ -289,13 +294,15 @@ struct ProfileView: View {
             }
         }
     
-            .offset(y: startAnimation ? 0 : 100)
+            .offset(y: startAnimation ? 0 : 50)
+            .opacity(opacity)
         }
-        
+        .background(Color(red: 30/255, green: 30/255, blue: 30/255))
         .onAppear {
             checkLoggedIn()
-            withAnimation(.easeInOut(duration: 0.5)) {
+            withAnimation(.easeInOut(duration: 0.3)) {
                 startAnimation = true
+                opacity = 1.0
             }
 
         }

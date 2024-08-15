@@ -5005,6 +5005,9 @@
         }
       }
     },
+    "Dock UI Home" : {
+
+    },
     "Done" : {
       "localizations" : {
         "ar" : {
@@ -10010,6 +10013,7 @@
       }
     },
     "Search" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10484,6 +10488,9 @@
           }
         }
       }
+    },
+    "Search SF Symbols" : {
+
     },
     "Select a view" : {
 

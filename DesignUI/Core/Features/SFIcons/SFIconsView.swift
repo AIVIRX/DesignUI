@@ -11,6 +11,10 @@ import Drops
 struct SFIconsView: View {
     @State private var searchText = ""
     @State private var showToast = false
+    @StateObject private var toastManager = ToastManager()
+    @State private var startAnimation: Bool = false
+    @State private var opacity: Double = 0.0
+    
     var filteredSymbols: [String] {
         if searchText.isEmpty {
             return symbols
@@ -20,59 +24,75 @@ struct SFIconsView: View {
     }
     
     var body: some View {
-            VStack {
-                TextField("Search", text: $searchText)
-                    .padding()
-                    .bold()
-                    .frame(height: 50)
-                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-                ScrollView {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 90))], spacing: 16) {
-                        ForEach(filteredSymbols, id: \.self) { symbol in
-                            SymbolButton(symbol: symbol, onCopy: { copiedSymbol in
-                                copyToClipboard(copiedSymbol)
-                            })
-                        }
+        VStack {
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 95))], spacing: 20) {
+                    ForEach(filteredSymbols, id: \.self) { symbol in
+                        SymbolButton(symbol: symbol, onCopy: { copiedSymbol in
+                            copyToClipboard(copiedSymbol)
+                            toastManager.showToast(message: "Copied")
+                        })
                     }
-                    .padding()
+                }
+                .padding()
+            }
+        }
+        .background(Color(red: 30/255, green: 30/255, blue: 30/255))
+        .navigationTitle("SF Symbols")
+        .padding(5)
+        .searchable(text: $searchText, prompt: "Search SF Symbols")
+        .overlay(
+            VStack {
+                ForEach(toastManager.toasts) { toast in
+                    ToastView(message: toast.message)
+                        .padding()
                 }
             }
-            .padding(5)
-            
-        
+                .padding(.leading, 10)
+                .padding(.bottom, 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+        )
+        .offset(y: startAnimation ? 0 : 50)
+        .opacity(opacity)
+        .onAppear{
+            withAnimation(.easeInOut(duration: 0.3)) {
+                startAnimation = true
+                opacity = 1.0
+            }
+        }
     }
-    
     func copyToClipboard(_ text: String) {
-        #if os(iOS)
+#if os(iOS)
         UIPasteboard.general.string = text
-        #elseif os(macOS)
+#elseif os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
-        #endif
+#endif
     }
 }
 
 struct SymbolButton: View {
     let symbol: String
     let onCopy: (String) -> Void
+    @State private var isHovered: Bool = false
     
     var body: some View {
         Button(action: {
             onCopy(symbol)
-            #if os(iOS)
+#if os(iOS)
             let drop = Drop(
                 title: "Copied",
                 icon: UIImage(systemName: "doc.on.doc.fill")
             )
             
             Drops.show(drop)
-            #endif
+#endif
             
-            #if os(iOS)
+#if os(iOS)
             let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                impactMed.impactOccurred()
-            #endif
+            impactMed.impactOccurred()
+#endif
         }) {
             VStack {
                 Image(systemName: symbol)
@@ -80,10 +100,6 @@ struct SymbolButton: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 40, height: 40)
                     .padding()
-                #if os(iOS)
-                    .background(Color(UIColor.systemGray5))
-                #endif
-                    .cornerRadius(10)
                 
                 Text(symbol)
                     .font(.caption)
@@ -91,9 +107,14 @@ struct SymbolButton: View {
                     .frame(maxWidth: .infinity)
             }
             .frame(width: 100, height: 100)
+            .background(isHovered ? Color.gray.opacity(0.2) : Color.clear) // Background change on hover
             .cornerRadius(10)
+            .contentShape(Rectangle()) // Ensures the hover area covers the entire button
         }
         .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }
 

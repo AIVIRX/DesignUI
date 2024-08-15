@@ -9,6 +9,8 @@ import SwiftUI
 
 struct OldStoreView: View {
     @EnvironmentObject private var store: Store
+    @State private var startAnimation: Bool = false
+    @State private var opacity: Double = 0.0
     var body: some View {
         VStack{
             List(store.allRecipes, id: \.self) { recipe in
@@ -30,9 +32,14 @@ struct OldStoreView: View {
 #endif
                 .onAppear{
                     store.loadStoredPurchases()
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        startAnimation = true
+                        opacity = 1.0
+                    }
                 }
             }
         }
+        .background(Color(red: 30/255, green: 30/255, blue: 30/255))
         .navigationTitle("Shop")
         
         

@@ -20,12 +20,15 @@ struct DesignCards: View {
     var published: String
     var type: String
     var tags: [String]
+    
     @State private var isHovered: Bool = false
     @State private var isLiked: Bool = false
     @State private var authorName: String = "DockUI Team"
     @State private var isAuthorVerified: Bool = false
+    
     @State private var startAnimation: Bool = false
-
+    @State private var opacity: Double = 0.0
+    
     init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]) {
         self.id = id
         self.media = media
@@ -235,7 +238,6 @@ struct DesignCards: View {
                     fetchAuthorName()
                 }
             }
-            
         }
         .buttonStyle(PlainButtonStyle())
 

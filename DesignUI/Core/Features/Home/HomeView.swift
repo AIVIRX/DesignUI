@@ -48,20 +48,20 @@ struct ContentView: View {
         
 #if os(macOS)
         NavigationSplitView {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 5) {
                 // Home Link
-                navigationLinkButton(viewType: .home, label: "Home", systemImage: "house")
+                navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered)
                 
                 // Profile Link
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle")
+                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered)
                 
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed")
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart")
+                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered)
                 
                 Divider().padding(.vertical)
                 
@@ -120,14 +120,12 @@ struct ContentView: View {
         
     }
     
-    // Custom Navigation Link Button
-    private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String) -> some View {
+    private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, isHovered: Binding<Bool>) -> some View {
         Button(action: {
-                selectedView = viewType
+            selectedView = viewType
         }) {
             HStack {
                 Label(label, systemImage: systemImage)
-                
                     .font(.system(size: 15)).bold()
                     .foregroundColor(selectedView == viewType ? .black : .white)
                 Spacer()
@@ -136,8 +134,19 @@ struct ContentView: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity) // Ensures the button takes up the full width
             .contentShape(Rectangle())
-            .background(selectedView == viewType ? Color.white : Color.clear)
+            .background(
+                selectedView == viewType
+                    ? Color.white
+                    : (isHovered.wrappedValue ? Color.gray.opacity(0.2) : Color.clear)
+            )
             .cornerRadius(8)
+            .onHover { hovering in
+                if selectedView != viewType {
+                    isHovered.wrappedValue = hovering
+                } else {
+                    isHovered.wrappedValue = false
+                }
+            }
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -158,6 +167,7 @@ struct HomeView: View {
     @State private var showSearchResults = false
     @Environment(\.colorScheme) var colorScheme
     @State private var startAnimation: Bool = false
+    @State private var opacity: Double = 0.0
     private let postsLimit = 10
     var body: some View {
         NavigationStack {
@@ -309,10 +319,11 @@ struct HomeView: View {
 #endif
                     }
                     .padding(.leading, 10)
-                    .offset(y: startAnimation ? 0 : 100)
+                    .offset(y: startAnimation ? 0 : 50)
+                    .opacity(opacity)
                     
                 }
-                .navigationTitle("Dock UI")
+                .navigationTitle("Dock UI Home")
 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarItems(trailing: HStack {
@@ -332,8 +343,9 @@ struct HomeView: View {
         .navigationViewStyle(StackNavigationViewStyle())
 #endif
         .onAppear {
-            withAnimation(.easeInOut(duration: 0.5)) {
+            withAnimation(.easeInOut(duration: 0.3)) {
                 startAnimation = true
+                opacity = 1.0
             }
             store.loadStoredPurchases()
             if !isNewDesignsLoaded {
