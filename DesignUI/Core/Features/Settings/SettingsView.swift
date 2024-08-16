@@ -67,7 +67,6 @@ struct SettingsView: View {
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
     @State private var nonce: String?
-    @State private var authorizationDelegate = AuthorizationControllerDelegate()
 #if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
 #endif
@@ -194,43 +193,7 @@ struct SettingsView: View {
         }
     }
 
-    private func deleteCurrentUser() {
-        let nonce = randomNonceString()
-        self.nonce = nonce
-        let appleIDProvider = ASAuthorizationAppleIDProvider()
-        let request = appleIDProvider.createRequest()
-        request.requestedScopes = [.fullName, .email]
-        request.nonce = sha256(nonce)
-
-        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
-        authorizationController.delegate = authorizationDelegate
-        authorizationDelegate.onCompletion = { result in
-            switch result {
-            case .success(let authorization):
-                self.handleAppleSignIn(authorization)
-            case .failure(let error):
-                self.showError(error.localizedDescription)
-            }
-        }
-        #if os(iOS)
-        authorizationDelegate.presentationAnchorProvider = {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
-            }
-            return ASPresentationAnchor()
-        }
-        #endif
-        
-        #if os(macOS)
-        authorizationDelegate.presentationAnchorProvider = {
-            if let keyWindow = NSApplication.shared.keyWindow {
-                return keyWindow
-            }
-            return NSApplication.shared.windows.first ?? NSWindow()
-        }
-        #endif
-        authorizationController.performRequests()
-    }
+   
 
     func handleAppleSignIn(_ authorization: ASAuthorization) {
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {

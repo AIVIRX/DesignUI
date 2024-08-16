@@ -7,14 +7,16 @@
 
 import SwiftUI
 import AppTrackingTransparency
+import Firebase
+import FirebaseCore
+import FirebaseAuth
+import FirebaseAnalytics
+import AdSupport
 #if os(iOS)
 import GoogleMobileAds
 #endif
-import AdSupport
-import FirebaseAuth
-import FirebaseCore
-import Firebase
-import FirebaseAnalytics
+
+
 
 #if os(iOS)
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -79,7 +81,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         requestTrackingAuthorization()
         configureFirebase()
     }
-        
+    
+    
     private func requestTrackingAuthorization() {
         if #available(iOS 14, *) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -100,8 +103,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func configureFirebase() {
-        FirebaseApp.configure()
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+            print("Firebase configured successfully.")
+        } else {
+            print("Firebase is already configured.")
+        }
+        
+        // Debug Firebase authentication state
+        if let user = Auth.auth().currentUser {
+            print("Firebase is initialized and user is logged in: \(user.uid)")
+        } else {
+            print("Firebase is initialized, but no user is logged in.")
+        }
     }
+
 }
 
 @main

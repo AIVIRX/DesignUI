@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
 		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
-		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
+		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
 		EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */; };
 		EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38922C1CBD820018C802 /* EditProfile.swift */; };
 		EC4F38952C1CC2EC0018C802 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38942C1CC2EC0018C802 /* User.swift */; };

@@ -14,7 +14,7 @@ struct FeaturesView: View {
         HStack(alignment: .center) {
             Image(systemName: imageName)
                 .font(.title3)
-                .foregroundColor(.mainColor)
+                .foregroundColor(.indigo)
                 .frame(height: 50)
                 .accessibility(hidden: true)
             

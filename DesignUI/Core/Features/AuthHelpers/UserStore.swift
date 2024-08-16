@@ -60,15 +60,22 @@ class UserStore: ObservableObject {
                 let user = UserModel(id: uid, profileImage: profileURL, displayName: displayName, username: username, bio: bio, isVerified: verified)
                 DispatchQueue.main.async {
                     self.user = user
+                    completion(user)  // Ensure this is called after setting self.user
                 }
-                completion(user)
             } else {
-                completion(nil)
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
             }
         }
     }
 
+
     func signOut() {
         self.user = nil
     }
+    
+    
 }
+
+

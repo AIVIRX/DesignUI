@@ -653,4 +653,3 @@ extension Color {
     static var mainColor = Color(NSColor.systemIndigo)
     #endif
 }
-
