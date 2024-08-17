@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct DesignPost: Identifiable, Codable {
+struct DesignPost: Identifiable, Decodable, Hashable {
     let id: String
     let media: String
     let title: String

@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var isSFIconsHovered: Bool = false
     @State private var isShopHovered: Bool = false
     @State private var startAnimation: Bool = false
+    
     var body: some View {
         
 #if os(iOS)
@@ -34,10 +35,6 @@ struct ContentView: View {
             Tab(systemImageName: "house.fill") {
                 HomeView()
             }
-            
-            //            Tab(systemImageName: "plus.square.dashed") {
-            //                UploadDesignView()
-            //            }
             
             Tab(systemImageName: "person.crop.circle") {
                 ProfileView()
@@ -52,6 +49,9 @@ struct ContentView: View {
                 // Home Link
                 navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered)
                 
+                NavigationLink("LOL", destination: HomeView())
+                    .buttonStyle(.plain)
+                NavigationLink("LOyL", destination: ProfileView())
                 // Profile Link
                 navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered)
                 
@@ -103,17 +103,19 @@ struct ContentView: View {
             .padding()
             .background(Color.clear)
         } detail: {
-            switch selectedView {
-            case .home:
-                HomeView()
-            case .profile:
-                ProfileView()
-            case .sfIcons:
-                SFIconsView()
-            case .shop:
-                OldStoreView()
-            default:
-                Text("Select a view")
+            NavigationStack() {
+                switch selectedView {
+                case .home:
+                    HomeView()
+                case .profile:
+                    ProfileView()
+                case .sfIcons:
+                    SFIconsView()
+                case .shop:
+                    OldStoreView()
+                default:
+                    Text("Select a view")
+                }
             }
         }
 #endif
@@ -122,7 +124,10 @@ struct ContentView: View {
     
     private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, isHovered: Binding<Bool>) -> some View {
         Button(action: {
-            selectedView = viewType
+            // Reset navigation path to pop to root before switching views
+            if selectedView != viewType {
+                selectedView = viewType            // Switches to the selected view
+            }
         }) {
             HStack {
                 Label(label, systemImage: systemImage)
@@ -151,6 +156,7 @@ struct ContentView: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
 
 struct HomeView: View {
     @EnvironmentObject private var store: Store

@@ -5960,9 +5960,6 @@
         }
       }
     },
-    "Home" : {
-
-    },
     "Load More" : {
       "localizations" : {
         "ar" : {
@@ -6200,6 +6197,12 @@
           }
         }
       }
+    },
+    "LOL" : {
+
+    },
+    "LOyL" : {
+
     },
     "Made in New York City" : {
       "localizations" : {
@@ -9537,6 +9540,7 @@
       }
     },
     "Save" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9773,6 +9777,9 @@
           }
         }
       }
+    },
+    "Save Changes" : {
+
     },
     "Saving..." : {
       "localizations" : {
@@ -11454,6 +11461,7 @@
       }
     },
     "Snippets UI Profile" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -13837,6 +13845,7 @@
       }
     },
     "View Liked Designs And More!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14075,6 +14084,7 @@
       }
     },
     "Welcome, User!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

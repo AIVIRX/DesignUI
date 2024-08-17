@@ -27,7 +27,7 @@ struct DetailView: View {
     @State private var showReportAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
@@ -51,20 +51,25 @@ struct DetailView: View {
                 #endif
                     .overlay{
                         RoundedRectangle(cornerRadius: 15)
-#if os(iOS)
+                        #if os(iOS)
                             .frame(width: 115,height: 250)
                         #endif
                         
-#if os(iOS)
-                            .frame(width: 135,height: 270)
+                        #if os(macOS)
+                            .frame(width: 165,height: 358)
                         #endif
-                            .foregroundStyle(Color.clear)
+                            .foregroundStyle(Color.red)
                             .overlay{
                                 if type == "image" {
                                     Image(mediaURL)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
-                                        .frame(maxWidth: .infinity, maxHeight: 270)
+                                    #if os(iOS)
+                                        .frame(maxWidth: .infinity, maxHeight: 250)
+                                    #endif
+                                    #if os(iOS)
+                                        .frame(maxWidth: .infinity, maxHeight: 370)
+                                    #endif
                                         .clipShape(RoundedRectangle(cornerRadius: 15))
                                         .clipped()
                                         .shadow(radius: 8)
@@ -79,7 +84,12 @@ struct DetailView: View {
                                             image
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 350)
+                                                #if os(iOS)
+                                                    .frame(maxWidth: .infinity, maxHeight: 250)
+                                                #endif
+                                                #if os(iOS)
+                                                    .frame(maxWidth: .infinity, maxHeight: 370)
+                                                #endif
                                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                                 .clipped()
                                         case .failure:

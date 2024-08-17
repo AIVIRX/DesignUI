@@ -22,6 +22,21 @@ struct EditProfileView: View {
     @State private var selectedImage: NSImage?
     #endif
     
+    #if os(macOS)
+    func presentImagePicker() {
+        let openPanel = NSOpenPanel()
+        openPanel.canChooseFiles = true
+        openPanel.canChooseDirectories = false
+        openPanel.allowedContentTypes = [.png, .jpeg, .bmp, .gif, .tiff]
+        openPanel.allowsMultipleSelection = false
+        openPanel.begin { response in
+            if response == .OK, let url = openPanel.url, let image = NSImage(contentsOf: url) {
+                selectedImage = image
+            }
+        }
+    }
+    #endif
+    
     @State private var showImagePicker = false
     @State private var currentImageURL: String = ""
     @State private var newImageURL: String = ""
@@ -37,6 +52,7 @@ struct EditProfileView: View {
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.dismiss) private var dismiss
 
     init(displayName: String, bio: String, username: String) {
         self._newDisplayName = State(initialValue: displayName)
@@ -49,6 +65,17 @@ struct EditProfileView: View {
 
     var body: some View {
         VStack {
+            HStack{
+                Spacer()
+                
+                Button(action: {
+                    dismiss()
+                }, label: {
+                    Image(systemName: "xmark.circle")
+                        .font(.title)
+                        .foregroundStyle(.gray)
+                })
+            }
             ZStack {
                 if let selectedImage = selectedImage {
                     #if os(iOS)
@@ -60,7 +87,8 @@ struct EditProfileView: View {
                         .overlay(Circle().stroke(Color.white, lineWidth: 4))
                         .shadow(radius: 10)
                     #endif
-#if os(macOS)
+                    
+                    #if os(macOS)
                     Image(nsImage: selectedImage)
                         .resizable()
                         .scaledToFill()
@@ -81,7 +109,7 @@ struct EditProfileView: View {
                                 .scaledToFill()
                                 .frame(width: 100, height: 100)
                                 .clipShape(Circle())
-                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
                                 .shadow(radius: 10)
                         case .failure:
                             Image(systemName: "photo")
@@ -89,7 +117,7 @@ struct EditProfileView: View {
                                 .scaledToFill()
                                 .frame(width: 100, height: 100)
                                 .clipShape(Circle())
-                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
                                 .shadow(radius: 10)
                         }
                     }
@@ -101,13 +129,19 @@ struct EditProfileView: View {
                 
                 Circle()
                     .opacity(0)
-                    .frame(width: 50, height: 50)
+                    .frame(width: 100, height: 100)
+                    .contentShape(Circle()) // Makes the entire circle tappable
                     .overlay(
                         Image(systemName: "camera.fill")
-                            .foregroundColor(.white)
+                            .foregroundColor(.gray)
+                            .font(.system(size: 20))
                     )
                     .onTapGesture {
+                        #if os(iOS)
                         showImagePicker = true
+                        #elseif os(macOS)
+                        presentImagePicker()
+                        #endif
                     }
             }
             
@@ -132,7 +166,8 @@ struct EditProfileView: View {
             Button(action: {
                 validateAndSaveProfile()
             }) {
-                Text(isLoading ? "Saving..." : "Save")
+                Text(isLoading ? "Saving..." : "Save Changes")
+                    .bold()
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(isLoading || !isUsernameValid || !isUsernameUnique || (newDisplayName == initialDisplayName && newBio == initialBio && newUsername == initialUsername && selectedImage == nil) ? Color.gray : Color.blue)
@@ -141,10 +176,14 @@ struct EditProfileView: View {
             }
             .disabled(isLoading || !isUsernameValid || !isUsernameUnique || (newDisplayName == initialDisplayName && newBio == initialBio && newUsername == initialUsername && selectedImage == nil))
         }
+        .buttonStyle(.plain)
+        .frame(width: 500)
         .padding()
         .sheet(isPresented: $showImagePicker, content: {
-            ImagePicker(selectedImage: $selectedImage, onImagePicked: { _ in })
-        })
+                #if os(iOS)
+                ImagePicker(selectedImage: $selectedImage, onImagePicked: { _ in })
+                #endif
+            })
         .onAppear {
             fetchProfileImage()
         }
@@ -166,6 +205,10 @@ struct EditProfileView: View {
         validateUsernameUniqueness { isUnique in
             if isUnique {
 #if os(iOS)
+                saveProfile()
+                #endif
+                
+#if os(macOS)
                 saveProfile()
                 #endif
             } else {
@@ -198,7 +241,7 @@ struct EditProfileView: View {
             completion(isUsernameUnique)
         }
     }
-#if os(iOS)
+
     func saveProfile() {
         guard let user = userStore.user else { return }
         let db = Firestore.firestore()
@@ -218,12 +261,24 @@ struct EditProfileView: View {
         if let selectedImage = selectedImage {
             let uniqueImageID = UUID().uuidString
             let storageRef = Storage.storage().reference().child("users/\(user.id)/profile/\(uniqueImageID).jpg")
-            guard let imageData = selectedImage.jpegData(compressionQuality: 0.75) else { return }
+            
+            var imageData: Data?
+            
+            #if os(iOS)
+            imageData = selectedImage.jpegData(compressionQuality: 0.75)
+            #elseif os(macOS)
+            if let tiffData = selectedImage.tiffRepresentation,
+               let bitmapRep = NSBitmapImageRep(data: tiffData) {
+                imageData = bitmapRep.representation(using: .jpeg, properties: [.compressionFactor: 0.75])
+            }
+            #endif
+            
+            guard let finalImageData = imageData else { return }
             
             let metadata = StorageMetadata()
             metadata.contentType = "image/jpeg"
             
-            storageRef.putData(imageData, metadata: metadata) { (metadata, error) in
+            storageRef.putData(finalImageData, metadata: metadata) { (metadata, error) in
                 if let error = error {
                     self.errorMessage = error.localizedDescription
                     self.isLoading = false
@@ -248,7 +303,7 @@ struct EditProfileView: View {
             updateFirestore(userDocRef: userDocRef, updates: updates)
         }
     }
-    #endif
+
     func updateFirestore(userDocRef: DocumentReference, updates: [String: Any]) {
         userDocRef.updateData(updates) { error in
             if let error = error {
@@ -283,112 +338,11 @@ struct EditProfileView: View {
     }
 }
 
-struct TextFieldWithCounter: View {
-    let placeholder: String
-    @Binding var text: String
-    let maxLength: Int
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(placeholder)
-                .font(.headline)
-            TextField(placeholder, text: $text)
-                .padding()
-                .frame(height: 50)
-                .autocorrectionDisabled()
-            #if os(iOS)
-                .textInputAutocapitalization(.none)
-            #endif
-                .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-            HStack {
-                Spacer()
-                Text("\(text.count)/\(maxLength)")
-                    .font(.caption)
-                    .foregroundColor(text.count > maxLength ? .red : .secondary)
-            }
-        }
-        .onChange(of: text) {
-            if text.count > maxLength {
-                text = String(text.prefix(maxLength))
-            }
-        }
-    }
-}
 
-struct TextFieldWithValidation: View {
-    let placeholder: String
-    @Binding var text: String
-    let maxLength: Int
-    @Binding var isValid: Bool
-    @Binding var isUnique: Bool
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(placeholder)
-                .font(.headline)
-            ZStack(alignment: .trailing) {
-                TextField(placeholder, text: $text)
-                    .padding()
-                    .frame(height: 50)
-                    .autocorrectionDisabled()
-#if os(iOS)
-                    .textInputAutocapitalization(.none)
-                #endif
-                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-                if !isValid {
-                    Image(systemName: "xmark.circle")
-                        .foregroundColor(.red)
-                        .padding(.trailing, 10)
-                } else if isValid && isUnique {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(.green)
-                        .padding(.trailing, 10)
-                }
-            }
-            HStack {
-                Spacer()
-                Text("\(text.count)/\(maxLength)")
-                    .font(.caption)
-                    .foregroundColor(text.count > maxLength ? .red : .secondary)
-            }
-        }
-        .onChange(of: text) {
-            if text.count > maxLength {
-                text = String(text.prefix(maxLength))
-            }
-        }
-    }
-}
 
-struct TextEditorWithCounter: View {
-    let label: String
-    @Binding var text: String
-    let maxLength: Int
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(label)
-                .font(.headline)
-            TextEditor(text: $text)
-                .padding()
-                .frame(height: 100)
-                .autocorrectionDisabled()
-#if os(iOS)
-                .textInputAutocapitalization(.none)
-            #endif
-                .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
-            HStack{
-                Spacer()
-                Text("\(text.count)/\(maxLength)")
-                    .font(.caption)
-                    .foregroundColor(text.count > maxLength ? .red : .secondary)
-            }
-        }
-        .onChange(of: text) {
-            if text.count > maxLength {
-                text = String(text.prefix(maxLength))
-            }
-        }
-    }
-}
+
+
+
 
 #if os(iOS)
 struct ImagePicker: UIViewControllerRepresentable {
@@ -440,6 +394,14 @@ struct ImagePicker: NSViewControllerRepresentable {
         init(parent: ImagePicker) {
             self.parent = parent
         }
+        
+        func panel(_ sender: Any, didChangeToDirectoryURL url: URL?) {
+            // Called when the panel's directory is changed
+        }
+        
+        func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
+            return true
+        }
     }
     
     func makeCoordinator() -> Coordinator {
@@ -458,6 +420,10 @@ struct ImagePicker: NSViewControllerRepresentable {
             openPanel.begin { response in
                 if response == .OK, let url = openPanel.url, let image = NSImage(contentsOf: url) {
                     selectedImage = image
+                    onImagePicked(image)
+                    openPanel.close() // Close the window after selecting an image
+                } else {
+                    openPanel.close() // Also close the window if the selection was cancelled
                 }
             }
         }
@@ -467,6 +433,7 @@ struct ImagePicker: NSViewControllerRepresentable {
     func updateNSViewController(_ nsViewController: NSViewController, context: Context) {}
 }
 #endif
+
 
 
 

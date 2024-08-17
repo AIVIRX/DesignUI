@@ -21,7 +21,6 @@
 		EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BDC2C19E45B003134B1 /* Store.swift */; };
 		EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE02C19E49A003134B1 /* Recipe.swift */; };
 		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
-		EC7D7BE92C19E4FB003134B1 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE82C19E4FB003134B1 /* Login.swift */; };
 		EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEA2C19E506003134B1 /* HomeView.swift */; };
 		EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */; };
 		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
@@ -39,6 +38,10 @@
 		EC961B9F2C499905002D10DD /* DBTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC961B9E2C499905002D10DD /* DBTest.swift */; };
 		EC961BA12C499EC2002D10DD /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */; };
 		EC9AAD532C61720C00796358 /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9AAD522C61720C00796358 /* StoreView.swift */; };
+		ECA4AD982C6FF114001AD63A /* DropdownMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */; };
+		ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */; };
+		ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */; };
+		ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD9D2C7022CA001AD63A /* TextEditorWithCounter.swift */; };
 		ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */; };
 		ECBBCD382C5ABCB50074022A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */; };
 		ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECC9BC842C0FE0D40052D471 /* AdSupport.framework */; };
@@ -70,7 +73,6 @@
 		EC7D7BDC2C19E45B003134B1 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		EC7D7BE02C19E49A003134B1 /* Recipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
 		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
-		EC7D7BE82C19E4FB003134B1 /* Login.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		EC7D7BEA2C19E506003134B1 /* HomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeRow.swift; sourceTree = "<group>"; };
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -88,6 +90,10 @@
 		EC91C8AF2C5C82C6000E20E3 /* StoreConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreConfig.storekit; sourceTree = "<group>"; };
 		EC961B9E2C499905002D10DD /* DBTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBTest.swift; sourceTree = "<group>"; };
 		EC9AAD522C61720C00796358 /* StoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
+		ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropdownMenuView.swift; sourceTree = "<group>"; };
+		ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldWCounter.swift; sourceTree = "<group>"; };
+		ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldWithValidation.swift; sourceTree = "<group>"; };
+		ECA4AD9D2C7022CA001AD63A /* TextEditorWithCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEditorWithCounter.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -130,18 +136,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		EC7D7B692C19DC14003134B1 /* Login */ = {
-			isa = PBXGroup;
-			children = (
-				EC7D7BE82C19E4FB003134B1 /* Login.swift */,
-			);
-			path = Login;
-			sourceTree = "<group>";
-		};
 		EC7D7C0D2C19F600003134B1 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
 				EC7D7C0E2C19F610003134B1 /* Profile.swift */,
+				ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */,
 				ECCDD4152C1B94F700869B70 /* PostsView.swift */,
 				EC4F38922C1CBD820018C802 /* EditProfile.swift */,
 			);
@@ -258,7 +257,6 @@
 				ECCDD4192C1BBA3100869B70 /* UploadDesigns */,
 				EC7D7C142C1A50F5003134B1 /* AuthHelpers */,
 				EC7D7C0D2C19F600003134B1 /* Profile */,
-				EC7D7B692C19DC14003134B1 /* Login */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
 				ECD13FEA2C18BE5C00105B3E /* DesignDetail */,
@@ -311,6 +309,9 @@
 				EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */,
 				EC7D7C022C19E5BD003134B1 /* BannerAds.swift */,
 				ECF625462C6D5C6C0057FB6B /* SwiftUIView.swift */,
+				ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */,
+				ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */,
+				ECA4AD9D2C7022CA001AD63A /* TextEditorWithCounter.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -476,19 +477,20 @@
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
-				EC7D7BE92C19E4FB003134B1 /* Login.swift in Sources */,
 				EC4F38952C1CC2EC0018C802 /* User.swift in Sources */,
 				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
 				ECCDD4182C1B951C00869B70 /* LikedView.swift in Sources */,
 				ECCDD4162C1B94F700869B70 /* PostsView.swift in Sources */,
 				ECD043142C5EF5D100865D12 /* StoreViewModel.swift in Sources */,
 				ECCDD41B2C1BBA5F00869B70 /* UploadDesignView.swift in Sources */,
+				ECA4AD982C6FF114001AD63A /* DropdownMenuView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
 				EC9AAD532C61720C00796358 /* StoreView.swift in Sources */,
 				EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */,
 				EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */,
+				ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
 				ECF625472C6D5C6C0057FB6B /* SwiftUIView.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
@@ -500,10 +502,12 @@
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */,
 				ECD043112C5EEE7A00865D12 /* FeaturesContainerView.swift in Sources */,
+				ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */,
 				EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */,
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC961B9F2C499905002D10DD /* DBTest.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
+				ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
