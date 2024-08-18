@@ -44,11 +44,9 @@ struct ProfileView: View {
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
-    
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var showMenu = false
-
     @State private var signInAppleButtonId = UUID().uuidString
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
@@ -59,7 +57,6 @@ struct ProfileView: View {
     }
     
     var body: some View {
-        
             ScrollView{
                 VStack {
                     if isLoading {
@@ -338,6 +335,16 @@ struct ProfileView: View {
     func getFirstChar(_ deckName : String) -> String {
         return String(deckName.prefix(1))
     }
+    
+    private func signOutUser() {
+            let firebaseAuth = Auth.auth()
+            do {
+                try firebaseAuth.signOut()
+                userStore.signOut()
+            } catch let signOutError as NSError {
+                showError(signOutError.localizedDescription)
+            }
+        }
 
     private func deleteCurrentUser() {
         let nonce = randomNonceString()

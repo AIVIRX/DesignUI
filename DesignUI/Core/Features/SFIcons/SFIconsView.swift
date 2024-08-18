@@ -41,6 +41,8 @@ struct SFIconsView: View {
         .navigationTitle("SF Symbols")
         .padding(5)
         .searchable(text: $searchText, prompt: "Search SF Symbols")
+        
+        #if os(macOS)
         .overlay(
             VStack {
                 ForEach(toastManager.toasts) { toast in
@@ -52,6 +54,8 @@ struct SFIconsView: View {
                 .padding(.bottom, 10)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         )
+        #endif
+        
         .offset(y: startAnimation ? 0 : 50)
         .opacity(opacity)
         .onAppear{
@@ -61,6 +65,7 @@ struct SFIconsView: View {
             }
         }
     }
+    
     func copyToClipboard(_ text: String) {
 #if os(iOS)
         UIPasteboard.general.string = text

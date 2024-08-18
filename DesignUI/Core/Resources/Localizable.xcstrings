@@ -2626,6 +2626,7 @@
       }
     },
     "Community" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2864,6 +2865,7 @@
       }
     },
     "Components" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5723,6 +5725,7 @@
       }
     },
     "Featured" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6197,12 +6200,6 @@
           }
         }
       }
-    },
-    "LOL" : {
-
-    },
-    "LOyL" : {
-
     },
     "Made in New York City" : {
       "localizations" : {
@@ -10980,9 +10977,6 @@
           }
         }
       }
-    },
-    "Show More" : {
-
     },
     "Sign out" : {
       "localizations" : {

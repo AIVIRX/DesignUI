@@ -20,20 +20,25 @@ enum ViewType: Hashable {
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
-    
     @State private var selectedView: ViewType? = .home
     @State private var isHomeHovered: Bool = false
     @State private var isProfileHovered: Bool = false
     @State private var isSFIconsHovered: Bool = false
     @State private var isShopHovered: Bool = false
     @State private var startAnimation: Bool = false
-    
+    @State private var isRateUsHovered: Bool = false
+    @State private var isPolicyHovered: Bool = false
+    @State private var isContactHovered: Bool = false
     var body: some View {
         
 #if os(iOS)
         StatefulTabView{
             Tab(systemImageName: "house.fill") {
                 HomeView()
+            }
+            
+            Tab(systemImageName: "house.fill") {
+                UploadDesignView()
             }
             
             Tab(systemImageName: "person.crop.circle") {
@@ -49,9 +54,6 @@ struct ContentView: View {
                 // Home Link
                 navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered)
                 
-                NavigationLink("LOL", destination: HomeView())
-                    .buttonStyle(.plain)
-                NavigationLink("LOyL", destination: ProfileView())
                 // Profile Link
                 navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered)
                 
@@ -70,39 +72,67 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(.gray)
+                    .foregroundColor(isRateUsHovered == true ? .white : .gray)
                     .background(Color.clear)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         requestReview()
                     }
+                    .onHover { hovering in
+                        isRateUsHovered = hovering
+                    }
+            
                 
                 // Privacy Policy Link
                 Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(.gray)
+                    .foregroundColor(isPolicyHovered == true ? .white : .gray)
                     .background(Color.clear)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
+                    .onHover { hovering in
+                        isPolicyHovered = hovering
+                    }
                 
                 // Contact Us Link
                 Link("Contact Us", destination: URL(string: "https://www.aivirx.com/contact")!)
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(.gray)
+                    .foregroundColor(isContactHovered == true ? .white : .gray)
                     .background(Color.clear)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
+                    .onHover { hovering in
+                        isContactHovered = hovering
+                    }
                 
                 Spacer()
+                
+                HStack{
+                    Spacer()
+                    VStack{
+                        Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
+                            .foregroundStyle(Color.gray)
+                            .font(.body)
+                        
+                        Text("Made in New York City")
+                            .foregroundStyle(Color.gray)
+                            .font(.body)
+                    }
+                    Spacer()
+                }
             }
             .padding()
             .background(Color.clear)
-        } detail: {
+            .navigationSplitViewColumnWidth(230)
+
+        }
+    
+    detail: {
             NavigationStack() {
                 switch selectedView {
                 case .home:
@@ -118,17 +148,13 @@ struct ContentView: View {
                 }
             }
         }
+        
 #endif
         
     }
     
     private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, isHovered: Binding<Bool>) -> some View {
-        Button(action: {
-            // Reset navigation path to pop to root before switching views
-            if selectedView != viewType {
-                selectedView = viewType            // Switches to the selected view
-            }
-        }) {
+        NavigationLink(destination: getDestinationView(for: viewType)) {
             HStack {
                 Label(label, systemImage: systemImage)
                     .font(.system(size: 15)).bold()
@@ -141,8 +167,8 @@ struct ContentView: View {
             .contentShape(Rectangle())
             .background(
                 selectedView == viewType
-                    ? Color.white
-                    : (isHovered.wrappedValue ? Color.gray.opacity(0.2) : Color.clear)
+                ? Color.white
+                : (isHovered.wrappedValue ? Color.gray.opacity(0.2) : Color.clear)
             )
             .cornerRadius(8)
             .onHover { hovering in
@@ -154,9 +180,28 @@ struct ContentView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .simultaneousGesture(TapGesture().onEnded {
+                // Reset navigation path to pop to root before switching views
+                if selectedView != viewType {
+                    selectedView = viewType  // Switches to the selected view
+                }
+            })
     }
-}
 
+    private func getDestinationView(for viewType: ViewType) -> some View {
+        switch viewType {
+        case .home:
+            return AnyView(HomeView())
+        case .profile:
+            return AnyView(ProfileView())
+        case .sfIcons:
+            return AnyView(SFIconsView())
+        case .shop:
+            return AnyView(OldStoreView())
+        }
+    }
+
+}
 
 struct HomeView: View {
     @EnvironmentObject private var store: Store
@@ -174,160 +219,356 @@ struct HomeView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
+    @State private var isCommunityPostsLoaded = false
     private let postsLimit = 10
     var body: some View {
         NavigationStack {
             VStack {
                 ScrollView(.vertical, showsIndicators: true) {
+//                    VStack {
+//                        VStack(alignment: .leading) {
+//    
+//#if os(iOS)
+//                            QuickActionCard()
+//#endif
+//                            
+//                            Text("Featured")
+//                            
+//#if os(iOS)
+//                                .font(.title2)
+//#endif
+//                            
+//#if os(macOS)
+//                                .font(.title)
+//#endif
+//                                .fontWeight(.heavy)
+//                                .padding(.top, 10)
+//                                .padding(.leading, 3)
+//                            ScrollView(.horizontal, showsIndicators: false) {
+//                                LazyHStack(spacing: 3) {
+//                                    ForEach(designPosts){ post in
+//                                        DesignCards(
+//                                            id: post.id,
+//                                            media: post.media,
+//                                            title: post.title,
+//                                            authorUID: post.author,
+//                                            description: post.description,
+//                                            codeSnippet: post.codeSnippet,
+//                                            published: formattedDate(from: post.creationDate),
+//                                            type: post.type,
+//                                            tags: post.tags
+//                                        )
+//                                    }
+//                                }
+//                                
+//                            }
+//                            .scrollClipDisabled()
+//                            
+//                        }
+//                        
+//                        VStack(alignment: .leading) {
+//                            Text("Components")
+//#if os(iOS)
+//                                .font(.title2)
+//#endif
+//                            
+//#if os(macOS)
+//                                .font(.title)
+//#endif
+//                                .fontWeight(.heavy)
+//                                .padding(.top, 20)
+//                                .padding(.leading, 3)
+//                            
+//                            ScrollView(.horizontal, showsIndicators: false) {
+//                                LazyHStack(spacing: 3) {
+//                                    ForEach(componentPosts) { post in
+//                                        DesignCards(
+//                                            id: post.id,
+//                                            media: post.media,
+//                                            title: post.title,
+//                                            authorUID: post.author,
+//                                            description: post.description,
+//                                            codeSnippet: post.codeSnippet,
+//                                            published: formattedDate(from: post.creationDate),
+//                                            type: post.type,
+//                                            tags: post.tags
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                            .scrollClipDisabled()
+//                        }
+//                        
+//                        if !communityPosts.isEmpty {
+//                            VStack(alignment: .leading) {
+//                                Text("Community")
+//#if os(iOS)
+//                                    .font(.title2)
+//#endif
+//                                
+//#if os(macOS)
+//                                    .font(.title)
+//#endif
+//                                    .fontWeight(.heavy)
+//                                    .padding(.top, 20)
+//                                    .padding(.leading, 3)
+//                                
+//                                ScrollView(.horizontal, showsIndicators: false) {
+//                                    LazyHStack(spacing: 3) {
+//                                        ForEach(communityPosts) { post in
+//                                            DesignCards(
+//                                                id: post.id,
+//                                                media: post.media,
+//                                                title: post.title,
+//                                                authorUID: post.author,
+//                                                description: post.description,
+//                                                codeSnippet: post.codeSnippet,
+//                                                published: formattedDate(from: post.creationDate),
+//                                                type: post.type,
+//                                                tags: post.tags
+//                                            )
+//                                        }
+//                                        // Show More Button
+//                                        if hasMoreCommunityPosts {
+//                                            Button(action: {
+//                                                Task {
+//                                                    await fetchCommunityPosts()
+//                                                }
+//                                            }) {
+//                                                VStack{
+//                                                    Image(systemName: "arrowshape.right.circle")
+//                                                        .font(.title3)
+//                                                    
+//                                                    Text("Show More")
+//                                                        .foregroundColor(.blue)
+//                                                        .padding(.vertical, 10)
+//                                                        .frame(maxWidth: .infinity)
+//                                                }
+//                                                .frame(width: 139, height: 150)
+//                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+//                                                .overlay(
+//                                                    RoundedRectangle(cornerRadius: 20)
+//                                                        .stroke(Color.gray, lineWidth: 0.8)
+//                                                )
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                                .scrollClipDisabled()
+//                            }
+//                        }
+//#if os(iOS)
+//                        VStack{
+//                            Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
+//                                .foregroundStyle(Color.gray)
+//                                .font(.body)
+//                            
+//                            Text("Made in New York City")
+//                                .foregroundStyle(Color.gray)
+//                                .font(.body)
+//                        }
+//                        .padding(.top, 15)
+//#endif
+//                    }
+//                    .padding(.leading, 10)
+//                    .offset(y: startAnimation ? 0 : 50)
+//                    .opacity(opacity)
+                    
                     VStack {
                         VStack(alignment: .leading) {
-                            
-#if os(iOS)
-                            QuickActionCard()
-#endif
-                            
-                            Text("Featured")
-                            
-#if os(iOS)
-                                .font(.title2)
-#endif
-                            
-#if os(macOS)
-                                .font(.title)
-#endif
-                                .fontWeight(.heavy)
-                                .padding(.top, 10)
-                                .padding(.leading, 3)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 3) {
-                                    ForEach(designPosts){ post in
-                                        DesignCards(
-                                            id: post.id,
-                                            media: post.media,
-                                            title: post.title,
-                                            authorUID: post.author,
-                                            description: post.description,
-                                            codeSnippet: post.codeSnippet,
-                                            published: formattedDate(from: post.creationDate),
-                                            type: post.type,
-                                            tags: post.tags
-                                        )
-                                    }
-                                }
-                                
-                            }
-                            .scrollClipDisabled()
-                            
-                        }
-                        
-                        VStack(alignment: .leading) {
-                            Text("Components")
-#if os(iOS)
-                                .font(.title2)
-#endif
-                            
-#if os(macOS)
-                                .font(.title)
-#endif
-                                .fontWeight(.heavy)
-                                .padding(.top, 20)
-                                .padding(.leading, 3)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 3) {
-                                    ForEach(componentPosts) { post in
-                                        DesignCards(
-                                            id: post.id,
-                                            media: post.media,
-                                            title: post.title,
-                                            authorUID: post.author,
-                                            description: post.description,
-                                            codeSnippet: post.codeSnippet,
-                                            published: formattedDate(from: post.creationDate),
-                                            type: post.type,
-                                            tags: post.tags
-                                        )
-                                    }
-                                }
-                            }
-                            .scrollClipDisabled()
-                        }
-                        
-                        if !communityPosts.isEmpty {
-                            VStack(alignment: .leading) {
-                                Text("Community")
-#if os(iOS)
-                                    .font(.title2)
-#endif
-                                
-#if os(macOS)
-                                    .font(.title)
-#endif
-                                    .fontWeight(.heavy)
-                                    .padding(.top, 20)
-                                    .padding(.leading, 3)
-                                
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    LazyHStack(spacing: 3) {
-                                        ForEach(communityPosts) { post in
-                                            DesignCards(
-                                                id: post.id,
-                                                media: post.media,
-                                                title: post.title,
-                                                authorUID: post.author,
-                                                description: post.description,
-                                                codeSnippet: post.codeSnippet,
-                                                published: formattedDate(from: post.creationDate),
-                                                type: post.type,
-                                                tags: post.tags
-                                            )
-                                        }
-                                        // Show More Button
-                                        if hasMoreCommunityPosts {
-                                            Button(action: {
-                                                Task {
-                                                    await fetchCommunityPosts()
-                                                }
-                                            }) {
-                                                VStack{
-                                                    Image(systemName: "arrowshape.right.circle")
-                                                        .font(.title3)
-                                                    
-                                                    Text("Show More")
-                                                        .foregroundColor(.blue)
-                                                        .padding(.vertical, 10)
+                            ScrollView(.vertical, showsIndicators: false) {
+                                        VStack(alignment: .leading, spacing: 16) {
+                                            
+                                            // Community Posts Section
+                                            if isCommunityPostsLoaded {
+                                                LazyVGrid(
+                                                    columns: [
+                                                        GridItem(.flexible(), spacing: 16),
+                                                        GridItem(.flexible(), spacing: 16)
+                                                    ],
+                                                    spacing: 16
+                                                ) {
+                                                    ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
+                                                        DesignCards(
+                                                            id: post.id,
+                                                            media: post.media,
+                                                            title: post.title,
+                                                            authorUID: post.author,
+                                                            description: post.description,
+                                                            codeSnippet: post.codeSnippet,
+                                                            published: formattedDate(from: post.creationDate),
+                                                            type: post.type,
+                                                            tags: post.tags
+                                                        )
                                                         .frame(maxWidth: .infinity)
+                                                        .aspectRatio(9/16, contentMode: .fit)
+                                                        .cornerRadius(12)
+                                                        .clipped()
+                                                        .offset(y: index % 2 == 0 ? 0 : 80)
+                                                    }
                                                 }
-                                                .frame(width: 139, height: 150)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 20)
-                                                        .stroke(Color.gray, lineWidth: 0.8)
-                                                )
+                                            }
+                                            
+                                            LazyVGrid(
+                                                columns: [
+                                                    GridItem(.flexible(), spacing: 16),
+                                                    GridItem(.flexible(), spacing: 16)
+                                                ],
+                                                spacing: 16
+                                            ) {
+                                                ForEach(Array(designPosts.enumerated()), id: \.offset) { index, post in
+                                                    DesignCards(
+                                                        id: post.id,
+                                                        media: post.media,
+                                                        title: post.title,
+                                                        authorUID: post.author,
+                                                        description: post.description,
+                                                        codeSnippet: post.codeSnippet,
+                                                        published: formattedDate(from: post.creationDate),
+                                                        type: post.type,
+                                                        tags: post.tags
+                                                    )
+                                                    .frame(maxWidth: .infinity)
+                                                    .aspectRatio(9/16, contentMode: .fit)
+                                                    .cornerRadius(12)
+                                                    .clipped()
+                                                    .offset(y: index % 2 == 0 ? 0 : 80)
+                                                }
+                                            }
+                                           
+                                            LazyVGrid(
+                                                columns: [
+                                                    GridItem(.flexible(), spacing: 16),
+                                                    GridItem(.flexible(), spacing: 16)
+                                                ],
+                                                spacing: 16
+                                            ) {
+                                                ForEach(Array(componentPosts.enumerated()), id: \.offset) { index, post in
+                                                    DesignCards(
+                                                        id: post.id,
+                                                        media: post.media,
+                                                        title: post.title,
+                                                        authorUID: post.author,
+                                                        description: post.description,
+                                                        codeSnippet: post.codeSnippet,
+                                                        published: formattedDate(from: post.creationDate),
+                                                        type: post.type,
+                                                        tags: post.tags
+                                                    )
+                                                    .frame(maxWidth: .infinity)
+                                                    .aspectRatio(9/16, contentMode: .fit)
+                                                    .cornerRadius(12)
+                                                    .clipped()
+                                                    .offset(y: index % 2 == 0 ? 0 : 80)
+                                                }
                                             }
                                         }
+                                        .padding(.horizontal)
+                                        .task {
+                                            await fetchCommunityPosts()
+                                            isCommunityPostsLoaded = true
+                                        }
                                     }
                                 }
-                                .scrollClipDisabled()
-                            }
+                            .scrollClipDisabled()
                         }
-#if os(iOS)
-                        VStack{
-                            Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
-                                .foregroundStyle(Color.gray)
-                                .font(.body)
-                            
-                            Text("Made in New York City")
-                                .foregroundStyle(Color.gray)
-                                .font(.body)
-                        }
-                        .padding(.top, 15)
-#endif
-                    }
-                    .padding(.leading, 10)
-                    .offset(y: startAnimation ? 0 : 50)
-                    .opacity(opacity)
-                    
+                        
+//                        VStack(alignment: .leading) {
+//                            Text("Components")
+//
+//                            
+//                            ScrollView(.horizontal, showsIndicators: false) {
+//                                LazyHStack(spacing: 3) {
+//                                    ForEach(componentPosts) { post in
+//                                        DesignCards(
+//                                            id: post.id,
+//                                            media: post.media,
+//                                            title: post.title,
+//                                            authorUID: post.author,
+//                                            description: post.description,
+//                                            codeSnippet: post.codeSnippet,
+//                                            published: formattedDate(from: post.creationDate),
+//                                            type: post.type,
+//                                            tags: post.tags
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                            .scrollClipDisabled()
+//                        }
+//                        
+//                        if !communityPosts.isEmpty {
+//                            VStack(alignment: .leading) {
+//                                Text("Community")
+//#if os(iOS)
+//                                    .font(.title2)
+//#endif
+//                                
+//#if os(macOS)
+//                                    .font(.title)
+//#endif
+//                                    .fontWeight(.heavy)
+//                                    .padding(.top, 20)
+//                                    .padding(.leading, 3)
+//                                
+//                                ScrollView(.horizontal, showsIndicators: false) {
+//                                    LazyHStack(spacing: 3) {
+//                                        ForEach(communityPosts) { post in
+//                                            DesignCards(
+//                                                id: post.id,
+//                                                media: post.media,
+//                                                title: post.title,
+//                                                authorUID: post.author,
+//                                                description: post.description,
+//                                                codeSnippet: post.codeSnippet,
+//                                                published: formattedDate(from: post.creationDate),
+//                                                type: post.type,
+//                                                tags: post.tags
+//                                            )
+//                                        }
+//                                        // Show More Button
+//                                        if hasMoreCommunityPosts {
+//                                            Button(action: {
+//                                                Task {
+//                                                    await fetchCommunityPosts()
+//                                                }
+//                                            }) {
+//                                                VStack{
+//                                                    Image(systemName: "arrowshape.right.circle")
+//                                                        .font(.title3)
+//                                                    
+//                                                    Text("Show More")
+//                                                        .foregroundColor(.blue)
+//                                                        .padding(.vertical, 10)
+//                                                        .frame(maxWidth: .infinity)
+//                                                }
+//                                                .frame(width: 139, height: 150)
+//                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+//                                                .overlay(
+//                                                    RoundedRectangle(cornerRadius: 20)
+//                                                        .stroke(Color.gray, lineWidth: 0.8)
+//                                                )
+//                                            }
+//                                        }
+//                                    }
+//                                
+//                                .scrollClipDisabled()
+//                            }
+//                        }
+//#if os(iOS)
+//                        VStack{
+//                            Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
+//                                .foregroundStyle(Color.gray)
+//                                .font(.body)
+//                            
+//                            Text("Made in New York City")
+//                                .foregroundStyle(Color.gray)
+//                                .font(.body)
+//                        }
+//                        .padding(.top, 15)
+//#endif
+//                    }
+//                    
                 }
                 .navigationTitle("Dock UI Home")
 #if os(iOS)

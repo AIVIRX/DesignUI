@@ -10,6 +10,7 @@ import CryptoKit
 import FirebaseAuth
 import AuthenticationServices
 
+#if os(macOS)
 struct DropdownMenuView: View {
     @State private var authorizationDelegate = AuthorizationControllerDelegate()
     @State private var alertItem: AlertItem?
@@ -55,6 +56,7 @@ struct DropdownMenuView: View {
         .buttonStyle(.plain)
         .frame(width: 200) // Adjust width as needed
         .padding(.top, 10)
+        
         .background(Color(NSColor.windowBackgroundColor))
         .cornerRadius(8)
         .shadow(radius: 5)
@@ -188,3 +190,4 @@ struct DropdownMenuView: View {
         return hashString
     }
 }
+#endif

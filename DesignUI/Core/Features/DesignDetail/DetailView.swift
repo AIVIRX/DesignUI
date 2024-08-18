@@ -27,49 +27,49 @@ struct DetailView: View {
     @State private var showReportAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
-
     var body: some View {
         ScrollView {
+#if os(iOS)
             VStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 15)
-                        .frame(maxWidth: .infinity)
-                #if os(iOS)
-                        .frame(height: 280)
-                #endif
+                    .frame(maxWidth: .infinity)
+#if os(iOS)
+                    .frame(height: 280)
+#endif
                 
-                #if os(macOS)
-                        .frame(height: 400)
-                #endif
+#if os(macOS)
+                    .frame(height: 400)
+#endif
                 
                 
-                #if os(iOS)
-                        .foregroundStyle(.thinMaterial)
-                #endif
+#if os(iOS)
+                    .foregroundStyle(.thinMaterial)
+#endif
                 
-                #if os(macOS)
-                        .foregroundStyle(Color.gray.opacity(0.2))
-                #endif
+#if os(macOS)
+                    .foregroundStyle(Color.gray.opacity(0.2))
+#endif
                     .overlay{
                         RoundedRectangle(cornerRadius: 15)
-                        #if os(iOS)
+#if os(iOS)
                             .frame(width: 115,height: 250)
-                        #endif
+#endif
                         
-                        #if os(macOS)
+#if os(macOS)
                             .frame(width: 165,height: 358)
-                        #endif
+#endif
                             .foregroundStyle(Color.red)
                             .overlay{
                                 if type == "image" {
                                     Image(mediaURL)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
-                                    #if os(iOS)
+#if os(iOS)
                                         .frame(maxWidth: .infinity, maxHeight: 250)
-                                    #endif
-                                    #if os(iOS)
+#endif
+#if os(iOS)
                                         .frame(maxWidth: .infinity, maxHeight: 370)
-                                    #endif
+#endif
                                         .clipShape(RoundedRectangle(cornerRadius: 15))
                                         .clipped()
                                         .shadow(radius: 8)
@@ -84,12 +84,12 @@ struct DetailView: View {
                                             image
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fill)
-                                                #if os(iOS)
-                                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                                                #endif
-                                                #if os(iOS)
-                                                    .frame(maxWidth: .infinity, maxHeight: 370)
-                                                #endif
+#if os(iOS)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+#endif
+#if os(iOS)
+                                                .frame(maxWidth: .infinity, maxHeight: 370)
+#endif
                                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                                 .clipped()
                                         case .failure:
@@ -157,7 +157,7 @@ struct DetailView: View {
                     
                     TagView(tags: tags)
                 }
-            
+                
                 Text("Description:")
                     .font(.title2).bold()
                     .padding(.top)
@@ -184,18 +184,18 @@ struct DetailView: View {
                     copyToClipboard(codeSnippet)
                     isCopied = true
                     
-                    #if os(iOS)
+#if os(iOS)
                     let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                        impactMed.impactOccurred()
-                    #endif
-                    #if os(iOS)
+                    impactMed.impactOccurred()
+#endif
+#if os(iOS)
                     let drop = Drop(
                         title: "Copied Code",
                         icon: UIImage(systemName: "doc.on.doc.fill")
                     )
-
+                    
                     Drops.show(drop)
-                    #endif
+#endif
                 }) {
                     Text("Copy Code")
                         .padding(8)
@@ -211,10 +211,173 @@ struct DetailView: View {
             }
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
+#endif
+            
+#if os(macOS)
+            VStack(alignment: .leading) {
+                HStack{
+                    RoundedRectangle(cornerRadius: 15)
+                        .frame(maxWidth: .infinity)
+                        .frame(width:400)
+                        .foregroundStyle(Color.gray.opacity(0.2))
+                        .overlay{
+                            RoundedRectangle(cornerRadius: 20)
+                                .frame(width: 257,height: 557)
+                                .foregroundStyle(Color.red)
+                                .overlay{
+                                    if type == "image" {
+                                        Image(mediaURL)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(maxWidth: .infinity, maxHeight: 558)
+                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                            .clipped()
+                                            .shadow(radius: 8)
+                                    }
+                                    if type == "fetched" {
+                                        WebImage(url: URL(string: mediaURL)) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                                    .frame(maxWidth: .infinity, maxHeight: 350)
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(maxWidth: .infinity, maxHeight: 250)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                    .clipped()
+                                            case .failure:
+                                                Image(systemName: "photo")
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(maxWidth: .infinity, maxHeight: 250)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                    .clipped()
+                                            }
+                                        }
+                                    }
+                                }
+                        }
+                    VStack{
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Text(title)
+                                    .font(.system(size: 30))
+                                    .bold()
+                                    .lineLimit(2)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                if type == "fetched" {
+                                    if Auth.auth().currentUser != nil{
+                                        Button(action: {
+                                            if !isLiking {
+                                                isLiking = true
+                                                toggleLike()
+                                            }
+                                        }) {
+                                            VStack{
+                                                
+                                                Image(systemName: isLiked ? "heart.fill" : "heart")
+                                                    .foregroundColor(isLiked ? .red : .gray)
+                                                    .font(.title)
+                                                Text("\(formatCount(likesCount))")
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            Text(creationDate)
+                                .font(.system(size: 15)).bold()
+                                .foregroundColor(.secondary)
+                            
+                            if Auth.auth().currentUser != nil && type != "image" {
+                                Text("\(formatCount(viewCount)) views")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            HStack {
+                                Text("\(author)")
+                                    .font(.system(size: 15)).bold()
+                                    .foregroundColor(.secondary)
+                                
+                                if isAuthorVerified || type == "image" {
+                                    Image(systemName: "checkmark.seal.fill")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            
+                            TagView(tags: tags)
+                            
+                            Text("Description:")
+                                .font(.system(size: 25)).bold()
+                                .padding(.top,5)
+                            
+                            Text(description)
+                                .font(.system(size: 18))
+                                .frame(maxHeight: 700, alignment: .top)
+                            
+                            Text("Code Snippet:")
+                                .font(.system(size: 25)).bold()
+                                .padding(.top,5)
+                        }
+                        ScrollView {
+                            VStack(alignment: .leading) {
+                                Text(codeSnippet)
+                                    .textSelection(.enabled)
+                                    .font(.system(size: 20))
+                                    .padding()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: 300)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            copyToClipboard(codeSnippet)
+                            isCopied = true
+                            
+#if os(iOS)
+                            let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                            impactMed.impactOccurred()
+#endif
+#if os(iOS)
+                            let drop = Drop(
+                                title: "Copied Code",
+                                icon: UIImage(systemName: "doc.on.doc.fill")
+                            )
+                            
+                            Drops.show(drop)
+#endif
+                        }) {
+                            Text("Copy Code")
+                                .padding(8)
+                                .font(.headline).bold()
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .foregroundStyle(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10.0))
+                        .padding(.top, 10)
+                    }
+                }
+                
+            }
+            .frame(height: 700)
+            .environment(\.symbolVariants, .none)
+            .accentColor(.none)
+#endif
         }
 #if os(iOS)
         .navigationBarItems(trailing:
-            Button(action: {
+                                Button(action: {
             alertItem = AlertItem(
                 title: Text("Report Content"),
                 message: Text("Are you sure you want to Report this post?"),
@@ -227,15 +390,16 @@ struct DetailView: View {
             Label("Report", systemImage: "flag")
         }
             .alert(item: $alertItem) { alertItem in
-                        Alert(
-                            title: alertItem.title,
-                            message: alertItem.message,
-                            primaryButton: alertItem.primaryButton,
-                            secondaryButton: alertItem.secondaryButton ?? .cancel()
-                        )
-                    }
+                Alert(
+                    title: alertItem.title,
+                    message: alertItem.message,
+                    primaryButton: alertItem.primaryButton,
+                    secondaryButton: alertItem.secondaryButton ?? .cancel()
+                )
+            }
         )
         #endif
+        
         .padding(7)
         .onAppear{
             fetchLikeStatusAndViewCount()
@@ -253,7 +417,6 @@ struct DetailView: View {
         #endif
     }
 
-    
     func fetchLikeStatusAndViewCount() {
         guard let user = Auth.auth().currentUser else { return }
         let db = Firestore.firestore()
