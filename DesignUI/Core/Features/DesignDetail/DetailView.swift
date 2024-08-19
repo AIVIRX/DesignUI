@@ -239,21 +239,24 @@ struct DetailView: View {
                                             switch phase {
                                             case .empty:
                                                 ProgressView()
-                                                    .frame(maxWidth: .infinity, maxHeight: 350)
+                                                    .frame(maxWidth: .infinity, maxHeight: 558)
                                             case .success(let image):
                                                 image
                                                     .resizable()
                                                     .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 250)
+                                                    .frame(maxWidth: .infinity, maxHeight: 558)
                                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                                     .clipped()
+                                                    .shadow(radius: 8)
                                             case .failure:
                                                 Image(systemName: "photo")
                                                     .resizable()
                                                     .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 250)
+                                                    .frame(maxWidth: .infinity, maxHeight: 558)
                                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                                     .clipped()
+                                                    .shadow(radius: 8)
+
                                             }
                                         }
                                     }
@@ -294,7 +297,7 @@ struct DetailView: View {
                             
                             if Auth.auth().currentUser != nil && type != "image" {
                                 Text("\(formatCount(viewCount)) views")
-                                    .font(.subheadline)
+                                    .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
                             }
                             

@@ -25,7 +25,6 @@ struct DesignCards: View {
     @State private var isLiked: Bool = false
     @State private var authorName: String = "DockUI Team"
     @State private var isAuthorVerified: Bool = false
-    
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     
@@ -50,19 +49,19 @@ struct DesignCards: View {
             codeSnippet: codeSnippet,
             creationDate: published,
             type: type,
-            isAuthorVerified: isAuthorVerified, 
-            tags: tags, 
+            isAuthorVerified: isAuthorVerified,
+            tags: tags,
             isLiked: $isLiked
         )) {
-            VStack(alignment: .leading) {
-                #if os(iOS)
+            VStack(alignment: .center) {
+#if os(iOS)
                 if UIDevice.current.userInterfaceIdiom == .phone {
                     if type == "image" {
                         Image(media)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                         //   .frame(width: 139, height: 300)
-                            .frame(width: 195, height: 420)
+                        //   .frame(width: 139, height: 300)
+                            .frame(width: 135, height: 295)
                             .background(.gray)
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                             .overlay(
@@ -75,12 +74,12 @@ struct DesignCards: View {
                             switch phase {
                             case .empty:
                                 ProgressView()
-                                    .frame(width: 195, height: 420)
+                                    .frame(width: 135, height: 295)
                             case .success(let image):
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 195, height: 420)
+                                    .frame(width: 135, height: 295)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -90,7 +89,7 @@ struct DesignCards: View {
                                 Image(systemName: "photo")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 195, height: 420)
+                                    .frame(width: 135, height: 295)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -142,9 +141,9 @@ struct DesignCards: View {
                         }
                     }
                 }
-                #endif
+#endif
                 
-                #if os(macOS)
+#if os(macOS)
                 if type == "image" {
                     Image(media)
                         .resizable()
@@ -157,11 +156,11 @@ struct DesignCards: View {
                         )
                         .scaleEffect(isHovered ? 1.02 : 1.0)
                         .colorMultiply(isHovered ? Color.white : Color(white: 0.95))
-
                         .animation(.easeInOut(duration: 0.2), value: isHovered)
                         .onHover { hovering in
                             isHovered = hovering
                         }
+                        .padding(.top)
                 }
                 if type == "fetched" {
                     WebImage(url: URL(string: media)) { phase in
@@ -182,9 +181,13 @@ struct DesignCards: View {
                                 .scaleEffect(isHovered ? 1.02 : 1.0)  // Scale effect on hover
                                 .colorMultiply(isHovered ? Color.white : Color(white: 0.95))
                                 .animation(.easeInOut(duration: 0.2), value: isHovered)  // Animation
+                                .background(Color.clear)  // Background to prevent clipping
+                                .zIndex(isHovered ? 1 : 0)
                                 .onHover { hovering in
                                     isHovered = hovering
                                 }
+                                .padding(.top)
+                            
                         case .failure:
                             Image(systemName: "photo")
                                 .resizable()
@@ -195,11 +198,12 @@ struct DesignCards: View {
                                     RoundedRectangle(cornerRadius: 20)
                                         .stroke(Color.gray, lineWidth: 0.8)
                                 )
+                                .padding(.top)
+                            
                         }
                     }
                 }
-                #endif
-                
+#endif
                 VStack(alignment: .leading) {
                     Text(title)
                         .font(.body).bold()
@@ -225,17 +229,17 @@ struct DesignCards: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             
-//            #if os(iOS)
-//            .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 150 : 225)
-//            #endif
-            #if os(iOS)
+            //            #if os(iOS)
+            //            .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 150 : 225)
+            //            #endif
+            
+#if os(iOS)
             .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 5 : 10)
-            #endif
+#endif
             
-            #if os(macOS)
+#if os(macOS)
             .padding(.horizontal, 10)
-                #endif
-            
+#endif
             .onAppear {
                 if type == "fetched" {
                     fetchAuthorName()
@@ -243,13 +247,13 @@ struct DesignCards: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-
-        #if os(iOS)
+        
+#if os(iOS)
         .simultaneousGesture(TapGesture().onEnded {
             let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                impactHeavy.impactOccurred()
+            impactHeavy.impactOccurred()
         })
-        #endif
+#endif
     }
     
     func fetchAuthorName() {

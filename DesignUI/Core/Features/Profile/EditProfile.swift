@@ -177,7 +177,9 @@ struct EditProfileView: View {
             .disabled(isLoading || !isUsernameValid || !isUsernameUnique || (newDisplayName == initialDisplayName && newBio == initialBio && newUsername == initialUsername && selectedImage == nil))
         }
         .buttonStyle(.plain)
+        #if os(macOS)
         .frame(width: 500)
+        #endif
         .padding()
         .sheet(isPresented: $showImagePicker, content: {
                 #if os(iOS)

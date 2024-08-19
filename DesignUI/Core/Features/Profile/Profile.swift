@@ -55,13 +55,11 @@ struct ProfileView: View {
         @unknown default: return .black
         }
     }
-    
     var body: some View {
             ScrollView{
                 VStack {
                     if isLoading {
                         VStack{
-                            
                         }
                         .overlay{
                             Spacer()
@@ -111,24 +109,24 @@ struct ProfileView: View {
                                                 .fontWeight(.bold)
                                         }
                                 }
-                                HStack{
-                                    // Name
-                                    Text(user.displayName)
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                    
-                                    if user.isVerified{
-                                        Image(systemName: "checkmark.seal.fill")
-                                    }
-                                }
                                 
                                 // Username
                                 Text("@\(user.username)")
                                     .font(.body)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
-                                    .padding([.leading, .trailing], 20)
-                                    .padding(.bottom, 10)
+                                
+                                HStack{
+                                    // Display Name
+                                    Text(user.displayName)
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                    //Verified Mark
+                                    if user.isVerified{
+                                        Image(systemName: "checkmark.seal.fill")
+                                    }
+                                }
+                                .padding(.bottom)
                                 
                                 // Bio
                                 Text(user.bio)
@@ -319,8 +317,6 @@ struct ProfileView: View {
             }
             .offset(y: startAnimation ? 0 : 50)
             .opacity(opacity)
-        
-        .background(Color(red: 30/255, green: 30/255, blue: 30/255))
         .onAppear {
             checkLoggedIn()
             withAnimation(.easeInOut(duration: 0.3)) {

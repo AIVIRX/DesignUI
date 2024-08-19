@@ -39,7 +39,7 @@ struct OldStoreView: View {
                 }
             }
         }
-        .background(Color(red: 30/255, green: 30/255, blue: 30/255))
+        .buttonStyle(.plain)
         .navigationTitle("Shop")
         
         

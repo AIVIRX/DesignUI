@@ -13,200 +13,9 @@ import StatefulTabView
 import SDWebImage
 import SDWebImageSwiftUI
 
-enum ViewType: Hashable {
-    case home, profile, sfIcons, shop
-}
-
-struct ContentView: View {
-    @Environment(\.colorScheme) var colorScheme
-    @Environment(\.requestReview) var requestReview
-    @State private var selectedView: ViewType? = .home
-    @State private var isHomeHovered: Bool = false
-    @State private var isProfileHovered: Bool = false
-    @State private var isSFIconsHovered: Bool = false
-    @State private var isShopHovered: Bool = false
-    @State private var startAnimation: Bool = false
-    @State private var isRateUsHovered: Bool = false
-    @State private var isPolicyHovered: Bool = false
-    @State private var isContactHovered: Bool = false
-    var body: some View {
-        
-#if os(iOS)
-        StatefulTabView{
-            Tab(systemImageName: "house.fill") {
-                HomeView()
-            }
-            
-            Tab(systemImageName: "house.fill") {
-                UploadDesignView()
-            }
-            
-            Tab(systemImageName: "person.crop.circle") {
-                ProfileView()
-            }
-        }
-        .accentColor(colorScheme == .dark ? .white : .black)
-#endif
-        
-#if os(macOS)
-        NavigationSplitView {
-            VStack(alignment: .leading, spacing: 5) {
-                // Home Link
-                navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered)
-                
-                // Profile Link
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered)
-                
-                Divider().padding(.vertical)
-                
-                // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered)
-                
-                // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered)
-                
-                Divider().padding(.vertical)
-                
-                // Rate Us Text
-                Text("Rate Us")
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(isRateUsHovered == true ? .white : .gray)
-                    .background(Color.clear)
-                    .cornerRadius(8)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        requestReview()
-                    }
-                    .onHover { hovering in
-                        isRateUsHovered = hovering
-                    }
-            
-                
-                // Privacy Policy Link
-                Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(isPolicyHovered == true ? .white : .gray)
-                    .background(Color.clear)
-                    .cornerRadius(8)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        isPolicyHovered = hovering
-                    }
-                
-                // Contact Us Link
-                Link("Contact Us", destination: URL(string: "https://www.aivirx.com/contact")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(isContactHovered == true ? .white : .gray)
-                    .background(Color.clear)
-                    .cornerRadius(8)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        isContactHovered = hovering
-                    }
-                
-                Spacer()
-                
-                HStack{
-                    Spacer()
-                    VStack{
-                        Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
-                            .foregroundStyle(Color.gray)
-                            .font(.body)
-                        
-                        Text("Made in New York City")
-                            .foregroundStyle(Color.gray)
-                            .font(.body)
-                    }
-                    Spacer()
-                }
-            }
-            .padding()
-            .background(Color.clear)
-            .navigationSplitViewColumnWidth(230)
-
-        }
-    
-    detail: {
-            NavigationStack() {
-                switch selectedView {
-                case .home:
-                    HomeView()
-                case .profile:
-                    ProfileView()
-                case .sfIcons:
-                    SFIconsView()
-                case .shop:
-                    OldStoreView()
-                default:
-                    Text("Select a view")
-                }
-            }
-        }
-        
-#endif
-        
-    }
-    
-    private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, isHovered: Binding<Bool>) -> some View {
-        NavigationLink(destination: getDestinationView(for: viewType)) {
-            HStack {
-                Label(label, systemImage: systemImage)
-                    .font(.system(size: 15)).bold()
-                    .foregroundColor(selectedView == viewType ? .black : .white)
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity) // Ensures the button takes up the full width
-            .contentShape(Rectangle())
-            .background(
-                selectedView == viewType
-                ? Color.white
-                : (isHovered.wrappedValue ? Color.gray.opacity(0.2) : Color.clear)
-            )
-            .cornerRadius(8)
-            .onHover { hovering in
-                if selectedView != viewType {
-                    isHovered.wrappedValue = hovering
-                } else {
-                    isHovered.wrappedValue = false
-                }
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(TapGesture().onEnded {
-                // Reset navigation path to pop to root before switching views
-                if selectedView != viewType {
-                    selectedView = viewType  // Switches to the selected view
-                }
-            })
-    }
-
-    private func getDestinationView(for viewType: ViewType) -> some View {
-        switch viewType {
-        case .home:
-            return AnyView(HomeView())
-        case .profile:
-            return AnyView(ProfileView())
-        case .sfIcons:
-            return AnyView(SFIconsView())
-        case .shop:
-            return AnyView(OldStoreView())
-        }
-    }
-
-}
-
 struct HomeView: View {
     @EnvironmentObject private var store: Store
     @State private var designPosts: [DesignPost] = []
-    @State private var componentPosts: [DesignPost] = []
     @State private var communityPosts: [DesignPost] = []
     @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var isNewDesignsLoaded = false
@@ -220,382 +29,84 @@ struct HomeView: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
-    private let postsLimit = 10
+    private let postsLimit = 1
     var body: some View {
         NavigationStack {
-            VStack {
-                ScrollView(.vertical, showsIndicators: true) {
-//                    VStack {
-//                        VStack(alignment: .leading) {
-//    
-//#if os(iOS)
-//                            QuickActionCard()
-//#endif
-//                            
-//                            Text("Featured")
-//                            
-//#if os(iOS)
-//                                .font(.title2)
-//#endif
-//                            
-//#if os(macOS)
-//                                .font(.title)
-//#endif
-//                                .fontWeight(.heavy)
-//                                .padding(.top, 10)
-//                                .padding(.leading, 3)
-//                            ScrollView(.horizontal, showsIndicators: false) {
-//                                LazyHStack(spacing: 3) {
-//                                    ForEach(designPosts){ post in
-//                                        DesignCards(
-//                                            id: post.id,
-//                                            media: post.media,
-//                                            title: post.title,
-//                                            authorUID: post.author,
-//                                            description: post.description,
-//                                            codeSnippet: post.codeSnippet,
-//                                            published: formattedDate(from: post.creationDate),
-//                                            type: post.type,
-//                                            tags: post.tags
-//                                        )
-//                                    }
-//                                }
-//                                
-//                            }
-//                            .scrollClipDisabled()
-//                            
-//                        }
-//                        
-//                        VStack(alignment: .leading) {
-//                            Text("Components")
-//#if os(iOS)
-//                                .font(.title2)
-//#endif
-//                            
-//#if os(macOS)
-//                                .font(.title)
-//#endif
-//                                .fontWeight(.heavy)
-//                                .padding(.top, 20)
-//                                .padding(.leading, 3)
-//                            
-//                            ScrollView(.horizontal, showsIndicators: false) {
-//                                LazyHStack(spacing: 3) {
-//                                    ForEach(componentPosts) { post in
-//                                        DesignCards(
-//                                            id: post.id,
-//                                            media: post.media,
-//                                            title: post.title,
-//                                            authorUID: post.author,
-//                                            description: post.description,
-//                                            codeSnippet: post.codeSnippet,
-//                                            published: formattedDate(from: post.creationDate),
-//                                            type: post.type,
-//                                            tags: post.tags
-//                                        )
-//                                    }
-//                                }
-//                            }
-//                            .scrollClipDisabled()
-//                        }
-//                        
-//                        if !communityPosts.isEmpty {
-//                            VStack(alignment: .leading) {
-//                                Text("Community")
-//#if os(iOS)
-//                                    .font(.title2)
-//#endif
-//                                
-//#if os(macOS)
-//                                    .font(.title)
-//#endif
-//                                    .fontWeight(.heavy)
-//                                    .padding(.top, 20)
-//                                    .padding(.leading, 3)
-//                                
-//                                ScrollView(.horizontal, showsIndicators: false) {
-//                                    LazyHStack(spacing: 3) {
-//                                        ForEach(communityPosts) { post in
-//                                            DesignCards(
-//                                                id: post.id,
-//                                                media: post.media,
-//                                                title: post.title,
-//                                                authorUID: post.author,
-//                                                description: post.description,
-//                                                codeSnippet: post.codeSnippet,
-//                                                published: formattedDate(from: post.creationDate),
-//                                                type: post.type,
-//                                                tags: post.tags
-//                                            )
-//                                        }
-//                                        // Show More Button
-//                                        if hasMoreCommunityPosts {
-//                                            Button(action: {
-//                                                Task {
-//                                                    await fetchCommunityPosts()
-//                                                }
-//                                            }) {
-//                                                VStack{
-//                                                    Image(systemName: "arrowshape.right.circle")
-//                                                        .font(.title3)
-//                                                    
-//                                                    Text("Show More")
-//                                                        .foregroundColor(.blue)
-//                                                        .padding(.vertical, 10)
-//                                                        .frame(maxWidth: .infinity)
-//                                                }
-//                                                .frame(width: 139, height: 150)
-//                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-//                                                .overlay(
-//                                                    RoundedRectangle(cornerRadius: 20)
-//                                                        .stroke(Color.gray, lineWidth: 0.8)
-//                                                )
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                                .scrollClipDisabled()
-//                            }
-//                        }
-//#if os(iOS)
-//                        VStack{
-//                            Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
-//                                .foregroundStyle(Color.gray)
-//                                .font(.body)
-//                            
-//                            Text("Made in New York City")
-//                                .foregroundStyle(Color.gray)
-//                                .font(.body)
-//                        }
-//                        .padding(.top, 15)
-//#endif
-//                    }
-//                    .padding(.leading, 10)
-//                    .offset(y: startAnimation ? 0 : 50)
-//                    .opacity(opacity)
-                    
                     VStack {
-                        VStack(alignment: .leading) {
-                            ScrollView(.vertical, showsIndicators: false) {
-                                        VStack(alignment: .leading, spacing: 16) {
-                                            
-                                            // Community Posts Section
-                                            if isCommunityPostsLoaded {
-                                                LazyVGrid(
-                                                    columns: [
-                                                        GridItem(.flexible(), spacing: 16),
-                                                        GridItem(.flexible(), spacing: 16)
-                                                    ],
-                                                    spacing: 16
-                                                ) {
-                                                    ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
-                                                        DesignCards(
-                                                            id: post.id,
-                                                            media: post.media,
-                                                            title: post.title,
-                                                            authorUID: post.author,
-                                                            description: post.description,
-                                                            codeSnippet: post.codeSnippet,
-                                                            published: formattedDate(from: post.creationDate),
-                                                            type: post.type,
-                                                            tags: post.tags
-                                                        )
-                                                        .frame(maxWidth: .infinity)
-                                                        .aspectRatio(9/16, contentMode: .fit)
-                                                        .cornerRadius(12)
-                                                        .clipped()
-                                                        .offset(y: index % 2 == 0 ? 0 : 80)
-                                                    }
-                                                }
-                                            }
-                                            
-                                            LazyVGrid(
-                                                columns: [
-                                                    GridItem(.flexible(), spacing: 16),
-                                                    GridItem(.flexible(), spacing: 16)
-                                                ],
-                                                spacing: 16
-                                            ) {
-                                                ForEach(Array(designPosts.enumerated()), id: \.offset) { index, post in
-                                                    DesignCards(
-                                                        id: post.id,
-                                                        media: post.media,
-                                                        title: post.title,
-                                                        authorUID: post.author,
-                                                        description: post.description,
-                                                        codeSnippet: post.codeSnippet,
-                                                        published: formattedDate(from: post.creationDate),
-                                                        type: post.type,
-                                                        tags: post.tags
-                                                    )
-                                                    .frame(maxWidth: .infinity)
-                                                    .aspectRatio(9/16, contentMode: .fit)
-                                                    .cornerRadius(12)
-                                                    .clipped()
-                                                    .offset(y: index % 2 == 0 ? 0 : 80)
-                                                }
-                                            }
-                                           
-                                            LazyVGrid(
-                                                columns: [
-                                                    GridItem(.flexible(), spacing: 16),
-                                                    GridItem(.flexible(), spacing: 16)
-                                                ],
-                                                spacing: 16
-                                            ) {
-                                                ForEach(Array(componentPosts.enumerated()), id: \.offset) { index, post in
-                                                    DesignCards(
-                                                        id: post.id,
-                                                        media: post.media,
-                                                        title: post.title,
-                                                        authorUID: post.author,
-                                                        description: post.description,
-                                                        codeSnippet: post.codeSnippet,
-                                                        published: formattedDate(from: post.creationDate),
-                                                        type: post.type,
-                                                        tags: post.tags
-                                                    )
-                                                    .frame(maxWidth: .infinity)
-                                                    .aspectRatio(9/16, contentMode: .fit)
-                                                    .cornerRadius(12)
-                                                    .clipped()
-                                                    .offset(y: index % 2 == 0 ? 0 : 80)
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(alignment: .center, spacing: 16) {
+                                // Community Posts Section
+                                if isCommunityPostsLoaded {
+                                    LazyVGrid(columns: gridColumns, spacing: 16) {
+                                        ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
+                                            DesignCards(
+                                                id: post.id,
+                                                media: post.media,
+                                                title: post.title,
+                                                authorUID: post.author,
+                                                description: post.description,
+                                                codeSnippet: post.codeSnippet,
+                                                published: formattedDate(from: post.creationDate),
+                                                type: post.type,
+                                                tags: post.tags
+                                            )
+                                            .frame(maxWidth: .infinity)
+                                            .aspectRatio(9/16, contentMode: .fit)
+                                            .cornerRadius(12)
+                                            .clipped()
+                                            .onAppear {
+                                                // Detect when last item appears and fetch more posts
+                                                if index == communityPosts.count - 1 {
+                                                    loadMorePostsIfNeeded()
                                                 }
                                             }
                                         }
-                                        .padding(.horizontal)
-                                        .task {
-                                            await fetchCommunityPosts()
-                                            isCommunityPostsLoaded = true
+                                        
+                                        // Loader at the bottom of the list
+                                        if isLoading {
+                                            ProgressView()
+                                                .frame(width: 185, height: 400)
                                         }
                                     }
                                 }
-                            .scrollClipDisabled()
+                            }
+                            .padding(.horizontal)
+                            .task {
+                                await fetchCommunityPosts()
+                                isCommunityPostsLoaded = true
+                            }
                         }
                         
-//                        VStack(alignment: .leading) {
-//                            Text("Components")
-//
-//                            
-//                            ScrollView(.horizontal, showsIndicators: false) {
-//                                LazyHStack(spacing: 3) {
-//                                    ForEach(componentPosts) { post in
-//                                        DesignCards(
-//                                            id: post.id,
-//                                            media: post.media,
-//                                            title: post.title,
-//                                            authorUID: post.author,
-//                                            description: post.description,
-//                                            codeSnippet: post.codeSnippet,
-//                                            published: formattedDate(from: post.creationDate),
-//                                            type: post.type,
-//                                            tags: post.tags
-//                                        )
-//                                    }
-//                                }
-//                            }
-//                            .scrollClipDisabled()
-//                        }
-//                        
-//                        if !communityPosts.isEmpty {
-//                            VStack(alignment: .leading) {
-//                                Text("Community")
-//#if os(iOS)
-//                                    .font(.title2)
-//#endif
-//                                
-//#if os(macOS)
-//                                    .font(.title)
-//#endif
-//                                    .fontWeight(.heavy)
-//                                    .padding(.top, 20)
-//                                    .padding(.leading, 3)
-//                                
-//                                ScrollView(.horizontal, showsIndicators: false) {
-//                                    LazyHStack(spacing: 3) {
-//                                        ForEach(communityPosts) { post in
-//                                            DesignCards(
-//                                                id: post.id,
-//                                                media: post.media,
-//                                                title: post.title,
-//                                                authorUID: post.author,
-//                                                description: post.description,
-//                                                codeSnippet: post.codeSnippet,
-//                                                published: formattedDate(from: post.creationDate),
-//                                                type: post.type,
-//                                                tags: post.tags
-//                                            )
-//                                        }
-//                                        // Show More Button
-//                                        if hasMoreCommunityPosts {
-//                                            Button(action: {
-//                                                Task {
-//                                                    await fetchCommunityPosts()
-//                                                }
-//                                            }) {
-//                                                VStack{
-//                                                    Image(systemName: "arrowshape.right.circle")
-//                                                        .font(.title3)
-//                                                    
-//                                                    Text("Show More")
-//                                                        .foregroundColor(.blue)
-//                                                        .padding(.vertical, 10)
-//                                                        .frame(maxWidth: .infinity)
-//                                                }
-//                                                .frame(width: 139, height: 150)
-//                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-//                                                .overlay(
-//                                                    RoundedRectangle(cornerRadius: 20)
-//                                                        .stroke(Color.gray, lineWidth: 0.8)
-//                                                )
-//                                            }
-//                                        }
-//                                    }
-//                                
-//                                .scrollClipDisabled()
-//                            }
-//                        }
-//#if os(iOS)
-//                        VStack{
-//                            Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
-//                                .foregroundStyle(Color.gray)
-//                                .font(.body)
-//                            
-//                            Text("Made in New York City")
-//                                .foregroundStyle(Color.gray)
-//                                .font(.body)
-//                        }
-//                        .padding(.top, 15)
-//#endif
-//                    }
-//                    
-                }
-                .navigationTitle("Dock UI Home")
-#if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(trailing: HStack {
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 20))
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
+                        .navigationTitle("Dock UI Home")
+        #if os(iOS)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .navigationBarItems(trailing: HStack {
+                            NavigationLink(destination: SettingsView()) {
+                                Image(systemName: "gearshape")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(colorScheme == .dark ? .white : .black)
+                            }
+                        })
+        #endif
                     }
-                })
-#endif
-            }
-            .accentColor(.none)
-        }
-        .navigationViewStyle(DefaultNavigationViewStyle())
-        
-#if os(iOS)
-        .navigationViewStyle(StackNavigationViewStyle())
-#endif
-        .onAppear {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                startAnimation = true
-                opacity = 1.0
-            }
-            store.loadStoredPurchases()
-            if !isNewDesignsLoaded {
+                    .accentColor(.none)
+                }
+                .navigationViewStyle(DefaultNavigationViewStyle())
+        #if os(iOS)
+                .navigationViewStyle(StackNavigationViewStyle())
+        #endif
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        startAnimation = true
+                        opacity = 1.0
+                    }
+                    
+                    let dateComponents = DateComponents(year: 2024, month: 4, day: 1, hour: 12, minute: 0)
+                                let specificDate = Calendar.current.date(from: dateComponents)!
+                                let creationDate = Timestamp(date: specificDate)
+
+                    store.loadStoredPurchases()
+                    if !isNewDesignsLoaded {
                 let newDesigns = [
                     DesignPost(
                         id:  UUID().uuidString,
@@ -686,7 +197,7 @@ struct HomeView: View {
                                 }
                         }
 """,
-                        creationDate: Timestamp(date: Date()),
+                        creationDate: creationDate,
                         type: "image",
                         tags: ["Template","SwiftUI"]
                     ),
@@ -1393,188 +904,74 @@ struct SwitchView: View {
             }
         }
     }
-    
-    struct SearchResultsView: View {
-        @Binding var searchText: String
-        var designPosts: [DesignPost]
-        var componentPosts: [DesignPost]
-        var communityPosts: [DesignPost]
-        var body: some View {
-            ScrollView{
-                ForEach(filteredPosts(posts: communityPosts)) { post in
-                    NavigationLink(destination: SearchResultCard(
-                        id: post.id,
-                        media: post.media,
-                        title: post.title,
-                        authorUID: post.author,
-                        description: post.description,
-                        codeSnippet: post.codeSnippet,
-                        published: formattedDate(from: post.creationDate),
-                        type: post.type,
-                        tags: post.tags
-                    )) {
-                        HStack {
-                            Image(post.media)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 130, height: 250)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary, lineWidth: 0.2)
-                                )
-                            
-                            VStack(alignment: .leading) {
-                                Text(post.title)
-                                    .font(.title3).bold()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .lineLimit(1)
-                                Text(post.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .multilineTextAlignment(.leading)
-                                    .lineLimit(2)
-                                
-                                Spacer()
-                            }
-                            .padding(5)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(8)
-                        .padding([.vertical, .horizontal], 5)
-                    }
-                }
-                
-                ForEach(filteredPosts(posts: designPosts)) { post in
-                    SearchResultCard(
-                        id: post.id,
-                        media: post.media,
-                        title: post.title,
-                        authorUID: post.author,
-                        description: post.description,
-                        codeSnippet: post.codeSnippet,
-                        published: formattedDate(from: post.creationDate),
-                        type: post.type,
-                        tags: post.tags
-                    )
-                }
-                
-                
-                
-                ForEach(filteredPosts(posts: componentPosts)) { post in
-                    NavigationLink(destination: SearchResultCard(
-                        id: post.id,
-                        media: post.media,
-                        title: post.title,
-                        authorUID: post.author,
-                        description: post.description,
-                        codeSnippet: post.codeSnippet,
-                        published: formattedDate(from: post.creationDate),
-                        type: post.type,
-                        tags: post.tags
-                    )) {
-                        HStack {
-                            Image(post.media)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 130, height: 100)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary, lineWidth: 0.2)
-                                )
-                            
-                            VStack(alignment: .leading) {
-                                Text(post.title)
-                                    .font(.title3).bold()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .lineLimit(1)
-                                Text(post.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .multilineTextAlignment(.leading)
-                                    .lineLimit(2)
-                                
-                                Spacer()
-                            }
-                            .padding(5)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(8)
-                        .padding([.vertical, .horizontal], 5)
-                    }
-                }
-            }
-            .navigationTitle("Search Results")
+    private var gridColumns: [GridItem] {
+            #if os(macOS)
+            return [GridItem(.adaptive(minimum: 180), spacing: 16)]
+            #else
+            return [
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16),
+            ]
+            #endif
         }
-        
-        private func filteredPosts(posts: [DesignPost]) -> [DesignPost] {
-            guard !searchText.isEmpty else {
-                return posts
-            }
-            return posts.filter { post in
-                post.title.localizedCaseInsensitiveContains(searchText) ||
-                post.description.localizedCaseInsensitiveContains(searchText) ||
-                post.tags.contains(where: { $0.localizedCaseInsensitiveContains(searchText) })
+
+    private func loadMorePostsIfNeeded() {
+            guard hasMoreCommunityPosts && !isLoading else { return }
+            print("Loading more posts...") // Debugging: Check if this is being called
+            Task {
+                await fetchCommunityPosts()
             }
         }
-    }
-    
-    var sortedDesignPosts: [DesignPost] {
-        designPosts.sorted(by: { $0.creationDate.dateValue() < $1.creationDate.dateValue() })
-    }
-    
     private func fetchCommunityPosts() async {
         let db = Firestore.firestore()
-        
+
         guard !isLoading else { return }
-        
+
         isLoading = true
-        
+        defer { isLoading = false }
+
+        // Introduce a delay to simulate slower loading
+        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2-second delay
+
         do {
             var query = db.collection("posts").order(by: "creationDate", descending: true).limit(to: postsLimit)
-            
+
             if let lastDocument = lastFetchedDocument {
                 query = query.start(afterDocument: lastDocument)
             }
-            
+
             let querySnapshot = try await query.getDocuments()
             if querySnapshot.documents.isEmpty {
                 DispatchQueue.main.async {
                     self.hasMoreCommunityPosts = false
                 }
-                isLoading = false
                 return
             }
-            
+
             DispatchQueue.main.async {
                 self.lastFetchedDocument = querySnapshot.documents.last
                 self.communityPosts.append(contentsOf: querySnapshot.documents.compactMap { document in
                     try? document.data(as: DesignPost.self)
                 })
-                
+
                 // Check if more posts are available
                 self.hasMoreCommunityPosts = querySnapshot.documents.count == postsLimit
+                print("Fetched \(querySnapshot.documents.count) posts.") // Debugging
             }
         } catch {
             print("Error getting documents: \(error)")
         }
-        
-        isLoading = false
     }
-    
-    func addNewDesigns(_ newDesigns: [DesignPost]) {
-        designPosts.append(contentsOf: newDesigns)
+
+        func addNewDesigns(_ newDesigns: [DesignPost]) {
+            communityPosts.append(contentsOf: newDesigns)
+        }
+
+        func addNewAnims(_ newComp: [DesignPost]) {
+            communityPosts.append(contentsOf: newComp)
+        }
     }
-    
-    func addNewAnims(_ newComp: [DesignPost]) {
-        componentPosts.append(contentsOf: newComp)
-    }
-}
+
 
 extension Bundle {
     /// Retrieves the build version number from the app's Info.plist.
@@ -1591,8 +988,3 @@ func formattedDate(from timestamp: Timestamp) -> String {
     return formatter.string(from: date)
 }
 
-#Preview{
-    let store = Store()
-    return ContentView()
-        .environmentObject(store)
-}

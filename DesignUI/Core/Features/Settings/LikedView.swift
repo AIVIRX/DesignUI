@@ -28,6 +28,7 @@ class LikedPostsViewModel: ObservableObject {
         var authorUID: String
         var authorDisplayName: String
         var creationDate: Timestamp
+        var snippet: String
         var type: String
         var likesCount: Int
         var viewCount: Int
@@ -106,12 +107,13 @@ class LikedPostsViewModel: ObservableObject {
                     let authorUID = data?["author"] as? String ?? "Unknown Author"
                     let creationDate = data?["creationDate"] as? Timestamp ?? Timestamp(date: Date())
                     let type = data?["type"] as? String ?? "Unknown Type"
+                    let snippet = data?["codeSnippet"] as? String ?? ""
                     let likesCount = data?["likesCount"] as? Int ?? 0
                     let viewCount = data?["viewCount"] as? Int ?? 0
                     let tags = data?["tags"] as? [String] ?? [""]
                     
                     self.fetchAuthorName(for: authorUID) { authorDisplayName in
-                        let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, authorUID: authorUID, authorDisplayName: authorDisplayName, creationDate: creationDate, type: type, likesCount: likesCount, viewCount: viewCount, likeTimestamp: likeTimestamp, tags: tags)
+                        let post = Post(id: id, title: title, description: description, mediaURL: mediaURL, authorUID: authorUID, authorDisplayName: authorDisplayName, creationDate: creationDate, snippet: snippet, type: type, likesCount: likesCount, viewCount: viewCount, likeTimestamp: likeTimestamp, tags: tags)
                         
                         DispatchQueue.main.async {
                             if !self.likedPosts.contains(where: { $0.id == id }) {
@@ -151,7 +153,7 @@ struct LikedView: View {
     var body: some View {
         ScrollView {
             ForEach(viewModel.likedPosts) { post in
-                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.authorDisplayName, codeSnippet: "", creationDate: formattedDate(from: post.creationDate), type: post.type, isAuthorVerified: true, tags: post.tags, isLiked: $isLiked)) {
+                NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.authorDisplayName, codeSnippet: post.snippet, creationDate: formattedDate(from: post.creationDate), type: post.type, isAuthorVerified: true, tags: post.tags, isLiked: $isLiked)) {
                     HStack {
                         WebImage(url: URL(string: post.mediaURL)) { phase in
                             switch phase {
@@ -220,6 +222,9 @@ struct LikedView: View {
                     .cornerRadius(8)
                     .padding([.vertical, .horizontal], 5)
                 }
+                #if os(macOS)
+                .buttonStyle(.plain)
+                #endif
             }
             
             if viewModel.isLoading {

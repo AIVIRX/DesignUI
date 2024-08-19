@@ -17,8 +17,17 @@ import GoogleMobileAds
 #endif
 
 
-
 #if os(iOS)
+extension View {
+    func applyColorSchemeForiPad() -> some View {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return self.preferredColorScheme(.dark) // Set to .dark for dark mode
+        } else {
+            return self.preferredColorScheme(nil) // Use the system setting for non-iPad devices
+        }
+    }
+}
+
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -71,18 +80,16 @@ struct DesignUIApp: App {
                 .environmentObject(userStore)
         }
     }
+
 }
 #endif
 
 #if os(macOS)
 class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        
+    func applicationDidFinishLaunching(_ notification: Notification) {        
         requestTrackingAuthorization()
-        configureFirebase()
     }
-    
-    
+
     private func requestTrackingAuthorization() {
         if #available(iOS 14, *) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -101,32 +108,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             print("iOS version is below 14.0, no tracking authorization needed.")
         }
     }
-    
-    private func configureFirebase() {
-        if FirebaseApp.app() == nil {
-            FirebaseApp.configure()
-            print("Firebase configured successfully.")
-        } else {
-            print("Firebase is already configured.")
-        }
-        
-        // Debug Firebase authentication state
-        if let user = Auth.auth().currentUser {
-            print("Firebase is initialized and user is logged in: \(user.uid)")
-        } else {
-            print("Firebase is initialized, but no user is logged in.")
-        }
-    }
-
 }
 
 @main
 struct DesignUIApp: App {
+    init() {
+        FirebaseApp.configure()
+    }
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
     @StateObject private var userStore = UserStore()
     
     var body: some Scene {
+        
         WindowGroup {
             ContentView()
                 .environmentObject(store)

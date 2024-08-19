@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EC1B0A2F2C725E7000F7F93F /* ModularListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1B0A2E2C725E7000F7F93F /* ModularListView.swift */; };
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
+		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
 		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
 		EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */; };
@@ -63,7 +65,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		EC1B0A2E2C725E7000F7F93F /* ModularListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModularListView.swift; sourceTree = "<group>"; };
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionCard.swift; sourceTree = "<group>"; };
 		EC4F38922C1CBD820018C802 /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
 		EC4F38942C1CC2EC0018C802 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -269,6 +273,8 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BEA2C19E506003134B1 /* HomeView.swift */,
+				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
+				EC1B0A2E2C725E7000F7F93F /* ModularListView.swift */,
 				EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */,
 			);
 			path = Home;
@@ -484,6 +490,7 @@
 				ECD043142C5EF5D100865D12 /* StoreViewModel.swift in Sources */,
 				ECCDD41B2C1BBA5F00869B70 /* UploadDesignView.swift in Sources */,
 				ECA4AD982C6FF114001AD63A /* DropdownMenuView.swift in Sources */,
+				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
@@ -496,6 +503,7 @@
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
 				ECD043122C5EEE7A00865D12 /* FeaturesView.swift in Sources */,
+				EC1B0A2F2C725E7000F7F93F /* ModularListView.swift in Sources */,
 				EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */,
 				ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */,
 				ECCCD0212C3E1F37008972F2 /* UserStore.swift in Sources */,

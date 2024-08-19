@@ -37,7 +37,6 @@ struct SFIconsView: View {
                 .padding()
             }
         }
-        .background(Color(red: 30/255, green: 30/255, blue: 30/255))
         .navigationTitle("SF Symbols")
         .padding(5)
         .searchable(text: $searchText, prompt: "Search SF Symbols")

@@ -10256,6 +10256,7 @@
       }
     },
     "Search Results" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
