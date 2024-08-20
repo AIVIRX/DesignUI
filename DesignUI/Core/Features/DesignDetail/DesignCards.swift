@@ -61,7 +61,7 @@ struct DesignCards: View {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                         //   .frame(width: 139, height: 300)
-                            .frame(width: 135, height: 295)
+                            .frame(width: 180, height: 390)
                             .background(.gray)
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                             .overlay(
@@ -74,12 +74,12 @@ struct DesignCards: View {
                             switch phase {
                             case .empty:
                                 ProgressView()
-                                    .frame(width: 135, height: 295)
+                                    .frame(width: 180, height: 390)
                             case .success(let image):
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 135, height: 295)
+                                    .frame(width: 180, height: 390)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -89,7 +89,7 @@ struct DesignCards: View {
                                 Image(systemName: "photo")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 135, height: 295)
+                                    .frame(width: 180, height: 390)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)

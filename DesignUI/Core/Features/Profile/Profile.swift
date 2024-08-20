@@ -56,6 +56,7 @@ struct ProfileView: View {
         }
     }
     var body: some View {
+        NavigationStack{
             ScrollView{
                 VStack {
                     if isLoading {
@@ -317,13 +318,14 @@ struct ProfileView: View {
             }
             .offset(y: startAnimation ? 0 : 50)
             .opacity(opacity)
-        .onAppear {
-            checkLoggedIn()
-            withAnimation(.easeInOut(duration: 0.3)) {
-                startAnimation = true
-                opacity = 1.0
+            .onAppear {
+                checkLoggedIn()
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    startAnimation = true
+                    opacity = 1.0
+                }
+                
             }
-            
         }
     }
     

@@ -92,6 +92,7 @@ struct DetailView: View {
 #endif
                                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                                 .clipped()
+                                                .shadow(radius: 8)
                                         case .failure:
                                             Image(systemName: "photo")
                                                 .resizable()
@@ -99,6 +100,8 @@ struct DetailView: View {
                                                 .frame(maxWidth: .infinity, maxHeight: 250)
                                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                                 .clipped()
+                                                .shadow(radius: 8)
+
                                         }
                                     }
                                 }
@@ -256,7 +259,6 @@ struct DetailView: View {
                                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                                     .clipped()
                                                     .shadow(radius: 8)
-
                                             }
                                         }
                                     }
