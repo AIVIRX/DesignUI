@@ -147,6 +147,7 @@
 				ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */,
 				ECCDD4152C1B94F700869B70 /* PostsView.swift */,
 				EC4F38922C1CBD820018C802 /* EditProfile.swift */,
+				ECCDD4172C1B951C00869B70 /* LikedView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -272,8 +273,8 @@
 		ECD13FE62C18BDF300105B3E /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				EC7D7BEA2C19E506003134B1 /* HomeView.swift */,
 				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
+				EC7D7BEA2C19E506003134B1 /* HomeView.swift */,
 				EC1B0A2E2C725E7000F7F93F /* ModularListView.swift */,
 				EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */,
 			);
@@ -284,8 +285,6 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BF02C19E520003134B1 /* SettingsView.swift */,
-				EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */,
-				ECCDD4172C1B951C00869B70 /* LikedView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -337,12 +336,13 @@
 			isa = PBXGroup;
 			children = (
 				EC9AAD522C61720C00796358 /* StoreView.swift */,
-				ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */,
 				ECD0430F2C5EEE7A00865D12 /* FeaturesContainerView.swift */,
 				ECD043102C5EEE7A00865D12 /* FeaturesView.swift */,
 				ECD043132C5EF5D100865D12 /* StoreViewModel.swift */,
+				ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */,
 				EC7D7BDC2C19E45B003134B1 /* Store.swift */,
 				EC7D7BE02C19E49A003134B1 /* Recipe.swift */,
+				EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */,
 			);
 			path = Shop;
 			sourceTree = "<group>";

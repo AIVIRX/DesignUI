@@ -148,7 +148,12 @@ struct ProfileView: View {
                                         .font(.system(size: 16))
                                         .bold()
                                         .padding()
-                                        .background(.thickMaterial)
+#if os(iOS)
+                        .background(.thickMaterial)
+#endif
+#if os(macOS)
+                        .background(.gray.opacity(0.2))
+#endif
                                         .cornerRadius(10)
                                         .foregroundColor(.primary)
                                     }
@@ -202,15 +207,18 @@ struct ProfileView: View {
                                     Button(action: {
                                         showMenu.toggle()
                                     }) {
-                                        Image(systemName: "ellipsis.circle")
-                                            .font(.title)
+                                        Image(systemName: "gearshape.fill")
+                                            .font(.system(size: 16))
+                                            .bold()
+                                            .padding()
+                                            .background(.gray.opacity(0.2))
+                                            .cornerRadius(10)
                                             .foregroundColor(.primary)
                                     }
                                     .popover(isPresented: $showMenu, arrowEdge: .top) {
                                         DropdownMenuView()
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    
 #endif
                                 }
 #if os(macOS)

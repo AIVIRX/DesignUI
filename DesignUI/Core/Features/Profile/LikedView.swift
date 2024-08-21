@@ -218,7 +218,12 @@ struct LikedView: View {
                         .padding(5)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.ultraThinMaterial)
+#if os(iOS)
+                        .background(.ultraThinMaterial)
+#endif
+#if os(macOS)
+                        .background(.gray.opacity(0.2))
+#endif
                     .cornerRadius(8)
                     .padding([.vertical, .horizontal], 5)
                 }
@@ -254,10 +259,19 @@ struct LikedView: View {
                         .foregroundColor(.white)
                         .padding()
                         .frame(maxWidth: .infinity)
+#if os(iOS)
                         .background(.ultraThinMaterial)
+#endif
+#if os(macOS)
+                        .background(.gray.opacity(0.5))
+#endif
                         .cornerRadius(8)
                         .padding(.horizontal)
+                    
                 }
+#if os(macOS)
+                .buttonStyle(.plain)
+#endif
             }
         }
         .onAppear {

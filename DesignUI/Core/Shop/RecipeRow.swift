@@ -33,8 +33,12 @@ struct RecipeRow: View {
                         .bold()
                     Text(recipe.description)
                         .font(.caption)
+#if os(macOS)
+                        .font(.title)
+#endif
                 }
                 Spacer()
+                
                 if let price = recipe.price, recipe.isLocked{
                     Button(action: action, label: {
                         Text(price)
@@ -44,8 +48,13 @@ struct RecipeRow: View {
                             .background(Color.black)
                             .cornerRadius(25)
                     })
+                    .padding()
                 }
             }
         }
+        #if os(macOS)
+        .background(.gray.opacity(0.2))
+        .cornerRadius(9)
+        #endif
     }
 }

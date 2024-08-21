@@ -32,81 +32,83 @@ struct HomeView: View {
     private let postsLimit = 1
     var body: some View {
         NavigationStack {
-                    VStack {
-                        ScrollView(.vertical, showsIndicators: false) {
-                            VStack(alignment: .center, spacing: 16) {
-                                // Community Posts Section
-                                if isCommunityPostsLoaded {
-                                    LazyVGrid(columns: gridColumns, spacing: 16) {
-                                        ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
-                                            DesignCards(
-                                                id: post.id,
-                                                media: post.media,
-                                                title: post.title,
-                                                authorUID: post.author,
-                                                description: post.description,
-                                                codeSnippet: post.codeSnippet,
-                                                published: formattedDate(from: post.creationDate),
-                                                type: post.type,
-                                                tags: post.tags
-                                            )
-                                            .frame(maxWidth: .infinity)
-                                            .aspectRatio(9/16, contentMode: .fit)
-                                            .cornerRadius(12)
-                                            .clipped()
-                                            .onAppear {
-                                                // Detect when last item appears and fetch more posts
-                                                if index == communityPosts.count - 1 {
-                                                    loadMorePostsIfNeeded()
-                                                }
-                                            }
-                                        }
-                                        
-                                        // Loader at the bottom of the list
-                                        if isLoading {
-                                            ProgressView()
-                                                .frame(width: 185, height: 400)
+            VStack {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .center, spacing: 16) {
+                        // Community Posts Section
+                        if isCommunityPostsLoaded {
+                            LazyVGrid(columns: gridColumns, spacing: 16) {
+                                ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
+                                    DesignCards(
+                                        id: post.id,
+                                        media: post.media,
+                                        title: post.title,
+                                        authorUID: post.author,
+                                        description: post.description,
+                                        codeSnippet: post.codeSnippet,
+                                        published: formattedDate(from: post.creationDate),
+                                        type: post.type,
+                                        tags: post.tags
+                                    )
+                                    .frame(maxWidth: .infinity)
+                                    .aspectRatio(9/16, contentMode: .fit)
+                                    .cornerRadius(12)
+                                    .clipped()
+                                    .onAppear {
+                                        // Detect when last item appears and fetch more posts
+                                        if index == communityPosts.count - 1 {
+                                            loadMorePostsIfNeeded()
                                         }
                                     }
                                 }
-                            }
-                            .padding(.horizontal)
-                            .task {
-                                await fetchCommunityPosts()
-                                isCommunityPostsLoaded = true
+                                
+                                // Loader at the bottom of the list
+                                if isLoading {
+                                    ProgressView()
+                                        .frame(width: 185, height: 400)
+                                }
                             }
                         }
-                        
-                        .navigationTitle("Dock UI Home")
-        #if os(iOS)
-                        .navigationBarTitleDisplayMode(.inline)
-                        .navigationBarItems(trailing: HStack {
-                            NavigationLink(destination: SettingsView()) {
-                                Image(systemName: "gearshape")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(colorScheme == .dark ? .white : .black)
-                            }
-                        })
-        #endif
                     }
-                    .accentColor(.none)
+                    .padding(.horizontal)
+                    .task {
+                        await fetchCommunityPosts()
+                        isCommunityPostsLoaded = true
+                    }
                 }
-                .navigationViewStyle(DefaultNavigationViewStyle())
-        #if os(iOS)
-                .navigationViewStyle(StackNavigationViewStyle())
-        #endif
-                .onAppear {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        startAnimation = true
-                        opacity = 1.0
+                
+                .navigationTitle("Dock UI Home")
+#if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(trailing: HStack {
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        NavigationLink(destination: SettingsView()) {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 20))
+                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                        }
                     }
-                    
-                    let dateComponents = DateComponents(year: 2024, month: 4, day: 1, hour: 12, minute: 0)
-                                let specificDate = Calendar.current.date(from: dateComponents)!
-                                let creationDate = Timestamp(date: specificDate)
-
-                    store.loadStoredPurchases()
-                    if !isNewDesignsLoaded {
+                })
+#endif
+            }
+            .accentColor(.none)
+        }
+        .navigationViewStyle(DefaultNavigationViewStyle())
+#if os(iOS)
+        .navigationViewStyle(StackNavigationViewStyle())
+#endif
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                startAnimation = true
+                opacity = 1.0
+            }
+            
+            let dateComponents = DateComponents(year: 2024, month: 4, day: 1, hour: 12, minute: 0)
+            let specificDate = Calendar.current.date(from: dateComponents)!
+            let creationDate = Timestamp(date: specificDate)
+            
+            store.loadStoredPurchases()
+            if !isNewDesignsLoaded {
                 let newDesigns = [
                     DesignPost(
                         id:  UUID().uuidString,
@@ -563,7 +565,6 @@ struct HomeView: View {
                         tags: ["Template","SwiftUI"]
                     ),
                 ]
-                
                 let newComp = [
                     DesignPost(
                         id:  UUID().uuidString,
@@ -904,42 +905,52 @@ struct SwitchView: View {
             }
         }
     }
+    
     private var gridColumns: [GridItem] {
-            #if os(macOS)
-            return [GridItem(.adaptive(minimum: 180), spacing: 16)]
-            #else
+#if os(macOS)
+        return [GridItem(.adaptive(minimum: 180), spacing: 16)]
+#else
+        if UIDevice.current.userInterfaceIdiom == .phone {
             return [
                 GridItem(.flexible(), spacing: 16),
                 GridItem(.flexible(), spacing: 16),
             ]
-            #endif
+        } else if UIDevice.current.userInterfaceIdiom == .pad {
+            return [GridItem(.adaptive(minimum: 180), spacing: 16)]
+        } else {
+            // Fallback Default
+            return [GridItem(.flexible(), spacing: 16)]
         }
-
+#endif
+    }
+    
+    
     private func loadMorePostsIfNeeded() {
-            guard hasMoreCommunityPosts && !isLoading else { return }
-            print("Loading more posts...") // Debugging: Check if this is being called
-            Task {
-                await fetchCommunityPosts()
-            }
+        guard hasMoreCommunityPosts && !isLoading else { return }
+        print("Loading more posts...") // Debugging: Check if this is being called
+        Task {
+            await fetchCommunityPosts()
         }
+    }
+    
     private func fetchCommunityPosts() async {
         let db = Firestore.firestore()
-
+        
         guard !isLoading else { return }
-
+        
         isLoading = true
         defer { isLoading = false }
-
-        // Introduce a delay to simulate slower loading
-        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2-second delay
-
+        
+        //        // Introduce a delay to simulate slower loading
+        //        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2-second delay
+        
         do {
             var query = db.collection("posts").order(by: "creationDate", descending: true).limit(to: postsLimit)
-
+            
             if let lastDocument = lastFetchedDocument {
                 query = query.start(afterDocument: lastDocument)
             }
-
+            
             let querySnapshot = try await query.getDocuments()
             if querySnapshot.documents.isEmpty {
                 DispatchQueue.main.async {
@@ -947,13 +958,13 @@ struct SwitchView: View {
                 }
                 return
             }
-
+            
             DispatchQueue.main.async {
                 self.lastFetchedDocument = querySnapshot.documents.last
                 self.communityPosts.append(contentsOf: querySnapshot.documents.compactMap { document in
                     try? document.data(as: DesignPost.self)
                 })
-
+                
                 // Check if more posts are available
                 self.hasMoreCommunityPosts = querySnapshot.documents.count == postsLimit
                 print("Fetched \(querySnapshot.documents.count) posts.") // Debugging
@@ -962,16 +973,15 @@ struct SwitchView: View {
             print("Error getting documents: \(error)")
         }
     }
-
-        func addNewDesigns(_ newDesigns: [DesignPost]) {
-            communityPosts.append(contentsOf: newDesigns)
-        }
-
-        func addNewAnims(_ newComp: [DesignPost]) {
-            communityPosts.append(contentsOf: newComp)
-        }
+    
+    func addNewDesigns(_ newDesigns: [DesignPost]) {
+        communityPosts.append(contentsOf: newDesigns)
     }
-
+    
+    func addNewAnims(_ newComp: [DesignPost]) {
+        communityPosts.append(contentsOf: newComp)
+    }
+}
 
 extension Bundle {
     /// Retrieves the build version number from the app's Info.plist.
