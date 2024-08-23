@@ -149,10 +149,10 @@ struct ProfileView: View {
                                         .bold()
                                         .padding()
 #if os(iOS)
-                        .background(.thickMaterial)
+                                        .background(.thickMaterial)
 #endif
 #if os(macOS)
-                        .background(.gray.opacity(0.2))
+                                        .background(.gray.opacity(0.2))
 #endif
                                         .cornerRadius(10)
                                         .foregroundColor(.primary)
@@ -198,7 +198,6 @@ struct ProfileView: View {
                                                 .background(.thickMaterial)
                                                 .cornerRadius(10)
                                                 .foregroundColor(.primary)
-                                            
                                         }
                                     }
 #endif
@@ -287,12 +286,18 @@ struct ProfileView: View {
                                 .onChange(of: colorScheme, { oldValue, newValue in
                                     signInAppleButtonId = UUID().uuidString
                                 })
-                                .font(.title)
+                                .font(.system(size: 30))
                                 .clipShape(Capsule())
                                 .clipped()
-                                .frame(height: 30)
-                                .padding(.top, 10)
+#if os(iOS)
+        .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 300 : 600, height: UIDevice.current.userInterfaceIdiom == .phone ? 50 : 50 )
+#elseif os(macOS)
+    .frame(width: 600, height: 60) 
+#endif
+
+                                .padding(.top, 20)
                                 .background(.clear)
+                                
                                 
                                 let user = Auth.auth().currentUser
                                 if let user = user {
@@ -301,7 +306,6 @@ struct ProfileView: View {
                                         .font(.headline)
                                 }
                             }
-                            
                         }
                         .frame(maxWidth: .infinity)
                         .padding(20)
@@ -309,19 +313,22 @@ struct ProfileView: View {
                             checkLoggedIn()
                             print("User is not logged in or user data is not available")
                         }
-                        
                     }
                 }
                 .navigationTitle("Profile")
 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
 #endif
+                
                 .alert(isPresented: $showErrorAlert) {
                     Alert(
                         title: Text("Error"),
                         message: Text(errorMessage),
                         dismissButton: .default(Text("OK"))
                     )
+                }
+                .alert(item: $alertItem) { alertItem in
+                    Alert(title: alertItem.title, message: alertItem.message, primaryButton: alertItem.primaryButton, secondaryButton: alertItem.secondaryButton ?? .default(Text("OK")))
                 }
             }
             .offset(y: startAnimation ? 0 : 50)
