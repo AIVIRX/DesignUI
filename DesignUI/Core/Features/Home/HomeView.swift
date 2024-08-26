@@ -77,7 +77,7 @@ struct HomeView: View {
                     }
                 }
                 
-                .navigationTitle("Dock UI Home")
+                .navigationTitle("Home")
 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarItems(trailing: HStack {
@@ -989,12 +989,5 @@ extension Bundle {
     var releaseVersionNumber: String? {
         return infoDictionary?["CFBundleShortVersionString"] as? String
     }
-}
-
-func formattedDate(from timestamp: Timestamp) -> String {
-    let date = timestamp.dateValue()
-    let formatter = DateFormatter()
-    formatter.dateStyle = .long
-    return formatter.string(from: date)
 }
 

@@ -28,49 +28,26 @@ struct DetailView: View {
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
     var body: some View {
-        ScrollView {
+        ScrollView() {
 #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .phone {
                 VStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
-#if os(iOS)
                         .frame(height: 280)
-#endif
                     
-#if os(macOS)
-                        .frame(height: 400)
-#endif
-                    
-                    
-#if os(iOS)
                         .foregroundStyle(.thinMaterial)
-#endif
-                    
-#if os(macOS)
-                        .foregroundStyle(Color.gray.opacity(0.2))
-#endif
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)
-#if os(iOS)
                                 .frame(width: 115,height: 250)
-#endif
-                            
-#if os(macOS)
-                                .frame(width: 165,height: 358)
-#endif
                                 .foregroundStyle(Color.red)
                                 .overlay{
                                     if type == "image" {
                                         Image(mediaURL)
                                             .resizable()
                                             .aspectRatio(contentMode: .fit)
-#if os(iOS)
                                             .frame(maxWidth: .infinity, maxHeight: 250)
-#endif
-#if os(iOS)
                                             .frame(maxWidth: .infinity, maxHeight: 370)
-#endif
                                             .clipShape(RoundedRectangle(cornerRadius: 15))
                                             .clipped()
                                             .shadow(radius: 8)
@@ -85,12 +62,8 @@ struct DetailView: View {
                                                 image
                                                     .resizable()
                                                     .aspectRatio(contentMode: .fill)
-#if os(iOS)
                                                     .frame(maxWidth: .infinity, maxHeight: 250)
-#endif
-#if os(iOS)
                                                     .frame(maxWidth: .infinity, maxHeight: 370)
-#endif
                                                     .clipShape(RoundedRectangle(cornerRadius: 10))
                                                     .clipped()
                                                     .shadow(radius: 8)
@@ -212,6 +185,11 @@ struct DetailView: View {
                     .foregroundStyle(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12.0))
                     .padding(.top, 10)
+                    
+                    HStack{
+                        SimilarPostsView(currentPostId: id, tags: tags)
+                    }
+                    .padding(.top)
                 }
                 .environment(\.symbolVariants, .none)
                 .accentColor(.none)
@@ -374,9 +352,11 @@ struct DetailView: View {
                             .padding(.top, 10)
                         }
                     }
-                    
+                    .frame(height: 600)
+                    HStack{
+                        SimilarPostsView(currentPostId: id, tags: tags)
+                    }
                 }
-                .frame(height: 700)
                 .environment(\.symbolVariants, .none)
                 .accentColor(.none)
             }
@@ -539,15 +519,19 @@ struct DetailView: View {
                         .padding(.top, 10)
                     }
                 }
-                
+                .frame(height: 700)
+
+                HStack{
+                    SimilarPostsView(currentPostId: id, tags: tags)
+                }
             }
-            .frame(height: 700)
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
 #endif
             
             
         }
+        .scrollIndicators(.hidden)
 #if os(iOS)
         .navigationBarItems(trailing:
                                 Button(action: {
@@ -704,26 +688,6 @@ struct DetailView: View {
         }
     }
     
-    func formatCount(_ count: Int) -> String {
-        let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .decimal
-        
-        if count >= 1_000_000_000 {
-            let formattedCount = Double(count) / 1_000_000_000
-            numberFormatter.maximumFractionDigits = 2
-            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)B"
-        } else if count >= 1_000_000 {
-            let formattedCount = Double(count) / 1_000_000
-            numberFormatter.maximumFractionDigits = 2
-            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)M"
-        } else if count >= 1_000 {
-            let formattedCount = Double(count) / 1_000
-            numberFormatter.maximumFractionDigits = 2
-            return "\(numberFormatter.string(from: NSNumber(value: formattedCount))!)K"
-        } else {
-            return "\(count)"
-        }
-    }
 }
 
 struct TagView: View {

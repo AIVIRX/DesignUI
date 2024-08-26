@@ -5007,9 +5007,6 @@
         }
       }
     },
-    "Dock UI Home" : {
-
-    },
     "Done" : {
       "localizations" : {
         "ar" : {
@@ -5962,6 +5959,9 @@
           }
         }
       }
+    },
+    "Home" : {
+
     },
     "Load More" : {
       "localizations" : {
@@ -11454,6 +11454,9 @@
           }
         }
       }
+    },
+    "Similar Posts" : {
+
     },
     "Snippets UI Profile" : {
       "extractionState" : "stale",

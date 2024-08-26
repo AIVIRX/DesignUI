@@ -45,6 +45,9 @@
 		ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */; };
 		ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD9D2C7022CA001AD63A /* TextEditorWithCounter.swift */; };
 		ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */; };
+		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
+		ECB1DA622C7C0ED8002D7E31 /* DateFormater.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */; };
+		ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA632C7C160C002D7E31 /* FormatCount.swift */; };
 		ECBBCD382C5ABCB50074022A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */; };
 		ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECC9BC842C0FE0D40052D471 /* AdSupport.framework */; };
 		ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */; };
@@ -100,6 +103,9 @@
 		ECA4AD9D2C7022CA001AD63A /* TextEditorWithCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEditorWithCounter.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECADF6192BCC83AB0096753A /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
+		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
+		ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormater.swift; sourceTree = "<group>"; };
+		ECB1DA632C7C160C002D7E31 /* FormatCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatCount.swift; sourceTree = "<group>"; };
 		ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ECC9BC842C0FE0D40052D471 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OldStoreView.swift; sourceTree = "<group>"; };
@@ -241,7 +247,9 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */,
 				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
+				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -293,6 +301,7 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BF22C19E543003134B1 /* DetailView.swift */,
+				ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */,
 				EC7D7BF42C19E546003134B1 /* DesignCards.swift */,
 				ECD043172C5F21D900865D12 /* SearchResultCard.swift */,
 			);
@@ -481,6 +490,7 @@
 			files = (
 				ECD043182C5F21D900865D12 /* SearchResultCard.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
+				ECB1DA622C7C0ED8002D7E31 /* DateFormater.swift in Sources */,
 				EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC4F38952C1CC2EC0018C802 /* User.swift in Sources */,
@@ -492,6 +502,7 @@
 				ECA4AD982C6FF114001AD63A /* DropdownMenuView.swift in Sources */,
 				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
+				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
 				EC9AAD532C61720C00796358 /* StoreView.swift in Sources */,
@@ -515,6 +526,7 @@
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC961B9F2C499905002D10DD /* DBTest.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
+				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
 				ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
