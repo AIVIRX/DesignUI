@@ -1673,7 +1673,11 @@
         }
       }
     },
+    "Are you sure you want to report this post?" : {
+
+    },
     "Are you sure you want to Report this post?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2148,6 +2152,9 @@
           }
         }
       }
+    },
+    "Cancel" : {
+
     },
     "Code" : {
       "localizations" : {
@@ -5964,6 +5971,7 @@
 
     },
     "Load More" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6440,6 +6448,7 @@
       }
     },
     "No liked posts found." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6914,6 +6923,9 @@
           }
         }
       }
+    },
+    "Optional Message" : {
+
     },
     "Our Apps" : {
       "localizations" : {

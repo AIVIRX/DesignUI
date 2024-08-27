@@ -30,6 +30,16 @@ struct OldStoreView: View {
                     store.retorePurchases()
                 })
 #endif
+                
+#if os(macOS)
+                .toolbar {
+                    ToolbarItem(placement: .automatic) {
+                        Button("Restore") {
+                            store.retorePurchases()
+                        }
+                    }
+                }
+#endif
                 .onAppear{
                     store.loadStoredPurchases()
                     withAnimation(.easeInOut(duration: 0.3)) {

@@ -27,6 +27,8 @@ struct DetailView: View {
     @State private var showReportAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
+    @State private var isReporting: Bool = false
+    @State private var reportMessage: String = ""
     var body: some View {
         ScrollView() {
 #if os(iOS)
@@ -189,7 +191,7 @@ struct DetailView: View {
                     HStack{
                         SimilarPostsView(currentPostId: id, tags: tags)
                     }
-                    .padding(.top)
+                    .padding(.vertical)
                 }
                 .environment(\.symbolVariants, .none)
                 .accentColor(.none)
@@ -528,34 +530,86 @@ struct DetailView: View {
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
 #endif
-            
-            
         }
         .scrollIndicators(.hidden)
+        
 #if os(iOS)
-        .navigationBarItems(trailing:
-                                Button(action: {
-            alertItem = AlertItem(
-                title: Text("Report Content"),
-                message: Text("Are you sure you want to Report this post?"),
-                primaryButton: .destructive(Text("Report")) {
-                    reportPost(postId: id)
-                },
-                secondaryButton: .cancel()
-            )
+    .navigationBarItems(trailing:
+        Button(action: {
+            isReporting.toggle() // Toggle to present a sheet for message input
         }) {
             Label("Report", systemImage: "flag")
         }
-            .alert(item: $alertItem) { alertItem in
-                Alert(
-                    title: alertItem.title,
-                    message: alertItem.message,
-                    primaryButton: alertItem.primaryButton,
-                    secondaryButton: alertItem.secondaryButton ?? .cancel()
-                )
+    )
+    .sheet(isPresented: $isReporting) {
+        VStack {
+            Text("Report Content")
+                .font(.title)
+            Text("Are you sure you want to report this post?")
+                .padding(.bottom)
+            
+            TextEditorWithCounter(label: "Message", text: $reportMessage, maxLength: 100)
+
+            HStack {
+                Button("Cancel") {
+                    isReporting = false // Dismiss the sheet
+                }
+
+                Spacer()
+
+                Button("Report") {
+                    reportPost(postId: id, message: reportMessage)
+                    isReporting = false // Dismiss the sheet after reporting
+                }
             }
-        )
-        #endif
+            .padding()
+        }
+        .padding()
+    }
+#endif
+
+#if os(macOS)
+.toolbar {
+    ToolbarItem(placement: .automatic) {
+        Button(action: {
+            isReporting.toggle() // Show the custom sheet for reporting
+        }) {
+            Label("Report", systemImage: "flag")
+        }
+    }
+}
+.sheet(isPresented: $isReporting) {
+    VStack {
+        Text("Report Content")
+            .font(.headline)
+        Text("Are you sure you want to report this post?")
+            .padding(.bottom)
+
+        TextField("Optional Message", text: $reportMessage)
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .padding()
+
+        HStack {
+            Button("Cancel") {
+                isReporting = false // Dismiss the sheet without reporting
+            }
+            .keyboardShortcut(.cancelAction)
+
+            Spacer()
+
+            Button("Report") {
+                reportPost(postId: id, message: reportMessage)
+                isReporting = false // Dismiss the sheet after reporting
+            }
+            .keyboardShortcut(.defaultAction)
+        }
+        .padding()
+    }
+    .padding()
+    .frame(width: 300)
+}
+#endif
+
         
         .padding(7)
         .onAppear{
@@ -672,10 +726,11 @@ struct DetailView: View {
         }
     }
     
-    func reportPost(postId: String) {
+    func reportPost(postId: String, message: String) {
         let db = Firestore.firestore()
         let reportData: [String: Any] = [
             "postId": postId,
+            "message": message,
             "timestamp": Timestamp(date: Date())
         ]
         
