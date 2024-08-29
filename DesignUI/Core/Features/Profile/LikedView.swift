@@ -155,7 +155,7 @@ struct LikedView: View {
         ScrollView {
             LazyVStack {
                 ForEach(viewModel.likedPosts) { post in
-                    NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.authorDisplayName, codeSnippet: post.snippet, creationDate: formattedDate(from: post.creationDate), type: post.type, isAuthorVerified: false, tags: post.tags, isLiked: $isLiked)) {
+                    NavigationLink(destination: DetailView(id: post.id, mediaURL: post.mediaURL, title: post.title, description: post.description, author: post.authorDisplayName, codeSnippet: post.snippet, creationDate: formattedDate(from: post.creationDate), type: post.type, isAuthorVerified: false, tags: post.tags, isLiked: $isLiked, likes: post.likesCount, views: post.viewCount)) {
                         VStack{
                             RoundedRectangle(cornerRadius: 15)
 #if os(iOS)

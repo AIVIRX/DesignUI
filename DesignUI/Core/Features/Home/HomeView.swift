@@ -35,7 +35,6 @@ struct HomeView: View {
             VStack {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .center, spacing: 16) {
-                        // Community Posts Section
                         if isCommunityPostsLoaded {
                             LazyVGrid(columns: gridColumns, spacing: 16) {
                                 ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
@@ -48,7 +47,9 @@ struct HomeView: View {
                                         codeSnippet: post.codeSnippet,
                                         published: formattedDate(from: post.creationDate),
                                         type: post.type,
-                                        tags: post.tags
+                                        tags: post.tags,
+                                        likes: post.likesCount,
+                                        views: post.viewCount
                                     )
                                     .frame(maxWidth: .infinity)
                                     .aspectRatio(9/16, contentMode: .fit)
@@ -201,7 +202,9 @@ struct HomeView: View {
 """,
                         creationDate: creationDate,
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -280,7 +283,9 @@ struct HomeView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -337,7 +342,9 @@ struct HomeView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -387,7 +394,9 @@ struct HomeView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -521,7 +530,9 @@ struct HomeView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -562,7 +573,9 @@ struct HomeView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                 ]
                 let newComp = [
@@ -599,7 +612,9 @@ struct HomeView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component", "Animation","SwiftUI"]
+                        tags: ["Component", "Animation","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -638,7 +653,9 @@ struct CounterView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component", "SwiftUI"]
+                        tags: ["Component", "SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -688,7 +705,9 @@ struct CounterView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -743,7 +762,9 @@ struct TextFieldView: View {
                         ,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -820,7 +841,9 @@ struct ProgressView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -857,7 +880,9 @@ struct ProgressView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -892,7 +917,9 @@ struct SwitchView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 839,
+                        viewCount: 987938
                     ),
                 ]
                 addNewAnims(newComp)
@@ -913,7 +940,6 @@ struct SwitchView: View {
         if UIDevice.current.userInterfaceIdiom == .phone {
             return [
                 GridItem(.flexible(), spacing: 16),
-                GridItem(.flexible(), spacing: 16),
             ]
         } else if UIDevice.current.userInterfaceIdiom == .pad {
             return [GridItem(.adaptive(minimum: 180), spacing: 16)]
@@ -923,7 +949,6 @@ struct SwitchView: View {
         }
 #endif
     }
-    
     
     private func loadMorePostsIfNeeded() {
         guard hasMoreCommunityPosts && !isLoading else { return }

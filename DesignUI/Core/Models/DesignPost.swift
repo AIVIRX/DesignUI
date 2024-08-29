@@ -18,4 +18,6 @@ struct DesignPost: Identifiable, Decodable, Hashable {
     let creationDate: Timestamp
     let type: String
     let tags: [String]
+    let likesCount: Int
+    let viewCount: Int
 }

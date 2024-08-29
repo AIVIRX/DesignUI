@@ -20,6 +20,8 @@ struct DesignCards: View {
     var published: String
     var type: String
     var tags: [String]
+    var likes: Int
+    var views: Int
     
     @State private var isHovered: Bool = false
     @State private var isLiked: Bool = false
@@ -28,7 +30,7 @@ struct DesignCards: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     
-    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]) {
+    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int) {
         self.id = id
         self.media = media
         self.title = title
@@ -38,7 +40,10 @@ struct DesignCards: View {
         self.published = published
         self.type = type
         self.tags = tags
+        self.likes = likes
+        self.views = views
     }
+    
     var body: some View {
         NavigationLink(destination: DetailView(
             id: id,
@@ -51,54 +56,62 @@ struct DesignCards: View {
             type: type,
             isAuthorVerified: isAuthorVerified,
             tags: tags,
-            isLiked: $isLiked
+            isLiked: $isLiked,
+            likes: likes,
+            views: views
         )) {
             VStack(alignment: .center) {
 #if os(iOS)
                 if UIDevice.current.userInterfaceIdiom == .phone {
-                    if type == "image" {
-                        Image(media)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                        //   .frame(width: 139, height: 300)
-                            .frame(width: 180, height: 390)
-                            .background(.gray)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.gray, lineWidth: 0.8)
-                            )
-                    }
-                    if type == "fetched" {
-                        WebImage(url: URL(string: media)) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                                    .frame(width: 180, height: 390)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 180, height: 390)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray, lineWidth: 0.8)
-                                    )
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 180, height: 390)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray, lineWidth: 0.8)
-                                    )
-                            }
+                    RoundedRectangle(cornerRadius: 15)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 280)
+                        .foregroundStyle(.thickMaterial)
+                        .overlay{
+                            RoundedRectangle(cornerRadius: 15)
+                                .frame(width: 115,height: 250)
+                                .overlay{
+                                    if type == "image" {
+                                        Image(media)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(maxWidth: .infinity, maxHeight: 250)
+                                            .frame(maxWidth: .infinity, maxHeight: 370)
+                                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                                            .clipped()
+                                            .shadow(radius: 8)
+                                    }
+                                    if type == "fetched" {
+                                        WebImage(url: URL(string: media)) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                                    .frame(maxWidth: .infinity, maxHeight: 350)
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(maxWidth: .infinity, maxHeight: 250)
+                                                    .frame(maxWidth: .infinity, maxHeight: 370)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    .clipped()
+                                                    .shadow(radius: 8)
+                                            case .failure:
+                                                Image(systemName: "photo")
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(maxWidth: .infinity, maxHeight: 250)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    .clipped()
+                                                    .shadow(radius: 8)
+                                                
+                                            }
+                                        }
+                                    }
+                                }
                         }
-                    }
                 }
+                
                 if UIDevice.current.userInterfaceIdiom == .pad {
                     if type == "image" {
                         Image(media)
@@ -222,9 +235,15 @@ struct DesignCards: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(.blue)
                         }
+                        
                         Spacer()
+                        
+                        Text("\(likes)")
+                            .font(.system(size: 15))
+                            .foregroundColor(.secondary)
                     }
                 }
+                .padding(.bottom, 6)
                 .contentShape(Rectangle())
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -234,7 +253,7 @@ struct DesignCards: View {
             //            #endif
             
 #if os(iOS)
-            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 5 : 10)
+            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 3 : 10)
 #endif
             
 #if os(macOS)
@@ -288,6 +307,8 @@ struct DesignCards: View {
         codeSnippet: "Sample code snippet.",
         published: "\(Timestamp(date: Date()))",
         type: "image",
-        tags: ["tag1", "tag2"]
+        tags: ["tag1", "tag2"],
+        likes: 420,
+        views: 69420
     )
 }

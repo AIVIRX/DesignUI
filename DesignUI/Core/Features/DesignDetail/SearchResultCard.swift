@@ -48,7 +48,9 @@ struct SearchResultCard: View {
             type: type,
             isAuthorVerified: isAuthorVerified,
             tags: tags,
-            isLiked: $isLiked
+            isLiked: $isLiked,
+            likes: 0,
+            views: 30
         )) {
             HStack{
                 
@@ -162,7 +164,9 @@ struct SearchResultCard: View {
         codeSnippet: "Sample code snippet.",
         published: "\(Timestamp(date: Date()))",
         type: "image",
-        tags: ["tag1", "tag2"]
+        tags: ["tag1", "tag2"],
+        likes: 459,
+        views: 08690
     )
 }
 

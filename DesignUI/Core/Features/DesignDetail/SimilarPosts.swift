@@ -49,7 +49,9 @@ struct SimilarPostsView: View {
                             type: post.type,
                             isAuthorVerified: false, // Fetch verification status from Firestore if needed
                             tags: post.tags,  // Fetch tags from Firestore if needed
-                            isLiked: $isLiked // Fetch like status from Firestore if needed
+                            isLiked: $isLiked, // Fetch like status from Firestore if needed
+                            likes: 69,
+                            views: 69
                         )) {
                             VStack(alignment:.leading){
                                 RoundedRectangle(cornerRadius: 15)

@@ -132,7 +132,9 @@ struct ModularListView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -211,7 +213,9 @@ struct ModularListView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -268,7 +272,9 @@ struct ModularListView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -318,7 +324,9 @@ struct ModularListView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -452,7 +460,9 @@ struct ModularListView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -493,7 +503,9 @@ struct ModularListView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Template","SwiftUI"]
+                        tags: ["Template","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                 ]
                 
@@ -531,7 +543,9 @@ struct ModularListView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component", "Animation","SwiftUI"]
+                        tags: ["Component", "Animation","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -570,7 +584,9 @@ struct CounterView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component", "SwiftUI"]
+                        tags: ["Component", "SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -620,7 +636,9 @@ struct CounterView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -675,7 +693,9 @@ struct TextFieldView: View {
                         ,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -752,7 +772,9 @@ struct ProgressView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -789,7 +811,9 @@ struct ProgressView: View {
                         """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                     DesignPost(
                         id:  UUID().uuidString,
@@ -824,7 +848,9 @@ struct SwitchView: View {
 """,
                         creationDate: Timestamp(date: Date()),
                         type: "image",
-                        tags: ["Component","SwiftUI"]
+                        tags: ["Component","SwiftUI"],
+                        likesCount: 21,
+                        viewCount: 90
                     ),
                 ]
                 addNewAnims(newComp)
@@ -856,7 +882,9 @@ struct SwitchView: View {
                     codeSnippet: post.codeSnippet,
                     published: formattedDate(from: post.creationDate),
                     type: post.type,
-                    tags: post.tags
+                    tags: post.tags,
+                    likes: post.likesCount,
+                    views: post.viewCount
                 )
                 .frame(maxWidth: .infinity)
                 .aspectRatio(9/16, contentMode: .fit)
@@ -887,7 +915,9 @@ struct SwitchView: View {
                         codeSnippet: post.codeSnippet,
                         published: formattedDate(from: post.creationDate),
                         type: post.type,
-                        tags: post.tags
+                        tags: post.tags,
+                        likes: post.likesCount,
+                        views: post.viewCount
                     )
                     .aspectRatio(9/16, contentMode: .fit)
                     .cornerRadius(12)

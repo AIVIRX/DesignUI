@@ -17,6 +17,8 @@ struct DetailView: View {
     var isAuthorVerified: Bool
     var tags: [String]
     @Binding var isLiked: Bool
+    var likes: Int
+    var views: Int
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
     @State private var repostCount: Int = 0
@@ -37,7 +39,6 @@ struct DetailView: View {
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
                         .frame(height: 280)
-                    
                         .foregroundStyle(.thinMaterial)
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)
@@ -786,95 +787,3 @@ struct TagView: View {
     TagView(tags: ["Template", "Animation"])
 }
 
-#Preview {
-    DetailView(
-        id: "722M",
-        mediaURL: "testshot",
-        title: "Design Template",
-        description: "This is a placeholder for a design",
-        author: "Aivirx",
-        codeSnippet: """
-           VStack(alignment: .leading) {
-           if type == .image {
-               Image(mediaURL)
-                   .resizable()
-                   .aspectRatio(contentMode: .fill)
-                   .frame(width: geometry.size.width, height: 250)
-                   .clipShape(RoundedRectangle(cornerRadius: 10))
-                   .clipped()
-           }
-           
-           VStack(alignment: .leading) {
-               HStack {
-                   Text(title)
-                       .font(.title)
-                       .bold()
-                       .lineLimit(2)
-                       .frame(maxWidth: .infinity, alignment: .leading)
-               }
-               Text(creationDate)
-                   .font(.subheadline)
-                   .foregroundColor(.secondary)
-               
-               Text("")
-                   .font(.subheadline)
-                   .foregroundColor(.secondary)
-           }
-           
-           Text("Description:")
-               .font(.title2).bold()
-               .padding(.top)
-           Text(description)
-               .font(.body)
-               .foregroundColor(.primary)
-           
-           Text("Code Snippet:")
-               .font(.title2).bold()
-               .padding(.top)
-           
-           ScrollView {
-               VStack(alignment: .leading) {
-                   Text(codeSnippet)
-                       .font(.body)
-                       .padding()
-               }
-           }
-           .frame(maxWidth: .infinity, maxHeight: 200)
-           .background(Color.gray.opacity(0.2))
-           .cornerRadius(8)
-           
-           Button(action: {
-               copyToClipboard(codeSnippet)
-               isCopied = true
-           }) {
-               Text("Copy Code")
-                   .padding(8)
-                   .font(.headline).bold()
-           }
-           .buttonStyle(.borderedProminent)
-           .foregroundStyle(Color.white)
-           .clipShape(RoundedRectangle(cornerRadius: 12.0))
-           .padding(.top, 10)
-           
-           Button(action: {
-               showShareSheet = true
-           }) {
-               HStack {
-                   Image(systemName: "square.and.arrow.up")
-                   Text("Share")
-                       .padding(8)
-                       .frame(maxWidth: .infinity)
-                       .font(.headline).bold()
-               }
-           }
-           .buttonStyle(.borderedProminent)
-           .foregroundStyle(Color.white)
-           .clipShape(RoundedRectangle(cornerRadius: 12.0))
-           .padding(.top, 10)
-       }
-    """,
-        creationDate: "Timestamp(date: Date())",
-        type: "image", isAuthorVerified: true, tags: ["Template", "Animation"],
-        isLiked: .constant(true)
-    )
-}
