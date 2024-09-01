@@ -18,11 +18,11 @@ struct UploadDesignView: View {
     @State private var codeSnippet: String = ""
 #if os(iOS)
     @State private var selectedImage: UIImage?
-    #endif
+#endif
     
 #if os(macOS)
     @State private var selectedImage: NSImage?
-    #endif
+#endif
     @State private var isShowingImagePicker = false
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -64,7 +64,7 @@ struct UploadDesignView: View {
                                             .clipShape(RoundedRectangle(cornerRadius: 15))
                                             .clipped()
                                             .shadow(radius: 8)
-                                        #endif
+#endif
 #if os(macOS)
                                         Image(nsImage: image)
                                             .resizable()
@@ -73,7 +73,7 @@ struct UploadDesignView: View {
                                             .clipShape(RoundedRectangle(cornerRadius: 15))
                                             .clipped()
                                             .shadow(radius: 8)
-                                        #endif
+#endif
                                     }
                                 } else {
                                     Button(action: {
@@ -103,23 +103,21 @@ struct UploadDesignView: View {
                 
                 Text("Title")
                     .bold()
-                TextFieldWithCounter(placehold: "Login Screen Template", text: $title, maxLength: 20)
+                TextFieldWithCounter(placehold: "Login Screen Template", text: $title, maxLength: 30)
                 
                 Text("Description")
                     .bold()
-                TextFieldWithCounter(placehold: "A simple login menu.", text: $description, maxLength: 200)
+                TextFieldWithCounter(placehold: "A simple login menu.", text: $description, maxLength: 300)
                 
                 Text("Code")
                     .bold()
-                TextEditorWithCounter(text: $codeSnippet, maxLength: 2500)
+                TextEditorWithCounter(text: $codeSnippet, maxLength: 5000)
                 
                 Text("Tags (Select up to 3)")
                     .bold()
                 
                 // Tags Selection View
                 TagSelectionView(availableTags: availableTags, selectedTags: $selectedTags)
-                
-                
             }
 #if os(iOS)
             .toolbar{
@@ -129,9 +127,9 @@ struct UploadDesignView: View {
                     }
                 }
             }
-            #endif
+#endif
             
-            #if os(iOS)
+#if os(iOS)
             Button(action: { uploadDesign() }) {
                 if isLoading {
                     ProgressView()
@@ -150,9 +148,9 @@ struct UploadDesignView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12.0))
             .disabled(!isUploadEnabled)
             .padding(.top)
-            #endif
+#endif
             
-            #endif
+#endif
         }
         .environment(\.symbolVariants, .none)
         .accentColor(.none)
@@ -257,21 +255,27 @@ struct UploadDesignView: View {
         return "\(uuid)_\(timestamp)"
     }
     
-    #if os(iOS)
+#if os(iOS)
     func uploadDesign() {
         guard let user = Auth.auth().currentUser else {
             print("No user logged in.")
             return
         }
         
-        Drops.show("Code Copied ✅")
-
+        let drop = Drop(
+            title: "Uploaded",
+            icon: UIImage(systemName: "dot.radiowaves.up.forward")
+            )
+        
+        Drops.show(drop)
+            
+        
         guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.3) else {
             print("Please select an image.")
             return
         }
-
-
+        
+        
         
         isLoading = true
         let uniqueImageID = UUID().uuidString
@@ -311,7 +315,7 @@ struct UploadDesignView: View {
             }
         }
     }
-    #endif
+#endif
     
     func saveDesignToFirestore(uid: String, imageURL: String) {
         let db = Firestore.firestore()
@@ -335,7 +339,8 @@ struct UploadDesignView: View {
             "ReportCount": 0,
             "editedTimestamp": Timestamp(),
             "isPaywalled": false,
-            "visibility": "public"
+            "visibility": "public",
+            "hexa": "#efedf5"
         ]) { error in
             if let error = error {
                 isLoading = false
@@ -349,7 +354,7 @@ struct UploadDesignView: View {
         }
     }
     
-    #if os(iOS)
+#if os(iOS)
     struct ImagePicker: UIViewControllerRepresentable {
         @Environment(\.presentationMode) var presentationMode
         @Binding var selectedImage: UIImage?
@@ -388,7 +393,7 @@ struct UploadDesignView: View {
             }
         }
     }
-    #endif
+#endif
 }
 
 extension Date {

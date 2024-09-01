@@ -35,9 +35,9 @@ struct ContentView: View {
                     HomeView()
                 }
                 
-                //            Tab(systemImageName: "house.fill") {
-                //                UploadDesignView()
-                //            }
+//                Tab(systemImageName: "plus.app") {
+//                    UploadDesignView()
+//                }
                 
                 Tab(systemImageName: "person.crop.circle") {
                     ProfileView()

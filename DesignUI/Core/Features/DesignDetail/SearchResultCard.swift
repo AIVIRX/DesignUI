@@ -50,7 +50,8 @@ struct SearchResultCard: View {
             tags: tags,
             isLiked: $isLiked,
             likes: 0,
-            views: 30
+            views: 30,
+            hexa: "#FFFFFF"
         )) {
             HStack{
                 
@@ -166,7 +167,8 @@ struct SearchResultCard: View {
         type: "image",
         tags: ["tag1", "tag2"],
         likes: 459,
-        views: 08690
+        views: 08690,
+        hexa: "#FFFFFF"
     )
 }
 

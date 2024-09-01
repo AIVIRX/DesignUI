@@ -9,6 +9,7 @@ import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct DesignCards: View {
     var id: String
@@ -22,6 +23,7 @@ struct DesignCards: View {
     var tags: [String]
     var likes: Int
     var views: Int
+    var hexa: String
     
     @State private var isHovered: Bool = false
     @State private var isLiked: Bool = false
@@ -29,8 +31,10 @@ struct DesignCards: View {
     @State private var isAuthorVerified: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
+    @State private var likesCount: Int = 0
+    @State private var viewCount: Int = 0
     
-    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int) {
+    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int, hexa: String) {
         self.id = id
         self.media = media
         self.title = title
@@ -42,6 +46,7 @@ struct DesignCards: View {
         self.tags = tags
         self.likes = likes
         self.views = views
+        self.hexa = hexa
     }
     
     var body: some View {
@@ -58,7 +63,8 @@ struct DesignCards: View {
             tags: tags,
             isLiked: $isLiked,
             likes: likes,
-            views: views
+            views: views, 
+            hexa: hexa
         )) {
             VStack(alignment: .center) {
 #if os(iOS)
@@ -66,7 +72,11 @@ struct DesignCards: View {
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
                         .frame(height: 280)
-                        .foregroundStyle(.thickMaterial)
+                        .foregroundStyle(Color(hex: hexa))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.gray, lineWidth: 0.5) // Adjust the stroke color and width as needed
+                        )
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)
                                 .frame(width: 115,height: 250)
@@ -227,7 +237,7 @@ struct DesignCards: View {
                     
                     HStack {
                         Text(authorName)
-                            .font(.system(size: 15))
+                            .font(.system(size: 16))
                             .foregroundColor(.secondary)
                         
                         if isAuthorVerified ||  type == "image"{
@@ -238,9 +248,32 @@ struct DesignCards: View {
                         
                         Spacer()
                         
-                        Text("\(likes)")
-                            .font(.system(size: 15))
-                            .foregroundColor(.secondary)
+                        if type == "fetched"{
+                            HStack{
+                                Image(systemName: isLiked ? "heart.fill" : "heart")
+                                    .foregroundColor(isLiked ? .red : .gray)
+                                    .font(.system(size: 15))
+                                Text("\(formatCount(likesCount))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal,2)
+                            
+                            
+#if os(iOS)
+                            if UIDevice.current.userInterfaceIdiom == .phone {
+                                HStack{
+                                    Image(systemName: "eye")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 15))
+                                    Text("\(formatCount(viewCount))")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal,2)
+                            }
+#endif
+                        }
                     }
                 }
                 .padding(.bottom, 6)
@@ -248,12 +281,8 @@ struct DesignCards: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             
-            //            #if os(iOS)
-            //            .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 150 : 225)
-            //            #endif
-            
 #if os(iOS)
-            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 3 : 10)
+            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 0 : 10)
 #endif
             
 #if os(macOS)
@@ -263,6 +292,7 @@ struct DesignCards: View {
                 if type == "fetched" {
                     fetchAuthorName()
                 }
+                fetchLikeStatusAndViewCount()
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -295,7 +325,76 @@ struct DesignCards: View {
             }
         }
     }
+    
+    func fetchLikeStatusAndViewCount() {
+        guard let user = Auth.auth().currentUser else { return }
+        let db = Firestore.firestore()
+        let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
+        let postRef = db.collection("posts").document(id)
+        
+        // Use Firestore's batch to get both documents
+        var isLikedStatus = false
+        var likesCount = 0
+        var viewCount = 0
+        
+        // Fetch user liked status and post details in parallel
+        userLikedPostRef.getDocument { likedDocument, error in
+            if let likedDocument = likedDocument, likedDocument.exists {
+                isLikedStatus = true
+            } else {
+                isLikedStatus = false
+            }
+            
+            postRef.getDocument { document, error in
+                if let document = document, document.exists {
+                    if let data = document.data() {
+                        if let likes = data["likesCount"] as? Int {
+                            likesCount = likes
+                        }
+                        if let views = data["viewCount"] as? Int {
+                            viewCount = views
+                        }
+                    }
+                }
+                
+                // Update UI on the main thread
+                DispatchQueue.main.async {
+                    self.isLiked = isLikedStatus
+                    self.likesCount = likesCount
+                    self.viewCount = viewCount
+                }
+            }
+        }
+    }
 }
+
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
 
 #Preview {
     DesignCards(
@@ -309,6 +408,7 @@ struct DesignCards: View {
         type: "image",
         tags: ["tag1", "tag2"],
         likes: 420,
-        views: 69420
+        views: 69420,
+        hexa: "#FFFFFF"
     )
 }

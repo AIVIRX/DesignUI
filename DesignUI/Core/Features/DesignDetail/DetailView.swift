@@ -19,6 +19,7 @@ struct DetailView: View {
     @Binding var isLiked: Bool
     var likes: Int
     var views: Int
+    var hexa: String
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
     @State private var repostCount: Int = 0
@@ -30,6 +31,7 @@ struct DetailView: View {
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
     @State private var isReporting: Bool = false
+    @State private var isEditing: Bool = false
     @State private var reportMessage: String = ""
     var body: some View {
         ScrollView() {
@@ -39,11 +41,10 @@ struct DetailView: View {
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
                         .frame(height: 280)
-                        .foregroundStyle(.thinMaterial)
+                        .foregroundStyle(Color(hex: hexa))
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)
                                 .frame(width: 115,height: 250)
-                                .foregroundStyle(Color.red)
                                 .overlay{
                                     if type == "image" {
                                         Image(mediaURL)
@@ -87,11 +88,35 @@ struct DetailView: View {
                     
                     VStack(alignment: .leading) {
                         HStack {
-                            Text(title)
-                                .font(.title)
-                                .bold()
-                                .lineLimit(2)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+//                            Text(title)
+//                                .font(.title)
+//                                .bold()
+//                                .lineLimit(2)
+//                                .frame(maxWidth: .infinity, alignment: .leading)
+                            VStack(alignment:.leading){
+                                //author
+                                HStack {
+                                    Text("\(author)")
+                                        .font(.headline)
+                                        .foregroundColor(.secondary)
+                                        .padding(.top, 3)
+                                    
+                                    if isAuthorVerified || type == "image" {
+                                        Image(systemName: "checkmark.seal.fill")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                
+                                if Auth.auth().currentUser != nil && type != "image" {
+                                    Text("\(formatCount(viewCount)) views")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
                             if type == "fetched" {
                                 if Auth.auth().currentUser != nil{
                                     Button(action: {
@@ -101,7 +126,6 @@ struct DetailView: View {
                                         }
                                     }) {
                                         VStack{
-                                            
                                             Image(systemName: isLiked ? "heart.fill" : "heart")
                                                 .foregroundColor(isLiked ? .red : .gray)
                                                 .font(.title)
@@ -113,35 +137,11 @@ struct DetailView: View {
                                 }
                             }
                         }
-                        Text(creationDate)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        if Auth.auth().currentUser != nil && type != "image" {
-                            Text("\(formatCount(viewCount)) views")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack {
-                            Text("\(author)")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            
-                            if isAuthorVerified || type == "image" {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                        
-                        TagView(tags: tags)
+                        //TagView(tags: tags)
                     }
                     
-                    Text("Description:")
-                        .font(.title2).bold()
-                        .padding(.top)
                     Text(description)
+                        .padding(.top)
                         .font(.body)
                     
                     Text("Code Snippet:")
@@ -208,7 +208,6 @@ struct DetailView: View {
                             .overlay{
                                 RoundedRectangle(cornerRadius: 20)
                                     .frame(width: 257,height: 557)
-                                    .foregroundStyle(Color.red)
                                     .overlay{
                                         if type == "image" {
                                             Image(mediaURL)
@@ -375,7 +374,6 @@ struct DetailView: View {
                         .overlay{
                             RoundedRectangle(cornerRadius: 20)
                                 .frame(width: 257,height: 557)
-                                .foregroundStyle(Color.red)
                                 .overlay{
                                     if type == "image" {
                                         Image(mediaURL)
@@ -535,12 +533,21 @@ struct DetailView: View {
         .scrollIndicators(.hidden)
         
 #if os(iOS)
+    .navigationBarTitle(title)
     .navigationBarItems(trailing:
+     HStack{
         Button(action: {
             isReporting.toggle() // Toggle to present a sheet for message input
         }) {
             Label("Report", systemImage: "flag")
         }
+        
+        Button(action: {
+            isReporting.toggle() // Toggle to present a sheet for message input
+        }) {
+            Label("Edit", systemImage: "square.and.pencil")
+        }
+    }
     )
     .sheet(isPresented: $isReporting) {
         VStack {
@@ -564,6 +571,15 @@ struct DetailView: View {
                 }
             }
             .padding()
+        }
+        .padding()
+    }
+    .sheet(isPresented: $isEditing) {
+        VStack {
+            Text("Edit Content")
+                .font(.title)
+            Text("NOTE: Images cannot be edited due to saftey.")
+                .padding(.bottom)
         }
         .padding()
     }
@@ -781,9 +797,3 @@ struct TagView: View {
         }
     }
 }
-
-
-#Preview{
-    TagView(tags: ["Template", "Animation"])
-}
-
