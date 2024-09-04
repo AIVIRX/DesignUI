@@ -83,7 +83,8 @@ struct EditPostView: View {
             "description": description,
             "codeSnippet": codeSnippet,
             "tags": tags,
-            "hexa": hexa
+            "hexa": hexa,
+            "visibility": visibility
         ]
         
         postRef.updateData(updatedData) { error in

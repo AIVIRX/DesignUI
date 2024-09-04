@@ -94,7 +94,6 @@ struct LikedView: View {
             var query = db.collection("users")
                 .document(user.uid)
                           .collection("likedPosts")
-                          .whereField("visibility", isEqualTo: "public")
                           .order(by: "timestamp", descending: true)
                           .limit(to: postsLimit)
             
