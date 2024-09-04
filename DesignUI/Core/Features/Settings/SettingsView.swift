@@ -107,6 +107,15 @@ struct SettingsView: View {
                         }
                     }
                     
+                    Section(header: Text("Support Us")) {
+                        Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
+                            .bold()
+                        
+                        Link("Discord", destination: URL(string: "https://www.discord.com/dockui")!)
+                            .bold()
+
+                    }
+                    
                     Section(header: Text("Our Apps")) {
                         Link(destination: URL(string: "https://apps.apple.com/us/app/crypto-profit-loss-calculator/id1638849680")!) {
                             HStack {
@@ -162,21 +171,21 @@ struct SettingsView: View {
 #endif
                 
 #if os(iOS)
-                if !store.completedPurchases.isEmpty{
-                    
-                } else {
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        AdView(adUnitID: AdUnitID.settingsPageAds)
-                            .frame(width: 320, height: 50)
-                            .padding(3)
-                    }
-                    
-                    if UIDevice.current.userInterfaceIdiom == .pad {
-                        AdView(adUnitID: AdUnitID.settingsPageAds)
-                            .frame(width: 468, height: 60)
-                            .padding(3)
-                    }
-                }
+//                if !store.completedPurchases.isEmpty{
+//                    
+//                } else {
+//                    if UIDevice.current.userInterfaceIdiom == .phone {
+//                        AdView(adUnitID: AdUnitID.settingsPageAds)
+//                            .frame(width: 320, height: 50)
+//                            .padding(3)
+//                    }
+//                    
+//                    if UIDevice.current.userInterfaceIdiom == .pad {
+//                        AdView(adUnitID: AdUnitID.settingsPageAds)
+//                            .frame(width: 468, height: 60)
+//                            .padding(3)
+//                    }
+//                }
 #endif
             }
         }
@@ -193,83 +202,11 @@ struct SettingsView: View {
         }
     }
 
-   
-
-    func handleAppleSignIn(_ authorization: ASAuthorization) {
-        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-            showError("Unable to retrieve AppleIDCredential")
-            return
-        }
-
-        guard let nonce = nonce else {
-            fatalError("Invalid state: A login callback was received, but no login request was sent.")
-        }
-
-        guard let appleIDToken = appleIDCredential.identityToken else {
-            showError("Unable to fetch identity token")
-            return
-        }
-
-        guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-            showError("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
-            return
-        }
-
-        // Initialize a fresh Apple credential with Firebase.
-        let credential = OAuthProvider.credential(
-            withProviderID: "apple.com",
-            idToken: idTokenString,
-            rawNonce: nonce
-        )
-
-        // Reauthenticate current Apple user with fresh Apple credential.
-        Auth.auth().currentUser?.reauthenticate(with: credential) { authResult, error in
-            if let error = error {
-                self.showError(error.localizedDescription)
-                return
-            }
-            // Apple user successfully re-authenticated.
-            self.performDeleteUser()
-        }
-    }
-
-    private func performDeleteUser() {
-        Task {
-            do {
-                try await Auth.auth().currentUser?.delete()
-                userStore.signOut()
-                dismiss()
-            } catch {
-                showError(error.localizedDescription)
-            }
-        }
-    }
-
     private func showError(_ message: String) {
         errorMessage = message
         showErrorAlert = true
     }
 
-    private func randomNonceString(length: Int = 32) -> String {
-        precondition(length > 0)
-        var randomBytes = [UInt8](repeating: 0, count: length)
-        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
-        if errorCode != errSecSuccess {
-            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
-        }
-
-        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
-        let nonce = randomBytes.map { byte in charset[Int(byte) % charset.count] }
-        return String(nonce)
-    }
-
-    @available(iOS 13, *)
-    private func sha256(_ input: String) -> String {
-        let inputData = Data(input.utf8)
-        let hashedData = SHA256.hash(data: inputData)
-        let hashString = hashedData.compactMap { String(format: "%02x", $0) }.joined()
-        return hashString
-    }
 }
 
 #Preview {

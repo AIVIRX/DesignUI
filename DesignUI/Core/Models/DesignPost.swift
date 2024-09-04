@@ -21,4 +21,5 @@ struct DesignPost: Identifiable, Decodable, Hashable {
     let likesCount: Int
     let viewCount: Int
     let hexa: String
+    let visibility: String
 }

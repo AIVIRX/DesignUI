@@ -15,13 +15,9 @@ import SDWebImageSwiftUI
 
 struct HomeView: View {
     @EnvironmentObject private var store: Store
-    @State private var designPosts: [DesignPost] = []
     @State private var communityPosts: [DesignPost] = []
     @State private var lastFetchedDocument: DocumentSnapshot?
-    @State private var isNewDesignsLoaded = false
     @State private var hasMoreCommunityPosts = false
-    @State private var teamName = "Dock UI"
-    @State private var errorMessage: String = ""
     @State private var isLoading: Bool = false
     @State private var searchText = ""
     @State private var showSearchResults = false
@@ -49,7 +45,8 @@ struct HomeView: View {
                                     tags: post.tags,
                                     likes: post.likesCount,
                                     views: post.viewCount,
-                                    hexa: post.hexa
+                                    hexa: post.hexa,
+                                    visibility: post.visibility
                                 )
                                 .frame(maxWidth: .infinity)
                                 .aspectRatio(9/16, contentMode: .fit)
@@ -105,10 +102,6 @@ struct HomeView: View {
             }
             
             store.loadStoredPurchases()
-            
-            if !isNewDesignsLoaded {
-                isNewDesignsLoaded = true
-            }
         }
         .task {
             if !isCommunityPostsLoaded {
@@ -140,7 +133,7 @@ struct HomeView: View {
                 print("Resetting community posts...")
             }
 
-            var query = db.collection("posts").order(by: "creationDate", descending: true).limit(to: postsLimit)
+            var query = db.collection("posts").whereField("visibility", isEqualTo: "public").order(by: "creationDate", descending: true).limit(to: postsLimit)
             
             if let lastDocument = lastFetchedDocument {
                 query = query.start(afterDocument: lastDocument)

@@ -20,11 +20,15 @@ struct SearchResultCard: View {
     var published: String
     var type: String
     var tags: [String]
+    var likeCount: Int
+    var viewCount: Int
+    var hexa: String
+    var visibility: String
     @State private var isLiked: Bool = false
     @State private var authorName: String = "DockUI Team"
     @State private var isAuthorVerified: Bool = false
 
-    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String]) {
+    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likeCount: Int, viewCount: Int, hexa: String, visibility: String) {
         self.id = id
         self.media = media
         self.title = title
@@ -34,6 +38,10 @@ struct SearchResultCard: View {
         self.published = published
         self.type = type
         self.tags = tags
+        self.likeCount = likeCount
+        self.viewCount = viewCount
+        self.hexa = hexa
+        self.visibility = visibility
     }
     
     var body: some View {
@@ -43,29 +51,30 @@ struct SearchResultCard: View {
             title: title,
             description: description,
             author: authorName,
+            authorUID: authorUID,
             codeSnippet: codeSnippet,
             creationDate: published,
             type: type,
             isAuthorVerified: isAuthorVerified,
             tags: tags,
             isLiked: $isLiked,
-            likes: 0,
-            views: 30,
-            hexa: "#FFFFFF"
+            likes: likeCount,
+            views: viewCount,
+            hexa: hexa,
+            visibility: visibility
         )) {
             HStack{
-                
                 if type == "image" {
-                                Image(media)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 130, height: 250)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color.secondary, lineWidth: 0.2)
-                                    )
-                            }
+                    Image(media)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 130, height: 250)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.secondary, lineWidth: 0.2)
+                        )
+                }
                 
                 if type == "fetched" {
                     WebImage(url: URL(string: media)) { phase in
@@ -124,12 +133,12 @@ struct SearchResultCard: View {
             }
             .padding(8)
             
-            #if os(iOS)
+#if os(iOS)
             .simultaneousGesture(TapGesture().onEnded {
                 let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
             })
-            #endif
+#endif
         }
     }
     
@@ -154,21 +163,3 @@ struct SearchResultCard: View {
         }
     }
 }
-
-#Preview {
-    DesignCards(
-        id: "123",
-        media: "ArticleTemplate",
-        title: "Sample Title",
-        authorUID: "sampleUID",
-        description: "Sample description of the design.",
-        codeSnippet: "Sample code snippet.",
-        published: "\(Timestamp(date: Date()))",
-        type: "image",
-        tags: ["tag1", "tag2"],
-        likes: 459,
-        views: 08690,
-        hexa: "#FFFFFF"
-    )
-}
-

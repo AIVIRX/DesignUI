@@ -65,6 +65,7 @@
 		ECD043182C5F21D900865D12 /* SearchResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD043172C5F21D900865D12 /* SearchResultCard.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
+		ECD9FEBC2C87694500872C22 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD9FEBB2C87694500872C22 /* Post.swift */; };
 		ECF625472C6D5C6C0057FB6B /* Toastys.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF625462C6D5C6C0057FB6B /* Toastys.swift */; };
 /* End PBXBuildFile section */
 
@@ -121,6 +122,7 @@
 		ECD043172C5F21D900865D12 /* SearchResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultCard.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		ECD9FEBB2C87694500872C22 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
 		ECF625462C6D5C6C0057FB6B /* Toastys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toastys.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -260,6 +262,7 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
+				ECD9FEBB2C87694500872C22 /* Post.swift */,
 				EC4F38942C1CC2EC0018C802 /* User.swift */,
 			);
 			path = Models;
@@ -524,6 +527,7 @@
 				ECCCD0212C3E1F37008972F2 /* UserStore.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */,
+				ECD9FEBC2C87694500872C22 /* Post.swift in Sources */,
 				ECD043112C5EEE7A00865D12 /* FeaturesContainerView.swift in Sources */,
 				ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */,
 				EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */,

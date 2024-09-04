@@ -22,9 +22,7 @@ class ToastManager: ObservableObject {
     
     private func dismissToast(_ toast: Toast) {
         if let index = toasts.firstIndex(where: { $0.id == toast.id }) {
-            withAnimation {
-                toasts.remove(at: index)
-            }
+                toasts.remove(at: index)  // This triggers the animation
         }
     }
 }
@@ -34,12 +32,11 @@ struct Toast: Identifiable {
     let message: String
 }
 
-
 struct ToastView: View {
     let message: String
     
     var body: some View {
-        HStack{
+        HStack {
             Image(systemName: "doc.on.doc.fill")
             Text(message)
         }
@@ -47,6 +44,7 @@ struct ToastView: View {
         .background(.gray, in: RoundedRectangle(cornerRadius: 8))
         .foregroundColor(.white).bold()
         .shadow(radius: 5)
-        .transition(.move(edge: .leading).combined(with: .opacity))
+        .transition(.move(edge: .leading).combined(with: .opacity)) // Transition animation
+        .animation(.easeInOut, value: message)  // Ensure the transition is animated
     }
 }

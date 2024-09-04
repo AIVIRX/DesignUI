@@ -11,6 +11,7 @@ struct DetailView: View {
     var title: String
     var description: String
     var author: String
+    var authorUID: String
     var codeSnippet: String
     var creationDate: String
     var type: String
@@ -20,6 +21,8 @@ struct DetailView: View {
     var likes: Int
     var views: Int
     var hexa: String
+    var visibility: String
+    
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
     @State private var repostCount: Int = 0
@@ -32,6 +35,7 @@ struct DetailView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var isReporting: Bool = false
     @State private var isEditing: Bool = false
+    @State private var isCurrentUserAuthor: Bool = false
     @State private var reportMessage: String = ""
     var body: some View {
         ScrollView() {
@@ -139,7 +143,6 @@ struct DetailView: View {
                         }
                         //TagView(tags: tags)
                     }
-                    
                     Text(description)
                         .padding(.top)
                         .font(.body)
@@ -541,11 +544,16 @@ struct DetailView: View {
         }) {
             Label("Report", systemImage: "flag")
         }
-        
-        Button(action: {
-            isReporting.toggle() // Toggle to present a sheet for message input
-        }) {
-            Label("Edit", systemImage: "square.and.pencil")
+                
+        if checkIfAuthor(){
+            Button(action: {
+                isEditing.toggle() // Toggle to present a sheet for message input
+            }) {
+                Label("Edit", systemImage: "square.and.pencil")
+            }
+            .sheet(isPresented: $isEditing) {
+                EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
+            }
         }
     }
     )
@@ -574,15 +582,10 @@ struct DetailView: View {
         }
         .padding()
     }
-    .sheet(isPresented: $isEditing) {
-        VStack {
-            Text("Edit Content")
-                .font(.title)
-            Text("NOTE: Images cannot be edited due to saftey.")
-                .padding(.bottom)
-        }
-        .padding()
-    }
+    
+
+
+
 #endif
 
 #if os(macOS)
@@ -634,6 +637,14 @@ struct DetailView: View {
             incrementViewCount()
         }
     }
+    
+    func checkIfAuthor() -> Bool {
+        guard let user = Auth.auth().currentUser else {
+            return false
+        }
+        return user.uid == authorUID
+    }
+
     
     func copyToClipboard(_ text: String) {
         #if os(iOS)

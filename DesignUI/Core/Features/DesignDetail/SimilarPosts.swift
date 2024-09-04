@@ -21,6 +21,9 @@ struct SimilarPost: Identifiable {
     var creationDate: String
     var tags: [String]
     var type: String
+    var likes: Int
+    var views: Int
+    var visibility: String
 }
 
 struct SimilarPostsView: View {
@@ -42,17 +45,19 @@ struct SimilarPostsView: View {
                             id: post.id,
                             mediaURL: post.mediaURL,
                             title: post.title,
-                            description: post.description, // Fetch description from Firestore
-                            author: post.authorName, // Fetches author from Firestore
-                            codeSnippet: post.codeSnippet, // Fetches codeSnippet from Firestore
-                            creationDate: post.creationDate, // Fetch creationDate from Firestore
+                            description: post.description,
+                            author: post.authorName,
+                            authorUID: post.authorUID,
+                            codeSnippet: post.codeSnippet,
+                            creationDate: post.creationDate,
                             type: post.type,
-                            isAuthorVerified: false, // Fetch verification status from Firestore if needed
-                            tags: post.tags,  // Fetch tags from Firestore if needed
-                            isLiked: $isLiked, // Fetch like status from Firestore if needed
-                            likes: 69,
-                            views: 69,
-                            hexa: "#FFFFFF"
+                            isAuthorVerified: post.isAuthorVerified,
+                            tags: post.tags,
+                            isLiked: $isLiked,
+                            likes: post.likes,
+                            views: post.views,
+                            hexa: "#FFFFFF",
+                            visibility: post.visibility
                         )) {
                             VStack(alignment:.leading){
                                 RoundedRectangle(cornerRadius: 15)
@@ -184,6 +189,7 @@ func fetchSimilarPosts(currentPostId: String, tags: [String], completion: @escap
     let postsRef = db.collection("posts")
 
     postsRef
+        .whereField("visibility", isEqualTo: "public")
         .whereField("tags", arrayContainsAny: tags)
         .whereField("id", isNotEqualTo: currentPostId) // Exclude current post
         .limit(to: 3)  // Limit the number of similar posts fetched
@@ -207,7 +213,10 @@ func fetchSimilarPosts(currentPostId: String, tags: [String], completion: @escap
                         codeSnippet: data["codeSnippet"] as? String ?? "",
                         creationDate: creationDateString, // Use the formatted date string
                         tags: data["tags"] as? [String] ?? [""],
-                        type: data["type"] as? String ?? ""
+                        type: data["type"] as? String ?? "", 
+                        likes: data["likesCount"] as? Int ?? 0,
+                        views: data["viewCount"] as? Int ?? 0,
+                        visibility: data["visibility"] as? String ?? ""
                     )
 
                     dispatchGroup.enter()

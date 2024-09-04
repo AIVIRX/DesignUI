@@ -2156,6 +2156,9 @@
         }
       }
     },
+    "Background Color (Hex)" : {
+
+    },
     "Cancel" : {
 
     },
@@ -2396,6 +2399,9 @@
           }
         }
       }
+    },
+    "Code Snippet" : {
+
     },
     "Code Snippet:" : {
       "localizations" : {
@@ -4779,6 +4785,9 @@
         }
       }
     },
+    "Discord" : {
+
+    },
     "Dock UI" : {
       "localizations" : {
         "ar" : {
@@ -5258,7 +5267,7 @@
     "Edit" : {
 
     },
-    "Edit Content" : {
+    "Edit Post" : {
 
     },
     "Edit Profile" : {
@@ -5976,10 +5985,13 @@
         }
       }
     },
-    "Hello, World!" : {
+    "Hex Color" : {
 
     },
     "Home" : {
+
+    },
+    "Instagram" : {
 
     },
     "Load More" : {
@@ -6220,6 +6232,9 @@
           }
         }
       }
+    },
+    "Loading liked posts..." : {
+
     },
     "Loading posts..." : {
 
@@ -6701,7 +6716,7 @@
         }
       }
     },
-    "NOTE: Images cannot be edited due to saftey." : {
+    "No liked posts yet." : {
 
     },
     "OK" : {
@@ -10530,6 +10545,9 @@
     "Select a view" : {
 
     },
+    "Select Visibility" : {
+
+    },
     "Settings" : {
       "localizations" : {
         "ar" : {
@@ -12205,6 +12223,9 @@
         }
       }
     },
+    "Support Us" : {
+
+    },
     "Symbols" : {
       "localizations" : {
         "ar" : {
@@ -12442,6 +12463,12 @@
           }
         }
       }
+    },
+    "Tags" : {
+
+    },
+    "Tags (comma separated)" : {
+
     },
     "Tags (Select up to 3)" : {
       "localizations" : {
@@ -14110,6 +14137,9 @@
           }
         }
       }
+    },
+    "Visibility" : {
+
     },
     "Welcome, User!" : {
       "extractionState" : "stale",

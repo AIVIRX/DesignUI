@@ -24,6 +24,7 @@ struct DesignCards: View {
     var likes: Int
     var views: Int
     var hexa: String
+    var visibility: String
     
     @State private var isHovered: Bool = false
     @State private var isLiked: Bool = false
@@ -34,7 +35,7 @@ struct DesignCards: View {
     @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
     
-    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int, hexa: String) {
+    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int, hexa: String, visibility: String) {
         self.id = id
         self.media = media
         self.title = title
@@ -47,6 +48,7 @@ struct DesignCards: View {
         self.likes = likes
         self.views = views
         self.hexa = hexa
+        self.visibility = visibility
     }
     
     var body: some View {
@@ -56,6 +58,7 @@ struct DesignCards: View {
             title: title,
             description: description,
             author: authorName,
+            authorUID: authorUID,
             codeSnippet: codeSnippet,
             creationDate: published,
             type: type,
@@ -64,7 +67,8 @@ struct DesignCards: View {
             isLiked: $isLiked,
             likes: likes,
             views: views, 
-            hexa: hexa
+            hexa: hexa,
+            visibility: visibility
         )) {
             VStack(alignment: .center) {
 #if os(iOS)
@@ -396,19 +400,3 @@ extension Color {
 }
 
 
-#Preview {
-    DesignCards(
-        id: "123",
-        media: "ArticleTemplate",
-        title: "Sample Title",
-        authorUID: "sampleUID",
-        description: "Sample description of the design.",
-        codeSnippet: "Sample code snippet.",
-        published: "\(Timestamp(date: Date()))",
-        type: "image",
-        tags: ["tag1", "tag2"],
-        likes: 420,
-        views: 69420,
-        hexa: "#FFFFFF"
-    )
-}
