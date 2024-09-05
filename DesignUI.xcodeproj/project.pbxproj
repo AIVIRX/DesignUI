@@ -11,7 +11,6 @@
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
 		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
-		EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */; };
 		EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38922C1CBD820018C802 /* EditProfile.swift */; };
 		EC4F38952C1CC2EC0018C802 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38942C1CC2EC0018C802 /* User.swift */; };
 		EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */; };
@@ -30,7 +29,6 @@
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
 		EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFC2C19E581003134B1 /* SymbolRow.swift */; };
 		EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */; };
-		EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C022C19E5BD003134B1 /* BannerAds.swift */; };
 		EC7D7C0A2C19E7B5003134B1 /* Preview Content.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */; };
 		EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C0E2C19F610003134B1 /* Profile.swift */; };
 		EC7E8B692C82698400583E48 /* UpdatePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7E8B682C82698400583E48 /* UpdatePost.swift */; };
@@ -48,6 +46,7 @@
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB1DA622C7C0ED8002D7E31 /* DateFormater.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */; };
 		ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA632C7C160C002D7E31 /* FormatCount.swift */; };
+		ECB96F1F2C8A0A3400175E0B /* BannerAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */; };
 		ECBA11982C84033E00973E94 /* GridColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECBA11972C84033E00973E94 /* GridColumn.swift */; };
 		ECBBCD382C5ABCB50074022A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */; };
 		ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECC9BC842C0FE0D40052D471 /* AdSupport.framework */; };
@@ -65,8 +64,6 @@
 		ECD043182C5F21D900865D12 /* SearchResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD043172C5F21D900865D12 /* SearchResultCard.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
-		ECD6B8442C893F8B000B441E /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = ECD6B8432C893F8B000B441E /* FirebaseRemoteConfig */; };
-		ECD6B8462C8940E8000B441E /* RemoteConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD6B8452C8940E8000B441E /* RemoteConfig.swift */; };
 		ECD9FEBC2C87694500872C22 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD9FEBB2C87694500872C22 /* Post.swift */; };
 		ECF625472C6D5C6C0057FB6B /* Toastys.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF625462C6D5C6C0057FB6B /* Toastys.swift */; };
 /* End PBXBuildFile section */
@@ -74,7 +71,6 @@
 /* Begin PBXFileReference section */
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionCard.swift; sourceTree = "<group>"; };
 		EC4F38922C1CBD820018C802 /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
 		EC4F38942C1CC2EC0018C802 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
@@ -91,7 +87,6 @@
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
 		EC7D7BFC2C19E581003134B1 /* SymbolRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SymbolRow.swift; sourceTree = "<group>"; };
 		EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LargeCardView.swift; sourceTree = "<group>"; };
-		EC7D7C022C19E5BD003134B1 /* BannerAds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BannerAds.swift; sourceTree = "<group>"; };
 		EC7D7C042C19E620003134B1 /* DesignUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesignUI.entitlements; sourceTree = "<group>"; };
 		EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content.xcassets"; sourceTree = "<group>"; };
 		EC7D7C0E2C19F610003134B1 /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
@@ -110,6 +105,7 @@
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormater.swift; sourceTree = "<group>"; };
 		ECB1DA632C7C160C002D7E31 /* FormatCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatCount.swift; sourceTree = "<group>"; };
+		ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAds.swift; sourceTree = "<group>"; };
 		ECBA11972C84033E00973E94 /* GridColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridColumn.swift; sourceTree = "<group>"; };
 		ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ECC9BC842C0FE0D40052D471 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
@@ -124,7 +120,6 @@
 		ECD043172C5F21D900865D12 /* SearchResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultCard.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
-		ECD6B8452C8940E8000B441E /* RemoteConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteConfig.swift; sourceTree = "<group>"; };
 		ECD9FEBB2C87694500872C22 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
 		ECF625462C6D5C6C0057FB6B /* Toastys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toastys.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -137,7 +132,6 @@
 				ECD0430E2C5E7AB000865D12 /* FirebaseAnalytics in Frameworks */,
 				EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */,
 				ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */,
-				ECD6B8442C893F8B000B441E /* FirebaseRemoteConfig in Frameworks */,
 				EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */,
 				ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */,
 				ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */,
@@ -258,7 +252,6 @@
 				ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */,
 				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
-				ECD6B8452C8940E8000B441E /* RemoteConfig.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -293,7 +286,6 @@
 			children = (
 				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
 				EC7D7BEA2C19E506003134B1 /* HomeView.swift */,
-				EC495DF42C604D5C00A6A52C /* QuickActionCard.swift */,
 				ECBA11972C84033E00973E94 /* GridColumn.swift */,
 			);
 			path = Home;
@@ -332,7 +324,7 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */,
-				EC7D7C022C19E5BD003134B1 /* BannerAds.swift */,
+				ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */,
 				ECF625462C6D5C6C0057FB6B /* Toastys.swift */,
 				ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */,
 				ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */,
@@ -394,7 +386,6 @@
 				ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */,
 				EC495DEF2C5FF92500A6A52C /* Drops */,
 				EC495DF12C601E8300A6A52C /* FirebaseAppCheck */,
-				ECD6B8432C893F8B000B441E /* FirebaseRemoteConfig */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -502,8 +493,8 @@
 			files = (
 				ECD043182C5F21D900865D12 /* SearchResultCard.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
+				ECB96F1F2C8A0A3400175E0B /* BannerAds.swift in Sources */,
 				ECB1DA622C7C0ED8002D7E31 /* DateFormater.swift in Sources */,
-				EC7D7C032C19E5BD003134B1 /* BannerAds.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC4F38952C1CC2EC0018C802 /* User.swift in Sources */,
 				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
@@ -536,10 +527,8 @@
 				ECD9FEBC2C87694500872C22 /* Post.swift in Sources */,
 				ECD043112C5EEE7A00865D12 /* FeaturesContainerView.swift in Sources */,
 				ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */,
-				EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */,
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC961B9F2C499905002D10DD /* DBTest.swift in Sources */,
-				ECD6B8462C8940E8000B441E /* RemoteConfig.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
 				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
 				ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */,
@@ -705,7 +694,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -752,7 +741,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -889,11 +878,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
-		};
-		ECD6B8432C893F8B000B441E /* FirebaseRemoteConfig */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

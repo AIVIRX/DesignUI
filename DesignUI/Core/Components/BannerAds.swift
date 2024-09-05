@@ -7,10 +7,8 @@
 
 import Foundation
 import SwiftUI
-
 #if os(iOS)
 import GoogleMobileAds
-
 
 struct AdView: UIViewRepresentable{
     var adUnitID: String

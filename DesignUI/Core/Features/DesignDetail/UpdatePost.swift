@@ -69,13 +69,13 @@ struct EditPostView: View {
             }
         }
         .navigationTitle("Edit Post")
-        #if os(iOS)
+#if os(iOS)
         .navigationBarItems(leading: Button("Cancel") {
             presentationMode.wrappedValue.dismiss()
         })
-        #endif
+#endif
     }
-
+    
     private func saveChanges() {
         let db = Firestore.firestore()
         let postRef = db.collection("posts").document(id)

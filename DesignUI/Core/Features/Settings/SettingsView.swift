@@ -57,8 +57,8 @@ struct MailView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: UIViewControllerRepresentableContext<MailView>) {}
 }
 #endif
+
 struct SettingsView: View {
-    @ObservedObject var remoteConfigManager = RemoteConfigManager()
     @EnvironmentObject private var store: Store
     @EnvironmentObject var userStore: UserStore
     @Environment(\.colorScheme) var colorScheme
@@ -90,9 +90,20 @@ struct SettingsView: View {
                                 Text("Shop")
                             }
                         }
+                        NavigationLink(destination: SFIconsView()) {
+                            HStack {
+                                Image(systemName: "photo.badge.plus.fill")
+                                    .font(.system(size: 18)).bold()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.white)
+                                    .background(Color.blue)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                Text("SF Symbols")
+                            }
+                        }
                     }
                     
-                    Section(header: Text("Review")) {
+                    Section(header: Text("Support Us")) {
                         Button {
                             requestReview()
                         } label: {
@@ -106,15 +117,12 @@ struct SettingsView: View {
                                 Text("Rate Us")
                             }
                         }
-                    }
-                    
-                    Section(header: Text("Support Us")) {
+                        
                         Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                             .bold()
                         
                         Link("Discord", destination: URL(string: "https://discord.gg/nz8XMh86")!)
                             .bold()
-
                     }
                     
                     Section(header: Text("Our Apps")) {
@@ -150,14 +158,14 @@ struct SettingsView: View {
                         }
 #if os(iOS)
                         .disabled(!MFMailComposeViewController.canSendMail())
-                        #endif
+#endif
                     }
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
 #if os(iOS)
                 .navigationBarTitle("Settings")
                 .navigationBarTitleDisplayMode(.inline)
-                #endif
+#endif
                 .alert(isPresented: $showErrorAlert) {
                     Alert(
                         title: Text("Error"),
@@ -170,53 +178,13 @@ struct SettingsView: View {
                     MailView(result: $result)
                 }
 #endif
-                
-#if os(iOS)
-//                if !store.completedPurchases.isEmpty{
-//                    
-//                } else {
-//                    if UIDevice.current.userInterfaceIdiom == .phone {
-//                        AdView(adUnitID: AdUnitID.settingsPageAds)
-//                            .frame(width: 320, height: 50)
-//                            .padding(3)
-//                    }
-//                    
-//                    if UIDevice.current.userInterfaceIdiom == .pad {
-//                        AdView(adUnitID: AdUnitID.settingsPageAds)
-//                            .frame(width: 468, height: 60)
-//                            .padding(3)
-//                    }
-//                }
-#endif
-            }
-            if !store.completedPurchases.isEmpty{
-            } else {
-                if (remoteConfigManager.bannerLocationIPHONE == "inline") {
-                    AdView(adUnitID: AdUnitID.testAds)
-                        .frame(width: 320, height: 50)
-                        .padding(3)
-                        .onAppear()
-                }
             }
         }
     }
-
-    private func signOutUser() {
-        let firebaseAuth = Auth.auth()
-        do {
-            try firebaseAuth.signOut()
-            userStore.signOut()
-            dismiss()
-        } catch let signOutError as NSError {
-            showError(signOutError.localizedDescription)
-        }
-    }
-
     private func showError(_ message: String) {
         errorMessage = message
         showErrorAlert = true
     }
-
 }
 
 #Preview {

@@ -14,7 +14,6 @@ struct SFIconsView: View {
     @StateObject private var toastManager = ToastManager()
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
-    
     var filteredSymbols: [String] {
         if searchText.isEmpty {
             return symbols
@@ -22,7 +21,6 @@ struct SFIconsView: View {
             return symbols.filter { $0.localizedCaseInsensitiveContains(searchText)}
         }
     }
-    
     var body: some View {
         VStack {
             ScrollView {
@@ -40,8 +38,7 @@ struct SFIconsView: View {
         .navigationTitle("SF Symbols")
         .padding(5)
         .searchable(text: $searchText, prompt: "Search SF Symbols")
-        
-        #if os(macOS)
+#if os(macOS)
         .overlay(
             VStack {
                 ForEach(toastManager.toasts) { toast in
@@ -53,8 +50,7 @@ struct SFIconsView: View {
                 .padding(.bottom, 10)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         )
-        #endif
-        
+#endif
         .offset(y: startAnimation ? 0 : 50)
         .opacity(opacity)
         .onAppear{
@@ -64,7 +60,6 @@ struct SFIconsView: View {
             }
         }
     }
-    
     func copyToClipboard(_ text: String) {
 #if os(iOS)
         UIPasteboard.general.string = text

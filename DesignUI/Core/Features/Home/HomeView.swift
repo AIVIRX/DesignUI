@@ -14,7 +14,6 @@ import SDWebImage
 import SDWebImageSwiftUI
 
 struct HomeView: View {
-    @ObservedObject var remoteConfigManager = RemoteConfigManager()
     @EnvironmentObject private var store: Store
     @State private var communityPosts: [DesignPost] = []
     @State private var lastFetchedDocument: DocumentSnapshot?
@@ -26,24 +25,10 @@ struct HomeView: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
-    private let postsLimit = 4
+    private let postsLimit = 3
     var body: some View {
         NavigationStack {
             VStack {
-                #if os(iOS)
-                if UIDevice.current.userInterfaceIdiom == .phone {
-                    if !store.completedPurchases.isEmpty{
-                    } else {
-                        if (remoteConfigManager.bannerLocationIPHONE == "inline") {
-                            AdView(adUnitID: AdUnitID.testAds)
-                                .frame(width: 320, height: 50)
-                                .padding(3)
-                                .onAppear()
-                        }
-                    }
-                }
-                #endif
-                
                 if isCommunityPostsLoaded && !communityPosts.isEmpty {
                     ScrollView(.vertical, showsIndicators: false) {
                         LazyVGrid(columns: gridColumns, spacing: 16) {
@@ -93,7 +78,7 @@ struct HomeView: View {
                 }
             }
             .navigationTitle("Home")
-            #if os(iOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: HStack {
                 if UIDevice.current.userInterfaceIdiom == .phone {
@@ -104,12 +89,21 @@ struct HomeView: View {
                     }
                 }
             })
-            #endif
+#endif
+#if os(iOS)
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                if store.completedPurchases.isEmpty {
+                    AdView(adUnitID: AdUnitID.finalAd)
+                        .frame(width: 468, height: 60)
+                        .padding(3)
+                }
+            }
+#endif
         }
         .navigationViewStyle(DefaultNavigationViewStyle())
-        #if os(iOS)
+#if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
-        #endif
+#endif
         .onAppear {
             withAnimation(.easeInOut(duration: 0.3)) {
                 startAnimation = true
@@ -125,14 +119,14 @@ struct HomeView: View {
             }
         }
     }
-
+    
     private func loadMorePostsIfNeeded() {
         guard hasMoreCommunityPosts && !isLoading else { return }
         Task {
             await fetchCommunityPosts()
         }
     }
-
+    
     private func fetchCommunityPosts(reset: Bool = false) async {
         let db = Firestore.firestore()
         
@@ -147,7 +141,7 @@ struct HomeView: View {
                 communityPosts.removeAll()
                 print("Resetting community posts...")
             }
-
+            
             var query = db.collection("posts").whereField("visibility", isEqualTo: "public").order(by: "creationDate", descending: true).limit(to: postsLimit)
             
             if let lastDocument = lastFetchedDocument {

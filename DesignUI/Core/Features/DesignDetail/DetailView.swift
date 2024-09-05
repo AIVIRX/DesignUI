@@ -50,41 +50,28 @@ struct DetailView: View {
                             RoundedRectangle(cornerRadius: 15)
                                 .frame(width: 115,height: 250)
                                 .overlay{
-                                    if type == "image" {
-                                        Image(mediaURL)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(maxWidth: .infinity, maxHeight: 250)
-                                            .frame(maxWidth: .infinity, maxHeight: 370)
-                                            .clipShape(RoundedRectangle(cornerRadius: 15))
-                                            .clipped()
-                                            .shadow(radius: 8)
-                                    }
-                                    if type == "fetched" {
-                                        WebImage(url: URL(string: mediaURL)) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                ProgressView()
-                                                    .frame(maxWidth: .infinity, maxHeight: 350)
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                                                    .frame(maxWidth: .infinity, maxHeight: 370)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                            case .failure:
-                                                Image(systemName: "photo")
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                                
-                                            }
+                                    WebImage(url: URL(string: mediaURL)) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView()
+                                                .frame(maxWidth: .infinity, maxHeight: 350)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .frame(maxWidth: .infinity, maxHeight: 370)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                                .shadow(radius: 8)
+                                        case .failure:
+                                            Image(systemName: "photo")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                                .shadow(radius: 8)
                                         }
                                     }
                                 }
@@ -92,11 +79,6 @@ struct DetailView: View {
                     
                     VStack(alignment: .leading) {
                         HStack {
-//                            Text(title)
-//                                .font(.title)
-//                                .bold()
-//                                .lineLimit(2)
-//                                .frame(maxWidth: .infinity, alignment: .leading)
                             VStack(alignment:.leading){
                                 //author
                                 HStack {
@@ -105,14 +87,14 @@ struct DetailView: View {
                                         .foregroundColor(.secondary)
                                         .padding(.top, 3)
                                     
-                                    if isAuthorVerified || type == "image" {
+                                    if isAuthorVerified{
                                         Image(systemName: "checkmark.seal.fill")
                                             .font(.system(size: 13))
                                             .foregroundColor(.blue)
                                     }
                                 }
                                 
-                                if Auth.auth().currentUser != nil && type != "image" {
+                                if Auth.auth().currentUser != nil{
                                     Text("\(formatCount(viewCount)) views")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
@@ -212,38 +194,27 @@ struct DetailView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .frame(width: 257,height: 557)
                                     .overlay{
-                                        if type == "image" {
-                                            Image(mediaURL)
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                                .frame(maxWidth: .infinity, maxHeight: 558)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                .clipped()
-                                                .shadow(radius: 8)
-                                        }
-                                        if type == "fetched" {
-                                            WebImage(url: URL(string: mediaURL)) { phase in
-                                                switch phase {
-                                                case .empty:
-                                                    ProgressView()
-                                                        .frame(maxWidth: .infinity, maxHeight: 558)
-                                                case .success(let image):
-                                                    image
-                                                        .resizable()
-                                                        .aspectRatio(contentMode: .fill)
-                                                        .frame(maxWidth: .infinity, maxHeight: 558)
-                                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                        .clipped()
-                                                        .shadow(radius: 8)
-                                                case .failure:
-                                                    Image(systemName: "photo")
-                                                        .resizable()
-                                                        .aspectRatio(contentMode: .fill)
-                                                        .frame(maxWidth: .infinity, maxHeight: 558)
-                                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                        .clipped()
-                                                        .shadow(radius: 8)
-                                                }
+                                        WebImage(url: URL(string: mediaURL)) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                                    .frame(maxWidth: .infinity, maxHeight: 558)
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(maxWidth: .infinity, maxHeight: 558)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                    .clipped()
+                                                    .shadow(radius: 8)
+                                            case .failure:
+                                                Image(systemName: "photo")
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(maxWidth: .infinity, maxHeight: 558)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                    .clipped()
+                                                    .shadow(radius: 8)
                                             }
                                         }
                                     }
@@ -281,7 +252,7 @@ struct DetailView: View {
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
                                 
-                                if Auth.auth().currentUser != nil && type != "image" {
+                                if Auth.auth().currentUser != nil{
                                     Text("\(formatCount(viewCount)) views")
                                         .font(.system(size: 15)).bold()
                                         .foregroundColor(.secondary)
@@ -292,7 +263,7 @@ struct DetailView: View {
                                         .font(.system(size: 15)).bold()
                                         .foregroundColor(.secondary)
                                     
-                                    if isAuthorVerified || type == "image" {
+                                    if isAuthorVerified{
                                         Image(systemName: "checkmark.seal.fill")
                                             .font(.system(size: 13))
                                             .foregroundColor(.blue)
@@ -327,18 +298,18 @@ struct DetailView: View {
                                 copyToClipboard(codeSnippet)
                                 isCopied = true
                                 
-    #if os(iOS)
+#if os(iOS)
                                 let impactMed = UIImpactFeedbackGenerator(style: .medium)
                                 impactMed.impactOccurred()
-    #endif
-    #if os(iOS)
+#endif
+#if os(iOS)
                                 let drop = Drop(
                                     title: "Copied Code",
                                     icon: UIImage(systemName: "doc.on.doc.fill")
                                 )
                                 
                                 Drops.show(drop)
-    #endif
+#endif
                             }) {
                                 Text("Copy Code")
                                     .padding(8)
@@ -374,16 +345,6 @@ struct DetailView: View {
                             RoundedRectangle(cornerRadius: 20)
                                 .frame(width: 257,height: 557)
                                 .overlay{
-                                    if type == "image" {
-                                        Image(mediaURL)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(maxWidth: .infinity, maxHeight: 558)
-                                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                                            .clipped()
-                                            .shadow(radius: 8)
-                                    }
-                                    if type == "fetched" {
                                         WebImage(url: URL(string: mediaURL)) { phase in
                                             switch phase {
                                             case .empty:
@@ -407,7 +368,6 @@ struct DetailView: View {
                                                     .shadow(radius: 8)
                                             }
                                         }
-                                    }
                                 }
                         }
                     VStack{
@@ -443,7 +403,7 @@ struct DetailView: View {
                                 .font(.system(size: 15)).bold()
                                 .foregroundColor(.secondary)
                             
-                            if Auth.auth().currentUser != nil && type != "image" {
+                            if Auth.auth().currentUser != nil{
                                 Text("\(formatCount(viewCount)) views")
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
@@ -454,7 +414,7 @@ struct DetailView: View {
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
                                 
-                                if isAuthorVerified || type == "image" {
+                                if isAuthorVerified{
                                     Image(systemName: "checkmark.seal.fill")
                                         .font(.system(size: 13))
                                         .foregroundColor(.blue)
@@ -534,13 +494,13 @@ struct DetailView: View {
 #if os(iOS)
     .navigationBarTitle(title)
     .navigationBarItems(trailing:
-     HStack{
+                            HStack{
         Button(action: {
             isReporting.toggle() // Toggle to present a sheet for message input
         }) {
             Label("Report", systemImage: "flag")
         }
-                
+        
         if checkIfAuthor(){
             Button(action: {
                 isEditing.toggle() // Toggle to present a sheet for message input

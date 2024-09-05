@@ -15,8 +15,6 @@ import AdSupport
 #if os(iOS)
 import GoogleMobileAds
 #endif
-import FirebaseRemoteConfig
-
 
 #if os(iOS)
 extension View {

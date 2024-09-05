@@ -9344,6 +9344,7 @@
       }
     },
     "Review" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12227,6 +12228,7 @@
 
     },
     "Symbols" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

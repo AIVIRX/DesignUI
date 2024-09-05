@@ -70,7 +70,6 @@ struct SimilarPostsView: View {
                                     .frame(height: 280)
 #endif
                                 
-                                
 #if os(iOS)
                                     .foregroundStyle(.thinMaterial)
 #endif
@@ -140,7 +139,6 @@ struct SimilarPostsView: View {
                                         .foregroundColor(.primary)
                                         .multilineTextAlignment(.leading)
                                         .truncationMode(.tail)
-                                    
                                     HStack {
                                         Text(post.authorName)
                                             .font(.system(size: 15))
@@ -187,7 +185,7 @@ func fetchAuthorName(authorUID: String, completion: @escaping (String, Bool) -> 
 func fetchSimilarPosts(currentPostId: String, tags: [String], completion: @escaping ([SimilarPost]) -> Void) {
     let db = Firestore.firestore()
     let postsRef = db.collection("posts")
-
+    
     postsRef
         .whereField("visibility", isEqualTo: "public")
         .whereField("tags", arrayContainsAny: tags)
@@ -195,10 +193,9 @@ func fetchSimilarPosts(currentPostId: String, tags: [String], completion: @escap
         .limit(to: 3)  // Limit the number of similar posts fetched
         .getDocuments { querySnapshot, error in
             var similarPosts: [SimilarPost] = []
-
+            
             if let documents = querySnapshot?.documents {
                 let dispatchGroup = DispatchGroup()
-
                 for document in documents {
                     let data = document.data()
                     let creationDateTimestamp = data["creationDate"] as? Timestamp ?? Timestamp(date: Date())
@@ -213,12 +210,12 @@ func fetchSimilarPosts(currentPostId: String, tags: [String], completion: @escap
                         codeSnippet: data["codeSnippet"] as? String ?? "",
                         creationDate: creationDateString, // Use the formatted date string
                         tags: data["tags"] as? [String] ?? [""],
-                        type: data["type"] as? String ?? "", 
+                        type: data["type"] as? String ?? "",
                         likes: data["likesCount"] as? Int ?? 0,
                         views: data["viewCount"] as? Int ?? 0,
                         visibility: data["visibility"] as? String ?? ""
                     )
-
+                    
                     dispatchGroup.enter()
                     fetchAuthorName(authorUID: authorUID) { authorName, isVerified in
                         var updatedPost = post
@@ -228,7 +225,7 @@ func fetchSimilarPosts(currentPostId: String, tags: [String], completion: @escap
                         dispatchGroup.leave()
                     }
                 }
-
+                
                 dispatchGroup.notify(queue: .main) {
                     completion(similarPosts)
                 }

@@ -10,7 +10,6 @@ import SwiftUI
 struct SymbolRow: View {
     let symbol: String
     let onCopy: (String) -> Void
-    
     var body: some View {
         HStack {
             Image(systemName: symbol)

@@ -7,7 +7,7 @@ struct LikedView: View {
     @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var hasMoreLikedPosts = true
     @State private var isLoading: Bool = false
-    @State private var isFirstAppear: Bool = true
+    @State private var isLikedPostsLoaded = false
     private let postsLimit = 4
     var body: some View {
         VStack {
@@ -15,7 +15,7 @@ struct LikedView: View {
                 ProgressView("Loading liked posts...")
                     .bold()
                     .frame(width: 185, height: 400)
-            } else if !likedPosts.isEmpty {
+            } else if !likedPosts.isEmpty && isLikedPostsLoaded {
                 
                 LazyVGrid(columns: gridColumns, spacing: 16) {
                     ForEach(Array(likedPosts.enumerated()), id: \.offset) { index, post in
@@ -47,10 +47,6 @@ struct LikedView: View {
                     }
                 }
                 .padding()
-                
-                .refreshable {
-                    await fetchLikedPosts(reset: true)
-                }
             } else {
                 
                 Text("No liked posts yet.")
@@ -58,23 +54,21 @@ struct LikedView: View {
                     .frame(height: 200)
             }
         }
-        .onAppear {
-            if isFirstAppear {
-                isFirstAppear = false
-                Task {
-                    await fetchLikedPosts(reset: true)
-                }
+        .task {
+            if !isLikedPostsLoaded {
+                await fetchLikedPosts(reset: true)
+                isLikedPostsLoaded = true
             }
         }
     }
-
+    
     private func loadMoreLikedPostsIfNeeded() {
         guard hasMoreLikedPosts && !isLoading else { return }
         Task {
             await fetchLikedPosts()
         }
     }
-
+    
     private func fetchLikedPosts(reset: Bool = false) async {
         let db = Firestore.firestore()
         
@@ -90,12 +84,12 @@ struct LikedView: View {
                 likedPosts.removeAll()
                 hasMoreLikedPosts = true // Reset this when doing a fresh fetch
             }
-
+            
             var query = db.collection("users")
                 .document(user.uid)
-                          .collection("likedPosts")
-                          .order(by: "timestamp", descending: true)
-                          .limit(to: postsLimit)
+                .collection("likedPosts")
+                .order(by: "timestamp", descending: true)
+                .limit(to: postsLimit)
             
             if let lastDocument = lastFetchedDocument {
                 query = query.start(afterDocument: lastDocument)
@@ -129,5 +123,4 @@ struct LikedView: View {
             print("Error fetching liked posts: \(error)")
         }
     }
-
 }

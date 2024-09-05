@@ -15,7 +15,6 @@ enum ViewType: Hashable {
 }
 
 struct ContentView: View {
-    @ObservedObject var remoteConfigManager = RemoteConfigManager()
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var store: Store
     @Environment(\.requestReview) var requestReview
@@ -34,13 +33,10 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
-                if !store.completedPurchases.isEmpty{
-                } else {
-                    if (remoteConfigManager.bannerLocationIPHONE == "top") {
-                        AdView(adUnitID: AdUnitID.testAds)
-                            .frame(width: 320, height: 50)
-                            .padding(3)
-                    }
+                if store.completedPurchases.isEmpty {
+                    AdView(adUnitID: AdUnitID.finalAd)
+                        .frame(width: 320, height: 50)
+                        .padding(3)
                 }
 
                 StatefulTabView{
@@ -91,6 +87,30 @@ struct ContentView: View {
                         }
                         .onHover { hovering in
                             isRateUsHovered = hovering
+                        }
+                    
+                    Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
+                        .bold()
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                        .background(Color.clear)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            isIGHovered = hovering
+                        }
+                    
+                    Link("Discord", destination: URL(string: "https://discord.gg/nz8XMh86")!)
+                        .bold()
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(isDiscordHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                        .background(Color.clear)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            isDiscordHovered = hovering
                         }
                     
                     // Privacy Policy Link

@@ -85,41 +85,29 @@ struct DesignCards: View {
                             RoundedRectangle(cornerRadius: 15)
                                 .frame(width: 115,height: 250)
                                 .overlay{
-                                    if type == "image" {
-                                        Image(media)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(maxWidth: .infinity, maxHeight: 250)
-                                            .frame(maxWidth: .infinity, maxHeight: 370)
-                                            .clipShape(RoundedRectangle(cornerRadius: 15))
-                                            .clipped()
-                                            .shadow(radius: 8)
-                                    }
-                                    if type == "fetched" {
-                                        WebImage(url: URL(string: media)) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                ProgressView()
-                                                    .frame(maxWidth: .infinity, maxHeight: 350)
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                                                    .frame(maxWidth: .infinity, maxHeight: 370)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                            case .failure:
-                                                Image(systemName: "photo")
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 250)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                                
-                                            }
+                                    WebImage(url: URL(string: media)) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView()
+                                                .frame(maxWidth: .infinity, maxHeight: 350)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .frame(maxWidth: .infinity, maxHeight: 370)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                                .shadow(radius: 8)
+                                        case .failure:
+                                            Image(systemName: "photo")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipped()
+                                                .shadow(radius: 8)
+                                            
                                         }
                                     }
                                 }
@@ -127,17 +115,6 @@ struct DesignCards: View {
                 }
                 
                 if UIDevice.current.userInterfaceIdiom == .pad {
-                    if type == "image" {
-                        Image(media)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 185, height: 400)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.gray, lineWidth: 0.8)
-                            )
-                    }
                     if type == "fetched" {
                         WebImage(url: URL(string: media)) { phase in
                             switch phase {
@@ -171,25 +148,7 @@ struct DesignCards: View {
 #endif
                 
 #if os(macOS)
-                if type == "image" {
-                    Image(media)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 185, height: 400)
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.gray, lineWidth: 0.8)
-                        )
-                        .scaleEffect(isHovered ? 1.02 : 1.0)
-                        .colorMultiply(isHovered ? Color.white : Color(white: 0.95))
-                        .animation(.easeInOut(duration: 0.2), value: isHovered)
-                        .onHover { hovering in
-                            isHovered = hovering
-                        }
-                        .padding(.top)
-                }
-                if type == "fetched" {
+                
                     WebImage(url: URL(string: media)) { phase in
                         switch phase {
                         case .empty:
@@ -229,7 +188,7 @@ struct DesignCards: View {
                             
                         }
                     }
-                }
+                
 #endif
                 VStack(alignment: .leading) {
                     Text(title)
@@ -244,7 +203,7 @@ struct DesignCards: View {
                             .font(.system(size: 16))
                             .foregroundColor(.secondary)
                         
-                        if isAuthorVerified ||  type == "image"{
+                        if isAuthorVerified {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 13))
                                 .foregroundColor(.blue)
@@ -252,7 +211,7 @@ struct DesignCards: View {
                         
                         Spacer()
                         
-                        if type == "fetched"{
+                        if Auth.auth().currentUser != nil {
                             HStack{
                                 Image(systemName: isLiked ? "heart.fill" : "heart")
                                     .foregroundColor(isLiked ? .red : .gray)
@@ -266,15 +225,17 @@ struct DesignCards: View {
                             
 #if os(iOS)
                             if UIDevice.current.userInterfaceIdiom == .phone {
-                                HStack{
-                                    Image(systemName: "eye")
-                                        .foregroundColor(.gray)
-                                        .font(.system(size: 15))
-                                    Text("\(formatCount(viewCount))")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                if Auth.auth().currentUser != nil {
+                                    HStack{
+                                        Image(systemName: "eye")
+                                            .foregroundColor(.gray)
+                                            .font(.system(size: 15))
+                                        Text("\(formatCount(viewCount))")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(.horizontal,2)
                                 }
-                                .padding(.horizontal,2)
                             }
 #endif
                         }
