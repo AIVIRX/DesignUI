@@ -15,7 +15,9 @@ enum ViewType: Hashable {
 }
 
 struct ContentView: View {
+    @ObservedObject var remoteConfigManager = RemoteConfigManager()
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject private var store: Store
     @Environment(\.requestReview) var requestReview
     @State private var selectedView: ViewType? = .home
     @State private var isHomeHovered: Bool = false
@@ -26,24 +28,34 @@ struct ContentView: View {
     @State private var isRateUsHovered: Bool = false
     @State private var isPolicyHovered: Bool = false
     @State private var isContactHovered: Bool = false
+    @State private var isIGHovered: Bool = false
+    @State private var isDiscordHovered: Bool = false
     var body: some View {
-        
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
-            StatefulTabView{
-                Tab(systemImageName: "house.fill") {
-                    HomeView()
+            VStack{
+                if !store.completedPurchases.isEmpty{
+                } else {
+                    if (remoteConfigManager.bannerLocationIPHONE == "top") {
+                        AdView(adUnitID: AdUnitID.testAds)
+                            .frame(width: 320, height: 50)
+                            .padding(3)
+                    }
                 }
-                
-//                Tab(systemImageName: "plus.app") {
-//                    UploadDesignView()
-//                }
-                
-                Tab(systemImageName: "person.crop.circle") {
-                    ProfileView()
+
+                StatefulTabView{
+                    Tab(systemImageName: "house.fill") {
+                        // HomeView content
+                        HomeView()
+                    }
+                    
+                    Tab(systemImageName: "person.crop.circle") {
+                        // HomeView content
+                        ProfileView()
+                    }
                 }
+                .accentColor(colorScheme == .dark ? .white : .black)
             }
-            .accentColor(colorScheme == .dark ? .white : .black)
         }
         
         if UIDevice.current.userInterfaceIdiom == .pad {
@@ -126,21 +138,21 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(230)
             }
         detail: {
-                NavigationStack() {
-                    switch selectedView {
-                    case .home:
-                        HomeView()
-                    case .profile:
-                        ProfileView()
-                    case .sfIcons:
-                        SFIconsView()
-                    case .shop:
-                        OldStoreView()
-                    default:
-                        Text("Select a view")
-                    }
+            NavigationStack() {
+                switch selectedView {
+                case .home:
+                    HomeView()
+                case .profile:
+                    ProfileView()
+                case .sfIcons:
+                    SFIconsView()
+                case .shop:
+                    OldStoreView()
+                default:
+                    Text("Select a view")
                 }
             }
+        }
         }
 #endif
         
@@ -179,29 +191,53 @@ struct ContentView: View {
                         isRateUsHovered = hovering
                     }
                 
-                // Privacy Policy Link
-                Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(isPolicyHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
-                    .cornerRadius(8)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        isPolicyHovered = hovering
-                    }
-                
-                // Contact Us Link
-                Link("Contact Us", destination: URL(string: "https://www.aivirx.com/contact")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(isContactHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
-                    .cornerRadius(8)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        isContactHovered = hovering
-                    }
+                    Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
+                        .bold()
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                        .background(Color.clear)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            isIGHovered = hovering
+                        }
+                    
+                    Link("Discord", destination: URL(string: "https://discord.gg/nz8XMh86")!)
+                        .bold()
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(isDiscordHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                        .background(Color.clear)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            isDiscordHovered = hovering
+                        }
+                    
+                    // Privacy Policy Link
+                    Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
+                        .bold()
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(isPolicyHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            isPolicyHovered = hovering
+                        }
+                    
+                    // Contact Us Link
+                    Link("Contact Us", destination: URL(string: "https://www.aivirx.com/contact")!)
+                        .bold()
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(isContactHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            isContactHovered = hovering
+                        }
                 
                 Spacer()
                 

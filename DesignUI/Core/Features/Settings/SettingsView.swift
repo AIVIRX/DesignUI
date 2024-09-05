@@ -58,6 +58,7 @@ struct MailView: UIViewControllerRepresentable {
 }
 #endif
 struct SettingsView: View {
+    @ObservedObject var remoteConfigManager = RemoteConfigManager()
     @EnvironmentObject private var store: Store
     @EnvironmentObject var userStore: UserStore
     @Environment(\.colorScheme) var colorScheme
@@ -111,7 +112,7 @@ struct SettingsView: View {
                         Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                             .bold()
                         
-                        Link("Discord", destination: URL(string: "https://www.discord.com/dockui")!)
+                        Link("Discord", destination: URL(string: "https://discord.gg/nz8XMh86")!)
                             .bold()
 
                     }
@@ -187,6 +188,15 @@ struct SettingsView: View {
 //                    }
 //                }
 #endif
+            }
+            if !store.completedPurchases.isEmpty{
+            } else {
+                if (remoteConfigManager.bannerLocationIPHONE == "inline") {
+                    AdView(adUnitID: AdUnitID.testAds)
+                        .frame(width: 320, height: 50)
+                        .padding(3)
+                        .onAppear()
+                }
             }
         }
     }

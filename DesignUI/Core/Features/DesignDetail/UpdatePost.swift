@@ -69,9 +69,11 @@ struct EditPostView: View {
             }
         }
         .navigationTitle("Edit Post")
+        #if os(iOS)
         .navigationBarItems(leading: Button("Cancel") {
             presentationMode.wrappedValue.dismiss()
         })
+        #endif
     }
 
     private func saveChanges() {

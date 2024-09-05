@@ -14,6 +14,7 @@ import SDWebImage
 import SDWebImageSwiftUI
 
 struct HomeView: View {
+    @ObservedObject var remoteConfigManager = RemoteConfigManager()
     @EnvironmentObject private var store: Store
     @State private var communityPosts: [DesignPost] = []
     @State private var lastFetchedDocument: DocumentSnapshot?
@@ -29,6 +30,20 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             VStack {
+                #if os(iOS)
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    if !store.completedPurchases.isEmpty{
+                    } else {
+                        if (remoteConfigManager.bannerLocationIPHONE == "inline") {
+                            AdView(adUnitID: AdUnitID.testAds)
+                                .frame(width: 320, height: 50)
+                                .padding(3)
+                                .onAppear()
+                        }
+                    }
+                }
+                #endif
+                
                 if isCommunityPostsLoaded && !communityPosts.isEmpty {
                     ScrollView(.vertical, showsIndicators: false) {
                         LazyVGrid(columns: gridColumns, spacing: 16) {

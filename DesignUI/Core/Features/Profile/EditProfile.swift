@@ -53,7 +53,6 @@ struct EditProfileView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) private var dismiss
-
     init(displayName: String, bio: String, username: String) {
         self._newDisplayName = State(initialValue: displayName)
         self._initialDisplayName = State(initialValue: displayName)
@@ -62,7 +61,6 @@ struct EditProfileView: View {
         self._newUsername = State(initialValue: username)
         self._initialUsername = State(initialValue: username)
     }
-
     var body: some View {
         VStack {
             HStack{

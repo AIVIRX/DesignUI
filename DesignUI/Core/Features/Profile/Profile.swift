@@ -83,16 +83,14 @@ struct ProfileView: View {
                                                 .scaledToFill()
                                                 .frame(width: 100, height: 100)
                                                 .clipShape(Circle())
-                                                .overlay(Circle().strokeBorder(colorScheme == .light ? Color.black : Color.primary, style: StrokeStyle(lineWidth: 2.0)))
-                                                .shadow(radius: 10)
+                                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
                                         case .failure:
                                             Image(systemName: "")
                                                 .resizable()
                                                 .scaledToFill()
                                                 .frame(width: 100, height: 100)
                                                 .clipShape(Circle())
-                                                .overlay(Circle().strokeBorder(colorScheme == .light ? Color.black : Color.primary, style: StrokeStyle(lineWidth: 2.0)))
-                                                .shadow(radius: 10)
+                                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
                                         }
                                     }
                                 } else {

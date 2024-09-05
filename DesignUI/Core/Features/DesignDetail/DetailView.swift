@@ -301,10 +301,6 @@ struct DetailView: View {
                                 
                                 TagView(tags: tags)
                                 
-                                Text("Description:")
-                                    .font(.system(size: 25)).bold()
-                                    .padding(.top,5)
-                                
                                 Text(description)
                                     .font(.system(size: 18))
                                     .frame(maxHeight: 700, alignment: .top)
@@ -431,7 +427,6 @@ struct DetailView: View {
                                             }
                                         }) {
                                             VStack{
-                                                
                                                 Image(systemName: isLiked ? "heart.fill" : "heart")
                                                     .foregroundColor(isLiked ? .red : .gray)
                                                     .font(.title)
@@ -440,6 +435,7 @@ struct DetailView: View {
                                                     .foregroundColor(.secondary)
                                             }
                                         }
+                                        .buttonStyle(.plain)
                                     }
                                 }
                             }
@@ -582,22 +578,32 @@ struct DetailView: View {
         }
         .padding()
     }
-    
-
-
-
 #endif
 
 #if os(macOS)
-.toolbar {
-    ToolbarItem(placement: .automatic) {
-        Button(action: {
-            isReporting.toggle() // Show the custom sheet for reporting
-        }) {
-            Label("Report", systemImage: "flag")
+    .toolbar {
+        ToolbarItem(placement: .automatic) {
+            HStack{
+                Button(action: {
+                    isReporting.toggle() // Show the custom sheet for reporting
+                }) {
+                    Label("Report", systemImage: "flag")
+                }
+                
+                
+                if checkIfAuthor(){
+                    Button(action: {
+                        isEditing.toggle() // Toggle to present a sheet for message input
+                    }) {
+                        Label("Edit", systemImage: "square.and.pencil")
+                    }
+                    .sheet(isPresented: $isEditing) {
+                        EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
+                    }
+                }
+            }
         }
     }
-}
 .sheet(isPresented: $isReporting) {
     VStack {
         Text("Report Content")
@@ -775,7 +781,6 @@ struct DetailView: View {
 
 struct TagView: View {
     var tags: [String]
-    
     var body: some View {
         if tags != [""]{
             HStack {

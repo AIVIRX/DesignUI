@@ -65,6 +65,8 @@
 		ECD043182C5F21D900865D12 /* SearchResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD043172C5F21D900865D12 /* SearchResultCard.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
+		ECD6B8442C893F8B000B441E /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = ECD6B8432C893F8B000B441E /* FirebaseRemoteConfig */; };
+		ECD6B8462C8940E8000B441E /* RemoteConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD6B8452C8940E8000B441E /* RemoteConfig.swift */; };
 		ECD9FEBC2C87694500872C22 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD9FEBB2C87694500872C22 /* Post.swift */; };
 		ECF625472C6D5C6C0057FB6B /* Toastys.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF625462C6D5C6C0057FB6B /* Toastys.swift */; };
 /* End PBXBuildFile section */
@@ -122,6 +124,7 @@
 		ECD043172C5F21D900865D12 /* SearchResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultCard.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		ECD6B8452C8940E8000B441E /* RemoteConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteConfig.swift; sourceTree = "<group>"; };
 		ECD9FEBB2C87694500872C22 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
 		ECF625462C6D5C6C0057FB6B /* Toastys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toastys.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -134,6 +137,7 @@
 				ECD0430E2C5E7AB000865D12 /* FirebaseAnalytics in Frameworks */,
 				EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */,
 				ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */,
+				ECD6B8442C893F8B000B441E /* FirebaseRemoteConfig in Frameworks */,
 				EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */,
 				ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */,
 				ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */,
@@ -254,6 +258,7 @@
 				ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */,
 				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
+				ECD6B8452C8940E8000B441E /* RemoteConfig.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -389,6 +394,7 @@
 				ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */,
 				EC495DEF2C5FF92500A6A52C /* Drops */,
 				EC495DF12C601E8300A6A52C /* FirebaseAppCheck */,
+				ECD6B8432C893F8B000B441E /* FirebaseRemoteConfig */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -533,6 +539,7 @@
 				EC495DF52C604D5C00A6A52C /* QuickActionCard.swift in Sources */,
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC961B9F2C499905002D10DD /* DBTest.swift in Sources */,
+				ECD6B8462C8940E8000B441E /* RemoteConfig.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
 				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
 				ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */,
@@ -882,6 +889,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		ECD6B8432C893F8B000B441E /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
