@@ -38,6 +38,10 @@
 		EC961B9F2C499905002D10DD /* DBTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC961B9E2C499905002D10DD /* DBTest.swift */; };
 		EC961BA12C499EC2002D10DD /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */; };
 		EC9AAD532C61720C00796358 /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9AAD522C61720C00796358 /* StoreView.swift */; };
+		EC9D52162C8B5BB000DCDAE7 /* DraggableComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9D52152C8B5BB000DCDAE7 /* DraggableComponents.swift */; };
+		EC9D52182C8B5C2500DCDAE7 /* ComponentList.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9D52172C8B5C2500DCDAE7 /* ComponentList.swift */; };
+		EC9D521A2C8B5C7900DCDAE7 /* EditComponentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9D52192C8B5C7900DCDAE7 /* EditComponentView.swift */; };
+		EC9D521C2C8B5C9500DCDAE7 /* DropAreaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9D521B2C8B5C9500DCDAE7 /* DropAreaView.swift */; };
 		ECA4AD982C6FF114001AD63A /* DropdownMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */; };
 		ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */; };
 		ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */; };
@@ -96,6 +100,10 @@
 		EC91C8AF2C5C82C6000E20E3 /* StoreConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreConfig.storekit; sourceTree = "<group>"; };
 		EC961B9E2C499905002D10DD /* DBTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBTest.swift; sourceTree = "<group>"; };
 		EC9AAD522C61720C00796358 /* StoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
+		EC9D52152C8B5BB000DCDAE7 /* DraggableComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggableComponents.swift; sourceTree = "<group>"; };
+		EC9D52172C8B5C2500DCDAE7 /* ComponentList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentList.swift; sourceTree = "<group>"; };
+		EC9D52192C8B5C7900DCDAE7 /* EditComponentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditComponentView.swift; sourceTree = "<group>"; };
+		EC9D521B2C8B5C9500DCDAE7 /* DropAreaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropAreaView.swift; sourceTree = "<group>"; };
 		ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropdownMenuView.swift; sourceTree = "<group>"; };
 		ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldWCounter.swift; sourceTree = "<group>"; };
 		ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldWithValidation.swift; sourceTree = "<group>"; };
@@ -175,6 +183,17 @@
 				EC8728342C4B5881006FF808 /* AlertItem.swift */,
 			);
 			path = Testing;
+			sourceTree = "<group>";
+		};
+		EC9D52142C8B5B3E00DCDAE7 /* DesignEditor */ = {
+			isa = PBXGroup;
+			children = (
+				EC9D52152C8B5BB000DCDAE7 /* DraggableComponents.swift */,
+				EC9D52172C8B5C2500DCDAE7 /* ComponentList.swift */,
+				EC9D52192C8B5C7900DCDAE7 /* EditComponentView.swift */,
+				EC9D521B2C8B5C9500DCDAE7 /* DropAreaView.swift */,
+			);
+			path = DesignEditor;
 			sourceTree = "<group>";
 		};
 		ECADF5F22BCAE9610096753A = {
@@ -269,6 +288,7 @@
 		ECD13FDF2C18BCCF00105B3E /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				EC9D52142C8B5B3E00DCDAE7 /* DesignEditor */,
 				EC961B9D2C4998ED002D10DD /* Testing */,
 				ECCDD4192C1BBA3100869B70 /* UploadDesigns */,
 				EC7D7C142C1A50F5003134B1 /* AuthHelpers */,
@@ -506,10 +526,13 @@
 				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
+				EC9D52162C8B5BB000DCDAE7 /* DraggableComponents.swift in Sources */,
+				EC9D521C2C8B5C9500DCDAE7 /* DropAreaView.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
 				EC9AAD532C61720C00796358 /* StoreView.swift in Sources */,
 				EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */,
+				EC9D52182C8B5C2500DCDAE7 /* ComponentList.swift in Sources */,
 				EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */,
 				ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
@@ -519,6 +542,7 @@
 				ECBA11982C84033E00973E94 /* GridColumn.swift in Sources */,
 				EC7E8B692C82698400583E48 /* UpdatePost.swift in Sources */,
 				ECD043122C5EEE7A00865D12 /* FeaturesView.swift in Sources */,
+				EC9D521A2C8B5C7900DCDAE7 /* EditComponentView.swift in Sources */,
 				EC7D7BEB2C19E506003134B1 /* HomeView.swift in Sources */,
 				ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */,
 				ECCCD0212C3E1F37008972F2 /* UserStore.swift in Sources */,
@@ -668,7 +692,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DesignUI/Preview Content\"";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -678,7 +702,7 @@
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used  o show personlized ads ";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to show personlized ads ";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -715,7 +739,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DesignUI/Preview Content\"";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -725,7 +749,7 @@
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used  o show personlized ads ";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to show personlized ads ";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

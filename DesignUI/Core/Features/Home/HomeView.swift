@@ -25,7 +25,7 @@ struct HomeView: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
-    private let postsLimit = 3
+    private let postsLimit = 5
     var body: some View {
         NavigationStack {
             VStack {

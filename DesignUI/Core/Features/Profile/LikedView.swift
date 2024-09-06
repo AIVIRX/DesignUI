@@ -35,7 +35,7 @@ struct LikedView: View {
                             visibility: post.visibility
                         )
                         .onAppear {
-                            if post == likedPosts.last {
+                            if index == likedPosts.count - 1 {
                                 loadMoreLikedPostsIfNeeded()
                             }
                         }

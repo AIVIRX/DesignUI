@@ -92,7 +92,7 @@ struct SettingsView: View {
                         }
                         NavigationLink(destination: SFIconsView()) {
                             HStack {
-                                Image(systemName: "photo.badge.plus.fill")
+                                Image(systemName: "square.grid.3x3.fill")
                                     .font(.system(size: 18)).bold()
                                     .frame(width: 30, height: 30)
                                     .foregroundStyle(.white)
@@ -179,17 +179,19 @@ struct SettingsView: View {
                 }
 #endif
             }
+#if os(iOS)
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                if store.completedPurchases.isEmpty {
+                    AdView(adUnitID: AdUnitID.finalAd)
+                        .frame(width: 468, height: 60)
+                        .padding(3)
+                }
+            }
+#endif
         }
     }
     private func showError(_ message: String) {
         errorMessage = message
         showErrorAlert = true
     }
-}
-
-#Preview {
-    let store = Store()
-    return SettingsView()
-        .environmentObject(store)
-        .environmentObject(UserStore())
 }

@@ -31,6 +31,7 @@ class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelega
 }
 
 struct ProfileView: View {
+    @EnvironmentObject private var store: Store
     @EnvironmentObject var userStore: UserStore
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
@@ -339,6 +340,15 @@ struct ProfileView: View {
                 }
                 
             }
+#if os(iOS)
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                if store.completedPurchases.isEmpty {
+                    AdView(adUnitID: AdUnitID.finalAd)
+                        .frame(width: 468, height: 60)
+                        .padding(3)
+                }
+            }
+#endif
         }
     }
     

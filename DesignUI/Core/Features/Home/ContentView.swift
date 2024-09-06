@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case home, profile, sfIcons, shop
+    case home, editor, profile, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -29,6 +29,7 @@ struct ContentView: View {
     @State private var isContactHovered: Bool = false
     @State private var isIGHovered: Bool = false
     @State private var isDiscordHovered: Bool = false
+    @State private var isEditorHovered: Bool = false
     var body: some View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -43,6 +44,11 @@ struct ContentView: View {
                     Tab(systemImageName: "house.fill") {
                         // HomeView content
                         HomeView()
+                    }
+                    
+                    Tab(systemImageName: "house.fill") {
+                        // HomeView content
+                        DesignEditor()
                     }
                     
                     Tab(systemImageName: "person.crop.circle") {
@@ -182,6 +188,8 @@ struct ContentView: View {
                 // Home Link
                 navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered)
                 
+                navigationLinkButton(viewType: .editor, label: "Design", systemImage: "paintbrush.pointed.fill", isHovered: $isEditorHovered)
+                
                 // Profile Link
                 navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered)
                 
@@ -284,6 +292,8 @@ struct ContentView: View {
                 switch selectedView {
                 case .home:
                     HomeView()
+                case .editor:
+                    DesignEditor()
                 case .profile:
                     ProfileView()
                 case .sfIcons:
@@ -357,6 +367,8 @@ struct ContentView: View {
         switch viewType {
         case .home:
             return AnyView(HomeView())
+        case .editor:
+            return AnyView(DesignEditor())
         case .profile:
             return AnyView(ProfileView())
         case .sfIcons:

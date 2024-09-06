@@ -8,7 +8,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "إرساء واجهة المستخدم"
+            "value" : "Dock UI"
           }
         },
         "ca" : {
@@ -20,7 +20,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uživatelské rozhraní doku"
+            "value" : "Dock UI"
           }
         },
         "da" : {
@@ -32,7 +32,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dock-Benutzeroberfläche"
+            "value" : "Dock UI"
           }
         },
         "el" : {
@@ -68,43 +68,43 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interfaz de usuario del muelle"
+            "value" : "Dock UI"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interfaz de usuario del muelle"
+            "value" : "Dock UI"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Telakan käyttöliittymä"
+            "value" : "Dock UI"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interface utilisateur du Dock"
+            "value" : "Dock UI"
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interface utilisateur du Dock"
+            "value" : "Dock UI"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ממשק משתמש עגינה"
+            "value" : "Dock UI"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "डॉक यूआई"
+            "value" : "Dock UI"
           }
         },
         "hr" : {
@@ -122,31 +122,31 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "UI dok"
+            "value" : "Dock UI"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interfaccia utente del dock"
+            "value" : "Dock UI"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ドックUI"
+            "value" : "Dock UI"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "도킹 UI"
+            "value" : "Dock UI"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "UI dok"
+            "value" : "Dock UI"
           }
         },
         "nb" : {
@@ -158,25 +158,25 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dock-gebruikersinterface"
+            "value" : "Dock UI"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interfejs stacji dokującej"
+            "value" : "Dock UI"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interface do usuário do Dock"
+            "value" : "Dock UI"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interface do usuário do Dock"
+            "value" : "Dock UI"
           }
         },
         "ro" : {
@@ -188,7 +188,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Док-интерфейс"
+            "value" : "Dock UI"
           }
         },
         "sk" : {
@@ -200,49 +200,49 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dockningsgränssnitt"
+            "value" : "Dock UI"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ท่าเรือ UI"
+            "value" : "Dock UI"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bağlantı İstasyonu kullanıcı arayüzü"
+            "value" : "Dock UI"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Інтерфейс дока"
+            "value" : "Dock UI"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Giao diện người dùng Dock"
+            "value" : "Dock UI"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dock 界面"
+            "value" : "Dock UI"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停靠介面"
+            "value" : "Dock UI"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停靠介面"
+            "value" : "Dock UI"
           }
         }
       }
@@ -253,38 +253,38 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "ca" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Disseny d'UI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "el" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "en" : {
@@ -295,200 +295,200 @@
         },
         "en-AU" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "en-GB" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "en-IN" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Diseño UI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "es-419" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Diseño UI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ConceptionUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "fr-CA" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ConceptionUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "he" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "डिज़ाइनयूआई"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "hr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "hu" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "id" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesainUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "デザインUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "디자인UI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "ms" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "OntwerpUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "pl" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ProjektUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "ro" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Дизайн пользовательского интерфейса"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "th" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "การออกแบบ UI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Tasarım Arayüzü"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "DesignUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Thiết kếUI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "设计UI"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "設計使用者介面"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "設計使用者介面"
+            "state" : "translated",
+            "value" : "Dock UI"
           }
         }
       }
@@ -500,241 +500,241 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "سوف نستخدم نشاطك لتقديم الإعلانات ذات الصلة لك."
+            "value" : "سيتم استخدام هذا المعرف لعرض الإعلانات المخصصة"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilitzarem la vostra activitat per oferir-vos anuncis rellevants."
+            "value" : "Aquest identificador s'utilitzarà per mostrar anuncis personalitzats "
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vaši aktivitu použijeme k zobrazování relevantních reklam."
+            "value" : "Tento identifikátor bude použit pro zobrazování personalizovaných reklam "
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vi vil bruge din aktivitet til at levere relevante annoncer til dig."
+            "value" : "Denne identifikator vil blive brugt til at vise personligt tilpassede annoncer "
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wir nutzen Ihre Aktivitäten, um Ihnen relevante Werbung zu liefern."
+            "value" : "Diese Kennung wird verwendet, um personalisierte Anzeigen anzuzeigen"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Θα χρησιμοποιήσουμε τη δραστηριότητά σας για να σας παρέχουμε σχετικές διαφημίσεις."
+            "value" : "Αυτό το αναγνωριστικό θα χρησιμοποιηθεί για την εμφάνιση εξατομικευμένων διαφημίσεων "
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "This identifier will be used  o show personlized ads "
+            "value" : "This identifier will be used to show personlized ads "
           }
         },
         "en-AU" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We will use your activity to deliver relevant ads to you."
+            "value" : "This identifier will be used  o show personlized ads "
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We will use your activity to deliver relevant ads to you."
+            "value" : "This identifier will be used  o show personlized ads "
           }
         },
         "en-IN" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We will use your activity to deliver relevant ads to you."
+            "value" : "This identifier will be used  o show personlized ads "
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilizaremos su actividad para ofrecerle anuncios relevantes."
+            "value" : "Este identificador se utilizará para mostrar anuncios personalizados."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilizaremos su actividad para ofrecerle anuncios relevantes."
+            "value" : "Este identificador se utilizará para mostrar anuncios personalizados."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Käytämme toimintaasi asianmukaisten mainosten näyttämiseen sinulle."
+            "value" : "Tätä tunnistetta käytetään personoitujen mainosten näyttämiseen "
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nous utiliserons votre activité pour vous proposer des publicités pertinentes."
+            "value" : "Cet identifiant sera utilisé pour afficher des publicités personnalisées"
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nous utiliserons votre activité pour vous proposer des publicités pertinentes."
+            "value" : "Cet identifiant sera utilisé pour afficher des publicités personnalisées"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "אנו נשתמש בפעילות שלך כדי להציג לך מודעות רלוונטיות."
+            "value" : "מזהה זה ישמש להצגת מודעות מותאמות אישית "
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "हम आपकी गतिविधि का उपयोग आपको प्रासंगिक विज्ञापन देने के लिए करेंगे।"
+            "value" : "इस पहचानकर्ता का उपयोग व्यक्तिगत विज्ञापन दिखाने के लिए किया जाएगा"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Iskoristit ćemo vašu aktivnost kako bismo vam isporučili relevantne oglase."
+            "value" : "Ovaj identifikator koristit će se za prikazivanje prilagođenih oglasa "
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tevékenységét arra fogjuk felhasználni, hogy releváns hirdetéseket jelenítsünk meg Önnek."
+            "value" : "Ez az azonosító személyre szabott hirdetések megjelenítésére szolgál "
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kami akan menggunakan aktivitas Anda untuk menayangkan iklan yang relevan kepada Anda."
+            "value" : "Pengenal ini akan digunakan untuk menampilkan iklan yang dipersonalisasi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilizzeremo la tua attività per fornirti annunci pertinenti."
+            "value" : "Questo identificatore verrà utilizzato per mostrare annunci personalizzati"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あなたのアクティビティを利用して、関連性の高い広告を配信します。"
+            "value" : "この識別子はパーソナライズされた広告を表示するために使用されます"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "당사는 귀하의 활동을 활용하여 귀하에게 관련성 높은 광고를 제공할 것입니다."
+            "value" : "이 식별자는 개인화된 광고를 표시하는 데 사용됩니다."
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kami akan menggunakan aktiviti anda untuk menyampaikan iklan yang berkaitan kepada anda."
+            "value" : "Pengecam ini akan digunakan o memaparkan iklan yang diperibadikan "
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vi vil bruke aktiviteten din til å levere relevante annonser til deg."
+            "value" : "Denne identifikatoren vil bli brukt til å vise personlig tilpassede annonser "
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We zullen uw activiteit gebruiken om relevante advertenties aan u te leveren."
+            "value" : "Deze identificatie wordt gebruikt om gepersonaliseerde advertenties te tonen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wykorzystamy Twoją aktywność, aby dostarczać Ci odpowiednie reklamy."
+            "value" : "Ten identyfikator będzie używany do wyświetlania spersonalizowanych reklam"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usaremos sua atividade para entregar anúncios relevantes para você."
+            "value" : "Este identificador será usado para mostrar anúncios personalizados"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usaremos sua atividade para entregar anúncios relevantes para você."
+            "value" : "Este identificador será usado para mostrar anúncios personalizados"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vom folosi activitatea dumneavoastră pentru a vă livra reclame relevante."
+            "value" : "Acest identificator va fi folosit pentru a afișa anunțuri personalizate "
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Мы будем использовать вашу активность, чтобы показывать вам релевантную рекламу."
+            "value" : "Этот идентификатор будет использоваться для показа персонализированной рекламы."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vašu aktivitu použijeme na zobrazovanie relevantných reklám."
+            "value" : "Tento identifikátor sa použije na zobrazovanie prispôsobených reklám "
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vi kommer att använda din aktivitet för att visa relevanta annonser till dig."
+            "value" : "Denna identifierare kommer att användas för att visa personliga annonser "
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "เราจะใช้กิจกรรมของคุณเพื่อแสดงโฆษณาที่เกี่ยวข้องให้กับคุณ"
+            "value" : "ตัวระบุนี้จะถูกใช้เพื่อแสดงโฆษณาที่ปรับแต่งเฉพาะบุคคล"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Size alakalı reklamlar sunmak için etkinliğinizi kullanacağız."
+            "value" : "Bu tanımlayıcı kişiselleştirilmiş reklamları göstermek için kullanılacaktır"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ми використовуватимемо вашу активність, щоб показувати вам відповідну рекламу."
+            "value" : "Цей ідентифікатор використовуватиметься для показу персоналізованої реклами "
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chúng tôi sẽ sử dụng hoạt động của bạn để phân phối quảng cáo có liên quan cho bạn."
+            "value" : "Mã định danh này sẽ được sử dụng để hiển thị quảng cáo được cá nhân hóa"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我们将利用您的活动向您投放相关广告。"
+            "value" : "此标识符将用于显示个性化广告"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我們將利用您的活動向您投放相關廣告。"
+            "value" : "此識別符將用於顯示個人化廣告 "
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我們將利用您的活動向您投放相關廣告。"
+            "value" : "此識別符將用於顯示個人化廣告 "
           }
         }
       }
