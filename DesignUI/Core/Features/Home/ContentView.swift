@@ -188,7 +188,7 @@ struct ContentView: View {
                 // Home Link
                 navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered)
                 
-                navigationLinkButton(viewType: .editor, label: "Design", systemImage: "paintbrush.pointed.fill", isHovered: $isEditorHovered)
+//                navigationLinkButton(viewType: .editor, label: "Design", systemImage: "paintbrush.pointed.fill", isHovered: $isEditorHovered)
                 
                 // Profile Link
                 navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered)
@@ -223,7 +223,7 @@ struct ContentView: View {
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                        .foregroundColor(isIGHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
                         .background(Color.clear)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
@@ -331,7 +331,11 @@ struct ContentView: View {
 
         return NavigationLink(destination: getDestinationView(for: viewType)) {
             HStack {
-                Label(label, systemImage: systemImage)
+                Image(systemName: systemImage)
+                    .font(.system(size: 15)).bold()
+                    .foregroundColor(textColor)
+                    .frame(width: 30)
+                Text(label)
                     .font(.system(size: 15)).bold()
                     .foregroundColor(textColor)
                 Spacer()

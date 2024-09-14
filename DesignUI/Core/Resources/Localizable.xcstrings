@@ -1197,24 +1197,6 @@
         }
       }
     },
-    "50%" : {
-
-    },
-    "75%" : {
-
-    },
-    "100%" : {
-
-    },
-    "125%" : {
-
-    },
-    "150%" : {
-
-    },
-    "200%" : {
-
-    },
     "Accounts" : {
       "localizations" : {
         "ar" : {
@@ -7648,6 +7630,9 @@
         }
       }
     },
+    "Generated SwiftUI Code:" : {
+
+    },
     "Hello, World!" : {
 
     },
@@ -9317,6 +9302,9 @@
           }
         }
       }
+    },
+    "Modify: %@" : {
+
     },
     "No liked posts found." : {
       "extractionState" : "stale",
@@ -20277,9 +20265,6 @@
           }
         }
       }
-    },
-    "Zoom Level" : {
-
     }
   },
   "version" : "1.0"

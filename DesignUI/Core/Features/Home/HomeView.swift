@@ -25,7 +25,7 @@ struct HomeView: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
-    private let postsLimit = 5
+    private let postsLimit = 1
     var body: some View {
         NavigationStack {
             VStack {
@@ -114,6 +114,10 @@ struct HomeView: View {
         }
         .task {
             if !isCommunityPostsLoaded {
+                //Delay of 2 seconds (specified in nanoseconds: 2 * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: UInt64(0.80) * 1_000_000_000)
+
+                // Now fetch the posts
                 await fetchCommunityPosts(reset: true)
                 isCommunityPostsLoaded = true
             }

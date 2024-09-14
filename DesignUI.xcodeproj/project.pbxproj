@@ -9,8 +9,9 @@
 /* Begin PBXBuildFile section */
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
+		EC4586FD2C94A8FF0039E46D /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */; };
 		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
-		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
+		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
 		EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38922C1CBD820018C802 /* EditProfile.swift */; };
 		EC4F38952C1CC2EC0018C802 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38942C1CC2EC0018C802 /* User.swift */; };
 		EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */; };
@@ -139,6 +140,7 @@
 			files = (
 				ECD0430E2C5E7AB000865D12 /* FirebaseAnalytics in Frameworks */,
 				EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */,
+				EC4586FD2C94A8FF0039E46D /* FirebaseMessaging in Frameworks */,
 				ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */,
 				EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */,
 				ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */,
@@ -278,8 +280,8 @@
 		ECD13FDA2C18BC3200105B3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
 				ECD9FEBB2C87694500872C22 /* Post.swift */,
+				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
 				EC4F38942C1CC2EC0018C802 /* User.swift */,
 			);
 			path = Models;
@@ -406,6 +408,7 @@
 				ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */,
 				EC495DEF2C5FF92500A6A52C /* Drops */,
 				EC495DF12C601E8300A6A52C /* FirebaseAppCheck */,
+				EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -692,7 +695,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DesignUI/Preview Content\"";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -718,7 +721,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -739,7 +742,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DesignUI/Preview Content\"";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -765,7 +768,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -857,6 +860,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EC1C74902C0FC0DE000C9E9A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 		EC495DEF2C5FF92500A6A52C /* Drops */ = {
 			isa = XCSwiftPackageProductDependency;
