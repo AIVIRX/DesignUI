@@ -28,13 +28,12 @@ struct DesignCards: View {
     
     @State private var isHovered: Bool = false
     @State private var isLiked: Bool = false
-    @State private var authorName: String = "DockUI Team"
+    @State private var authorName: String = "Dock UI"
     @State private var isAuthorVerified: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
-    @State private var offset: CGFloat = 400
     @State private var isVisible = false
     
     init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int, hexa: String, visibility: String) {
@@ -122,12 +121,12 @@ struct DesignCards: View {
                             switch phase {
                             case .empty:
                                 ProgressView()
-                                    .frame(width: 185, height: 400)
+                                    .frame(width: 200, height: 420)
                             case .success(let image):
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 185, height: 400)
+                                    .frame(width: 200, height: 430)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -137,7 +136,7 @@ struct DesignCards: View {
                                 Image(systemName: "photo")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 185, height: 400)
+                                    .frame(width: 200, height: 420)
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
@@ -150,7 +149,6 @@ struct DesignCards: View {
 #endif
                 
 #if os(macOS)
-                
                 WebImage(url: URL(string: media)) { phase in
                     switch phase {
                     case .empty:
@@ -187,10 +185,8 @@ struct DesignCards: View {
                                     .stroke(Color.gray, lineWidth: 0.8)
                             )
                             .padding(.top)
-                        
                     }
                 }
-                
 #endif
                 VStack(alignment: .leading) {
                     Text(title)
@@ -223,8 +219,6 @@ struct DesignCards: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(.horizontal,2)
-                            
-                            
 #if os(iOS)
                             if UIDevice.current.userInterfaceIdiom == .phone {
                                 if Auth.auth().currentUser != nil {
@@ -246,8 +240,10 @@ struct DesignCards: View {
                 .padding(.bottom, 6)
                 .contentShape(Rectangle())
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .onHover { hovering in
+                    isHovered = hovering
+                }
             }
-            .offset(y: offset) // Set initial position off-screen
             .opacity(isVisible ? 1 : 0)
 #if os(iOS)
             .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 0 : 10)
@@ -259,10 +255,7 @@ struct DesignCards: View {
             .onAppear {
                 fetchAuthorName()
                 fetchLikeStatusAndViewCount()
-                
-                // Animate the slide-up effect when the card appears
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
-                    offset = 0  // Slide to its normal position
+                withAnimation(.easeIn(duration: 0.4)) {
                     isVisible = true
             }
         }

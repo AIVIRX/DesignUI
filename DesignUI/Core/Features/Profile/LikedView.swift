@@ -8,7 +8,7 @@ struct LikedView: View {
     @State private var hasMoreLikedPosts = true
     @State private var isLoading: Bool = false
     @State private var isLikedPostsLoaded = false
-    private let postsLimit = 4
+    private let postsLimit = 2
     var body: some View {
         VStack {
             if likedPosts.isEmpty && isLoading {
@@ -54,6 +54,7 @@ struct LikedView: View {
                     .frame(height: 200)
             }
         }
+        .frame(maxWidth: 1600)
         .task {
             if !isLikedPostsLoaded {
                 await fetchLikedPosts(reset: true)

@@ -25,7 +25,7 @@ struct HomeView: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
-    private let postsLimit = 1
+    private let postsLimit = 2
     var body: some View {
         NavigationStack {
             VStack {
@@ -67,6 +67,8 @@ struct HomeView: View {
                         .padding(.horizontal)
                     }
                     .refreshable {
+                        try? await Task.sleep(nanoseconds: UInt64(2.0) * 1_000_000_000)
+                        
                         await fetchCommunityPosts(reset: true)
                     }
                 } else if isLoading && communityPosts.isEmpty {
@@ -75,8 +77,10 @@ struct HomeView: View {
                         ProgressView("Loading posts...")
                         Spacer()
                     }
+                    
                 }
             }
+            .frame(maxWidth: 1600)
             .navigationTitle("Home")
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -89,15 +93,6 @@ struct HomeView: View {
                     }
                 }
             })
-#endif
-#if os(iOS)
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                if store.completedPurchases.isEmpty {
-                    AdView(adUnitID: AdUnitID.finalAd)
-                        .frame(width: 468, height: 60)
-                        .padding(3)
-                }
-            }
 #endif
         }
         .navigationViewStyle(DefaultNavigationViewStyle())
@@ -115,7 +110,7 @@ struct HomeView: View {
         .task {
             if !isCommunityPostsLoaded {
                 //Delay of 2 seconds (specified in nanoseconds: 2 * 1_000_000_000)
-                try? await Task.sleep(nanoseconds: UInt64(0.80) * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: UInt64(1) * 1_000_000_000)
 
                 // Now fetch the posts
                 await fetchCommunityPosts(reset: true)

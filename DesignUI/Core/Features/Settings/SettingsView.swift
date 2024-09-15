@@ -121,7 +121,7 @@ struct SettingsView: View {
                         Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                             .bold()
                         
-                        Link("Discord", destination: URL(string: "https://discord.gg/nz8XMh86")!)
+                        Link("Discord", destination: URL(string: "https://discord.gg/9aq3c2MF3m")!)
                             .bold()
                     }
                     

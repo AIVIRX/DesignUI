@@ -31,31 +31,25 @@ extension View {
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
-        requestNotif()
+        
+        configureFirebase()
         requestTrackingAuthorization()
         initializeGoogleMobileAds()
-        configureFirebase()
         
         return true
     }
-    
-    private func requestNotif() {
-        // Set UNUserNotificationCenter delegate
-        UNUserNotificationCenter.current().delegate = self
-        
-        // Request notification authorization
-        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-        UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
-            if granted {
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
-            } else if let error = error {
-                print("Notification authorization error: \(error.localizedDescription)")
-            }
+    // Handle incoming notifications while the app is in the foreground
+        func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+            completionHandler([.banner, .sound, .badge])
         }
-    }
+        // Handle device token registration for Firebase Messaging
+        func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+            Messaging.messaging().apnsToken = deviceToken
+        }
+
+        func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+            print("Failed to register for remote notifications: \(error.localizedDescription)")
+        }
         
     private func requestTrackingAuthorization() {
         if #available(iOS 14, *) {
@@ -86,25 +80,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     }
 }
 
-extension AppDelegate {
-    // MARK: - MessagingDelegate
-
-    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("Firebase registration token: \(String(describing: fcmToken))")
-        // Optionally, send the FCM token to your server here.
-    }
-
-    // MARK: - UNUserNotificationCenterDelegate
-
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.alert, .sound, .badge])
-    }
-
-    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        Messaging.messaging().apnsToken = deviceToken
-    }
-}
-
 @main
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
@@ -115,14 +90,12 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(userStore)
-            
         }
     }
-
 }
-
 #endif
 
+#if os(macOS)
 @main
 struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
@@ -135,21 +108,15 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(userStore)
+                .frame(minWidth: 1280, minHeight: 720)
         }
         .windowStyle(DefaultWindowStyle())
                 .windowResizability(.contentSize)
     }
 }
 
-
-
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if let window = NSApplication.shared.windows.first {
-                    // Set minimum and maximum window sizes
-                    window.minSize = NSSize(width: 800, height: 600)  // Example minimum size
-                    window.maxSize = NSSize(width: 1280, height: 1280) // Example maximum size
-                }
         
         FirebaseApp.configure()
 
@@ -203,3 +170,4 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         Messaging.messaging().apnsToken = deviceToken
     }
 }
+#endif

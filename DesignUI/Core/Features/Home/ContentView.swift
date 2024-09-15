@@ -34,6 +34,8 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
+                
+                
                 if store.completedPurchases.isEmpty {
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 320, height: 50)
@@ -46,10 +48,10 @@ struct ContentView: View {
                         HomeView()
                     }
                     
-                    Tab(systemImageName: "house.fill") {
-                        // HomeView content
-                        DesignEditor()
-                    }
+//                    Tab(systemImageName: "house.fill") {
+//                        // HomeView content
+//                        DesignEditor()
+//                    }
                     
                     Tab(systemImageName: "person.crop.circle") {
                         // HomeView content
@@ -107,7 +109,7 @@ struct ContentView: View {
                             isIGHovered = hovering
                         }
                     
-                    Link("Discord", destination: URL(string: "https://discord.gg/nz8XMh86")!)
+                    Link("Discord", destination: URL(string: "https://discord.gg/9aq3c2MF3m")!)
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
@@ -231,7 +233,7 @@ struct ContentView: View {
                             isIGHovered = hovering
                         }
                     
-                    Link("Discord", destination: URL(string: "https://discord.gg/nz8XMh86")!)
+                    Link("Discord", destination: URL(string: "https://discord.gg/9aq3c2MF3m")!)
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
@@ -381,8 +383,4 @@ struct ContentView: View {
             return AnyView(OldStoreView())
         }
     }
-}
-
-#Preview {
-    ContentView()
 }

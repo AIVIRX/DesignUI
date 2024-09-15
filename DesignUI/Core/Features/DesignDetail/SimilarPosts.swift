@@ -134,14 +134,14 @@ struct SimilarPostsView: View {
                                     }
                                 VStack(alignment: .leading){
                                     Text(post.title)
-                                        .font(.body).bold()
+                                        .font(.system(size: 16).bold())
                                         .lineLimit(1)
                                         .foregroundColor(.primary)
                                         .multilineTextAlignment(.leading)
                                         .truncationMode(.tail)
                                     HStack {
                                         Text(post.authorName)
-                                            .font(.system(size: 15))
+                                            .font(.system(size: 13))
                                             .foregroundColor(.secondary)
                                         
                                         if post.isAuthorVerified {
@@ -190,7 +190,7 @@ func fetchSimilarPosts(currentPostId: String, tags: [String], completion: @escap
         .whereField("visibility", isEqualTo: "public")
         .whereField("tags", arrayContainsAny: tags)
         .whereField("id", isNotEqualTo: currentPostId) // Exclude current post
-        .limit(to: 3)  // Limit the number of similar posts fetched
+        .limit(to: 3)
         .getDocuments { querySnapshot, error in
             var similarPosts: [SimilarPost] = []
             

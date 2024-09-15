@@ -12,6 +12,8 @@ import FirebaseAuth
 import CryptoKit
 import SDWebImage
 import SDWebImageSwiftUI
+import UserNotifications
+import FirebaseMessaging
 
 class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     var onCompletion: ((Result<ASAuthorization, Error>) -> Void)?
@@ -257,6 +259,9 @@ struct ProfileView: View {
                         }
                         .padding(.top)
                         .onAppear {
+#if os(iOS)
+                            requestNotificationPermissions()
+                            #endif
                             print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
                         }
                     } else {
@@ -352,6 +357,25 @@ struct ProfileView: View {
         }
     }
     
+    #if os(iOS)
+    private func requestNotificationPermissions() {
+            // Check current authorization status
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                if settings.authorizationStatus == .notDetermined {
+                    let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+                    UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
+                        if granted {
+                            DispatchQueue.main.async {
+                                UIApplication.shared.registerForRemoteNotifications()
+                            }
+                        } else if let error = error {
+                            print("Notification authorization error: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        }
+    #endif
     
     func getFirstChar(_ deckName : String) -> String {
         return String(deckName.prefix(1))
