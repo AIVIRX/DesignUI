@@ -2864,9 +2864,6 @@
         }
       }
     },
-    "Click Me" : {
-
-    },
     "Code" : {
       "localizations" : {
         "ar" : {
@@ -7630,9 +7627,6 @@
         }
       }
     },
-    "Generated SwiftUI Code:" : {
-
-    },
     "Hello, World!" : {
 
     },
@@ -9302,9 +9296,6 @@
           }
         }
       }
-    },
-    "Modify: %@" : {
-
     },
     "No liked posts found." : {
       "extractionState" : "stale",
@@ -14069,6 +14060,9 @@
           }
         }
       }
+    },
+    "Search Dock UI" : {
+
     },
     "Search Results" : {
       "extractionState" : "stale",

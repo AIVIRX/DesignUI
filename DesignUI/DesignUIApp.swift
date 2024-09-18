@@ -39,9 +39,13 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         return true
     }
     // Handle incoming notifications while the app is in the foreground
+
+    class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
             completionHandler([.banner, .sound, .badge])
         }
+    }
+
         // Handle device token registration for Firebase Messaging
         func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
             Messaging.messaging().apnsToken = deviceToken

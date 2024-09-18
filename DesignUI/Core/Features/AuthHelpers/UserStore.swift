@@ -11,7 +11,6 @@ import FirebaseFirestore
 
 class UserStore: ObservableObject {
     @Published var user: UserModel? = nil
-    
     func fetchCurrentUser() -> UserModel? {
         if let user = Auth.auth().currentUser {
             return UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "", username: user.displayName ?? "", bio: "", isVerified: false)
@@ -48,7 +47,6 @@ class UserStore: ObservableObject {
     func fetchUserData(uid: String, completion: @escaping (UserModel?) -> Void) {
         let db = Firestore.firestore()
         let userDocRef = db.collection("users").document(uid)
-        
         userDocRef.getDocument { document, error in
             if let document = document, document.exists {
                 let data = document.data()
@@ -69,13 +67,10 @@ class UserStore: ObservableObject {
             }
         }
     }
-
-
+    
     func signOut() {
         self.user = nil
     }
-    
-    
 }
 
 

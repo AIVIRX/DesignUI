@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import FirebaseFirestore
+@preconcurrency import FirebaseFirestore
 #if os(iOS)
 import StatefulTabView
 #endif

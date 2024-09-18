@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case home, editor, profile, sfIcons, shop
+    case home, explore, editor, profile, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -20,6 +20,7 @@ struct ContentView: View {
     @Environment(\.requestReview) var requestReview
     @State private var selectedView: ViewType? = .home
     @State private var isHomeHovered: Bool = false
+    @State private var isExploreHovered: Bool = false
     @State private var isProfileHovered: Bool = false
     @State private var isSFIconsHovered: Bool = false
     @State private var isShopHovered: Bool = false
@@ -34,24 +35,32 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
-                
-                
                 if store.completedPurchases.isEmpty {
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 320, height: 50)
                         .padding(3)
                 }
-
+                
                 StatefulTabView{
                     Tab(systemImageName: "house.fill") {
                         // HomeView content
                         HomeView()
                     }
                     
-//                    Tab(systemImageName: "house.fill") {
-//                        // HomeView content
-//                        DesignEditor()
-//                    }
+                    Tab(systemImageName: "magnifyingglass") {
+                        // Explore Page
+                        ExploreView()
+                    }
+                    
+                    Tab(systemImageName: "plus.app.fill") {
+                        // HomeView content
+                        UploadDesignView()
+                    }
+                    
+                    Tab(systemImageName: "bell.fill") {
+                        // Explore Page
+                        ActivityView()
+                    }
                     
                     Tab(systemImageName: "person.crop.circle") {
                         // HomeView content
@@ -69,7 +78,12 @@ struct ContentView: View {
                     navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered)
                     
                     // Profile Link
+                    navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered)
+                    
+                    // Profile Link
                     navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered)
+                    
+                    
                     
                     Divider().padding(.vertical)
                     
@@ -169,6 +183,8 @@ struct ContentView: View {
             NavigationStack() {
                 switch selectedView {
                 case .home:
+                    HomeView()
+                case .explore:
                     HomeView()
                 case .profile:
                     ProfileView()
@@ -307,9 +323,7 @@ struct ContentView: View {
                 }
             }
         }
-        
 #endif
-        
     }
     
     private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, isHovered: Binding<Bool>) -> some View {
@@ -373,8 +387,10 @@ struct ContentView: View {
         switch viewType {
         case .home:
             return AnyView(HomeView())
+        case .explore:
+            return AnyView(HomeView())
         case .editor:
-            return AnyView(DesignEditor())
+            return AnyView(UploadDesignView())
         case .profile:
             return AnyView(ProfileView())
         case .sfIcons:

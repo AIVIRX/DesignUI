@@ -629,7 +629,6 @@ struct InformationDetailView: View {
     var title: String = "title"
     var subTitle: String = "subTitle"
     var imageName: String = "car"
-
     var body: some View {
         HStack(alignment: .center) {
             Image(systemName: imageName)
@@ -715,10 +714,10 @@ extension Text {
 
 extension Color {
     #if os(iOS)
-    static var mainColor = Color(UIColor.systemIndigo)
+    static let mainColor = Color(UIColor.systemIndigo)
     #endif
     
     #if os(macOS)
-    static var mainColor = Color(NSColor.systemIndigo)
+    static let mainColor = Color(NSColor.systemIndigo)
     #endif
 }
