@@ -33,6 +33,7 @@
 		EC7D7C0A2C19E7B5003134B1 /* Preview Content.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */; };
 		EC7D7C0F2C19F610003134B1 /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7C0E2C19F610003134B1 /* Profile.swift */; };
 		EC7E8B692C82698400583E48 /* UpdatePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7E8B682C82698400583E48 /* UpdatePost.swift */; };
+		EC8025262C9C62F800019AD1 /* QuickActionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8025252C9C62F800019AD1 /* QuickActionHelper.swift */; };
 		EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8728342C4B5881006FF808 /* AlertItem.swift */; };
 		EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC91C8A62C5C1393000E20E3 /* StatefulTabView */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
@@ -94,6 +95,7 @@
 		EC7D7C092C19E7B5003134B1 /* Preview Content.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content.xcassets"; sourceTree = "<group>"; };
 		EC7D7C0E2C19F610003134B1 /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		EC7E8B682C82698400583E48 /* UpdatePost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePost.swift; sourceTree = "<group>"; };
+		EC8025252C9C62F800019AD1 /* QuickActionHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionHelper.swift; sourceTree = "<group>"; };
 		EC8728342C4B5881006FF808 /* AlertItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertItem.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EC91C8AF2C5C82C6000E20E3 /* StoreConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreConfig.storekit; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 				ECB1DA612C7C0ED8002D7E31 /* DateFormater.swift */,
 				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
+				EC8025252C9C62F800019AD1 /* QuickActionHelper.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -533,6 +536,7 @@
 				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
+				EC8025262C9C62F800019AD1 /* QuickActionHelper.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
 				EC9AAD532C61720C00796358 /* StoreView.swift in Sources */,
@@ -695,7 +699,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DesignUI/Preview Content\"";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -721,7 +725,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -742,7 +746,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DesignUI/Preview Content\"";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -768,7 +772,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";

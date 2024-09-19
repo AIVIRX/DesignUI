@@ -16,32 +16,6 @@ import UserNotifications
 import FirebaseMessaging
 #if os(iOS)
 import GoogleMobileAds
-#endif
-
-#if os(iOS)
-enum DeepLink: Equatable {
-    case post(id: String)
-    case profile(id: String)
-    case explore
-    case upload
-    case activity
-    
-    static func == (lhs: DeepLink, rhs: DeepLink) -> Bool {
-        switch (lhs, rhs) {
-        case (.post(let id1), .post(let id2)):
-            return id1 == id2
-        case (.profile(let id1), .profile(let id2)):
-            return id1 == id2
-        case (.explore, .explore),
-             (.upload, .upload),
-             (.activity, .activity):
-            return true
-        default:
-            return false
-        }
-    }
-}
-
 
 extension View {
     func applyColorSchemeForiPad() -> some View {
@@ -54,47 +28,41 @@ extension View {
 }
 
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
-    var window: UIWindow?
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureFirebase()
         requestTrackingAuthorization()
         initializeGoogleMobileAds()
-        
-        // Handle Quick Actions
-        if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
-            handleQuickAction(shortcutItem)
-        }
+        UserDefaults.standard.set(0, forKey: "selectedIndex")
         
         return true
     }
     
-    private func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) -> Bool {
-        handleQuickAction(shortcutItem)
-        return true
-    }
-    
-    private func handleQuickAction(_ shortcutItem: UIApplicationShortcutItem) {
-            guard let rootViewController = window?.rootViewController as? UIHostingController<ContentView> else {
-                return
-            }
-
-            let contentView = rootViewController.rootView
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        if let shortcutItem = options.shortcutItem {
             
-            switch shortcutItem.type {
-            case "com.Maicol.Dockui.Home":
-                contentView.selectedTab = 0
-            case "com.Maicol.Dockui.Explore":
-                contentView.selectedTab = 1
-            case "com.Maicol.Dockui.Upload":
-                contentView.selectedTab = 2
-            case "com.Maicol.Dockui.Activity":
-                contentView.selectedTab = 3
-            case "com.Maicol.Dockui.Profile":
-                contentView.selectedTab = 4
-            default:
-                break
+            handleQuickAction(shortcutItem)
+            
+            func handleQuickAction(_ shortcutItem: UIApplicationShortcutItem) {
+                let userDefaults = UserDefaults.standard
+                switch shortcutItem.type {
+                case QuickAction.home.rawValue:
+                    userDefaults.set(0, forKey: "selectedIndex")
+                case QuickAction.search.rawValue:
+                    userDefaults.set(1, forKey: "selectedIndex")
+                case QuickAction.profile.rawValue:
+                    userDefaults.set(2, forKey: "selectedIndex")
+                default:
+                    userDefaults.set(0, forKey: "selectedIndex")
+                }
             }
         }
+
+        // Set up UISceneConfiguration
+        let sceneConfiguration = UISceneConfiguration(name: "Custom Configuration", sessionRole: connectingSceneSession.role)
+        sceneConfiguration.delegateClass = CustomSceneDelegate.self
+
+        return sceneConfiguration
+    }
     
     // Handle incoming notifications while the app is in the foreground
     class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
@@ -140,6 +108,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         Messaging.messaging().delegate = self
     }
     
+    class CustomSceneDelegate: UIResponder, UIWindowSceneDelegate {
+        func windowScene(_ windowScene: UIWindowScene, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+            
+            handleQuickAction(shortcutItem)
+            
+            func handleQuickAction(_ shortcutItem: UIApplicationShortcutItem) {
+                let userDefaults = UserDefaults.standard
+                switch shortcutItem.type {
+                case QuickAction.home.rawValue:
+                    userDefaults.set(0, forKey: "selectedIndex")
+                case QuickAction.search.rawValue:
+                    userDefaults.set(1, forKey: "selectedIndex")
+                case QuickAction.profile.rawValue:
+                    userDefaults.set(2, forKey: "selectedIndex")
+                default:
+                    userDefaults.set(0, forKey: "selectedIndex")
+                }
+            }
+            completionHandler(true)
+        }
+    }
 }
 
 @main
@@ -147,30 +136,11 @@ struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
     @StateObject private var userStore = UserStore()
-    @State private var selectedTab: Int = 0
-    @State private var deepLink: DeepLink?
     var body: some Scene {
         WindowGroup {
-            ContentView(selectedTab: $selectedTab)
+            ContentView()
                 .environmentObject(store)
                 .environmentObject(userStore)
-                .onOpenURL { url in
-                    handleDeepLink(url: url)
-                }
-        }
-    }
-    
-    func handleDeepLink(url: URL) {
-        if url.pathComponents.contains("post") {
-            selectedTab = 0 // Switch to Home tab
-        } else if url.pathComponents.contains("explore") {
-            selectedTab = 1 // Switch to Explore tab
-        } else if url.pathComponents.contains("upload") {
-            selectedTab = 2 // Switch to Upload tab
-        } else if url.pathComponents.contains("activity") {
-            selectedTab = 3 // Switch to Activity tab
-        } else if url.pathComponents.contains("profile") {
-            selectedTab = 4 // Switch to Profile tab
         }
     }
 }

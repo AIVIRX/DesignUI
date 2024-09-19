@@ -15,8 +15,8 @@ enum ViewType: Hashable {
 }
 
 struct ContentView: View {
-    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var store: Store
+    @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @State private var isHomeHovered: Bool = false
     @State private var isExploreHovered: Bool = false
@@ -30,7 +30,7 @@ struct ContentView: View {
     @State private var isIGHovered: Bool = false
     @State private var isDiscordHovered: Bool = false
     @State private var isEditorHovered: Bool = false
-    @Binding var selectedTab: Int
+    @AppStorage("selectedIndex") var selectedIndex: Int = 0
     var body: some View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -41,7 +41,7 @@ struct ContentView: View {
                         .padding(3)
                 }
                 
-                StatefulTabView(selectedIndex: $selectedTab){
+                StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house.fill") {
                         HomeView() //Home Page
                             .tag(0)
@@ -52,26 +52,26 @@ struct ContentView: View {
                             .tag(1)
                     }
                     
-                    Tab(systemImageName: "plus.app.fill") {
-                        UploadDesignView() // Upload Page
-                            .tag(2)
-                    }
+                    //                    Tab(systemImageName: "plus.app.fill") {
+                    //                        UploadDesignView() // Upload Page
+                    //                            .tag(2)
+                    //                    }
                     
                     Tab(systemImageName: "bell.fill") {
                         ActivityView() //Activity Page
-                            .tag(3)
+                            .tag(2)
                     }
                     
                     Tab(systemImageName: "person.crop.circle") {
                         ProfileView() //Profile Page
-                            .tag(4)
+                            .tag(3)
                     }
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
             }
         }
         
-        //        if UIDevice.current.userInterfaceIdiom == .pad {
+        //      if UIDevice.current.userInterfaceIdiom == .pad {
         //            NavigationSplitView {
         //                VStack(alignment: .leading, spacing: 5) {
         //                    // Home Link
