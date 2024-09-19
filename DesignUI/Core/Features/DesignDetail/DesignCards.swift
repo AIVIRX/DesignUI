@@ -80,7 +80,7 @@ struct DesignCards: View {
                         .foregroundStyle(Color(hex: hexa))
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.gray, lineWidth: 0.5) // Adjust the stroke color and width as needed
+                                .stroke(Color.gray, lineWidth: 0.5) 
                         )
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)

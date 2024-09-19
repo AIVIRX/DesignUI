@@ -19,7 +19,6 @@ struct HomeView: View {
     @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var hasMoreCommunityPosts = false
     @State private var isLoading: Bool = false
-    @State private var searchText = ""
     @State private var showSearchResults = false
     @Environment(\.colorScheme) var colorScheme
     @State private var startAnimation: Bool = false

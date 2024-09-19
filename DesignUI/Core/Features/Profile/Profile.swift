@@ -60,8 +60,7 @@ struct ProfileView: View {
     }
     var body: some View {
         NavigationStack{
-            ScrollView{
-                VStack {
+            ScrollView(.vertical, showsIndicators: false) {               VStack {
                     if isLoading {
                         VStack{
                         }

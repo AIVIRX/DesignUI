@@ -5,6 +5,7 @@
 //  Created by Maicol Cabreja on 9/19/24.
 //
 
+#if os(iOS)
 import SwiftUI
 
 var shortcutItemToProcess: UIApplicationShortcutItem?
@@ -55,5 +56,4 @@ func addDynamicQuickActions() {
         )
     ]
 }
-
-
+#endif

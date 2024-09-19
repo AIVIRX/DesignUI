@@ -32,6 +32,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         configureFirebase()
         requestTrackingAuthorization()
         initializeGoogleMobileAds()
+        addDynamicQuickActions()
+        
         UserDefaults.standard.set(0, forKey: "selectedIndex")
         
         return true
@@ -144,8 +146,6 @@ struct DesignUIApp: App {
         }
     }
 }
-
-
 #endif
 
 #if os(macOS)

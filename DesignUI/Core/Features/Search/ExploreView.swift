@@ -31,13 +31,13 @@ struct ExploreView: View {
                 }
                 .padding(.top, 100)
                 
-                ScrollView{
-                    VStack(alignment: .leading){
+                ScrollView(.vertical){
+                    VStack{
                         LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
                         
-                        PostCollectionView(CollectionName: "Most Liked", type: "mostLiked")
-                        
-                        PostCollectionView(CollectionName: "Most Liked", type: "mostLiked")
+                        PostCollectionView(collectionName: "Most Liked", type: "mostLiked")
+//                        
+//                        PostCollectionView(collectionName: "Most Liked", type: "mostLiked")
                     }
                 }
                 .padding(8)
@@ -115,74 +115,76 @@ struct ExploreView: View {
 }
 
 struct PostCollectionView: View {
-    @State var postImages: [String] = []
-    let CollectionName: String
+    @State private var postImages: [String] = []
+    @State private var communityPosts: [DesignPost] = []
+    let collectionName: String
     let type: String
+    @State private var isLoading: Bool = false
     var body: some View {
-        VStack(alignment: .leading){
-            Text(CollectionName)
+        VStack(alignment: .leading) {
+            Text(collectionName)
                 .font(.title2).bold()
-            ZStack {
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.gray)
-                
-                HStack(spacing: 1) {
-                    ForEach(postImages.prefix(4), id: \.self) { imageUrl in
-                        AsyncImage(url: URL(string: imageUrl)) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 90, height: 200)
-                                .colorMultiply(Color.white)
-                        } placeholder: {
-                            Rectangle()
-                                .fill(Color.gray)
-                                .frame(width: 90, height: 200)
-                        }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHGrid(rows: gridColumns) {
+                    ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
+                        DesignCards(
+                            id: post.id,
+                            media: post.media,
+                            title: post.title,
+                            authorUID: post.author,
+                            description: post.description,
+                            codeSnippet: post.codeSnippet,
+                            published: formattedDate(from: post.creationDate),
+                            type: post.type,
+                            tags: post.tags,
+                            likes: post.likesCount,
+                            views: post.viewCount,
+                            hexa: post.hexa,
+                            visibility: post.visibility
+                        )
+                        .frame(maxWidth: .infinity)
+                        .aspectRatio(9/16, contentMode: .fit)
+                        .cornerRadius(12)
                     }
                 }
             }
-            .frame(height: 195)
-            .clipShape(RoundedRectangle(cornerRadius: 15))
-            .overlay(
-                RoundedRectangle(cornerRadius: 15)
-                    .stroke(.black, lineWidth: 1)
-            )
-            .onTapGesture {
-                showFullPostList()
-            }
-            .onAppear {
-                if(type == "mostLiked"){
-                    fetchMostLikedPosts()
-                }
+            .frame(height: 370)
+        }
+        .task {
+            if type == "mostLiked" {
+                await fetchMostLikedPosts()
             }
         }
-        .padding()
     }
     
-    
-    func fetchMostLikedPosts() {
+    func fetchMostLikedPosts() async {
         let db = Firestore.firestore()
-        db.collection("posts")
-            .order(by: "likesCount", descending: true)
-            .limit(to: 4)
-            .getDocuments { snapshot, error in
-                if let error = error {
-                    print("Error fetching posts: \(error.localizedDescription)")
-                    return
+        
+        guard !isLoading else { return }
+        
+        isLoading = true
+        
+        do{
+            // Query to fetch only (5 posts)(public)(by date)
+            let query = db.collection("posts")
+                .whereField("visibility", isEqualTo: "public")
+                .order(by: "creationDate", descending: true)
+                .limit(to: 5)
+            
+            let querySnapshot = try await query.getDocuments()
+            
+            DispatchQueue.main.async {
+                let newPosts = querySnapshot.documents.compactMap { document in
+                    try? document.data(as: DesignPost.self)
                 }
                 
-                if let documents = snapshot?.documents {
-                    postImages = documents.compactMap { document in
-                        document.get("media") as? String
-                    }
-                }
+                self.communityPosts.append(contentsOf: newPosts)
             }
-    }
-    
-    // Function to navigate to full post list
-    func showFullPostList() {
-        
+        } catch {
+            print("Error getting documents: \(error)")
+        }
     }
 }
+
     
