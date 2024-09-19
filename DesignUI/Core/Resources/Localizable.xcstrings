@@ -1435,6 +1435,9 @@
         }
       }
     },
+    "Activity" : {
+
+    },
     "Are you sure you want to delete your account? This action cannot be undone." : {
       "localizations" : {
         "ar" : {
@@ -7627,9 +7630,6 @@
         }
       }
     },
-    "Hello, World!" : {
-
-    },
     "Hex Color" : {
       "localizations" : {
         "ar" : {
@@ -9296,6 +9296,9 @@
           }
         }
       }
+    },
+    "No activity available." : {
+
     },
     "No liked posts found." : {
       "extractionState" : "stale",

@@ -328,9 +328,9 @@
 		ECD13FF92C18BF8800105B3E /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				ECF625462C6D5C6C0057FB6B /* Toastys.swift */,
 				EC7D7BFE2C19E5A2003134B1 /* LargeCardView.swift */,
 				ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */,
-				ECF625462C6D5C6C0057FB6B /* Toastys.swift */,
 				ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */,
 				ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */,
 				ECA4AD9D2C7022CA001AD63A /* TextEditorWithCounter.swift */,

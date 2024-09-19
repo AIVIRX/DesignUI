@@ -23,11 +23,11 @@ struct TextFieldWithValidation: View {
                 }
                 .font(Font.system(size: 20, design: .default))
                 .controlSize(.large)
-                    .autocorrectionDisabled()
+                .autocorrectionDisabled()
 #if os(iOS)
-                    .textInputAutocapitalization(.none)
-                #endif
-                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+                .textInputAutocapitalization(.none)
+#endif
+                .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
                 if !isValid {
                     Image(systemName: "xmark.circle")
                         .foregroundColor(.red)

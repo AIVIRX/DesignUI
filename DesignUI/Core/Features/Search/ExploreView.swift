@@ -8,6 +8,8 @@
 import SwiftUI
 import Combine
 import Firebase
+import SDWebImage
+import SDWebImageSwiftUI
 
 struct ExploreView: View {
     @State private var query: String = ""
@@ -20,7 +22,6 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                // Suggestions List
                 List(suggestions, id: \.self) { suggestion in
                     Button(action: {
                         performSearch(for: suggestion)
@@ -28,16 +29,19 @@ struct ExploreView: View {
                         Text(suggestion)
                     }
                 }
-                .padding(.top, 100) // Adjusts the top padding for the list
+                .padding(.top, 100)
                 
                 ScrollView{
-                    VStack{
+                    VStack(alignment: .leading){
                         LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
+                        
+                        PostCollectionView(CollectionName: "Most Liked", type: "mostLiked")
+                        
+                        PostCollectionView(CollectionName: "Most Liked", type: "mostLiked")
                     }
                 }
                 .padding(8)
                 .padding(.top, 80)
-                    
                 
                 // Custom SearchBarView
                 SearchBarView(searchText: $query)
@@ -60,17 +64,17 @@ struct ExploreView: View {
     }
     
     // Setup debounce mechanism using PassthroughSubject
-        private func setupDebounce() {
-            searchCancellable = searchQuerySubject
-                .debounce(for: .milliseconds(500), scheduler: RunLoop.main) //ms between stop typing and fetching suggestions
-                .sink { newValue in
-                    if !newValue.isEmpty {
-                        fetchSuggestions(for: newValue)
-                    } else {
-                        suggestions = []  // Directly access @State without needing self
-                    }
+    private func setupDebounce() {
+        searchCancellable = searchQuerySubject
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main) //ms between stop typing and fetching suggestions
+            .sink { newValue in
+                if !newValue.isEmpty {
+                    fetchSuggestions(for: newValue)
+                } else {
+                    suggestions = []  // Directly access @State without needing self
                 }
-        }
+            }
+    }
 
     // Fetch suggestions from Firestore based on the current query
     private func fetchSuggestions(for query: String) {
@@ -109,3 +113,76 @@ struct ExploreView: View {
 #Preview {
     ExploreView()
 }
+
+struct PostCollectionView: View {
+    @State var postImages: [String] = []
+    let CollectionName: String
+    let type: String
+    var body: some View {
+        VStack(alignment: .leading){
+            Text(CollectionName)
+                .font(.title2).bold()
+            ZStack {
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(Color.gray)
+                
+                HStack(spacing: 1) {
+                    ForEach(postImages.prefix(4), id: \.self) { imageUrl in
+                        AsyncImage(url: URL(string: imageUrl)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 90, height: 200)
+                                .colorMultiply(Color.white)
+                        } placeholder: {
+                            Rectangle()
+                                .fill(Color.gray)
+                                .frame(width: 90, height: 200)
+                        }
+                    }
+                }
+            }
+            .frame(height: 195)
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(.black, lineWidth: 1)
+            )
+            .onTapGesture {
+                showFullPostList()
+            }
+            .onAppear {
+                if(type == "mostLiked"){
+                    fetchMostLikedPosts()
+                }
+            }
+        }
+        .padding()
+    }
+    
+    
+    func fetchMostLikedPosts() {
+        let db = Firestore.firestore()
+        db.collection("posts")
+            .order(by: "likesCount", descending: true)
+            .limit(to: 4)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("Error fetching posts: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let documents = snapshot?.documents {
+                    postImages = documents.compactMap { document in
+                        document.get("media") as? String
+                    }
+                }
+            }
+    }
+    
+    // Function to navigate to full post list
+    func showFullPostList() {
+        
+    }
+}
+    

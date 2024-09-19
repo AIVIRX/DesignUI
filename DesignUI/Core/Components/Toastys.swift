@@ -9,7 +9,6 @@ import SwiftUI
 
 class ToastManager: ObservableObject {
     @Published var toasts: [Toast] = []
-    
     func showToast(message: String) {
         let toast = Toast(message: message)
         toasts.append(toast)
@@ -34,7 +33,6 @@ struct Toast: Identifiable {
 
 struct ToastView: View {
     let message: String
-    
     var body: some View {
         HStack {
             Image(systemName: "doc.on.doc.fill")

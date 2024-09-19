@@ -30,7 +30,7 @@ struct SearchBarView: View {
                         Image(systemName: "xmark.circle.fill")
                             .padding()
                             .offset(x: 10)
-                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .foregroundStyle(colorScheme == .dark ? .gray : .white)
                             .opacity(searchText.isEmpty ? 0.0 : 1.0)
                             .onTapGesture {
                                 searchText = ""

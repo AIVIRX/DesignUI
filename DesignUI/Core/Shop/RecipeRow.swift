@@ -52,9 +52,9 @@ struct RecipeRow: View {
                 }
             }
         }
-        #if os(macOS)
+#if os(macOS)
         .background(.gray.opacity(0.2))
         .cornerRadius(9)
-        #endif
+#endif
     }
 }

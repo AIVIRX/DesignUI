@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Activity" : {
+
+    },
     "CFBundleDisplayName" : {
       "comment" : "Bundle display name",
       "extractionState" : "extracted_with_value",
@@ -493,6 +496,9 @@
         }
       }
     },
+    "Home" : {
+
+    },
     "NSUserTrackingUsageDescription" : {
       "comment" : "Privacy - Tracking Usage Description",
       "extractionState" : "extracted_with_value",
@@ -738,6 +744,12 @@
           }
         }
       }
+    },
+    "Profile" : {
+
+    },
+    "Search" : {
+
     }
   },
   "version" : "1.0"

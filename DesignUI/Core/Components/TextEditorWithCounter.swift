@@ -24,7 +24,7 @@ struct TextEditorWithCounter: View {
                 .autocorrectionDisabled()
 #if os(iOS)
                 .textInputAutocapitalization(.none)
-            #endif
+#endif
                 .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
             HStack{
                 Spacer()

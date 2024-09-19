@@ -9,7 +9,18 @@ import SwiftUI
 
 struct ActivityView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack{
+            Image(systemName: "bell.fill")
+                .font(.system(size: 50))
+                .foregroundStyle(.gray)
+                .padding()
+            
+            Text("Activity")
+                .font(.title).bold()
+            Text("No activity available.")
+                .font(.title3)
+        }
+        .padding()
     }
 }
 
