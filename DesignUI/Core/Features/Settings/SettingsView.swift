@@ -90,17 +90,6 @@ struct SettingsView: View {
                                 Text("Shop")
                             }
                         }
-                        NavigationLink(destination: SFIconsView()) {
-                            HStack {
-                                Image(systemName: "square.grid.3x3.fill")
-                                    .font(.system(size: 18)).bold()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.blue)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("SF Symbols")
-                            }
-                        }
                     }
                     
                     Section(header: Text("Support Us")) {

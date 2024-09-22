@@ -183,7 +183,7 @@ struct DetailView: View {
                 .accentColor(.none)
             }
             
-            if UIDevice.current.userInterfaceIdiom != .phone {
+            if UIDevice.current.userInterfaceIdiom == .pad {
                 VStack(alignment: .leading) {
                     HStack{
                         RoundedRectangle(cornerRadius: 15)
@@ -345,29 +345,29 @@ struct DetailView: View {
                             RoundedRectangle(cornerRadius: 20)
                                 .frame(width: 257,height: 557)
                                 .overlay{
-                                        WebImage(url: URL(string: mediaURL)) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                ProgressView()
-                                                    .frame(maxWidth: .infinity, maxHeight: 558)
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 558)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                            case .failure:
-                                                Image(systemName: "photo")
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 558)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                            }
+                                    WebImage(url: URL(string: mediaURL)) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView()
+                                                .frame(maxWidth: .infinity, maxHeight: 558)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 558)
+                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                .clipped()
+                                                .shadow(radius: 8)
+                                        case .failure:
+                                            Image(systemName: "photo")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 558)
+                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                .clipped()
+                                                .shadow(radius: 8)
                                         }
+                                    }
                                 }
                         }
                     VStack{
@@ -480,7 +480,7 @@ struct DetailView: View {
                     }
                 }
                 .frame(height: 700)
-
+                
                 HStack{
                     SimilarPostsView(currentPostId: id, tags: tags)
                 }
@@ -492,111 +492,116 @@ struct DetailView: View {
         .scrollIndicators(.hidden)
         
 #if os(iOS)
-    .navigationBarTitle(title)
-    .navigationBarItems(trailing:
-                            HStack{
-        Button(action: {
-            isReporting.toggle() // Toggle to present a sheet for message input
-        }) {
-            Label("Report", systemImage: "flag")
-        }
-        
-        if checkIfAuthor(){
+        .navigationBarTitle(title)
+        .navigationBarItems(trailing:
+                                HStack{
             Button(action: {
-                isEditing.toggle() // Toggle to present a sheet for message input
+                isReporting.toggle()
             }) {
-                Label("Edit", systemImage: "square.and.pencil")
+                Label("Report", systemImage: "flag")
             }
-            .sheet(isPresented: $isEditing) {
-                EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
-            }
-        }
-    }
-    )
-    .sheet(isPresented: $isReporting) {
-        VStack {
-            Text("Report Content")
-                .font(.title)
-            Text("Are you sure you want to report this post?")
-                .padding(.bottom)
             
-            TextEditorWithCounter(label: "Message", text: $reportMessage, maxLength: 100)
-
-            HStack {
-                Button("Cancel") {
-                    isReporting = false // Dismiss the sheet
-                }
-
-                Spacer()
-
-                Button("Report") {
-                    reportPost(postId: id, message: reportMessage)
-                    isReporting = false // Dismiss the sheet after reporting
-                }
-            }
-            .padding()
-        }
-        .padding()
-    }
-#endif
-
-#if os(macOS)
-    .toolbar {
-        ToolbarItem(placement: .automatic) {
-            HStack{
+            if checkIfAuthor(){
                 Button(action: {
-                    isReporting.toggle() // Show the custom sheet for reporting
+                    isEditing.toggle()
                 }) {
-                    Label("Report", systemImage: "flag")
+                    Label("Edit", systemImage: "square.and.pencil")
                 }
-                
-                
-                if checkIfAuthor(){
-                    Button(action: {
-                        isEditing.toggle() // Toggle to present a sheet for message input
-                    }) {
-                        Label("Edit", systemImage: "square.and.pencil")
-                    }
-                    .sheet(isPresented: $isEditing) {
-                        EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
-                    }
+                .sheet(isPresented: $isEditing) {
+                    EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
                 }
             }
-        }
-    }
-.sheet(isPresented: $isReporting) {
-    VStack {
-        Text("Report Content")
-            .font(.headline)
-        Text("Are you sure you want to report this post?")
-            .padding(.bottom)
-
-        TextField("Optional Message", text: $reportMessage)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
+        })
+        .sheet(isPresented: $isReporting) {
+            VStack {
+                Text("Report Content")
+                    .font(.title).bold()
+                Text("Are you sure you want to report this post?")
+                    .font(.headline)
+                    .padding(.bottom)
+                
+                Spacer()
+                
+                TextEditorWithCounter(label: "Message", text: $reportMessage, maxLength: 100)
+                
+                Spacer()
+                
+                Button {
+                    reportPost(postId: id, message: reportMessage)
+                    isReporting = false // Dismiss sheet
+                } label: {
+                    Text("Report")
+                        .padding(8)
+                        .font(.headline).bold()
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .foregroundStyle(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12.0))
+                .padding(.top, 10)
+            }
             .padding()
-
-        HStack {
-            Button("Cancel") {
-                isReporting = false // Dismiss the sheet without reporting
-            }
-            .keyboardShortcut(.cancelAction)
-
-            Spacer()
-
-            Button("Report") {
-                reportPost(postId: id, message: reportMessage)
-                isReporting = false // Dismiss the sheet after reporting
-            }
-            .keyboardShortcut(.defaultAction)
+            .presentationDetents([.medium])
         }
-        .padding()
-    }
-    .padding()
-    .frame(width: 300)
-}
 #endif
-
         
+#if os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                HStack{
+                    Button(action: {
+                        isReporting.toggle() // Show the custom sheet for reporting
+                    }) {
+                        Label("Report", systemImage: "flag")
+                    }
+                    
+                    
+                    if checkIfAuthor(){
+                        Button(action: {
+                            isEditing.toggle() // Toggle to present a sheet for message input
+                        }) {
+                            Label("Edit", systemImage: "square.and.pencil")
+                        }
+                        .sheet(isPresented: $isEditing) {
+                            EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $isReporting) {
+            VStack {
+                Text("Report Content")
+                    .font(.headline)
+                Text("Are you sure you want to report this post?")
+                    .padding(.bottom)
+                
+                TextField("Optional Message", text: $reportMessage)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                
+                HStack {
+                    Button("Cancel") {
+                        isReporting = false // Dismiss the sheet without reporting
+                    }
+                    .keyboardShortcut(.cancelAction)
+                    
+                    Spacer()
+                    
+                    Button("Report") {
+                        reportPost(postId: id, message: reportMessage)
+                        isReporting = false // Dismiss the sheet after reporting
+                    }
+                    .keyboardShortcut(.defaultAction)
+                }
+                .padding()
+            }
+            .padding()
+            .frame(width: 300)
+        }
+#endif
         .padding(7)
         .onAppear{
             fetchLikeStatusAndViewCount()
@@ -610,18 +615,18 @@ struct DetailView: View {
         }
         return user.uid == authorUID
     }
-
+    
     
     func copyToClipboard(_ text: String) {
-        #if os(iOS)
+#if os(iOS)
         UIPasteboard.general.string = text
-        #elseif os(macOS)
+#elseif os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
-        #endif
+#endif
     }
-
+    
     func fetchLikeStatusAndViewCount() {
         guard let user = Auth.auth().currentUser else { return }
         let db = Firestore.firestore()
@@ -736,7 +741,6 @@ struct DetailView: View {
             }
         }
     }
-    
 }
 
 struct TagView: View {

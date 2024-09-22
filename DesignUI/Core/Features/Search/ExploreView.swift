@@ -124,7 +124,6 @@ struct PostCollectionView: View {
         VStack(alignment: .leading) {
             Text(collectionName)
                 .font(.title2).bold()
-            
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHGrid(rows: gridColumns) {
                     ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
@@ -143,16 +142,19 @@ struct PostCollectionView: View {
                             hexa: post.hexa,
                             visibility: post.visibility
                         )
-                        .frame(maxWidth: .infinity)
+                        .frame(width: 200)
                         .aspectRatio(9/16, contentMode: .fit)
                         .cornerRadius(12)
                     }
                 }
             }
-            .frame(height: 370)
+            .frame(height: 360)
         }
         .task {
             if type == "mostLiked" {
+                await fetchMostLikedPosts()
+            }
+            else if type == "mostViewed"{
                 await fetchMostLikedPosts()
             }
         }

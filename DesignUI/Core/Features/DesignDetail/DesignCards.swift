@@ -97,7 +97,7 @@ struct DesignCards: View {
                                                 .aspectRatio(contentMode: .fill)
                                                 .frame(maxWidth: .infinity, maxHeight: 250)
                                                 .frame(maxWidth: .infinity, maxHeight: 370)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipShape(RoundedRectangle(cornerRadius: 15))
                                                 .clipped()
                                                 .shadow(radius: 8)
                                         case .failure:
@@ -105,7 +105,7 @@ struct DesignCards: View {
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fill)
                                                 .frame(maxWidth: .infinity, maxHeight: 250)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                .clipShape(RoundedRectangle(cornerRadius: 15))
                                                 .clipped()
                                                 .shadow(radius: 8)
                                             
