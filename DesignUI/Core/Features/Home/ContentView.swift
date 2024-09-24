@@ -50,15 +50,9 @@ struct ContentView: View {
                         ExploreView() //Explore Page
                     }
                     
-                    //                    Tab(systemImageName: "plus.app.fill") {
-                    //                        UploadDesignView() // Upload Page
-                    //                            .tag(2)
-                    //                    }
-                    
-                    //                    Tab(systemImageName: "bell.fill") {
-                    //                        ActivityView() //Activity Page
-                    //                            .tag(2)
-                    //                    }
+                                        Tab(systemImageName: "plus.app.fill") {
+                                            UploadDesignView() // Upload Page
+                                        }
                     
                     Tab(systemImageName: "person.crop.circle") {
                         ProfileView() //Profile Page

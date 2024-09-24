@@ -9059,6 +9059,9 @@
         }
       }
     },
+    "Loading..." : {
+
+    },
     "Made in New York City" : {
       "localizations" : {
         "ar" : {
@@ -9776,6 +9779,9 @@
           }
         }
       }
+    },
+    "No results found" : {
+
     },
     "OK" : {
       "localizations" : {
@@ -14064,7 +14070,7 @@
         }
       }
     },
-    "Search Dock UI" : {
+    "Search \"Template\"" : {
 
     },
     "Search Results" : {

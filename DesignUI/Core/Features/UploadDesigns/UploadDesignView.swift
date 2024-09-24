@@ -99,8 +99,6 @@ struct UploadDesignView: View {
                             }
                     }
                 
-                
-                
                 Text("Title")
                     .bold()
                 TextFieldWithCounter(placehold: "Login Screen Template", text: $title, maxLength: 30)
@@ -154,7 +152,6 @@ struct UploadDesignView: View {
         }
         .environment(\.symbolVariants, .none)
         .accentColor(.none)
-        
         .padding(7)
         .navigationTitle("Upload Design")
     }
@@ -265,17 +262,15 @@ struct UploadDesignView: View {
         let drop = Drop(
             title: "Uploaded",
             icon: UIImage(systemName: "dot.radiowaves.up.forward")
-            )
+        )
         
         Drops.show(drop)
-            
+        
         
         guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.3) else {
             print("Please select an image.")
             return
         }
-        
-        
         
         isLoading = true
         let uniqueImageID = UUID().uuidString

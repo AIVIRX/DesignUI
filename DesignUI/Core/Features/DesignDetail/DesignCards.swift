@@ -100,6 +100,9 @@ struct DesignCards: View {
                                                 .clipShape(RoundedRectangle(cornerRadius: 15))
                                                 .clipped()
                                                 .shadow(radius: 8)
+                                                .onDisappear {
+                                                    SDImageCache.shared.clearMemory()
+                                                }
                                         case .failure:
                                             Image(systemName: "photo")
                                                 .resizable()
@@ -110,6 +113,7 @@ struct DesignCards: View {
                                                 .shadow(radius: 8)
                                             
                                         }
+                                        
                                     }
                                 }
                         }
