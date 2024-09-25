@@ -100,7 +100,7 @@ struct SearchBarView: View {
         // Query Firestore (posts collection) where titles or other fields contain the search text
         db.collection("posts")
             .whereField("title", isGreaterThanOrEqualTo: text)
-            .whereField("title", isLessThanOrEqualTo: text + "\u{f8ff}")  // For partial matches
+            .whereField("title", isLessThan: text + "z") 
             .limit(to: 10)  // Limit results for performance
             .getDocuments { (querySnapshot, error) in
                 self.isLoading = false

@@ -18,41 +18,59 @@ struct ExploreView: View {
     @State private var errorMessage: String?
     private let db = Firestore.firestore()
     @State private var searchCancellable: AnyCancellable? = nil
+    @State private var selectedTag: String? = nil
+    let availableTags = [ "All", "Animation", "Component", "Template"]
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                List(suggestions, id: \.self) { suggestion in
-                    Button(action: {
-                        performSearch(for: suggestion)
-                    }) {
-                        Text(suggestion)
-                    }
-                }
-                .padding(.top, 100)
-                
-                ScrollView(.vertical){
-                    VStack{
-                        LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
+            ScrollView(.vertical){
+                VStack{
+                    LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
+                    
+                    HStack{
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(availableTags, id: \.self) { tag in
+                                    Button(action: {
+                                        selectedTag = tag
+                                    }) {
+                                        Text(tag)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(selectedTag == tag ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
+                                            .foregroundColor(selectedTag == tag ? Color.blue : Color.primary)
+                                            .cornerRadius(10)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(selectedTag == tag ? Color.blue : Color.clear, lineWidth: 3)
+                                            )
+                                    }
+                                    .animation(.easeInOut, value: selectedTag)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                        }
                         
-                        PostCollectionView(collectionName: "Most Liked", type: "mostLiked")
-                        
-                        PostCollectionView(collectionName: "Most Viewed", type: "mostViewed")
+                        Button {
+                            print("Image tapped!")
+                        } label: {
+                            Image(systemName: "line.3.horizontal.decrease")
+                        }
                     }
+                    
+                    PostCollectionView(type: "mostLiked")
+                    PostCollectionView(type: "mostViewed")
+                    PostCollectionView(type: "mostLiked")
                 }
-                .padding(8)
-                .padding(.top, 80)
-                
-                // Custom SearchBarView
-                SearchBarView(searchText: $query)
-                    .padding(.top, 10)
-                
-                
-                // Loading Indicator
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .padding(.top, 150)
-                }
+            }
+            .padding(8)
+            
+            //search bar
+            
+            // Loading Indicator
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .padding(.top, 150)
             }
         }
     }
@@ -100,12 +118,9 @@ struct PostCollectionView: View {
     @State private var mostViewedPosts: [DesignPost] = []
     @State private var isLoading: Bool = false
     let db = Firestore.firestore()
-    let collectionName: String
     let type: String
     var body: some View {
         VStack(alignment: .leading) {
-            Text(collectionName)
-                .font(.title2).bold()
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHGrid(rows: gridColumns) {
                     if type == "mostLiked" {
@@ -130,6 +145,7 @@ struct PostCollectionView: View {
                             .cornerRadius(12)
                         }
                     }
+                    
                     if type == "mostViewed" {
                         ForEach(Array(mostViewedPosts.enumerated()), id: \.offset) { index, post in
                             DesignCards(
