@@ -12,225 +12,190 @@ import SDWebImage
 import SDWebImageSwiftUI
 
 struct ExploreView: View {
+    private let db = Firestore.firestore()
     @State private var query: String = ""
     @State private var suggestions: [String] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
-    private let db = Firestore.firestore()
     @State private var searchCancellable: AnyCancellable? = nil
-    @State private var selectedTag: String? = nil
+    @State private var selectedTag: String? = "All"
+    @State private var isExplorePostsLoaded = false
+    @State private var communityPosts: [DesignPost] = []
+    @State private var lastFetchedDocument: DocumentSnapshot?
+    @State private var hasMoreCommunityPosts = false
+    private let postsLimit = 2
     let availableTags = [ "All", "Animation", "Component", "Template"]
     var body: some View {
         NavigationStack {
-            ScrollView(.vertical){
-                VStack{
-                    LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
-                    
-                    HStack{
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                ForEach(availableTags, id: \.self) { tag in
-                                    Button(action: {
-                                        selectedTag = tag
-                                    }) {
-                                        Text(tag)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 8)
-                                            .background(selectedTag == tag ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
-                                            .foregroundColor(selectedTag == tag ? Color.blue : Color.primary)
-                                            .cornerRadius(10)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .stroke(selectedTag == tag ? Color.blue : Color.clear, lineWidth: 3)
-                                            )
+            VStack {
+                if isExplorePostsLoaded && !communityPosts.isEmpty {
+                    ScrollView(.vertical, showsIndicators: true) {
+                        LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
+                        HStack{
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(availableTags, id: \.self) { tag in
+                                        Button(action: {
+                                            selectedTag = tag
+                                        }) {
+                                            Text(tag)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 8)
+                                                .background(selectedTag == tag ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
+                                                .foregroundColor(selectedTag == tag ? Color.blue : Color.primary)
+                                                .cornerRadius(10)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .stroke(selectedTag == tag ? Color.blue : Color.clear, lineWidth: 3)
+                                                )
+                                        }
+                                        .animation(.easeInOut, value: selectedTag)
                                     }
-                                    .animation(.easeInOut, value: selectedTag)
+                                }
+                                .padding(.horizontal, 16)
+                            }
+                        }
+                        LazyVGrid(columns: gridColumns, spacing: 16) {
+                            ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
+                                DesignCards(
+                                    id: post.id,
+                                    media: post.media,
+                                    title: post.title,
+                                    authorUID: post.author,
+                                    description: post.description,
+                                    codeSnippet: post.codeSnippet,
+                                    published: formattedDate(from: post.creationDate),
+                                    type: post.type,
+                                    tags: post.tags,
+                                    likes: post.likesCount,
+                                    views: post.viewCount,
+                                    hexa: post.hexa,
+                                    visibility: post.visibility
+                                )
+                                .frame(maxWidth: .infinity)
+                                .aspectRatio(9/16, contentMode: .fit)
+                                .cornerRadius(12)
+                                .clipped()
+                                .onAppear {
+                                    if index == communityPosts.count - 1 {
+                                        loadMorePostsIfNeeded()
+                                    }
                                 }
                             }
-                            .padding(.horizontal, 16)
+                            
+                            if isLoading {
+                                ProgressView()
+                                    .frame(width: 185, height: 400)
+                            }
                         }
-                        
-                        Button {
-                            print("Image tapped!")
-                        } label: {
-                            Image(systemName: "line.3.horizontal.decrease")
-                        }
+                        .padding(.horizontal)
                     }
-                    
-                    PostCollectionView(type: "mostLiked")
-                    PostCollectionView(type: "mostViewed")
-                    PostCollectionView(type: "mostLiked")
+                    .refreshable {
+                        try? await Task.sleep(nanoseconds: UInt64(2.0) * 1_000_000_000)
+                        
+                        await fetchCommunityPosts(reset: true)
+                    }
+                } else if isLoading && communityPosts.isEmpty {
+                    VStack {
+                        Spacer()
+                        ProgressView("Loading posts...")
+                        Spacer()
+                    }
                 }
             }
-            .padding(8)
-            
-            //search bar
-            
-            // Loading Indicator
-            if isLoading {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle())
-                    .padding(.top, 150)
+            .task {
+                if !isExplorePostsLoaded {
+                    //Delay of 2 seconds (specified in nanoseconds: 2 * 1_000_000_000)
+                    try? await Task.sleep(nanoseconds: UInt64(1) * 1_000_000_000)
+                    
+                    // Now fetch the posts
+                    await fetchCommunityPosts(reset: true)
+                    isExplorePostsLoaded = true
+                }
+            }
+            .onChange(of: selectedTag) {
+                Task {
+                    try? await Task.sleep(nanoseconds: UInt64(1) * 1_000_000_000)
+                    await fetchCommunityPosts(reset: true)
+                    isExplorePostsLoaded = true
+                }
             }
         }
     }
-
-    // Fetch suggestions from Firestore based on the current query
-    private func fetchSuggestions(for query: String) {
-        isLoading = true
-        errorMessage = nil
-        
-        // Perform a case-insensitive search for suggestions containing the query text
-        db.collection("suggestions")
-            .whereField("suggestion", isGreaterThanOrEqualTo: query.lowercased())
-            .whereField("suggestion", isLessThanOrEqualTo: query.lowercased() + "\u{f8ff}")
-            .order(by: "popularityScore", descending: true)
-            .limit(to: 5)
-            .getDocuments { snapshot, error in
-                DispatchQueue.main.async {
-                    isLoading = false
-                    
-                    if let error = error {
-                        errorMessage = "Error fetching suggestions: \(error.localizedDescription)"
-                        suggestions = []
-                    } else {
-                        suggestions = snapshot?.documents.compactMap {
-                            $0.data()["suggestion"] as? String
-                        } ?? []
-                    }
-                }
-            }
+    
+    private func loadMorePostsIfNeeded() {
+        guard hasMoreCommunityPosts && !isLoading else { return }
+        Task {
+            await fetchCommunityPosts()
+        }
     }
-
-    // Handle search action when a suggestion is clicked
-    private func performSearch(for suggestion: String) {
-        print("Searching for posts related to: \(suggestion)")
+    
+    private func fetchCommunityPosts(reset: Bool = false) async {
+        let db = Firestore.firestore()
+        
+        guard !isLoading else { return }
+        
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            if reset {
+                lastFetchedDocument = nil
+                communityPosts.removeAll()
+                print("Resetting community posts...")
+            }
+            
+           
+                var query =
+            if let tag = selectedTag, tag != "All" {
+                db.collection("posts")
+                    .whereField("tags", arrayContains: tag)
+                    .whereField("visibility", isEqualTo: "public")
+                    .order(by: "creationDate", descending: true)
+                    .limit(to: postsLimit)
+            } else {
+                db.collection("posts")
+                    .whereField("visibility", isEqualTo: "public")
+                    .order(by: "creationDate", descending: true)
+                    .limit(to: postsLimit)
+            }
+            
+            if let lastDocument = lastFetchedDocument {
+                query = query.start(afterDocument: lastDocument)
+            }
+            
+            let querySnapshot = try await query.getDocuments()
+            if querySnapshot.documents.isEmpty {
+                DispatchQueue.main.async {
+                    self.hasMoreCommunityPosts = false
+                }
+                print("No more posts to load.")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.lastFetchedDocument = querySnapshot.documents.last
+                let newPosts = querySnapshot.documents.compactMap { document in
+                    try? document.data(as: DesignPost.self)
+                }
+                
+                self.communityPosts.append(contentsOf: newPosts)
+                
+                // Log the newly added posts
+                for post in newPosts {
+                    print("Loaded post: \(post.title) by \(post.author) with ID: \(post.id)")
+                }
+                
+                self.hasMoreCommunityPosts = querySnapshot.documents.count == postsLimit
+                print("Fetched \(querySnapshot.documents.count) posts.")
+            }
+        } catch {
+            print("Error getting documents: \(error)")
+        }
     }
 }
 
 #Preview {
     ExploreView()
 }
-
-struct PostCollectionView: View {
-    @State private var postImages: [String] = []
-    @State private var mostLikedPosts: [DesignPost] = []
-    @State private var mostViewedPosts: [DesignPost] = []
-    @State private var isLoading: Bool = false
-    let db = Firestore.firestore()
-    let type: String
-    var body: some View {
-        VStack(alignment: .leading) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHGrid(rows: gridColumns) {
-                    if type == "mostLiked" {
-                        ForEach(Array(mostLikedPosts.enumerated()), id: \.offset) { index, post in
-                            DesignCards(
-                                id: post.id,
-                                media: post.media,
-                                title: post.title,
-                                authorUID: post.author,
-                                description: post.description,
-                                codeSnippet: post.codeSnippet,
-                                published: formattedDate(from: post.creationDate),
-                                type: post.type,
-                                tags: post.tags,
-                                likes: post.likesCount,
-                                views: post.viewCount,
-                                hexa: post.hexa,
-                                visibility: post.visibility
-                            )
-                            .frame(width: 200)
-                            .aspectRatio(9/16, contentMode: .fit)
-                            .cornerRadius(12)
-                        }
-                    }
-                    
-                    if type == "mostViewed" {
-                        ForEach(Array(mostViewedPosts.enumerated()), id: \.offset) { index, post in
-                            DesignCards(
-                                id: post.id,
-                                media: post.media,
-                                title: post.title,
-                                authorUID: post.author,
-                                description: post.description,
-                                codeSnippet: post.codeSnippet,
-                                published: formattedDate(from: post.creationDate),
-                                type: post.type,
-                                tags: post.tags,
-                                likes: post.likesCount,
-                                views: post.viewCount,
-                                hexa: post.hexa,
-                                visibility: post.visibility
-                            )
-                            .frame(width: 200)
-                            .aspectRatio(9/16, contentMode: .fit)
-                            .cornerRadius(12)
-                        }
-                    }
-                }
-            }
-            .frame(height: 360)
-        }
-        .task {
-            if type == "mostLiked" {
-                await fetchMostLikedPosts()
-            }
-             if type == "mostViewed"{
-                await fetchMostViewedPosts()
-            }
-        }
-    }
-    
-    func fetchMostLikedPosts() async {
-        guard !isLoading else { return }
-        
-        isLoading = true
-        
-        do{
-            // Query to fetch only (5 posts)(public)(by date)
-            let query = db.collection("posts")
-                .whereField("visibility", isEqualTo: "public")
-                .order(by: "likesCount", descending: true)
-                .limit(to: 5)
-            
-            let querySnapshot = try await query.getDocuments()
-            
-            DispatchQueue.main.async {
-                let newPosts = querySnapshot.documents.compactMap { document in
-                    try? document.data(as: DesignPost.self)
-                }
-                self.mostLikedPosts.append(contentsOf: newPosts)
-            }
-        } catch {
-            print("Error getting documents: \(error)")
-        }
-    }
-    
-    func fetchMostViewedPosts() async {
-        guard !isLoading else { return }
-        
-        isLoading = true
-        
-        do{
-            // Query to fetch only (5 posts)(public)(by date)
-            let query = db.collection("posts")
-                .whereField("visibility", isEqualTo: "public")
-                .order(by: "viewCount", descending: true)
-                .limit(to: 5)
-            
-            let querySnapshot = try await query.getDocuments()
-            
-            DispatchQueue.main.async {
-                let newPosts = querySnapshot.documents.compactMap { document in
-                    try? document.data(as: DesignPost.self)
-                }
-                self.mostViewedPosts.append(contentsOf: newPosts)
-            }
-        } catch {
-            print("Error getting documents: \(error)")
-        }
-    }
-}
-
     

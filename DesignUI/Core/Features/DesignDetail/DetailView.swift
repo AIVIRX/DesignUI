@@ -691,10 +691,12 @@ struct DetailView: View {
                 // Unlike the post
                 transaction.updateData(["likesCount": FieldValue.increment(Int64(-1))], forDocument: postRef)
                 transaction.deleteDocument(userLikedPostRef)
+                AnalyticsManager.shared.unlikedPost(postID: id)
             } else {
                 // Like the post
                 transaction.updateData(["likesCount": FieldValue.increment(Int64(1))], forDocument: postRef)
                 transaction.setData(["likedBy": user.uid, "timestamp": Timestamp(date: Date())], forDocument: userLikedPostRef)
+                AnalyticsManager.shared.likedPost(postID: id)
             }
             return nil
         }) { (object, error) in
@@ -723,6 +725,7 @@ struct DetailView: View {
                 print("View count incremented successfully")
             }
         }
+        AnalyticsManager.shared.viewedPost(postID: id)
     }
     
     func reportPost(postId: String, message: String) {

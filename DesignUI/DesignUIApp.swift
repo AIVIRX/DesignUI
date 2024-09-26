@@ -9,8 +9,6 @@ import SwiftUI
 import AppTrackingTransparency
 import Firebase
 import FirebaseCore
-import FirebaseAuth
-import FirebaseAnalytics
 import AdSupport
 import UserNotifications
 import FirebaseMessaging
@@ -143,6 +141,14 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(userStore)
+                .onAppear {
+                    // Retrieve the current user and set the user ID for Analytics
+                    if let user = Auth.auth().currentUser {
+                        AnalyticsManager.shared.setUserID(userID: user.uid)
+                    } else {
+                        AnalyticsManager.shared.setUserID(userID: "Undefined") // Clear user ID if not logged in
+                    }
+                }
         }
     }
 }

@@ -178,8 +178,6 @@ struct HomeView: View {
 }
 
 extension Bundle {
-    /// Retrieves the build version number from the app's Info.plist.
-    /// - Returns: A string representing the build version number, or nil if not found.
     var releaseVersionNumber: String? {
         return infoDictionary?["CFBundleShortVersionString"] as? String
     }
