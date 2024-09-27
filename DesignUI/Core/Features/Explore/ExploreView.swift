@@ -25,36 +25,39 @@ struct ExploreView: View {
     @State private var hasMoreCommunityPosts = false
     private let postsLimit = 2
     let availableTags = [ "All", "Animation", "Component", "Template"]
+    @State private var debounceWorkItem: DispatchWorkItem? // For debouncing
     var body: some View {
         NavigationStack {
             VStack {
-                if isExplorePostsLoaded && !communityPosts.isEmpty {
-                    ScrollView(.vertical, showsIndicators: true) {
-                        LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
-                        HStack{
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(availableTags, id: \.self) { tag in
-                                        Button(action: {
-                                            selectedTag = tag
-                                        }) {
-                                            Text(tag)
-                                                .padding(.horizontal, 16)
-                                                .padding(.vertical, 8)
-                                                .background(selectedTag == tag ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
-                                                .foregroundColor(selectedTag == tag ? Color.blue : Color.primary)
-                                                .cornerRadius(10)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .stroke(selectedTag == tag ? Color.blue : Color.clear, lineWidth: 3)
-                                                )
-                                        }
-                                        .animation(.easeInOut, value: selectedTag)
+                ScrollView(.vertical, showsIndicators: true){
+                    LargeCardView(name: "SF Symbols", height: 200, fontSize: 30, padding: 20, colors: [.cyan, .indigo, .purple, .red, .yellow], destination: SFIconsView())
+                    
+                    
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(availableTags, id: \.self) { tag in
+                                    Button(action: {
+                                        handleTagChange(tag) // Handle debounced tag change
+                                    }) {
+                                        Text(tag)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(selectedTag == tag ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
+                                            .foregroundColor(selectedTag == tag ? Color.blue : Color.primary)
+                                            .cornerRadius(10)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(selectedTag == tag ? Color.blue : Color.clear, lineWidth: 3)
+                                            )
                                     }
+                                    .animation(.easeInOut, value: selectedTag)
                                 }
-                                .padding(.horizontal, 16)
                             }
+                            .padding(16)
                         }
+                        .padding(-16)
+                    
+                    if isExplorePostsLoaded && !communityPosts.isEmpty {
                         LazyVGrid(columns: gridColumns, spacing: 16) {
                             ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
                                 DesignCards(
@@ -89,18 +92,18 @@ struct ExploreView: View {
                             }
                         }
                         .padding(.horizontal)
+                    } else if isLoading && communityPosts.isEmpty {
+                        VStack {
+                            Spacer()
+                            ProgressView("Loading posts...")
+                            Spacer()
+                        }
                     }
-                    .refreshable {
-                        try? await Task.sleep(nanoseconds: UInt64(2.0) * 1_000_000_000)
-                        
-                        await fetchCommunityPosts(reset: true)
-                    }
-                } else if isLoading && communityPosts.isEmpty {
-                    VStack {
-                        Spacer()
-                        ProgressView("Loading posts...")
-                        Spacer()
-                    }
+                }
+                .refreshable {
+                    try? await Task.sleep(nanoseconds: UInt64(2.0) * 1_000_000_000)
+                    
+                    await fetchCommunityPosts(reset: true)
                 }
             }
             .task {
@@ -113,14 +116,24 @@ struct ExploreView: View {
                     isExplorePostsLoaded = true
                 }
             }
-            .onChange(of: selectedTag) {
-                Task {
-                    try? await Task.sleep(nanoseconds: UInt64(1) * 1_000_000_000)
-                    await fetchCommunityPosts(reset: true)
-                    isExplorePostsLoaded = true
-                }
+        }
+    }
+    
+    // Handle debounced tag change
+    private func handleTagChange(_ tag: String) {
+        debounceWorkItem?.cancel() // Cancel any previous debounce work
+        
+        selectedTag = tag // Update the selected tag immediately for UI
+        
+        let workItem = DispatchWorkItem {
+            Task {
+                await fetchCommunityPosts(reset: true) // Fetch posts after delay
+                isExplorePostsLoaded = true
             }
         }
+        
+        debounceWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: workItem) // Debounce with 1 sec delay
     }
     
     private func loadMorePostsIfNeeded() {
@@ -145,8 +158,7 @@ struct ExploreView: View {
                 print("Resetting community posts...")
             }
             
-           
-                var query =
+            var query =
             if let tag = selectedTag, tag != "All" {
                 db.collection("posts")
                     .whereField("tags", arrayContains: tag)

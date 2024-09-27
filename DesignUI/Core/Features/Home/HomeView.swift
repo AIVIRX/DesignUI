@@ -25,6 +25,8 @@ struct HomeView: View {
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
     private let postsLimit = 2
+    @Namespace private var namespace
+
     var body: some View {
         NavigationStack {
             VStack {

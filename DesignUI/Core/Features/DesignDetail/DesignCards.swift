@@ -35,6 +35,7 @@ struct DesignCards: View {
     @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
     @State private var isVisible = false
+    @Namespace private var cardTransition
     
     init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int, hexa: String, visibility: String) {
         self.id = id
@@ -200,7 +201,7 @@ struct DesignCards: View {
                     
                     HStack {
                         Text(authorName)
-                            .font(.system(size: 14))
+                            .font(.system(size: 14)).bold()
                             .foregroundColor(.secondary)
                         
                         if isAuthorVerified {
@@ -257,12 +258,13 @@ struct DesignCards: View {
             .onAppear {
                 fetchAuthorName()
                 fetchLikeStatusAndViewCount()
-                withAnimation(.easeIn(duration: 0.4)) {
+                withAnimation(.easeIn(duration: 0.2)) {
                     isVisible = true
             }
         }
     }
         .buttonStyle(PlainButtonStyle())
+        .matchedGeometryEffect(id: id, in: cardTransition)
         
 #if os(iOS)
         .simultaneousGesture(TapGesture().onEnded {
