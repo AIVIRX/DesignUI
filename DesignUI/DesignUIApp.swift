@@ -14,6 +14,7 @@ import UserNotifications
 import FirebaseMessaging
 #if os(iOS)
 import GoogleMobileAds
+import Supabase
 
 extension View {
     func applyColorSchemeForiPad() -> some View {
@@ -131,16 +132,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 }
 
+
 @main
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
     @StateObject private var userStore = UserStore()
+    @StateObject private var authManager = AuthManager() // Initialize AuthManager
+    
+    // Replace with your Supabase URL and API key
+    private let supabaseURL = URL(string: "https://your-project-ref.supabase.co")!
+    private let supabaseKey = "your-anon-key"
+
+    // Initialize the SupabaseClient instance
+    @StateObject private var viewModel: UserViewModel
+
+    init() {
+        // Create the Supabase client instance
+        let supabaseClient = SupabaseClient(
+            supabaseURL: URL(string: "https://dwxfipenxnqkhgtwggrv.supabase.co")!,
+            supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3eGZpcGVueG5xa2hndHdnZ3J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgwNjU4OTMsImV4cCI6MjA0MzY0MTg5M30.0mg37FPNXhj0drM0TFSlSzpl2Ofc7nyaHqOTnobvjac"
+        )
+        // Initialize the UserViewModel with the Supabase client
+        _viewModel = StateObject(wrappedValue: UserViewModel(client: supabaseClient))
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(authManager)
                 .environmentObject(store)
                 .environmentObject(userStore)
+                .environmentObject(viewModel)
                 .onAppear {
                     // Retrieve the current user and set the user ID for Analytics
                     if let user = Auth.auth().currentUser {
@@ -152,6 +175,7 @@ struct DesignUIApp: App {
         }
     }
 }
+
 #endif
 
 #if os(macOS)

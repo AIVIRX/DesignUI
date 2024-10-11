@@ -15,3 +15,12 @@ struct UserModel {
     var bio: String
     var isVerified: Bool
 }
+
+struct ProfileModel: Decodable {
+    var id: UUID
+    var image_url: String
+    var display_name: String
+    var username: String
+    var bio: String
+    var is_verified: Bool
+}

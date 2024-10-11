@@ -8,6 +8,7 @@
 import SwiftUI
 #if os(iOS)
 import StatefulTabView
+import Supabase
 #endif
 
 enum ViewType: Hashable {
@@ -30,6 +31,8 @@ struct ContentView: View {
     @State private var isIGHovered: Bool = false
     @State private var isDiscordHovered: Bool = false
     @State private var isEditorHovered: Bool = false
+    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var userViewModel: UserViewModel
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
     var body: some View {
 #if os(iOS)

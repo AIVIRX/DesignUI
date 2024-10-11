@@ -14,6 +14,7 @@ import SDWebImage
 import SDWebImageSwiftUI
 import UserNotifications
 import FirebaseMessaging
+import Supabase
 
 class AuthorizationControllerDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     var onCompletion: ((Result<ASAuthorization, Error>) -> Void)?
@@ -51,6 +52,8 @@ struct ProfileView: View {
     @State private var opacity: Double = 0.0
     @State private var showMenu = false
     @State private var signInAppleButtonId = UUID().uuidString
+    @EnvironmentObject var viewModel: UserViewModel
+    @EnvironmentObject var authManager: AuthManager
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black
@@ -58,9 +61,11 @@ struct ProfileView: View {
         @unknown default: return .black
         }
     }
+    
     var body: some View {
         NavigationStack{
-            ScrollView(.vertical, showsIndicators: false) {               VStack {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack {
                     if isLoading {
                         VStack{
                         }
@@ -69,163 +74,163 @@ struct ProfileView: View {
                             ProgressView("")
                             Spacer()
                         }
-                    } else if let user = userStore.user {
+                    } else if authManager.session != nil {
                         VStack {
-                            // Profile header
-                            VStack {
-                                if user.profileImage != ""{
-                                    WebImage(url: URL(string: user.profileImage)) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView()
-                                                .frame(width: 160, height: 130)
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 100, height: 100)
-                                                .clipShape(Circle())
-                                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
-                                        case .failure:
-                                            Image(systemName: "")
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 100, height: 100)
-                                                .clipShape(Circle())
-                                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
+                            if let profile = viewModel.profile {
+                                VStack {
+                                    if profile.image_url != "" {
+                                        WebImage(url: URL(string: profile.image_url)) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                                    .frame(width: 160, height: 130)
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: 100, height: 100)
+                                                    .clipShape(Circle())
+                                                    .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
+                                            case .failure:
+                                                Image(systemName: "")
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: 100, height: 100)
+                                                    .clipShape(Circle())
+                                                    .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
+                                            }
+                                        }
+                                    } else {
+                                        // Circular profile image
+                                        Image(getFirstChar(profile.display_name)) // Replace with your image name
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(Circle())
+                                            .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
+                                            .shadow(radius: 10)
+                                            .overlay {
+                                                Text(getFirstChar(profile.display_name))
+                                                    .font(.title)
+                                                    .fontWeight(.bold)
+                                            }
+                                    }
+                                    
+                                    // Username
+                                    Text("@\(profile.display_name)")
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                    
+                                    HStack{
+                                        // Display Name
+                                        Text(profile.display_name)
+                                            .font(.title)
+                                            .fontWeight(.bold)
+                                        //Verified Mark
+                                        if profile.is_verified{
+                                            Image(systemName: "checkmark.seal.fill")
                                         }
                                     }
-                                } else {
-                                    // Circular profile image
-                                    Image(getFirstChar(user.displayName)) // Replace with your image name
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 100, height: 100)
-                                        .clipShape(Circle())
-                                        .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
-                                        .shadow(radius: 10)
-                                        .overlay {
-                                            Text(getFirstChar(user.displayName))
-                                                .font(.title)
-                                                .fontWeight(.bold)
-                                        }
-                                }
-                                
-                                // Username
-                                Text("@\(user.username)")
-                                    .font(.body)
-                                    .foregroundColor(.secondary)
-                                    .multilineTextAlignment(.center)
-                                
-                                HStack{
-                                    // Display Name
-                                    Text(user.displayName)
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                    //Verified Mark
-                                    if user.isVerified{
-                                        Image(systemName: "checkmark.seal.fill")
-                                    }
-                                }
-                                .padding(.bottom)
-                                
-                                // Bio
-                                Text(user.bio)
-                                    .font(.body)
-                                    .foregroundColor(.primary)
-                                    .multilineTextAlignment(.center)
-                                    .padding([.leading, .trailing], 20)
-                                    .padding(.bottom, 10)
-                                
-                                // Edit User Account
-                                HStack {
-                                    Button(action: {
-                                        showEditProfile.toggle()
-                                    }) {
-                                        HStack {
-                                            Text("Edit Profile")
-                                        }
-                                        .font(.system(size: 16))
-                                        .bold()
-                                        .padding()
+                                    .padding(.bottom)
+                                    
+                                    // Bio
+                                    Text(profile.bio)
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+                                        .multilineTextAlignment(.center)
+                                        .padding([.leading, .trailing], 20)
+                                        .padding(.bottom, 10)
+                                    
+                                    // Edit User Account
+                                    HStack {
+                                        Button(action: {
+                                            showEditProfile.toggle()
+                                        }) {
+                                            HStack {
+                                                Text("Edit Profile")
+                                            }
+                                            .font(.system(size: 16))
+                                            .bold()
+                                            .padding()
 #if os(iOS)
-                                        .background(.thickMaterial)
+                                            .background(.thickMaterial)
 #endif
 #if os(macOS)
-                                        .background(.gray.opacity(0.2))
+                                            .background(.gray.opacity(0.2))
 #endif
-                                        .cornerRadius(10)
-                                        .foregroundColor(.primary)
-                                    }
-                                    .sheet(isPresented: $showEditProfile) {
-                                        EditProfileView(displayName: user.displayName, bio: user.bio, username: user.username)
-                                            .environmentObject(userStore)
-                                            .presentationDetents([.large])
-                                    }
+                                            .cornerRadius(10)
+                                            .foregroundColor(.primary)
+                                        }
+                                        //                                    .sheet(isPresented: $showEditProfile) {
+                                        //                                        EditProfileView(displayName: user.displayName, bio: user.bio, username: user.username)
+                                        //                                            .environmentObject(userStore)
+                                        //                                            .presentationDetents([.large])
+                                        //                                    }
 #if os(iOS)
-                                    Menu {
-                                        Button(action: {
-                                            alertItem = AlertItem(
-                                                title: Text("Sign Out"),
-                                                message: Text("Are you sure you want to sign out?"),
-                                                primaryButton: .destructive(Text("Sign Out")) {
-                                                    signOutUser()
-                                                },
-                                                secondaryButton: .cancel()
-                                            )
-                                        }) {
-                                            Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                        Menu {
+                                            Button(action: {
+                                                alertItem = AlertItem(
+                                                    title: Text("Sign Out"),
+                                                    message: Text("Are you sure you want to sign out?"),
+                                                    primaryButton: .destructive(Text("Sign Out")) {
+                                                        signOutUser()
+                                                    },
+                                                    secondaryButton: .cancel()
+                                                )
+                                            }) {
+                                                Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                            }
+                                            
+                                            Button(role: .destructive, action: {
+                                                alertItem = AlertItem(
+                                                    title: Text("Delete Account"),
+                                                    message: Text("Are you sure you want to delete your account? This action cannot be undone."),
+                                                    primaryButton: .destructive(Text("Delete")) {
+                                                        deleteCurrentUser()
+                                                    },
+                                                    secondaryButton: .cancel()
+                                                )
+                                            }) {
+                                                Label("Delete Account", systemImage: "trash")
+                                            }
+                                        } label: {
+                                            HStack {
+                                                Image(systemName: "gearshape.fill")
+                                                    .font(.system(size: 16))
+                                                    .bold()
+                                                    .padding()
+                                                    .background(.thickMaterial)
+                                                    .cornerRadius(10)
+                                                    .foregroundColor(.primary)
+                                            }
                                         }
+#endif
                                         
-                                        Button(role: .destructive, action: {
-                                            alertItem = AlertItem(
-                                                title: Text("Delete Account"),
-                                                message: Text("Are you sure you want to delete your account? This action cannot be undone."),
-                                                primaryButton: .destructive(Text("Delete")) {
-                                                    deleteCurrentUser()
-                                                },
-                                                secondaryButton: .cancel()
-                                            )
+#if os(macOS)
+                                        Button(action: {
+                                            showMenu.toggle()
                                         }) {
-                                            Label("Delete Account", systemImage: "trash")
-                                        }
-                                    } label: {
-                                        HStack {
                                             Image(systemName: "gearshape.fill")
                                                 .font(.system(size: 16))
                                                 .bold()
                                                 .padding()
-                                                .background(.thickMaterial)
+                                                .background(.gray.opacity(0.2))
                                                 .cornerRadius(10)
                                                 .foregroundColor(.primary)
                                         }
-                                    }
+                                        .popover(isPresented: $showMenu, arrowEdge: .top) {
+                                            DropdownMenuView()
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
 #endif
-                                    
+                                    }
 #if os(macOS)
-                                    Button(action: {
-                                        showMenu.toggle()
-                                    }) {
-                                        Image(systemName: "gearshape.fill")
-                                            .font(.system(size: 16))
-                                            .bold()
-                                            .padding()
-                                            .background(.gray.opacity(0.2))
-                                            .cornerRadius(10)
-                                            .foregroundColor(.primary)
-                                    }
-                                    .popover(isPresented: $showMenu, arrowEdge: .top) {
-                                        DropdownMenuView()
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
+                                    .buttonStyle(.plain)
 #endif
+                                    .frame(width: 400)
                                 }
-#if os(macOS)
-                                .buttonStyle(.plain)
-#endif
-                                .frame(width: 400)
                             }
-                            
                             // Tabs
                             HStack {
                                 GeometryReader { geometry in
@@ -261,7 +266,7 @@ struct ProfileView: View {
 #if os(iOS)
                             requestNotificationPermissions()
                             #endif
-                            print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
+//                            print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
                         }
                     } else {
                         VStack{
@@ -272,16 +277,21 @@ struct ProfileView: View {
                                 InformationContainerView()
                                 
                                 SignInWithAppleButton(.signIn) { request in
-                                    let nonce = randomNonceString()
-                                    self.nonce = nonce
+                                    let nonce = authManager.generateNonce()  // Generate nonce here
                                     request.requestedScopes = [.email, .fullName]
-                                    request.nonce = sha256(nonce)
+                                    request.nonce = authManager.sha256(nonce)  // Pass the hashed nonce to the Apple request
                                 } onCompletion: { result in
                                     switch result {
                                     case .success(let authorization):
-                                        loginWithFirebase(authorization)
+                                        Task {
+                                            do {
+                                                try await authManager.signInWithApple(authorization: authorization)
+                                            } catch {
+                                                print("Sign in failed: \(error.localizedDescription)")
+                                            }
+                                        }
                                     case .failure(let error):
-                                        showError(error.localizedDescription)
+                                        print("Apple sign in failed: \(error.localizedDescription)")
                                     }
                                 }
                                 .id(signInAppleButtonId)
@@ -316,6 +326,11 @@ struct ProfileView: View {
                             checkLoggedIn()
                             print("User is not logged in or user data is not available")
                         }
+                    }
+                }
+                .onAppear {
+                    Task {
+                        await viewModel.fetchProfileData()  // Call the fetch function
                     }
                 }
                 .navigationTitle("Profile")
@@ -506,6 +521,7 @@ struct ProfileView: View {
             }
             // Initialize a Firebase credential, including the user's full name.
             let credential = OAuthProvider.appleCredential(withIDToken: idTokenString, rawNonce: nonce, fullName: appleIDCredential.fullName)
+            
             // Sign in with Firebase.
             Auth.auth().signIn(with: credential) { (authResult, error) in
                 if let error {

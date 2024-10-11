@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EC11EC042CB87D2A00E416FE /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC032CB87D2A00E416FE /* Auth */; };
+		EC11EC062CB87D2A00E416FE /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC052CB87D2A00E416FE /* Functions */; };
+		EC11EC082CB87D2A00E416FE /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC072CB87D2A00E416FE /* PostgREST */; };
+		EC11EC0A2CB87D2A00E416FE /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC092CB87D2A00E416FE /* Realtime */; };
+		EC11EC0C2CB87D2A00E416FE /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC0B2CB87D2A00E416FE /* Storage */; };
+		EC11EC0E2CB87DF700E416FE /* Supabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11EC0D2CB87DF700E416FE /* Supabase.swift */; };
+		EC11EC102CB87EB000E416FE /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC0F2CB87EB000E416FE /* Supabase */; };
+		EC11EC142CB8827400E416FE /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11EC132CB8827400E416FE /* AuthManager.swift */; };
+		EC11EC162CB8C6DD00E416FE /* UserViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11EC152CB8C6DD00E416FE /* UserViewModel.swift */; };
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC4586FD2C94A8FF0039E46D /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */; };
@@ -74,6 +83,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		EC11EC0D2CB87DF700E416FE /* Supabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Supabase.swift; sourceTree = "<group>"; };
+		EC11EC132CB8827400E416FE /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		EC11EC152CB8C6DD00E416FE /* UserViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserViewModel.swift; sourceTree = "<group>"; };
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC4F38922C1CBD820018C802 /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
@@ -143,15 +155,21 @@
 				ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */,
 				EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */,
 				ECADF61A2BCC83AB0096753A /* AppTrackingTransparency.framework in Frameworks */,
+				EC11EC042CB87D2A00E416FE /* Auth in Frameworks */,
 				ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */,
+				EC11EC0C2CB87D2A00E416FE /* Storage in Frameworks */,
 				EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */,
 				ECCDD41D2C1BBADC00869B70 /* FirebaseStorage in Frameworks */,
 				EC6D48902CA4B15700E6F281 /* FirebaseAnalyticsSwift in Frameworks */,
 				EC495DF02C5FF92500A6A52C /* Drops in Frameworks */,
+				EC11EC082CB87D2A00E416FE /* PostgREST in Frameworks */,
+				EC11EC102CB87EB000E416FE /* Supabase in Frameworks */,
 				EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
 				EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */,
 				EC961BA12C499EC2002D10DD /* FirebaseFirestoreSwift in Frameworks */,
+				EC11EC0A2CB87D2A00E416FE /* Realtime in Frameworks */,
+				EC11EC062CB87D2A00E416FE /* Functions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,6 +180,8 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7C0E2C19F610003134B1 /* Profile.swift */,
+				EC11EC132CB8827400E416FE /* AuthManager.swift */,
+				EC11EC152CB8C6DD00E416FE /* UserViewModel.swift */,
 				ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */,
 				ECCDD4152C1B94F700869B70 /* PostsView.swift */,
 				EC4F38922C1CBD820018C802 /* EditProfile.swift */,
@@ -209,6 +229,7 @@
 				ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */,
 				ECD13FD32C18BA7B00105B3E /* Core */,
 				EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */,
+				EC11EC0D2CB87DF700E416FE /* Supabase.swift */,
 				EC7D7C042C19E620003134B1 /* DesignUI.entitlements */,
 				ECADF6052BCAE9630096753A /* Preview Content */,
 			);
@@ -417,6 +438,12 @@
 				EC495DF12C601E8300A6A52C /* FirebaseAppCheck */,
 				EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */,
 				EC6D488F2CA4B15700E6F281 /* FirebaseAnalyticsSwift */,
+				EC11EC032CB87D2A00E416FE /* Auth */,
+				EC11EC052CB87D2A00E416FE /* Functions */,
+				EC11EC072CB87D2A00E416FE /* PostgREST */,
+				EC11EC092CB87D2A00E416FE /* Realtime */,
+				EC11EC0B2CB87D2A00E416FE /* Storage */,
+				EC11EC0F2CB87EB000E416FE /* Supabase */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -492,6 +519,7 @@
 				ECCDD41E2C1BECD400869B70 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */,
 				EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */,
+				EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -541,6 +569,7 @@
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC8025262C9C62F800019AD1 /* QuickActionHelper.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
+				EC11EC162CB8C6DD00E416FE /* UserViewModel.swift in Sources */,
 				EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */,
 				EC9AAD532C61720C00796358 /* StoreView.swift in Sources */,
 				EC7D7BE12C19E49A003134B1 /* Recipe.swift in Sources */,
@@ -562,6 +591,8 @@
 				ECD9FEBC2C87694500872C22 /* Post.swift in Sources */,
 				ECD043112C5EEE7A00865D12 /* FeaturesContainerView.swift in Sources */,
 				ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */,
+				EC11EC142CB8827400E416FE /* AuthManager.swift in Sources */,
+				EC11EC0E2CB87DF700E416FE /* Supabase.swift in Sources */,
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
 				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
@@ -812,6 +843,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
 		EC1C74902C0FC0DE000C9E9A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
@@ -863,6 +902,36 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		EC11EC032CB87D2A00E416FE /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		EC11EC052CB87D2A00E416FE /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		EC11EC072CB87D2A00E416FE /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		EC11EC092CB87D2A00E416FE /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		EC11EC0B2CB87D2A00E416FE /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		EC11EC0F2CB87EB000E416FE /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
 		EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EC1C74902C0FC0DE000C9E9A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
