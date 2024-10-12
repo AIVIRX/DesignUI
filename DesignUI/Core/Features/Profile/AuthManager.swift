@@ -12,7 +12,6 @@ import Combine
 enum AuthError: Error {
     case invalidCredentials
     case signInFailed(String) // You can expand this with other error cases as needed
-
     var localizedDescription: String {
         switch self {
         case .invalidCredentials:
@@ -23,11 +22,10 @@ enum AuthError: Error {
     }
 }
 
-
 class AuthManager: ObservableObject {
-    @Published var session: Session? // To track user session
+    static let shared = AuthManager()
+    @Published var session: Session?
     private let client: SupabaseClient
-    
     @Published var nonce: String = ""
     
     init() {
@@ -38,13 +36,12 @@ class AuthManager: ObservableObject {
         
         Task {
             await listenForAuthChanges()
-            // Check for existing session asynchronously
         }
     }
     
     private func listenForAuthChanges() async {
         // Using Closure to subscribe to auth state changes
-        let subscription = await client.auth.onAuthStateChange { [weak self] event, session in
+        _ = await client.auth.onAuthStateChange { [weak self] event, session in
             // Ensure UI updates happen on the main thread
             self?.handleAuthEvent(event, session: session)
         }
@@ -63,28 +60,67 @@ class AuthManager: ObservableObject {
             }
         }
     }
-    
+
     private func handleAuthEvent(_ event: AuthChangeEvent, session: Session?) {
         switch event {
         case .signedIn:
-            print("User signed in: \(String(describing: session))")
-            self.session = session // Update session on sign in
+            DispatchQueue.main.async {
+                print("User signed in: \(String(describing: session))")
+                self.session = session // Update session on sign in
+            }
         case .signedOut:
             print("User signed out.")
-            self.session = nil // Clear session on sign out
+            DispatchQueue.main.async {
+                self.session = nil // Clear session on sign out
+            }
         case .tokenRefreshed:
             print("Token refreshed: \(String(describing: session))")
-            self.session = session // Update session on token refresh
+            DispatchQueue.main.async {
+                self.session = session // Update session on token refresh
+            }
         case .userUpdated:
-            print("User updated: \(String(describing: session))")
-            self.session = session // Update session if user info changed
+            DispatchQueue.main.async {
+                print("User updated: \(String(describing: session))")
+                self.session = session // Update session if user info changed
+            }
         case .passwordRecovery:
             print("Password recovery event.")
         default:
             break
         }
     }
+
     
+    // Function to save user profile with username and displayName
+    func saveUserProfile(username: String, displayName: String?) async -> Bool {
+        let userId = client.auth.currentUser?.id
+        do {
+           try await client
+                .from("profiles")
+                .update(["username": username, "display_name": displayName])
+                .eq("id", value: supabase.auth.session.user.id) // Ensure to match user_id
+                .execute()
+            
+            return true
+        } catch {
+            print("Failed to save profile: \(error)")
+            return false
+        }
+    }
+     
+    // Function to check if the username is available
+    func checkUsernameAvailability(_ username: String) async -> Bool {
+        let response = try? await client
+            .from("profiles")
+            .select("username")
+            .eq("username", value: username)
+            .execute()
+        
+        if let users = response?.value as? [ProfileModel], users.isEmpty {
+            return true
+        }
+        return false
+    }
     
     // Function to generate the nonce
     func generateNonce() -> String {
@@ -125,6 +161,36 @@ class AuthManager: ObservableObject {
         }
     }
     
+    func signOut() async {
+        do {
+            try await client.auth.signOut(scope: .global) // Sign out globally
+            DispatchQueue.main.async {
+                self.session = nil // Clear session
+            }
+        } catch {
+            print("Sign out failed: \(error.localizedDescription)")
+        }
+    }
+
+    func deleteAccount() async {
+        do {
+               // 1. Call the RPC function to delete the user
+               try await client.rpc("delete_user").execute()
+               print("User account deleted successfully.")
+
+               // 2. Sign the user out globally to invalidate all sessions
+               try await client.auth.signOut(scope: .global)
+               print("User signed out successfully.")
+
+               // 3. Clear the session in the app to update the UI
+               DispatchQueue.main.async {
+                   self.session = nil
+               }
+
+           } catch {
+               print("Error during account deletion and sign-out: \(error.localizedDescription)")
+           }
+       }
     
     // Existing nonce helpers
     private func randomNonceString(length: Int = 32) -> String {

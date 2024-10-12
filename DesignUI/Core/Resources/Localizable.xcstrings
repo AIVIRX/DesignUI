@@ -2867,6 +2867,12 @@
         }
       }
     },
+    "Checking username availability..." : {
+
+    },
+    "Choose your username" : {
+
+    },
     "Code" : {
       "localizations" : {
         "ar" : {
@@ -5962,6 +5968,9 @@
           }
         }
       }
+    },
+    "Display Name (Optional)" : {
+
     },
     "Dock UI" : {
       "localizations" : {
@@ -16693,6 +16702,9 @@
         }
       }
     },
+    "Submit" : {
+
+    },
     "Support" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -19314,6 +19326,12 @@
           }
         }
       }
+    },
+    "Username" : {
+
+    },
+    "Username is already taken. Please choose another." : {
+
     },
     "v%@" : {
       "localizations" : {

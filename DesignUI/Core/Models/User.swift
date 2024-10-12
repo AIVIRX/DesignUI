@@ -24,3 +24,5 @@ struct ProfileModel: Decodable {
     var bio: String
     var is_verified: Bool
 }
+
+

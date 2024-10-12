@@ -10,15 +10,13 @@ import Supabase
 
 class UserViewModel: ObservableObject {
     private let client: SupabaseClient
-
-       // Use @Published to notify views about changes
-       @Published var profile: ProfileModel? // Store profile data
+    @Published var profile: ProfileModel? // Store profile data
     
     init(client: SupabaseClient) {
             self.client = client
         }
     
-    func fetchProfileData() async {
+    func fetchProfileData() async{
         do {
             let session = try await client.auth.session // Fetch session, can throw
             
@@ -41,7 +39,6 @@ class UserViewModel: ObservableObject {
             .select()
             .eq("id", value: userId) // Pass userId directly
             .execute()
-        
         
         print("Response data: \(String(describing: response.data))")
         

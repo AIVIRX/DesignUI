@@ -53,7 +53,11 @@ struct ProfileView: View {
     @State private var showMenu = false
     @State private var signInAppleButtonId = UUID().uuidString
     @EnvironmentObject var viewModel: UserViewModel
-    @EnvironmentObject var authManager: AuthManager
+    @ObservedObject var authManager = AuthManager.shared // Assuming you are using a singleton instance
+    @State private var userName: String = "" // Moved from AuthManager to View
+    @State private var displayName: String = "" // Moved from AuthManager to View
+    @State private var isCheckingAvailability = false
+    @State private var isUsernameTaken = false
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black
@@ -61,212 +65,275 @@ struct ProfileView: View {
         @unknown default: return .black
         }
     }
-    
     var body: some View {
         NavigationStack{
             ScrollView(.vertical, showsIndicators: false) {
                 VStack {
-                    if isLoading {
-                        VStack{
+                    
+//                    if isLoading {
+//                        VStack{
+//                        }
+//                        .overlay{
+//                            Spacer()
+//                            ProgressView("")
+//                            Spacer()
+//                        }
+//                    } else
+                    
+                    
+                    if authManager.session != nil {
+                        
+                        Button("Sign Out") {
+                            Task {
+                                await authManager.signOut()
+                            }
                         }
-                        .overlay{
-                            Spacer()
-                            ProgressView("")
-                            Spacer()
-                        }
-                    } else if authManager.session != nil {
-                        VStack {
-                            if let profile = viewModel.profile {
+                        
+                        if let profile = viewModel.profile {
+                            if profile.username.isEmpty {
+                                // Show username selection view
                                 VStack {
-                                    if profile.image_url != "" {
-                                        WebImage(url: URL(string: profile.image_url)) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                ProgressView()
-                                                    .frame(width: 160, height: 130)
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                                    .frame(width: 100, height: 100)
-                                                    .clipShape(Circle())
-                                                    .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
-                                            case .failure:
-                                                Image(systemName: "")
-                                                    .resizable()
-                                                    .scaledToFill()
-                                                    .frame(width: 100, height: 100)
-                                                    .clipShape(Circle())
-                                                    .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
-                                            }
+                                    Text("Choose your username")
+                                        .font(.title)
+                                        .padding()
+                                    
+                                    TextField("Username", text: $userName, onEditingChanged: { _ in
+                                        // Perform async check when user finishes editing the field
+                                        Task {
+                                            isCheckingAvailability = true
+                                            isUsernameTaken = await authManager.checkUsernameAvailability(userName)
+                                            isCheckingAvailability = false
                                         }
-                                    } else {
-                                        // Circular profile image
-                                        Image(getFirstChar(profile.display_name)) // Replace with your image name
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 100, height: 100)
-                                            .clipShape(Circle())
-                                            .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
-                                            .shadow(radius: 10)
-                                            .overlay {
-                                                Text(getFirstChar(profile.display_name))
-                                                    .font(.title)
-                                                    .fontWeight(.bold)
-                                            }
+                                    })
+                                    .padding()
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .autocapitalization(.none)
+                                    .autocorrectionDisabled()
+                                    
+                                    
+                                    
+                                    
+                                    if isCheckingAvailability {
+                                        ProgressView("Checking username availability...")
+                                    } else if isUsernameTaken {
+                                        Text("Username is already taken. Please choose another.")
+                                            .foregroundColor(.red)
+                                            .padding(.top, 5)
                                     }
                                     
-                                    // Username
-                                    Text("@\(profile.display_name)")
-                                        .font(.body)
-                                        .foregroundColor(.secondary)
-                                        .multilineTextAlignment(.center)
                                     
-                                    HStack{
-                                        // Display Name
-                                        Text(profile.display_name)
-                                            .font(.title)
-                                            .fontWeight(.bold)
-                                        //Verified Mark
-                                        if profile.is_verified{
-                                            Image(systemName: "checkmark.seal.fill")
+                                    TextField("Display Name (Optional)", text: $displayName)
+                                        .padding()
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    Button("Submit") {
+                                        Task {
+                                            let success = await authManager.saveUserProfile(username: userName, displayName: displayName)
+                                            if success {
+                                                // Reload the profile after successfully saving the username
+                                                await viewModel.fetchProfileData()
+                                            }
                                         }
                                     }
-                                    .padding(.bottom)
-                                    
-                                    // Bio
-                                    Text(profile.bio)
-                                        .font(.body)
-                                        .foregroundColor(.primary)
-                                        .multilineTextAlignment(.center)
-                                        .padding([.leading, .trailing], 20)
-                                        .padding(.bottom, 10)
-                                    
-                                    // Edit User Account
-                                    HStack {
-                                        Button(action: {
-                                            showEditProfile.toggle()
-                                        }) {
-                                            HStack {
-                                                Text("Edit Profile")
-                                            }
-                                            .font(.system(size: 16))
-                                            .bold()
-                                            .padding()
-#if os(iOS)
-                                            .background(.thickMaterial)
-#endif
-#if os(macOS)
-                                            .background(.gray.opacity(0.2))
-#endif
-                                            .cornerRadius(10)
-                                            .foregroundColor(.primary)
-                                        }
-                                        //                                    .sheet(isPresented: $showEditProfile) {
-                                        //                                        EditProfileView(displayName: user.displayName, bio: user.bio, username: user.username)
-                                        //                                            .environmentObject(userStore)
-                                        //                                            .presentationDetents([.large])
-                                        //                                    }
-#if os(iOS)
-                                        Menu {
-                                            Button(action: {
-                                                alertItem = AlertItem(
-                                                    title: Text("Sign Out"),
-                                                    message: Text("Are you sure you want to sign out?"),
-                                                    primaryButton: .destructive(Text("Sign Out")) {
-                                                        signOutUser()
-                                                    },
-                                                    secondaryButton: .cancel()
-                                                )
-                                            }) {
-                                                Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                    .disabled(userName.isEmpty) // Disable if username is empty
+                                }
+                                .padding()
+                            } else {
+                                VStack {
+                                    if let profile = viewModel.profile {
+                                        VStack {
+                                            if (profile.image_url != "") {
+                                                WebImage(url: URL(string: profile.image_url)) { phase in
+                                                    switch phase {
+                                                    case .empty:
+                                                        ProgressView()
+                                                            .frame(width: 160, height: 130)
+                                                    case .success(let image):
+                                                        image
+                                                            .resizable()
+                                                            .scaledToFill()
+                                                            .frame(width: 100, height: 100)
+                                                            .clipShape(Circle())
+                                                            .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
+                                                    case .failure:
+                                                        Image(systemName: "")
+                                                            .resizable()
+                                                            .scaledToFill()
+                                                            .frame(width: 100, height: 100)
+                                                            .clipShape(Circle())
+                                                            .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
+                                                    }
+                                                }
+                                            } else {
+                                                // Circular profile image
+                                                Image(getFirstChar(profile.display_name))
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(width: 100, height: 100)
+                                                    .clipShape(Circle())
+                                                    .overlay(Circle().stroke(colorScheme == .dark ? Color.white : Color.black, lineWidth: 2))
+                                                    .shadow(radius: 10)
+                                                    .overlay {
+                                                        Text(getFirstChar(profile.display_name))
+                                                            .font(.title)
+                                                            .fontWeight(.bold)
+                                                    }
                                             }
                                             
-                                            Button(role: .destructive, action: {
-                                                alertItem = AlertItem(
-                                                    title: Text("Delete Account"),
-                                                    message: Text("Are you sure you want to delete your account? This action cannot be undone."),
-                                                    primaryButton: .destructive(Text("Delete")) {
-                                                        deleteCurrentUser()
-                                                    },
-                                                    secondaryButton: .cancel()
-                                                )
-                                            }) {
-                                                Label("Delete Account", systemImage: "trash")
+                                            // Username
+                                            Text("@\(profile.username)")
+                                                .font(.body)
+                                                .foregroundColor(.secondary)
+                                                .multilineTextAlignment(.center)
+                                            
+                                            HStack{
+                                                // Display Name
+                                                Text(profile.display_name)
+                                                    .font(.title)
+                                                    .fontWeight(.bold)
+                                                //Verified Mark
+                                                if profile.is_verified{
+                                                    Image(systemName: "checkmark.seal.fill")
+                                                }
                                             }
-                                        } label: {
+                                            .padding(.bottom)
+                                            
+                                            // Bio
+                                            Text(profile.bio)
+                                                .font(.body)
+                                                .foregroundColor(.primary)
+                                                .multilineTextAlignment(.center)
+                                                .padding([.leading, .trailing], 20)
+                                                .padding(.bottom, 10)
+                                            
+                                            // Edit User Account
                                             HStack {
-                                                Image(systemName: "gearshape.fill")
+                                                Button(action: {
+                                                    showEditProfile.toggle()
+                                                }) {
+                                                    HStack {
+                                                        Text("Edit Profile")
+                                                    }
                                                     .font(.system(size: 16))
                                                     .bold()
                                                     .padding()
+#if os(iOS)
                                                     .background(.thickMaterial)
+#endif
+#if os(macOS)
+                                                    .background(.gray.opacity(0.2))
+#endif
                                                     .cornerRadius(10)
                                                     .foregroundColor(.primary)
-                                            }
-                                        }
-#endif
-                                        
-#if os(macOS)
-                                        Button(action: {
-                                            showMenu.toggle()
-                                        }) {
-                                            Image(systemName: "gearshape.fill")
-                                                .font(.system(size: 16))
-                                                .bold()
-                                                .padding()
-                                                .background(.gray.opacity(0.2))
-                                                .cornerRadius(10)
-                                                .foregroundColor(.primary)
-                                        }
-                                        .popover(isPresented: $showMenu, arrowEdge: .top) {
-                                            DropdownMenuView()
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-#endif
-                                    }
-#if os(macOS)
-                                    .buttonStyle(.plain)
-#endif
-                                    .frame(width: 400)
-                                }
-                            }
-                            // Tabs
-                            HStack {
-                                GeometryReader { geometry in
-                                    HStack(spacing: 0) {
-                                        
-                                        TabButton(imageName: "heart", isSelected: selectedTab == 1) {
-                                            withAnimation {
-                                                selectedTab = 1
-                                            }
-                                        }
-                                        .frame(width: geometry.size.width )
-                                    }
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .foregroundColor((colorScheme == .dark ? .white : .black))
-                                            .frame(width: geometry.size.width / 2 - 20, height: 4)
-                                            .offset(y: 28)
-                                            .animation(.easeInOut(duration: 0.25), value: UUID())
-                                    )
-                                }
-                                .frame(height: 50)
-                            }
-                            
-                            // Tab views
-                            if selectedTab == 0 {
-                                PostsView()
-                            } else {
-                                LikedView()
-                            }
-                        }
-                        .padding(.top)
-                        .onAppear {
+                                                }
+                                                //                                    .sheet(isPresented: $showEditProfile) {
+                                                //                                        EditProfileView(displayName: user.displayName, bio: user.bio, username: user.username)
+                                                //                                            .environmentObject(userStore)
+                                                //                                            .presentationDetents([.large])
+                                                //                                    }
 #if os(iOS)
-                            requestNotificationPermissions()
-                            #endif
-//                            print("User is logged in and user data is available: \(user.displayName), \(user.bio)")
+                                                Menu {
+                                                    Button(action: {
+                                                        alertItem = AlertItem(
+                                                            title: Text("Sign Out"),
+                                                            message: Text("Are you sure you want to sign out?"),
+                                                            primaryButton: .destructive(Text("Sign Out")) {
+                                                                //signOutUser()
+                                                            },
+                                                            secondaryButton: .cancel()
+                                                        )
+                                                    }) {
+                                                        Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                                    }
+                                                    
+                                                    Button(role: .destructive, action: {
+                                                        alertItem = AlertItem(
+                                                            title: Text("Delete Account"),
+                                                            message: Text("Are you sure you want to delete your account? This action cannot be undone."),
+                                                            primaryButton: .destructive(Text("Delete")) {
+                                                                Task {
+                                                                    await authManager.deleteAccount()
+                                                                }
+                                                            },
+                                                            secondaryButton: .cancel()
+                                                        )
+                                                    }) {
+                                                        Label("Delete Account", systemImage: "trash")
+                                                    }
+                                                } label: {
+                                                    HStack {
+                                                        Image(systemName: "gearshape.fill")
+                                                            .font(.system(size: 16))
+                                                            .bold()
+                                                            .padding()
+                                                            .background(.thickMaterial)
+                                                            .cornerRadius(10)
+                                                            .foregroundColor(.primary)
+                                                    }
+                                                }
+#endif
+                                                
+#if os(macOS)
+                                                Button(action: {
+                                                    showMenu.toggle()
+                                                }) {
+                                                    Image(systemName: "gearshape.fill")
+                                                        .font(.system(size: 16))
+                                                        .bold()
+                                                        .padding()
+                                                        .background(.gray.opacity(0.2))
+                                                        .cornerRadius(10)
+                                                        .foregroundColor(.primary)
+                                                }
+                                                .popover(isPresented: $showMenu, arrowEdge: .top) {
+                                                    DropdownMenuView()
+                                                }
+                                                .buttonStyle(PlainButtonStyle())
+#endif
+                                            }
+#if os(macOS)
+                                            .buttonStyle(.plain)
+#endif
+                                            .frame(width: 400)
+                                        }
+                                    }
+                                    // Tabs
+                                    HStack {
+                                        GeometryReader { geometry in
+                                            HStack(spacing: 0) {
+                                                
+                                                TabButton(imageName: "heart", isSelected: selectedTab == 1) {
+                                                    withAnimation {
+                                                        selectedTab = 1
+                                                    }
+                                                }
+                                                .frame(width: geometry.size.width )
+                                            }
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .foregroundColor((colorScheme == .dark ? .white : .black))
+                                                    .frame(width: geometry.size.width / 2 - 20, height: 4)
+                                                    .offset(y: 28)
+                                                    .animation(.easeInOut(duration: 0.25), value: UUID())
+                                            )
+                                        }
+                                        .frame(height: 50)
+                                    }
+                                    
+                                    // Tab views
+                                    if selectedTab == 0 {
+                                        PostsView()
+                                    } else {
+                                        LikedView()
+                                    }
+                                }
+                                .padding(.top)
+                                .onAppear {
+#if os(iOS)
+                                    requestNotificationPermissions()
+#endif
+                                }
+                            }
                         }
                     } else {
                         VStack{
@@ -303,11 +370,11 @@ struct ProfileView: View {
                                 .clipShape(Capsule())
                                 .clipped()
 #if os(iOS)
-        .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 300 : 600, height: UIDevice.current.userInterfaceIdiom == .phone ? 50 : 50 )
+                                .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? 300 : 600, height: UIDevice.current.userInterfaceIdiom == .phone ? 50 : 50 )
 #elseif os(macOS)
-    .frame(width: 600, height: 60) 
+                                .frame(width: 600, height: 60)
 #endif
-
+                                
                                 .padding(.top, 20)
                                 .background(.clear)
                                 
@@ -323,7 +390,6 @@ struct ProfileView: View {
                         .frame(maxWidth: .infinity)
                         .padding(20)
                         .onAppear {
-                            checkLoggedIn()
                             print("User is not logged in or user data is not available")
                         }
                     }
@@ -352,7 +418,6 @@ struct ProfileView: View {
             .offset(y: startAnimation ? 0 : 50)
             .opacity(opacity)
             .onAppear {
-                checkLoggedIn()
                 withAnimation(.easeInOut(duration: 0.3)) {
                     startAnimation = true
                     opacity = 1.0
@@ -395,223 +460,9 @@ struct ProfileView: View {
         return String(deckName.prefix(1))
     }
     
-    private func signOutUser() {
-            let firebaseAuth = Auth.auth()
-            do {
-                try firebaseAuth.signOut()
-                userStore.signOut()
-            } catch let signOutError as NSError {
-                showError(signOutError.localizedDescription)
-            }
-        }
-
-    private func deleteCurrentUser() {
-        let nonce = randomNonceString()
-        self.nonce = nonce
-        let appleIDProvider = ASAuthorizationAppleIDProvider()
-        let request = appleIDProvider.createRequest()
-        request.requestedScopes = [.fullName, .email]
-        request.nonce = sha256(nonce)
-
-        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
-        authorizationController.delegate = authorizationDelegate
-        authorizationDelegate.onCompletion = { result in
-            switch result {
-            case .success(let authorization):
-                self.handleAppleSignIn(authorization)
-            case .failure(let error):
-                self.showError(error.localizedDescription)
-            }
-        }
-        authorizationDelegate.presentationAnchorProvider = {
-            #if os(iOS)
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
-            }
-            
-            return ASPresentationAnchor()
-            #endif
-            
-            #if os(macOS)
-            if let keyWindow = NSApplication.shared.keyWindow {
-                return keyWindow
-            } else {
-                return NSApplication.shared.windows.first ?? NSWindow()
-            }
-
-            #endif
-            
-            
-        }
-        authorizationController.performRequests()
-    }
-
-    func handleAppleSignIn(_ authorization: ASAuthorization) {
-        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-            showError("Unable to retrieve AppleIDCredential")
-            return
-        }
-
-        guard let nonce = nonce else {
-            fatalError("Invalid state: A login callback was received, but no login request was sent.")
-        }
-
-        guard let appleIDToken = appleIDCredential.identityToken else {
-            showError("Unable to fetch identity token")
-            return
-        }
-
-        guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-            showError("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
-            return
-        }
-
-        // Initialize a fresh Apple credential with Firebase.
-        let credential = OAuthProvider.credential(
-            withProviderID: "apple.com",
-            idToken: idTokenString,
-            rawNonce: nonce
-        )
-
-        // Reauthenticate current Apple user with fresh Apple credential.
-        Auth.auth().currentUser?.reauthenticate(with: credential) { authResult, error in
-            if let error = error {
-                self.showError(error.localizedDescription)
-                return
-            }
-            // Apple user successfully re-authenticated.
-            self.performDeleteUser()
-        }
-    }
-
-    private func performDeleteUser() {
-        Task {
-            do {
-                try await Auth.auth().currentUser?.delete()
-                userStore.signOut()
-            } catch {
-                showError(error.localizedDescription)
-            }
-        }
-    }
-    
     func showError(_ message: String) {
         errorMessage = message
         showErrorAlert = true
-    }
-    
-    func loginWithFirebase(_ authorization: ASAuthorization) {
-        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            // Showing loading screen until login completes with Firebase
-            isLoading = true
-            guard let nonce else {
-                showError("Cannot Process Your Request")
-                isLoading = false
-                return
-            }
-            guard let appleIDToken = appleIDCredential.identityToken else {
-                showError("Cannot Process Your Request")
-                isLoading = false
-                return
-            }
-            guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                showError("Cannot Process Your Request")
-                isLoading = false
-                return
-            }
-            // Initialize a Firebase credential, including the user's full name.
-            let credential = OAuthProvider.appleCredential(withIDToken: idTokenString, rawNonce: nonce, fullName: appleIDCredential.fullName)
-            
-            // Sign in with Firebase.
-            Auth.auth().signIn(with: credential) { (authResult, error) in
-                if let error {
-                    showError(error.localizedDescription)
-                    isLoading = false
-                    return
-                }
-                // User is signed in to Firebase with Apple.
-                if let user = Auth.auth().currentUser {
-                    userStore.fetchUserData(uid: user.uid) { fetchedUser in
-                        if fetchedUser == nil {
-                            print("Creating New User document - New User")
-                            let userData: [String: Any] = [
-                                "uid": user.uid,
-                                "displayName": "New User",
-                                "followersCount": 0,
-                                "followingCount": 0,
-                                "likesCount": 0,
-                                "username": "",
-                                "bio": "",
-                                "imageURL": "",
-                                "visibility": "public",
-                                "createdAt": Timestamp(),
-                                "websiteURL": "",
-                                "isVerified": false,
-                            ]
-                            let db = Firestore.firestore()
-                            let userDocRef = db.collection("users").document(user.uid)
-                            userDocRef.setData(userData) { error in
-                                if let error = error {
-                                    print("Error creating user document: \(error.localizedDescription)")
-                                } else {
-                                    print("User document created successfully!")
-                                    // Create an empty document in the likedPosts subcollection
-                                    let likedPostsCollectionRef = userDocRef.collection("likedPosts")
-                                    likedPostsCollectionRef.addDocument(data: [:]) { error in
-                                        if let error = error {
-                                            print("Error creating likedPosts document: \(error.localizedDescription)")
-                                        } else {
-                                            print("LikedPosts document created successfully!")
-                                        }
-                                    }
-                                    let newUser = UserModel(id: user.uid, profileImage: "", displayName: "New User", username: "", bio: "", isVerified: false)
-                                    userStore.signIn(user: newUser)
-                                }
-                            }
-                        }
-                        isLoading = false
-                    }
-                }
-            }
-        }
-    }
-    
-    func checkLoggedIn() {
-        isLoading = true
-        if let user = Auth.auth().currentUser {
-            print("User is logged in: \(user.uid)")
-            userStore.fetchUserData(uid: user.uid) { fetchedUser in
-                if fetchedUser == nil {
-                    let userData = UserModel(id: user.uid, profileImage: "", displayName: user.displayName ?? "New User", username: "", bio: "", isVerified: false)
-                    userStore.signIn(user: userData)
-                }
-                isLoading = false
-            }
-        } else {
-            print("User is not logged in")
-            isLoading = false
-        }
-    }
-
-    private func randomNonceString(length: Int = 32) -> String {
-        precondition(length > 0)
-        var randomBytes = [UInt8](repeating: 0, count: length)
-        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
-        if errorCode != errSecSuccess {
-            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
-        }
-        
-        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
-        let nonce = randomBytes.map { byte in charset[Int(byte) % charset.count] }
-        return String(nonce)
-    }
-    
-    @available(iOS 13, *)
-    private func sha256(_ input: String) -> String {
-        let inputData = Data(input.utf8)
-        let hashedData = SHA256.hash(data: inputData)
-        let hashString = hashedData.compactMap { String(format: "%02x", $0) }.joined()
-        return hashString
     }
 }
 
