@@ -18,6 +18,10 @@
 		EC11EC162CB8C6DD00E416FE /* UserViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11EC152CB8C6DD00E416FE /* UserViewModel.swift */; };
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
+		EC2A56202CBACD9A006A7D4F /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2A561F2CBACD9A006A7D4F /* SignInView.swift */; };
+		EC2A56222CBAF008006A7D4F /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2A56212CBAF008006A7D4F /* AuthView.swift */; };
+		EC2A56242CBAF060006A7D4F /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2A56232CBAF060006A7D4F /* ProfileSetupView.swift */; };
+		EC2C2DCE2CBB6F5400860E4D /* SupabaseInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */; };
 		EC4586FD2C94A8FF0039E46D /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */; };
 		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
 		EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DF12C601E8300A6A52C /* FirebaseAppCheck */; };
@@ -88,6 +92,10 @@
 		EC11EC152CB8C6DD00E416FE /* UserViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserViewModel.swift; sourceTree = "<group>"; };
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		EC2A561F2CBACD9A006A7D4F /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		EC2A56212CBAF008006A7D4F /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		EC2A56232CBAF060006A7D4F /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
+		EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseInit.swift; sourceTree = "<group>"; };
 		EC4F38922C1CBD820018C802 /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
 		EC4F38942C1CC2EC0018C802 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		EC6D488D2CA4AA6A00E6F281 /* AnalyticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsManager.swift; sourceTree = "<group>"; };
@@ -181,6 +189,10 @@
 			children = (
 				EC7D7C0E2C19F610003134B1 /* Profile.swift */,
 				EC11EC132CB8827400E416FE /* AuthManager.swift */,
+				EC2A561F2CBACD9A006A7D4F /* SignInView.swift */,
+				EC2A56212CBAF008006A7D4F /* AuthView.swift */,
+				EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */,
+				EC2A56232CBAF060006A7D4F /* ProfileSetupView.swift */,
 				EC11EC152CB8C6DD00E416FE /* UserViewModel.swift */,
 				ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */,
 				ECCDD4152C1B94F700869B70 /* PostsView.swift */,
@@ -556,6 +568,7 @@
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC4F38952C1CC2EC0018C802 /* User.swift in Sources */,
 				ECCF93952C99128A0014C1F2 /* SearchBarView.swift in Sources */,
+				EC2A56242CBAF060006A7D4F /* ProfileSetupView.swift in Sources */,
 				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
 				ECE995542C98891000C60416 /* ActivityView.swift in Sources */,
 				EC6D488E2CA4AA6A00E6F281 /* AnalyticsManager.swift in Sources */,
@@ -578,8 +591,10 @@
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
 				ECF625472C6D5C6C0057FB6B /* Toastys.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
+				EC2A56222CBAF008006A7D4F /* AuthView.swift in Sources */,
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
 				ECBA11982C84033E00973E94 /* GridColumn.swift in Sources */,
+				EC2A56202CBACD9A006A7D4F /* SignInView.swift in Sources */,
 				EC7E8B692C82698400583E48 /* UpdatePost.swift in Sources */,
 				ECE995512C98881000C60416 /* ExploreView.swift in Sources */,
 				ECD043122C5EEE7A00865D12 /* FeaturesView.swift in Sources */,
@@ -592,6 +607,7 @@
 				ECD043112C5EEE7A00865D12 /* FeaturesContainerView.swift in Sources */,
 				ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */,
 				EC11EC142CB8827400E416FE /* AuthManager.swift in Sources */,
+				EC2C2DCE2CBB6F5400860E4D /* SupabaseInit.swift in Sources */,
 				EC11EC0E2CB87DF700E416FE /* Supabase.swift in Sources */,
 				EC4F38932C1CBD820018C802 /* EditProfile.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,

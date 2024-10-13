@@ -11,33 +11,42 @@ import Combine
 
 enum AuthError: Error {
     case invalidCredentials
-    case signInFailed(String) // You can expand this with other error cases as needed
+    case signInFailed(String)
+    case usernameTaken
+    case unknownError(String)
+    
     var localizedDescription: String {
         switch self {
         case .invalidCredentials:
             return "Invalid credentials provided."
         case .signInFailed(let message):
             return message
+        case .usernameTaken:
+            return "This username is already taken."
+        case .unknownError(let message):
+            return "An unknown error occurred: \(message)"
         }
     }
 }
 
 class AuthManager: ObservableObject {
     static let shared = AuthManager()
+    let client = SupabaseManager.shared.client
+    @Published var isAuthenticated: Bool = false
+    @Published var currentUser: User?
+    @Published var errorMessage: String?
     @Published var session: Session?
-    private let client: SupabaseClient
     @Published var nonce: String = ""
     
+    private var cancellables = Set<AnyCancellable>()
+    
     init() {
-        client = SupabaseClient(
-            supabaseURL: URL(string: "https://dwxfipenxnqkhgtwggrv.supabase.co")!,
-            supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3eGZpcGVueG5xa2hndHdnZ3J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgwNjU4OTMsImV4cCI6MjA0MzY0MTg5M30.0mg37FPNXhj0drM0TFSlSzpl2Ofc7nyaHqOTnobvjac"
-        )
-        
         Task {
             await listenForAuthChanges()
         }
     }
+    
+    
     
     private func listenForAuthChanges() async {
         // Using Closure to subscribe to auth state changes
@@ -89,45 +98,6 @@ class AuthManager: ObservableObject {
             break
         }
     }
-
-    
-    // Function to save user profile with username and displayName
-    func saveUserProfile(username: String, displayName: String?) async -> Bool {
-        let userId = client.auth.currentUser?.id
-        do {
-           try await client
-                .from("profiles")
-                .update(["username": username, "display_name": displayName])
-                .eq("id", value: supabase.auth.session.user.id) // Ensure to match user_id
-                .execute()
-            
-            return true
-        } catch {
-            print("Failed to save profile: \(error)")
-            return false
-        }
-    }
-     
-    // Function to check if the username is available
-    func checkUsernameAvailability(_ username: String) async -> Bool {
-        let response = try? await client
-            .from("profiles")
-            .select("username")
-            .eq("username", value: username)
-            .execute()
-        
-        if let users = response?.value as? [ProfileModel], users.isEmpty {
-            return true
-        }
-        return false
-    }
-    
-    // Function to generate the nonce
-    func generateNonce() -> String {
-        let nonce = randomNonceString()
-        self.nonce = nonce  // Store the nonce to be used later
-        return nonce
-    }
     
     // Function to handle signing in with Apple
     func signInWithApple(authorization: ASAuthorization) async throws {
@@ -149,21 +119,23 @@ class AuthManager: ObservableObject {
         DispatchQueue.main.async {
             self.session = session
         }
-        print("Signed in with Supabase: \(session)")
         
+        print("Signed in with Supabase: \(session)")
     }
     
     func checkSession() {
         if let session = session {
+            self.isAuthenticated = true
             print("User is logged in with session: \(session)")
         } else {
-            print("User is not logged in.")
+            self.isAuthenticated = false
+            print("User is not logged in. (supabase)")
         }
     }
     
     func signOut() async {
         do {
-            try await client.auth.signOut(scope: .global) // Sign out globally
+            try await client.auth.signOut(scope: .local) // Sign out locally
             DispatchQueue.main.async {
                 self.session = nil // Clear session
             }
@@ -191,6 +163,13 @@ class AuthManager: ObservableObject {
                print("Error during account deletion and sign-out: \(error.localizedDescription)")
            }
        }
+    
+    // Function to generate the nonce
+    func generateNonce() -> String {
+        let nonce = randomNonceString()
+        self.nonce = nonce  // Store the nonce to be used later
+        return nonce
+    }
     
     // Existing nonce helpers
     private func randomNonceString(length: Int = 32) -> String {
