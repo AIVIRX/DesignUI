@@ -6,9 +6,6 @@
 //
 
 import SwiftUI
-import FirebaseAuth
-import FirebaseFirestore
-import FirebaseStorage
 import SDWebImage
 import SDWebImageSwiftUI
 import Supabase
@@ -39,25 +36,36 @@ struct EditProfileView: View {
 #endif
     
     @State private var showImagePicker = false
-    @State private var currentImageURL: String = ""
-    @State private var newImageURL: String = ""
+    @State private var initialDisplayName = ""
     @State private var newDisplayName = ""
-    @State private var isLoading: Bool = false
+    @State private var initialBio = ""
     @State private var newBio = ""
+    @State private var initialUsername = ""
     @State private var newUsername = ""
+    @State private var isLoading: Bool = false
     @State private var isUsernameValid: Bool = false
     @State private var isUsernameUnique: Bool = false
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var userViewModel: UserViewModel
+    @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
+    let client = SupabaseManager.shared.client
     
-    private let client: SupabaseClient
-    
-    init(client: SupabaseClient) {
-        self.client = client
+    // Check if any field has changed
+    private var isSubmitEnabled: Bool {
+        // Check for image change
+        let hasImageChanged = selectedImage != nil // New image selected or existing image retained
+        
+        // Check for text changes
+        let hasTextChanged = (initialDisplayName != newDisplayName ||
+                              initialUsername != newUsername ||
+                              initialBio != newBio)
+        
+        // Enable the button if either the image has changed or any text field has changed
+        return hasImageChanged || hasTextChanged
     }
+    
     var body: some View {
         VStack {
             if let profile = userViewModel.profile {
@@ -93,29 +101,19 @@ struct EditProfileView: View {
                             .overlay(Circle().stroke(Color.white, lineWidth: 4))
                             .shadow(radius: 10)
 #endif
-                    } else if !currentImageURL.isEmpty {
-                        WebImage(url: URL(string: currentImageURL)) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                                    .frame(width: 160, height: 130)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                                    .clipShape(Circle())
-                                    .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
-                                    .shadow(radius: 10)
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                                    .clipShape(Circle())
-                                    .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
-                                    .shadow(radius: 10)
-                            }
+                    } else if profile.image_url != "" {
+                        AsyncImage(url: URL(string: profile.image_url)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                                .overlay(Circle().strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 1.0)))
+                                .shadow(radius: 10)
+                        } placeholder: {
+                            // Show a placeholder while the image is loading
+                            ProgressView() // Default loading indicator
+                                .frame(width: 100, height: 100)
                         }
                     } else {
                         Circle()
@@ -152,18 +150,18 @@ struct EditProfileView: View {
                 
                 TextFieldWithCounter(placeholder: "Name", text: $newDisplayName, maxLength: 15)
                     .onAppear {
-                        self.newDisplayName = profile.display_name // Use profile data to prefill
+                        self.initialDisplayName = profile.display_name // Use profile data to prefill
                     }
                 TextFieldWithValidation(placeholder: "Username", text: $newUsername, maxLength: 15, isValid: $isUsernameValid, isUnique: $isUsernameUnique)
                     .onAppear {
-                        self.newUsername = profile.username // Use profile data to prefill
+                        self.initialUsername = profile.username // Use profile data to prefill
                     }
                     .onChange(of: newUsername) {
                         validateUsernameFormat()
                     }
                 TextEditorWithCounter(label: "Bio", text: $newBio, maxLength: 80)
                     .onAppear {
-                        self.newBio = profile.bio // Use profile data to prefill
+                        self.initialBio = profile.bio // Use profile data to prefill
                     }
                 Spacer()
                 
@@ -174,11 +172,11 @@ struct EditProfileView: View {
                         .bold()
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(isUsernameValid && isUsernameUnique ? Color.gray : Color.blue)
+                        .background(!isSubmitEnabled ? Color.gray : Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .disabled(isUsernameValid && isUsernameUnique)
+                .disabled(!isSubmitEnabled)
             }
         }
         .buttonStyle(.plain)
@@ -226,45 +224,63 @@ struct EditProfileView: View {
                 errorMessage = "User session not available"
                 return
             }
-            
+
             isLoading = true
             errorMessage = nil
-            
+
             let userId = session.user.id.uuidString
             let cleanedBio = removeBlankLines(from: newBio)
             
-            // Explicitly type the values in the dictionary as String or conforming types
-            var updates: [String: String] = [
-                "display_name": newDisplayName,
-                "bio": cleanedBio,
-                "username": newUsername.lowercased()
-            ]
+            // Dictionary to hold profile updates
+            var updates: [String: String] = [:]
+
+            // Only add updated fields to the dictionary
+            if newDisplayName != initialDisplayName {
+                updates["display_name"] = newDisplayName
+            }
             
-            // Handle image upload if a new image is selected
+            if cleanedBio != initialBio {
+                updates["bio"] = cleanedBio
+            }
+
+            if newUsername.lowercased() != initialUsername.lowercased() {
+                updates["username"] = newUsername.lowercased()
+            }
+            
+            // Handle image upload/update if a new image is selected
             if let selectedImage = selectedImage {
                 let fileName = "profile_avatar.png"
-                let storagePath = "users/\(userId)/\(fileName)"
+                let storagePath = "\(userId)/\(fileName)"
                 
                 if let imageData = selectedImage.pngData() {
                     do {
+                        // Debug print: Check the storage path and file name
+                        print("Attempting to upload file to: avatars/\(storagePath)")
+                        
                         // Upload the image to Supabase Storage
                         _ = try await client.storage
                             .from("avatars")
                             .upload(
-                                storagePath, // Use the new method
-                                data: imageData, // Changed from file: to data:
+                                storagePath,
+                                data: imageData,
                                 options: FileOptions(
-                                    cacheControl: "3600", // Caches the image for 1 hour
+                                    cacheControl: "0", // Caches the image for 1 hour
                                     contentType: "image/png",
-                                    upsert: false // Do not overwrite existing files
+                                    upsert: true // Overwrites existing file if it exists
                                 )
                             )
                         
-                        // Manually construct the public URL (assuming public bucket)
-                        let publicUrl = "https://dwxfipenxnqkhgtwggrv.supabase.co/storage/v1/object/public/\(storagePath)"
+                        // Debug print: Confirm after upload
+                        print("Upload successful for: avatars/\(storagePath)")
+                        
+                        // Construct the public URL (assuming the bucket is public)
+                        let publicUrl = "https://dwxfipenxnqkhgtwggrv.supabase.co/storage/v1/object/public/avatars/\(storagePath)"
                         updates["image_url"] = publicUrl
                         
                     } catch {
+                        // Debug print: Show error message during upload
+                        print("Image upload failed for: avatars/\(storagePath), error: \(error.localizedDescription)")
+                        
                         DispatchQueue.main.async {
                             errorMessage = "Image upload failed: \(error.localizedDescription)"
                             isLoading = false
@@ -274,27 +290,39 @@ struct EditProfileView: View {
                 }
             }
             
-            // Update the profile data in Supabase
-            do {
-                try await client
-                    .from("profiles")
-                    .update(updates)  // Ensure all values are Encodable (String)
-                    .eq("id", value: userId)
-                    .execute()
-                
-                DispatchQueue.main.async {
-                    isLoading = false
-                    print("Profile updated successfully")
+            // Update the profile data in Supabase only if there are updates
+            if !updates.isEmpty {
+                do {
+                    try await client
+                        .from("profiles")
+                        .update(updates)  // Ensure all values are Encodable (String)
+                        .eq("id", value: userId)
+                        .execute()
+                    
+                    DispatchQueue.main.async {
+                        isLoading = false
+                        dismiss()
+                        print("Profile updated successfully")
+                    }
+                } catch {
+                    // Debug print: Show error message during profile update
+                    print("Profile update failed for userID: \(userId), error: \(error.localizedDescription)")
+                    
+                    DispatchQueue.main.async {
+                        errorMessage = "Failed to update profile: \(error.localizedDescription)"
+                        isLoading = false
+                    }
                 }
-            } catch {
+            } else {
                 DispatchQueue.main.async {
-                    errorMessage = "Failed to update profile: \(error.localizedDescription)"
                     isLoading = false
+                    print("No changes detected, profile not updated.")
                 }
             }
         }
     }
-    
+
+
     // Utility function to remove blank lines from bio
     private func removeBlankLines(from bio: String) -> String {
         return bio
@@ -303,78 +331,69 @@ struct EditProfileView: View {
             .joined(separator: "\n")
     }
     
-    
+    func isUsernameUnique(_ username: String, completion: @escaping (Bool) -> Void) async {
+        do {
+            // Directly query the 'users' table and decode into an array of User objects
+            let users: [User] = try await supabase
+                .from("profiles")
+                .select()
+                .eq("username", value: username)
+                .execute().value
+
+            // If the array is empty, it means the username is unique
+            completion(users.isEmpty)
+        } catch {
+            // Handle any errors from the query
+            print("Error checking username uniqueness: \(error.localizedDescription)")
+            completion(false)
+        }
+    }
+
+
+   
     
     func validateAndSaveProfile() {
         // First, validate the username format
         validateUsernameFormat()
         
-        // If the format is valid, check the uniqueness
+        // Check if the username is valid
         if isUsernameValid {
-            Task {
-                do {
-                    let isUnique = try await checkUsernameAvailability(newUsername)
-                    print(isUnique ? "USERNAME UNIQE":"USERNAME NOT UNIQUE")
-                    if isUnique {
-                        // Save profile if the username is unique
-#if os(iOS)
-                        saveProfile()
-#endif
-                        
-#if os(macOS)
-                        saveProfile()
-#endif
-                    } else {
-                        isUsernameUnique = false
-                        errorMessage = "Username is already taken."
+            // Only check username uniqueness if the username has changed
+            if newUsername.lowercased() != initialUsername.lowercased() {
+                // If the username has changed, check for uniqueness asynchronously
+                Task {
+                    // Call the asynchronous function to check if the username is unique
+                    await isUsernameUnique(newUsername) { isUnique in
+                        if isUnique {
+                            // If the username is unique, save the profile
+                            saveProfile()
+                        } else {
+                            // If not, set error message
+                            
+                            isUsernameUnique = false
+                            errorMessage = "Username already exists. Please choose a different username."
+                        }
                     }
-                } catch {
-                    errorMessage = "Failed to check username availability: \(error.localizedDescription)"
+                }
+            } else {
+                // If the username hasn't changed, just save the profile
+                saveProfile()
+                Task {
+                    await userViewModel.fetchProfileData()  // fetch profile data
                 }
             }
         } else {
-            errorMessage = "Invalid username format."
+            // If username format is invalid, set error message
+            isUsernameUnique = false
+            errorMessage = "Username format is not valid"
         }
     }
+
     
     func validateUsernameFormat() {
         let usernameRegex = "^[a-zA-Z0-9_]{1,15}$"
         isUsernameValid = NSPredicate(format: "SELF MATCHES %@", usernameRegex).evaluate(with: newUsername)
     }
-    
-    func checkUsernameAvailability(_ username: String) async throws -> Bool {
-        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
-        let normalizedUsername = trimmedUsername.lowercased() // Normalize case
-
-        let response = try await client
-            .from("profiles")
-            .select()
-            .eq("username", value: username)
-            .execute()
-
-        // Print the raw response data directly
-        print("Checking availability for username: '\(username)'")
-        
-        // Assuming response.data is of type Data and already contains the JSON
-        do {
-            // Deserialize the JSON data directly
-            if let jsonObject = try JSONSerialization.jsonObject(with: response.data, options: []) as? [[String: Any]] {
-                // Print the JSON data in a readable format
-                let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
-                let jsonString = String(data: jsonData, encoding: .utf8)
-                print("Response Data: \(jsonString ?? "Invalid JSON")")
-            } else {
-                print("Response Data is not an array: \(response.data)")
-            }
-        } catch {
-            print("Failed to serialize response data to JSON: \(error)")
-        }
-
-        // If no profiles are returned, the username is available
-        return response.data.isEmpty
-    }
-
-
 }
 
 

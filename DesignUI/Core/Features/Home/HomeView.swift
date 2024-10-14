@@ -24,6 +24,7 @@ struct HomeView: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
+    @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
     private let postsLimit = 2
     @Namespace private var namespace
 
@@ -105,6 +106,12 @@ struct HomeView: View {
                 startAnimation = true
                 opacity = 1.0
             }
+            
+            
+                Task {
+                    await userViewModel.fetchProfileData()  // fetch profile data
+                }
+            
             
             store.loadStoredPurchases()
         }

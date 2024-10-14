@@ -33,13 +33,13 @@ struct ProfileView: View {
     @State private var opacity: Double = 0.0
     @State private var showMenu = false
     @State private var signInAppleButtonId = UUID().uuidString
-    @EnvironmentObject var viewModel: UserViewModel
+    @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
     @ObservedObject var authManager = AuthManager.shared
     @State private var userName: String = ""
     @State private var displayName: String = ""
     @State private var isCheckingAvailability = false
     @State private var isUsernameTaken = false
-    let client: SupabaseClient // Add this property to accept the SupabaseClient
+    let client = SupabaseManager.shared.client
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black
@@ -52,10 +52,10 @@ struct ProfileView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack {
                     VStack {
-                        if let profile = viewModel.profile {
+                        if let profile = userViewModel.profile {
                             VStack {
                                 if (profile.image_url != "") {
-                                    WebImage(url: URL(string: profile.image_url)) { phase in
+                                    WebImage(url: URL(string: profile.image_url + "?t=\(Date().timeIntervalSince1970)")) { phase in
                                         switch phase {
                                         case .empty:
                                             ProgressView()
@@ -139,7 +139,7 @@ struct ProfileView: View {
                                         .foregroundColor(.primary)
                                     }
                                     .sheet(isPresented: $showEditProfile) {
-                                        EditProfileView(client: client) // Pass the client here
+                                        EditProfileView()
                                             .presentationDetents([.large])
                                     }
 #if os(iOS)
@@ -216,7 +216,6 @@ struct ProfileView: View {
                             HStack {
                                 GeometryReader { geometry in
                                     HStack(spacing: 0) {
-                                        
                                         TabButton(imageName: "heart", isSelected: selectedTab == 1) {
                                             withAnimation {
                                                 selectedTab = 1
@@ -250,16 +249,10 @@ struct ProfileView: View {
 #endif
                     }
                 }
-                .onAppear {
-                    Task {
-                        await viewModel.fetchProfileData()  // Call the fetch function
-                    }
-                }
                 .navigationTitle("Profile")
 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
 #endif
-                
                 .alert(isPresented: $showErrorAlert) {
                     Alert(
                         title: Text("Error"),

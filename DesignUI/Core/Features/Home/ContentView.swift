@@ -31,8 +31,7 @@ struct ContentView: View {
     @State private var isIGHovered: Bool = false
     @State private var isDiscordHovered: Bool = false
     @State private var isEditorHovered: Bool = false
-    @EnvironmentObject var authManager: AuthManager
-    @EnvironmentObject var userViewModel: UserViewModel
+    @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
     var body: some View {
@@ -59,7 +58,7 @@ struct ContentView: View {
 //                    }
                     
                     Tab(systemImageName: "person.crop.circle") {
-                        AuthView(client: client) //Profile Page
+                        AuthView() //Profile Page
                     }
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
@@ -180,7 +179,7 @@ struct ContentView: View {
                     case 1:
                         ExploreView()
                     case 2:
-                        AuthView(client: client)
+                        AuthView()
                     case 3:
                         SFIconsView()
                     case 4:
@@ -389,7 +388,7 @@ struct ContentView: View {
         case . shop:
             return AnyView(OldStoreView())
         case .profile:
-            return AnyView(AuthView(client: client))
+            return AnyView(AuthView())
         case .sfIcons:
             return AnyView(SFIconsView())
         }

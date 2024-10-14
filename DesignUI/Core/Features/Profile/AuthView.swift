@@ -14,12 +14,11 @@ struct AuthView: View {
     @State private var isAuthenticated: Bool = false
     @State private var hasUsername: Bool = false
     @State private var userSession: Session?
-    let client: SupabaseClient // Add this property to accept the SupabaseClient
     var body: some View {
         Group {
             if authManager.isAuthenticated {
                 // Show the main content view if authenticated and has a username
-                ProfileView(client: client)
+                ProfileView()
             } else {
                 // Show the username setup view if authenticated but no username
                 SignInView()
@@ -27,6 +26,7 @@ struct AuthView: View {
         }
         .onAppear{
             authManager.checkSession()
+            
         }
     }
 }
