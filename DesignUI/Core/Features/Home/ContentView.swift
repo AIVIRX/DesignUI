@@ -53,9 +53,9 @@ struct ContentView: View {
                         ExploreView() //Explore Page
                     }
                     
-//                    Tab(systemImageName: "plus.app.fill") {
-//                        UploadDesignView() // Upload Page
-//                    }
+                    Tab(systemImageName: "plus.app.fill") {
+                        UploadDesignView() // Upload Page
+                    }
                     
                     Tab(systemImageName: "person.crop.circle") {
                         AuthView() //Profile Page

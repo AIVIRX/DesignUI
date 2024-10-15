@@ -33,13 +33,14 @@ struct ProfileView: View {
     @State private var opacity: Double = 0.0
     @State private var showMenu = false
     @State private var signInAppleButtonId = UUID().uuidString
-    @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
+    @ObservedObject var userViewModel = UserViewModel.shared
     @ObservedObject var authManager = AuthManager.shared
     @State private var userName: String = ""
     @State private var displayName: String = ""
     @State private var isCheckingAvailability = false
     @State private var isUsernameTaken = false
     let client = SupabaseManager.shared.client
+    
     private var buttonStyle: SignInWithAppleButton.Style {
         switch colorScheme {
         case .light: return .black
@@ -47,6 +48,7 @@ struct ProfileView: View {
         @unknown default: return .black
         }
     }
+    
     var body: some View {
         NavigationStack{
             ScrollView(.vertical, showsIndicators: false) {

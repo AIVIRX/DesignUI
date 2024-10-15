@@ -52,18 +52,13 @@ struct EditProfileView: View {
     @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
     let client = SupabaseManager.shared.client
     
-    // Check if any field has changed
     private var isSubmitEnabled: Bool {
-        // Check for image change
-        let hasImageChanged = selectedImage != nil // New image selected or existing image retained
+        let hasImageChanged = selectedImage != nil
+        let hasDisplayNameChanged = initialDisplayName != newDisplayName
+        let hasBioChanged = initialBio != newBio
+        let hasUsernameChanged = initialUsername != newUsername
         
-        // Check for text changes
-        let hasTextChanged = (initialDisplayName != newDisplayName ||
-                              initialUsername != newUsername ||
-                              initialBio != newBio)
-        
-        // Enable the button if either the image has changed or any text field has changed
-        return hasImageChanged || hasTextChanged
+        return hasImageChanged || hasDisplayNameChanged || hasBioChanged || hasUsernameChanged
     }
     
     var body: some View {
@@ -138,6 +133,19 @@ struct EditProfileView: View {
 #endif
                         }
                 }
+                .onAppear {
+                    Task {
+                        // Fetch profile data on view appearance
+                        fetchProfileData()
+                        
+                        // Reset the state variables to match the profile data
+                        self.selectedImage = nil  // Reset the image selection
+                        self.newDisplayName = self.initialDisplayName
+                        self.newBio = self.initialBio
+                        self.newUsername = self.initialUsername
+                    }
+                }
+
                 
                 if isLoading {
                     ProgressView()
@@ -192,6 +200,10 @@ struct EditProfileView: View {
         .onAppear {
             Task {
                 fetchProfileData() // Fetch profile data on view appearance
+                print("VALUE FOR INITIAL BIO: \(initialDisplayName)")
+                print("VALUE FOR NEW BIO: \(newDisplayName)")
+                
+                
             }
         }
     }
@@ -206,8 +218,13 @@ struct EditProfileView: View {
                 let profileData = try await userViewModel.fetchProfileFromBackend(userId: userId)
                 
                 DispatchQueue.main.async {
+                    initialDisplayName = profileData.display_name
                     newDisplayName = profileData.display_name
+                    
+                    initialBio = profileData.bio
                     newBio = profileData.bio
+                    
+                    initialUsername = profileData.username
                     newUsername = profileData.username
                 }
             } catch {
@@ -224,16 +241,16 @@ struct EditProfileView: View {
                 errorMessage = "User session not available"
                 return
             }
-
+            
             isLoading = true
             errorMessage = nil
-
+            
             let userId = session.user.id.uuidString
             let cleanedBio = removeBlankLines(from: newBio)
             
             // Dictionary to hold profile updates
             var updates: [String: String] = [:]
-
+            
             // Only add updated fields to the dictionary
             if newDisplayName != initialDisplayName {
                 updates["display_name"] = newDisplayName
@@ -242,7 +259,7 @@ struct EditProfileView: View {
             if cleanedBio != initialBio {
                 updates["bio"] = cleanedBio
             }
-
+            
             if newUsername.lowercased() != initialUsername.lowercased() {
                 updates["username"] = newUsername.lowercased()
             }
@@ -264,7 +281,7 @@ struct EditProfileView: View {
                                 storagePath,
                                 data: imageData,
                                 options: FileOptions(
-                                    cacheControl: "0", // Caches the image for 1 hour
+                                    cacheControl: "3600", // Caches the image for 1 hour
                                     contentType: "image/png",
                                     upsert: true // Overwrites existing file if it exists
                                 )
@@ -295,7 +312,7 @@ struct EditProfileView: View {
                 do {
                     try await client
                         .from("profiles")
-                        .update(updates)  // Ensure all values are Encodable (String)
+                        .update(updates)
                         .eq("id", value: userId)
                         .execute()
                     
@@ -304,6 +321,8 @@ struct EditProfileView: View {
                         dismiss()
                         print("Profile updated successfully")
                     }
+                    await userViewModel.fetchProfileData()  // fetch profile data
+
                 } catch {
                     // Debug print: Show error message during profile update
                     print("Profile update failed for userID: \(userId), error: \(error.localizedDescription)")
@@ -321,8 +340,7 @@ struct EditProfileView: View {
             }
         }
     }
-
-
+    
     // Utility function to remove blank lines from bio
     private func removeBlankLines(from bio: String) -> String {
         return bio
@@ -339,7 +357,7 @@ struct EditProfileView: View {
                 .select()
                 .eq("username", value: username)
                 .execute().value
-
+            
             // If the array is empty, it means the username is unique
             completion(users.isEmpty)
         } catch {
@@ -348,9 +366,6 @@ struct EditProfileView: View {
             completion(false)
         }
     }
-
-
-   
     
     func validateAndSaveProfile() {
         // First, validate the username format
@@ -378,9 +393,6 @@ struct EditProfileView: View {
             } else {
                 // If the username hasn't changed, just save the profile
                 saveProfile()
-                Task {
-                    await userViewModel.fetchProfileData()  // fetch profile data
-                }
             }
         } else {
             // If username format is invalid, set error message
@@ -388,7 +400,6 @@ struct EditProfileView: View {
             errorMessage = "Username format is not valid"
         }
     }
-
     
     func validateUsernameFormat() {
         let usernameRegex = "^[a-zA-Z0-9_]{1,15}$"

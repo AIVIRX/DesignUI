@@ -6,10 +6,8 @@
 //
 
 import SwiftUI
-import FirebaseFirestore
 import Drops
-import FirebaseAuth
-import FirebaseStorage
+import Supabase
 
 struct UploadDesignView: View {
     @State private var postID: String = ""
@@ -30,6 +28,7 @@ struct UploadDesignView: View {
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
     @State private var showToast = false
     @State private var selectedTags: [String] = []
+    let client = SupabaseManager.shared.client
     
     // Predefined list of tags
     let availableTags = [ "Animation", "Component", "SwiftUI", "Template", "UIKit"]
@@ -254,100 +253,73 @@ struct UploadDesignView: View {
     
 #if os(iOS)
     func uploadDesign() {
-        guard let user = Auth.auth().currentUser else {
-            print("No user logged in.")
-            return
-        }
-        
-        let drop = Drop(
-            title: "Uploaded",
-            icon: UIImage(systemName: "dot.radiowaves.up.forward")
-        )
-        
-        Drops.show(drop)
-        
-        
-        guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.3) else {
-            print("Please select an image.")
-            return
-        }
-        
-        isLoading = true
-        let uniqueImageID = UUID().uuidString
-        let storageRef = Storage.storage().reference().child("users/\(user.uid)/\(uniqueImageID).jpg")
-        
-        storageRef.putData(imageData, metadata: nil) { metadata, error in
-            if let error = error {
-                isLoading = false
-                print(error.localizedDescription)
+        Task{
+            guard let session = try? await client.auth.session else {
+                errorMessage = "User session not available"
                 return
             }
             
-            storageRef.downloadURL { url, error in
-                if let error = error {
-                    isLoading = false
-                    print("\(error.localizedDescription)")
-                    return
-                }
+            let userId = session.user.id.uuidString
+            
+            isLoading = true
+            
+            guard let image = selectedImage else {
+                print("Please select an image.")
+                isLoading = false
+                return
+            }
+            
+            guard let imageData = image.jpegData(compressionQuality: 0.3) else {
+                print("Failed to convert image.")
+                isLoading = false
+                return
+            }
+            
+            let fileName = "\(UUID().uuidString).jpg"
+            let storagePath = "\(userId)/\(fileName)"
+            
+            _ = try await client.storage
+                .from("posts")
+                .upload(
+                    storagePath,
+                    data: imageData,
+                    options: FileOptions(
+                        cacheControl: "3600", // Caches the image for 1 hour
+                        contentType: "image/png",
+                        upsert: true // Overwrites existing file if it exists
+                    )
+                )
+            
+            // Debug print: Confirm after upload
+            print("Upload successful postS")
+            
+            // Construct the public URL (assuming the bucket is public)
+            let publicUrl = "https://dwxfipenxnqkhgtwggrv.supabase.co/storage/v1/object/public/posts/\(storagePath)"
+            
+            do {
+                try await client
+                    .from("posts")
+                    .insert(["title": title, "description": description, "code_snippet": codeSnippet, "image_url": publicUrl])
+                    .execute()
                 
-                guard let downloadURL = url else {
-                    isLoading = false
-                    print("Failed to get download URL.")
-                    return
-                }
-                
-                // Save design data to Firestore
-                saveDesignToFirestore(uid: user.uid, imageURL: downloadURL.absoluteString)
                 DispatchQueue.main.async {
-                    title = ""
-                    description = ""
-                    codeSnippet = ""
-                    selectedTags = []
-                    selectedImage = nil
                     isLoading = false
-                    showToast = true
+                    print("post uploaded successfully")
+                }
+            } catch {
+                // Debug print: Show error message during profile update
+                print("post upload failed for userID: \(userId), error: \(error.localizedDescription)")
+                
+                DispatchQueue.main.async {
+                    errorMessage = "Failed to update profile: \(error.localizedDescription)"
+                    isLoading = false
                 }
             }
         }
     }
+    
 #endif
     
-    func saveDesignToFirestore(uid: String, imageURL: String) {
-        let db = Firestore.firestore()
-        let codeSnippetWithLineBreaks = codeSnippet.replacingOccurrences(of: "\\n", with: "\n")
-        let newPostRef = db.collection("posts").document()
-        newPostRef.setData([
-            "id": newPostRef.documentID,
-            "title": title,
-            "description": description,
-            "author": uid,
-            "codeSnippet": codeSnippetWithLineBreaks,
-            "media": imageURL,
-            "creationDate": Timestamp(date: Date()),
-            "type": "fetched",
-            "tags": selectedTags,
-            "userId": uid,
-            "likesCount": 0,
-            "repostCount": 0,
-            "sharesCount": 0,
-            "viewCount": 0,
-            "ReportCount": 0,
-            "editedTimestamp": Timestamp(),
-            "isPaywalled": false,
-            "visibility": "public",
-            "hexa": "#efedf5"
-        ]) { error in
-            if let error = error {
-                isLoading = false
-                errorMessage = error.localizedDescription
-                return
-            }
-            
-            // Design uploaded successfully
-            isLoading = false
-            presentationMode.wrappedValue.dismiss()
-        }
-    }
     
 #if os(iOS)
     struct ImagePicker: UIViewControllerRepresentable {
@@ -397,7 +369,4 @@ extension Date {
         dateFormatter.dateFormat = "MMMM dd, yyyy"
         return dateFormatter.string(from: self)
     }
-}
-#Preview {
-    UploadDesignView()
 }
