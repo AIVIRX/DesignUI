@@ -6,82 +6,72 @@
 //
 
 import SwiftUI
-@preconcurrency import FirebaseFirestore
 #if os(iOS)
 import StatefulTabView
 #endif
 import SDWebImage
 import SDWebImageSwiftUI
+import Supabase
 
 struct HomeView: View {
     @EnvironmentObject private var store: Store
+    @Environment(\.colorScheme) var colorScheme
+    @ObservedObject var userViewModel = UserViewModel.shared
+    @StateObject private var viewModel = LatestPostsViewModel()
     @State private var communityPosts: [DesignPost] = []
-    @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var hasMoreCommunityPosts = false
     @State private var isLoading: Bool = false
     @State private var showSearchResults = false
-    @Environment(\.colorScheme) var colorScheme
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isCommunityPostsLoaded = false
-    @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
-    private let postsLimit = 2
     @Namespace private var namespace
-
+    let client = SupabaseManager.shared.client
     var body: some View {
         NavigationStack {
-            VStack {
-                if isCommunityPostsLoaded && !communityPosts.isEmpty {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        LazyVGrid(columns: gridColumns, spacing: 16) {
-                            ForEach(Array(communityPosts.enumerated()), id: \.offset) { index, post in
-                                DesignCards(
-                                    id: post.id,
-                                    media: post.media,
-                                    title: post.title,
-                                    authorUID: post.author,
-                                    description: post.description,
-                                    codeSnippet: post.codeSnippet,
-                                    published: formattedDate(from: post.creationDate),
-                                    type: post.type,
-                                    tags: post.tags,
-                                    likes: post.likesCount,
-                                    views: post.viewCount,
-                                    hexa: post.hexa,
-                                    visibility: post.visibility
-                                )
-                                .frame(maxWidth: .infinity)
-                                .aspectRatio(9/16, contentMode: .fit)
-                                .cornerRadius(12)
-                                .clipped()
-                                .onAppear {
-                                    if index == communityPosts.count - 1 {
-                                        loadMorePostsIfNeeded()
-                                    }
-                                }
-                            }
-                            
-                            if isLoading {
-                                ProgressView()
-                                    .frame(width: 185, height: 400)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    .refreshable {
-                        try? await Task.sleep(nanoseconds: UInt64(2.0) * 1_000_000_000)
-                        
-                        await fetchCommunityPosts(reset: true)
-                    }
-                } else if isLoading && communityPosts.isEmpty {
-                    VStack {
-                        Spacer()
-                        ProgressView("Loading posts...")
-                        Spacer()
-                    }
-                    
-                }
-            }
+                       ScrollView {
+                           LazyVGrid(columns: gridColumns, spacing: 16) {
+                               // Loop through the posts using ForEach
+                               ForEach(Array(viewModel.posts.enumerated()), id: \.offset) { index, post in
+                                   DesignCards(
+                                       id: post.id,
+                                       media: post.image_url,
+                                       title: post.title,
+                                       authorUID: post.author.id,
+                                       authorName: post.author.display_name,
+                                       isVerified: post.author.is_verified,
+                                       description: post.description,
+                                       codeSnippet: post.code_snippet,
+                                       published: post.created_at,
+                                       likes: post.likes_count,
+                                       views: post.view_count,
+                                       hexa: post.hexadecimal,
+                                       visibility: post.visibility
+                                   )
+                                   .onAppear {
+                                       // Trigger fetching more posts when the last post appears
+                                       if index == viewModel.posts.count - 1 {
+                                           Task {
+                                               await viewModel.fetchPosts()
+                                           }
+                                       }
+                                   }
+                               }
+                           }
+                           .padding(.horizontal)
+                       }
+                       
+                       .navigationTitle("Latest Posts")
+                       .onAppear {
+                           // Fetch the initial set of posts
+                           Task {
+                               await viewModel.fetchPosts()
+                           }
+                           print(viewModel.posts)
+                       }
+                   
+               
+           
             .frame(maxWidth: 1600)
             .navigationTitle("Home")
 #if os(iOS)
@@ -107,81 +97,11 @@ struct HomeView: View {
                 opacity = 1.0
             }
             
-            
-                Task {
-                    await userViewModel.fetchProfileData()  // fetch profile data
-                }
-            
+            Task {
+                await userViewModel.fetchProfileData()
+            }
             
             store.loadStoredPurchases()
-        }
-        .task {
-            if !isCommunityPostsLoaded {
-                //Delay of 2 seconds (specified in nanoseconds: 2 * 1_000_000_000)
-                try? await Task.sleep(nanoseconds: UInt64(1) * 1_000_000_000)
-
-                // Now fetch the posts
-                await fetchCommunityPosts(reset: true)
-                isCommunityPostsLoaded = true
-            }
-        }
-    }
-    
-    private func loadMorePostsIfNeeded() {
-        guard hasMoreCommunityPosts && !isLoading else { return }
-        Task {
-            await fetchCommunityPosts()
-        }
-    }
-    
-    private func fetchCommunityPosts(reset: Bool = false) async {
-        let db = Firestore.firestore()
-        
-        guard !isLoading else { return }
-        
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            if reset {
-                lastFetchedDocument = nil
-                communityPosts.removeAll()
-                print("Resetting community posts...")
-            }
-            
-            var query = db.collection("posts").whereField("visibility", isEqualTo: "public").order(by: "creationDate", descending: true).limit(to: postsLimit)
-            
-            if let lastDocument = lastFetchedDocument {
-                query = query.start(afterDocument: lastDocument)
-            }
-            
-            let querySnapshot = try await query.getDocuments()
-            if querySnapshot.documents.isEmpty {
-                DispatchQueue.main.async {
-                    self.hasMoreCommunityPosts = false
-                }
-                print("No more posts to load.")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                self.lastFetchedDocument = querySnapshot.documents.last
-                let newPosts = querySnapshot.documents.compactMap { document in
-                    try? document.data(as: DesignPost.self)
-                }
-                
-                self.communityPosts.append(contentsOf: newPosts)
-                
-                // Log the newly added posts
-                for post in newPosts {
-                    print("Loaded post: \(post.title) by \(post.author) with ID: \(post.id)")
-                }
-                
-                self.hasMoreCommunityPosts = querySnapshot.documents.count == postsLimit
-                print("Fetched \(querySnapshot.documents.count) posts.")
-            }
-        } catch {
-            print("Error getting documents: \(error)")
         }
     }
 }

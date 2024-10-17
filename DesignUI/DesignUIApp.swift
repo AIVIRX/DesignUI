@@ -12,9 +12,9 @@ import FirebaseCore
 import AdSupport
 import UserNotifications
 import FirebaseMessaging
+import Supabase
 #if os(iOS)
 import GoogleMobileAds
-import Supabase
 
 extension View {
     func applyColorSchemeForiPad() -> some View {
@@ -132,15 +132,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 }
 
-
 @main
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
-    @StateObject private var userStore = UserStore()
-    @StateObject private var authManager = AuthManager() // Initialize AuthManager
+    @StateObject private var authManager = AuthManager()
     @StateObject private var userModel = UserViewModel()
-
 
     var body: some Scene {
         WindowGroup {
@@ -148,7 +145,6 @@ struct DesignUIApp: App {
                 .environmentObject(authManager)
                 .environmentObject(store)
                 .environmentObject(userModel)
-                .environmentObject(userStore)
                 .onAppear {
                     // Retrieve the current user and set the user ID for Analytics
                     if let user = Auth.auth().currentUser {

@@ -8,7 +8,6 @@
 import SwiftUI
 import AuthenticationServices
 import FirebaseFirestore
-import FirebaseAuth
 import CryptoKit
 import SDWebImage
 import SDWebImageSwiftUI
@@ -24,7 +23,6 @@ struct ProfileView: View {
     @State private var showAccountSettings = false
     @State private var selectedTab = 1
     @State private var nonce: String?
-    @State private var isLoading = true
     @State private var showDeleteAccountAlert = false
     @State private var showSignOutAlert = false
     @State private var alertItem: AlertItem?
@@ -239,7 +237,7 @@ struct ProfileView: View {
                         
                         // Tab views
                         if selectedTab == 0 {
-                            PostsView()
+                            Text("Post View")
                         } else {
                             LikedView()
                         }

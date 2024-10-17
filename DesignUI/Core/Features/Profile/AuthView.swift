@@ -26,7 +26,6 @@ struct AuthView: View {
         }
         .onAppear{
             authManager.checkSession()
-            
         }
     }
 }

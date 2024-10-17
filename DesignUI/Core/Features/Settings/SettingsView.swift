@@ -60,7 +60,6 @@ struct MailView: UIViewControllerRepresentable {
 
 struct SettingsView: View {
     @EnvironmentObject private var store: Store
-    @EnvironmentObject var userStore: UserStore
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @State private var showSignOutAlert: Bool = false

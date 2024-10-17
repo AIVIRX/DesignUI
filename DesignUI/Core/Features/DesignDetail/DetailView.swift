@@ -14,9 +14,7 @@ struct DetailView: View {
     var authorUID: String
     var codeSnippet: String
     var creationDate: String
-    var type: String
     var isAuthorVerified: Bool
-    var tags: [String]
     @Binding var isLiked: Bool
     var likes: Int
     var views: Int
@@ -37,6 +35,7 @@ struct DetailView: View {
     @State private var isEditing: Bool = false
     @State private var isCurrentUserAuthor: Bool = false
     @State private var reportMessage: String = ""
+    let client = SupabaseManager.shared.client
     var body: some View {
         ScrollView() {
 #if os(iOS)
@@ -103,22 +102,17 @@ struct DetailView: View {
                             
                             Spacer()
                             
-                            if type == "fetched" {
-                                if Auth.auth().currentUser != nil{
-                                    Button(action: {
-                                        if !isLiking {
-                                            isLiking = true
-                                            toggleLike()
-                                        }
-                                    }) {
-                                        VStack{
-                                            Image(systemName: isLiked ? "heart.fill" : "heart")
-                                                .foregroundColor(isLiked ? .red : .gray)
-                                                .font(.title)
-                                            Text("\(formatCount(likesCount))")
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
-                                        }
+                            if client.auth.currentUser != nil{
+                                Button(action: {
+                                    
+                                }) {
+                                    VStack{
+                                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                                            .foregroundColor(isLiked ? .red : .gray)
+                                            .font(.title)
+                                        Text("\(formatCount(likesCount))")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
                                     }
                                 }
                             }
@@ -175,7 +169,7 @@ struct DetailView: View {
                     .padding(.top, 10)
                     
                     HStack{
-                        SimilarPostsView(currentPostId: id, tags: tags)
+                        //SimilarPostsView(currentPostId: id, tags: tags)
                     }
                     .padding(.vertical)
                 }
@@ -227,27 +221,26 @@ struct DetailView: View {
                                         .bold()
                                         .lineLimit(2)
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                    if type == "fetched" {
-                                        if Auth.auth().currentUser != nil{
-                                            Button(action: {
-                                                if !isLiking {
-                                                    isLiking = true
-                                                    toggleLike()
-                                                }
-                                            }) {
-                                                VStack{
-                                                    
-                                                    Image(systemName: isLiked ? "heart.fill" : "heart")
-                                                        .foregroundColor(isLiked ? .red : .gray)
-                                                        .font(.title)
-                                                    Text("\(formatCount(likesCount))")
-                                                        .font(.subheadline)
-                                                        .foregroundColor(.secondary)
-                                                }
+                                    
+                                    
+                                        Button(action: {
+                                            Task{
+                                                await toggleLike(postID: id, userID: authorUID)
                                             }
+                                        }) {
+                                            VStack{
+                                                
+                                                Image(systemName: isLiked ? "heart.fill" : "heart")
+                                                    .foregroundColor(isLiked ? .red : .gray)
+                                                    .font(.title)
+                                                Text("\(formatCount(likesCount))")
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                            
                                         }
                                     }
                                 }
+                                
                                 Text(creationDate)
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
@@ -270,7 +263,6 @@ struct DetailView: View {
                                     }
                                 }
                                 
-                                TagView(tags: tags)
                                 
                                 Text(description)
                                     .font(.system(size: 18))
@@ -326,7 +318,7 @@ struct DetailView: View {
                     }
                     .frame(height: 600)
                     HStack{
-                        SimilarPostsView(currentPostId: id, tags: tags)
+                        //SimilarPostsView(currentPostId: id, tags: tags)
                     }
                 }
                 .environment(\.symbolVariants, .none)
@@ -378,25 +370,24 @@ struct DetailView: View {
                                     .bold()
                                     .lineLimit(2)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                if type == "fetched" {
-                                    if Auth.auth().currentUser != nil{
-                                        Button(action: {
-                                            if !isLiking {
-                                                isLiking = true
-                                                toggleLike()
-                                            }
-                                        }) {
-                                            VStack{
-                                                Image(systemName: isLiked ? "heart.fill" : "heart")
-                                                    .foregroundColor(isLiked ? .red : .gray)
-                                                    .font(.title)
-                                                Text("\(formatCount(likesCount))")
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.secondary)
-                                            }
+                                
+                                if Auth.auth().currentUser != nil{
+                                    Button(action: {
+                                        if !isLiking {
+                                            isLiking = true
+                                            toggleLike()
                                         }
-                                        .buttonStyle(.plain)
+                                    }) {
+                                        VStack{
+                                            Image(systemName: isLiked ? "heart.fill" : "heart")
+                                                .foregroundColor(isLiked ? .red : .gray)
+                                                .font(.title)
+                                            Text("\(formatCount(likesCount))")
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                        }
                                     }
+                                    .buttonStyle(.plain)
                                 }
                             }
                             Text(creationDate)
@@ -508,7 +499,7 @@ struct DetailView: View {
                     Label("Edit", systemImage: "square.and.pencil")
                 }
                 .sheet(isPresented: $isEditing) {
-                    EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
+                    EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, hexa: hexa, visibility: visibility)
                 }
             }
         })
@@ -605,7 +596,9 @@ struct DetailView: View {
         .padding(7)
         .onAppear{
             fetchLikeStatusAndViewCount()
-            incrementViewCount()
+            Task{
+                await incrementViewCount(postID: id)
+            }
         }
     }
     
@@ -668,64 +661,26 @@ struct DetailView: View {
         }
     }
     
-    func toggleLike() {
-        guard let user = Auth.auth().currentUser else { return }
-        let db = Firestore.firestore()
-        let postRef = db.collection("posts").document(id)
-        let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
-        
-        db.runTransaction({ (transaction, errorPointer) -> Any? in
-            let postDocument: DocumentSnapshot
-            do {
-                postDocument = try transaction.getDocument(postRef)
-            } catch let error as NSError {
-                print("Error getting post document: \(error)")
-                return nil
-            }
-            
-            guard postDocument.data()?["likesCount"] is Int else {
-                return nil
-            }
-            
-            if self.isLiked {
-                // Unlike the post
-                transaction.updateData(["likesCount": FieldValue.increment(Int64(-1))], forDocument: postRef)
-                transaction.deleteDocument(userLikedPostRef)
-                AnalyticsManager.shared.unlikedPost(postID: id)
-            } else {
-                // Like the post
-                transaction.updateData(["likesCount": FieldValue.increment(Int64(1))], forDocument: postRef)
-                transaction.setData(["likedBy": user.uid, "timestamp": Timestamp(date: Date())], forDocument: userLikedPostRef)
-                AnalyticsManager.shared.likedPost(postID: id)
-            }
-            return nil
-        }) { (object, error) in
-            if let error = error {
-                print("Transaction failed: \(error)")
-            } else {
-                DispatchQueue.main.async {
-                    self.isLiked.toggle()
-                    self.likesCount += self.isLiked ? 1 : -1
-                    self.isLiking = false
-                }
-            }
+    func toggleLike(postID: String, userID: String) async {
+        do{
+            // Call the RPC procedure to toggle like
+            try await client.rpc("toggle_like", params: ["post_id": postID, "user_id": userID]).execute()
+        } catch {
+            print("Error toggling like: \(error.localizedDescription)")
         }
     }
+
+
     
-    func incrementViewCount() {
-        let db = Firestore.firestore()
-        let postRef = db.collection("posts").document(id)
-        
-        postRef.updateData([
-            "viewCount": FieldValue.increment(Int64(1))
-        ]) { error in
-            if let error = error {
-                print("Error updating view count: \(error)")
-            } else {
-                print("View count incremented successfully")
-            }
+    
+    func incrementViewCount(postID: String) async {
+        do{
+            // Call the RPC function to increment view count
+            try await client.rpc("increment_view_count", params: ["post_id": postID]).execute()
+            
+        } catch {
+            print("Error updating view count: \(error.localizedDescription)")
         }
-        AnalyticsManager.shared.viewedPost(postID: id)
     }
     
     func reportPost(postId: String, message: String) {

@@ -13,7 +13,6 @@ struct EditPostView: View {
     @State var title: String
     @State var description: String
     @State var codeSnippet: String
-    @State var tags: [String]
     @State var hexa: String
     @State var showAlert: Bool = false
     @State var visibility: String
@@ -46,17 +45,6 @@ struct EditPostView: View {
                 .pickerStyle(MenuPickerStyle())  // Dropdown style for the picker
             }
             
-            Section(header: Text("Tags")) {
-                TextField("Tags (comma separated)", text: Binding(
-                    get: {
-                        self.tags.joined(separator: ", ")
-                    },
-                    set: {
-                        self.tags = $0.components(separatedBy: ", ").map { $0.trimmingCharacters(in: .whitespaces) }
-                    }
-                ))
-            }
-            
             Section(header: Text("Background Color (Hex)")) {
                 TextField("Hex Color", text: $hexa)
             }
@@ -84,7 +72,6 @@ struct EditPostView: View {
             "title": title,
             "description": description,
             "codeSnippet": codeSnippet,
-            "tags": tags,
             "hexa": hexa,
             "visibility": visibility
         ]

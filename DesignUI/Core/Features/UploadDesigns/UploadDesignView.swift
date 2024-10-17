@@ -29,10 +29,8 @@ struct UploadDesignView: View {
     @State private var showToast = false
     @State private var selectedTags: [String] = []
     let client = SupabaseManager.shared.client
-    
-    // Predefined list of tags
+    let tags: [String] = ["swift", "ios", "developer"]
     let availableTags = [ "Animation", "Component", "SwiftUI", "Template", "UIKit"]
-    
     var isUploadEnabled: Bool {
         return !title.isEmpty && !description.isEmpty && !codeSnippet.isEmpty && selectedImage != nil && !isLoading && !selectedTags.isEmpty
     }
@@ -137,7 +135,6 @@ struct UploadDesignView: View {
                         .font(.headline).bold()
                         .frame(maxWidth: .infinity)
                 }
-                
             }
             .buttonStyle(.borderedProminent)
             .background(isUploadEnabled ? Color.blue : Color.gray)
@@ -146,7 +143,6 @@ struct UploadDesignView: View {
             .disabled(!isUploadEnabled)
             .padding(.top)
 #endif
-            
 #endif
         }
         .environment(\.symbolVariants, .none)
@@ -284,9 +280,9 @@ struct UploadDesignView: View {
                     storagePath,
                     data: imageData,
                     options: FileOptions(
-                        cacheControl: "3600", // Caches the image for 1 hour
+                        cacheControl: "3600",
                         contentType: "image/png",
-                        upsert: true // Overwrites existing file if it exists
+                        upsert: true
                     )
                 )
             
@@ -299,7 +295,7 @@ struct UploadDesignView: View {
             do {
                 try await client
                     .from("posts")
-                    .insert(["title": title, "description": description, "code_snippet": codeSnippet, "image_url": publicUrl])
+                    .insert(["title": title, "description": description, "code_snippet": codeSnippet,   "tags": selectedTags.joined(separator: ",") ,"image_url": publicUrl])
                     .execute()
                 
                 DispatchQueue.main.async {

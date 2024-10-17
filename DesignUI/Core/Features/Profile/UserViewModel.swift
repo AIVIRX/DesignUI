@@ -9,7 +9,7 @@ import Foundation
 import Supabase
 
 class UserViewModel: ObservableObject {
-    @Published var profile: ProfileModel? // Store profile data
+    @Published var profile: ProfileModel? 
     let client = SupabaseManager.shared.client
     static let shared = UserViewModel()
 

@@ -11,7 +11,6 @@ import SDWebImageSwiftUI
 import Supabase
 
 struct EditProfileView: View {
-    @EnvironmentObject var userStore: UserStore
 #if os(iOS)
     @State private var selectedImage: UIImage?
 #endif

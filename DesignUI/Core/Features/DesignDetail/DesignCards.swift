@@ -8,19 +8,17 @@
 import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
-import FirebaseFirestore
-import FirebaseAuth
 
 struct DesignCards: View {
     var id: String
     var media: String
     var title: String
     var authorUID: String
+    var authorName: String
+    var isVerified: Bool
     var description: String
     var codeSnippet: String
     var published: String
-    var type: String
-    var tags: [String]
     var likes: Int
     var views: Int
     var hexa: String
@@ -28,25 +26,24 @@ struct DesignCards: View {
     
     @State private var isHovered: Bool = false
     @State private var isLiked: Bool = false
-    @State private var authorName: String = "Dock UI"
-    @State private var isAuthorVerified: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
     @State private var isVisible = false
-    @Namespace private var cardTransition
+    let client = SupabaseManager.shared.client
+    @StateObject private var viewModel = LatestPostsViewModel()
     
-    init(id: String, media: String, title: String, authorUID: String, description: String, codeSnippet: String, published: String, type: String, tags: [String], likes: Int, views: Int, hexa: String, visibility: String) {
+    init(id: String, media: String, title: String, authorUID: String, authorName:String, isVerified: Bool, description: String, codeSnippet: String, published: String, likes: Int, views: Int, hexa: String, visibility: String) {
         self.id = id
         self.media = media
         self.title = title
         self.authorUID = authorUID
+        self.authorName = authorName
+        self.isVerified = isVerified
         self.description = description
         self.codeSnippet = codeSnippet
         self.published = published
-        self.type = type
-        self.tags = tags
         self.likes = likes
         self.views = views
         self.hexa = hexa
@@ -63,9 +60,7 @@ struct DesignCards: View {
             authorUID: authorUID,
             codeSnippet: codeSnippet,
             creationDate: published,
-            type: type,
-            isAuthorVerified: isAuthorVerified,
-            tags: tags,
+            isAuthorVerified: isVerified,
             isLiked: $isLiked,
             likes: likes,
             views: views,
@@ -81,7 +76,7 @@ struct DesignCards: View {
                         .foregroundStyle(Color(hex: hexa))
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.gray, lineWidth: 0.5) 
+                                .stroke(Color.gray, lineWidth: 0.5)
                         )
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)
@@ -204,7 +199,7 @@ struct DesignCards: View {
                             .font(.system(size: 14)).bold()
                             .foregroundColor(.secondary)
                         
-                        if isAuthorVerified {
+                        if isVerified {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 13))
                                 .foregroundColor(.blue)
@@ -212,59 +207,55 @@ struct DesignCards: View {
                         
                         Spacer()
                         
-                        if Auth.auth().currentUser != nil {
+                        if client.auth.currentUser != nil {
                             HStack{
-                                Image(systemName: isLiked ? "heart.fill" : "heart")
+                                Image(systemName: "heart.fill")
                                     .foregroundColor(isLiked ? .red : .gray)
-                                    .font(.system(size: 15))
-                                Text("\(formatCount(likesCount))")
-                                    .font(.subheadline)
+                                    .font(.system(size: 16))
+                                Text("\(formatCount(likes))")
+                                    .font(.subheadline).bold()
                                     .foregroundColor(.secondary)
                             }
                             .padding(.horizontal,2)
 #if os(iOS)
                             if UIDevice.current.userInterfaceIdiom == .phone {
-                                if Auth.auth().currentUser != nil {
-                                    HStack{
-                                        Image(systemName: "eye")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 15))
-                                        Text("\(formatCount(viewCount))")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal,2)
+                                HStack{
+                                    Image(systemName: "eye")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 16))
+                                    Text("\(formatCount(views))")
+                                        .font(.subheadline).bold()
+                                        .foregroundColor(.secondary)
                                 }
+                                .padding(.horizontal,2)
                             }
 #endif
+                            
                         }
                     }
+                    .padding(.bottom, 6)
+                    .contentShape(Rectangle())
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .onHover { hovering in
+                        isHovered = hovering
+                    }
                 }
-                .padding(.bottom, 6)
-                .contentShape(Rectangle())
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onHover { hovering in
-                    isHovered = hovering
-                }
-            }
-            .opacity(isVisible ? 1 : 0)
+                .opacity(isVisible ? 1 : 0)
 #if os(iOS)
-            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 0 : 10)
+                .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 0 : 10)
 #endif
-            
+                
 #if os(macOS)
-            .padding(.horizontal, 10)
+                .padding(.horizontal, 10)
 #endif
-            .onAppear {
-                fetchAuthorName()
-                fetchLikeStatusAndViewCount()
-                withAnimation(.easeIn(duration: 0.2)) {
-                    isVisible = true
+                .onAppear {
+                    withAnimation(.easeIn(duration: 0.2)) {
+                        isVisible = true
+                    }
+                }
             }
         }
-    }
         .buttonStyle(PlainButtonStyle())
-        .matchedGeometryEffect(id: id, in: cardTransition)
         
 #if os(iOS)
         .simultaneousGesture(TapGesture().onEnded {
@@ -273,69 +264,8 @@ struct DesignCards: View {
         })
 #endif
     }
-    
-    func fetchAuthorName() {
-        let db = Firestore.firestore()
-        let userDocRef = db.collection("users").document(authorUID)
-        userDocRef.getDocument { document, error in
-            if let document = document, document.exists {
-                let data = document.data()
-                let displayName = data?["displayName"] as? String ?? "Unknown Author"
-                let isVerified = data?["isVerified"] as? Bool ?? false
-                DispatchQueue.main.async {
-                    self.authorName = displayName
-                    self.isAuthorVerified = isVerified
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.authorName = "Unknown Author"
-                    self.isAuthorVerified = false
-                }
-            }
-        }
-    }
-    
-    func fetchLikeStatusAndViewCount() {
-        guard let user = Auth.auth().currentUser else { return }
-        let db = Firestore.firestore()
-        let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
-        let postRef = db.collection("posts").document(id)
-        
-        // Use Firestore's batch to get both documents
-        var isLikedStatus = false
-        var likesCount = 0
-        var viewCount = 0
-        
-        // Fetch user liked status and post details in parallel
-        userLikedPostRef.getDocument { likedDocument, error in
-            if let likedDocument = likedDocument, likedDocument.exists {
-                isLikedStatus = true
-            } else {
-                isLikedStatus = false
-            }
-            
-            postRef.getDocument { document, error in
-                if let document = document, document.exists {
-                    if let data = document.data() {
-                        if let likes = data["likesCount"] as? Int {
-                            likesCount = likes
-                        }
-                        if let views = data["viewCount"] as? Int {
-                            viewCount = views
-                        }
-                    }
-                }
-                
-                // Update UI on the main thread
-                DispatchQueue.main.async {
-                    self.isLiked = isLikedStatus
-                    self.likesCount = likesCount
-                    self.viewCount = viewCount
-                }
-            }
-        }
-    }
 }
+
 
 extension Color {
     init(hex: String) {
@@ -363,5 +293,3 @@ extension Color {
         )
     }
 }
-
-

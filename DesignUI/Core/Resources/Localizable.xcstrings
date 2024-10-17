@@ -8347,6 +8347,9 @@
         }
       }
     },
+    "Latest Posts" : {
+
+    },
     "Load More" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8587,6 +8590,7 @@
       }
     },
     "Loading liked posts..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8825,6 +8829,7 @@
       }
     },
     "Loading posts..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9546,6 +9551,7 @@
       }
     },
     "No liked posts yet." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10501,6 +10507,7 @@
       }
     },
     "Post 1" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10739,6 +10746,7 @@
       }
     },
     "Post 2" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10977,6 +10985,7 @@
       }
     },
     "Post 3" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11213,6 +11222,9 @@
           }
         }
       }
+    },
+    "Post View" : {
+
     },
     "Privacy & Support" : {
       "localizations" : {
@@ -17652,6 +17664,7 @@
       }
     },
     "Tags" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17890,6 +17903,7 @@
       }
     },
     "Tags (comma separated)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

@@ -6,20 +6,24 @@
 //
 
 import Foundation
-import FirebaseFirestore
 
-struct DesignPost: Identifiable, Decodable, Hashable {
+struct DesignPost: Identifiable, Codable {
     let id: String
-    let media: String
+    let image_url: String
     let title: String
-    let author: String
     let description: String
-    let codeSnippet: String
-    let creationDate: Timestamp
-    let type: String
-    let tags: [String]
-    let likesCount: Int
-    let viewCount: Int
-    let hexa: String
+    let code_snippet: String
+    let created_at: String
+    let tags: String
+    let likes_count: Int
+    let view_count: Int
+    let hexadecimal: String
     let visibility: String
+    let author: Author
+}
+
+struct Author: Codable {
+    let id: String
+    let display_name: String
+    let is_verified: Bool
 }

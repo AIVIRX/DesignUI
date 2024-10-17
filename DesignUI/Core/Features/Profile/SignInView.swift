@@ -87,9 +87,7 @@ struct SignInView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(20)
-        .onAppear {
-            print("User is not logged in or user data is not available")
-        }
+        
     }
 }
 
