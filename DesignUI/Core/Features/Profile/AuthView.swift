@@ -17,10 +17,8 @@ struct AuthView: View {
     var body: some View {
         Group {
             if authManager.isAuthenticated {
-                // Show the main content view if authenticated and has a username
                 ProfileView()
             } else {
-                // Show the username setup view if authenticated but no username
                 SignInView()
             }
         }

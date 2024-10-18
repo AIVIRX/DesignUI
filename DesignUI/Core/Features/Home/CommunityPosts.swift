@@ -27,7 +27,6 @@ class LatestPostsViewModel: ObservableObject {
         
         do {
             if let currentUser = client.auth.currentUser?.id {
-                // Fetching posts along with author profiles using the specific foreign key relationship
                 let response = try await client
                     .from("posts")
                     .select("""
@@ -59,6 +58,4 @@ class LatestPostsViewModel: ObservableObject {
             isFetching = false
         }
     }
-    
-    
 }

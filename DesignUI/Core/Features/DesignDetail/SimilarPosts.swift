@@ -51,7 +51,7 @@ struct SimilarPostsView: View {
                             codeSnippet: post.codeSnippet,
                             creationDate: post.creationDate,
                             isAuthorVerified: post.isAuthorVerified,
-                            isLiked: $isLiked,
+                            isLiked: isLiked,
                             likes: post.likes,
                             views: post.views,
                             hexa: "#FFFFFF",

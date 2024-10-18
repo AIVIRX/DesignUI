@@ -33,6 +33,7 @@ struct HomeView: View {
                            LazyVGrid(columns: gridColumns, spacing: 16) {
                                // Loop through the posts using ForEach
                                ForEach(Array(viewModel.posts.enumerated()), id: \.offset) { index, post in
+                                   
                                    DesignCards(
                                        id: post.id,
                                        media: post.image_url,
@@ -49,7 +50,6 @@ struct HomeView: View {
                                        visibility: post.visibility
                                    )
                                    .onAppear {
-                                       // Trigger fetching more posts when the last post appears
                                        if index == viewModel.posts.count - 1 {
                                            Task {
                                                await viewModel.fetchPosts()
@@ -67,10 +67,7 @@ struct HomeView: View {
                            Task {
                                await viewModel.fetchPosts()
                            }
-                           print(viewModel.posts)
                        }
-                   
-               
            
             .frame(maxWidth: 1600)
             .navigationTitle("Home")

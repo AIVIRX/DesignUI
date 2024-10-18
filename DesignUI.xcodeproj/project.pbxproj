@@ -20,7 +20,6 @@
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC2A56202CBACD9A006A7D4F /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2A561F2CBACD9A006A7D4F /* SignInView.swift */; };
 		EC2A56222CBAF008006A7D4F /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2A56212CBAF008006A7D4F /* AuthView.swift */; };
-		EC2A56242CBAF060006A7D4F /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2A56232CBAF060006A7D4F /* ProfileSetupView.swift */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */; };
 		EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2D21272CBF183000FA192D /* CommunityPosts.swift */; };
 		EC4586FD2C94A8FF0039E46D /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */; };
@@ -93,7 +92,6 @@
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC2A561F2CBACD9A006A7D4F /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		EC2A56212CBAF008006A7D4F /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
-		EC2A56232CBAF060006A7D4F /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseInit.swift; sourceTree = "<group>"; };
 		EC2D21272CBF183000FA192D /* CommunityPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPosts.swift; sourceTree = "<group>"; };
 		EC4F38922C1CBD820018C802 /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
@@ -189,8 +187,6 @@
 				EC11EC132CB8827400E416FE /* AuthManager.swift */,
 				EC2A561F2CBACD9A006A7D4F /* SignInView.swift */,
 				EC2A56212CBAF008006A7D4F /* AuthView.swift */,
-				EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */,
-				EC2A56232CBAF060006A7D4F /* ProfileSetupView.swift */,
 				EC11EC152CB8C6DD00E416FE /* UserViewModel.swift */,
 				ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */,
 				EC4F38922C1CBD820018C802 /* EditProfile.swift */,
@@ -277,6 +273,7 @@
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
 				EC8025252C9C62F800019AD1 /* QuickActionHelper.swift */,
 				EC6D488D2CA4AA6A00E6F281 /* AnalyticsManager.swift */,
+				EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -549,7 +546,6 @@
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC4F38952C1CC2EC0018C802 /* User.swift in Sources */,
 				ECCF93952C99128A0014C1F2 /* SearchBarView.swift in Sources */,
-				EC2A56242CBAF060006A7D4F /* ProfileSetupView.swift in Sources */,
 				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
 				ECE995542C98891000C60416 /* ActivityView.swift in Sources */,
 				EC6D488E2CA4AA6A00E6F281 /* AnalyticsManager.swift in Sources */,

@@ -25,12 +25,12 @@ struct DesignCards: View {
     var visibility: String
     
     @State private var isHovered: Bool = false
-    @State private var isLiked: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
     @State private var isVisible = false
+    @State private var isLiked = false
     let client = SupabaseManager.shared.client
     @StateObject private var viewModel = LatestPostsViewModel()
     
@@ -61,7 +61,7 @@ struct DesignCards: View {
             codeSnippet: codeSnippet,
             creationDate: published,
             isAuthorVerified: isVerified,
-            isLiked: $isLiked,
+            isLiked: isLiked,
             likes: likes,
             views: views,
             hexa: hexa,
@@ -107,7 +107,6 @@ struct DesignCards: View {
                                                 .clipShape(RoundedRectangle(cornerRadius: 15))
                                                 .clipped()
                                                 .shadow(radius: 8)
-                                            
                                         }
                                         
                                     }
@@ -207,31 +206,28 @@ struct DesignCards: View {
                         
                         Spacer()
                         
-                        if client.auth.currentUser != nil {
+                        HStack{
+                            Image(systemName: "heart.fill")
+                                .foregroundColor(isLiked ? .red : .gray)
+                                .font(.system(size: 16))
+                            Text("\(formatCount(likes))")
+                                .font(.subheadline).bold()
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal,2)
+#if os(iOS)
+                        if UIDevice.current.userInterfaceIdiom == .phone {
                             HStack{
-                                Image(systemName: "heart.fill")
-                                    .foregroundColor(isLiked ? .red : .gray)
+                                Image(systemName: "eye")
+                                    .foregroundColor(.gray)
                                     .font(.system(size: 16))
-                                Text("\(formatCount(likes))")
+                                Text("\(formatCount(views))")
                                     .font(.subheadline).bold()
                                     .foregroundColor(.secondary)
                             }
                             .padding(.horizontal,2)
-#if os(iOS)
-                            if UIDevice.current.userInterfaceIdiom == .phone {
-                                HStack{
-                                    Image(systemName: "eye")
-                                        .foregroundColor(.gray)
-                                        .font(.system(size: 16))
-                                    Text("\(formatCount(views))")
-                                        .font(.subheadline).bold()
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.horizontal,2)
-                            }
-#endif
-                            
                         }
+#endif
                     }
                     .padding(.bottom, 6)
                     .contentShape(Rectangle())
@@ -252,11 +248,17 @@ struct DesignCards: View {
                     withAnimation(.easeIn(duration: 0.2)) {
                         isVisible = true
                     }
+                    
+                    
+                    if let userID = client.auth.currentUser?.id.uuidString {
+                        Task{
+                            await checkIfLiked(postID: id, userID: userID)
+                        }
+                    }
                 }
             }
         }
         .buttonStyle(PlainButtonStyle())
-        
 #if os(iOS)
         .simultaneousGesture(TapGesture().onEnded {
             let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
@@ -264,8 +266,31 @@ struct DesignCards: View {
         })
 #endif
     }
+    
+    func checkIfLiked(postID: String, userID: String) async {
+        do {
+            let response = try await client
+                .from("likes")
+                .select("*", head: true, count: .exact)
+                .eq("post_id", value: postID)
+                .eq("user_id", value: userID)
+                .execute()
+            
+            print("Response: \(response)")  // Print the entire response for debugging
+            
+            if response.count ?? 0 > 0 {
+                isLiked = true
+                print("Count is greater than 0: Liked Set to true")
+            } else {
+                isLiked = false
+                print("Count is 0: Liked Set to false")
+            }
+        } catch {
+            print("Error checking if post is liked: \(error)")
+            isLiked = false
+        }
+    }
 }
-
 
 extension Color {
     init(hex: String) {

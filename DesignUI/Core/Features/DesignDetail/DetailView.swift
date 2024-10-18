@@ -1,6 +1,4 @@
 import SwiftUI
-import FirebaseAuth
-import FirebaseFirestore
 import Drops
 import SDWebImage
 import SDWebImageSwiftUI
@@ -15,7 +13,7 @@ struct DetailView: View {
     var codeSnippet: String
     var creationDate: String
     var isAuthorVerified: Bool
-    @Binding var isLiked: Bool
+    var isLiked: Bool
     var likes: Int
     var views: Int
     var hexa: String
@@ -35,6 +33,7 @@ struct DetailView: View {
     @State private var isEditing: Bool = false
     @State private var isCurrentUserAuthor: Bool = false
     @State private var reportMessage: String = ""
+    @State private var liked: Bool = false
     let client = SupabaseManager.shared.client
     var body: some View {
         ScrollView() {
@@ -93,29 +92,31 @@ struct DetailView: View {
                                     }
                                 }
                                 
-                                if Auth.auth().currentUser != nil{
-                                    Text("\(formatCount(viewCount)) views")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
+                                Text("\(formatCount(viewCount)) views")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
                             }
                             
                             Spacer()
                             
-                            if client.auth.currentUser != nil{
-                                Button(action: {
-                                    
-                                }) {
-                                    VStack{
-                                        Image(systemName: isLiked ? "heart.fill" : "heart")
-                                            .foregroundColor(isLiked ? .red : .gray)
-                                            .font(.title)
-                                        Text("\(formatCount(likesCount))")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
+                            Button(action: {
+                                if let user = client.auth.currentUser {
+                                    Task{
+                                        await likePost(postID: id, userID: user.id.uuidString)
                                     }
+                                } else {
+                                    print("not signed in")
                                 }
-                            }
+                            }) {
+                                VStack{
+                                    Image(systemName: liked ? "heart.fill" : "heart")
+                                        .foregroundColor(liked ? .red : .gray)
+                                        .font(.title)
+                                    Text("\(formatCount(likesCount))")
+                                        .font(.subheadline).bold()
+                                        .foregroundColor(.secondary)
+                                }
+                            }.disabled(isLiked)
                         }
                         //TagView(tags: tags)
                     }
@@ -150,7 +151,8 @@ struct DetailView: View {
 #if os(iOS)
                         let drop = Drop(
                             title: "Copied Code",
-                            icon: UIImage(systemName: "doc.on.doc.fill")
+                            icon: UIImage(systemName: "doc.on.doc.fill"),
+                            position: .bottom
                         )
                         
                         Drops.show(drop)
@@ -223,20 +225,22 @@ struct DetailView: View {
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                     
                                     
-                                        Button(action: {
+                                    Button(action: {
+                                        if let user = client.auth.currentUser {
                                             Task{
-                                                await toggleLike(postID: id, userID: authorUID)
+                                                await likePost(postID: id, userID: user.id.uuidString)
                                             }
-                                        }) {
-                                            VStack{
-                                                
-                                                Image(systemName: isLiked ? "heart.fill" : "heart")
-                                                    .foregroundColor(isLiked ? .red : .gray)
-                                                    .font(.title)
-                                                Text("\(formatCount(likesCount))")
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.secondary)
-                                            
+                                        } else {
+                                            print("not signed in")
+                                        }
+                                    }) {
+                                        VStack{
+                                            Image(systemName: liked ? "heart.fill" : "heart")
+                                                .foregroundColor(liked ? .red : .gray)
+                                                .font(.title)
+                                            Text("\(formatCount(likesCount))")
+                                                .font(.subheadline).bold()
+                                                .foregroundColor(.secondary)
                                         }
                                     }
                                 }
@@ -245,11 +249,10 @@ struct DetailView: View {
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
                                 
-                                if Auth.auth().currentUser != nil{
-                                    Text("\(formatCount(viewCount)) views")
-                                        .font(.system(size: 15)).bold()
-                                        .foregroundColor(.secondary)
-                                }
+                                Text("\(formatCount(viewCount)) views")
+                                    .font(.system(size: 15)).bold()
+                                    .foregroundColor(.secondary)
+                                
                                 
                                 HStack {
                                     Text("\(author)")
@@ -262,7 +265,6 @@ struct DetailView: View {
                                             .foregroundColor(.blue)
                                     }
                                 }
-                                
                                 
                                 Text(description)
                                     .font(.system(size: 18))
@@ -481,6 +483,11 @@ struct DetailView: View {
 #endif
         }
         .scrollIndicators(.hidden)
+        .onAppear {
+            self.liked = isLiked
+            self.likesCount = likes
+            self.viewCount = views
+        }
         
 #if os(iOS)
         .navigationBarTitle(title)
@@ -492,16 +499,16 @@ struct DetailView: View {
                 Label("Report", systemImage: "flag")
             }
             
-            if checkIfAuthor(){
-                Button(action: {
-                    isEditing.toggle()
-                }) {
-                    Label("Edit", systemImage: "square.and.pencil")
-                }
-                .sheet(isPresented: $isEditing) {
-                    EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, hexa: hexa, visibility: visibility)
-                }
-            }
+            //            if checkIfAuthor(){
+            //                Button(action: {
+            //                    isEditing.toggle()
+            //                }) {
+            //                    Label("Edit", systemImage: "square.and.pencil")
+            //                }
+            //                .sheet(isPresented: $isEditing) {
+            //                    EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, hexa: hexa, visibility: visibility)
+            //                }
+            //            }
         })
         .sheet(isPresented: $isReporting) {
             VStack {
@@ -519,7 +526,7 @@ struct DetailView: View {
                 
                 Button {
                     reportPost(postId: id, message: reportMessage)
-                    isReporting = false // Dismiss sheet
+                    isReporting = false
                 } label: {
                     Text("Report")
                         .padding(8)
@@ -595,20 +602,11 @@ struct DetailView: View {
 #endif
         .padding(7)
         .onAppear{
-            fetchLikeStatusAndViewCount()
             Task{
                 await incrementViewCount(postID: id)
             }
         }
     }
-    
-    func checkIfAuthor() -> Bool {
-        guard let user = Auth.auth().currentUser else {
-            return false
-        }
-        return user.uid == authorUID
-    }
-    
     
     func copyToClipboard(_ text: String) {
 #if os(iOS)
@@ -620,57 +618,22 @@ struct DetailView: View {
 #endif
     }
     
-    func fetchLikeStatusAndViewCount() {
-        guard let user = Auth.auth().currentUser else { return }
-        let db = Firestore.firestore()
-        let userLikedPostRef = db.collection("users").document(user.uid).collection("likedPosts").document(id)
-        let postRef = db.collection("posts").document(id)
-        
-        // Use Firestore's batch to get both documents
-        var isLikedStatus = false
-        var likesCount = 0
-        var viewCount = 0
-        
-        // Fetch user liked status and post details in parallel
-        userLikedPostRef.getDocument { likedDocument, error in
-            if let likedDocument = likedDocument, likedDocument.exists {
-                isLikedStatus = true
-            } else {
-                isLikedStatus = false
-            }
+    func likePost(postID: String, userID: String) async {
+        print("Attempting to like post with postID: \(postID) user: \(userID)")
+        do{
+            let response = try await client
+                .from("likes")
+                .insert(["post_id": id])
+                .execute()
             
-            postRef.getDocument { document, error in
-                if let document = document, document.exists {
-                    if let data = document.data() {
-                        if let likes = data["likesCount"] as? Int {
-                            likesCount = likes
-                        }
-                        if let views = data["viewCount"] as? Int {
-                            viewCount = views
-                        }
-                    }
-                }
-                
-                // Update UI on the main thread
-                DispatchQueue.main.async {
-                    self.isLiked = isLikedStatus
-                    self.likesCount = likesCount
-                    self.viewCount = viewCount
-                }
-            }
+            print("Raw Liking response data: \(response.data)")
+            likesCount += 1
+            liked = true
+        } catch {
+            print("Error liking posts: \(error)")
         }
     }
     
-    func toggleLike(postID: String, userID: String) async {
-        do{
-            // Call the RPC procedure to toggle like
-            try await client.rpc("toggle_like", params: ["post_id": postID, "user_id": userID]).execute()
-        } catch {
-            print("Error toggling like: \(error.localizedDescription)")
-        }
-    }
-
-
     
     
     func incrementViewCount(postID: String) async {
@@ -684,20 +647,13 @@ struct DetailView: View {
     }
     
     func reportPost(postId: String, message: String) {
-        let db = Firestore.firestore()
         let reportData: [String: Any] = [
             "postId": postId,
             "message": message,
-            "timestamp": Timestamp(date: Date())
+            //"timestamp": Timestamp(date: Date())
         ]
         
-        db.collection("reportedPosts").addDocument(data: reportData) { error in
-            if let error = error {
-                print("Error reporting post: \(error.localizedDescription)")
-            } else {
-                print("Post reported successfully")
-            }
-        }
+        
     }
 }
 
