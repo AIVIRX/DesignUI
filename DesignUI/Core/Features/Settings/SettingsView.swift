@@ -12,7 +12,6 @@ import SwiftUI
 import MessageUI
 #endif
 import AuthenticationServices
-import FirebaseAuth
 import CryptoKit
 import StoreKit
 

@@ -16,7 +16,7 @@ final class AnalyticsManager{
     func likedPost(postID: String) {
         Analytics.logEvent("Liked_Post", parameters: [
             "post_id": postID,
-            "timestamp": Timestamp(),
+            "timestamp": Date(),
             AnalyticsParameterContentType: "post"
         ])
     }
@@ -24,7 +24,7 @@ final class AnalyticsManager{
     func unlikedPost(postID: String) {
         Analytics.logEvent("Unliked_Post", parameters: [
             "post_id": postID,
-            "timestamp": Timestamp(),
+            "timestamp": Date(),
             AnalyticsParameterContentType: "post"
         ])
     }
@@ -32,7 +32,7 @@ final class AnalyticsManager{
     func viewedPost(postID: String) {
         Analytics.logEvent("Viewed_Post", parameters: [
             "post_id": postID,
-            "timestamp": Timestamp(),
+            "timestamp": Date(),
             AnalyticsParameterContentType: "post"
         ])
     }

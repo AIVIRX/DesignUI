@@ -34,6 +34,7 @@ class LatestPostsViewModel: ObservableObject {
                         author:profiles!posts_author_fkey (id, display_name, is_verified)
                         isLiked:likes(post_id, user_id).eq.\(currentUser)
                     """)
+                    .order("created_at", ascending: false)  //order by creation date
                     .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                     .execute()
                 

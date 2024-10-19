@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AuthenticationServices
-import FirebaseFirestore
 import CryptoKit
 import SDWebImage
 import SDWebImageSwiftUI

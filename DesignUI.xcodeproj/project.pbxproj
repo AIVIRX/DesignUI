@@ -29,8 +29,6 @@
 		EC4F38952C1CC2EC0018C802 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4F38942C1CC2EC0018C802 /* User.swift */; };
 		EC6D488E2CA4AA6A00E6F281 /* AnalyticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6D488D2CA4AA6A00E6F281 /* AnalyticsManager.swift */; };
 		EC6D48902CA4B15700E6F281 /* FirebaseAnalyticsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC6D488F2CA4B15700E6F281 /* FirebaseAnalyticsSwift */; };
-		EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */; };
-		EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
 		EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BDA2C19E454003134B1 /* Constants.swift */; };
@@ -52,7 +50,6 @@
 		EC8728352C4B5881006FF808 /* AlertItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8728342C4B5881006FF808 /* AlertItem.swift */; };
 		EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC91C8A62C5C1393000E20E3 /* StatefulTabView */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
-		EC961BA12C499EC2002D10DD /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */; };
 		EC9AAD532C61720C00796358 /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9AAD522C61720C00796358 /* StoreView.swift */; };
 		ECA4AD982C6FF114001AD63A /* DropdownMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD972C6FF114001AD63A /* DropdownMenuView.swift */; };
 		ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */; };
@@ -69,7 +66,6 @@
 		ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */; };
 		ECCDD4182C1B951C00869B70 /* LikedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDD4172C1B951C00869B70 /* LikedView.swift */; };
 		ECCDD41B2C1BBA5F00869B70 /* UploadDesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDD41A2C1BBA5F00869B70 /* UploadDesignView.swift */; };
-		ECCDD41D2C1BBADC00869B70 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = ECCDD41C2C1BBADC00869B70 /* FirebaseStorage */; };
 		ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */; };
 		ECCF93952C99128A0014C1F2 /* SearchBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCF93942C99128A0014C1F2 /* SearchBarView.swift */; };
 		ECD0430E2C5E7AB000865D12 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */; };
@@ -154,7 +150,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				ECD0430E2C5E7AB000865D12 /* FirebaseAnalytics in Frameworks */,
-				EC7D7B6B2C19DE8D003134B1 /* FirebaseAuth in Frameworks */,
 				EC4586FD2C94A8FF0039E46D /* FirebaseMessaging in Frameworks */,
 				ECC9BC852C0FE0D40052D471 /* AdSupport.framework in Frameworks */,
 				EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */,
@@ -163,15 +158,12 @@
 				ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */,
 				EC11EC0C2CB87D2A00E416FE /* Storage in Frameworks */,
 				EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */,
-				ECCDD41D2C1BBADC00869B70 /* FirebaseStorage in Frameworks */,
 				EC6D48902CA4B15700E6F281 /* FirebaseAnalyticsSwift in Frameworks */,
 				EC495DF02C5FF92500A6A52C /* Drops in Frameworks */,
 				EC11EC082CB87D2A00E416FE /* PostgREST in Frameworks */,
 				EC11EC102CB87EB000E416FE /* Supabase in Frameworks */,
-				EC7D7B6D2C19DEE4003134B1 /* FirebaseFirestore in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
 				EC495DF22C601E8300A6A52C /* FirebaseAppCheck in Frameworks */,
-				EC961BA12C499EC2002D10DD /* FirebaseFirestoreSwift in Frameworks */,
 				EC11EC0A2CB87D2A00E416FE /* Realtime in Frameworks */,
 				EC11EC062CB87D2A00E416FE /* Functions in Frameworks */,
 			);
@@ -417,11 +409,7 @@
 			name = DesignUI;
 			packageProductDependencies = (
 				EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */,
-				EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */,
-				EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */,
-				ECCDD41C2C1BBADC00869B70 /* FirebaseStorage */,
 				ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */,
-				EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */,
 				EC91C8A62C5C1393000E20E3 /* StatefulTabView */,
 				ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */,
 				EC495DEF2C5FF92500A6A52C /* Drops */,
@@ -949,30 +937,10 @@
 			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalyticsSwift;
 		};
-		EC7D7B6A2C19DE8D003134B1 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		EC7D7B6C2C19DEE4003134B1 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
 		EC91C8A62C5C1393000E20E3 /* StatefulTabView */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */;
 			productName = StatefulTabView;
-		};
-		EC961BA02C499EC2002D10DD /* FirebaseFirestoreSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestoreSwift;
-		};
-		ECCDD41C2C1BBADC00869B70 /* FirebaseStorage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
 		};
 		ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;

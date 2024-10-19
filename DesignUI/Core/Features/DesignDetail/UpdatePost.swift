@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import FirebaseFirestore
 
 struct EditPostView: View {
     @State var id: String
@@ -50,7 +49,7 @@ struct EditPostView: View {
             }
             
             Button("Save Changes") {
-                saveChanges()
+                //saveChanges()
             }
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
@@ -64,25 +63,4 @@ struct EditPostView: View {
 #endif
     }
     
-    private func saveChanges() {
-        let db = Firestore.firestore()
-        let postRef = db.collection("posts").document(id)
-        
-        let updatedData: [String: Any] = [
-            "title": title,
-            "description": description,
-            "codeSnippet": codeSnippet,
-            "hexa": hexa,
-            "visibility": visibility
-        ]
-        
-        postRef.updateData(updatedData) { error in
-            if let error = error {
-                self.alertMessage = "Error updating post: \(error.localizedDescription)"
-                self.showAlert = true
-            } else {
-                self.presentationMode.wrappedValue.dismiss()
-            }
-        }
-    }
 }

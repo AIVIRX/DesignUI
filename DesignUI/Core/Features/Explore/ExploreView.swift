@@ -20,7 +20,6 @@ struct ExploreView: View {
     @State private var selectedTag: String? = "All"
     @State private var isExplorePostsLoaded = false
     @State private var communityPosts: [DesignPost] = []
-    @State private var lastFetchedDocument: DocumentSnapshot?
     @State private var hasMoreCommunityPosts = false
     private let postsLimit = 2
     let availableTags = [ "All", "Animation", "Component", "Template"]
@@ -117,92 +116,10 @@ struct ExploreView: View {
         }
     }
     
-    // Handle debounced tag change
-    private func handleTagChange(_ tag: String) {
-        debounceWorkItem?.cancel() // Cancel any previous debounce work
-        
-        selectedTag = tag // Update the selected tag immediately for UI
-        
-        let workItem = DispatchWorkItem {
-            Task {
-                await fetchCommunityPosts(reset: true) // Fetch posts after delay
-                isExplorePostsLoaded = true
-            }
-        }
-        
-        debounceWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: workItem) // Debounce with 1 sec delay
-    }
     
-    private func loadMorePostsIfNeeded() {
-        guard hasMoreCommunityPosts && !isLoading else { return }
-        Task {
-            await fetchCommunityPosts()
-        }
-    }
     
-    private func fetchCommunityPosts(reset: Bool = false) async {
-        let db = Firestore.firestore()
-        
-        guard !isLoading else { return }
-        
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            if reset {
-                lastFetchedDocument = nil
-                communityPosts.removeAll()
-                print("Resetting community posts...")
-            }
-            
-            var query =
-            if let tag = selectedTag, tag != "All" {
-                db.collection("posts")
-                    .whereField("tags", arrayContains: tag)
-                    .whereField("visibility", isEqualTo: "public")
-                    .order(by: "creationDate", descending: true)
-                    .limit(to: postsLimit)
-            } else {
-                db.collection("posts")
-                    .whereField("visibility", isEqualTo: "public")
-                    .order(by: "creationDate", descending: true)
-                    .limit(to: postsLimit)
-            }
-            
-            if let lastDocument = lastFetchedDocument {
-                query = query.start(afterDocument: lastDocument)
-            }
-            
-            let querySnapshot = try await query.getDocuments()
-            if querySnapshot.documents.isEmpty {
-                DispatchQueue.main.async {
-                    self.hasMoreCommunityPosts = false
-                }
-                print("No more posts to load.")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                self.lastFetchedDocument = querySnapshot.documents.last
-                let newPosts = querySnapshot.documents.compactMap { document in
-                    try? document.data(as: DesignPost.self)
-                }
-                
-                self.communityPosts.append(contentsOf: newPosts)
-                
-                // Log the newly added posts
-                for post in newPosts {
-                    print("Loaded post: \(post.title) by  with ID: \(post.id)")
-                }
-                
-                self.hasMoreCommunityPosts = querySnapshot.documents.count == postsLimit
-                print("Fetched \(querySnapshot.documents.count) posts.")
-            }
-        } catch {
-            print("Error getting documents: \(error)")
-        }
-    }
+    
+   
 }
 
 #Preview {

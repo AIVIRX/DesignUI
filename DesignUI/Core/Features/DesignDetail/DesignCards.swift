@@ -27,13 +27,12 @@ struct DesignCards: View {
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
-    @State private var likesCount: Int = 0
-    @State private var viewCount: Int = 0
     @State private var isVisible = false
     @State private var isLiked = false
+    @State private var likesCount: Int = 0
+
     let client = SupabaseManager.shared.client
     @StateObject private var viewModel = LatestPostsViewModel()
-    
     init(id: String, media: String, title: String, authorUID: String, authorName:String, isVerified: Bool, description: String, codeSnippet: String, published: String, likes: Int, views: Int, hexa: String, visibility: String) {
         self.id = id
         self.media = media
@@ -44,10 +43,11 @@ struct DesignCards: View {
         self.description = description
         self.codeSnippet = codeSnippet
         self.published = published
-        self.likes = likes
+        self.likes = likes // Store the incoming likes value
         self.views = views
         self.hexa = hexa
         self.visibility = visibility
+        self._likesCount = State(initialValue: likes)
     }
     
     var body: some View {
@@ -62,8 +62,8 @@ struct DesignCards: View {
             creationDate: published,
             isAuthorVerified: isVerified,
             isLiked: isLiked,
-            likes: likes,
-            views: views,
+            likesCount: $likesCount,
+            views: likesCount,
             hexa: hexa,
             visibility: visibility
         )) {
@@ -210,7 +210,7 @@ struct DesignCards: View {
                             Image(systemName: "heart.fill")
                                 .foregroundColor(isLiked ? .red : .gray)
                                 .font(.system(size: 16))
-                            Text("\(formatCount(likes))")
+                            Text("\(formatCount(likesCount))")
                                 .font(.subheadline).bold()
                                 .foregroundColor(.secondary)
                         }
@@ -240,20 +240,17 @@ struct DesignCards: View {
 #if os(iOS)
                 .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 0 : 10)
 #endif
-                
 #if os(macOS)
                 .padding(.horizontal, 10)
 #endif
+                .task{
+                    if let userID = client.auth.currentUser?.id.uuidString {
+                            await checkIfLiked(postID: id, userID: userID)
+                    }
+                }
                 .onAppear {
                     withAnimation(.easeIn(duration: 0.2)) {
                         isVisible = true
-                    }
-                    
-                    
-                    if let userID = client.auth.currentUser?.id.uuidString {
-                        Task{
-                            await checkIfLiked(postID: id, userID: userID)
-                        }
                     }
                 }
             }
@@ -276,8 +273,7 @@ struct DesignCards: View {
                 .eq("user_id", value: userID)
                 .execute()
             
-            print("Response: \(response)")  // Print the entire response for debugging
-            
+            print("CHECKING IF LIKED!")
             if response.count ?? 0 > 0 {
                 isLiked = true
                 print("Count is greater than 0: Liked Set to true")

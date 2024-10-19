@@ -16,7 +16,6 @@ import Supabase
 struct HomeView: View {
     @EnvironmentObject private var store: Store
     @Environment(\.colorScheme) var colorScheme
-    @ObservedObject var userViewModel = UserViewModel.shared
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var communityPosts: [DesignPost] = []
     @State private var hasMoreCommunityPosts = false
@@ -93,11 +92,7 @@ struct HomeView: View {
                 startAnimation = true
                 opacity = 1.0
             }
-            
-            Task {
-                await userViewModel.fetchProfileData()
-            }
-            
+        
             store.loadStoredPurchases()
         }
     }

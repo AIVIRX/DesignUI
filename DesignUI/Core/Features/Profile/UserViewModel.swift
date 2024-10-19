@@ -9,10 +9,10 @@ import Foundation
 import Supabase
 
 class UserViewModel: ObservableObject {
-    @Published var profile: ProfileModel? 
+    @Published var profile: ProfileModel?
     let client = SupabaseManager.shared.client
     static let shared = UserViewModel()
-
+    
     func fetchProfileData() async {
         do {
             let session = try await client.auth.session // Fetch session, can throw
@@ -32,9 +32,9 @@ class UserViewModel: ObservableObject {
     func fetchProfileFromBackend(userId: String) async throws -> ProfileModel {
         // Fetch profile data from Supabase
         let response = try await client
-            .from("profiles") // Use SupabaseClient.from(_:) method
+            .from("profiles")
             .select()
-            .eq("id", value: userId) // Pass userId directly
+            .eq("id", value: userId)
             .execute()
         
         print("Response data: \(String(describing: response.data))")
@@ -52,7 +52,6 @@ class UserViewModel: ObservableObject {
         guard let firstProfile = profileData.first else {
             throw NSError(domain: "ProfileDataError", code: 2, userInfo: [NSLocalizedDescriptionKey: "No profiles found"])
         }
-        
         return firstProfile
     }
 }

@@ -9064,9 +9064,6 @@
         }
       }
     },
-    "Loading..." : {
-
-    },
     "Made in New York City" : {
       "localizations" : {
         "ar" : {
@@ -9785,9 +9782,6 @@
           }
         }
       }
-    },
-    "No results found" : {
-
     },
     "OK" : {
       "localizations" : {
@@ -16229,6 +16223,7 @@
       }
     },
     "Similar Posts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

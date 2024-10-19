@@ -12,9 +12,7 @@ struct SearchBarView: View {
     @Binding var searchText: String
     @Environment(\.colorScheme) var colorScheme
     @State private var isFocused = false
-    @State private var results = [Post]()
     @State private var isLoading = false
-    var db = Firestore.firestore()
     var body: some View {
         VStack{
             HStack{
@@ -30,7 +28,6 @@ struct SearchBarView: View {
                     TextField("", text: $searchText, onEditingChanged: { focused in
                         isFocused = focused
                         if focused { // Trigger search when the text field is focused
-                            debounceSearch()
                         }
                     })
                     .foregroundStyle(colorScheme == .dark ? .white : .black)
@@ -60,60 +57,31 @@ struct SearchBarView: View {
             )
             .padding()
             // Results list
-            if isFocused || !searchText.isEmpty {
-                if isLoading {
-                    ProgressView("Loading...") // Loading indicator
-                } else if !results.isEmpty {
-                    List(results, id: \.id) { post in
-                        Text(post.title)  // Customize this to show post details
-                            .onTapGesture {
-                                searchText = post.title
-                                isFocused = false
-                            }
-                    }
-                    .frame(maxHeight: 200)
-                } else if !searchText.isEmpty {
-                    Text("No results found")
-                        .foregroundStyle(.gray)
-                        .padding()
-                }
-            }
+//            if isFocused || !searchText.isEmpty {
+//                if isLoading {
+//                    ProgressView("Loading...") // Loading indicator
+//                } else if !results.isEmpty {
+//                    List(results, id: \.id) { post in
+//                        Text(post.title)  // Customize this to show post details
+//                            .onTapGesture {
+//                                searchText = post.title
+//                                isFocused = false
+//                            }
+//                    }
+//                    .frame(maxHeight: 200)
+//                } else if !searchText.isEmpty {
+//                    Text("No results found")
+//                        .foregroundStyle(.gray)
+//                        .padding()
+//                }
+//            }
         }
     }
     
     // Debounced search
-    private func debounceSearch() {
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { // Debounce time 0.3 seconds
-            queryPosts(with: searchText)
-        }
-    }
+    
     
     // Query Firestore for posts containing search text
-    private func queryPosts(with text: String) {
-        guard !text.isEmpty else {
-            self.results = []
-            self.isLoading = false
-            return
-        }
-        
-        // Query Firestore (posts collection) where titles or other fields contain the search text
-        db.collection("posts")
-            .whereField("title", isGreaterThanOrEqualTo: text)
-            .whereField("title", isLessThan: text + "z") 
-            .limit(to: 10)  // Limit results for performance
-            .getDocuments { (querySnapshot, error) in
-                self.isLoading = false
-                if let error = error {
-                    print("Error fetching posts: \(error)")
-                    return
-                }
-                
-                self.results = querySnapshot?.documents.compactMap { document in
-                    try? document.data(as: Post.self) //
-                } ?? []
-            }
-    }
 }
 
 

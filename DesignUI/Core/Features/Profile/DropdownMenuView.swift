@@ -7,7 +7,6 @@
 
 import SwiftUI
 import CryptoKit
-import FirebaseAuth
 import AuthenticationServices
 
 #if os(macOS)

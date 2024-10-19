@@ -14,6 +14,8 @@ struct AuthView: View {
     @State private var isAuthenticated: Bool = false
     @State private var hasUsername: Bool = false
     @State private var userSession: Session?
+    @ObservedObject var userViewModel = UserViewModel.shared
+
     var body: some View {
         Group {
             if authManager.isAuthenticated {
@@ -24,6 +26,13 @@ struct AuthView: View {
         }
         .onAppear{
             authManager.checkSession()
+            
+        }
+        .task {
+            // Fetch profile only if necessary
+            if userViewModel.profile == nil {
+                await userViewModel.fetchProfileData()
+            }
         }
     }
 }

@@ -138,7 +138,7 @@ struct DesignUIApp: App {
     @StateObject private var store = Store()
     @StateObject private var authManager = AuthManager()
     @StateObject private var userModel = UserViewModel()
-
+    let client = SupabaseManager.shared.client
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -147,8 +147,8 @@ struct DesignUIApp: App {
                 .environmentObject(userModel)
                 .onAppear {
                     // Retrieve the current user and set the user ID for Analytics
-                    if let user = Auth.auth().currentUser {
-                        AnalyticsManager.shared.setUserID(userID: user.uid)
+                    if let user = client.auth.currentUser {
+                        AnalyticsManager.shared.setUserID(userID: user.id.uuidString)
                     } else {
                         AnalyticsManager.shared.setUserID(userID: "Undefined") // Clear user ID if not logged in
                     }

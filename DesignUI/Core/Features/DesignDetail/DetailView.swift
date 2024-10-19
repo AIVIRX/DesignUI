@@ -14,7 +14,7 @@ struct DetailView: View {
     var creationDate: String
     var isAuthorVerified: Bool
     var isLiked: Bool
-    var likes: Int
+    @Binding var likesCount: Int
     var views: Int
     var hexa: String
     var visibility: String
@@ -23,7 +23,6 @@ struct DetailView: View {
     @State private var showShareSheet: Bool = false
     @State private var repostCount: Int = 0
     @State private var shareCount: Int = 0
-    @State private var likesCount: Int = 0
     @State private var viewCount: Int = 0
     @State private var isLiking: Bool = false
     @State private var showReportAlert = false
@@ -108,13 +107,13 @@ struct DetailView: View {
                                     print("not signed in")
                                 }
                             }) {
-                                VStack{
-                                    Image(systemName: liked ? "heart.fill" : "heart")
-                                        .foregroundColor(liked ? .red : .gray)
-                                        .font(.title)
+                                HStack{
                                     Text("\(formatCount(likesCount))")
                                         .font(.subheadline).bold()
                                         .foregroundColor(.secondary)
+                                    Image(systemName: liked ? "heart.fill" : "heart")
+                                        .foregroundColor(liked ? .red : .gray)
+                                        .font(.title)
                                 }
                             }.disabled(isLiked)
                         }
@@ -485,7 +484,6 @@ struct DetailView: View {
         .scrollIndicators(.hidden)
         .onAppear {
             self.liked = isLiked
-            self.likesCount = likes
             self.viewCount = views
         }
         
@@ -498,17 +496,6 @@ struct DetailView: View {
             }) {
                 Label("Report", systemImage: "flag")
             }
-            
-            //            if checkIfAuthor(){
-            //                Button(action: {
-            //                    isEditing.toggle()
-            //                }) {
-            //                    Label("Edit", systemImage: "square.and.pencil")
-            //                }
-            //                .sheet(isPresented: $isEditing) {
-            //                    EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, hexa: hexa, visibility: visibility)
-            //                }
-            //            }
         })
         .sheet(isPresented: $isReporting) {
             VStack {
@@ -544,7 +531,6 @@ struct DetailView: View {
             .presentationDetents([.medium])
         }
 #endif
-        
 #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -634,11 +620,8 @@ struct DetailView: View {
         }
     }
     
-    
-    
     func incrementViewCount(postID: String) async {
         do{
-            // Call the RPC function to increment view count
             try await client.rpc("increment_view_count", params: ["post_id": postID]).execute()
             
         } catch {
