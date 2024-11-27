@@ -12,7 +12,7 @@ import Supabase
 #endif
 
 enum ViewType: Hashable {
-    case home, explore, upload, profile, sfIcons, shop
+    case home, explore, upload, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -31,7 +31,6 @@ struct ContentView: View {
     @State private var isIGHovered: Bool = false
     @State private var isDiscordHovered: Bool = false
     @State private var isEditorHovered: Bool = false
-    @ObservedObject var userViewModel = UserViewModel.shared // Use shared instance
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
     var body: some View {
@@ -53,12 +52,12 @@ struct ContentView: View {
                         ExploreView() //Explore Page
                     }
                     
-                    Tab(systemImageName: "plus.app.fill") {
-                        UploadDesignView() // Upload Page
-                    }
+//                    Tab(systemImageName: "plus.app.fill") {
+//                        UploadDesignView() // Upload Page
+//                    }
                     
-                    Tab(systemImageName: "person.crop.circle") {
-                        AuthView() //Profile Page
+                    Tab(systemImageName: "gearshape.fill") {
+                        SettingsView() //Profile Page
                     }
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
@@ -73,9 +72,6 @@ struct ContentView: View {
                     
                     // Search Tab
                     navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 1)
-                    
-                    // Profile Tab
-                    navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered, selectedIndex: $selectedIndex, currentIndex: 2)
                     
                     Divider().padding(.vertical)
                     
@@ -178,8 +174,6 @@ struct ContentView: View {
                         HomeView()
                     case 1:
                         ExploreView()
-                    case 2:
-                        AuthView()
                     case 3:
                         SFIconsView()
                     case 4:
@@ -387,8 +381,6 @@ struct ContentView: View {
             return AnyView(UploadDesignView())
         case . shop:
             return AnyView(OldStoreView())
-        case .profile:
-            return AnyView(AuthView())
         case .sfIcons:
             return AnyView(SFIconsView())
         }

@@ -13,41 +13,28 @@ struct DesignCards: View {
     var id: String
     var media: String
     var title: String
-    var authorUID: String
     var authorName: String
     var isVerified: Bool
     var description: String
     var codeSnippet: String
     var published: String
-    var likes: Int
-    var views: Int
-    var hexa: String
-    var visibility: String
     
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isVisible = false
-    @State private var isLiked = false
-    @State private var likesCount: Int = 0
-
-    let client = SupabaseManager.shared.client
+    let client = SupabaseManager.shared.client    
     @StateObject private var viewModel = LatestPostsViewModel()
-    init(id: String, media: String, title: String, authorUID: String, authorName:String, isVerified: Bool, description: String, codeSnippet: String, published: String, likes: Int, views: Int, hexa: String, visibility: String) {
+
+    init(id: String, media: String, title: String, authorName:String, isVerified: Bool, description: String, codeSnippet: String, published: String) {
         self.id = id
         self.media = media
         self.title = title
-        self.authorUID = authorUID
         self.authorName = authorName
         self.isVerified = isVerified
         self.description = description
         self.codeSnippet = codeSnippet
         self.published = published
-        self.likes = likes // Store the incoming likes value
-        self.views = views
-        self.hexa = hexa
-        self.visibility = visibility
-        self._likesCount = State(initialValue: likes)
     }
     
     var body: some View {
@@ -57,15 +44,9 @@ struct DesignCards: View {
             title: title,
             description: description,
             author: authorName,
-            authorUID: authorUID,
             codeSnippet: codeSnippet,
             creationDate: published,
-            isAuthorVerified: isVerified,
-            isLiked: isLiked,
-            likesCount: $likesCount,
-            views: likesCount,
-            hexa: hexa,
-            visibility: visibility
+            isAuthorVerified: isVerified
         )) {
             VStack(alignment: .center) {
 #if os(iOS)
@@ -73,7 +54,7 @@ struct DesignCards: View {
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
                         .frame(height: 280)
-                        .foregroundStyle(Color(hex: hexa))
+                        .foregroundStyle(.regularMaterial)
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)
                                 .stroke(Color.gray, lineWidth: 0.5)
@@ -144,7 +125,6 @@ struct DesignCards: View {
                     }
                 }
 #endif
-                
 #if os(macOS)
                 WebImage(url: URL(string: media)) { phase in
                     switch phase {
@@ -187,7 +167,7 @@ struct DesignCards: View {
 #endif
                 VStack(alignment: .leading) {
                     Text(title)
-                        .font(.system(size: 16).bold())
+                        .font(.system(size: 17).bold())
                         .lineLimit(1)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
@@ -195,7 +175,7 @@ struct DesignCards: View {
                     
                     HStack {
                         Text(authorName)
-                            .font(.system(size: 14)).bold()
+                            .font(.system(size: 16)).bold()
                             .foregroundColor(.secondary)
                         
                         if isVerified {
@@ -206,28 +186,15 @@ struct DesignCards: View {
                         
                         Spacer()
                         
-                        HStack{
-                            Image(systemName: "heart.fill")
-                                .foregroundColor(isLiked ? .red : .gray)
-                                .font(.system(size: 16))
-                            Text("\(formatCount(likesCount))")
-                                .font(.subheadline).bold()
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal,2)
-#if os(iOS)
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                            HStack{
-                                Image(systemName: "eye")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 16))
-                                Text("\(formatCount(views))")
-                                    .font(.subheadline).bold()
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal,2)
-                        }
-#endif
+//                        HStack{
+//                            Image(systemName: "heart.fill")
+//                                .foregroundColor(isLiked ? .red : .gray)
+//                                .font(.system(size: 16))
+//                            Text("\(formatCount(likesCount))")
+//                                .font(.subheadline).bold()
+//                                .foregroundColor(.secondary)
+//                        }
+//                        .padding(.horizontal,2)
                     }
                     .padding(.bottom, 6)
                     .contentShape(Rectangle())
@@ -236,6 +203,7 @@ struct DesignCards: View {
                         isHovered = hovering
                     }
                 }
+                .padding(.top, 2)
                 .opacity(isVisible ? 1 : 0)
 #if os(iOS)
                 .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 0 : 10)
@@ -243,11 +211,6 @@ struct DesignCards: View {
 #if os(macOS)
                 .padding(.horizontal, 10)
 #endif
-                .task{
-                    if let userID = client.auth.currentUser?.id.uuidString {
-                            await checkIfLiked(postID: id, userID: userID)
-                    }
-                }
                 .onAppear {
                     withAnimation(.easeIn(duration: 0.2)) {
                         isVisible = true
@@ -262,55 +225,5 @@ struct DesignCards: View {
             impactHeavy.impactOccurred()
         })
 #endif
-    }
-    
-    func checkIfLiked(postID: String, userID: String) async {
-        do {
-            let response = try await client
-                .from("likes")
-                .select("*", head: true, count: .exact)
-                .eq("post_id", value: postID)
-                .eq("user_id", value: userID)
-                .execute()
-            
-            print("CHECKING IF LIKED!")
-            if response.count ?? 0 > 0 {
-                isLiked = true
-                print("Count is greater than 0: Liked Set to true")
-            } else {
-                isLiked = false
-                print("Count is 0: Liked Set to false")
-            }
-        } catch {
-            print("Error checking if post is liked: \(error)")
-            isLiked = false
-        }
-    }
-}
-
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 0, 0)
-        }
-        
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
-        )
     }
 }

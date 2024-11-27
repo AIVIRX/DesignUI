@@ -136,15 +136,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
-    @StateObject private var authManager = AuthManager()
-    @StateObject private var userModel = UserViewModel()
     let client = SupabaseManager.shared.client
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(authManager)
                 .environmentObject(store)
-                .environmentObject(userModel)
                 .onAppear {
                     // Retrieve the current user and set the user ID for Analytics
                     if let user = client.auth.currentUser {

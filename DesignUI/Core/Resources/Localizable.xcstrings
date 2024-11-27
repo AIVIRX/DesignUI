@@ -240,6 +240,7 @@
       }
     },
     "@%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -716,6 +717,7 @@
       }
     },
     "%@ views" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1198,6 +1200,7 @@
       }
     },
     "Accounts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1435,10 +1438,8 @@
         }
       }
     },
-    "Activity" : {
-
-    },
     "Are you sure you want to delete your account? This action cannot be undone." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1677,6 +1678,7 @@
       }
     },
     "Are you sure you want to report this post?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2154,6 +2156,7 @@
       }
     },
     "Are you sure you want to sign out?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4774,6 +4777,7 @@
       }
     },
     "Delete" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5012,6 +5016,7 @@
       }
     },
     "Delete Account" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5964,6 +5969,7 @@
       }
     },
     "Dock UI" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6916,6 +6922,7 @@
       }
     },
     "Edit Profile" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7390,6 +7397,9 @@
           }
         }
       }
+    },
+    "Explore" : {
+
     },
     "Featured" : {
       "extractionState" : "stale",
@@ -8826,7 +8836,6 @@
       }
     },
     "Loading posts..." : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9301,9 +9310,6 @@
           }
         }
       }
-    },
-    "No activity available." : {
-
     },
     "No liked posts found." : {
       "extractionState" : "stale",
@@ -9783,6 +9789,12 @@
         }
       }
     },
+    "No matching posts found" : {
+
+    },
+    "No posts found" : {
+
+    },
     "OK" : {
       "localizations" : {
         "ar" : {
@@ -10022,6 +10034,7 @@
       }
     },
     "Optional Message" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11214,9 +11227,6 @@
         }
       }
     },
-    "Post View" : {
-
-    },
     "Privacy & Support" : {
       "localizations" : {
         "ar" : {
@@ -12408,6 +12418,7 @@
       }
     },
     "Report Content" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -13600,6 +13611,7 @@
       }
     },
     "Saving..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14076,7 +14088,7 @@
         }
       }
     },
-    "Search \"Template\"" : {
+    "Search designs..." : {
 
     },
     "Search Results" : {
@@ -15747,6 +15759,7 @@
       }
     },
     "Sign out" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15985,6 +15998,7 @@
       }
     },
     "Sign Out" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19324,9 +19338,6 @@
         }
       }
     },
-    "Username" : {
-
-    },
     "v%@" : {
       "localizations" : {
         "ar" : {
@@ -20041,6 +20052,9 @@
           }
         }
       }
+    },
+    "Website" : {
+
     },
     "Welcome, User!" : {
       "extractionState" : "stale",

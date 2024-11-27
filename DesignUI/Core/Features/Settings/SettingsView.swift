@@ -61,16 +61,12 @@ struct SettingsView: View {
     @EnvironmentObject private var store: Store
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
-    @State private var showSignOutAlert: Bool = false
-    @State private var showDeleteAccountAlert: Bool = false
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
-    @State private var nonce: String?
 #if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
 #endif
     @State private var isShowingMailView = false
-    @State private var showPaywall = false
     @Environment(\.dismiss) var dismiss
     var body: some View {
         NavigationStack {
@@ -89,7 +85,6 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    
                     Section(header: Text("Support Us")) {
                         Button {
                             requestReview()
@@ -108,7 +103,7 @@ struct SettingsView: View {
                         Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                             .bold()
                         
-                        Link("Discord", destination: URL(string: "https://discord.gg/9aq3c2MF3m")!)
+                        Link("Website", destination: URL(string: "https://www.dockui.com")!)
                             .bold()
                     }
                     
@@ -177,6 +172,7 @@ struct SettingsView: View {
 #endif
         }
     }
+    
     private func showError(_ message: String) {
         errorMessage = message
         showErrorAlert = true

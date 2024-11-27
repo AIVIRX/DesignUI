@@ -334,7 +334,6 @@ struct UploadDesignView: View {
         }
         
         func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
-            // Update the view controller if needed
         }
         
         class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {

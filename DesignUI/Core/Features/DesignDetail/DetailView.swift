@@ -9,15 +9,9 @@ struct DetailView: View {
     var title: String
     var description: String
     var author: String
-    var authorUID: String
     var codeSnippet: String
     var creationDate: String
     var isAuthorVerified: Bool
-    var isLiked: Bool
-    @Binding var likesCount: Int
-    var views: Int
-    var hexa: String
-    var visibility: String
     
     @State private var isCopied: Bool = false
     @State private var showShareSheet: Bool = false
@@ -42,7 +36,7 @@ struct DetailView: View {
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
                         .frame(height: 280)
-                        .foregroundStyle(Color(hex: hexa))
+                        .foregroundStyle(.thinMaterial)
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)
                                 .frame(width: 115,height: 250)
@@ -90,32 +84,7 @@ struct DetailView: View {
                                             .foregroundColor(.blue)
                                     }
                                 }
-                                
-                                Text("\(formatCount(viewCount)) views")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
                             }
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                if let user = client.auth.currentUser {
-                                    Task{
-                                        await likePost(postID: id, userID: user.id.uuidString)
-                                    }
-                                } else {
-                                    print("not signed in")
-                                }
-                            }) {
-                                HStack{
-                                    Text("\(formatCount(likesCount))")
-                                        .font(.subheadline).bold()
-                                        .foregroundColor(.secondary)
-                                    Image(systemName: liked ? "heart.fill" : "heart")
-                                        .foregroundColor(liked ? .red : .gray)
-                                        .font(.title)
-                                }
-                            }.disabled(isLiked)
                         }
                         //TagView(tags: tags)
                     }
@@ -222,36 +191,11 @@ struct DetailView: View {
                                         .bold()
                                         .lineLimit(2)
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                    
-                                    
-                                    Button(action: {
-                                        if let user = client.auth.currentUser {
-                                            Task{
-                                                await likePost(postID: id, userID: user.id.uuidString)
-                                            }
-                                        } else {
-                                            print("not signed in")
-                                        }
-                                    }) {
-                                        VStack{
-                                            Image(systemName: liked ? "heart.fill" : "heart")
-                                                .foregroundColor(liked ? .red : .gray)
-                                                .font(.title)
-                                            Text("\(formatCount(likesCount))")
-                                                .font(.subheadline).bold()
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
                                 }
                                 
                                 Text(creationDate)
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
-                                
-                                Text("\(formatCount(viewCount)) views")
-                                    .font(.system(size: 15)).bold()
-                                    .foregroundColor(.secondary)
-                                
                                 
                                 HStack {
                                     Text("\(author)")
@@ -395,12 +339,6 @@ struct DetailView: View {
                                 .font(.system(size: 15)).bold()
                                 .foregroundColor(.secondary)
                             
-                            if Auth.auth().currentUser != nil{
-                                Text("\(formatCount(viewCount)) views")
-                                    .font(.system(size: 15)).bold()
-                                    .foregroundColor(.secondary)
-                            }
-                            
                             HStack {
                                 Text("\(author)")
                                     .font(.system(size: 15)).bold()
@@ -482,54 +420,9 @@ struct DetailView: View {
 #endif
         }
         .scrollIndicators(.hidden)
-        .onAppear {
-            self.liked = isLiked
-            self.viewCount = views
-        }
         
 #if os(iOS)
         .navigationBarTitle(title)
-        .navigationBarItems(trailing:
-                                HStack{
-            Button(action: {
-                isReporting.toggle()
-            }) {
-                Label("Report", systemImage: "flag")
-            }
-        })
-        .sheet(isPresented: $isReporting) {
-            VStack {
-                Text("Report Content")
-                    .font(.title).bold()
-                Text("Are you sure you want to report this post?")
-                    .font(.headline)
-                    .padding(.bottom)
-                
-                Spacer()
-                
-                TextEditorWithCounter(label: "Message", text: $reportMessage, maxLength: 100)
-                
-                Spacer()
-                
-                Button {
-                    reportPost(postId: id, message: reportMessage)
-                    isReporting = false
-                } label: {
-                    Text("Report")
-                        .padding(8)
-                        .font(.headline).bold()
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .foregroundStyle(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12.0))
-                .padding(.top, 10)
-            }
-            .padding()
-            .presentationDetents([.medium])
-        }
 #endif
 #if os(macOS)
         .toolbar {
@@ -555,43 +448,8 @@ struct DetailView: View {
                 }
             }
         }
-        .sheet(isPresented: $isReporting) {
-            VStack {
-                Text("Report Content")
-                    .font(.headline)
-                Text("Are you sure you want to report this post?")
-                    .padding(.bottom)
-                
-                TextField("Optional Message", text: $reportMessage)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding()
-                
-                HStack {
-                    Button("Cancel") {
-                        isReporting = false // Dismiss the sheet without reporting
-                    }
-                    .keyboardShortcut(.cancelAction)
-                    
-                    Spacer()
-                    
-                    Button("Report") {
-                        reportPost(postId: id, message: reportMessage)
-                        isReporting = false // Dismiss the sheet after reporting
-                    }
-                    .keyboardShortcut(.defaultAction)
-                }
-                .padding()
-            }
-            .padding()
-            .frame(width: 300)
-        }
 #endif
         .padding(7)
-        .onAppear{
-            Task{
-                await incrementViewCount(postID: id)
-            }
-        }
     }
     
     func copyToClipboard(_ text: String) {
@@ -603,41 +461,7 @@ struct DetailView: View {
         pasteboard.setString(text, forType: .string)
 #endif
     }
-    
-    func likePost(postID: String, userID: String) async {
-        print("Attempting to like post with postID: \(postID) user: \(userID)")
-        do{
-            let response = try await client
-                .from("likes")
-                .insert(["post_id": id])
-                .execute()
-            
-            print("Raw Liking response data: \(response.data)")
-            likesCount += 1
-            liked = true
-        } catch {
-            print("Error liking posts: \(error)")
-        }
-    }
-    
-    func incrementViewCount(postID: String) async {
-        do{
-            try await client.rpc("increment_view_count", params: ["post_id": postID]).execute()
-            
-        } catch {
-            print("Error updating view count: \(error.localizedDescription)")
-        }
-    }
-    
-    func reportPost(postId: String, message: String) {
-        let reportData: [String: Any] = [
-            "postId": postId,
-            "message": message,
-            //"timestamp": Timestamp(date: Date())
-        ]
-        
-        
-    }
+
 }
 
 struct TagView: View {
