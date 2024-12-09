@@ -14,8 +14,6 @@ import SDWebImageSwiftUI
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var searchText = ""
-    @State private var selectedTag: String? = "All"
-    
     
     private let columns = [
         GridItem(.adaptive(minimum: 300, maximum: 400), spacing: 16)
@@ -47,7 +45,7 @@ struct ExploreView: View {
                                 .foregroundColor(.secondary)
                                 .padding()
                         } else {
-                            LazyVGrid(columns: columns, spacing: 16) {
+                            LazyVGrid(columns: gridColumns, spacing: 16) {
                                 ForEach(filteredPosts) { post in
                                     DesignCards(
                                         id: post.id,
@@ -82,7 +80,6 @@ struct ExploreView: View {
                     }
                 }
             }
-            .background(Color(.systemBackground))
             .navigationTitle("Explore")
             .frame(maxWidth: 1600)
             .refreshable {
@@ -103,35 +100,11 @@ struct ExploreView: View {
     }
 }
 
-// Helper Views
-struct TagButton: View {
-    let tag: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(tag)
-                .font(.system(.subheadline, design: .rounded, weight: .medium))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color.blue.opacity(0.15) : Color(.systemGray6))
-                .foregroundStyle(isSelected ? .blue : .primary)
-                .clipShape(Capsule())
-                .overlay(
-                    Capsule()
-                        .stroke(isSelected ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
-                )
-        }
-    }
-}
-
 struct GridLoadingView: View {
     var body: some View {
         HStack(spacing: 16) {
             ForEach(0..<2) { _ in
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemGray6))
                     .frame(height: 400)
                     .overlay(
                         ProgressView()

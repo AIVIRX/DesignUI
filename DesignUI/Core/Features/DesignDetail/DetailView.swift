@@ -18,15 +18,11 @@ struct DetailView: View {
     @State private var repostCount: Int = 0
     @State private var shareCount: Int = 0
     @State private var viewCount: Int = 0
-    @State private var isLiking: Bool = false
     @State private var showReportAlert = false
     @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
     @State private var isReporting: Bool = false
-    @State private var isEditing: Bool = false
     @State private var isCurrentUserAuthor: Bool = false
-    @State private var reportMessage: String = ""
-    @State private var liked: Bool = false
     let client = SupabaseManager.shared.client
     var body: some View {
         ScrollView() {
@@ -307,6 +303,7 @@ struct DetailView: View {
                                     }
                                 }
                         }
+                    
                     VStack{
                         VStack(alignment: .leading) {
                             HStack {
@@ -315,29 +312,7 @@ struct DetailView: View {
                                     .bold()
                                     .lineLimit(2)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                if Auth.auth().currentUser != nil{
-                                    Button(action: {
-                                        if !isLiking {
-                                            isLiking = true
-                                            toggleLike()
-                                        }
-                                    }) {
-                                        VStack{
-                                            Image(systemName: isLiked ? "heart.fill" : "heart")
-                                                .foregroundColor(isLiked ? .red : .gray)
-                                                .font(.title)
-                                            Text("\(formatCount(likesCount))")
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                }
                             }
-                            Text(creationDate)
-                                .font(.system(size: 15)).bold()
-                                .foregroundColor(.secondary)
                             
                             HStack {
                                 Text("\(author)")
@@ -350,8 +325,6 @@ struct DetailView: View {
                                         .foregroundColor(.blue)
                                 }
                             }
-                            
-                            TagView(tags: tags)
                             
                             Text("Description:")
                                 .font(.system(size: 25)).bold()
@@ -410,10 +383,6 @@ struct DetailView: View {
                     }
                 }
                 .frame(height: 700)
-                
-                HStack{
-                    SimilarPostsView(currentPostId: id, tags: tags)
-                }
             }
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
@@ -423,31 +392,6 @@ struct DetailView: View {
         
 #if os(iOS)
         .navigationBarTitle(title)
-#endif
-#if os(macOS)
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                HStack{
-                    Button(action: {
-                        isReporting.toggle() // Show the custom sheet for reporting
-                    }) {
-                        Label("Report", systemImage: "flag")
-                    }
-                    
-                    
-                    if checkIfAuthor(){
-                        Button(action: {
-                            isEditing.toggle() // Toggle to present a sheet for message input
-                        }) {
-                            Label("Edit", systemImage: "square.and.pencil")
-                        }
-                        .sheet(isPresented: $isEditing) {
-                            EditPostView(id: id, title: title, description: description, codeSnippet: codeSnippet, tags: tags, hexa: hexa, visibility: visibility)
-                        }
-                    }
-                }
-            }
-        }
 #endif
         .padding(7)
     }
@@ -460,41 +404,5 @@ struct DetailView: View {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 #endif
-    }
-
-}
-
-struct TagView: View {
-    var tags: [String]
-    var body: some View {
-        if tags != [""]{
-            HStack {
-                ForEach(tags, id: \.self) { tag in
-                    Text("\(tag)")
-                        .font(.system(size: 13)).bold()
-                        .padding(5)
-                        .background(color(for: tag))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                }
-            }
-        }
-    }
-    
-    func color(for tag: String) -> Color {
-        switch tag {
-        case "Template":
-            return .gray
-        case "UIKit":
-            return .orange
-        case "SwiftUI":
-            return .red
-        case "Animation":
-            return .purple
-        case "Component":
-            return .blue
-        default:
-            return .gray
-        }
     }
 }

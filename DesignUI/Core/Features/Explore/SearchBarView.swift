@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Firebase
 
 struct SearchBarView: View {
     @Binding var searchText: String
@@ -25,7 +24,6 @@ struct SearchBarView: View {
                 .textFieldStyle(.plain)
                 .foregroundStyle(colorScheme == .dark ? .white : .black)
                 .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
             
             // Clear button
             if !searchText.isEmpty {

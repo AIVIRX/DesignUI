@@ -195,9 +195,6 @@ struct ContentView: View {
                 // Search Tab
                 navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 1)
                 
-                // Profile Link
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.circle", isHovered: $isProfileHovered, selectedIndex: $selectedIndex, currentIndex: 2)
-                
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link
@@ -213,7 +210,7 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                    .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .yellow : .yellow))
                     .background(Color.clear)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
@@ -236,20 +233,8 @@ struct ContentView: View {
                         isIGHovered = hovering
                     }
                 
-                Link("Discord", destination: URL(string: "https://discord.gg/9aq3c2MF3m")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(isDiscordHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
-                    .background(Color.clear)
-                    .cornerRadius(8)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        isDiscordHovered = hovering
-                    }
-                
                 // Privacy Policy Link
-                Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
+                Link("Privacy Policy", destination: URL(string: "https://dockui.com/privacy")!)
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
@@ -261,7 +246,7 @@ struct ContentView: View {
                     }
                 
                 // Contact Us Link
-                Link("Contact Us", destination: URL(string: "https://www.aivirx.com/contact")!)
+                Link("Contact Us", destination: URL(string: "https://dockui.com/contact")!)
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
@@ -299,8 +284,6 @@ struct ContentView: View {
                     HomeView()
                 case 1:
                     ExploreView()
-                case 2:
-                    ProfileView()
                 case 3:
                     SFIconsView()
                 case 4:

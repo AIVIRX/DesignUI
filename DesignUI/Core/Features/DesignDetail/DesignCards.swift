@@ -141,15 +141,15 @@ struct DesignCards: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(Color.gray, lineWidth: 0.8)
                             )
-                            .scaleEffect(isHovered ? 1.02 : 1.0)  // Scale effect on hover
+                            .scaleEffect(isHovered ? 1.02 : 1.0)
                             .colorMultiply(isHovered ? Color.white : Color(white: 0.95))
-                            .animation(.easeInOut(duration: 0.2), value: isHovered)  // Animation
-                            .background(Color.clear)  // Background to prevent clipping
+                            .animation(.easeInOut(duration: 0.2), value: isHovered)
+                            .background(Color.clear)
                             .zIndex(isHovered ? 1 : 0)
                             .onHover { hovering in
                                 isHovered = hovering
                             }
-                            .padding(.top)
+                            .padding(.top, 5)
                         
                     case .failure:
                         Image(systemName: "photo")
@@ -166,8 +166,8 @@ struct DesignCards: View {
                 }
 #endif
                 VStack(alignment: .leading) {
-                    Text(title)
-                        .font(.system(size: 17).bold())
+                    Text(title).bold()
+                        .font(.system(size: 16))
                         .lineLimit(1)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
@@ -175,7 +175,7 @@ struct DesignCards: View {
                     
                     HStack {
                         Text(authorName)
-                            .font(.system(size: 16)).bold()
+                            .font(.system(size: 16))
                             .foregroundColor(.secondary)
                         
                         if isVerified {
@@ -203,14 +203,8 @@ struct DesignCards: View {
                         isHovered = hovering
                     }
                 }
-                .padding(.top, 2)
+                .padding(.top, 1)
                 .opacity(isVisible ? 1 : 0)
-#if os(iOS)
-                .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 0 : 10)
-#endif
-#if os(macOS)
-                .padding(.horizontal, 10)
-#endif
                 .onAppear {
                     withAnimation(.easeIn(duration: 0.2)) {
                         isVisible = true

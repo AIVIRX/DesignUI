@@ -161,13 +161,11 @@ struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     @StateObject private var store = Store()
-    @StateObject private var userStore = UserStore()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
-                .environmentObject(userStore)
                 .frame(minWidth: 1280, minHeight: 720)
         }
         .windowStyle(DefaultWindowStyle())
