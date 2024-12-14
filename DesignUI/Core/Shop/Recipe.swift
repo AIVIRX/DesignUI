@@ -5,7 +5,6 @@
 //  Created by Maicol Cabreja on 6/4/24.
 //
 
-import Foundation
 import StoreKit
 
 struct Recipe: Hashable{

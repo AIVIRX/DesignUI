@@ -11,49 +11,24 @@ import SwiftUI
 var shortcutItemToProcess: UIApplicationShortcutItem?
 
 enum QuickAction: String {
-    case home = "com.Maicol.Dockui.Home"
-    case search = "com.Maicol.Dockui.Search"
-    case profile = "com.Maicol.Dockui.Profile"
+    case explore = "com.Maicol.Dockui.Explore"
 }
 
 func addDynamicQuickActions() {
     // Quick action info for feedback
     var homeInfo: [String: NSSecureCoding] {
-        return ["name": "home" as NSSecureCoding]
-    }
-    
-    var searchInfo: [String: NSSecureCoding] {
-        return ["name": "search" as NSSecureCoding]
-    }
-    
-    // Quick action info for rating
-    var profileInfo: [String: NSSecureCoding] {
-        return ["name": "profile" as NSSecureCoding]
+        return ["name": "explore" as NSSecureCoding]
     }
     
     // Define the shortcut items with relevant information.
     UIApplication.shared.shortcutItems = [
         UIApplicationShortcutItem(
-            type: QuickAction.home.rawValue,
-            localizedTitle: "Home",
-            localizedSubtitle: "",
-            icon: UIApplicationShortcutIcon(systemImageName: "house"),
-            userInfo: homeInfo
-        ),
-        UIApplicationShortcutItem(
-            type: QuickAction.search.rawValue,
-            localizedTitle: "Search",
+            type: QuickAction.explore.rawValue,
+            localizedTitle: "Explore",
             localizedSubtitle: "",
             icon: UIApplicationShortcutIcon(systemImageName: "magnifyingglass"),
-            userInfo: searchInfo
+            userInfo: homeInfo
         ),
-        UIApplicationShortcutItem(
-            type: QuickAction.profile.rawValue,
-            localizedTitle: "Profile",
-            localizedSubtitle: "",
-            icon: UIApplicationShortcutIcon(systemImageName: "person"),
-            userInfo: profileInfo
-        )
     ]
 }
 #endif

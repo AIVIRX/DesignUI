@@ -1,22 +1,32 @@
 {
-  "identifier" : "69649B5B",
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "87C91694",
   "nonRenewingSubscriptions" : [
 
   ],
   "products" : [
     {
-      "displayPrice" : "4.99",
+      "displayPrice" : "3.99",
       "familyShareable" : false,
-      "internalID" : "6503925260",
+      "internalID" : "6739216808",
       "localizations" : [
         {
-          "description" : "Remove ads forever!",
-          "displayName" : "Dock UI",
+          "description" : "Remove ads from this app!",
+          "displayName" : "Remove Ads",
           "locale" : "en_US"
         }
       ],
-      "productID" : "UIRemoveAds",
-      "referenceName" : "UIRemoveAds",
+      "productID" : "com.removeads.dockui",
+      "referenceName" : "Remove Ads",
       "type" : "NonConsumable"
     }
   ],
@@ -24,7 +34,7 @@
     "_applicationInternalID" : "6496860953",
     "_developerTeamID" : "5C778DVBP3",
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 744577972.84024405,
+    "_lastSynchronizedDate" : 755453416.04273701,
     "_locale" : "en_US",
     "_storefront" : "USA",
     "_storeKitErrors" : [
@@ -78,12 +88,8 @@
   "subscriptionGroups" : [
 
   ],
-  "subscriptionOffersKeyPair" : {
-    "id" : "5FB830CF",
-    "privateKey" : "MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgrJpUWz9ML6d1EB5jg1v0g1lkKV5PpRVzKfhn9o2QRq+gCgYIKoZIzj0DAQehRANCAARBj9AC9Xgn1jKLFGwJPGmUiLK021DQWg0pLbrlBVd6imdSIsqveSn6FuG0ddlLgG5y9yAKwoclZPqO6kZy7gkL"
-  },
   "version" : {
-    "major" : 3,
+    "major" : 4,
     "minor" : 0
   }
 }

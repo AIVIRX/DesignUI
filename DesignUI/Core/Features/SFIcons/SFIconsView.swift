@@ -60,6 +60,7 @@ struct SFIconsView: View {
             }
         }
     }
+    
     func copyToClipboard(_ text: String) {
 #if os(iOS)
         UIPasteboard.general.string = text

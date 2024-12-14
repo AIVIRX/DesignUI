@@ -8,11 +8,10 @@
 import SwiftUI
 #if os(iOS)
 import StatefulTabView
-import Supabase
 #endif
 
 enum ViewType: Hashable {
-    case home, explore, upload, sfIcons, shop
+    case explore, upload, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -29,7 +28,6 @@ struct ContentView: View {
     @State private var isPolicyHovered: Bool = false
     @State private var isContactHovered: Bool = false
     @State private var isIGHovered: Bool = false
-    @State private var isDiscordHovered: Bool = false
     @State private var isEditorHovered: Bool = false
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
@@ -37,49 +35,42 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
-                if store.completedPurchases.isEmpty {
-                    AdView(adUnitID: AdUnitID.finalAd)
-                        .frame(width: 320, height: 50)
-                        .padding(3)
-                }
+                if !store.completedPurchases.isEmpty{
+                               } else {
+                                       AdView(adUnitID: AdUnitID.finalAd)
+                                           .frame(width: 320, height: 50)
+                                           .padding(5)
+                                   }
                 
                 StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house.fill") {
-                        HomeView() //Home Page
+                        ExploreView()
                     }
-                    
-                    Tab(systemImageName: "magnifyingglass") {
-                        ExploreView() //Explore Page
-                    }
-                    
-//                    Tab(systemImageName: "plus.app.fill") {
-//                        UploadDesignView() // Upload Page
-//                    }
                     
                     Tab(systemImageName: "gearshape.fill") {
-                        SettingsView() //Profile Page
+                        SettingsView()
                     }
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
+            }
+            .onAppear{
+                store.loadStoredPurchases()
             }
         }
         
         if UIDevice.current.userInterfaceIdiom == .pad {
             NavigationSplitView {
                 VStack(alignment: .leading, spacing: 5) {
-                    // Home Tab
-                    navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered, selectedIndex: $selectedIndex, currentIndex: 0)
-                    
                     // Search Tab
-                    navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 1)
+                    navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 0)
                     
                     Divider().padding(.vertical)
                     
                     // SF Symbols Link
-                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered, selectedIndex: $selectedIndex, currentIndex: 3)
+                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered, selectedIndex: $selectedIndex, currentIndex: 1)
                     
                     // Shop Link
-                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered, selectedIndex: $selectedIndex, currentIndex: 4)
+                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered, selectedIndex: $selectedIndex, currentIndex: 2)
                     
                     Divider().padding(.vertical)
                     
@@ -111,20 +102,8 @@ struct ContentView: View {
                             isIGHovered = hovering
                         }
                     
-                    Link("Discord", destination: URL(string: "https://discord.gg/9aq3c2MF3m")!)
-                        .bold()
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundColor(isDiscordHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
-                        .background(Color.clear)
-                        .cornerRadius(8)
-                        .contentShape(Rectangle())
-                        .onHover { hovering in
-                            isDiscordHovered = hovering
-                        }
-                    
                     // Privacy Policy Link
-                    Link("Privacy Policy", destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!)
+                    Link("Privacy Policy", destination: URL(string: "https://dockui.com/privacy")!)
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
@@ -171,12 +150,10 @@ struct ContentView: View {
                 NavigationStack() {
                     switch selectedIndex {
                     case 0:
-                        HomeView()
-                    case 1:
                         ExploreView()
-                    case 3:
+                    case 1:
                         SFIconsView()
-                    case 4:
+                    case 2:
                         OldStoreView()
                     default:
                         Text("Select a view")
@@ -189,19 +166,17 @@ struct ContentView: View {
 #if os(macOS)
         NavigationSplitView {
             VStack(alignment: .leading, spacing: 5) {
-                // Home Link
-                navigationLinkButton(viewType: .home, label: "Home", systemImage: "house", isHovered: $isHomeHovered,selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 // Search Tab
-                navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 1)
+                navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered, selectedIndex: $selectedIndex, currentIndex: 3)
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered, selectedIndex: $selectedIndex, currentIndex: 1)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered, selectedIndex: $selectedIndex, currentIndex: 4)
+                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered, selectedIndex: $selectedIndex, currentIndex: 2)
                 
                 Divider().padding(.vertical)
                 
@@ -281,12 +256,10 @@ struct ContentView: View {
             NavigationStack() {
                 switch selectedIndex {
                 case 0:
-                    HomeView()
-                case 1:
                     ExploreView()
-                case 3:
+                case 1:
                     SFIconsView()
-                case 4:
+                case 2:
                     OldStoreView()
                 default:
                     Text("Select a view")
@@ -356,8 +329,6 @@ struct ContentView: View {
     
     private func getDestinationView(for viewType: ViewType) -> some View {
         switch viewType {
-        case .home:
-            return AnyView(HomeView())
         case .explore:
             return AnyView(ExploreView())
         case .upload:
@@ -367,5 +338,11 @@ struct ContentView: View {
         case .sfIcons:
             return AnyView(SFIconsView())
         }
+    }
+}
+
+extension Bundle {
+    var releaseVersionNumber: String? {
+        return infoDictionary?["CFBundleShortVersionString"] as? String
     }
 }

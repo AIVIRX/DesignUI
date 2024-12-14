@@ -493,9 +493,6 @@
         }
       }
     },
-    "Home" : {
-
-    },
     "NSUserTrackingUsageDescription" : {
       "comment" : "Privacy - Tracking Usage Description",
       "extractionState" : "extracted_with_value",
@@ -741,9 +738,6 @@
           }
         }
       }
-    },
-    "Profile" : {
-
     }
   },
   "version" : "1.0"

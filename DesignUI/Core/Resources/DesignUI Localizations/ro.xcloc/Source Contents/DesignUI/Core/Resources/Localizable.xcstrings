@@ -1,0 +1,118 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+      "extractionState" : "stale"
+    },
+    "%@" : {
+      "shouldTranslate" : false
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Code" : {
+
+    },
+    "Code Snippet:" : {
+
+    },
+    "Contact Us" : {
+
+    },
+    "Copy Code" : {
+
+    },
+    "Crypto Profit Loss Calculator" : {
+
+    },
+    "Description" : {
+
+    },
+    "Description:" : {
+
+    },
+    "Done" : {
+
+    },
+    "Error" : {
+
+    },
+    "Explore" : {
+
+    },
+    "Instagram" : {
+
+    },
+    "Loading posts..." : {
+
+    },
+    "Made in New York City" : {
+
+    },
+    "More Posts" : {
+
+    },
+    "No posts found" : {
+
+    },
+    "OK" : {
+
+    },
+    "Our Apps" : {
+
+    },
+    "Privacy & Support" : {
+
+    },
+    "Privacy Policy" : {
+
+    },
+    "Rate Us" : {
+
+    },
+    "Restore" : {
+
+    },
+    "Search SF Symbols" : {
+
+    },
+    "Select a view" : {
+
+    },
+    "Settings" : {
+
+    },
+    "SF Symbols" : {
+
+    },
+    "Shop" : {
+
+    },
+    "Support Us" : {
+
+    },
+    "Tags (Select up to 3)" : {
+
+    },
+    "TaskNow - Simple To Do List" : {
+
+    },
+    "Title" : {
+
+    },
+    "Upload Design" : {
+
+    },
+    "v%@" : {
+
+    }
+  },
+  "version" : "1.0"
+}

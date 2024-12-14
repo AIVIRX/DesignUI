@@ -19,7 +19,6 @@ struct DetailView: View {
     @State private var shareCount: Int = 0
     @State private var viewCount: Int = 0
     @State private var showReportAlert = false
-    @State private var alertItem: AlertItem?
     @Environment(\.colorScheme) var colorScheme
     @State private var isReporting: Bool = false
     @State private var isCurrentUserAuthor: Bool = false
@@ -134,10 +133,8 @@ struct DetailView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12.0))
                     .padding(.top, 10)
                     
-                    HStack{
-                        //SimilarPostsView(currentPostId: id, tags: tags)
-                    }
-                    .padding(.vertical)
+                    SimilarPostsView(currentPostId: id)
+                        .padding(.vertical)
                 }
                 .environment(\.symbolVariants, .none)
                 .accentColor(.none)
@@ -188,10 +185,6 @@ struct DetailView: View {
                                         .lineLimit(2)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
-                                
-                                Text(creationDate)
-                                    .font(.system(size: 15)).bold()
-                                    .foregroundColor(.secondary)
                                 
                                 HStack {
                                     Text("\(author)")
@@ -258,9 +251,8 @@ struct DetailView: View {
                         }
                     }
                     .frame(height: 600)
-                    HStack{
-                        //SimilarPostsView(currentPostId: id, tags: tags)
-                    }
+                    SimilarPostsView(currentPostId: id)
+                        .padding(.vertical)
                 }
                 .environment(\.symbolVariants, .none)
                 .accentColor(.none)
@@ -338,6 +330,7 @@ struct DetailView: View {
                                 .font(.system(size: 25)).bold()
                                 .padding(.top,5)
                         }
+                        
                         ScrollView {
                             VStack(alignment: .leading) {
                                 Text(codeSnippet)
@@ -349,8 +342,8 @@ struct DetailView: View {
                         .frame(maxWidth: .infinity, maxHeight: 300)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
-                        
                         Spacer()
+                        
                         
                         Button(action: {
                             copyToClipboard(codeSnippet)
@@ -383,9 +376,13 @@ struct DetailView: View {
                     }
                 }
                 .frame(height: 700)
+                
+                SimilarPostsView(currentPostId: id)
             }
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
+            
+            
 #endif
         }
         .scrollIndicators(.hidden)

@@ -15,7 +15,7 @@ class LatestPostsViewModel: ObservableObject {
     @Published var error: Error?
     
     private var currentPage: Int = 0
-    private let pageSize: Int = 2
+    private let pageSize: Int = 6
     private let client = SupabaseManager.shared.client
     private var lastRefreshTime: Date?
     private let refreshCooldown: TimeInterval = 1

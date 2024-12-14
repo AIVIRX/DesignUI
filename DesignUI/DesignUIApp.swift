@@ -16,16 +16,6 @@ import Supabase
 #if os(iOS)
 import GoogleMobileAds
 
-extension View {
-    func applyColorSchemeForiPad() -> some View {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return self.preferredColorScheme(.dark) // Set to .dark for dark mode
-        } else {
-            return self.preferredColorScheme(nil) // Use the system setting for non-iPad devices
-        }
-    }
-}
-
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureFirebase()
@@ -46,22 +36,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             func handleQuickAction(_ shortcutItem: UIApplicationShortcutItem) {
                 let userDefaults = UserDefaults.standard
                 switch shortcutItem.type {
-                case QuickAction.home.rawValue:
+                case QuickAction.explore.rawValue:
                     userDefaults.set(0, forKey: "selectedIndex")
-                case QuickAction.search.rawValue:
-                    userDefaults.set(1, forKey: "selectedIndex")
-                case QuickAction.profile.rawValue:
-                    userDefaults.set(2, forKey: "selectedIndex")
                 default:
                     userDefaults.set(0, forKey: "selectedIndex")
                 }
             }
         }
-
+        
         // Set up UISceneConfiguration
         let sceneConfiguration = UISceneConfiguration(name: "Custom Configuration", sessionRole: connectingSceneSession.role)
         sceneConfiguration.delegateClass = CustomSceneDelegate.self
-
+        
         return sceneConfiguration
     }
     
@@ -117,12 +103,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             func handleQuickAction(_ shortcutItem: UIApplicationShortcutItem) {
                 let userDefaults = UserDefaults.standard
                 switch shortcutItem.type {
-                case QuickAction.home.rawValue:
+                case QuickAction.explore.rawValue:
                     userDefaults.set(0, forKey: "selectedIndex")
-                case QuickAction.search.rawValue:
-                    userDefaults.set(1, forKey: "selectedIndex")
-                case QuickAction.profile.rawValue:
-                    userDefaults.set(2, forKey: "selectedIndex")
                 default:
                     userDefaults.set(0, forKey: "selectedIndex")
                 }
@@ -141,14 +123,6 @@ struct DesignUIApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
-                .onAppear {
-                    // Retrieve the current user and set the user ID for Analytics
-                    if let user = client.auth.currentUser {
-                        AnalyticsManager.shared.setUserID(userID: user.id.uuidString)
-                    } else {
-                        AnalyticsManager.shared.setUserID(userID: "Undefined") // Clear user ID if not logged in
-                    }
-                }
         }
     }
 }
@@ -198,9 +172,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     // MARK: - MessagingDelegate
-    
-    
-
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         print("Firebase registration token: \(String(describing: fcmToken))")
         // Optionally, send the FCM token to your server here.

@@ -11,8 +11,6 @@ import SwiftUI
 #if os(iOS)
 import MessageUI
 #endif
-import AuthenticationServices
-import CryptoKit
 import StoreKit
 
 #if os(iOS)
@@ -101,9 +99,6 @@ struct SettingsView: View {
                         }
                         
                         Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
-                            .bold()
-                        
-                        Link("Website", destination: URL(string: "https://www.dockui.com")!)
                             .bold()
                     }
                     

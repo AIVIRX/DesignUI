@@ -1,11 +1,10 @@
 //
 //  Store.swift
-//  DesignUI
+//  CryptoProfitCalculator
 //
-//  Created by Maicol Cabreja on 6/4/24.
+//  Created by Maicol Cabreja on 11/11/23.
 //
 
-import Foundation
 import StoreKit
 
 typealias FetchCompletionHandler = (([SKProduct])-> Void)
@@ -16,7 +15,7 @@ class Store: NSObject, ObservableObject{
     @Published var allRecipes  = [Recipe]()
     
     private let allProductIdentifiers = Set([
-        "UIRemoveAds" 
+        "com.removeads.dockui"
     ])
     
     var completedPurchases = [String](){
