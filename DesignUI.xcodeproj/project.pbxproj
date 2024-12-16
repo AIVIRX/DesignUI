@@ -13,16 +13,20 @@
 		EC11EC082CB87D2A00E416FE /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC072CB87D2A00E416FE /* PostgREST */; };
 		EC11EC0A2CB87D2A00E416FE /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC092CB87D2A00E416FE /* Realtime */; };
 		EC11EC0C2CB87D2A00E416FE /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC0B2CB87D2A00E416FE /* Storage */; };
-		EC11EC0E2CB87DF700E416FE /* Supabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11EC0D2CB87DF700E416FE /* Supabase.swift */; };
 		EC11EC102CB87EB000E416FE /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC0F2CB87EB000E416FE /* Supabase */; };
 		EC1C74922C0FC0DE000C9E9A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC1C74912C0FC0DE000C9E9A /* GoogleMobileAds */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
-		EC2C2DCE2CBB6F5400860E4D /* SupabaseInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */; };
+		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
 		EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2D21272CBF183000FA192D /* CommunityPosts.swift */; };
 		EC4586FD2C94A8FF0039E46D /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */; };
 		EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2B2D03FB42002EA494 /* AdSupport.framework */; };
 		EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */; };
 		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
+		EC6542842D0FBFAD007815D0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6542832D0FBFAD007815D0 /* AuthManager.swift */; };
+		EC6542862D0FBFF0007815D0 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6542852D0FBFF0007815D0 /* AuthView.swift */; };
+		EC6542882D0FC034007815D0 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6542872D0FC034007815D0 /* LoginView.swift */; };
+		EC65428A2D0FC135007815D0 /* SignInWithAppleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6542892D0FC135007815D0 /* SignInWithAppleButton.swift */; };
+		EC65428C2D0FC73E007815D0 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC65428B2D0FC73E007815D0 /* ProfileView.swift */; };
 		EC6D48902CA4B15700E6F281 /* FirebaseAnalyticsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC6D488F2CA4B15700E6F281 /* FirebaseAnalyticsSwift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
@@ -60,13 +64,17 @@
 
 /* Begin PBXFileReference section */
 		EC04E1E82D074D9E00FA4D0F /* StoreConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreConfig.storekit; sourceTree = "<group>"; };
-		EC11EC0D2CB87DF700E416FE /* Supabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Supabase.swift; sourceTree = "<group>"; };
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseInit.swift; sourceTree = "<group>"; };
+		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		EC2D21272CBF183000FA192D /* CommunityPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPosts.swift; sourceTree = "<group>"; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
+		EC6542832D0FBFAD007815D0 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		EC6542852D0FBFF0007815D0 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		EC6542872D0FC034007815D0 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		EC6542892D0FC135007815D0 /* SignInWithAppleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithAppleButton.swift; sourceTree = "<group>"; };
+		EC65428B2D0FC73E007815D0 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EC7D7BDA2C19E454003134B1 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -151,7 +159,6 @@
 				ECBBCD372C5ABCB40074022A /* GoogleService-Info.plist */,
 				ECD13FD32C18BA7B00105B3E /* Core */,
 				EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */,
-				EC11EC0D2CB87DF700E416FE /* Supabase.swift */,
 				EC7D7C042C19E620003134B1 /* DesignUI.entitlements */,
 			);
 			path = DesignUI;
@@ -194,7 +201,7 @@
 				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
 				EC8025252C9C62F800019AD1 /* QuickActionHelper.swift */,
-				EC2C2DCD2CBB6F5400860E4D /* SupabaseInit.swift */,
+				EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -215,6 +222,11 @@
 				ECD13FE72C18BE0C00105B3E /* Settings */,
 				ECD13FEA2C18BE5C00105B3E /* DesignDetail */,
 				ECD13FF42C18BF3500105B3E /* SFIcons */,
+				EC6542832D0FBFAD007815D0 /* AuthManager.swift */,
+				EC6542852D0FBFF0007815D0 /* AuthView.swift */,
+				EC65428B2D0FC73E007815D0 /* ProfileView.swift */,
+				EC6542872D0FC034007815D0 /* LoginView.swift */,
+				EC6542892D0FC135007815D0 /* SignInWithAppleButton.swift */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -430,11 +442,13 @@
 			files = (
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				ECB96F1F2C8A0A3400175E0B /* BannerAds.swift in Sources */,
+				EC6542842D0FBFAD007815D0 /* AuthManager.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
 				ECCDD41B2C1BBA5F00869B70 /* UploadDesignView.swift in Sources */,
 				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
+				EC65428A2D0FC135007815D0 /* SignInWithAppleButton.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC8025262C9C62F800019AD1 /* QuickActionHelper.swift in Sources */,
 				EC7D7BDD2C19E45B003134B1 /* Store.swift in Sources */,
@@ -449,10 +463,12 @@
 				ECBA11982C84033E00973E94 /* GridColumn.swift in Sources */,
 				ECE995512C98881000C60416 /* ExploreView.swift in Sources */,
 				ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */,
+				EC6542882D0FC034007815D0 /* LoginView.swift in Sources */,
+				EC65428C2D0FC73E007815D0 /* ProfileView.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				ECA4AD9E2C7022CA001AD63A /* TextEditorWithCounter.swift in Sources */,
-				EC2C2DCE2CBB6F5400860E4D /* SupabaseInit.swift in Sources */,
-				EC11EC0E2CB87DF700E416FE /* Supabase.swift in Sources */,
+				EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */,
+				EC6542862D0FBFF0007815D0 /* AuthView.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
 				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
 				ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */,
@@ -592,7 +608,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -640,7 +656,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;

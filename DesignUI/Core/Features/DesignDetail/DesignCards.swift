@@ -185,16 +185,7 @@ struct DesignCards: View {
                         }
                         
                         Spacer()
-                        
-//                        HStack{
-//                            Image(systemName: "heart.fill")
-//                                .foregroundColor(isLiked ? .red : .gray)
-//                                .font(.system(size: 16))
-//                            Text("\(formatCount(likesCount))")
-//                                .font(.subheadline).bold()
-//                                .foregroundColor(.secondary)
-//                        }
-//                        .padding(.horizontal,2)
+                         
                     }
                     .padding(.bottom, 6)
                     .contentShape(Rectangle())

@@ -2150,6 +2150,9 @@
         }
       }
     },
+    "Design UI" : {
+
+    },
     "Done" : {
       "localizations" : {
         "ar" : {
@@ -2648,6 +2651,9 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "Hello, World!" : {
+
     },
     "Instagram" : {
       "localizations" : {
@@ -6026,6 +6032,15 @@
           }
         }
       }
+    },
+    "Sign In Error" : {
+
+    },
+    "Sign in to access your account" : {
+
+    },
+    "Sign Out" : {
+
     },
     "Support Us" : {
       "localizations" : {

@@ -126,14 +126,12 @@ struct DesignUIApp: App {
         }
     }
 }
-
 #endif
 
 #if os(macOS)
 @main
 struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
     @StateObject private var store = Store()
     
     var body: some Scene {
@@ -143,7 +141,7 @@ struct DesignUIApp: App {
                 .frame(minWidth: 1280, minHeight: 720)
         }
         .windowStyle(DefaultWindowStyle())
-                .windowResizability(.contentSize)
+        .windowResizability(.contentSize)
     }
 }
 
@@ -151,7 +149,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     func applicationDidFinishLaunching(_ notification: Notification) {
         
         FirebaseApp.configure()
-
+        
         // Request notification authorization
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
         UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
@@ -163,20 +161,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                 print("Notification authorization error: \(error.localizedDescription)")
             }
         }
-
+        
         // Set UNUserNotificationCenter delegate
         UNUserNotificationCenter.current().delegate = self
         
         // Set Firebase Messaging delegate
         Messaging.messaging().delegate = self
     }
-
+    
     // MARK: - MessagingDelegate
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         print("Firebase registration token: \(String(describing: fcmToken))")
         // Optionally, send the FCM token to your server here.
     }
-
+    
     func fetchFCMToken() {
         Messaging.messaging().token { token, error in
             if let error = error {
@@ -187,10 +185,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             }
         }
     }
-
-
+    
     // MARK: - UNUserNotificationCenterDelegate
-
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound, .badge])
     }
