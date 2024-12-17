@@ -15,7 +15,7 @@ class Store: NSObject, ObservableObject{
     @Published var allRecipes  = [Recipe]()
     
     private let allProductIdentifiers = Set([
-        "com.removeads.dockui"
+        "com.premium.dockui"
     ])
     
     var completedPurchases = [String](){

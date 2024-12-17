@@ -9,23 +9,23 @@
       }
     ]
   },
-  "identifier" : "87C91694",
+  "identifier" : "91261FC2",
   "nonRenewingSubscriptions" : [
 
   ],
   "products" : [
     {
-      "displayPrice" : "3.99",
+      "displayPrice" : "4.99",
       "familyShareable" : false,
-      "internalID" : "6739216808",
+      "internalID" : "6739508413",
       "localizations" : [
         {
-          "description" : "Remove ads from this app!",
+          "description" : "Go ad free in this app!",
           "displayName" : "Remove Ads",
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.removeads.dockui",
+      "productID" : "com.premium.dockui",
       "referenceName" : "Remove Ads",
       "type" : "NonConsumable"
     }
@@ -34,9 +34,7 @@
     "_applicationInternalID" : "6496860953",
     "_developerTeamID" : "5C778DVBP3",
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 755453416.04273701,
-    "_locale" : "en_US",
-    "_storefront" : "USA",
+    "_lastSynchronizedDate" : 756080400.13528705,
     "_storeKitErrors" : [
       {
         "current" : null,

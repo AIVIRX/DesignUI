@@ -169,7 +169,8 @@ struct ContentView: View {
                 // Search Tab
                 navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 0)
                 
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 1)
+//                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 1)
+                
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link

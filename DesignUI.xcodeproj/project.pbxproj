@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EC04E1E92D074D9E00FA4D0F /* StoreConfig.storekit in Resources */ = {isa = PBXBuildFile; fileRef = EC04E1E82D074D9E00FA4D0F /* StoreConfig.storekit */; };
 		EC11EC042CB87D2A00E416FE /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC032CB87D2A00E416FE /* Auth */; };
 		EC11EC062CB87D2A00E416FE /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC052CB87D2A00E416FE /* Functions */; };
 		EC11EC082CB87D2A00E416FE /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = EC11EC072CB87D2A00E416FE /* PostgREST */; };
@@ -63,11 +62,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		EC04E1E82D074D9E00FA4D0F /* StoreConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreConfig.storekit; sourceTree = "<group>"; };
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		EC2D21272CBF183000FA192D /* CommunityPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPosts.swift; sourceTree = "<group>"; };
+		EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = ConfigStore.storekit; sourceTree = "<group>"; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC6542832D0FBFAD007815D0 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
@@ -285,10 +284,10 @@
 		ECD13FFE2C18C12400105B3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
 				ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */,
 				ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */,
 				EC7D7BD82C19E426003134B1 /* Assets.xcassets */,
-				EC04E1E82D074D9E00FA4D0F /* StoreConfig.storekit */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -428,7 +427,6 @@
 				ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */,
 				ECBBCD382C5ABCB50074022A /* GoogleService-Info.plist in Resources */,
 				ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */,
-				EC04E1E92D074D9E00FA4D0F /* StoreConfig.storekit in Resources */,
 				EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -608,7 +606,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -635,7 +633,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.5.0;
+				MARKETING_VERSION = 2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -656,7 +654,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -683,7 +681,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.5.0;
+				MARKETING_VERSION = 2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
