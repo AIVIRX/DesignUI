@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "     %@" : {
+
+    },
+    "@%@" : {
+
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -483,6 +489,18 @@
           }
         }
       }
+    },
+    "21 |📍manhattan | 999 🎧🎞️ | 🌟 creator of @aivirx & @dockui ⭐️" : {
+
+    },
+    "Are you sure you want to delete your account? This action cannot be undone." : {
+
+    },
+    "Are you sure you want to sign out?" : {
+
+    },
+    "Cancel" : {
+
     },
     "Code" : {
       "localizations" : {
@@ -1674,6 +1692,12 @@
         }
       }
     },
+    "Delete" : {
+
+    },
+    "Delete Account" : {
+
+    },
     "Description" : {
       "localizations" : {
         "ar" : {
@@ -2391,6 +2415,12 @@
         }
       }
     },
+    "Edit Profile" : {
+
+    },
+    "Edit Profile View" : {
+
+    },
     "Error" : {
       "localizations" : {
         "ar" : {
@@ -2652,7 +2682,7 @@
       },
       "shouldTranslate" : false
     },
-    "Hello, " : {
+    "Favorites" : {
 
     },
     "Instagram" : {
@@ -4366,6 +4396,9 @@
           }
         }
       }
+    },
+    "Profile" : {
+
     },
     "Rate Us" : {
       "localizations" : {
