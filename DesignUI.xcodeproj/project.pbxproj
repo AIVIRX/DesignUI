@@ -21,6 +21,11 @@
 		EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2B2D03FB42002EA494 /* AdSupport.framework */; };
 		EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */; };
 		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
+		EC50CFB42D13935B006586DA /* EditProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB32D13935B006586DA /* EditProfile.swift */; };
+		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
+		EC50CFB92D13C0D5006586DA /* LikeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB82D13C0D5006586DA /* LikeManager.swift */; };
+		EC50CFBB2D13C0FA006586DA /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFBA2D13C0FA006586DA /* Like.swift */; };
+		EC50CFBD2D13C3C0006586DA /* LikeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFBC2D13C3C0006586DA /* LikeButton.swift */; };
 		EC6542842D0FBFAD007815D0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6542832D0FBFAD007815D0 /* AuthManager.swift */; };
 		EC6542862D0FBFF0007815D0 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6542852D0FBFF0007815D0 /* AuthView.swift */; };
 		EC6542882D0FC034007815D0 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6542872D0FC034007815D0 /* LoginView.swift */; };
@@ -69,6 +74,11 @@
 		EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = ConfigStore.storekit; sourceTree = "<group>"; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
+		EC50CFB32D13935B006586DA /* EditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfile.swift; sourceTree = "<group>"; };
+		EC50CFB52D1393B9006586DA /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
+		EC50CFB82D13C0D5006586DA /* LikeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeManager.swift; sourceTree = "<group>"; };
+		EC50CFBA2D13C0FA006586DA /* Like.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Like.swift; sourceTree = "<group>"; };
+		EC50CFBC2D13C3C0006586DA /* LikeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeButton.swift; sourceTree = "<group>"; };
 		EC6542832D0FBFAD007815D0 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		EC6542852D0FBFF0007815D0 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		EC6542872D0FC034007815D0 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -134,6 +144,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC50CFB72D139476006586DA /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				EC50CFB32D13935B006586DA /* EditProfile.swift */,
+				EC6542852D0FBFF0007815D0 /* AuthView.swift */,
+				EC6542872D0FC034007815D0 /* LoginView.swift */,
+				EC65428B2D0FC73E007815D0 /* ProfileView.swift */,
+				EC6542892D0FC135007815D0 /* SignInWithAppleButton.swift */,
+				EC6542832D0FBFAD007815D0 /* AuthManager.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
 		ECADF5F22BCAE9610096753A = {
 			isa = PBXGroup;
 			children = (
@@ -209,6 +232,7 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
+				EC50CFB52D1393B9006586DA /* Profile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -216,16 +240,14 @@
 		ECD13FDF2C18BCCF00105B3E /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				EC50CFB72D139476006586DA /* Profile */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECCDD4192C1BBA3100869B70 /* UploadDesigns */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
 				ECD13FEA2C18BE5C00105B3E /* DesignDetail */,
 				ECD13FF42C18BF3500105B3E /* SFIcons */,
-				EC6542832D0FBFAD007815D0 /* AuthManager.swift */,
-				EC6542852D0FBFF0007815D0 /* AuthView.swift */,
-				EC65428B2D0FC73E007815D0 /* ProfileView.swift */,
-				EC6542872D0FC034007815D0 /* LoginView.swift */,
-				EC6542892D0FC135007815D0 /* SignInWithAppleButton.swift */,
+				EC50CFB82D13C0D5006586DA /* LikeManager.swift */,
+				EC50CFBA2D13C0FA006586DA /* Like.swift */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -253,6 +275,7 @@
 			isa = PBXGroup;
 			children = (
 				EC7D7BF42C19E546003134B1 /* DesignCards.swift */,
+				EC50CFBC2D13C3C0006586DA /* LikeButton.swift */,
 				EC7D7BF22C19E543003134B1 /* DetailView.swift */,
 				ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */,
 			);
@@ -440,9 +463,11 @@
 			files = (
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				ECB96F1F2C8A0A3400175E0B /* BannerAds.swift in Sources */,
+				EC50CFB42D13935B006586DA /* EditProfile.swift in Sources */,
 				EC6542842D0FBFAD007815D0 /* AuthManager.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
+				EC50CFBB2D13C0FA006586DA /* Like.swift in Sources */,
 				ECCDD41B2C1BBA5F00869B70 /* UploadDesignView.swift in Sources */,
 				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
@@ -454,7 +479,10 @@
 				EC7D7BFF2C19E5A2003134B1 /* LargeCardView.swift in Sources */,
 				EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */,
 				ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */,
+				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
+				EC50CFB92D13C0D5006586DA /* LikeManager.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
+				EC50CFBD2D13C3C0006586DA /* LikeButton.swift in Sources */,
 				ECF625472C6D5C6C0057FB6B /* Toastys.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
@@ -606,7 +634,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -633,7 +661,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.6;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -654,7 +682,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -681,7 +709,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 2.6;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
 				PROVISIONING_PROFILE_SPECIFIER = "";

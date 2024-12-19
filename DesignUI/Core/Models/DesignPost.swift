@@ -14,6 +14,8 @@ struct DesignPost: Identifiable, Codable {
     let description: String
     let code_snippet: String
     let created_at: String
+    let like_count: Int
+    var isLiked: Bool?
     let profiles: profiles
     
     struct profiles: Codable {

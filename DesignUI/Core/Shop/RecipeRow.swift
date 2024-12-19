@@ -38,6 +38,7 @@ struct RecipeRow: View {
                             .font(.title)
 #endif
                     }
+                    
                     Spacer()
                     
                     if let price = recipe.price, recipe.isLocked{

@@ -18,19 +18,21 @@ struct ContentView: View {
     @EnvironmentObject private var store: Store
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
-    @State private var isHomeHovered: Bool = false
-    @State private var isExploreHovered: Bool = false
-    @State private var isProfileHovered: Bool = false
-    @State private var isSFIconsHovered: Bool = false
-    @State private var isShopHovered: Bool = false
-    @State private var startAnimation: Bool = false
-    @State private var isRateUsHovered: Bool = false
-    @State private var isPolicyHovered: Bool = false
-    @State private var isContactHovered: Bool = false
-    @State private var isIGHovered: Bool = false
-    @State private var isEditorHovered: Bool = false
+    @State private var hoveredItem: MenuItem?
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
+
+    private enum MenuItem {
+        case explore
+        case profile
+        case sfIcons
+        case shop
+        case rateUs
+        case instagram
+        case policy
+        case contact
+    }
+    
     var body: some View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -167,17 +169,17 @@ struct ContentView: View {
         NavigationSplitView {
             VStack(alignment: .leading, spacing: 5) {
                 // Search Tab
-                navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 0)
+                navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                 
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 1)
+                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
                 
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered, selectedIndex: $selectedIndex, currentIndex: 2)
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered, selectedIndex: $selectedIndex, currentIndex: 3)
+                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
                 
                 Divider().padding(.vertical)
                 
@@ -186,7 +188,7 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .yellow : .yellow))
+                    .foregroundColor(hoveredItem == .rateUs ? (colorScheme == .dark ? .white : .black) : .yellow)
                     .background(Color.clear)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
@@ -194,19 +196,19 @@ struct ContentView: View {
                         requestReview()
                     }
                     .onHover { hovering in
-                        isRateUsHovered = hovering
+                        hoveredItem = hovering ? .rateUs : nil
                     }
                 
                 Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(isIGHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                    .foregroundColor(hoveredItem == .instagram ? (colorScheme == .dark ? .white : .black) : .gray)
                     .background(Color.clear)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onHover { hovering in
-                        isIGHovered = hovering
+                        hoveredItem = hovering ? .instagram : nil
                     }
                 
                 // Privacy Policy Link
@@ -214,11 +216,11 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(isPolicyHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
+                    .foregroundColor(hoveredItem == .policy ? (colorScheme == .dark ? .white : .black) : .gray)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onHover { hovering in
-                        isPolicyHovered = hovering
+                        hoveredItem = hovering ? .policy : nil
                     }
                 
                 // Contact Us Link
@@ -226,11 +228,11 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(isContactHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
+                    .foregroundColor(hoveredItem == .contact ? (colorScheme == .dark ? .white : .black) : .gray)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onHover { hovering in
-                        isContactHovered = hovering
+                        hoveredItem = hovering ? .contact : nil
                     }
                 
                 Spacer()
@@ -272,63 +274,55 @@ struct ContentView: View {
 #endif
     }
     
-    private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, isHovered: Binding<Bool>, selectedIndex: Binding<Int>, currentIndex: Int) -> some View {
-        let isSelected = $selectedIndex.wrappedValue == currentIndex
+    private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, menuItem: MenuItem, selectedIndex: Binding<Int>, currentIndex: Int) -> some View {
+        let isSelected = selectedIndex.wrappedValue == currentIndex
+        let isHovered = hoveredItem == menuItem
+        
         let backgroundColor: Color
         let textColor: Color
         
         if isSelected {
-            // Colors when the view is selected
             backgroundColor = colorScheme == .dark ? .white : .black
             textColor = colorScheme == .dark ? .black : .white
-        } else if isHovered.wrappedValue {
-            // Colors when the view is hovered but not selected
+        } else if isHovered {
             backgroundColor = colorScheme == .dark ? Color.gray.opacity(0.2) : Color.black.opacity(0.2)
             textColor = colorScheme == .dark ? .white : .black
         } else {
-            // Default colors when neither selected nor hovered
             backgroundColor = .clear
             textColor = colorScheme == .dark ? .white : .black
         }
         
         return NavigationLink(destination: getDestinationView(for: viewType)) {
-            HStack {
-                Image(systemName: systemImage)
-                    .font(.system(size: 15)).bold()
-                    .foregroundColor(textColor)
-                    .frame(width: 30)
-                Text(label)
-                    .font(.system(size: 15)).bold()
-                    .foregroundColor(textColor)
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-            .background(backgroundColor)
-            .cornerRadius(8)
-            .onHover { hovering in
-                if !isSelected {
-                    isHovered.wrappedValue = hovering
+                HStack {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 15)).bold()
+                        .foregroundColor(textColor)
+                        .frame(width: 30)
+                    Text(label)
+                        .font(.system(size: 15)).bold()
+                        .foregroundColor(textColor)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .background(backgroundColor)
+                .cornerRadius(8)
+                .onHover { hovering in
+                    if !isSelected {
+                        hoveredItem = hovering ? menuItem : nil
+                    }
                 }
             }
+            .buttonStyle(PlainButtonStyle())
+            .simultaneousGesture(TapGesture().onEnded {
+                if selectedIndex.wrappedValue != currentIndex {
+                    hoveredItem = nil
+                    selectedIndex.wrappedValue = currentIndex
+                }
+            })
         }
-        .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(TapGesture().onEnded {
-            // Reset hover state when switching views
-            if selectedIndex.wrappedValue != currentIndex {
-                // Reset all hover states when switching views
-                isHomeHovered = false
-                isProfileHovered = false
-                isSFIconsHovered = false
-                isShopHovered = false
-                
-                // Update selected index and view
-                selectedIndex.wrappedValue = currentIndex
-            }
-        })
-    }
     
     private func getDestinationView(for viewType: ViewType) -> some View {
         switch viewType {

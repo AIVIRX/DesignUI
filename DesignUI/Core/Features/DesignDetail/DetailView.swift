@@ -23,6 +23,9 @@ struct DetailView: View {
     @State private var isReporting: Bool = false
     @State private var isCurrentUserAuthor: Bool = false
     let client = SupabaseManager.shared.client
+    @StateObject private var likeManager = LikeManager.shared
+    @State private var likeCount: Int = 0
+    @State private var isLiked: Bool = false
     var body: some View {
         ScrollView() {
 #if os(iOS)
@@ -304,6 +307,31 @@ struct DetailView: View {
                                     .bold()
                                     .lineLimit(2)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    Task {
+                                        try? await likeManager.toggleLike(postId: id)
+                                        // Refresh like count after toggle
+                                        await fetchLikeStatus()
+                                    }
+                                } label: {
+                                    VStack(spacing: 8) {
+                                        Image(systemName: likeManager.likedPosts.contains(id) ? "heart.fill" : "heart")
+                                            .foregroundColor(likeManager.likedPosts.contains(id) ? .red : .gray)
+                                            .font(.system(size: 24))
+                                        
+                                        Text(formatCount(likeCount))
+                                            .font(.headline)
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(8)
+                                    .buttonStyle(.plain)
+                                }
                             }
                             
                             HStack {
@@ -391,6 +419,9 @@ struct DetailView: View {
         .navigationBarTitle(title)
 #endif
         .padding(7)
+        .task {
+            await fetchLikeStatus()
+        }
     }
     
     func copyToClipboard(_ text: String) {
@@ -402,4 +433,33 @@ struct DetailView: View {
         pasteboard.setString(text, forType: .string)
 #endif
     }
+    
+    private func fetchLikeStatus() async {
+            do {
+                // Fetch like count
+                let query = SupabaseManager.shared.client
+                    .from("posts")
+                    .select("like_count")
+                    .eq("id", value: id)
+                    .single()
+                
+                let result: [String: Int] = try await query.execute().value
+                likeCount = result["like_count"] ?? 0
+                
+                // Check if current user has liked
+                if let userId = AuthManager.shared.currentUser?.id {
+                    let likeQuery = SupabaseManager.shared.client
+                        .from("likes")
+                        .select()
+                        .eq("post_id", value: id)
+                        .eq("user_id", value: userId)
+                        .single()
+                    
+                    let _: Like? = try? await likeQuery.execute().value
+                    isLiked = likeManager.likedPosts.contains(id)
+                }
+            } catch {
+                print("Error fetching like status: \(error)")
+            }
+        }
 }

@@ -23,44 +23,44 @@ struct ProfileView: View {
             VStack(spacing: 20) {
                 // Profile Header
                 VStack(spacing: 16) {
-                    
-                    // Avatar
-                    AsyncImage(url: URL(string: "")) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
+                    //Profile Image
+                    ZStack{
+                        
+                        Circle()
+                            .fill(LinearGradient(
+                                colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 90, height: 90)
+                            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        
+                        Text(String(userProfile?.display_name.prefix(1) ?? "").uppercased())
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
                     }
-                    .frame(width: 80, height: 80)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 2))
                     
                     // User Info
                     VStack {
                         VStack{
                             HStack {
                                 if userProfile?.verified == true {
-                                    Text("     \(userProfile?.display_name ?? "New User")")
+                                    Text("     \(userProfile?.display_name ?? "")")
                                         .font(.title2)
                                         .fontWeight(.bold)
                                     
                                     Image(systemName: "checkmark.seal.fill")
                                         .foregroundColor(.blue)
                                 } else {
-                                    Text(userProfile?.display_name ?? "New User")
+                                    Text(userProfile?.display_name ?? "")
                                         .font(.title2)
                                         .fontWeight(.bold)
                                 }
                             }
-                            Text("@\(userProfile?.username.lowercased() ?? "username")")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
                         }
                         .padding(.bottom, 8)
                         
-                        Text("21 |📍manhattan | 999 🎧🎞️ | 🌟 creator of @aivirx & @dockui ⭐️")
+                        Text(userProfile?.bio ?? "")
                             .font(.body)
                             .foregroundColor(.white)
                             .frame(maxWidth: 250)
@@ -112,8 +112,7 @@ struct ProfileView: View {
                 }
             }
             .sheet(isPresented: $showEditProfile) {
-                Text("Edit Profile View")
-                    // Replace this with your actual EditProfileView when you create it
+                EditProfileView()
             }
             .alert("Delete Account", isPresented: $showDeleteAlert) {
                 Button("Cancel", role: .cancel) { }
@@ -156,7 +155,7 @@ struct ProfileView: View {
             
             // Update the UI or store the profile as needed
             DispatchQueue.main.async {
-                self.userProfile = profile // Save to a state variable
+                self.userProfile = profile
                 self.isLoading = false
             }
         } catch {
@@ -166,16 +165,4 @@ struct ProfileView: View {
             }
         }
     }
-}
-
-// Profile Model
-struct Profile: Codable {
-    let id: String
-    let username: String
-    let display_name: String
-    let verified: Bool
-}
-
-#Preview {
-    ProfileView()
 }

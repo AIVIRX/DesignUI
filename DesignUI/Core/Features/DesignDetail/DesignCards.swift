@@ -18,6 +18,8 @@ struct DesignCards: View {
     var description: String
     var codeSnippet: String
     var published: String
+    var like_count: Int
+
     
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
@@ -26,7 +28,7 @@ struct DesignCards: View {
     let client = SupabaseManager.shared.client    
     @StateObject private var viewModel = LatestPostsViewModel()
 
-    init(id: String, media: String, title: String, authorName:String, isVerified: Bool, description: String, codeSnippet: String, published: String) {
+    init(id: String, media: String, title: String, authorName:String, isVerified: Bool, description: String, codeSnippet: String, published: String, like_count: Int) {
         self.id = id
         self.media = media
         self.title = title
@@ -35,7 +37,11 @@ struct DesignCards: View {
         self.description = description
         self.codeSnippet = codeSnippet
         self.published = published
+        self.like_count = like_count
     }
+    
+    @StateObject private var likeManager = LikeManager.shared
+
     
     var body: some View {
         NavigationLink(destination: DetailView(
@@ -167,11 +173,11 @@ struct DesignCards: View {
 #endif
                 VStack(alignment: .leading) {
                     Text(title).bold()
-                        .font(.system(size: 16))
-                        .lineLimit(1)
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.leading)
-                        .truncationMode(.tail)
+                            .font(.system(size: 16))
+                            .lineLimit(1)
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.leading)
+                            .truncationMode(.tail)
                     
                     HStack {
                         Text(authorName)
@@ -185,7 +191,14 @@ struct DesignCards: View {
                         }
                         
                         Spacer()
-                         
+                        
+                        HStack{
+                            Image(systemName: "heart.fill")
+                                .foregroundStyle(Color.gray)
+                            
+                            Text(formatCount(like_count))
+                                .foregroundStyle(Color.gray)
+                        }
                     }
                     .padding(.bottom, 6)
                     .contentShape(Rectangle())
@@ -204,6 +217,7 @@ struct DesignCards: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        
 #if os(iOS)
         .simultaneousGesture(TapGesture().onEnded {
             let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)

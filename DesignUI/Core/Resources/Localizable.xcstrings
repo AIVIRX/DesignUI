@@ -1,10 +1,10 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "     %@" : {
+    "" : {
 
     },
-    "@%@" : {
+    "     %@" : {
 
     },
     "%@" : {
@@ -489,9 +489,6 @@
           }
         }
       }
-    },
-    "21 |📍manhattan | 999 🎧🎞️ | 🌟 creator of @aivirx & @dockui ⭐️" : {
-
     },
     "Are you sure you want to delete your account? This action cannot be undone." : {
 
@@ -2416,9 +2413,6 @@
       }
     },
     "Edit Profile" : {
-
-    },
-    "Edit Profile View" : {
 
     },
     "Error" : {

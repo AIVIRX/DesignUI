@@ -48,12 +48,10 @@ class LatestPostsViewModel: ObservableObject {
             let response = try await client
                 .from("posts")
                 .select("""
-                    *,
-                    profiles!posts_author_id_fkey (
-                      username,
-                      verified
-                    )
-                """)
+                                    *,
+                                    profiles!posts_author_id_fkey(username,verified),
+                                    likes(count)
+                                """)
                 .order("created_at", ascending: false)
                 .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                 .execute()

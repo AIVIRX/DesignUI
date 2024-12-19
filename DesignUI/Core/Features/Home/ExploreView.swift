@@ -49,7 +49,8 @@ struct ExploreView: View {
                                         isVerified: post.profiles.verified,
                                         description: post.description,
                                         codeSnippet: post.code_snippet,
-                                        published: post.created_at
+                                        published: post.created_at,
+                                        like_count: post.like_count
                                     )
                                     .onAppear {
                                         Task {
