@@ -112,6 +112,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             completionHandler(true)
         }
     }
+    
+    //add universal link logic
 }
 
 @main
@@ -119,6 +121,7 @@ struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
     let client = SupabaseManager.shared.client
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

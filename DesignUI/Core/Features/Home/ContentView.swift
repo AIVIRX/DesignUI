@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case explore, profile, upload, sfIcons, shop
+    case explore, upload, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -64,15 +64,15 @@ struct ContentView: View {
             NavigationSplitView {
                 VStack(alignment: .leading, spacing: 5) {
                     // Search Tab
-                    navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", isHovered: $isExploreHovered, selectedIndex: $selectedIndex, currentIndex: 0)
+                    navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                     
                     Divider().padding(.vertical)
                     
                     // SF Symbols Link
-                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", isHovered: $isSFIconsHovered, selectedIndex: $selectedIndex, currentIndex: 1)
+                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                     
                     // Shop Link
-                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", isHovered: $isShopHovered, selectedIndex: $selectedIndex, currentIndex: 2)
+                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
                     
                     Divider().padding(.vertical)
                     
@@ -81,7 +81,7 @@ struct ContentView: View {
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                        .foregroundColor(hoveredItem == .rateUs ? (colorScheme == .dark ? .white : .black) : .yellow)
                         .background(Color.clear)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
@@ -89,19 +89,19 @@ struct ContentView: View {
                             requestReview()
                         }
                         .onHover { hovering in
-                            isRateUsHovered = hovering
+                            hoveredItem = hovering ? .rateUs : nil
                         }
                     
                     Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(isRateUsHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))
+                        .foregroundColor(hoveredItem == .instagram ? (colorScheme == .dark ? .white : .black) : .gray)
                         .background(Color.clear)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onHover { hovering in
-                            isIGHovered = hovering
+                            hoveredItem = hovering ? .instagram : nil
                         }
                     
                     // Privacy Policy Link
@@ -109,23 +109,23 @@ struct ContentView: View {
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(isPolicyHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
+                        .foregroundColor(hoveredItem == .policy ? (colorScheme == .dark ? .white : .black) : .gray)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onHover { hovering in
-                            isPolicyHovered = hovering
+                            hoveredItem = hovering ? .policy : nil
                         }
                     
                     // Contact Us Link
-                    Link("Contact Us", destination: URL(string: "https://www.aivirx.com/contact")!)
+                    Link("Contact Us", destination: URL(string: "https://dockui.com/contact")!)
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(isContactHovered ? (colorScheme == .dark ? .white : .black) : (colorScheme == .dark ? .gray : .gray))                    .background(Color.clear)
+                        .foregroundColor(hoveredItem == .contact ? (colorScheme == .dark ? .white : .black) : .gray)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onHover { hovering in
-                            isContactHovered = hovering
+                            hoveredItem = hovering ? .contact : nil
                         }
                     
                     Spacer()
@@ -170,8 +170,6 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 5) {
                 // Search Tab
                 navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
-                
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
                 
                 Divider().padding(.vertical)
                 
@@ -260,8 +258,6 @@ struct ContentView: View {
                 switch selectedIndex {
                 case 0:
                     ExploreView()
-                case 1:
-                    AuthView()
                 case 2:
                     SFIconsView()
                 case 3:
@@ -328,8 +324,6 @@ struct ContentView: View {
         switch viewType {
         case .explore:
             return AnyView(ExploreView())
-        case .profile:
-            return AnyView(AuthView())
         case .upload:
             return AnyView(UploadDesignView())
         case . shop:

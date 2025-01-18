@@ -12,7 +12,9 @@ import SDWebImageSwiftUI
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var searchText = ""
-    
+    @State private var showingPostSheet = false
+    @AppStorage("selectedPostId") private var selectedPostId: String?
+
     private let columns = [
         GridItem(.adaptive(minimum: 300, maximum: 400), spacing: 16)
     ]
@@ -49,8 +51,7 @@ struct ExploreView: View {
                                         isVerified: post.profiles.verified,
                                         description: post.description,
                                         codeSnippet: post.code_snippet,
-                                        published: post.created_at,
-                                        like_count: post.like_count
+                                        published: post.created_at
                                     )
                                     .onAppear {
                                         Task {
@@ -75,6 +76,7 @@ struct ExploreView: View {
                     }
                 }
                 .searchable(text: $searchText)
+                
             }
             .navigationTitle("Explore")
             #if os(iOS)
@@ -118,3 +120,18 @@ struct GridLoadingView: View {
     ExploreView()
 }
     
+struct PostDetailView: View {
+    let postId: String
+
+    var body: some View {
+        VStack {
+            Text("Post ID:")
+                .font(.headline)
+            Text(postId)
+                .font(.largeTitle)
+                .padding()
+            Spacer()
+        }
+        .padding()
+    }
+}

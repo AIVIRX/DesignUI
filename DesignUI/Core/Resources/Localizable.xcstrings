@@ -4,9 +4,6 @@
     "" : {
 
     },
-    "     %@" : {
-
-    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -489,15 +486,6 @@
           }
         }
       }
-    },
-    "Are you sure you want to delete your account? This action cannot be undone." : {
-
-    },
-    "Are you sure you want to sign out?" : {
-
-    },
-    "Cancel" : {
-
     },
     "Code" : {
       "localizations" : {
@@ -1689,12 +1677,6 @@
         }
       }
     },
-    "Delete" : {
-
-    },
-    "Delete Account" : {
-
-    },
     "Description" : {
       "localizations" : {
         "ar" : {
@@ -2171,9 +2153,6 @@
         }
       }
     },
-    "Design UI" : {
-
-    },
     "Done" : {
       "localizations" : {
         "ar" : {
@@ -2411,9 +2390,6 @@
           }
         }
       }
-    },
-    "Edit Profile" : {
-
     },
     "Error" : {
       "localizations" : {
@@ -2675,9 +2651,6 @@
         }
       },
       "shouldTranslate" : false
-    },
-    "Favorites" : {
-
     },
     "Instagram" : {
       "localizations" : {
@@ -3915,6 +3888,9 @@
         }
       }
     },
+    "Post ID:" : {
+
+    },
     "Privacy & Support" : {
       "localizations" : {
         "ar" : {
@@ -4390,9 +4366,6 @@
           }
         }
       }
-    },
-    "Profile" : {
-
     },
     "Rate Us" : {
       "localizations" : {
@@ -6059,15 +6032,6 @@
           }
         }
       }
-    },
-    "Sign In Error" : {
-
-    },
-    "Sign in to access your account" : {
-
-    },
-    "Sign Out" : {
-
     },
     "Support Us" : {
       "localizations" : {
