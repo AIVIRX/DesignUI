@@ -38,6 +38,43 @@ class LatestPostsViewModel: ObservableObject {
     }
     
     @MainActor
+    func searchPosts(query: String) async {
+        guard !query.isEmpty else {
+            await refreshPosts() // Reset to default posts if query is cleared
+            return
+        }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await client
+                .from("posts")
+                .select("""
+                    *,
+                    profiles!posts_author_id_fkey (
+                      username,
+                      verified
+                    )
+                """)
+                .filter("title", operator: "ilike", value: "%\(query)%") // Search by title (add description filter if needed)
+                .order("created_at", ascending: false)
+                .limit(pageSize) // Limit results for performance
+                .execute()
+            
+            let searchResults = try JSONDecoder().decode([DesignPost].self, from: response.data)
+            posts = searchResults // Replace current posts with search results
+            hasMorePosts = false // Disable further loading during search
+        } catch {
+            self.error = error
+            print("Error searching posts: \(error)")
+        }
+        
+        isLoading = false
+    }
+
+    
+    @MainActor
     func fetchPosts() async {
         guard !isLoading && hasMorePosts && !isRefreshing else { return }
         

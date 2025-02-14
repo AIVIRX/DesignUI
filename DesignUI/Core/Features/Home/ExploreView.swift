@@ -6,27 +6,20 @@
 //
 
 import SwiftUI
-import SDWebImage
-import SDWebImageSwiftUI
 
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var searchText = ""
-    @State private var showingPostSheet = false
-    @AppStorage("selectedPostId") private var selectedPostId: String?
-
-    private let columns = [
-        GridItem(.adaptive(minimum: 300, maximum: 400), spacing: 16)
-    ]
     
     var filteredPosts: [DesignPost] {
-        if searchText.isEmpty {
-            return viewModel.posts
-        }
+        guard !searchText.isEmpty else { return viewModel.posts }
+        
+        let searchQuery = searchText.lowercased()
+        
         return viewModel.posts.filter { post in
-            let searchQuery = searchText.lowercased()
-            return post.title.lowercased().contains(searchQuery) ||
-                   post.description.lowercased().contains(searchQuery)
+            let titleMatch = post.title.lowercased().contains(searchQuery)
+            let descriptionMatch = post.description.lowercased().contains(searchQuery)
+            return titleMatch || descriptionMatch
         }
     }
     
@@ -51,17 +44,13 @@ struct ExploreView: View {
                                         isVerified: post.profiles.verified,
                                         description: post.description,
                                         codeSnippet: post.code_snippet,
-                                        published: post.created_at
+                                        published: post.created_at,
+                                        likesCount: post.likes_count,
+                                        isLiked: false
                                     )
-                                    .onAppear {
-                                        Task {
-                                            await viewModel.loadMorePostsIfNeeded(currentItem: post)
-                                        }
+                                    .task {
+                                        await viewModel.loadMorePostsIfNeeded(currentItem: post)
                                     }
-                                }
-                                
-                                if viewModel.isLoading {
-                                    GridLoadingView()
                                 }
                             }
                             .padding(.horizontal)
@@ -76,11 +65,25 @@ struct ExploreView: View {
                     }
                 }
                 .searchable(text: $searchText)
-                
+                .onChange(of: searchText) { oldValue, newValue in
+                    Task {
+                        try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
+                        if newValue == searchText { // Prevent outdated calls
+                            await viewModel.searchPosts(query: newValue)
+                        }
+                    }
+                }
             }
             .navigationTitle("Explore")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gear")
+                    }
+                }
+            }
             #endif
             .frame(maxWidth: 1600)
             .refreshable {
@@ -98,40 +101,5 @@ struct ExploreView: View {
         #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
         #endif
-    }
-}
-
-struct GridLoadingView: View {
-    var body: some View {
-        HStack(spacing: 16) {
-            ForEach(0..<2) { _ in
-                RoundedRectangle(cornerRadius: 12)
-                    .frame(height: 400)
-                    .overlay(
-                        ProgressView()
-                            .tint(.gray)
-                    )
-            }
-        }
-    }
-}
-
-#Preview {
-    ExploreView()
-}
-    
-struct PostDetailView: View {
-    let postId: String
-
-    var body: some View {
-        VStack {
-            Text("Post ID:")
-                .font(.headline)
-            Text(postId)
-                .font(.largeTitle)
-                .padding()
-            Spacer()
-        }
-        .padding()
     }
 }

@@ -10,7 +10,6 @@ import Supabase
 
 class SupabaseManager {
     static let shared = SupabaseManager()
-    
     let client: SupabaseClient
     
     private init() {

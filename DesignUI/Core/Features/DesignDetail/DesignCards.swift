@@ -18,6 +18,8 @@ struct DesignCards: View {
     var description: String
     var codeSnippet: String
     var published: String
+    var likesCount: Int
+    var isLiked: Bool
     
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
@@ -25,8 +27,30 @@ struct DesignCards: View {
     @State private var isVisible = false
     let client = SupabaseManager.shared.client    
     @StateObject private var viewModel = LatestPostsViewModel()
+    @State private var isLikedByUser: Bool = false
+    @State private var userId: String? = nil // Store the current user's ID
 
-    init(id: String, media: String, title: String, authorName:String, isVerified: Bool, description: String, codeSnippet: String, published: String) {
+    func checkIfUserLikedPost() async {
+        guard let userId = userId else { return }
+        
+        do {
+            let result = try await client
+                .from("likes")
+                .select()
+                .eq("user_id", value: userId)
+                .eq("post_id", value: id)
+                .execute()
+                .data
+            
+            DispatchQueue.main.async {
+                isLikedByUser = !result.isEmpty
+            }
+        } catch {
+            print("Error checking like status: \(error)")
+        }
+    }
+
+    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool) {
         self.id = id
         self.media = media
         self.title = title
@@ -35,6 +59,8 @@ struct DesignCards: View {
         self.description = description
         self.codeSnippet = codeSnippet
         self.published = published
+        self.likesCount = likesCount
+        self.isLiked = isLiked
     }
     
     var body: some View {
@@ -185,8 +211,13 @@ struct DesignCards: View {
                         }
                         
                         Spacer()
+                        
+                        LikeButton(
+                            postId: id,
+                            initialLikeCount: likesCount
+                        )
                     }
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 5)
                     .contentShape(Rectangle())
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .onHover { hovering in
@@ -212,3 +243,4 @@ struct DesignCards: View {
 #endif
     }
 }
+

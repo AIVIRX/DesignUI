@@ -15,17 +15,7 @@ struct DetailView: View {
     var isAuthorVerified: Bool
     
     @State private var isCopied: Bool = false
-    @State private var showShareSheet: Bool = false
-    @State private var repostCount: Int = 0
-    @State private var shareCount: Int = 0
-    @State private var viewCount: Int = 0
-    @State private var showReportAlert = false
     @Environment(\.colorScheme) var colorScheme
-    @State private var isReporting: Bool = false
-    @State private var isCurrentUserAuthor: Bool = false
-    let client = SupabaseManager.shared.client
-    @State private var likeCount: Int = 0
-    @State private var isLiked: Bool = false
     var body: some View {
         ScrollView() {
 #if os(iOS)
@@ -65,27 +55,28 @@ struct DetailView: View {
                                     }
                                 }
                         }
-                    
-                    VStack(alignment: .leading) {
-                        HStack {
-                            VStack(alignment:.leading){
-                                //author
-                                HStack {
+                        .overlay{
+                            VStack{
+                                Spacer()
+                                
+                                HStack{
+                                    Spacer()
+
                                     Text("\(author)")
-                                        .font(.headline)
+                                        .font(.subheadline).bold()
                                         .foregroundColor(.secondary)
                                         .padding(.top, 3)
                                     
                                     if isAuthorVerified{
                                         Image(systemName: "checkmark.seal.fill")
-                                            .font(.system(size: 13))
+                                            .font(.system(size: 10))
                                             .foregroundColor(.blue)
                                     }
                                 }
+                                .padding()
                             }
                         }
-                        //TagView(tags: tags)
-                    }
+                    
                     Text(description)
                         .padding(.top)
                         .font(.body)
@@ -107,6 +98,7 @@ struct DetailView: View {
                     .cornerRadius(8)
                     
                     Spacer()
+                    
                     Button(action: {
                         copyToClipboard(codeSnippet)
                         isCopied = true
@@ -391,12 +383,19 @@ struct DetailView: View {
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
             
-            
+            .toolbar {
+                ToolbarItem() {
+                    ShareLink(item: URL(string: "https://dockui.com/p/\(id)")!)
+                }
+            }
 #endif
         }
         .scrollIndicators(.hidden)
         
 #if os(iOS)
+        .toolbar {
+            ShareLink(item: URL(string: "https://dockui.com/p/\(id)")!)
+        }
         .navigationBarTitle(title)
 #endif
         .padding(7)

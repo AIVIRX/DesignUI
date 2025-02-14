@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case explore, upload, sfIcons, shop
+    case explore, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -38,19 +38,19 @@ struct ContentView: View {
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
                 if !store.completedPurchases.isEmpty{
-                               } else {
-                                       AdView(adUnitID: AdUnitID.finalAd)
-                                           .frame(width: 320, height: 50)
-                                           .padding(5)
-                                   }
+                } else {
+                    AdView(adUnitID: AdUnitID.finalAd)
+                        .frame(width: 320, height: 50)
+                        .padding(5)
+                }
                 
                 StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house.fill") {
                         ExploreView()
                     }
                     
-                    Tab(systemImageName: "gearshape.fill") {
-                        SettingsView()
+                    Tab(systemImageName: "person.crop.circle.fill") {
+                        ProfileContainerView()
                     }
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
@@ -324,8 +324,6 @@ struct ContentView: View {
         switch viewType {
         case .explore:
             return AnyView(ExploreView())
-        case .upload:
-            return AnyView(UploadDesignView())
         case . shop:
             return AnyView(OldStoreView())
         case .sfIcons:

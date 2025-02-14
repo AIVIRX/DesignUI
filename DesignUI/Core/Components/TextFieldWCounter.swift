@@ -15,16 +15,14 @@ struct TextFieldWithCounter: View {
         VStack(alignment: .leading) {
             Text(placeholder)
                 .font(.headline)
-            TextField(placeholder, text: $text){
-                
-            }
-                .font(Font.system(size: 20, design: .default))
-                .controlSize(.large)
-                .autocorrectionDisabled()
+            TextField(placeholder, text: $text){}
+            .font(Font.system(size: 20, design: .default))
+            .controlSize(.large)
+            .autocorrectionDisabled()
 #if os(iOS)
-                .textInputAutocapitalization(.none)
+            .textInputAutocapitalization(.none)
 #endif
-                .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
+            .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray, style: StrokeStyle(lineWidth: 2.0)))
             HStack {
                 Spacer()
                 Text("\(text.count)/\(maxLength)")

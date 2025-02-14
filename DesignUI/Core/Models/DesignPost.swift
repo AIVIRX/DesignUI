@@ -15,6 +15,7 @@ struct DesignPost: Identifiable, Codable {
     let code_snippet: String
     let created_at: String
     let profiles: profiles
+    let likes_count: Int
     
     struct profiles: Codable {
         let username: String
