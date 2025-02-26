@@ -34,7 +34,7 @@ struct ProfileView: View {
                         }
                     }
                     .padding(.vertical)
-
+                    
                     // Content Sections
                     VStack(spacing: 0) {
                         // Section Headers
@@ -96,7 +96,7 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { // Edit Profile Button
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         showEditProfile = true
                     }) {
@@ -105,29 +105,31 @@ struct ProfileView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                                                    Menu {
-                                                        Button("Sign Out"){
-                                                            Task {
-                                                              await authViewModel.signOut()
-                                                            }
-                                                        }
-                                                        Button("Delete Account", role: .destructive) {
-                                                            Task {
-                                                                await authViewModel.deleteAccount()
-                                                            }
-                                                        }
-                                                    } label: {
-                                                        Image(systemName: "person.badge.key.fill")
-                                                            .font(.title2)
-                                                    }
-                                                }
-                                            
+                    Menu {
+                        Button("Sign Out"){
+                            Task {
+                                await authViewModel.signOut()
+                            }
+                        }
+                        Button("Delete Account", role: .destructive) {
+                            Task {
+                                await authViewModel.deleteAccount()
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "person.badge.key.fill")
+                            .font(.title2)
+                    }
+                }
             }
+            // Replace the sheet presentation with:
+            // Change the sheet presentation to:
             .sheet(isPresented: $showEditProfile) {
-                // Edit Profile View will go here
-                Text("Edit Profile")
+                EditProfileView(viewModel: viewModel)
+                    .environmentObject(authViewModel)
             }
             .refreshable {
+                await viewModel.fetchProfile()
                 await viewModelLiked.refreshPosts()
             }
             .task {
@@ -143,4 +145,3 @@ struct ProfileView: View {
         }
     }
 }
-

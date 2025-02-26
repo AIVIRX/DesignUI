@@ -489,7 +489,7 @@
         }
       }
     },
-    "Already have an account?" : {
+    "Cancel" : {
 
     },
     "Choose a Username" : {
@@ -732,9 +732,6 @@
           }
         }
       }
-    },
-    "Confirm Password" : {
-
     },
     "Contact Us" : {
       "localizations" : {
@@ -1215,9 +1212,6 @@
         }
       }
     },
-    "Create Account" : {
-
-    },
     "Crypto Profit Loss Calculator" : {
       "localizations" : {
         "ar" : {
@@ -1697,13 +1691,7 @@
         }
       }
     },
-    "Don't have an account?" : {
-
-    },
     "Edit Profile" : {
-
-    },
-    "Email" : {
 
     },
     "Error" : {
@@ -2181,9 +2169,6 @@
           }
         }
       }
-    },
-    "Forgot Password?" : {
-
     },
     "Instagram" : {
       "localizations" : {
@@ -3619,9 +3604,6 @@
         }
       }
     },
-    "or" : {
-
-    },
     "Our Apps" : {
       "localizations" : {
         "ar" : {
@@ -3859,9 +3841,6 @@
           }
         }
       }
-    },
-    "Password" : {
-
     },
     "Privacy & Support" : {
       "localizations" : {
@@ -4342,6 +4321,9 @@
     "Profile" : {
 
     },
+    "Profile Picture" : {
+
+    },
     "Rate Us" : {
       "localizations" : {
         "ar" : {
@@ -4817,6 +4799,9 @@
           }
         }
       }
+    },
+    "Save Changes" : {
+
     },
     "Search SF Symbols" : {
       "localizations" : {
@@ -6008,19 +5993,10 @@
         }
       }
     },
-    "Sign In" : {
-
-    },
-    "Sign in to continue" : {
+    "Sign in to unlock all features" : {
 
     },
     "Sign Out" : {
-
-    },
-    "Sign Up" : {
-
-    },
-    "Sign up to get started" : {
 
     },
     "Support Us" : {
@@ -6743,7 +6719,10 @@
         }
       }
     },
-    "Welcome Back" : {
+    "Welcome to Dock UI" : {
+
+    },
+    "Your Design Inspiration Hub" : {
 
     }
   },

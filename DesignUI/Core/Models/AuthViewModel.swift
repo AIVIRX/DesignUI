@@ -41,12 +41,11 @@ class AuthViewModel: ObservableObject {
                 .eq("id", value: userId)
                 .single()
                 .execute()
-
-
+            
             let decoder = JSONDecoder()
             if let profile = try? decoder.decode(Profile.self, from: response.data) {
                 print("Username found: \(profile)")
-
+                
                 await MainActor.run {
                     hasUsername = true
                     self.userProfile = profile
@@ -57,8 +56,6 @@ class AuthViewModel: ObservableObject {
             print("Error checking username:", error)
         }
     }
-
-
     
     func signIn(email: String, password: String) async {
         isLoading = true
@@ -141,21 +138,23 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
     
-    func deleteAccount() async {
-            guard let userId = currentUser?.id else { return }
-
-            do {
-                // Delete authentication account
-                try await supabase.auth.admin.deleteUser(id: userId.uuidString)
-
-                DispatchQueue.main.async {
-                    self.currentUser = nil
-                    self.isAuthenticated = false
-                    self.hasUsername = false
-                }
-            } catch {
-                print("Error deleting account:", error)
+    func deleteAccount() async {        
+        do {
+            // Call the delete_user RPC function
+            try await supabase.rpc("delete_user").execute()
+            
+            // Sign out the user locally
+            try await supabase.auth.signOut()
+            
+            DispatchQueue.main.async {
+                self.currentUser = nil
+                self.isAuthenticated = false
+                self.hasUsername = false
             }
+        } catch {
+            print("Error deleting account:", error)
         }
     }
+}
+
 

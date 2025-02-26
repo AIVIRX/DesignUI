@@ -7,12 +7,177 @@
 
 import SwiftUI
 
-struct EditProfileView: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
+import SwiftUI
 
-#Preview {
-    EditProfileView()
-}
+struct EditProfileView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @ObservedObject var viewModel: ProfileViewModel
+    
+    @State private var displayName: String
+    @State private var username: String
+    @State private var isLoading = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    private let supabase = SupabaseManager.shared.client
+    
+    init(viewModel: ProfileViewModel) {
+        self.viewModel = viewModel
+        _displayName = State(initialValue: viewModel.profile?.display_name ?? "")
+        _username = State(initialValue: viewModel.profile?.username ?? "")
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Profile Picture Section
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue.opacity(0.8))
+                                .frame(width: 100, height: 100)
+                            
+                            Text(displayName.prefix(1).uppercased())
+                                .font(.system(size: 40, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        
+                        Text("Profile Picture")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.top)
+                    
+                    // Form Fields
+                    VStack(spacing: 20) {
+                        // Display Name
+                        FormField(
+                            title: "Display Name",
+                            placeholder: "Enter your display name",
+                            text: $displayName,
+                            icon: "person.fill"
+                        )
+                        
+                        // Username
+                        FormField(
+                            title: "Username",
+                            placeholder: "Enter your username",
+                            text: $username,
+                            icon: "at"
+                        )
+                    }
+                    .padding(.horizontal)
+                    
+                    // Save Button
+                    Button {
+                        Task {
+                            await updateProfile()
+                        }
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Save Changes")
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                    .disabled(isLoading)
+                }
+            }
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
+    }
+    
+    private func updateProfile() async {
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        isLoading = true
+
+        do {
+            // Check if username is already taken (only if changed)
+            if username != viewModel.profile?.username  {
+                let checkResponse = try await supabase
+                    .from("profiles")
+                    .select("username")
+                    .eq("username", value: username.lowercased())
+                    .execute()
+
+                let decoder = JSONDecoder()
+                let existingUsers = try decoder.decode([Profile].self, from: checkResponse.data)
+
+                if !existingUsers.isEmpty {
+                    showError = true
+                    errorMessage = "Username is already taken"
+                    isLoading = false
+                    return
+                }
+            }
+
+            // Proceed with updating profile if all checks pass
+            let updateResponse = try await supabase
+                .from("profiles")
+                .upsert([
+                    "id": userId.uuidString,
+                    "display_name": displayName,
+                    "username": username.lowercased(),
+                    "updated_at": ISO8601DateFormatter().string(from: Date()),
+                ], onConflict: "id")
+                .select()
+                .single()
+                .execute()
+
+            // Refresh user profile after successful update
+            await authViewModel.checkUsername()
+            await viewModel.fetchProfile()
+            dismiss()
+
+        } catch {
+            showError = true
+            errorMessage = "Error updating profile: \(error.localizedDescription)"
+        }
+
+        isLoading = false
+    }}
+    
+    
+    // Helper view for form fields
+    struct FormField: View {
+        let title: String
+        let placeholder: String
+        @Binding var text: String
+        let icon: String
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Label(title, systemImage: icon)
+                    .foregroundColor(.gray)
+                
+                TextField(placeholder, text: $text)
+                    .textFieldStyle(RoundedTextFieldStyle())
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+            }
+        }
+    }
+
