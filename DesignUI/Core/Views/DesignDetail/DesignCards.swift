@@ -168,7 +168,7 @@ struct DesignCards: View {
                                     .stroke(Color.gray, lineWidth: 0.8)
                             )
                             .scaleEffect(isHovered ? 1.02 : 1.0)
-                            .colorMultiply(isHovered ? Color.white : Color(white: 0.95))
+                            .colorMultiply(isHovered ? Color.white : Color(white: 0.93))
                             .animation(.easeInOut(duration: 0.2), value: isHovered)
                             .background(Color.clear)
                             .zIndex(isHovered ? 1 : 0)

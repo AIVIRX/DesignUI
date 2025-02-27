@@ -94,6 +94,7 @@ struct EditProfileView: View {
                 }
             }
             .navigationTitle("Edit Profile")
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -102,6 +103,7 @@ struct EditProfileView: View {
                     }
                 }
             }
+#endif
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
@@ -175,8 +177,13 @@ struct EditProfileView: View {
                 
                 TextField(placeholder, text: $text)
                     .textFieldStyle(RoundedTextFieldStyle())
+
+#if os(iOS)
                     .autocapitalization(.none)
+                #endif
+
                     .autocorrectionDisabled()
+                
             }
         }
     }

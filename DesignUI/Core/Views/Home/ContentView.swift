@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case explore, sfIcons, shop
+    case explore, profile, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -171,6 +171,8 @@ struct ContentView: View {
                 // Search Tab
                 navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                 
+                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
+                
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link
@@ -258,6 +260,8 @@ struct ContentView: View {
                 switch selectedIndex {
                 case 0:
                     ExploreView()
+                case 1:
+                    ProfileContainerView()
                 case 2:
                     SFIconsView()
                 case 3:
@@ -324,6 +328,8 @@ struct ContentView: View {
         switch viewType {
         case .explore:
             return AnyView(ExploreView())
+        case .profile:
+            return AnyView(ProfileContainerView())
         case . shop:
             return AnyView(OldStoreView())
         case .sfIcons:

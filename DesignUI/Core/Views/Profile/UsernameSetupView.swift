@@ -30,7 +30,9 @@ struct UsernameSetupView: View {
                 
                 TextField("Username", text: $username)
                     .textFieldStyle(RoundedTextFieldStyle())
+                #if os(iOS)
                     .textInputAutocapitalization(.never)
+                #endif
                     .autocorrectionDisabled()
                 
                 Button {

@@ -196,7 +196,7 @@
 			children = (
 				ECD2F5C22C5D8087005CE290 /* Shop */,
 				ECD13FF92C18BF8800105B3E /* Components */,
-				ECD13FDF2C18BCCF00105B3E /* Features */,
+				ECD13FDF2C18BCCF00105B3E /* Views */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
 				ECD13FD72C18BBB900105B3E /* Utilities */,
 				ECD13FFE2C18C12400105B3E /* Resources */,
@@ -230,7 +230,7 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		ECD13FDF2C18BCCF00105B3E /* Features */ = {
+		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
@@ -239,7 +239,7 @@
 				ECD13FEA2C18BE5C00105B3E /* DesignDetail */,
 				ECD13FF42C18BF3500105B3E /* SFIcons */,
 			);
-			path = Features;
+			path = Views;
 			sourceTree = "<group>";
 		};
 		ECD13FE62C18BDF300105B3E /* Home */ = {

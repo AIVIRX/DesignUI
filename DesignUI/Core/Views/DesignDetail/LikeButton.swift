@@ -47,6 +47,9 @@ struct LikeButton: View {
         .task {
             await fetchLikeStatus()
         }
+#if os(macOS)
+        .buttonStyle(PlainButtonStyle())
+        #endif
     }
     
     private func fetchLikeStatus() async {

@@ -94,8 +94,13 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+#endif
+            
+           
             .toolbar {
+#if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         showEditProfile = true
@@ -103,7 +108,19 @@ struct ProfileView: View {
                         Image(systemName: "slider.vertical.3").bold()
                     }
                 }
+#endif
                 
+#if os(macOS)
+                ToolbarItem() {
+                    Button(action: {
+                        showEditProfile = true
+                    }) {
+                        Image(systemName: "slider.vertical.3").bold()
+                    }
+                }
+#endif
+                
+#if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button("Sign Out"){
@@ -121,6 +138,28 @@ struct ProfileView: View {
                             .font(.title2)
                     }
                 }
+#endif
+                
+#if os(macOS)
+                ToolbarItem() {
+                    Menu {
+                        Button("Sign Out"){
+                            Task {
+                                await authViewModel.signOut()
+                            }
+                        }
+                        Button("Delete Account", role: .destructive) {
+                            Task {
+                                await authViewModel.deleteAccount()
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "person.badge.key.fill")
+                            .font(.title2)
+                    }
+                }
+
+#endif
             }
             // Replace the sheet presentation with:
             // Change the sheet presentation to:

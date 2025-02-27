@@ -17,10 +17,6 @@ struct SignInView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background
-                Color(UIColor.systemBackground)
-                    .ignoresSafeArea()
-                
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 40) {
                         // Header
@@ -32,25 +28,23 @@ struct SignInView: View {
                             Text("Your Design Inspiration Hub")
                                 .font(.title3)
                                 .foregroundColor(.gray)
-                        }
-                        .padding(.top, 60)
-                        
-                        // Features Section
-                        VStack(spacing: 24) {
-                            FeatureRow(
-                                icon: "heart.fill",
-                                title: "Like Designs",
-                                description: "Like your favorite designs, and view them from your profile."
-                            )
                             
-                            FeatureRow(
-                                icon: "person.fill",
-                                title: "Personalized Profile",
-                                description: "Create your profile to showcase your liked designs"
-                            )
+                            VStack {
+                                // Features Section
+                                FeatureRow(
+                                    icon: "heart.fill",
+                                    title: "Like Designs",
+                                    description: "Like your favorite designs, and view them from your profile."
+                                )
+                                
+                                FeatureRow(
+                                    icon: "person.fill",
+                                    title: "Personalized Profile",
+                                    description: "Create your profile to showcase your liked designs"
+                                )
+                            }
+                            .padding(.top, 60)
                         }
-                        .padding(.horizontal)
-                        
                         Spacer()
                         
                         // Sign in with Apple button
@@ -88,7 +82,6 @@ struct SignInView: View {
     
     // MARK: - Sign Up Function
     private func signUp() async {
-        
         await authViewModel.signIn(email: email, password: password)
     }
 }
@@ -97,7 +90,6 @@ struct FeatureRow: View {
     let icon: String
     let title: String
     let description: String
-    
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
@@ -116,18 +108,8 @@ struct FeatureRow: View {
                     .foregroundColor(.gray)
                     .lineLimit(2)
             }
-            
-            Spacer()
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(16)
     }
 }
-
-
-
-// Preview
-#Preview {
-    SignInView()
-} 
