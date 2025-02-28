@@ -65,6 +65,7 @@ struct SignInView: View {
                                 colorScheme == .dark ? .white : .black
                             )
                             .frame(height: 50)
+                            .frame(maxWidth: 500)
                             .cornerRadius(12)
                         }
                         .padding(.horizontal, 24)

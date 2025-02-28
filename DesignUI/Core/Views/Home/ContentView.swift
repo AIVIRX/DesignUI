@@ -66,6 +66,8 @@ struct ContentView: View {
                     // Search Tab
                     navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                     
+                    navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
+                    
                     Divider().padding(.vertical)
                     
                     // SF Symbols Link
@@ -154,8 +156,10 @@ struct ContentView: View {
                     case 0:
                         ExploreView()
                     case 1:
-                        SFIconsView()
+                        ProfileContainerView()
                     case 2:
+                        SFIconsView()
+                    case 3:
                         OldStoreView()
                     default:
                         Text("Select a view")

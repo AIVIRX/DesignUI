@@ -11,11 +11,10 @@ import SwiftUI
 struct RoundedTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity (0.1)))
+            .padding(.vertical)
+            .padding(.horizontal, 24)
+            .background(Color.gray)
+            .clipShape(Capsule(style: .continuous))
     }
 }
                 

@@ -158,7 +158,6 @@ struct ProfileView: View {
                             .font(.title2)
                     }
                 }
-
 #endif
             }
             // Replace the sheet presentation with:
