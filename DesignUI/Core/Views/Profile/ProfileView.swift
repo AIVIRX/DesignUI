@@ -5,7 +5,8 @@ struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showEditProfile = false
     @StateObject private var viewModelLiked = LikedPostsViewModel()
-    
+    @State private var showDeleteAlert = false
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -92,13 +93,20 @@ struct ProfileView: View {
                         }
                     }
                 }
+                .alert("Are you sure you want to delete your account?",
+                       isPresented: $showDeleteAlert) {
+                    Button("No", role: .cancel) { } // Cancels deletion
+                    Button("Delete", role: .destructive) {
+                        Task {
+                            await authViewModel.deleteAccount()
+                        }
+                    }
+                }
             }
             .navigationTitle("Profile")
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
-            
-           
             .toolbar {
 #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
@@ -141,17 +149,16 @@ struct ProfileView: View {
 #endif
                 
 #if os(macOS)
-                ToolbarItem() {
+                ToolbarItem {
                     Menu {
-                        Button("Sign Out"){
+                        Button("Sign Out") {
                             Task {
                                 await authViewModel.signOut()
                             }
                         }
+                        
                         Button("Delete Account", role: .destructive) {
-                            Task {
-                                await authViewModel.deleteAccount()
-                            }
+                            showDeleteAlert = true // Show confirmation alert
                         }
                     } label: {
                         Image(systemName: "person.badge.key.fill")

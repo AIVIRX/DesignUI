@@ -77,6 +77,12 @@
             "value" : "Dock UI"
           }
         },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dock UI"
+          }
+        },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -192,6 +198,12 @@
           }
         },
         "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dock UI"
+          }
+        },
+        "sl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dock UI"
@@ -323,6 +335,12 @@
             "value" : "Dock UI"
           }
         },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dock UI"
+          }
+        },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -438,6 +456,12 @@
           }
         },
         "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dock UI"
+          }
+        },
+        "sl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dock UI"
@@ -569,6 +593,12 @@
             "value" : "Este identificador se utilizará para mostrar anuncios personalizados."
           }
         },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este identificador se utilizará para mostrar anuncios personalizados."
+          }
+        },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -687,6 +717,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tento identifikátor sa použije na zobrazovanie prispôsobených reklám "
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta identifikator bo uporabljen za prikaz prilagojenih oglasov "
           }
         },
         "sv" : {

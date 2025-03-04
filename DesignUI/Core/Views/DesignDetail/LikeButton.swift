@@ -15,6 +15,8 @@ struct LikeButton: View {
     @State private var likeCount: Int
     @State private var isLoading = false
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var showAlert = false
+    @AppStorage("selectedIndex") var selectedIndex: Int = 0
     
     private let supabase = SupabaseManager.shared.client
     
@@ -27,7 +29,11 @@ struct LikeButton: View {
     var body: some View {
         Button {
             Task {
-                await handleLike()
+                if supabase.auth.currentUser != nil {
+                    await handleLike()
+                } else {
+                    showAlert = true
+                }
             }
         } label: {
             HStack(spacing: 4) {
@@ -46,6 +52,14 @@ struct LikeButton: View {
         .animation(.spring(response: 0.2), value: isLoading)
         .task {
             await fetchLikeStatus()
+        }
+        .alert("Sign In Required", isPresented: $showAlert) {
+                    Button("OK", role: .cancel) {}
+            Button("Sign In") {
+                selectedIndex = 1 // Change this to the desired index
+            }
+        } message: {
+            Text("You need to be signed in to like a design.")
         }
 #if os(macOS)
         .buttonStyle(PlainButtonStyle())
@@ -107,3 +121,4 @@ struct LikeButton: View {
         isLoading = false
     }
 }
+ 
