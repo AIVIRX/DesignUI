@@ -30,9 +30,9 @@ struct UsernameSetupView: View {
                 
                 TextField("Username", text: $username)
                     .textFieldStyle(RoundedTextFieldStyle())
-                #if os(iOS)
+#if os(iOS)
                     .textInputAutocapitalization(.never)
-                #endif
+#endif
                     .autocorrectionDisabled()
                 
                 Button {
@@ -98,7 +98,7 @@ struct UsernameSetupView: View {
             
             // Refresh authViewModel
             await authViewModel.checkUsername()
-
+            
             // ✅ Dismiss the setup view after successfully setting username
             await MainActor.run {
                 dismiss()
@@ -108,7 +108,7 @@ struct UsernameSetupView: View {
                 self.error = error.localizedDescription
             }
         }
-
+        
         isLoading = false
     }
 }

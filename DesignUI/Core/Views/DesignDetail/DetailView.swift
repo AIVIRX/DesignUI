@@ -16,6 +16,8 @@ struct DetailView: View {
     
     @State private var isCopied: Bool = false
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.requestReview) var requestReview
+
     var body: some View {
         ScrollView() {
 #if os(iOS)
@@ -61,7 +63,7 @@ struct DetailView: View {
                                 
                                 HStack{
                                     Spacer()
-
+                                    
                                     Text("\(author)")
                                         .font(.subheadline).bold()
                                         .foregroundColor(.secondary)
@@ -382,7 +384,6 @@ struct DetailView: View {
             }
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
-            
             .toolbar {
                 ToolbarItem() {
                     ShareLink(item: URL(string: "https://dockui.com/p/\(id)")!)
@@ -409,5 +410,6 @@ struct DetailView: View {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 #endif
+        requestReview()
     }
 }

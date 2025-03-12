@@ -6,7 +6,7 @@ struct ProfileView: View {
     @State private var showEditProfile = false
     @StateObject private var viewModelLiked = LikedPostsViewModel()
     @State private var showDeleteAlert = false
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -95,7 +95,7 @@ struct ProfileView: View {
                 }
                 .alert("Are you sure you want to delete your account?",
                        isPresented: $showDeleteAlert) {
-                    Button("No", role: .cancel) { } // Cancels deletion
+                    Button("No", role: .cancel) { }
                     Button("Delete", role: .destructive) {
                         Task {
                             await authViewModel.deleteAccount()
@@ -168,7 +168,6 @@ struct ProfileView: View {
 #endif
             }
             // Replace the sheet presentation with:
-            // Change the sheet presentation to:
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
                     .environmentObject(authViewModel)

@@ -83,6 +83,21 @@ struct SettingsView: View {
                             }
                         }
                     }
+                    
+                    Section(header: Text("Appearance")) {
+                        NavigationLink(destination: AlternateIconView()) {
+                            HStack {
+                                Image(systemName: "square.stack.fill")
+                                    .font(.system(size: 20)).bold()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.white)
+                                    .background(Color.red)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                Text("App Icons")
+                            }
+                        }
+                    }
+                    
                     Section(header: Text("Support Us")) {
                         Button {
                             requestReview()

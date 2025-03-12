@@ -21,7 +21,7 @@ struct ContentView: View {
     @State private var hoveredItem: MenuItem?
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
-
+    
     private enum MenuItem {
         case explore
         case profile
@@ -297,36 +297,36 @@ struct ContentView: View {
         }
         
         return NavigationLink(destination: getDestinationView(for: viewType)) {
-                HStack {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 15)).bold()
-                        .foregroundColor(textColor)
-                        .frame(width: 30)
-                    Text(label)
-                        .font(.system(size: 15)).bold()
-                        .foregroundColor(textColor)
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle())
-                .background(backgroundColor)
-                .cornerRadius(8)
-                .onHover { hovering in
-                    if !isSelected {
-                        hoveredItem = hovering ? menuItem : nil
-                    }
+            HStack {
+                Image(systemName: systemImage)
+                    .font(.system(size: 15)).bold()
+                    .foregroundColor(textColor)
+                    .frame(width: 30)
+                Text(label)
+                    .font(.system(size: 15)).bold()
+                    .foregroundColor(textColor)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+            .background(backgroundColor)
+            .cornerRadius(8)
+            .onHover { hovering in
+                if !isSelected {
+                    hoveredItem = hovering ? menuItem : nil
                 }
             }
-            .buttonStyle(PlainButtonStyle())
-            .simultaneousGesture(TapGesture().onEnded {
-                if selectedIndex.wrappedValue != currentIndex {
-                    hoveredItem = nil
-                    selectedIndex.wrappedValue = currentIndex
-                }
-            })
         }
+        .buttonStyle(PlainButtonStyle())
+        .simultaneousGesture(TapGesture().onEnded {
+            if selectedIndex.wrappedValue != currentIndex {
+                hoveredItem = nil
+                selectedIndex.wrappedValue = currentIndex
+            }
+        })
+    }
     
     private func getDestinationView(for viewType: ViewType) -> some View {
         switch viewType {

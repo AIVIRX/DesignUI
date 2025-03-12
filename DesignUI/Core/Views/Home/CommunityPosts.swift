@@ -72,7 +72,7 @@ class LatestPostsViewModel: ObservableObject {
         
         isLoading = false
     }
-
+    
     
     @MainActor
     func fetchPosts() async {

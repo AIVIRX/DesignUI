@@ -213,5 +213,4 @@ struct EditProfileView: View {
             }
         }
     }
-    
 }

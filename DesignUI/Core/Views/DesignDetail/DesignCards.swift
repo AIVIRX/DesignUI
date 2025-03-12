@@ -29,7 +29,7 @@ struct DesignCards: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var isLikedByUser: Bool = false
     @State private var userId: String? = nil // Store the current user's ID
-
+    
     func checkIfUserLikedPost() async {
         guard let userId = userId else { return }
         
@@ -49,7 +49,7 @@ struct DesignCards: View {
             print("Error checking like status: \(error)")
         }
     }
-
+    
     init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool) {
         self.id = id
         self.media = media
@@ -193,11 +193,11 @@ struct DesignCards: View {
 #endif
                 VStack(alignment: .leading) {
                     Text(title).bold()
-                            .font(.system(size: 16))
-                            .lineLimit(1)
-                            .foregroundColor(.primary)
-                            .multilineTextAlignment(.leading)
-                            .truncationMode(.tail)
+                        .font(.system(size: 16))
+                        .lineLimit(1)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+                        .truncationMode(.tail)
                     
                     HStack {
                         Text(authorName)

@@ -10,14 +10,11 @@ import SwiftUI
 struct LikeButton: View {
     let postId: String
     let initialLikeCount: Int
-    
     @State private var isLiked: Bool = false
     @State private var likeCount: Int
     @State private var isLoading = false
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showAlert = false
-    @AppStorage("selectedIndex") var selectedIndex: Int = 0
-    
     private let supabase = SupabaseManager.shared.client
     
     init(postId: String, initialLikeCount: Int) {
@@ -54,16 +51,13 @@ struct LikeButton: View {
             await fetchLikeStatus()
         }
         .alert("Sign In Required", isPresented: $showAlert) {
-                    Button("OK", role: .cancel) {}
-            Button("Sign In") {
-                selectedIndex = 1 // Change this to the desired index
-            }
+            Button("OK", role: .cancel) {}
         } message: {
             Text("You need to be signed in to like a design.")
         }
 #if os(macOS)
         .buttonStyle(PlainButtonStyle())
-        #endif
+#endif
     }
     
     private func fetchLikeStatus() async {
@@ -71,17 +65,17 @@ struct LikeButton: View {
               let postUUID = UUID(uuidString: postId) else { return }
         
         do {
-                let count = try await supabase.from("likes")
-                    .select("*", head: true, count: .exact)
-                    .eq("user_id", value: userId)
-                    .eq("post_id", value: postUUID)
-                    .execute()
-                    .count ?? 0
-                
-                isLiked = (count > 0)
-            } catch {
-                print("Error fetching like status:", error)
-            }
+            let count = try await supabase.from("likes")
+                .select("*", head: true, count: .exact)
+                .eq("user_id", value: userId)
+                .eq("post_id", value: postUUID)
+                .execute()
+                .count ?? 0
+            
+            isLiked = (count > 0)
+        } catch {
+            print("Error fetching like status:", error)
+        }
     }
     
     private func handleLike() async {
@@ -121,4 +115,3 @@ struct LikeButton: View {
         isLoading = false
     }
 }
- 

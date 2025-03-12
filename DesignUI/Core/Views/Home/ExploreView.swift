@@ -75,7 +75,7 @@ struct ExploreView: View {
                 }
             }
             .navigationTitle("Explore")
-            #if os(iOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -84,7 +84,7 @@ struct ExploreView: View {
                     }
                 }
             }
-            #endif
+#endif
             .frame(maxWidth: 1600)
             .refreshable {
                 Task {
@@ -98,8 +98,8 @@ struct ExploreView: View {
             }
         }
         .navigationViewStyle(DefaultNavigationViewStyle())
-        #if os(iOS)
+#if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
-        #endif
+#endif
     }
 }

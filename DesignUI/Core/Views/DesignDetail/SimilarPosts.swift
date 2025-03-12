@@ -2,8 +2,8 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct SimilarPostsView: View {
-    var currentPostId: String
     @State private var similarPosts: [DesignPost] = []
+    var currentPostId: String
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -43,36 +43,35 @@ struct SimilarPostsView: View {
             fetchSimilarPosts()
         }
     }
-
     
-private func fetchSimilarPosts() {
-    let client = SupabaseManager.shared.client
-
-    Task {
-        do {
-            let response: [DesignPost] = try await client
-                .from("posts")
-                .select("""
+    private func fetchSimilarPosts() {
+        let client = SupabaseManager.shared.client
+        
+        Task {
+            do {
+                let response: [DesignPost] = try await client
+                    .from("posts")
+                    .select("""
                     *,
                     profiles!posts_author_id_fkey (
                       username,
                       verified
                     )
                 """)
-                .neq("id", value: currentPostId)
-                .order("created_at", ascending: false)
-                .limit(3)
-                .execute()
-                .value
-            
-            await MainActor.run {
-                self.similarPosts = response
+                    .neq("id", value: currentPostId)
+                    .order("created_at", ascending: false)
+                    .limit(3)
+                    .execute()
+                    .value
+                
+                await MainActor.run {
+                    self.similarPosts = response
+                }
+            } catch {
+                print("Error fetching similar posts: \(error)")
             }
-        } catch {
-            print("Error fetching similar posts: \(error)")
         }
     }
-}
 }
 
 struct SimilarPostCard: View {
@@ -108,34 +107,33 @@ struct SimilarPostCard: View {
 #endif
                         .overlay {
                             WebImage(url: URL(string: post.preview_image_url)) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        ProgressView()
-                                            .frame(maxWidth: .infinity, maxHeight: 350)
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
+                                switch phase {
+                                case .empty:
+                                    ProgressView()
+                                        .frame(maxWidth: .infinity, maxHeight: 350)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
 #if os(iOS)
-                                            .frame(maxWidth: .infinity, maxHeight: 250)
+                                        .frame(maxWidth: .infinity, maxHeight: 250)
 #endif
 #if os(macOS)
-                                            .frame(maxWidth: .infinity, maxHeight: 250)
+                                        .frame(maxWidth: .infinity, maxHeight: 250)
 #endif
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                                            .clipped()
-                                            .shadow(radius: 8)
-                                    case .failure:
-                                        Image(systemName: "photo")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(maxWidth: .infinity, maxHeight: 250)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                                            .clipped()
-                                            .shadow(radius: 8)
-                                    }
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .clipped()
+                                        .shadow(radius: 8)
+                                case .failure:
+                                    Image(systemName: "photo")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(maxWidth: .infinity, maxHeight: 250)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .clipped()
+                                        .shadow(radius: 8)
                                 }
-                            
+                            }
                         }
                 }
             VStack(alignment: .leading){
@@ -147,7 +145,7 @@ struct SimilarPostCard: View {
                     .truncationMode(.tail)
                 HStack {
                     Text(post.profiles.username)
-                        .font(.system(size: 13))
+                        .font(.system(size: 16))
                         .foregroundColor(.secondary)
                     
                     if post.profiles.verified {
@@ -155,11 +153,13 @@ struct SimilarPostCard: View {
                             .font(.system(size: 13))
                             .foregroundColor(.blue)
                     }
+                    
                     Spacer()
+                    
                 }
             }
         }
         .buttonStyle(PlainButtonStyle())
-
+        
     }
 }
