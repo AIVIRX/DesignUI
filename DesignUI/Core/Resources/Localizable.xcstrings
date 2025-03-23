@@ -757,11 +757,17 @@
         }
       }
     },
+    "All purchases are linked to your Apple ID" : {
+
+    },
+    "Annual Plan" : {
+
+    },
     "App Icons" : {
-      "shouldTranslate" : false
+
     },
     "Appearance" : {
-      "shouldTranslate" : false
+
     },
     "Are you sure you want to delete your account?" : {
       "localizations" : {
@@ -1012,6 +1018,9 @@
           }
         }
       }
+    },
+    "BEST VALUE" : {
+
     },
     "Cancel" : {
       "localizations" : {
@@ -4263,6 +4272,12 @@
         }
       }
     },
+    "Features included:" : {
+
+    },
+    "Get access to all premium features!" : {
+
+    },
     "Instagram" : {
       "localizations" : {
         "ar" : {
@@ -5012,6 +5027,9 @@
           }
         }
       }
+    },
+    "Monthly Plan" : {
+
     },
     "More Posts" : {
       "localizations" : {
@@ -6763,6 +6781,9 @@
         }
       }
     },
+    "Premium" : {
+
+    },
     "Privacy & Support" : {
       "localizations" : {
         "ar" : {
@@ -7764,6 +7785,7 @@
       }
     },
     "Restore" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8012,6 +8034,9 @@
           }
         }
       }
+    },
+    "Restore Purchases" : {
+
     },
     "Save Changes" : {
       "localizations" : {
@@ -10263,6 +10288,12 @@
         }
       }
     },
+    "Start Exploring" : {
+
+    },
+    "Subscribe Now" : {
+
+    },
     "Support Us" : {
       "localizations" : {
         "ar" : {
@@ -10763,6 +10794,9 @@
         }
       }
     },
+    "Thank You!" : {
+
+    },
     "This will be your unique identifier on Dockui" : {
       "localizations" : {
         "ar" : {
@@ -11012,6 +11046,9 @@
           }
         }
       }
+    },
+    "Unlock All Features" : {
+
     },
     "Username" : {
       "localizations" : {
@@ -12012,6 +12049,12 @@
           }
         }
       }
+    },
+    "You now have access to all premium features" : {
+
+    },
+    "You're Currently Subscribed" : {
+
     },
     "Your Design Inspiration Hub" : {
       "localizations" : {

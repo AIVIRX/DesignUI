@@ -21,7 +21,8 @@ struct ContentView: View {
     @State private var hoveredItem: MenuItem?
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
-    
+    @EnvironmentObject private var entitlementManager: EntitlementManager
+
     private enum MenuItem {
         case explore
         case profile
@@ -37,8 +38,7 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
-                if !store.completedPurchases.isEmpty{
-                } else {
+                if !entitlementManager.hasPro {
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 320, height: 50)
                         .padding(5)
@@ -160,7 +160,7 @@ struct ContentView: View {
                     case 2:
                         SFIconsView()
                     case 3:
-                        OldStoreView()
+                        SubscriptionView()
                     default:
                         Text("Select a view")
                     }
@@ -335,7 +335,7 @@ struct ContentView: View {
         case .profile:
             return AnyView(ProfileContainerView())
         case . shop:
-            return AnyView(OldStoreView())
+            return AnyView(SubscriptionView())
         case .sfIcons:
             return AnyView(SFIconsView())
         }

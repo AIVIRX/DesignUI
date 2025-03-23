@@ -6,14 +6,12 @@
 //
 
 import SwiftUI
-import Drops
 
 struct SFIconsView: View {
     @State private var searchText = ""
-    @State private var showToast = false
-    @StateObject private var toastManager = ToastManager()
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
+
     var filteredSymbols: [String] {
         if searchText.isEmpty {
             return symbols
@@ -28,7 +26,6 @@ struct SFIconsView: View {
                     ForEach(filteredSymbols, id: \.self) { symbol in
                         SymbolButton(symbol: symbol, onCopy: { copiedSymbol in
                             copyToClipboard(copiedSymbol)
-                            toastManager.showToast(message: "Copied")
                         })
                     }
                 }
@@ -38,19 +35,6 @@ struct SFIconsView: View {
         .navigationTitle("SF Symbols")
         .padding(5)
         .searchable(text: $searchText, prompt: "Search SF Symbols")
-#if os(macOS)
-        .overlay(
-            VStack {
-                ForEach(toastManager.toasts) { toast in
-                    ToastView(message: toast.message)
-                        .padding()
-                }
-            }
-                .padding(.leading, 10)
-                .padding(.bottom, 10)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-        )
-#endif
         .offset(y: startAnimation ? 0 : 50)
         .opacity(opacity)
         .onAppear{
@@ -76,17 +60,17 @@ struct SymbolButton: View {
     let symbol: String
     let onCopy: (String) -> Void
     @State private var isHovered: Bool = false
+    @State private var toast: ToastData?
     
     var body: some View {
         Button(action: {
             onCopy(symbol)
 #if os(iOS)
-            let drop = Drop(
+            toast = ToastData(
                 title: "Copied",
-                icon: UIImage(systemName: "doc.on.doc.fill")
+                icon: .sfSymbol(name: "document.on.document", color: .gray),
+                duration: 3.0
             )
-            
-            Drops.show(drop)
 #endif
             
 #if os(iOS)

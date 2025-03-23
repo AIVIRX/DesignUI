@@ -1,6 +1,5 @@
 import SwiftUI
 import HighlightSwift
-import Drops
 import SDWebImage
 import SDWebImageSwiftUI
 
@@ -14,9 +13,10 @@ struct DetailView: View {
     var creationDate: String
     var isAuthorVerified: Bool
     
-    @State private var isCopied: Bool = false
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
+    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
+    @State private var toast: ToastData?
 
     var body: some View {
         ScrollView() {
@@ -44,7 +44,7 @@ struct DetailView: View {
                                                 .frame(maxWidth: .infinity, maxHeight: 370)
                                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                                 .clipped()
-                                                .shadow(radius: 8)
+                                                .shadow(radius: 6)
                                         case .failure:
                                             Image(systemName: "photo")
                                                 .resizable()
@@ -103,20 +103,17 @@ struct DetailView: View {
                     
                     Button(action: {
                         copyToClipboard(codeSnippet)
-                        isCopied = true
-                        
 #if os(iOS)
                         let impactMed = UIImpactFeedbackGenerator(style: .medium)
                         impactMed.impactOccurred()
 #endif
 #if os(iOS)
-                        let drop = Drop(
-                            title: "Copied Code",
-                            icon: UIImage(systemName: "doc.on.doc.fill"),
-                            position: .bottom
-                        )
                         
-                        Drops.show(drop)
+                        toast = ToastData(
+                            title: "Copied",
+                            icon: .sfSymbol(name: "document.on.document", color: .gray),
+                            duration: 3.0
+                        )
 #endif
                     }) {
                         Text("Copy Code")
@@ -221,19 +218,17 @@ struct DetailView: View {
                             
                             Button(action: {
                                 copyToClipboard(codeSnippet)
-                                isCopied = true
                                 
 #if os(iOS)
                                 let impactMed = UIImpactFeedbackGenerator(style: .medium)
                                 impactMed.impactOccurred()
 #endif
 #if os(iOS)
-                                let drop = Drop(
-                                    title: "Copied Code",
-                                    icon: UIImage(systemName: "doc.on.doc.fill")
+                                toast = ToastData(
+                                    title: "Copied",
+                                    icon: .sfSymbol(name: "document.on.document", color: .gray),
+                                    duration: 3.0
                                 )
-                                
-                                Drops.show(drop)
 #endif
                             }) {
                                 Text("Copy Code")
@@ -357,12 +352,11 @@ struct DetailView: View {
                             impactMed.impactOccurred()
 #endif
 #if os(iOS)
-                            let drop = Drop(
-                                title: "Copied Code",
-                                icon: UIImage(systemName: "doc.on.doc.fill")
+                            toast = ToastData(
+                                title: "Copied",
+                                icon: .sfSymbol(name: "document.on.document", color: .gray),
+                                duration: 3.0
                             )
-                            
-                            Drops.show(drop)
 #endif
                         }) {
                             Text("Copy Code")
@@ -392,6 +386,8 @@ struct DetailView: View {
 #endif
         }
         .scrollIndicators(.hidden)
+        .toast($toast)
+
         
 #if os(iOS)
         .toolbar {
@@ -399,7 +395,7 @@ struct DetailView: View {
         }
         .navigationBarTitle(title)
 #endif
-        .padding(7)
+        .padding(.horizontal, 7)
     }
     
     func copyToClipboard(_ text: String) {
@@ -410,6 +406,9 @@ struct DetailView: View {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 #endif
-        requestReview()
+        if !hasRequestedReview {
+            requestReview()
+            hasRequestedReview = true
+        }
     }
 }

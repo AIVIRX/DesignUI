@@ -23,7 +23,6 @@
 		EC4692A52D3347C5006AA789 /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC4692A42D3347C5006AA789 /* HighlightSwift */; };
 		EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2B2D03FB42002EA494 /* AdSupport.framework */; platformFilters = (ios, macos, ); };
 		EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */; };
-		EC495DF02C5FF92500A6A52C /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = EC495DEF2C5FF92500A6A52C /* Drops */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
 		EC5347E92D5AC47A001AD64D /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5347E82D5AC47A001AD64D /* UsernameSetupView.swift */; };
 		EC59829C2D56836B00633392 /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829B2D56836B00633392 /* Like.swift */; };
@@ -49,6 +48,9 @@
 		EC8025262C9C62F800019AD1 /* QuickActionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8025252C9C62F800019AD1 /* QuickActionHelper.swift */; };
 		EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC91C8A62C5C1393000E20E3 /* StatefulTabView */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
+		EC9538CF2D850C620057CCA3 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9538CE2D850C620057CCA3 /* PurchaseManager.swift */; };
+		EC9538D12D8516670057CCA3 /* EntitlementManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9538D02D8516670057CCA3 /* EntitlementManager.swift */; };
+		EC9538D32D85332C0057CCA3 /* SubscriptionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9538D22D85332C0057CCA3 /* SubscriptionsManager.swift */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
 		ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */; };
 		ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */; };
@@ -56,15 +58,14 @@
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA632C7C160C002D7E31 /* FormatCount.swift */; };
 		ECB96F1F2C8A0A3400175E0B /* BannerAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */; };
-		ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */; };
 		ECCDD4202C1BECD400869B70 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */; };
 		ECD0430E2C5E7AB000865D12 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */; };
+		ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD12B362D8F487D001A73C7 /* Toast.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
 		ECD6A5662D76A228009CD77B /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD6A5652D76A228009CD77B /* NavigationManager.swift */; };
 		ECE995512C98881000C60416 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE995502C98881000C60416 /* ExploreView.swift */; };
 		ECED60C52D78A69600064107 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ECED60C42D78A69600064107 /* LaunchScreen.storyboard */; platformFilter = ios; };
-		ECF625472C6D5C6C0057FB6B /* Toastys.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF625462C6D5C6C0057FB6B /* Toastys.swift */; };
 		ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C782D55936B006A7FE6 /* ProfileView.swift */; };
 		ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */; };
 		ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */; };
@@ -105,6 +106,9 @@
 		EC7D7C042C19E620003134B1 /* DesignUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesignUI.entitlements; sourceTree = "<group>"; };
 		EC8025252C9C62F800019AD1 /* QuickActionHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionHelper.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		EC9538CE2D850C620057CCA3 /* PurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseManager.swift; sourceTree = "<group>"; };
+		EC9538D02D8516670057CCA3 /* EntitlementManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementManager.swift; sourceTree = "<group>"; };
+		EC9538D22D85332C0057CCA3 /* SubscriptionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionsManager.swift; sourceTree = "<group>"; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldWCounter.swift; sourceTree = "<group>"; };
 		ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldWithValidation.swift; sourceTree = "<group>"; };
@@ -113,13 +117,12 @@
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB1DA632C7C160C002D7E31 /* FormatCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatCount.swift; sourceTree = "<group>"; };
 		ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAds.swift; sourceTree = "<group>"; };
-		ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OldStoreView.swift; sourceTree = "<group>"; };
+		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		ECD6A5652D76A228009CD77B /* NavigationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationManager.swift; sourceTree = "<group>"; };
 		ECE995502C98881000C60416 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		ECED60C42D78A69600064107 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		ECF625462C6D5C6C0057FB6B /* Toastys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toastys.swift; sourceTree = "<group>"; };
 		ECFF2C782D55936B006A7FE6 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileContainerView.swift; sourceTree = "<group>"; };
 		ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
@@ -141,7 +144,6 @@
 				EC4692A52D3347C5006AA789 /* HighlightSwift in Frameworks */,
 				EC91C8A72C5C1393000E20E3 /* StatefulTabView in Frameworks */,
 				EC6D48902CA4B15700E6F281 /* FirebaseAnalyticsSwift in Frameworks */,
-				EC495DF02C5FF92500A6A52C /* Drops in Frameworks */,
 				EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */,
 				EC11EC082CB87D2A00E416FE /* PostgREST in Frameworks */,
 				EC11EC102CB87EB000E416FE /* Supabase in Frameworks */,
@@ -287,7 +289,7 @@
 		ECD13FF92C18BF8800105B3E /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				ECF625462C6D5C6C0057FB6B /* Toastys.swift */,
+				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 				ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */,
 				ECA4AD992C702236001AD63A /* TextFieldWCounter.swift */,
 				ECA4AD9B2C702291001AD63A /* TextFieldWithValidation.swift */,
@@ -310,7 +312,9 @@
 		ECD2F5C22C5D8087005CE290 /* Shop */ = {
 			isa = PBXGroup;
 			children = (
-				ECCBC4782C61476E00CF9B6D /* OldStoreView.swift */,
+				EC9538D02D8516670057CCA3 /* EntitlementManager.swift */,
+				EC9538D22D85332C0057CCA3 /* SubscriptionsManager.swift */,
+				EC9538CE2D850C620057CCA3 /* PurchaseManager.swift */,
 				EC7D7BDC2C19E45B003134B1 /* Store.swift */,
 				EC7D7BE02C19E49A003134B1 /* Recipe.swift */,
 				EC7D7BEC2C19E518003134B1 /* RecipeRow.swift */,
@@ -353,7 +357,6 @@
 				ECCDD41F2C1BECD400869B70 /* SDWebImageSwiftUI */,
 				EC91C8A62C5C1393000E20E3 /* StatefulTabView */,
 				ECD0430D2C5E7AB000865D12 /* FirebaseAnalytics */,
-				EC495DEF2C5FF92500A6A52C /* Drops */,
 				EC4586FC2C94A8FF0039E46D /* FirebaseMessaging */,
 				EC6D488F2CA4B15700E6F281 /* FirebaseAnalyticsSwift */,
 				EC11EC032CB87D2A00E416FE /* Auth */,
@@ -435,11 +438,9 @@
 			mainGroup = ECADF5F22BCAE9610096753A;
 			packageReferences = (
 				ECADF60D2BCC6AD00096753A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				EC3EA7582BD05AC8009C1F65 /* XCRemoteSwiftPackageReference "AlertToast" */,
 				EC1C74902C0FC0DE000C9E9A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				ECCDD41E2C1BECD400869B70 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */,
-				EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */,
 				EC11EC022CB87D2A00E416FE /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				EC4692A32D3347C5006AA789 /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 			);
@@ -493,15 +494,16 @@
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
 				ECA4AD9A2C702236001AD63A /* TextFieldWCounter.swift in Sources */,
+				EC9538CF2D850C620057CCA3 /* PurchaseManager.swift in Sources */,
+				EC9538D32D85332C0057CCA3 /* SubscriptionsManager.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
-				ECF625472C6D5C6C0057FB6B /* Toastys.swift in Sources */,
 				EC3E924B2D7A1F70005E818D /* AlternateIcon.swift in Sources */,
+				EC9538D12D8516670057CCA3 /* EntitlementManager.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
 				ECE995512C98881000C60416 /* ExploreView.swift in Sources */,
-				ECCBC4792C61476E00CF9B6D /* OldStoreView.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC5982A02D568E5500633392 /* LikeButton.swift in Sources */,
 				EC5E41C32D6EE811009B33EB /* TextFieldStyle.swift in Sources */,
@@ -510,6 +512,7 @@
 				ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */,
 				EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */,
 				EC7D7BED2C19E518003134B1 /* RecipeRow.swift in Sources */,
+				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
 				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
 				ECA4AD9C2C702291001AD63A /* TextFieldWithValidation.swift in Sources */,
 			);
@@ -788,28 +791,12 @@
 				minimumVersion = 11.5.0;
 			};
 		};
-		EC3EA7582BD05AC8009C1F65 /* XCRemoteSwiftPackageReference "AlertToast" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/elai950/AlertToast.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.3.9;
-			};
-		};
 		EC4692A32D3347C5006AA789 /* XCRemoteSwiftPackageReference "HighlightSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/appstefan/HighlightSwift.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.9;
-			};
-		};
-		EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/omaralbeik/Drops.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.7.0;
 			};
 		};
 		EC91C8A52C5C1393000E20E3 /* XCRemoteSwiftPackageReference "StatefulTabView" */ = {
@@ -883,11 +870,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EC4692A32D3347C5006AA789 /* XCRemoteSwiftPackageReference "HighlightSwift" */;
 			productName = HighlightSwift;
-		};
-		EC495DEF2C5FF92500A6A52C /* Drops */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC495DEE2C5FF92500A6A52C /* XCRemoteSwiftPackageReference "Drops" */;
-			productName = Drops;
 		};
 		EC6D488F2CA4B15700E6F281 /* FirebaseAnalyticsSwift */ = {
 			isa = XCSwiftPackageProductDependency;

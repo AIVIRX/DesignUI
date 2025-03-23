@@ -1,5 +1,5 @@
 {
-  "originHash" : "bb745793860aa8997e031c0612ce699bb2391e2858fd01b1d2b0dd152c902a88",
+  "originHash" : "7307f19cba73691348b5131163f194706a0d049e75169ecbc60f2e4decb8f5ed",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -11,30 +11,12 @@
       }
     },
     {
-      "identity" : "alerttoast",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/elai950/AlertToast.git",
-      "state" : {
-        "revision" : "b39252eacd159904afd7d718bba0afabb87f2f2f",
-        "version" : "1.3.9"
-      }
-    },
-    {
       "identity" : "app-check",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/app-check.git",
       "state" : {
         "revision" : "c218c2054299b15ae577e818bbba16084d3eabe6",
         "version" : "10.18.2"
-      }
-    },
-    {
-      "identity" : "drops",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/omaralbeik/Drops.git",
-      "state" : {
-        "revision" : "a183ee6f79f21c940092a19c2cba756555422371",
-        "version" : "1.7.0"
       }
     },
     {

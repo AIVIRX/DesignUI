@@ -156,6 +156,10 @@ struct SimilarPostCard: View {
                     
                     Spacer()
                     
+                    LikeButton(
+                        postId: post.id,
+                        initialLikeCount: post.likes_count
+                    )
                 }
             }
         }

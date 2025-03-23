@@ -61,6 +61,8 @@ struct SettingsView: View {
     @Environment(\.requestReview) var requestReview
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
+    @EnvironmentObject private var entitlementManager: EntitlementManager
+    
 #if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
 #endif
@@ -71,15 +73,15 @@ struct SettingsView: View {
             VStack{
                 Form {
                     Section() {
-                        NavigationLink(destination: OldStoreView()) {
+                        NavigationLink(destination: SubscriptionView()) {
                             HStack {
-                                Image(systemName: "cart")
+                                Image(systemName: "star.fill")
                                     .font(.system(size: 20)).bold()
                                     .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.orange)
+                                    .foregroundStyle(.yellow)
+                                    .background(Color.indigo)
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("Shop")
+                                Text("Premium")
                             }
                         }
                     }
@@ -91,7 +93,7 @@ struct SettingsView: View {
                                     .font(.system(size: 20)).bold()
                                     .frame(width: 30, height: 30)
                                     .foregroundStyle(.white)
-                                    .background(Color.red)
+                                    .background(Color.blue)
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                                 Text("App Icons")
                             }
@@ -103,11 +105,11 @@ struct SettingsView: View {
                             requestReview()
                         } label: {
                             HStack {
-                                Image(systemName: "star.fill")
+                                Image(systemName: "star.leadinghalf.filled")
                                     .font(.system(size: 20))
                                     .frame(width: 30, height: 30)
                                     .foregroundStyle(.yellow)
-                                    .background(Color.indigo)
+                                    .background(Color.gray)
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                                 Text("Rate Us")
                             }
@@ -173,7 +175,7 @@ struct SettingsView: View {
             }
 #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .pad {
-                if store.completedPurchases.isEmpty {
+                if !entitlementManager.hasPro {
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 468, height: 60)
                         .padding(3)
