@@ -29,6 +29,12 @@ struct SimilarPostsView: View {
                                 SimilarPostCard(post: post)
                             }
                             .buttonStyle(PlainButtonStyle())
+#if os(iOS)
+                            .simultaneousGesture(TapGesture().onEnded {
+                                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                                impactHeavy.impactOccurred()
+                            })
+#endif
                         }
                     }
                 }

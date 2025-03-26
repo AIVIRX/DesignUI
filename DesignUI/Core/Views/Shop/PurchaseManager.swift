@@ -65,19 +65,21 @@ class PurchaseManager: NSObject, ObservableObject {
     }
 
     func updatePurchasedProducts() async {
-        for await result in Transaction.currentEntitlements {
-            guard case .verified(let transaction) = result else {
-                continue
-            }
+        var activeSubscription: String? = nil
 
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result else { continue }
+            
             if transaction.revocationDate == nil {
                 self.purchasedProductIDs.insert(transaction.productID)
+                activeSubscription = transaction.productID
             } else {
                 self.purchasedProductIDs.remove(transaction.productID)
             }
         }
 
         self.entitlementManager.hasPro = !self.purchasedProductIDs.isEmpty
+        self.entitlementManager.activeSubscriptionID = activeSubscription
     }
 
     private func observeTransactionUpdates() -> Task<Void, Never> {

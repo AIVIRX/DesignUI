@@ -82,6 +82,9 @@ struct ExploreView: View {
                     NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gear")
                     }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        HapticManager.shared.triggerImpact(style: .medium)
+                    })
                 }
             }
 #endif

@@ -103,8 +103,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 @main
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var store = Store()
     let client = SupabaseManager.shared.client
+    
     @StateObject
     private var entitlementManager: EntitlementManager
 
@@ -122,7 +122,6 @@ struct DesignUIApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(store)
                 .environmentObject(entitlementManager)
                 .environmentObject(purchaseManager)
                 .task {
@@ -137,16 +136,29 @@ struct DesignUIApp: App {
 @main
 struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var store = Store()
     
+    @StateObject
+    private var entitlementManager: EntitlementManager
+
+    @StateObject
+    private var purchaseManager: PurchaseManager
+
     init() {
+        let entitlementManager = EntitlementManager()
+        let purchaseManager = PurchaseManager(entitlementManager: entitlementManager)
+        self._entitlementManager = StateObject(wrappedValue: entitlementManager)
+        self._purchaseManager = StateObject(wrappedValue: purchaseManager)
         UserDefaults.standard.set(false, forKey: "hasRequestedReview")
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(store)
+                .environmentObject(entitlementManager)
+                .environmentObject(purchaseManager)
+                .task {
+                    await purchaseManager.updatePurchasedProducts()
+                }
                 .frame(minWidth: 1280, minHeight: 720)
         }
         .windowStyle(DefaultWindowStyle())

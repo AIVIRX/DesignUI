@@ -15,7 +15,6 @@ enum ViewType: Hashable {
 }
 
 struct ContentView: View {
-    @EnvironmentObject private var store: Store
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @State private var hoveredItem: MenuItem?
@@ -38,7 +37,7 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
-                if !entitlementManager.hasPro {
+                if !entitlementManager.hasPro{
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 320, height: 50)
                         .padding(5)
@@ -54,9 +53,6 @@ struct ContentView: View {
                     }
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
-            }
-            .onAppear{
-                store.loadStoredPurchases()
             }
         }
         
@@ -269,7 +265,7 @@ struct ContentView: View {
                 case 2:
                     SFIconsView()
                 case 3:
-                    OldStoreView()
+                    SubscriptionView()
                 default:
                     Text("Select a view")
                 }

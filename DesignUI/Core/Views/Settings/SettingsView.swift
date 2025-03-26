@@ -11,7 +11,6 @@ import SwiftUI
 #if os(iOS)
 import MessageUI
 #endif
-import StoreKit
 
 #if os(iOS)
 struct MailView: UIViewControllerRepresentable {
@@ -56,7 +55,6 @@ struct MailView: UIViewControllerRepresentable {
 #endif
 
 struct SettingsView: View {
-    @EnvironmentObject private var store: Store
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @State private var errorMessage: String = ""
@@ -108,8 +106,8 @@ struct SettingsView: View {
                                 Image(systemName: "star.leadinghalf.filled")
                                     .font(.system(size: 20))
                                     .frame(width: 30, height: 30)
-                                    .foregroundStyle(.yellow)
-                                    .background(Color.gray)
+                                    .foregroundStyle(.white)
+                                    .background(Color.orange)
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                                 Text("Rate Us")
                             }

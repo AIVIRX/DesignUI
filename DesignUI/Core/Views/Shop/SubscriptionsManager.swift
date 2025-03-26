@@ -1,3 +1,10 @@
+//
+//  SubscriptionsManager.swift
+//  DesignUI
+//
+//  Created by Maicol Cabreja on 3/15/25.
+//
+
 import SwiftUI
 import StoreKit
 
@@ -10,19 +17,17 @@ struct SubscriptionView: View {
     @State private var isLoading = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 25) {
-                    if entitlementManager.hasPro {
-                        successView
-                    } else {
-                        headerSection
-                        featuresSection
-                        productsSection
-                        subscribeButton
-                        restoreSection
-                    }
+                    headerSection
+                    featuresSection
+                    productsSection
+                    subscribeButton
+                    restoreSection
+                    legalSection
                 }
+                .frame(maxWidth: 800)
                 .padding()
             }
         }
@@ -46,15 +51,21 @@ struct SubscriptionView: View {
                 .frame(width: 80, height: 80)
                 .cornerRadius(15)
             
-            Text("Unlock All Features")
-                .font(.title2.bold())
+            Text("Premium")
+                .font(.title.bold())
             
             Text("Get access to all premium features!")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+            
+            if entitlementManager.hasPro {
+                Text("You're Currently Subscribed")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Color.green)
+            }
         }
-        .padding(.vertical)
     }
     
     private var featuresSection: some View {
@@ -74,7 +85,6 @@ struct SubscriptionView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 2)
     }
     
     private var productsSection: some View {
@@ -83,54 +93,71 @@ struct SubscriptionView: View {
                 ProductCard(
                     product: product,
                     isSelected: selectedProduct == product,
+                    isCurrentSubscription: entitlementManager.activeSubscriptionID == product.id, // Check if active plan
                     action: {
                         withAnimation(.spring(response: 0.3)) {
                             selectedProduct = product
                         }
                     }
                 )
+#if os(iOS)
+                .simultaneousGesture(TapGesture().onEnded {
+                    HapticManager.shared.triggerImpact(style: .medium)
+                })
+#endif
             }
         }
     }
     
     private var subscribeButton: some View {
-        Button {
-            guard let product = selectedProduct else { return }
-            isLoading = true
-            
-            Task {
-                do {
-                    try await purchaseManager.purchase(product)
-                    withAnimation(.spring) {
-                        showingSuccess = true
+        
+        VStack{
+            if let product = selectedProduct, let subscription = product.subscription {
+                Text("Plan auto-renews for \(product.displayPrice)/\(subscription.subscriptionPeriod.unit == .month ? "month" : "year") until canceled.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Button {
+                guard let product = selectedProduct else { return }
+#if os(iOS)
+                HapticManager.shared.triggerImpact(style: .medium)
+#endif
+                isLoading = true
+                
+                Task {
+                    do {
+                        try await purchaseManager.purchase(product)
+                        withAnimation(.spring) {
+                            showingSuccess = true
+                        }
+                    } catch {
+                        print(error)
                     }
-                } catch {
-                    print(error)
+                    isLoading = false
                 }
-                isLoading = false
-            }
-        } label: {
-            HStack {
-                if isLoading {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Text("Subscribe Now")
+            } label: {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text("Subscribe Now")
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(selectedProduct != nil ? Color.indigo : Color.gray.opacity(0.3))
+                .foregroundColor(.white)
+                .font(.headline)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(selectedProduct != nil ? Color.indigo : Color.gray.opacity(0.3))
-            .foregroundColor(.white)
-            .font(.headline)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .disabled(selectedProduct == nil || isLoading)
+            .buttonStyle(.plain)
         }
-        .disabled(selectedProduct == nil || isLoading)
-        .padding(.bottom, 2)
     }
     
     private var restoreSection: some View {
-        VStack(spacing: 8) {
+        VStack() {
             Button {
                 Task {
                     do {
@@ -141,42 +168,28 @@ struct SubscriptionView: View {
                 }
             } label: {
                 Text("Restore Purchases")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.white)
+                    .font(.subheadline)
             }
-            
-            Text("All purchases are linked to your Apple ID")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .buttonStyle(.plain)
         }
     }
     
-    private var successView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(.green)
-            
-            Text("Thank You!")
-                .font(.title.bold())
-            
-            Text("You now have access to all premium features")
-                .foregroundStyle(.secondary)
-            
-            Button("Start Exploring") {
-                dismiss()
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.indigo)
-            .padding(.top)
+    private var legalSection: some View {
+        HStack{
+            Link("Privacy Policy", destination: URL(string: "https://dockui.com/privacy")!)
+            Text("-")
+            Link("Terms Of Service", destination: URL(string: "https://dockui.com/terms")!)
         }
-        .padding(.vertical, 50)
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
 }
 
 struct ProductCard: View {
     let product: Product
     let isSelected: Bool
+    let isCurrentSubscription: Bool
     let action: () -> Void
     var body: some View {
         Button(action: action) {
@@ -196,6 +209,17 @@ struct ProductCard: View {
                                 .foregroundColor(.white)
                                 .clipShape(Capsule())
                         }
+                        
+                        if isCurrentSubscription {
+                            Text("Current Plan")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                                .padding(6)
+                                .background(Color.green.opacity(0.2))
+                                .clipShape(Capsule())
+                                .padding(.trailing, 8)
+                        }
+                        
                     }
                     
                     if let subscription = product.subscription {
@@ -221,7 +245,7 @@ struct ProductCard: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.indigo.opacity(0.1) : Color(.systemBackground))
+                    .fill(isSelected ? Color.indigo.opacity(0.1) : Color.gray.opacity(0.1))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -233,12 +257,10 @@ struct ProductCard: View {
     
     private func getPricePerMonth(_ product: Product, _ subscription: Product.SubscriptionInfo) -> String {
         if subscription.subscriptionPeriod.unit == .month {
-            return "Billed monthly"
+            return "Per Month"
         } else {
             let monthlyPrice = (product.price as Decimal) / 12
-            return "About \(monthlyPrice.formatted(.currency(code: product.priceFormatStyle.currencyCode))) /mo"
+            return "Per Year"
         }
     }
-    
-    
 }

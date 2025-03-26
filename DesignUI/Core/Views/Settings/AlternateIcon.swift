@@ -81,6 +81,7 @@ struct AlternateIconView: View {
                     .onTapGesture{
                         currentAppIcon = icon
 #if os(iOS)
+                        HapticManager.shared.triggerImpact(style: .medium)
                         UIApplication.shared.setAlternateIconName(icon.iconValue)
 #endif
                     }

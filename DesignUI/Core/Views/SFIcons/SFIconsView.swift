@@ -11,6 +11,7 @@ struct SFIconsView: View {
     @State private var searchText = ""
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
+    @State private var toast: ToastData?
 
     var filteredSymbols: [String] {
         if searchText.isEmpty {
@@ -43,6 +44,7 @@ struct SFIconsView: View {
                 opacity = 1.0
             }
         }
+        .toast($toast)
     }
     
     func copyToClipboard(_ text: String) {
@@ -53,6 +55,12 @@ struct SFIconsView: View {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 #endif
+        
+        toast = ToastData(
+            title: "Copied",
+            icon: .sfSymbol(name: "document.on.document", color: .gray),
+            duration: 3.0
+        )
     }
 }
 
@@ -60,22 +68,12 @@ struct SymbolButton: View {
     let symbol: String
     let onCopy: (String) -> Void
     @State private var isHovered: Bool = false
-    @State private var toast: ToastData?
     
     var body: some View {
         Button(action: {
             onCopy(symbol)
 #if os(iOS)
-            toast = ToastData(
-                title: "Copied",
-                icon: .sfSymbol(name: "document.on.document", color: .gray),
-                duration: 3.0
-            )
-#endif
-            
-#if os(iOS)
-            let impactMed = UIImpactFeedbackGenerator(style: .medium)
-            impactMed.impactOccurred()
+            HapticManager.shared.triggerImpact(style: .medium)
 #endif
         }) {
             VStack {
@@ -91,9 +89,9 @@ struct SymbolButton: View {
                     .frame(maxWidth: .infinity)
             }
             .frame(width: 100, height: 100)
-            .background(isHovered ? Color.gray.opacity(0.2) : Color.clear) // Background change on hover
+            .background(isHovered ? Color.gray.opacity(0.2) : Color.clear)
             .cornerRadius(10)
-            .contentShape(Rectangle()) // Ensures the hover area covers the entire button
+            .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { hovering in

@@ -1,0 +1,44 @@
+//
+//  HapticManager.swift
+//  DesignUI
+//
+//  Created by Maicol Cabreja on 3/24/25.
+//
+
+import SwiftUI
+
+final class HapticManager {
+    static let shared = HapticManager()
+
+#if os(iOS)
+    private let lightImpact = UIImpactFeedbackGenerator(style: .light)
+    private let mediumImpact = UIImpactFeedbackGenerator(style: .medium)
+    private let heavyImpact = UIImpactFeedbackGenerator(style: .heavy)
+    private let selectionFeedback = UISelectionFeedbackGenerator()
+    private let notificationFeedback = UINotificationFeedbackGenerator()
+
+    private init() {}
+
+    func triggerImpact(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator: UIImpactFeedbackGenerator
+        switch style {
+        case .light: generator = lightImpact
+        case .medium: generator = mediumImpact
+        case .heavy: generator = heavyImpact
+        @unknown default: generator = lightImpact
+        }
+        generator.prepare()
+        generator.impactOccurred()
+    }
+
+    func triggerSelection() {
+        selectionFeedback.prepare()
+        selectionFeedback.selectionChanged()
+    }
+
+    func triggerNotification(type: UINotificationFeedbackGenerator.FeedbackType) {
+        notificationFeedback.prepare()
+        notificationFeedback.notificationOccurred(type)
+    }
+#endif
+}

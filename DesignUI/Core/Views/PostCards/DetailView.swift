@@ -103,12 +103,9 @@ struct DetailView: View {
                     
                     Button(action: {
                         copyToClipboard(codeSnippet)
+                        HapticManager.shared.triggerImpact(style: .medium)
+                            
 #if os(iOS)
-                        let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                        impactMed.impactOccurred()
-#endif
-#if os(iOS)
-                        
                         toast = ToastData(
                             title: "Copied",
                             icon: .sfSymbol(name: "document.on.document", color: .gray),
@@ -219,10 +216,7 @@ struct DetailView: View {
                             Button(action: {
                                 copyToClipboard(codeSnippet)
                                 
-#if os(iOS)
-                                let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                                impactMed.impactOccurred()
-#endif
+                                HapticManager.shared.triggerImpact(style: .medium)
 #if os(iOS)
                                 toast = ToastData(
                                     title: "Copied",
@@ -345,7 +339,6 @@ struct DetailView: View {
                         
                         Button(action: {
                             copyToClipboard(codeSnippet)
-                            isCopied = true
                             
 #if os(iOS)
                             let impactMed = UIImpactFeedbackGenerator(style: .medium)

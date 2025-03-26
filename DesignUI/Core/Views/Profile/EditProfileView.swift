@@ -81,6 +81,9 @@ struct EditProfileView: View {
                     
                     // Save Button
                     Button {
+#if os(iOS)
+                        HapticManager.shared.triggerImpact(style: .medium)
+#endif
                         Task {
                             await updateProfile()
                         }
@@ -147,9 +150,12 @@ struct EditProfileView: View {
                 let checkResponse = try await supabase
                     .from("profiles")
                     .select("username")
-                    .eq("username", value: username.lowercased())
+                    .eq("username", value: username)
                     .neq("id", value: userId)  // Exclude current user
                     .execute()
+                
+                print("Supabase Response:", String(data: checkResponse.data, encoding: .utf8) ?? "No Data")
+
                 
                 let decoder = JSONDecoder()
                 let existingUsers = try decoder.decode([Profile].self, from: checkResponse.data)

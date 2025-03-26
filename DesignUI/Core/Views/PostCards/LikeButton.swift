@@ -55,6 +55,11 @@ struct LikeButton: View {
         } message: {
             Text("You need to be signed in to like a design.")
         }
+#if os(iOS)
+        .simultaneousGesture(TapGesture().onEnded {
+            HapticManager.shared.triggerImpact(style: .light)
+        })
+#endif
 #if os(macOS)
         .buttonStyle(PlainButtonStyle())
 #endif
