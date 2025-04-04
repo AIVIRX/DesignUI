@@ -25,11 +25,12 @@ struct DesignCards: View {
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isVisible = false
-    let client = SupabaseManager.shared.client    
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var isLikedByUser: Bool = false
-    @State private var userId: String? = nil // Store the current user's ID
+    @State private var userId: String? = nil
     
+    let client = SupabaseManager.shared.client
+
     func checkIfUserLikedPost() async {
         guard let userId = userId else { return }
         
@@ -200,7 +201,7 @@ struct DesignCards: View {
                         .truncationMode(.tail)
                     
                     HStack {
-                        Text(authorName)
+                        Text("@\(authorName)")
                             .font(.system(size: 16))
                             .foregroundColor(.secondary)
                         

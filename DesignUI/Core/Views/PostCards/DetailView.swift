@@ -19,7 +19,7 @@ struct DetailView: View {
     @State private var toast: ToastData?
 
     var body: some View {
-        ScrollView() {
+        ScrollView{
 #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .phone {
                 VStack(alignment: .leading) {
@@ -64,7 +64,7 @@ struct DetailView: View {
                                 HStack{
                                     Spacer()
                                     
-                                    Text("\(author)")
+                                    Text("@\(author)")
                                         .font(.subheadline).bold()
                                         .foregroundColor(.secondary)
                                         .padding(.top, 3)
@@ -87,24 +87,15 @@ struct DetailView: View {
                         .font(.title2).bold()
                         .padding(.top)
                     
-                    ScrollView {
-                        VStack(alignment: .leading) {
-                            CodeText(codeSnippet)
-                                .highlightLanguage(.swift)
-                                .font(.body)
-                                .padding()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: 200)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
+                    AsyncCodeText(codeSnippet: codeSnippet)
+                        .font(.body)
                     
                     Spacer()
                     
                     Button(action: {
                         copyToClipboard(codeSnippet)
                         HapticManager.shared.triggerImpact(style: .medium)
-                            
+                        
 #if os(iOS)
                         toast = ToastData(
                             title: "Copied",
@@ -179,7 +170,7 @@ struct DetailView: View {
                                 }
                                 
                                 HStack {
-                                    Text("\(author)")
+                                    Text("@\(author)")
                                         .font(.system(size: 15)).bold()
                                         .foregroundColor(.secondary)
                                     
@@ -198,18 +189,9 @@ struct DetailView: View {
                                     .font(.system(size: 25)).bold()
                                     .padding(.top,5)
                             }
-                            ScrollView {
-                                VStack(alignment: .leading) {
-                                    CodeText(codeSnippet)
-                                        .highlightLanguage(.swift)
-                                        .textSelection(.enabled)
-                                        .font(.system(size: 20))
-                                        .padding()
-                                }
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: 300)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(8)
+                            
+                            AsyncCodeText(codeSnippet: codeSnippet)
+                                .font(.body)
                             
                             Spacer()
                             
@@ -252,11 +234,11 @@ struct DetailView: View {
                 HStack{
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
-                        .frame(width:400)
+                        .frame(width:300)
                         .foregroundStyle(Color.gray.opacity(0.2))
                         .overlay{
                             RoundedRectangle(cornerRadius: 20)
-                                .frame(width: 257,height: 557)
+                                .frame(width: 257, height: 557)
                                 .overlay{
                                     WebImage(url: URL(string: mediaURL)) { phase in
                                         switch phase {
@@ -298,7 +280,7 @@ struct DetailView: View {
                             }
                             
                             HStack {
-                                Text("\(author)")
+                                Text("@\(author)")
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
                                 
@@ -322,24 +304,13 @@ struct DetailView: View {
                                 .padding(.top,5)
                         }
                         
-                        ScrollView {
-                            VStack(alignment: .leading) {
-                                CodeText(codeSnippet)
-                                    .highlightLanguage(.swift)
-                                    .font(.system(size: 20))
-                                    .textSelection(.enabled)
-                                    .padding()
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: 300)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(8)
-                        Spacer()
+                        AsyncCodeText(codeSnippet: codeSnippet)
+                            .font(.body)
                         
+                        Spacer()
                         
                         Button(action: {
                             copyToClipboard(codeSnippet)
-                            
 #if os(iOS)
                             let impactMed = UIImpactFeedbackGenerator(style: .medium)
                             impactMed.impactOccurred()
@@ -365,10 +336,11 @@ struct DetailView: View {
                         .padding(.top, 10)
                     }
                 }
-                .frame(height: 700)
+                .frame(height: 600)
                 
                 SimilarPostsView(currentPostId: id)
             }
+            .padding(.vertical)
             .environment(\.symbolVariants, .none)
             .accentColor(.none)
             .toolbar {
@@ -380,7 +352,6 @@ struct DetailView: View {
         }
         .scrollIndicators(.hidden)
         .toast($toast)
-
         
 #if os(iOS)
         .toolbar {
@@ -405,3 +376,46 @@ struct DetailView: View {
         }
     }
 }
+
+struct AsyncCodeText: View {
+    let codeSnippet: String
+    @State private var isLoaded: Bool = false
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading) {
+                
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        CodeText(codeSnippet)
+                            .highlightLanguage(.swift)
+                            .font(.system(size: 20))
+                            .textSelection(.enabled)
+                            .padding()
+                    }
+                }
+                if isLoaded {
+                    CodeText(codeSnippet)
+                        .highlightLanguage(.swift)
+                        .font(.body)
+                        .padding()
+                } else {
+                    ProgressView()
+                        .padding()
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: 300)
+        .background(Color.gray.opacity(0.2))
+        .cornerRadius(8)
+        .onAppear {
+            DispatchQueue.global(qos: .userInitiated).async {
+                // Simulate processing delay (optional)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isLoaded = true
+                }
+            }
+        }
+    }
+}
+
+

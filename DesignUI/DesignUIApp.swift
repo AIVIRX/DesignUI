@@ -12,7 +12,6 @@ import FirebaseCore
 import FirebaseAnalyticsSwift
 import AdSupport
 import UserNotifications
-import FirebaseMessaging
 import Supabase
 #if os(iOS)
 import GoogleMobileAds
@@ -22,34 +21,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         configureFirebase()
         requestTrackingAuthorization()
         initializeGoogleMobileAds()
-        addDynamicQuickActions()
         
         UserDefaults.standard.set(0, forKey: "selectedIndex")
         
         return true
-    }
-    
-    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        if let shortcutItem = options.shortcutItem {
-            
-            handleQuickAction(shortcutItem)
-            
-            func handleQuickAction(_ shortcutItem: UIApplicationShortcutItem) {
-                let userDefaults = UserDefaults.standard
-                switch shortcutItem.type {
-                case QuickAction.explore.rawValue:
-                    userDefaults.set(0, forKey: "selectedIndex")
-                default:
-                    userDefaults.set(0, forKey: "selectedIndex")
-                }
-            }
-        }
-        
-        // Set up UISceneConfiguration
-        let sceneConfiguration = UISceneConfiguration(name: "Custom Configuration", sessionRole: connectingSceneSession.role)
-        sceneConfiguration.delegateClass = CustomSceneDelegate.self
-        
-        return sceneConfiguration
     }
     
     private func requestTrackingAuthorization() {

@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case explore, profile, sfIcons, shop
+    case explore, templates, components, profile, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -25,9 +25,10 @@ struct ContentView: View {
     private enum MenuItem {
         case explore
         case profile
+        case templates
+        case components
         case sfIcons
         case shop
-        case rateUs
         case instagram
         case policy
         case contact
@@ -46,6 +47,10 @@ struct ContentView: View {
                 StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house.fill") {
                         ExploreView()
+                    }
+                    
+                    Tab(systemImageName: "brain.head.profile"){
+                        AIView()
                     }
                     
                     Tab(systemImageName: "person.crop.circle.fill") {
@@ -73,22 +78,6 @@ struct ContentView: View {
                     navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
                     
                     Divider().padding(.vertical)
-                    
-                    // Rate Us Text
-                    Text("Rate Us")
-                        .bold()
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundColor(hoveredItem == .rateUs ? (colorScheme == .dark ? .white : .black) : .yellow)
-                        .background(Color.clear)
-                        .cornerRadius(8)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            requestReview()
-                        }
-                        .onHover { hovering in
-                            hoveredItem = hovering ? .rateUs : nil
-                        }
                     
                     Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                         .bold()
@@ -171,33 +160,21 @@ struct ContentView: View {
                 // Search Tab
                 navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                 
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
+                navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 1)
+                
+                navigationLinkButton(viewType: .components, label: "Components", systemImage: "slider.horizontal.below.square.filled.and.square", menuItem: .components, selectedIndex: $selectedIndex, currentIndex: 2)
+                
+                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 3)
                 
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
+                navigationLinkButton(viewType: .shop, label: "Premium", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 5)
                 
                 Divider().padding(.vertical)
-                
-                // Rate Us Text
-                Text("Rate Us")
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .rateUs ? (colorScheme == .dark ? .white : .black) : .yellow)
-                    .background(Color.clear)
-                    .cornerRadius(8)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        requestReview()
-                    }
-                    .onHover { hovering in
-                        hoveredItem = hovering ? .rateUs : nil
-                    }
                 
                 Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
                     .bold()
@@ -327,6 +304,10 @@ struct ContentView: View {
     private func getDestinationView(for viewType: ViewType) -> some View {
         switch viewType {
         case .explore:
+            return AnyView(ExploreView())
+        case .templates:
+            return AnyView(ExploreView())
+        case .components:
             return AnyView(ExploreView())
         case .profile:
             return AnyView(ProfileContainerView())

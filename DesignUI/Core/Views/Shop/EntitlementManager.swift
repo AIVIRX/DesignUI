@@ -12,7 +12,7 @@ class EntitlementManager: ObservableObject {
        static let userDefaults: UserDefaults = {
            #if os(macOS)
            // macOS app group ID (without "group." prefix)
-           return UserDefaults(suiteName: "5C778DVBP3.Maicol.dockui")!
+           return UserDefaults(suiteName: "group.5C778DVBP3.Maicol.dockui")!
            #else
            // iOS app group ID (with "group." prefix)
            return UserDefaults(suiteName: "group.5C778DVBP3.Maicol.dockui")!
