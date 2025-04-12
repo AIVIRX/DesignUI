@@ -57,7 +57,6 @@ class LatestPostsViewModel: ObservableObject {
                       verified
                     )
                 """)
-                .filter("title", operator: "ilike", value: "%\(query)%") // Search by title (add description filter if needed)
                 .order("created_at", ascending: false)
                 .limit(pageSize) // Limit results for performance
                 .execute()
@@ -72,7 +71,6 @@ class LatestPostsViewModel: ObservableObject {
         
         isLoading = false
     }
-    
     
     @MainActor
     func fetchPosts() async {

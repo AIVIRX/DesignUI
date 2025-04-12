@@ -31,8 +31,7 @@ struct SimilarPostsView: View {
                             .buttonStyle(PlainButtonStyle())
 #if os(iOS)
                             .simultaneousGesture(TapGesture().onEnded {
-                                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                                impactHeavy.impactOccurred()
+                                HapticManager.shared.triggerImpact(style: .heavy)
                             })
 #endif
                         }

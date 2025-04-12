@@ -11,7 +11,6 @@ import SwiftUI
 #if os(iOS)
 import MessageUI
 #endif
-
 #if os(iOS)
 struct MailView: UIViewControllerRepresentable {
     @Environment(\.presentationMode) var presentationMode
@@ -60,7 +59,6 @@ struct SettingsView: View {
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
     @EnvironmentObject private var entitlementManager: EntitlementManager
-    
 #if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
 #endif
@@ -69,6 +67,24 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             VStack{
+                NavigationLink(destination: SubscriptionView()) {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Premium")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            Text("Unlock Premium Features")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.indigo.gradient))
+                    .padding(.horizontal)
+                    .padding(.top)
+                }
+                
                 Form {
                     Section() {
                         NavigationLink(destination: SubscriptionView()) {

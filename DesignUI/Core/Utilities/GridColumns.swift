@@ -24,3 +24,12 @@ var gridColumns: [GridItem] {
     }
 #endif
 }
+
+var componentGridColumns: [GridItem] {
+#if os(macOS)
+    return [GridItem(.adaptive(minimum: 300), spacing: 16)]
+#else
+    return [GridItem(.adaptive(minimum: 300), spacing: 16)]
+#endif
+    
+}

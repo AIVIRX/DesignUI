@@ -104,6 +104,7 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+            .frame(maxWidth: 1600)
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif

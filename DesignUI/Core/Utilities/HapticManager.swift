@@ -25,6 +25,8 @@ final class HapticManager {
         case .light: generator = lightImpact
         case .medium: generator = mediumImpact
         case .heavy: generator = heavyImpact
+        case .soft: generator = heavyImpact
+        case .rigid: generator = heavyImpact
         @unknown default: generator = lightImpact
         }
         generator.prepare()

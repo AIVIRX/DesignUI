@@ -20,15 +20,16 @@ struct DesignCards: View {
     var published: String
     var likesCount: Int
     var isLiked: Bool
-    
+
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
     @State private var isVisible = false
-    @StateObject private var viewModel = LatestPostsViewModel()
     @State private var isLikedByUser: Bool = false
     @State private var userId: String? = nil
     
+    @StateObject private var viewModel = LatestPostsViewModel()
+
     let client = SupabaseManager.shared.client
 
     func checkIfUserLikedPost() async {
@@ -169,7 +170,7 @@ struct DesignCards: View {
                                     .stroke(Color.gray, lineWidth: 0.8)
                             )
                             .scaleEffect(isHovered ? 1.02 : 1.0)
-                            .colorMultiply(isHovered ? Color.white : Color(white: 0.93))
+                            .colorMultiply(isHovered ? Color.white : Color(white: 0.94))
                             .animation(.easeInOut(duration: 0.2), value: isHovered)
                             .background(Color.clear)
                             .zIndex(isHovered ? 1 : 0)
@@ -201,7 +202,7 @@ struct DesignCards: View {
                         .truncationMode(.tail)
                     
                     HStack {
-                        Text("@\(authorName)")
+                        Text(authorName)
                             .font(.system(size: 16))
                             .foregroundColor(.secondary)
                         
@@ -220,11 +221,14 @@ struct DesignCards: View {
                     }
                     .padding(.bottom, 5)
                     .contentShape(Rectangle())
-                    .frame(maxWidth: .infinity, alignment: .leading)
                     .onHover { hovering in
                         isHovered = hovering
                     }
                 }
+
+#if os(iOS)
+                .frame(width: 185)
+#endif
                 .padding(.top, 1)
                 .opacity(isVisible ? 1 : 0)
                 .onAppear {

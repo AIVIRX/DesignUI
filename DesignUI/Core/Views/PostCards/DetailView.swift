@@ -17,7 +17,9 @@ struct DetailView: View {
     @Environment(\.requestReview) var requestReview
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     @State private var toast: ToastData?
-
+    @State private var highlighted: AttributedString = ""
+    @State private var attributedCode: NSAttributedString = .init(string: "")
+    
     var body: some View {
         ScrollView{
 #if os(iOS)
@@ -64,7 +66,7 @@ struct DetailView: View {
                                 HStack{
                                     Spacer()
                                     
-                                    Text("@\(author)")
+                                    Text(author)
                                         .font(.subheadline).bold()
                                         .foregroundColor(.secondary)
                                         .padding(.top, 3)
@@ -87,8 +89,18 @@ struct DetailView: View {
                         .font(.title2).bold()
                         .padding(.top)
                     
-                    AsyncCodeText(codeSnippet: codeSnippet)
-                        .font(.body)
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            CodeText(codeSnippet)
+                                .highlightLanguage(.swift)
+                                .font(.system(size: 20))
+                                .textSelection(.enabled)
+                                .padding()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: 300)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(8)
                     
                     Spacer()
                     
@@ -96,13 +108,11 @@ struct DetailView: View {
                         copyToClipboard(codeSnippet)
                         HapticManager.shared.triggerImpact(style: .medium)
                         
-#if os(iOS)
                         toast = ToastData(
                             title: "Copied",
                             icon: .sfSymbol(name: "document.on.document", color: .gray),
                             duration: 3.0
                         )
-#endif
                     }) {
                         Text("Copy Code")
                             .padding(8)
@@ -170,7 +180,7 @@ struct DetailView: View {
                                 }
                                 
                                 HStack {
-                                    Text("@\(author)")
+                                    Text(author)
                                         .font(.system(size: 15)).bold()
                                         .foregroundColor(.secondary)
                                     
@@ -190,8 +200,18 @@ struct DetailView: View {
                                     .padding(.top,5)
                             }
                             
-                            AsyncCodeText(codeSnippet: codeSnippet)
-                                .font(.body)
+                            ScrollView {
+                                VStack(alignment: .leading) {
+                                    CodeText(codeSnippet)
+                                        .highlightLanguage(.swift)
+                                        .font(.system(size: 20))
+                                        .textSelection(.enabled)
+                                        .padding()
+                                }
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: 300)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(8)
                             
                             Spacer()
                             
@@ -199,13 +219,11 @@ struct DetailView: View {
                                 copyToClipboard(codeSnippet)
                                 
                                 HapticManager.shared.triggerImpact(style: .medium)
-#if os(iOS)
                                 toast = ToastData(
                                     title: "Copied",
                                     icon: .sfSymbol(name: "document.on.document", color: .gray),
                                     duration: 3.0
                                 )
-#endif
                             }) {
                                 Text("Copy Code")
                                     .padding(8)
@@ -280,7 +298,7 @@ struct DetailView: View {
                             }
                             
                             HStack {
-                                Text("@\(author)")
+                                Text(author)
                                     .font(.system(size: 15)).bold()
                                     .foregroundColor(.secondary)
                                 
@@ -304,24 +322,28 @@ struct DetailView: View {
                                 .padding(.top,5)
                         }
                         
-                        AsyncCodeText(codeSnippet: codeSnippet)
-                            .font(.body)
+                        ScrollView {
+                            VStack(alignment: .leading) {
+                                CodeText(codeSnippet)
+                                    .highlightLanguage(.swift)
+                                    .font(.system(size: 20))
+                                    .textSelection(.enabled)
+                                    .padding()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: 300)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
                         
                         Spacer()
                         
                         Button(action: {
                             copyToClipboard(codeSnippet)
-#if os(iOS)
-                            let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                            impactMed.impactOccurred()
-#endif
-#if os(iOS)
-                            toast = ToastData(
-                                title: "Copied",
-                                icon: .sfSymbol(name: "document.on.document", color: .gray),
-                                duration: 3.0
-                            )
-#endif
+                        toast = ToastData(
+                            title: "Copied",
+                            icon: .sfSymbol(name: "document.on.document", color: .gray),
+                            duration: 3.0
+                        )
                         }) {
                             Text("Copy Code")
                                 .padding(8)
@@ -352,7 +374,6 @@ struct DetailView: View {
         }
         .scrollIndicators(.hidden)
         .toast($toast)
-        
 #if os(iOS)
         .toolbar {
             ShareLink(item: URL(string: "https://dockui.com/p/\(id)")!)
@@ -376,46 +397,3 @@ struct DetailView: View {
         }
     }
 }
-
-struct AsyncCodeText: View {
-    let codeSnippet: String
-    @State private var isLoaded: Bool = false
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading) {
-                
-                ScrollView {
-                    VStack(alignment: .leading) {
-                        CodeText(codeSnippet)
-                            .highlightLanguage(.swift)
-                            .font(.system(size: 20))
-                            .textSelection(.enabled)
-                            .padding()
-                    }
-                }
-                if isLoaded {
-                    CodeText(codeSnippet)
-                        .highlightLanguage(.swift)
-                        .font(.body)
-                        .padding()
-                } else {
-                    ProgressView()
-                        .padding()
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: 300)
-        .background(Color.gray.opacity(0.2))
-        .cornerRadius(8)
-        .onAppear {
-            DispatchQueue.global(qos: .userInitiated).async {
-                // Simulate processing delay (optional)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    isLoaded = true
-                }
-            }
-        }
-    }
-}
-
-

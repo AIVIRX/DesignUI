@@ -15,6 +15,8 @@ struct SubscriptionView: View {
     @State private var selectedProduct: Product?
     @State private var showingSuccess = false
     @State private var isLoading = false
+    @State private var startAnimation: Bool = false
+    @State private var opacity: Double = 0.0
     
     var body: some View {
         NavigationStack {
@@ -27,8 +29,16 @@ struct SubscriptionView: View {
                     restoreSection
                     legalSection
                 }
+                .offset(y: startAnimation ? 0 : 50)
                 .frame(maxWidth: 800)
                 .padding()
+                .opacity(opacity)
+                .onAppear{
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        startAnimation = true
+                        opacity = 1.0
+                    }
+                }
             }
         }
         .task {

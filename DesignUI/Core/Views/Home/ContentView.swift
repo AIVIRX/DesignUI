@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case explore, templates, components, profile, sfIcons, shop
+    case explore, profile, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -19,7 +19,7 @@ struct ContentView: View {
     @Environment(\.requestReview) var requestReview
     @State private var hoveredItem: MenuItem?
     let client = SupabaseManager.shared.client
-    @AppStorage("selectedIndex") var selectedIndex: Int = 0
+    @State var selectedIndex: Int = 0
     @EnvironmentObject private var entitlementManager: EntitlementManager
 
     private enum MenuItem {
@@ -47,10 +47,6 @@ struct ContentView: View {
                 StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house.fill") {
                         ExploreView()
-                    }
-                    
-                    Tab(systemImageName: "brain.head.profile"){
-                        AIView()
                     }
                     
                     Tab(systemImageName: "person.crop.circle.fill") {
@@ -115,21 +111,13 @@ struct ContentView: View {
                             hoveredItem = hovering ? .contact : nil
                         }
                     
-                    Spacer()
+                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundStyle(Color.gray)
+                        .font(.body)
                     
-                    HStack{
-                        Spacer()
-                        VStack{
-                            Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
-                                .foregroundStyle(Color.gray)
-                                .font(.body)
-                            
-                            Text("Made in New York City")
-                                .foregroundStyle(Color.gray)
-                                .font(.body)
-                        }
-                        Spacer()
-                    }
+                    Spacer()
                 }
                 .padding()
                 .background(Color.clear)
@@ -157,22 +145,17 @@ struct ContentView: View {
 #if os(macOS)
         NavigationSplitView {
             VStack(alignment: .leading, spacing: 5) {
-                // Search Tab
                 navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                 
-                navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 1)
-                
-                navigationLinkButton(viewType: .components, label: "Components", systemImage: "slider.horizontal.below.square.filled.and.square", menuItem: .components, selectedIndex: $selectedIndex, currentIndex: 2)
-                
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 3)
+                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
                 
                 Divider().padding(.vertical)
                 
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Premium", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 5)
+                navigationLinkButton(viewType: .shop, label: "Premium", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
                 
                 Divider().padding(.vertical)
                 
@@ -212,24 +195,17 @@ struct ContentView: View {
                         hoveredItem = hovering ? .contact : nil
                     }
                 
-                Spacer()
+                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundStyle(Color.gray)
+                        .font(.body)
                 
-                HStack{
-                    Spacer()
-                    VStack{
-                        Text("v\(Bundle.main.releaseVersionNumber ?? "")" )
-                            .foregroundStyle(Color.gray)
-                            .font(.body)
-                        
-                        Text("Made in New York City")
-                            .foregroundStyle(Color.gray)
-                            .font(.body)
-                    }
-                    Spacer()
-                }
+                Spacer()
             }
             .padding()
             .background(Color.clear)
+            .toolbar(removing: .sidebarToggle)
             .navigationSplitViewColumnWidth(230)
         }
         detail: {
@@ -304,10 +280,6 @@ struct ContentView: View {
     private func getDestinationView(for viewType: ViewType) -> some View {
         switch viewType {
         case .explore:
-            return AnyView(ExploreView())
-        case .templates:
-            return AnyView(ExploreView())
-        case .components:
             return AnyView(ExploreView())
         case .profile:
             return AnyView(ProfileContainerView())

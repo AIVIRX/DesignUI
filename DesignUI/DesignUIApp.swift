@@ -11,18 +11,19 @@ import Firebase
 import FirebaseCore
 import FirebaseAnalyticsSwift
 import AdSupport
-import UserNotifications
 import Supabase
+
 #if os(iOS)
 import GoogleMobileAds
 
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureFirebase()
         requestTrackingAuthorization()
         initializeGoogleMobileAds()
         
-        UserDefaults.standard.set(0, forKey: "selectedIndex")
+        //UserDefaults.standard.set(0, forKey: "selectedIndex")
         
         return true
     }
@@ -53,26 +54,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private func configureFirebase() {
         FirebaseApp.configure()
     }
-    
-    class CustomSceneDelegate: UIResponder, UIWindowSceneDelegate {
-        func windowScene(_ windowScene: UIWindowScene, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
-            
-            handleQuickAction(shortcutItem)
-            
-            func handleQuickAction(_ shortcutItem: UIApplicationShortcutItem) {
-                let userDefaults = UserDefaults.standard
-                switch shortcutItem.type {
-                case QuickAction.explore.rawValue:
-                    userDefaults.set(0, forKey: "selectedIndex")
-                case QuickAction.settings.rawValue:
-                    userDefaults.set(1, forKey: "selectedIndex")
-                default:
-                    userDefaults.set(0, forKey: "selectedIndex")
-                }
-            }
-            completionHandler(true)
-        }
-    }
 }
 
 @main
@@ -82,10 +63,10 @@ struct DesignUIApp: App {
     
     @StateObject
     private var entitlementManager: EntitlementManager
-
+    
     @StateObject
     private var purchaseManager: PurchaseManager
-
+    
     init() {
         let entitlementManager = EntitlementManager()
         let purchaseManager = PurchaseManager(entitlementManager: entitlementManager)
@@ -93,7 +74,7 @@ struct DesignUIApp: App {
         self._purchaseManager = StateObject(wrappedValue: purchaseManager)
         UserDefaults.standard.set(false, forKey: "hasRequestedReview")
     }
-
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -108,6 +89,12 @@ struct DesignUIApp: App {
 #endif
 
 #if os(macOS)
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        FirebaseApp.configure()
+    }
+}
+
 @main
 struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
@@ -138,13 +125,6 @@ struct DesignUIApp: App {
         }
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.contentSize)
-    }
-}
-
-class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        
-        FirebaseApp.configure()
     }
 }
 #endif
