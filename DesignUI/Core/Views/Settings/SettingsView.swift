@@ -8,6 +8,7 @@
 //  DesignUI
 
 import SwiftUI
+import StoreKit
 #if os(iOS)
 import MessageUI
 #endif
@@ -56,9 +57,9 @@ struct MailView: UIViewControllerRepresentable {
 struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
+    @EnvironmentObject private var store: Store
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
-    @EnvironmentObject private var entitlementManager: EntitlementManager
 #if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
 #endif
@@ -67,15 +68,15 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             VStack{
-                NavigationLink(destination: SubscriptionView()) {
+                NavigationLink(destination: StoreView()) {
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Premium")
                                 .font(.headline)
-                                .foregroundColor(.primary)
+                                .foregroundColor(.white)
                             Text("Unlock Premium Features")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.white)
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -87,7 +88,7 @@ struct SettingsView: View {
                 
                 Form {
                     Section() {
-                        NavigationLink(destination: SubscriptionView()) {
+                        NavigationLink(destination: StoreView()) {
                             HStack {
                                 Image(systemName: "star.fill")
                                     .font(.system(size: 20)).bold()
@@ -189,7 +190,7 @@ struct SettingsView: View {
             }
 #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .pad {
-                if !entitlementManager.hasPro {
+                if store.completedPurchases.isEmpty {
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 468, height: 60)
                         .padding(3)

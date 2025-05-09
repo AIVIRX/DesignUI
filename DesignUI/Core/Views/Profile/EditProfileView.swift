@@ -1,10 +1,3 @@
-//
-//  EditProfileView.swift
-//  DesignUI
-//
-//  Created by Maicol Cabreja on 2/22/25.
-//
-
 import SwiftUI
 
 struct EditProfileView: View {
@@ -54,28 +47,36 @@ struct EditProfileView: View {
                     // Form Fields
                     VStack(spacing: 20) {
                         // Display Name
-                        FormField(
-                            title: "Display Name",
-                            placeholder: "Enter your display name",
-                            text: $displayName,
-                            icon: "person.fill"
-                        ) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Display Name", systemImage: "person.fill")
+                                .foregroundColor(.gray)
+                            
+                            TextField("Enter your display name", text: $displayName)
+                                .textFieldStyle(.roundedBorder)
+                                .autocorrectionDisabled()
+                                .focused($focusedField, equals: .displayName)
+                                .submitLabel(.next)
+                                .onSubmit {
                             focusedField = .username
+                                }
                         }
-                        .focused($focusedField, equals: .displayName)
                         
                         // Username
-                        FormField(
-                            title: "Username",
-                            placeholder: "Enter your username",
-                            text: $username,
-                            icon: "at"
-                        ) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Username", systemImage: "at")
+                                .foregroundColor(.gray)
+                            
+                            TextField("Enter your username", text: $username)
+                                .textFieldStyle(.roundedBorder)
+                                .autocorrectionDisabled()
+                                .focused($focusedField, equals: .username)
+                                .submitLabel(.done)
+                                .onSubmit {
                             Task {
                                 await updateProfile()
+                                    }
                             }
                         }
-                        .focused($focusedField, equals: .username)
                     }
                     .padding(.horizontal)
                     
@@ -94,14 +95,11 @@ struct EditProfileView: View {
                         } else {
                             Text("Save Changes")
                                 .fontWeight(.semibold)
-                                .contentShape(Rectangle())
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 50)
                         }
                     }
                     .buttonStyle(BorderedProminentButtonStyle())
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
                     .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(12)
@@ -114,6 +112,14 @@ struct EditProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+#else
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
@@ -145,17 +151,13 @@ struct EditProfileView: View {
         isLoading = true
         
         do {
-            // Check if username is already taken (only if changed)
             if username != viewModel.profile?.username {
                 let checkResponse = try await supabase
                     .from("profiles")
                     .select("username")
                     .eq("username", value: username)
-                    .neq("id", value: userId)  // Exclude current user
+                    .neq("id", value: userId)
                     .execute()
-                
-                print("Supabase Response:", String(data: checkResponse.data, encoding: .utf8) ?? "No Data")
-
                 
                 let decoder = JSONDecoder()
                 let existingUsers = try decoder.decode([Profile].self, from: checkResponse.data)
@@ -168,7 +170,6 @@ struct EditProfileView: View {
                 }
             }
             
-            // Proceed with updating profile if all checks pass
             try await supabase
                 .from("profiles")
                 .upsert([
@@ -181,42 +182,15 @@ struct EditProfileView: View {
                 .single()
                 .execute()
             
-            // Refresh user profile after successful update
             await authViewModel.checkUsername()
             await viewModel.fetchProfile()
             dismiss()
             
         } catch {
             showError = true
-            errorMessage = "Username is not available"  // More user-friendly error message
+            errorMessage = "Username is not available"
         }
         
         isLoading = false
-    }
-    // Helper view for form fields
-    struct FormField: View {
-        let title: String
-        let placeholder: String
-        @Binding var text: String
-        let icon: String
-        var onSubmit: (() -> Void)? = nil
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Label(title, systemImage: icon)
-                    .foregroundColor(.gray)
-                
-                TextField(placeholder, text: $text)
-                    .contentShape(RoundedRectangle(cornerRadius: 12))
-#if os(iOS)
-                    .autocapitalization(.none)
-                    .submitLabel(.next) // Show next on keyboard
-#endif
-                    .autocorrectionDisabled()
-                    .onSubmit {
-                        onSubmit?()
-                    }
-            }
-        }
     }
 }

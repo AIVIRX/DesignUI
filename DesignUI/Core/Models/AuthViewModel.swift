@@ -37,7 +37,7 @@ class AuthViewModel: ObservableObject {
         do {
             let response = try await supabase
                 .from("profiles")
-                .select() // ✅ Only fetch needed fields
+                .select()
                 .eq("id", value: userId)
                 .single()
                 .execute()
@@ -49,7 +49,7 @@ class AuthViewModel: ObservableObject {
                 await MainActor.run {
                     hasUsername = true
                     self.userProfile = profile
-                    self.objectWillChange.send() // ✅ Force UI update
+                    self.objectWillChange.send()
                 }
             }
         } catch {
@@ -127,7 +127,7 @@ class AuthViewModel: ObservableObject {
         isLoading = true
         
         do {
-            try await supabase.auth.signOut()
+            try await supabase.auth.signOut(scope: .local)
             currentUser = nil
             isAuthenticated = false
         } catch {

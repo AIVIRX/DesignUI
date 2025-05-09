@@ -80,6 +80,7 @@ struct SimilarPostsView: View {
 }
 
 struct SimilarPostCard: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
     let post: DesignPost
     
     var body: some View {

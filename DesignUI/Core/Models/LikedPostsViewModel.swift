@@ -39,7 +39,6 @@ class LikedPostsViewModel: ObservableObject {
     @MainActor
     func fetchLikedPosts() async {
         guard !isLoading && hasMorePosts && !isRefreshing else { return }
-        
         guard let userId = client.auth.currentUser?.id else { return }
         
         isLoading = true
@@ -47,21 +46,29 @@ class LikedPostsViewModel: ObservableObject {
         
         do {
             let response = try await client
-                .from("posts")
+                .from("likes")
                 .select("""
+                    created_at,
+                    posts!inner (
                     *,
                     profiles!posts_author_id_fkey (
                       username,
                       verified
-                    ),
-                    likes!inner(*)
+                        )
+                    )
                 """)
-                .eq("likes.user_id", value: userId)
+                .eq("user_id", value: userId)
                 .order("created_at", ascending: false)
                 .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                 .execute()
             
-            let newLikedPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
+            struct LikeResponse: Codable {
+                let created_at: String
+                let posts: DesignPost
+            }
+            
+            let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
+            let newLikedPosts = likeResponses.map { $0.posts }
             
             likedPosts.append(contentsOf: newLikedPosts)
             currentPage += 1
@@ -88,33 +95,39 @@ class LikedPostsViewModel: ObservableObject {
         hasMorePosts = true
         error = nil
         
-        // Create new task for this refresh
         currentTask = Task {
             do {
                 let response = try await client
-                    .from("posts")
+                    .from("likes")
                     .select("""
+                        created_at,
+                        posts!inner (
                             *,
                             profiles!posts_author_id_fkey (
                               username,
                               verified
-                            ),
-                            likes!inner(*)
+                            )
+                        )
                         """)
-                    .eq("likes.user_id", value: userId)
+                    .eq("user_id", value: userId)
                     .order("created_at", ascending: false)
                     .range(from: 0, to: pageSize - 1)
                     .execute()
                 
-                // Check if task was cancelled
                 if Task.isCancelled { return }
                 
-                let newLikedPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
+                struct LikeResponse: Codable {
+                    let created_at: String
+                    let posts: DesignPost
+                }
+                
+                let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
+                let newLikedPosts = likeResponses.map { $0.posts }
+                
                 likedPosts = newLikedPosts
                 currentPage = 1
                 hasMorePosts = newLikedPosts.count == pageSize
                 
-                // If we have more posts and task wasn't cancelled, fetch the next batch
                 if hasMorePosts && !Task.isCancelled {
                     await fetchLikedPosts()
                 }

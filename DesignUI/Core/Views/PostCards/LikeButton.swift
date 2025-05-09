@@ -13,8 +13,8 @@ struct LikeButton: View {
     @State private var isLiked: Bool = false
     @State private var likeCount: Int
     @State private var isLoading = false
-    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showAlert = false
+    @EnvironmentObject var authViewModel: AuthViewModel
     private let supabase = SupabaseManager.shared.client
     
     init(postId: String, initialLikeCount: Int) {

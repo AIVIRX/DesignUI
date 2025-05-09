@@ -20,7 +20,7 @@ struct DesignCards: View {
     var published: String
     var likesCount: Int
     var isLiked: Bool
-
+    
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
@@ -29,9 +29,12 @@ struct DesignCards: View {
     @State private var userId: String? = nil
     
     @StateObject private var viewModel = LatestPostsViewModel()
-
+    @EnvironmentObject var authViewModel: AuthViewModel
+    
     let client = SupabaseManager.shared.client
-
+    @State private var hasLoggedImpression = false
+    @State private var impressionWorkItem: DispatchWorkItem?
+    
     func checkIfUserLikedPost() async {
         guard let userId = userId else { return }
         
@@ -109,15 +112,11 @@ struct DesignCards: View {
                                                     SDImageCache.shared.clearMemory()
                                                 }
                                         case .failure:
-                                            Image(systemName: "photo")
+                                            Image(systemName: "wifi.slash")
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                                .clipShape(RoundedRectangle(cornerRadius: 15))
-                                                .clipped()
-                                                .shadow(radius: 8)
+                                                .frame(width: 50, height: 50)
                                         }
-                                        
                                     }
                                 }
                         }
@@ -225,7 +224,6 @@ struct DesignCards: View {
                         isHovered = hovering
                     }
                 }
-
 #if os(iOS)
                 .frame(width: 185)
 #endif

@@ -60,29 +60,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let client = SupabaseManager.shared.client
-    
-    @StateObject
-    private var entitlementManager: EntitlementManager
-    
-    @StateObject
-    private var purchaseManager: PurchaseManager
-    
-    init() {
-        let entitlementManager = EntitlementManager()
-        let purchaseManager = PurchaseManager(entitlementManager: entitlementManager)
-        self._entitlementManager = StateObject(wrappedValue: entitlementManager)
-        self._purchaseManager = StateObject(wrappedValue: purchaseManager)
-        UserDefaults.standard.set(false, forKey: "hasRequestedReview")
-    }
-    
+    @StateObject private var store = Store()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(entitlementManager)
-                .environmentObject(purchaseManager)
-                .task {
-                    await purchaseManager.updatePurchasedProducts()
-                }
+                .environmentObject(store)
         }
     }
 }
@@ -98,33 +81,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
-    @StateObject
-    private var entitlementManager: EntitlementManager
+    @StateObject private var store = Store()
 
-    @StateObject
-    private var purchaseManager: PurchaseManager
-
-    init() {
-        let entitlementManager = EntitlementManager()
-        let purchaseManager = PurchaseManager(entitlementManager: entitlementManager)
-        self._entitlementManager = StateObject(wrappedValue: entitlementManager)
-        self._purchaseManager = StateObject(wrappedValue: purchaseManager)
-        UserDefaults.standard.set(false, forKey: "hasRequestedReview")
-    }
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(entitlementManager)
-                .environmentObject(purchaseManager)
-                .task {
-                    await purchaseManager.updatePurchasedProducts()
-                }
+                .environmentObject(store)
                 .frame(minWidth: 1280, minHeight: 720)
         }
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.contentSize)
+
     }
 }
 #endif

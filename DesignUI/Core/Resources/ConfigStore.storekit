@@ -14,13 +14,27 @@
 
   ],
   "products" : [
-
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "6744974882",
+      "localizations" : [
+        {
+          "description" : "Remove Ads & Unlock Premium Features!",
+          "displayName" : "Premium",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "FERNKJGVN",
+      "referenceName" : "dockui-premium-onetime",
+      "type" : "NonConsumable"
+    }
   ],
   "settings" : {
     "_applicationInternalID" : "6496860953",
     "_developerTeamID" : "5C778DVBP3",
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 764525233.53731596,
+    "_lastSynchronizedDate" : 767395651.99580204,
     "_locale" : "en_US",
     "_storefront" : "USA",
     "_storeKitErrors" : [
@@ -72,71 +86,7 @@
     ]
   },
   "subscriptionGroups" : [
-    {
-      "id" : "21650413",
-      "localizations" : [
 
-      ],
-      "name" : "Premium",
-      "subscriptions" : [
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "2.99",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "6743334924",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "Unlock Premium Features",
-              "displayName" : "Monthly",
-              "locale" : "en_US"
-            }
-          ],
-          "productID" : "dockui_premium_monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Monthly",
-          "subscriptionGroupID" : "21650413",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "24.95",
-          "familyShareable" : false,
-          "groupNumber" : 2,
-          "internalID" : "6743336271",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "Unlock Premium Features",
-              "displayName" : "Yearly",
-              "locale" : "en_US"
-            }
-          ],
-          "productID" : "dockui_premium_yearly",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Yearly",
-          "subscriptionGroupID" : "21650413",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
-        }
-      ]
-    }
   ],
   "version" : {
     "major" : 4,

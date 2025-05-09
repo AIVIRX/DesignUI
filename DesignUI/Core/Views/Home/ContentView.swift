@@ -11,16 +11,16 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case explore, profile, sfIcons, shop
+    case templates, profile, sfIcons, shop
 }
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
+    @EnvironmentObject private var store: Store
     @State private var hoveredItem: MenuItem?
     let client = SupabaseManager.shared.client
     @State var selectedIndex: Int = 0
-    @EnvironmentObject private var entitlementManager: EntitlementManager
 
     private enum MenuItem {
         case explore
@@ -38,7 +38,8 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
-                if !entitlementManager.hasPro{
+                if !store.completedPurchases.isEmpty{
+                } else {
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 320, height: 50)
                         .padding(5)
@@ -61,11 +62,11 @@ struct ContentView: View {
             NavigationSplitView {
                 VStack(alignment: .leading, spacing: 5) {
                     // Search Tab
-                    navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
+                    navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                     
                     navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
                     
-                    Divider().padding(.vertical)
+                    Divider().padding(.vertical).opacity(0.5)
                     
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
@@ -73,9 +74,9 @@ struct ContentView: View {
                     // Shop Link
                     navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
                     
-                    Divider().padding(.vertical)
+                    Divider().padding(.vertical).opacity(0.5)
                     
-                    Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
+                    Link("Threads", destination: URL(string: "https://www.threads.com/@dockui")!)
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
@@ -133,7 +134,7 @@ struct ContentView: View {
                     case 2:
                         SFIconsView()
                     case 3:
-                        SubscriptionView()
+                        StoreView()
                     default:
                         Text("Select a view")
                     }
@@ -145,21 +146,21 @@ struct ContentView: View {
 #if os(macOS)
         NavigationSplitView {
             VStack(alignment: .leading, spacing: 5) {
-                navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "magnifyingglass", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
+                navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
                 
-                Divider().padding(.vertical)
+                Divider().padding(.vertical).opacity(0.5)
                 
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Premium", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
+                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
                 
-                Divider().padding(.vertical)
+                Divider().padding(.vertical).opacity(0.5)
                 
-                Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
+                Link("Threads", destination: URL(string: "https://www.threads.com/@dockui")!)
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
@@ -195,11 +196,11 @@ struct ContentView: View {
                         hoveredItem = hovering ? .contact : nil
                     }
                 
-                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundStyle(Color.gray)
-                        .font(.body)
+                Text("v\(Bundle.main.releaseVersionNumber ?? "")")
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .foregroundStyle(Color.gray)
+                    .font(.body)
                 
                 Spacer()
             }
@@ -218,7 +219,7 @@ struct ContentView: View {
                 case 2:
                     SFIconsView()
                 case 3:
-                    SubscriptionView()
+                    StoreView()
                 default:
                     Text("Select a view")
                 }
@@ -279,12 +280,12 @@ struct ContentView: View {
     
     private func getDestinationView(for viewType: ViewType) -> some View {
         switch viewType {
-        case .explore:
+        case .templates:
             return AnyView(ExploreView())
         case .profile:
             return AnyView(ProfileContainerView())
-        case . shop:
-            return AnyView(SubscriptionView())
+        case .shop:
+            return AnyView(StoreView())
         case .sfIcons:
             return AnyView(SFIconsView())
         }
