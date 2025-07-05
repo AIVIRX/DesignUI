@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, profile, sfIcons, shop
+    case templates, news, profile, sfIcons, shop, editor
 }
 
 struct ContentView: View {
@@ -24,12 +24,13 @@ struct ContentView: View {
 
     private enum MenuItem {
         case explore
+        case news
+        case editor
         case profile
         case templates
-        case components
         case sfIcons
         case shop
-        case instagram
+        case threads
         case policy
         case contact
     }
@@ -46,13 +47,19 @@ struct ContentView: View {
                 }
                 
                 StatefulTabView(selectedIndex: $selectedIndex){
-                    Tab(systemImageName: "house.fill") {
+                    Tab(systemImageName: "house") {
                         ExploreView()
                     }
                     
-                    Tab(systemImageName: "person.crop.circle.fill") {
+                    Tab(systemImageName: "newspaper") {
+                        NewsListView()
+                    }
+                    
+                    Tab(systemImageName: "person.crop.circle") {
                         ProfileContainerView()
                     }
+                    
+                    
                 }
                 .accentColor(colorScheme == .dark ? .white : .black)
             }
@@ -61,18 +68,22 @@ struct ContentView: View {
         if UIDevice.current.userInterfaceIdiom == .pad {
             NavigationSplitView {
                 VStack(alignment: .leading, spacing: 5) {
-                    // Search Tab
                     navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                     
-                    navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
+                    navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
+                    
+                    navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 2)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
+    //                // SF Symbols Link
+    //                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 3)
+                    
                     // SF Symbols Link
-                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
+                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
                     
                     // Shop Link
-                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
+                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 5)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -80,12 +91,12 @@ struct ContentView: View {
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(hoveredItem == .instagram ? (colorScheme == .dark ? .white : .black) : .gray)
+                        .foregroundColor(hoveredItem == .threads ? (colorScheme == .dark ? .white : .black) : .gray)
                         .background(Color.clear)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onHover { hovering in
-                            hoveredItem = hovering ? .instagram : nil
+                            hoveredItem = hovering ? .threads : nil
                         }
                     
                     // Privacy Policy Link
@@ -130,10 +141,12 @@ struct ContentView: View {
                     case 0:
                         ExploreView()
                     case 1:
-                        ProfileContainerView()
+                        NewsListView()
                     case 2:
+                        ProfileContainerView()
+                    case 4:
                         SFIconsView()
-                    case 3:
+                    case 5:
                         StoreView()
                     default:
                         Text("Select a view")
@@ -148,15 +161,20 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 5) {
                 navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 1)
+                navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
+                
+                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 2)
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
+//                // SF Symbols Link
+//                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 3)
+                
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 3)
+                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 5)
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
@@ -164,12 +182,12 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .instagram ? (colorScheme == .dark ? .white : .black) : .gray)
+                    .foregroundColor(hoveredItem == .threads ? (colorScheme == .dark ? .white : .black) : .gray)
                     .background(Color.clear)
                     .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onHover { hovering in
-                        hoveredItem = hovering ? .instagram : nil
+                        hoveredItem = hovering ? .threads : nil
                     }
                 
                 // Privacy Policy Link
@@ -215,10 +233,12 @@ struct ContentView: View {
                 case 0:
                     ExploreView()
                 case 1:
-                    ProfileContainerView()
+                    NewsListView()
                 case 2:
+                    ProfileContainerView()
+                case 4:
                     SFIconsView()
-                case 3:
+                case 5:
                     StoreView()
                 default:
                     Text("Select a view")
@@ -282,10 +302,14 @@ struct ContentView: View {
         switch viewType {
         case .templates:
             return AnyView(ExploreView())
+        case .news:
+            return AnyView(NewsListView())
         case .profile:
             return AnyView(ProfileContainerView())
         case .shop:
             return AnyView(StoreView())
+        case .editor:
+            return AnyView(EditorView())
         case .sfIcons:
             return AnyView(SFIconsView())
         }

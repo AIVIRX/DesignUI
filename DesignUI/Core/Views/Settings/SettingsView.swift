@@ -87,20 +87,6 @@ struct SettingsView: View {
                 }
                 
                 Form {
-                    Section() {
-                        NavigationLink(destination: StoreView()) {
-                            HStack {
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 20)).bold()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.yellow)
-                                    .background(Color.indigo)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("Premium")
-                            }
-                        }
-                    }
-                    
                     Section(header: Text("Appearance")) {
                         NavigationLink(destination: AlternateIconView()) {
                             HStack {
@@ -130,7 +116,7 @@ struct SettingsView: View {
                             }
                         }
                         
-                        Link("Instagram", destination: URL(string: "https://www.instagram.com/dockui")!)
+                        Link("Threads", destination: URL(string: "https://www.threads.com/dockui")!)
                             .bold()
                     }
                     

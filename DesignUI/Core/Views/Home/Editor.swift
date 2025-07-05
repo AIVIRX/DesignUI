@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Core Models
 struct UIComponent: Identifiable, Codable {
@@ -104,7 +105,6 @@ struct ComponentRenderer: View {
     
     var body: some View {
         renderComponent(component)
-            .position(x: component.position.x, y: component.position.y)
             .frame(width: component.size.width, height: component.size.height)
     }
     
@@ -175,6 +175,7 @@ class EditorViewModel: ObservableObject {
 struct ComponentItem: View {
     let icon: String
     let title: String
+    let type: ComponentType
     
     var body: some View {
         HStack {
@@ -187,6 +188,9 @@ struct ComponentItem: View {
         .padding(.vertical, 8)
         .background(Color.clear)
         .contentShape(Rectangle())
+        .onDrag {
+            NSItemProvider(object: type.rawValue as NSString)
+        }
     }
 }
 
@@ -205,9 +209,9 @@ struct StatusBarView: View {
             Spacer()
             
             // Right side status icons
-            HStack(spacing: 4) {
+            HStack(alignment: .bottom, spacing: 1) {
                 // Cellular bars
-                HStack(spacing: 1) {
+                HStack(alignment: .bottom, spacing: 1) {
                     ForEach(0..<4) { i in
                         RoundedRectangle(cornerRadius: 1)
                             .fill(i < 3 ? Color.white : Color.white.opacity(0.3))
@@ -272,82 +276,124 @@ struct DynamicIslandView: View {
 // MARK: - iPhone Canvas
 struct iPhoneCanvas: View {
     let component: UIComponent
+    var onDropComponent: ((ComponentType, CGPoint) -> Void)? = nil
     @State private var currentTime = Date()
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        ZStack {
-            // iPhone frame
-            RoundedRectangle(cornerRadius: 40)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 2)
-                .frame(width: 320, height: 650)
-            
-            // Status Bar and Dynamic Island
+        GeometryReader { geo in
             ZStack {
-                // Status Bar
-                HStack {
-                    // Time
-                    Text(timeString)
-                        .font(.system(size: 12, weight: .medium))
-                    
-                    Spacer()
-                    
-                    // Status Icons
-                    HStack(spacing: 4) {
-                        // Cellular
-                        HStack(spacing: 1) {
-                            ForEach(0..<4) { i in
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(i < 3 ? Color.black : Color.black.opacity(0.3))
-                                    .frame(width: 3, height: CGFloat(6 + (i * 2)))
+                // iPhone frame
+                RoundedRectangle(cornerRadius: 40)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                    .frame(width: 320, height: 650)
+                    .background(
+                        RoundedRectangle(cornerRadius: 40)
+                            .fill(Color.white)
+                    )
+                
+                VStack(spacing: 0) {
+                    // Status Bar and Dynamic Island INSIDE the device frame
+                    ZStack {
+                        // Status Bar
+                        HStack {
+                            // Time
+                            Text(timeString)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.black)
+                                .onReceive(timer) { _ in
+                                    currentTime = Date()
+                                }
+                            Spacer()
+                            // Status Icons
+                            HStack(alignment: .bottom, spacing: 1) {
+                                // Cellular
+                                HStack(alignment: .bottom, spacing: 1) {
+                                    ForEach(0..<4) { i in
+                                        RoundedRectangle(cornerRadius: 1)
+                                            .fill(i < 3 ? Color.black : Color.black.opacity(0.3))
+                                            .frame(width: 3, height: CGFloat(6 + (i * 2)))
+                                    }
+                                }
+                                // WiFi
+                                Image(systemName: "wifi")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.black)
+                                // Battery
+                                HStack(spacing: 2) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .stroke(Color.black, lineWidth: 1)
+                                        .frame(width: 20, height: 10)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 1)
+                                                .fill(Color.black)
+                                                .padding(2)
+                                        )
+                                    Rectangle()
+                                        .fill(Color.black)
+                                        .frame(width: 2, height: 6)
+                                }
                             }
                         }
-                        
-                        // WiFi
-                        Image(systemName: "wifi")
-                            .font(.system(size: 12))
-                        
-                        // Battery
-                        HStack(spacing: 2) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .stroke(Color.black, lineWidth: 1)
-                                .frame(width: 20, height: 10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 1)
-                                        .fill(Color.black)
-                                        .padding(2)
-                                )
-                            
-                            Rectangle()
-                                .fill(Color.black)
-                                .frame(width: 2, height: 6)
+                        .padding(.horizontal, 20)
+                        // Dynamic Island
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.black)
+                            .frame(width: 120, height: 35)
+                            .overlay(
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 10, height: 10)
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 10, height: 10)
+                                }
+                            )
+                            .zIndex(1)
+                            .offset(y: 10)
+                    }
+                    .frame(height: 40)
+                    .padding(.top, 10)
+                    // Content Area (between status bar and home indicator)
+                    VStack(spacing: 0) {
+                        // Render all children of rootComponent (which should be a VStack)
+                        ForEach(component.children ?? []) { child in
+                            ComponentRenderer(component: child)
                         }
                     }
+                    .frame(width: 300, height: 590)
+                    .clipped()
+                    .background(Color.clear)
+                    Spacer(minLength: 0)
+                    // Home Indicator (iPhone line at the bottom)
+                    HStack {
+                        Spacer()
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color.black.opacity(0.2))
+                            .frame(width: 120, height: 5)
+                        Spacer()
+                    }
+                    .padding(.bottom, 18)
                 }
-                .padding(.horizontal, 20)
-                
-                // Dynamic Island
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.black)
-                    .frame(width: 120, height: 35)
-                    .overlay(
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(width: 10, height: 10)
-                            Circle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(width: 10, height: 10)
-                        }
-                    )
-                    .zIndex(1) // Ensure Dynamic Island appears above status bar
+                .frame(width: 320, height: 650)
             }
-            .position(x: 320/2, y: 20)
-            
-            // Content
-            ComponentRenderer(component: component)
-                .frame(width: 300, height: 630)
-                .padding(.top, 50)
+            .frame(width: 320, height: 650)
+            .onDrop(of: [UTType.text], isTargeted: nil) { providers, location in
+                if let provider = providers.first {
+                    _ = provider.loadObject(ofClass: NSString.self) { (object, error) in
+                        if let typeString = object as? String, let type = ComponentType(rawValue: typeString) {
+                            // Convert drop location to local canvas coordinates
+                            let local = CGPoint(x: location.x - (geo.size.width - 320)/2 - 10, y: location.y - (geo.size.height - 650)/2 - 10)
+                            DispatchQueue.main.async {
+                                onDropComponent?(type, local)
+                            }
+                        }
+                    }
+                    return true
+                }
+                return false
+            }
         }
     }
     
@@ -364,79 +410,89 @@ struct EditorView: View {
     @State private var showJSON = false
     @State private var searchText = ""
     
+    // Helper for sidebar items
+    private let sidebarItems: [(icon: String, title: String, type: ComponentType)] = [
+        ("textformat", "Text", .text),
+        ("square.fill", "Rectangle", .rectangle),
+        ("square.stack.3d.up.fill", "Z Stack", .zstack),
+        ("square.stack.3d.forward.dottedline", "V Stack", .vstack),
+        ("square.stack.3d.down.forward", "H Stack", .hstack)
+        // Add more as needed
+    ]
+    
     var body: some View {
-        NavigationStack {
-            HStack(spacing: 0) {
-                // Left Sidebar
-                VStack(spacing: 0) {
-                    // Search bar
-                    TextField("Search components...", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding()
-                    
-                    // Components list
-                    ScrollView {
+        GeometryReader { proxy in
+            NavigationStack {
+                ZStack(alignment: .center) {
+                    Color.gray.opacity(0.1)
+                        .edgesIgnoringSafeArea(.all)
+                    HStack(spacing: 0) {
+                        // Left Sidebar
                         VStack(spacing: 0) {
-                            ComponentItem(icon: "textformat", title: "Text")
-                            ComponentItem(icon: "photo", title: "Image")
-                            ComponentItem(icon: "square.fill", title: "Rectangle")
-                            ComponentItem(icon: "square.stack.3d.up.fill", title: "Z Stack")
-                            ComponentItem(icon: "square.stack.3d.forward.dottedline", title: "V Stack")
-                            ComponentItem(icon: "square.stack.3d.down.forward", title: "H Stack")
-                            ComponentItem(icon: "slider.horizontal.3", title: "Slider")
-                            ComponentItem(icon: "switch.2", title: "Switch")
-                            ComponentItem(icon: "button.programmable", title: "Button")
-                            ComponentItem(icon: "textfield", title: "Text Field")
-                            ComponentItem(icon: "picker", title: "Picker")
+                            TextField("Search components...", text: $searchText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding()
+                            ScrollView {
+                                VStack(spacing: 0) {
+                                    let filteredItems = sidebarItems.filter { searchText.isEmpty || $0.title.localizedCaseInsensitiveContains(searchText) }
+                                    ForEach(filteredItems, id: \.title) { item in
+                                        ComponentItem(icon: item.icon, title: item.title, type: item.type)
+                                    }
+                                }
+                            }
+                        }
+                        .frame(width: 250)
+                        .background(Color.gray.opacity(0.1))
+                        // Main Canvas (centered vertically)
+                        VStack {
+                            Spacer()
+                            iPhoneCanvas(component: viewModel.rootComponent) { type, point in
+                                let childCount = viewModel.rootComponent.children?.count ?? 0
+                                let yPosition = CGFloat(20 + 60 * childCount)
+                                let newComponent = UIComponent(
+                                    type: type,
+                                    position: CGPoint(x: 150, y: yPosition),
+                                    size: CGSize(width: 100, height: 40),
+                                    textContent: type == .text ? "Text" : nil, backgroundColor: type == .rectangle ? .blue : nil
+                                )
+                                DispatchQueue.main.async {
+                                    viewModel.rootComponent.children?.append(newComponent)
+                                }
+                            }
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        // Right Sidebar (Properties)
+                        VStack {
+                            Text("Properties")
+                                .font(.headline)
+                                .padding()
+                            Spacer()
+                        }
+                        .frame(width: 250)
+                        .background(Color.gray.opacity(0.1))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .center)
+                .navigationTitle("Layout Editor")
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Show JSON") {
+                            showJSON.toggle()
                         }
                     }
                 }
-                .frame(width: 250)
-                .background(Color.gray.opacity(0.1))
-                
-                // Main Canvas
-                ZStack {
-                    // Background
-                    Color.gray.opacity(0.1)
-                        .edgesIgnoringSafeArea(.all)
-                    
-                    // iPhone Canvas
-                    iPhoneCanvas(component: viewModel.rootComponent)
-                }
-                
-                // Right Sidebar (Properties)
-                VStack {
-                    Text("Properties")
-                        .font(.headline)
-                        .padding()
-                    
-                    Spacer()
-                }
-                .frame(width: 250)
-                .background(Color.gray.opacity(0.1))
-            }
-            .navigationTitle("Layout Editor")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Show JSON") {
-                        showJSON.toggle()
-                    }
-                }
-            }
-            .sheet(isPresented: $showJSON) {
-                if let jsonString = try? viewModel.saveToJSON() {
-                    ScrollView {
-                        Text(jsonString)
-                            .font(.system(.body, design: .monospaced))
-                            .padding()
+                .sheet(isPresented: $showJSON) {
+                    if let jsonString = try? viewModel.saveToJSON() {
+                        ScrollView {
+                            Text(jsonString)
+                                .font(.system(.body, design: .monospaced))
+                                .padding()
+                        }
                     }
                 }
             }
         }
     }
 }
-
-// MARK: - Preview
-#Preview {
-    EditorView()
-} 
