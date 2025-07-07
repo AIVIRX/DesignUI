@@ -331,6 +331,7 @@ struct DetailView: View {
                                     .padding()
                             }
                         }
+                        .scrollIndicators(.never)
                         .frame(maxWidth: .infinity, maxHeight: 300)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
@@ -367,7 +368,7 @@ struct DetailView: View {
             .accentColor(.none)
             .toolbar {
                 ToolbarItem() {
-                    ShareLink(item: URL(string: "https://dockui.com/p/\(id)")!)
+                    ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
                 }
             }
 #endif
@@ -376,7 +377,7 @@ struct DetailView: View {
         .toast($toast)
 #if os(iOS)
         .toolbar {
-            ShareLink(item: URL(string: "https://dockui.com/p/\(id)")!)
+            ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
         }
         .navigationBarTitle(title)
 #endif

@@ -21,15 +21,26 @@ class AuthViewModel: ObservableObject {
     @Published var hasUsername = false
     
     let supabase = SupabaseManager.shared.client
+    private var authChangeTask: Task<Void, Never>?
     
     init() {
-        currentUser = supabase.auth.currentUser
-        isAuthenticated = currentUser != nil
-        if isAuthenticated {
-            Task {
-                await checkUsername()
+        authChangeTask = Task {
+            for await state in supabase.auth.authStateChanges {
+                await MainActor.run {
+                    if let user = state.session?.user {
+                        self.currentUser = user
+                        self.isAuthenticated = true
+                    } else {
+                        self.currentUser = nil
+                        self.isAuthenticated = false
+                    }
+                }
             }
         }
+    }
+    
+    deinit {
+        authChangeTask?.cancel()
     }
     
     func checkUsername() async {

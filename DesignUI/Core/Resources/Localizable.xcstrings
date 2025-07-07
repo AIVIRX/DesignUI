@@ -5007,6 +5007,9 @@
         }
       }
     },
+    "FEATURED" : {
+
+    },
     "Instagram" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5257,9 +5260,6 @@
           }
         }
       }
-    },
-    "Layout Editor" : {
-      "shouldTranslate" : false
     },
     "Loading posts..." : {
       "localizations" : {
@@ -8264,9 +8264,6 @@
         }
       }
     },
-    "Properties" : {
-      "shouldTranslate" : false
-    },
     "Rate Us" : {
       "localizations" : {
         "ar" : {
@@ -9016,9 +9013,6 @@
           }
         }
       }
-    },
-    "Search components..." : {
-      "shouldTranslate" : false
     },
     "Search SF Symbols" : {
       "localizations" : {
@@ -10269,9 +10263,6 @@
           }
         }
       }
-    },
-    "Show JSON" : {
-      "shouldTranslate" : false
     },
     "Sign In Required" : {
       "localizations" : {
@@ -13022,6 +13013,9 @@
           }
         }
       }
+    },
+    "View this year's winners and finalists >" : {
+
     },
     "Welcome to Dock UI" : {
       "localizations" : {

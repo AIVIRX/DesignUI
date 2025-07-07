@@ -61,7 +61,11 @@ struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let client = SupabaseManager.shared.client
     @StateObject private var store = Store()
-
+    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
+    
+    init() {
+        hasRequestedReview = false // Reset at the start of every app session
+    }
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -82,7 +86,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
-
+    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
+    
+    init() {
+        hasRequestedReview = false // Reset at the start of every app session
+    }
     var body: some Scene {
         WindowGroup {
             ContentView()

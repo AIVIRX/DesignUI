@@ -1,3 +1,4 @@
+
 //
 //  BlogViewModel.swift
 //  DesignUI
@@ -11,7 +12,7 @@ import Supabase
 class NewsViewModel: ObservableObject {
     @Published var posts: [NewsPost] = []
     @Published var isLoading = false
-    
+
     func fetchNews() async {
         await MainActor.run { self.isLoading = true }
         do {
@@ -21,7 +22,7 @@ class NewsViewModel: ObservableObject {
                 .order("created_at", ascending: false)
                 .execute()
                 .value
-            
+
             await MainActor.run {
                 self.posts = response
                 self.isLoading = false

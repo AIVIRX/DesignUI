@@ -11,12 +11,11 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, shop, editor
+    case templates, news, profile, sfIcons, shop
 }
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.requestReview) var requestReview
     @EnvironmentObject private var store: Store
     @State private var hoveredItem: MenuItem?
     let client = SupabaseManager.shared.client
@@ -25,7 +24,6 @@ struct ContentView: View {
     private enum MenuItem {
         case explore
         case news
-        case editor
         case profile
         case templates
         case sfIcons
@@ -75,9 +73,6 @@ struct ContentView: View {
                     navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 2)
                     
                     Divider().padding(.vertical).opacity(0.5)
-                    
-    //                // SF Symbols Link
-    //                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 3)
                     
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
@@ -167,8 +162,6 @@ struct ContentView: View {
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
-//                // SF Symbols Link
-//                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 3)
                 
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
@@ -308,8 +301,6 @@ struct ContentView: View {
             return AnyView(ProfileContainerView())
         case .shop:
             return AnyView(StoreView())
-        case .editor:
-            return AnyView(EditorView())
         case .sfIcons:
             return AnyView(SFIconsView())
         }

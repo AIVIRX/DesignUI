@@ -14,8 +14,10 @@ struct LikeButton: View {
     @State private var likeCount: Int
     @State private var isLoading = false
     @State private var showAlert = false
+    @Environment(\.requestReview) var requestReview
     @EnvironmentObject var authViewModel: AuthViewModel
     private let supabase = SupabaseManager.shared.client
+    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init(postId: String, initialLikeCount: Int) {
         self.postId = postId
@@ -28,6 +30,10 @@ struct LikeButton: View {
             Task {
                 if supabase.auth.currentUser != nil {
                     await handleLike()
+                    if !hasRequestedReview {
+                        requestReview()
+                        hasRequestedReview = true
+                    }
                 } else {
                     showAlert = true
                 }

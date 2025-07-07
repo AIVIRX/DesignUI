@@ -13,7 +13,7 @@ struct SimilarPostsView: View {
                     .bold()
                     .padding(.bottom, 5)
                 
-                ScrollView(.horizontal, showsIndicators: false) {
+                ScrollView(.horizontal) {
                     HStack(spacing: 15) {
                         ForEach(similarPosts) { post in
                             NavigationLink(destination: DetailView(
@@ -37,6 +37,8 @@ struct SimilarPostsView: View {
                         }
                     }
                 }
+                .scrollIndicators(.never)
+
             } else {
                 Text("No posts found")
                     .font(.caption)

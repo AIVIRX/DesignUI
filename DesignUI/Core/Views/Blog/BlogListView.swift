@@ -12,45 +12,71 @@ struct NewsListView: View {
     @State private var selectedPost: NewsPost?
     @State private var searchText: String = ""
 
-    let columns: [GridItem] = {
-        #if os(iOS)
-        return [GridItem(.flexible(), spacing: 16)] // single column for iOS
-        #else
-        return [GridItem(.adaptive(minimum: 400, maximum: 500), spacing: 24)]
-        #endif
-    }()
+    let columns: [GridItem] = [
+        GridItem(.adaptive(minimum: 420, maximum: 520), spacing: 32)
+    ]
 
     var filteredPosts: [NewsPost] {
         if searchText.isEmpty {
             return viewModel.posts
         } else {
-            return viewModel.posts.filter { $0.title.localizedCaseInsensitiveContains(searchText) || ($0.description ?? "").localizedCaseInsensitiveContains(searchText) }
+            return viewModel.posts.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText) ||
+                ($0.description ?? "").localizedCaseInsensitiveContains(searchText)
+            }
         }
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack {
-                    LazyVGrid(columns: columns, spacing: 24) {
-                        ForEach(filteredPosts) { post in
-                            #if os(macOS)
-                            NavigationLink(destination: NewsDetailView(post: post)) {
-                                BlogGridCard(post: post)
-                                    .frame(maxWidth: BlogGridCard(post: post).cardWidth)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            #else
-                            Button(action: { selectedPost = post }) {
-                                BlogGridCard(post: post)
-                                    .frame(maxWidth: BlogGridCard(post: post).cardWidth)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            #endif
+                VStack(alignment: .center) {
+                    // Featured Blog
+                    if let featured = filteredPosts.first {
+                        NavigationLink(destination: NewsDetailView(post: featured)) {
+                            FeaturedBlogCard(post: featured)
+                                .frame(maxWidth: 700)
+                                .padding(.vertical, 24)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .fill(.ultraThinMaterial)
+                                        .shadow(color: .black.opacity(0.10), radius: 12, x: 0, y: 6)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .stroke(Color.primary.opacity(0.07), lineWidth: 1)
+                                )
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .padding(.horizontal)
+                    // Grid of remaining blogs
+                    let gridPosts = Array(filteredPosts.dropFirst())
+                    if !gridPosts.isEmpty {
+                        LazyVGrid(columns: columns, spacing: 32) {
+                            ForEach(gridPosts) { post in
+                                NavigationLink(destination: NewsDetailView(post: post)) {
+                                    BlogGridCard(post: post)
+                                        .frame(maxWidth: 500)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(.thinMaterial)
+                                                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                                        )
+                                        .animation(.easeInOut(duration: 0.15), value: post.id)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+                        .padding(.horizontal, 40)
+                        .frame(maxWidth: 1400)
+                    }
                 }
+                .frame(maxWidth: .infinity)
                 .navigationTitle("News")
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
@@ -179,6 +205,40 @@ struct SmallNewsCard: View {
         .padding(8)
         .background(.regularMaterial.opacity(0.9))
         .cornerRadius(16)
+    }
+}
+
+// Add a new FeaturedBlogCard view for the featured post
+struct FeaturedBlogCard: View {
+    let post: NewsPost
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let url = URL(string: post.image_url ?? "") {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(16/7, contentMode: .fill)
+                        .frame(height: 260)
+                        .clipped()
+                        .cornerRadius(18)
+                } placeholder: {
+                    Color.gray.opacity(0.2)
+                        .frame(height: 260)
+                        .cornerRadius(18)
+                }
+            }
+            Text(post.title)
+                .font(.largeTitle.bold())
+                .foregroundColor(.primary)
+                .lineLimit(3)
+            if let desc = post.description {
+                Text(desc)
+                    .font(.title3)
+                    .foregroundColor(.secondary)
+                    .lineLimit(3)
+            }
+        }
+        .padding(28)
     }
 }
 

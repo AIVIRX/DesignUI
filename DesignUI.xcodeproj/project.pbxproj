@@ -23,7 +23,6 @@
 		EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2B2D03FB42002EA494 /* AdSupport.framework */; platformFilters = (ios, macos, ); };
 		EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
-		EC53416D2DC151BA007E2202 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC53416C2DC151BA007E2202 /* Editor.swift */; };
 		EC5347E92D5AC47A001AD64D /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5347E82D5AC47A001AD64D /* UsernameSetupView.swift */; };
 		EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC53EB7F2D91CD6300E175DB /* HapticManager.swift */; };
 		EC59829C2D56836B00633392 /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829B2D56836B00633392 /* Like.swift */; };
@@ -84,7 +83,6 @@
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC50CFB52D1393B9006586DA /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
-		EC53416C2DC151BA007E2202 /* Editor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Editor.swift; sourceTree = "<group>"; };
 		EC5347E82D5AC47A001AD64D /* UsernameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSetupView.swift; sourceTree = "<group>"; };
 		EC53EB7F2D91CD6300E175DB /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		EC59829B2D56836B00633392 /* Like.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Like.swift; sourceTree = "<group>"; };
@@ -266,7 +264,6 @@
 			children = (
 				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
 				ECE995502C98881000C60416 /* TemplateView.swift */,
-				EC53416C2DC151BA007E2202 /* Editor.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -498,7 +495,6 @@
 				EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */,
 				EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */,
 				ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */,
-				EC53416D2DC151BA007E2202 /* Editor.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC5982A42D57F54000633392 /* GridColumns.swift in Sources */,
