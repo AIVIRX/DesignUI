@@ -20,16 +20,16 @@ struct NewsDetailView: View {
                             image
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 700, height: 394)
+                                .frame(maxWidth: 700, maxHeight: 394)
                                 .clipped()
                                 .cornerRadius(12)
                         } placeholder: {
                             Color.gray.opacity(0.2)
-                                .frame(width: 700, height: 394)
+                                .frame(maxWidth: 700, maxHeight: 394)
                                 .cornerRadius(12)
                         }
                     }
-                    .frame(width: 700, height: 394)
+                    .frame(maxWidth: 700, maxHeight: 394)
                     .padding(.horizontal)
                 }
 
