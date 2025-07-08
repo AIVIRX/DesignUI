@@ -13,7 +13,7 @@ struct NewsListView: View {
     @State private var searchText: String = ""
 
     let columns: [GridItem] = [
-        GridItem(.adaptive(minimum: 420, maximum: 520), spacing: 32)
+        GridItem(.adaptive(minimum: 215, maximum: 215))
     ]
 
     var filteredPosts: [NewsPost] {
@@ -28,92 +28,131 @@ struct NewsListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .center) {
-                    // Featured Blog
-                    if let featured = filteredPosts.first {
-                        NavigationLink(destination: NewsDetailView(post: featured)) {
-                            FeaturedBlogCard(post: featured)
-                                .frame(maxWidth: 700)
-                                .padding(.vertical, 24)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .fill(.ultraThinMaterial)
-                                        .shadow(color: .black.opacity(0.10), radius: 12, x: 0, y: 6)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .stroke(Color.primary.opacity(0.07), lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    // Grid of remaining blogs
-                    let gridPosts = Array(filteredPosts.dropFirst())
-                    if !gridPosts.isEmpty {
-                        LazyVGrid(columns: columns, spacing: 32) {
-                            ForEach(gridPosts) { post in
-                                NavigationLink(destination: NewsDetailView(post: post)) {
-                                    BlogGridCard(post: post)
-                                        .frame(maxWidth: 500)
-                                        .padding(.vertical, 8)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .fill(.thinMaterial)
-                                                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
-                                        )
-                                        .animation(.easeInOut(duration: 0.15), value: post.id)
+            NavigationStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        BlogHeroView()
+                            .padding(.top, 16)
+                        
+                        // Add a more prominent "Latest News" label
+                        Text("Latest News")
+                            .font(.largeTitle).bold()
+                            .padding(.top, 16)
+                        
+                        Divider()
+                        
+                        // Grid of remaining blogs
+                        let gridPosts = Array(filteredPosts)
+                        if !gridPosts.isEmpty {
+                            LazyVGrid(columns: columns, spacing: 16) {
+                                ForEach(gridPosts) { post in
+                                    NavigationLink(destination: NewsDetailView(post: post)) {
+                                        BlogGridCard(post: post)
+                                            .padding(.vertical, 8)
+                                            .animation(.easeInOut(duration: 0.15), value: post.id)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .frame(maxWidth: 1400)
                         }
-                        .padding(.horizontal, 40)
-                        .frame(maxWidth: 1400)
                     }
+                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity)
+                    .navigationTitle("News")
                 }
-                .frame(maxWidth: .infinity)
-                .navigationTitle("News")
-                #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                #endif
-            }
-            .searchable(text: $searchText)
+                .searchable(text: $searchText)
 #if os(iOS)
-            .sheet(item: $selectedPost) { post in
-                NewsDetailView(post: post)
-            }
+                .sheet(item: $selectedPost) { post in
+                    NewsDetailView(post: post)
+                }
 #endif
-            .task { await viewModel.fetchNews() }
+                .task { await viewModel.fetchNews() }
+            
         }
+    }
+}
+
+struct BlogHeroView: View {
+    var body: some View {
+        ZStack {
+            ZStack {
+                Image("dockuicover")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 200)
+                    .clipped()
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.gray).opacity(0.7),
+                        Color(.gray).opacity(0.3),
+                        Color(.clear)
+                    ]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .frame(height: 200)
+            .overlay(
+                // Glassmorphism effect: blurred, semi-transparent overlay
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .opacity(0.85)
+            )
+            .overlay(
+                // Subtle border for glass effect
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1.5)
+            )
+            .shadow(color: Color.black.opacity(0.10), radius: 16, x: 0, y: 8)
+            
+            // Content
+            HStack {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Hello Developer")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
+                        .shadow(color: Color.primary.opacity(0.18), radius: 2, x: 0, y: 1)
+                    Text("Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.")
+                        .foregroundColor(.primary.opacity(0.9))
+                        .font(.title3)
+                        .shadow(color: Color.primary.opacity(0.10), radius: 1, x: 0, y: 1)
+                        .frame(width: 500)
+                        .lineLimit(2)
+                }
+                .padding(.leading, 32)
+                .padding(.vertical, 32)
+                Spacer()
+            }
+            .frame(height: 200)
+        }
+        .frame(height: 200)
     }
 }
 
 struct BlogGridCard: View {
     let post: NewsPost
+    @State private var isHovered = false
+    @Environment(\.colorScheme) var colorScheme
 
     var cardWidth: CGFloat {
-        #if os(iOS)
+    #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
-            return min(UIScreen.main.bounds.width * 0.8, 600) // wider for iPad
+            return min(UIScreen.main.bounds.width * 0.8, 600)
         } else {
-            return min(UIScreen.main.bounds.width * 0.9, 400) // normal for iPhone
+            return min(UIScreen.main.bounds.width * 0.9, 400)
         }
-        #else
-        return 400
-        #endif
+    #else
+        return 210
+    #endif
     }
-
     var cardHeight: CGFloat {
-        #if os(iOS)
-        return 260 // or larger
-        #else
-        return 220 // or larger
-        #endif
+    #if os(iOS)
+        return 260
+    #else
+        return 118
+    #endif
     }
 
     var body: some View {
@@ -126,6 +165,10 @@ struct BlogGridCard: View {
                         .frame(width: cardWidth, height: cardHeight)
                         .clipped()
                         .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                        )
                 } placeholder: {
                     Color.gray.opacity(0.2)
                         .frame(width: cardWidth, height: cardHeight)
@@ -137,108 +180,20 @@ struct BlogGridCard: View {
                     .cornerRadius(12)
             }
             Text(post.title)
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.title3.bold())
+                .fontWeight(.regular)
+                .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : Color.black)
                 .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .padding(.bottom, 8)
         }
-        .padding(12)
-        .background(.regularMaterial.opacity(0.9))
-        .cornerRadius(14)
+        .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
         .frame(width: cardWidth)
-    }
-}
-
-struct GridNewsCard: View {
-    let post: NewsPost
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let imageUrl = post.image_url, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { image in
-                    image.resizable()
-                } placeholder: {
-                    Color.gray
-                }
-                .aspectRatio(16/9, contentMode: .fit)
-                .cornerRadius(10)
-            }
-            Text(post.title)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            Text(post.description ?? "")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
+        .brightness(isHovered ? 0.1 : 0)
+        .animation(.easeInOut(duration: 0.15), value: isHovered)
+        .onHover { hovering in
+            isHovered = hovering
         }
-        .padding(8)
-        .background(.regularMaterial.opacity(0.9))
-        .cornerRadius(12)
-        .shadow(radius: 2)
     }
 }
-
-// Small horizontal card
-struct SmallNewsCard: View {
-    let post: NewsPost
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if let url = URL(string: post.image_url ?? "") {
-                AsyncImage(url: url) { image in
-                    image.resizable()
-                } placeholder: {
-                    Color.gray.opacity(0.2)
-                }
-                .frame(width: 180, height: 100)
-                .clipped()
-                .cornerRadius(12)
-            }
-            Text(post.title)
-                .font(.subheadline).bold()
-                .foregroundColor(.white)
-            Text(post.description ?? "")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.7))
-                .lineLimit(2)
-        }
-        .frame(width: 180)
-        .padding(8)
-        .background(.regularMaterial.opacity(0.9))
-        .cornerRadius(16)
-    }
-}
-
-// Add a new FeaturedBlogCard view for the featured post
-struct FeaturedBlogCard: View {
-    let post: NewsPost
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if let url = URL(string: post.image_url ?? "") {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(16/7, contentMode: .fill)
-                        .frame(height: 260)
-                        .clipped()
-                        .cornerRadius(18)
-                } placeholder: {
-                    Color.gray.opacity(0.2)
-                        .frame(height: 260)
-                        .cornerRadius(18)
-                }
-            }
-            Text(post.title)
-                .font(.largeTitle.bold())
-                .foregroundColor(.primary)
-                .lineLimit(3)
-            if let desc = post.description {
-                Text(desc)
-                    .font(.title3)
-                    .foregroundColor(.secondary)
-                    .lineLimit(3)
-            }
-        }
-        .padding(28)
-    }
-}
-

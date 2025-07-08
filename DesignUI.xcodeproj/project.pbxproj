@@ -208,10 +208,10 @@
 			isa = PBXGroup;
 			children = (
 				ECD13FF92C18BF8800105B3E /* Components */,
-				ECD13FDF2C18BCCF00105B3E /* Views */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
-				ECD13FD72C18BBB900105B3E /* Utilities */,
 				ECD13FFE2C18C12400105B3E /* Resources */,
+				ECD13FD72C18BBB900105B3E /* Utilities */,
+				ECD13FDF2C18BCCF00105B3E /* Views */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -221,11 +221,11 @@
 			children = (
 				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
-				EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */,
-				EC5982A32D57F54000633392 /* GridColumns.swift */,
-				EC5E41C22D6EE811009B33EB /* TextFieldStyle.swift */,
-				EC53EB7F2D91CD6300E175DB /* HapticManager.swift */,
 				EC9F54762E188A9F00AAE9EC /* FormatDate.swift */,
+				EC5982A32D57F54000633392 /* GridColumns.swift */,
+				EC53EB7F2D91CD6300E175DB /* HapticManager.swift */,
+				EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */,
+				EC5E41C22D6EE811009B33EB /* TextFieldStyle.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -233,14 +233,14 @@
 		ECD13FDA2C18BC3200105B3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */,
+				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
+				EC2D21272CBF183000FA192D /* CommunityPosts.swift */,
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
-				EC50CFB52D1393B9006586DA /* Profile.swift */,
 				EC59829B2D56836B00633392 /* Like.swift */,
 				EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */,
-				ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */,
-				EC2D21272CBF183000FA192D /* CommunityPosts.swift */,
 				EC9F54692E187D7D00AAE9EC /* NewsPost.swift */,
-				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
+				EC50CFB52D1393B9006586DA /* Profile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";

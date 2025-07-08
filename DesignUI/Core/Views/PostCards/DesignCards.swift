@@ -88,7 +88,7 @@ struct DesignCards: View {
                         .foregroundStyle(.regularMaterial)
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.gray, lineWidth: 0.5)
+                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                         )
                         .overlay{
                             RoundedRectangle(cornerRadius: 15)
@@ -136,7 +136,7 @@ struct DesignCards: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 20))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.gray, lineWidth: 0.8)
+                                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                                 )
                         case .failure:
                             Image(systemName: "photo")
@@ -146,7 +146,7 @@ struct DesignCards: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 20))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.gray, lineWidth: 0.8)
+                                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                                 )
                         }
                     }
@@ -166,7 +166,7 @@ struct DesignCards: View {
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.gray, lineWidth: 0.8)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                             )
                             .scaleEffect(isHovered ? 1.02 : 1.0)
                             .colorMultiply(isHovered ? Color.white : Color(white: 0.94))
@@ -186,7 +186,7 @@ struct DesignCards: View {
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.gray, lineWidth: 0.8)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                             )
                             .padding(.top)
                     }

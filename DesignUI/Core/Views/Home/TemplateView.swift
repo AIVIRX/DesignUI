@@ -53,7 +53,7 @@ struct ExploreView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding()
                         }
                     } else if viewModel.isLoading {
                         ProgressView("Loading posts...")

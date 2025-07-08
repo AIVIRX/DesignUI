@@ -79,6 +79,11 @@ struct SignInView: View {
                     .padding(.bottom, 40)
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Color.clear.frame(height: 44)
+                }
+            }
         }
         .alert("Error", isPresented: $authViewModel.showError) {
             Button("OK", role: .cancel) { }
@@ -87,16 +92,14 @@ struct SignInView: View {
         }
     }
 
-// MARK: - FeatureCard Component
     struct FeatureCard: View {
         var icon: String
         var title: String
         var description: String
-        
         var body: some View {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.indigo.opacity(0.15)) // Faint Indigo
+                    .fill(Color.indigo.opacity(0.15))
                     .shadow(radius: 2)
                 
                 HStack(spacing: 12) {
@@ -122,7 +125,6 @@ struct SignInView: View {
         }
     }
 
-    // MARK: - Sign Up Function
     private func signUp() async {
         await authViewModel.signIn(email: email, password: password)
     }

@@ -3757,6 +3757,9 @@
         }
       }
     },
+    "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide." : {
+
+    },
     "Display Name" : {
       "localizations" : {
         "ar" : {
@@ -5007,7 +5010,7 @@
         }
       }
     },
-    "FEATURED" : {
+    "Hello Developer" : {
 
     },
     "Instagram" : {
@@ -5260,6 +5263,9 @@
           }
         }
       }
+    },
+    "Latest News" : {
+
     },
     "Loading posts..." : {
       "localizations" : {
@@ -13013,9 +13019,6 @@
           }
         }
       }
-    },
-    "View this year's winners and finalists >" : {
-
     },
     "Welcome to Dock UI" : {
       "localizations" : {

@@ -20,7 +20,7 @@ struct NewsContentView: View {
                         Text(text)
                             .font(.title2)
                             .fontWeight(.bold)
-                            .padding(.vertical, 4)
+                            .foregroundColor(.primary)
                     }
                 case .paragraph:
                     if let text = block.text {
@@ -55,15 +55,17 @@ struct NewsContentView: View {
                     }
                 case .bulletedList:
                     if let items = block.items {
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 5) {
                             ForEach(items, id: \.self) { item in
                                 HStack(alignment: .top) {
-                                    Text("•")
+                                    Text("•").bold()
+                                        .foregroundColor(.primary)
                                     Text(item)
+                                        .foregroundColor(.primary)
+
                                 }
                             }
                         }
-                        .padding(.vertical, 4)
                     }
                 }
             }

@@ -5,7 +5,7 @@ struct ProfileContainerView: View {
     @AppStorage("hasRequestedPushPermission") private var hasRequestedPushPermission = false
     
     var body: some View {
-        Group{
+        NavigationStack {
             if authViewModel.isAuthenticated {
                 ProfileView()
                     .environmentObject(authViewModel)
