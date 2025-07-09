@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import StoreKit
 
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var searchText = ""
+    @EnvironmentObject private var store: Store
     
     var filteredPosts: [DesignPost] {
         guard !searchText.isEmpty else { return viewModel.posts }
@@ -63,6 +65,7 @@ struct ExploreView: View {
                             .foregroundColor(.secondary)
                             .padding()
                     }
+                    
                 }
                 .searchable(text: $searchText)
                 .onChange(of: searchText) { oldValue, newValue in

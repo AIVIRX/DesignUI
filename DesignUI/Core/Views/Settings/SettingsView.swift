@@ -188,15 +188,12 @@ struct SettingsView: View {
                 }
 #endif
             }
-#if os(iOS)
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                if store.completedPurchases.isEmpty {
-                    AdView(adUnitID: AdUnitID.finalAd)
-                        .frame(width: 468, height: 60)
-                        .padding(3)
-                }
+            if !store.completedPurchases.isEmpty{
+            } else {
+                AdView(adUnitID: AdUnitID.finalAd)
+                    .frame(width: 468, height: 60)
+                    .padding(5)
             }
-#endif
         }
     }
     

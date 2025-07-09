@@ -8,12 +8,14 @@
 import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
+import StoreKit
 
 struct NewsListView: View {
     @StateObject var viewModel = NewsViewModel()
     @State private var selectedPost: NewsPost?
     @State private var searchText: String = ""
-    
+    @EnvironmentObject private var store: Store
+
     // Responsive columns for iPad
     var columns: [GridItem] {
 #if os(iOS)
@@ -95,7 +97,12 @@ struct NewsListView: View {
                 }
 #endif
                 .task { await viewModel.fetchNews() }
-            
+                if !store.completedPurchases.isEmpty{
+                } else {
+                    AdView(adUnitID: AdUnitID.finalAd)
+                        .frame(width: 468, height: 60)
+                        .padding(5)
+                }
         }
     }
 }

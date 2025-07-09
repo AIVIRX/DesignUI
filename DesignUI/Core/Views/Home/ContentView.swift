@@ -129,19 +129,19 @@ struct ContentView: View {
             }
             detail: {
                 NavigationStack() {
-                    switch selectedIndex {
-                    case 0:
-                        ExploreView()
-                    case 1:
-                        NewsListView()
-                    case 2:
-                        ProfileContainerView()
-                    case 4:
-                        SFIconsView()
-                    case 5:
-                        StoreView()
-                    default:
-                        Text("Select a view")
+                        switch selectedIndex {
+                        case 0:
+                            ExploreView()
+                        case 1:
+                            NewsListView()
+                        case 2:
+                            ProfileContainerView()
+                        case 4:
+                            SFIconsView()
+                        case 5:
+                            StoreView()
+                        default:
+                            Text("Select a view")
                     }
                 }
             }
