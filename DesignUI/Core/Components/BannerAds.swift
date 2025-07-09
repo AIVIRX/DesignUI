@@ -67,7 +67,6 @@ extension UIApplication{
         guard let root = screen.windows.first?.rootViewController else{
             return .init()
         }
-        
         return root
     }
 }

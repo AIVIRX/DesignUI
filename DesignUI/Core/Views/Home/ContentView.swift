@@ -88,7 +88,6 @@ struct ContentView: View {
                         .padding(.horizontal, 10)
                         .foregroundColor(hoveredItem == .threads ? (colorScheme == .dark ? .white : .black) : .gray)
                         .background(Color.clear)
-                        .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onHover { hovering in
                             hoveredItem = hovering ? .threads : nil
@@ -100,7 +99,6 @@ struct ContentView: View {
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
                         .foregroundColor(hoveredItem == .policy ? (colorScheme == .dark ? .white : .black) : .gray)
-                        .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onHover { hovering in
                             hoveredItem = hovering ? .policy : nil
@@ -112,7 +110,6 @@ struct ContentView: View {
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
                         .foregroundColor(hoveredItem == .contact ? (colorScheme == .dark ? .white : .black) : .gray)
-                        .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onHover { hovering in
                             hoveredItem = hovering ? .contact : nil
@@ -177,7 +174,6 @@ struct ContentView: View {
                     .padding(.horizontal, 10)
                     .foregroundColor(hoveredItem == .threads ? (colorScheme == .dark ? .white : .black) : .gray)
                     .background(Color.clear)
-                    .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         hoveredItem = hovering ? .threads : nil
@@ -189,7 +185,6 @@ struct ContentView: View {
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
                     .foregroundColor(hoveredItem == .policy ? (colorScheme == .dark ? .white : .black) : .gray)
-                    .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         hoveredItem = hovering ? .policy : nil
@@ -201,7 +196,6 @@ struct ContentView: View {
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
                     .foregroundColor(hoveredItem == .contact ? (colorScheme == .dark ? .white : .black) : .gray)
-                    .cornerRadius(8)
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         hoveredItem = hovering ? .contact : nil
@@ -275,7 +269,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
             .background(backgroundColor)
-            .cornerRadius(8)
+            .cornerRadius(12)
             .onHover { hovering in
                 if !isSelected {
                     hoveredItem = hovering ? menuItem : nil

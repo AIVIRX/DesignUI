@@ -1,4 +1,3 @@
-
 //
 //  BlogViewModel.swift
 //  DesignUI
@@ -19,6 +18,7 @@ class NewsViewModel: ObservableObject {
             let response: [NewsPost] = try await SupabaseManager.shared.client
                 .from("news")
                 .select()
+                .eq("public", value: true)
                 .order("created_at", ascending: false)
                 .execute()
                 .value

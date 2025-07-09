@@ -154,6 +154,6 @@ struct FeatureRow: View {
             }
         }
         .padding()
-        .cornerRadius(16)
+        .cornerRadius(12)
     }
 }

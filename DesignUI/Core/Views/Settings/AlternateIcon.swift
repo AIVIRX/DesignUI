@@ -66,7 +66,7 @@ struct AlternateIconView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 60, height:  60)
-                            .clipShape(.rect(cornerRadius: 10))
+                            .clipShape(.rect(cornerRadius: 12))
                         
                         Text(icon.displayName)
                             .fontWeight(.semibold)

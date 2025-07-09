@@ -38,7 +38,6 @@ enum ToastIcon: Equatable {
     case system(name: String)
     case custom(name: String)
     case sfSymbol(name: String, color: Color)
-    
     static func == (lhs: ToastIcon, rhs: ToastIcon) -> Bool {
         switch (lhs, rhs) {
         case (.none, .none):
@@ -61,7 +60,6 @@ struct ToastView: View {
     @State private var opacity: CGFloat = 0
     @State private var offset: CGFloat = -100
     @State private var dragOffset: CGFloat = 0
-    
     var body: some View {
         HStack(spacing: 8) {
             // Content

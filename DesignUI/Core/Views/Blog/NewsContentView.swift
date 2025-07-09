@@ -7,6 +7,8 @@
 
 import SwiftUI
 import HighlightSwift
+import SDWebImage
+import SDWebImageSwiftUI
 
 struct NewsContentView: View {
     let blocks: [NewsBlock]
@@ -21,6 +23,7 @@ struct NewsContentView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
+                            .padding(.top)
                     }
                 case .paragraph:
                     if let text = block.text {
@@ -30,13 +33,29 @@ struct NewsContentView: View {
                     }
                 case .image:
                     if let urlString = block.url, let url = URL(string: urlString) {
-                        AsyncImage(url: url) { image in
-                            image.resizable()
-                        } placeholder: {
-                            Color.gray
+                        WebImage(url: url) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView()
+                                    .frame(maxWidth: .infinity, maxHeight: 300)
+                            case .success(let image):
+                                image.resizable()
+                                    .scaledToFill()
+                                    .cornerRadius(12)
+                            case .failure:
+                                Image(systemName: "photo")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(maxWidth: .infinity, maxHeight: 300)
+                                    .foregroundColor(.gray.opacity(0.5))
+                                    .background(Color.gray.opacity(0.2))
+                                    .cornerRadius(12)
+                            @unknown default:
+                                Color.gray.opacity(0.2)
+                                    .frame(maxWidth: .infinity, maxHeight: 300)
+                                    .cornerRadius(12)
+                            }
                         }
-                        .scaledToFill()
-                        .cornerRadius(10)
                     }
                 case .code:
                     if let code = block.code {
@@ -51,7 +70,7 @@ struct NewsContentView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: 300)
                         .background(Color.gray.opacity(0.2))
-                        .cornerRadius(8)
+                        .cornerRadius(10)
                     }
                 case .bulletedList:
                     if let items = block.items {

@@ -81,7 +81,7 @@ struct SettingsView: View {
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.indigo.gradient))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.indigo.gradient))
                     .padding(.horizontal)
                     .padding(.top)
                 }
@@ -99,6 +99,21 @@ struct SettingsView: View {
                                 Text("App Icons")
                             }
                         }
+#if os(iOS)
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            NavigationLink(destination: SFIconsView()) {
+                                HStack {
+                                    Image(systemName: "plus.square.dashed")
+                                        .font(.system(size: 20)).bold()
+                                        .frame(width: 30, height: 30)
+                                        .foregroundStyle(.white)
+                                        .background(Color.black)
+                                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                                    Text("SF Icons")
+                                }
+                            }
+                        }
+#endif
                     }
                     
                     Section(header: Text("Support Us")) {
@@ -115,7 +130,6 @@ struct SettingsView: View {
                                 Text("Rate Us")
                             }
                         }
-                        
                         Link("Threads", destination: URL(string: "https://www.threads.com/dockui")!)
                             .bold()
                     }

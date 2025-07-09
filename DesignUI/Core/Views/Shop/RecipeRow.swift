@@ -19,7 +19,7 @@ struct RecipeRow: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
-                            .cornerRadius(9)
+                            .cornerRadius(10)
                             .opacity(recipe.isLocked ? 0.8 : 1)
                             .blur(radius: recipe.isLocked ? 3.0 : 0)
                             .padding()
@@ -47,14 +47,14 @@ struct RecipeRow: View {
                             .padding([.leading, .trailing], 5)
                             .padding([.top, .bottom], 5)
                             .background(Color.black)
-                            .cornerRadius(20)
+                            .cornerRadius(15)
                             .padding()
                     }
                 }
             }
 #if os(macOS)
             .background(.gray.opacity(0.2))
-            .cornerRadius(9)
+            .cornerRadius(10)
 #endif
             .contentShape(Rectangle())
         })

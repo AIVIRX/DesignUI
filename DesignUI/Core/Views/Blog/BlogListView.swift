@@ -6,16 +6,27 @@
 //
 
 import SwiftUI
+import SDWebImage
+import SDWebImageSwiftUI
 
 struct NewsListView: View {
     @StateObject var viewModel = NewsViewModel()
     @State private var selectedPost: NewsPost?
     @State private var searchText: String = ""
-
-    let columns: [GridItem] = [
-        GridItem(.adaptive(minimum: 215, maximum: 215))
-    ]
-
+    
+    // Responsive columns for iPad
+    var columns: [GridItem] {
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return [GridItem(.adaptive(minimum: 320, maximum: 320)), GridItem(.adaptive(minimum: 320, maximum: 400))]
+        } else {
+            return [GridItem(.adaptive(minimum: 215, maximum: 215))]
+        }
+#else
+        return [GridItem(.adaptive(minimum: 215, maximum: 215))]
+#endif
+    }
+    
     var filteredPosts: [NewsPost] {
         if searchText.isEmpty {
             return viewModel.posts
@@ -26,29 +37,35 @@ struct NewsListView: View {
             }
         }
     }
-
     var body: some View {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        BlogHeroView()
+                        // Responsive LargeCardView for iPad
+#if os(iOS)
+                        if UIDevice.current.userInterfaceIdiom == .pad {
+                            LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
+                                .padding(.top, 32)
+                        } else {
+                            LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
+                                .padding(.top, 16)
+                        }
+#else
+                        LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
                             .padding(.top, 16)
-                        
-                        // Add a more prominent "Latest News" label
+#endif
                         Text("Latest News")
                             .font(.largeTitle).bold()
                             .padding(.top, 16)
-                        
                         Divider()
-                        
                         // Grid of remaining blogs
                         let gridPosts = Array(filteredPosts)
                         if !gridPosts.isEmpty {
-                            LazyVGrid(columns: columns, spacing: 16) {
+                            LazyVGrid(columns: columns, spacing: 24) {
                                 ForEach(gridPosts) { post in
                                     NavigationLink(destination: NewsDetailView(post: post)) {
                                         BlogGridCard(post: post)
-                                            .padding(.vertical, 8)
+                                            .padding(.vertical, 12)
                                             .animation(.easeInOut(duration: 0.15), value: post.id)
                                     }
                                     .buttonStyle(PlainButtonStyle())
@@ -57,9 +74,19 @@ struct NewsListView: View {
                             .frame(maxWidth: 1400)
                         }
                     }
+#if os(iOS)
+                    .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .pad ? 48 : 16)
+#else
                     .padding(.horizontal)
+#endif
                     .frame(maxWidth: .infinity)
                     .navigationTitle("News")
+                    #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                    #endif
+                }
+                .refreshable {
+                    await viewModel.fetchNews()
                 }
                 .searchable(text: $searchText)
 #if os(iOS)
@@ -73,64 +100,6 @@ struct NewsListView: View {
     }
 }
 
-struct BlogHeroView: View {
-    var body: some View {
-        ZStack {
-            ZStack {
-                Image("dockuicover")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 200)
-                    .clipped()
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(.gray).opacity(0.7),
-                        Color(.gray).opacity(0.3),
-                        Color(.clear)
-                    ]),
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .frame(height: 200)
-            .overlay(
-                // Glassmorphism effect: blurred, semi-transparent overlay
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .opacity(0.85)
-            )
-            .overlay(
-                // Subtle border for glass effect
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1.5)
-            )
-            .shadow(color: Color.black.opacity(0.10), radius: 16, x: 0, y: 8)
-            
-            // Content
-            HStack {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Hello Developer")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
-                        .shadow(color: Color.primary.opacity(0.18), radius: 2, x: 0, y: 1)
-                    Text("Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.")
-                        .foregroundColor(.primary.opacity(0.9))
-                        .font(.title3)
-                        .shadow(color: Color.primary.opacity(0.10), radius: 1, x: 0, y: 1)
-                        .frame(width: 500)
-                        .lineLimit(2)
-                }
-                .padding(.leading, 32)
-                .padding(.vertical, 32)
-                Spacer()
-            }
-            .frame(height: 200)
-        }
-        .frame(height: 200)
-    }
-}
-
 struct BlogGridCard: View {
     let post: NewsPost
     @State private var isHovered = false
@@ -139,7 +108,7 @@ struct BlogGridCard: View {
     var cardWidth: CGFloat {
     #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
-            return min(UIScreen.main.bounds.width * 0.8, 600)
+            return min(UIScreen.main.bounds.width * 0.35, 320)
         } else {
             return min(UIScreen.main.bounds.width * 0.9, 400)
         }
@@ -147,32 +116,51 @@ struct BlogGridCard: View {
         return 210
     #endif
     }
+
     var cardHeight: CGFloat {
     #if os(iOS)
-        return 260
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return 180
+        } else {
+            return 260
+        }
     #else
         return 118
     #endif
     }
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let url = URL(string: post.image_url ?? "") {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: cardWidth, height: cardHeight)
-                        .clipped()
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                        )
-                } placeholder: {
-                    Color.gray.opacity(0.2)
-                        .frame(width: cardWidth, height: cardHeight)
-                        .cornerRadius(12)
+            if let urlString = post.image_url, let url = URL(string: urlString) {
+                WebImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(width: cardWidth, height: cardHeight)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: cardWidth, height: cardHeight)
+                            .clipped()
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                            )
+                    case .failure:
+                        Image(systemName: "photo")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: cardWidth, height: cardHeight)
+                            .foregroundColor(.gray.opacity(0.5))
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(12)
+                    @unknown default:
+                        Color.gray.opacity(0.2)
+                            .frame(width: cardWidth, height: cardHeight)
+                            .cornerRadius(12)
+                    }
                 }
             } else {
                 Color.gray.opacity(0.2)
@@ -181,7 +169,7 @@ struct BlogGridCard: View {
             }
             Text(post.title)
                 .font(.title3.bold())
-                .fontWeight(.regular)
+                .fontWeight(.semibold)
                 .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : Color.black)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)

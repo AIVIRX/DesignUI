@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import SDWebImage
+import SDWebImageSwiftUI
 
 struct NewsDetailView: View {
     let post: NewsPost
@@ -16,17 +18,31 @@ struct NewsDetailView: View {
                 // Featured image/card
                 if let imageUrl = post.image_url, let url = URL(string: imageUrl) {
                     ZStack {
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(maxWidth: 700, maxHeight: 394)
-                                .clipped()
-                                .cornerRadius(12)
-                        } placeholder: {
-                            Color.gray.opacity(0.2)
-                                .frame(maxWidth: 700, maxHeight: 394)
-                                .cornerRadius(12)
+                        WebImage(url: url) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView()
+                                    .frame(maxWidth: 700, maxHeight: 394)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(maxWidth: 700, maxHeight: 394)
+                                    .clipped()
+                                    .cornerRadius(15)
+                            case .failure:
+                                Image(systemName: "photo")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(maxWidth: 700, maxHeight: 394)
+                                    .foregroundColor(.gray.opacity(0.5))
+                                    .background(Color.gray.opacity(0.2))
+                                    .cornerRadius(15)
+                            @unknown default:
+                                Color.gray.opacity(0.2)
+                                    .frame(maxWidth: 700, maxHeight: 394)
+                                    .cornerRadius(15)
+                            }
                         }
                     }
                     .frame(maxWidth: 700, maxHeight: 394)
@@ -60,5 +76,21 @@ struct NewsDetailView: View {
             .padding(.vertical, 40)
         }
         .navigationTitle("")
+        .toolbar {
+#if os(iOS)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                ShareLink(item: URL(string: "https://dockui.com/news/\(post.slug)")!) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+#endif
+#if os(macOS)
+            ToolbarItem() {
+                ShareLink(item: URL(string: "https://dockui.com/news/\(post.slug)")!) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+#endif
+        }
     }
 }
