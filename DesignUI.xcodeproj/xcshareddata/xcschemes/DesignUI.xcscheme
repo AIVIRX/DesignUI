@@ -49,9 +49,6 @@
             ReferencedContainer = "container:DesignUI.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <StoreKitConfigurationFileReference
-         identifier = "../../DesignUI/Core/Resources/ConfigStore.storekit">
-      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
