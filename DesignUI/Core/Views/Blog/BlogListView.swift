@@ -15,7 +15,7 @@ struct NewsListView: View {
     @State private var selectedPost: NewsPost?
     @State private var searchText: String = ""
     @EnvironmentObject private var store: Store
-
+    
     // Responsive columns for iPad
     var columns: [GridItem] {
 #if os(iOS)
@@ -40,69 +40,74 @@ struct NewsListView: View {
         }
     }
     var body: some View {
-            NavigationStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Responsive LargeCardView for iPad
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Responsive LargeCardView for iPad
 #if os(iOS)
-                        if UIDevice.current.userInterfaceIdiom == .pad {
-                            LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
-                                .padding(.top, 32)
-                        } else {
-                            LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
-                                .padding(.top, 16)
-                        }
-#else
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
+                            .padding(.top, 32)
+                    } else {
                         LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
                             .padding(.top, 16)
-#endif
-                        Text("Latest News")
-                            .font(.largeTitle).bold()
-                            .padding(.top, 16)
-                        Divider()
-                        // Grid of remaining blogs
-                        let gridPosts = Array(filteredPosts)
-                        if !gridPosts.isEmpty {
-                            LazyVGrid(columns: columns, spacing: 24) {
-                                ForEach(gridPosts) { post in
-                                    NavigationLink(destination: NewsDetailView(post: post)) {
-                                        BlogGridCard(post: post)
-                                            .padding(.vertical, 12)
-                                            .animation(.easeInOut(duration: 0.15), value: post.id)
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                }
-                            }
-                            .frame(maxWidth: 1400)
-                        }
                     }
-#if os(iOS)
-                    .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .pad ? 48 : 16)
 #else
-                    .padding(.horizontal)
+                    LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
+                        .padding(.top, 16)
 #endif
-                    .frame(maxWidth: .infinity)
-                    .navigationTitle("News")
-                    #if os(iOS)
-                    .navigationBarTitleDisplayMode(.inline)
-                    #endif
+                    Text("Latest News")
+                        .font(.largeTitle).bold()
+                        .padding(.top, 16)
+                    Divider()
+                    // Grid of remaining blogs
+                    let gridPosts = Array(filteredPosts)
+                    if !gridPosts.isEmpty {
+                        LazyVGrid(columns: columns, spacing: 24) {
+                            ForEach(gridPosts) { post in
+                                NavigationLink(destination: NewsDetailView(post: post)) {
+                                    BlogGridCard(post: post)
+                                        .padding(.vertical, 12)
+                                        .animation(.easeInOut(duration: 0.15), value: post.id)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+                        .frame(maxWidth: 1400)
+                    }
                 }
-                .refreshable {
-                    await viewModel.fetchNews()
-                }
-                .searchable(text: $searchText)
 #if os(iOS)
-                .sheet(item: $selectedPost) { post in
-                    NewsDetailView(post: post)
-                }
+                .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .pad ? 48 : 16)
+#else
+                .padding(.horizontal)
 #endif
-                .task { await viewModel.fetchNews() }
+                .frame(maxWidth: .infinity)
+                .navigationTitle("News")
+#if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+#endif
+            }
+            .refreshable {
+                await viewModel.fetchNews()
+            }
+            .searchable(text: $searchText)
+#if os(iOS)
+            .sheet(item: $selectedPost) { post in
+                NewsDetailView(post: post)
+            }
+#endif
+            .task { await viewModel.fetchNews() }
+#if os(iOS)
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                
                 if !store.completedPurchases.isEmpty{
                 } else {
                     AdView(adUnitID: AdUnitID.finalAd)
                         .frame(width: 468, height: 60)
                         .padding(5)
                 }
+            }
+#endif
         }
     }
 }
@@ -111,29 +116,29 @@ struct BlogGridCard: View {
     let post: NewsPost
     @State private var isHovered = false
     @Environment(\.colorScheme) var colorScheme
-
+    
     var cardWidth: CGFloat {
-    #if os(iOS)
+#if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
             return min(UIScreen.main.bounds.width * 0.35, 320)
         } else {
             return min(UIScreen.main.bounds.width * 0.9, 400)
         }
-    #else
+#else
         return 210
-    #endif
+#endif
     }
-
+    
     var cardHeight: CGFloat {
-    #if os(iOS)
+#if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
             return 180
         } else {
             return 260
         }
-    #else
+#else
         return 118
-    #endif
+#endif
     }
     
     var body: some View {
