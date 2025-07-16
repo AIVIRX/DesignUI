@@ -504,6 +504,9 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "•" : {
       "localizations" : {
         "ar" : {
@@ -754,6 +757,9 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "Alignment" : {
+
     },
     "App Icons" : {
       "localizations" : {
@@ -1505,6 +1511,15 @@
         }
       }
     },
+    "Background" : {
+
+    },
+    "Bold" : {
+
+    },
+    "Button" : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "ar" : {
@@ -1755,6 +1770,12 @@
         }
       }
     },
+    "Canvas Preview" : {
+
+    },
+    "Center" : {
+
+    },
     "Code Snippet:" : {
       "localizations" : {
         "ar" : {
@@ -2004,6 +2025,15 @@
           }
         }
       }
+    },
+    "Color" : {
+
+    },
+    "Component: %@" : {
+
+    },
+    "Components" : {
+
     },
     "Contact Us" : {
       "localizations" : {
@@ -2504,6 +2534,9 @@
           }
         }
       }
+    },
+    "Corner Radius" : {
+
     },
     "Crypto Profit Loss Calculator" : {
       "localizations" : {
@@ -3254,6 +3287,9 @@
           }
         }
       }
+    },
+    "Delete Component" : {
+
     },
     "Description:" : {
       "localizations" : {
@@ -4255,6 +4291,12 @@
         }
       }
     },
+    "Empty HStack" : {
+
+    },
+    "Empty VStack" : {
+
+    },
     "Enter your display name" : {
       "localizations" : {
         "ar" : {
@@ -5005,6 +5047,33 @@
         }
       }
     },
+    "Font" : {
+
+    },
+    "Font Name" : {
+
+    },
+    "Font Size" : {
+
+    },
+    "Font Weight" : {
+
+    },
+    "Height" : {
+
+    },
+    "HStack" : {
+
+    },
+    "Inspector" : {
+
+    },
+    "Italic" : {
+
+    },
+    "Label" : {
+
+    },
     "Latest News" : {
       "localizations" : {
         "ar" : {
@@ -5254,6 +5323,18 @@
           }
         }
       }
+    },
+    "Leading" : {
+
+    },
+    "Letter Spacing" : {
+
+    },
+    "Line Limit" : {
+
+    },
+    "Line Spacing" : {
+
     },
     "Loading posts..." : {
       "localizations" : {
@@ -8505,6 +8586,9 @@
         }
       }
     },
+    "Prominent" : {
+
+    },
     "Rate Us" : {
       "localizations" : {
         "ar" : {
@@ -9005,6 +9089,9 @@
         }
       }
     },
+    "Sample Text" : {
+
+    },
     "Save Changes" : {
       "localizations" : {
         "ar" : {
@@ -9255,6 +9342,9 @@
         }
       }
     },
+    "Search components" : {
+
+    },
     "Search SF Symbols" : {
       "localizations" : {
         "ar" : {
@@ -9504,6 +9594,9 @@
           }
         }
       }
+    },
+    "Select a component to edit its properties." : {
+
     },
     "Select a view" : {
       "localizations" : {
@@ -10254,6 +10347,9 @@
           }
         }
       }
+    },
+    "SF Symbol" : {
+
     },
     "SF Symbols" : {
       "localizations" : {
@@ -11755,6 +11851,9 @@
         }
       }
     },
+    "Studio" : {
+
+    },
     "Support Us" : {
       "localizations" : {
         "ar" : {
@@ -12505,6 +12604,12 @@
         }
       }
     },
+    "Text" : {
+
+    },
+    "Text Color" : {
+
+    },
     "Threads" : {
       "localizations" : {
         "ar" : {
@@ -12754,6 +12859,21 @@
           }
         }
       }
+    },
+    "Toggle Canvas Color Scheme" : {
+
+    },
+    "Trailing" : {
+
+    },
+    "Transform" : {
+
+    },
+    "Underlined" : {
+
+    },
+    "Unlimited" : {
+
     },
     "Unlock Premium Features" : {
       "localizations" : {
@@ -13504,6 +13624,9 @@
           }
         }
       }
+    },
+    "VStack" : {
+
     },
     "Welcome to Dock UI" : {
       "localizations" : {

@@ -9,7 +9,7 @@ import SwiftUI
 import AppTrackingTransparency
 import Firebase
 import FirebaseCore
-import FirebaseAnalyticsSwift
+import FirebaseAnalytics
 import AdSupport
 import Supabase
 

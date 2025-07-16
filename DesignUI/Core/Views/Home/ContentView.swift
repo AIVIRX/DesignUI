@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, shop
+    case templates, news, profile, sfIcons, shop, studio
 }
 
 struct ContentView: View {
@@ -19,7 +19,7 @@ struct ContentView: View {
     @EnvironmentObject private var store: Store
     @State private var hoveredItem: MenuItem?
     let client = SupabaseManager.shared.client
-    @State var selectedIndex: Int = 0
+    @AppStorage("selectedIndex") var selectedIndex: Int = 0
 
     private enum MenuItem {
         case explore
@@ -31,6 +31,7 @@ struct ContentView: View {
         case threads
         case policy
         case contact
+        case studio
     }
     
     var body: some View {
@@ -166,6 +167,8 @@ struct ContentView: View {
                 // Shop Link
                 navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 5)
                 
+                navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "slider.horizontal.below.square.and.square.filled", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 6)
+                
                 Divider().padding(.vertical).opacity(0.5)
                 
                 Link("Threads", destination: URL(string: "https://www.threads.com/@dockui")!)
@@ -227,6 +230,8 @@ struct ContentView: View {
                     SFIconsView()
                 case 5:
                     StoreView()
+                case 6:
+                    StudioHome()
                 default:
                     Text("Select a view")
                 }
@@ -297,6 +302,8 @@ struct ContentView: View {
             return AnyView(StoreView())
         case .sfIcons:
             return AnyView(SFIconsView())
+        case .studio:
+            return AnyView(StudioHome())
         }
     }
 }
