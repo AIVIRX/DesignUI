@@ -11,16 +11,18 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, shop, studio
+    case templates, news, profile, sfIcons, shop
 }
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var store: Store
+    @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @State private var hoveredItem: MenuItem?
+    @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
-
+    
     private enum MenuItem {
         case explore
         case news
@@ -31,7 +33,18 @@ struct ContentView: View {
         case threads
         case policy
         case contact
-        case studio
+    }
+    
+    // Computed property for effective color scheme
+    private var effectiveColorScheme: ColorScheme {
+        switch colorSchemeManager.currentScheme {
+        case .system:
+            return colorScheme // Use system color scheme
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        }
     }
     
     var body: some View {
@@ -60,7 +73,7 @@ struct ContentView: View {
                     
                     
                 }
-                .accentColor(colorScheme == .dark ? .white : .black)
+                .accentColor(effectiveColorScheme == .dark ? .white : .black)
             }
         }
         
@@ -76,10 +89,10 @@ struct ContentView: View {
                     Divider().padding(.vertical).opacity(0.5)
                     
                     // SF Symbols Link
-                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
+                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
                     
                     // Shop Link
-                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 5)
+                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 4)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -99,7 +112,7 @@ struct ContentView: View {
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(hoveredItem == .policy ? (colorScheme == .dark ? .white : .black) : .gray)
+                        .foregroundColor(hoveredItem == .policy ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
                         .contentShape(Rectangle())
                         .onHover { hovering in
                             hoveredItem = hovering ? .policy : nil
@@ -110,7 +123,7 @@ struct ContentView: View {
                         .bold()
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .foregroundColor(hoveredItem == .contact ? (colorScheme == .dark ? .white : .black) : .gray)
+                        .foregroundColor(hoveredItem == .contact ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
                         .contentShape(Rectangle())
                         .onHover { hovering in
                             hoveredItem = hovering ? .contact : nil
@@ -130,19 +143,19 @@ struct ContentView: View {
             }
             detail: {
                 NavigationStack() {
-                        switch selectedIndex {
-                        case 0:
-                            ExploreView()
-                        case 1:
-                            NewsListView()
-                        case 2:
-                            ProfileContainerView()
-                        case 4:
-                            SFIconsView()
-                        case 5:
-                            StoreView()
-                        default:
-                            Text("Select a view")
+                    switch selectedIndex {
+                    case 0:
+                        ExploreView()
+                    case 1:
+                        NewsListView()
+                    case 2:
+                        ProfileContainerView()
+                    case 3:
+                        SFIconsView()
+                    case 4:
+                        StoreView()
+                    default:
+                        Text("Select a view")
                     }
                 }
             }
@@ -150,7 +163,7 @@ struct ContentView: View {
 #endif
         
 #if os(macOS)
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $sidebarVisibility) {
             VStack(alignment: .leading, spacing: 5) {
                 navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
@@ -162,12 +175,11 @@ struct ContentView: View {
                 
                 
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 4)
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
                 
                 // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 5)
+                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 4)
                 
-                navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "slider.horizontal.below.square.and.square.filled", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 6)
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
@@ -175,7 +187,7 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .threads ? (colorScheme == .dark ? .white : .black) : .gray)
+                    .foregroundColor(hoveredItem == .threads ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
                     .background(Color.clear)
                     .contentShape(Rectangle())
                     .onHover { hovering in
@@ -187,7 +199,7 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .policy ? (colorScheme == .dark ? .white : .black) : .gray)
+                    .foregroundColor(hoveredItem == .policy ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         hoveredItem = hovering ? .policy : nil
@@ -198,23 +210,22 @@ struct ContentView: View {
                     .bold()
                     .padding(.vertical, 8)
                     .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .contact ? (colorScheme == .dark ? .white : .black) : .gray)
+                    .foregroundColor(hoveredItem == .contact ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
                     .contentShape(Rectangle())
-                    .onHover { hovering in
-                        hoveredItem = hovering ? .contact : nil
-                    }
-                
-                Text("v\(Bundle.main.releaseVersionNumber ?? "")")
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundStyle(Color.gray)
-                    .font(.body)
-                
-                Spacer()
+                                            .onHover { hovering in
+                            hoveredItem = hovering ? .contact : nil
+                        }
+                    
+                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundStyle(Color.gray)
+                        .font(.body)
+                    
+                    Spacer()
             }
             .padding()
             .background(Color.clear)
-            .toolbar(removing: .sidebarToggle)
             .navigationSplitViewColumnWidth(230)
         }
         detail: {
@@ -226,14 +237,34 @@ struct ContentView: View {
                     NewsListView()
                 case 2:
                     ProfileContainerView()
-                case 4:
+                case 3:
                     SFIconsView()
-                case 5:
+                case 4:
                     StoreView()
-                case 6:
-                    StudioHome()
                 default:
                     Text("Select a view")
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        ForEach(AppColorScheme.allCases, id: \.self) { scheme in
+                            Button(action: {
+                                print("Changing color scheme from \(colorSchemeManager.currentScheme.displayName) to \(scheme.displayName)")
+                                colorSchemeManager.currentScheme = scheme
+                                print("Color scheme changed to: \(colorSchemeManager.currentScheme.displayName)")
+                            }) {
+                                HStack {
+                                    Text(scheme.displayName)
+                                    if colorSchemeManager.currentScheme == scheme {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "paintbrush.fill")
+                    }
                 }
             }
         }
@@ -248,14 +279,14 @@ struct ContentView: View {
         let textColor: Color
         
         if isSelected {
-            backgroundColor = colorScheme == .dark ? .white : .black
-            textColor = colorScheme == .dark ? .black : .white
+            backgroundColor = effectiveColorScheme == .dark ? .white : .black
+            textColor = effectiveColorScheme == .dark ? .black : .white
         } else if isHovered {
-            backgroundColor = colorScheme == .dark ? Color.gray.opacity(0.2) : Color.black.opacity(0.2)
-            textColor = colorScheme == .dark ? .white : .black
+            backgroundColor = effectiveColorScheme == .dark ? Color.gray.opacity(0.2) : Color.black.opacity(0.2)
+            textColor = effectiveColorScheme == .dark ? .white : .black
         } else {
             backgroundColor = .clear
-            textColor = colorScheme == .dark ? .white : .black
+            textColor = effectiveColorScheme == .dark ? .white : .black
         }
         
         return NavigationLink(destination: getDestinationView(for: viewType)) {
@@ -302,12 +333,12 @@ struct ContentView: View {
             return AnyView(StoreView())
         case .sfIcons:
             return AnyView(SFIconsView())
-        case .studio:
-            return AnyView(StudioHome())
+            
         }
     }
 }
 
+// MARK: - Bundle Extension
 extension Bundle {
     var releaseVersionNumber: String? {
         return infoDictionary?["CFBundleShortVersionString"] as? String

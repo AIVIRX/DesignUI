@@ -58,6 +58,7 @@ struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @EnvironmentObject private var store: Store
+    @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
 #if os(iOS)
@@ -88,6 +89,27 @@ struct SettingsView: View {
                 
                 Form {
                     Section(header: Text("Appearance")) {
+                        // Color Scheme Picker
+                        HStack {
+                            Image(systemName: "paintbrush.fill")
+                                .font(.system(size: 20)).bold()
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.white)
+                                .background(Color.purple)
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
+                            
+                            Text("Color Scheme")
+                            
+                            Spacer()
+                            
+                            Picker("Color Scheme", selection: $colorSchemeManager.currentScheme) {
+                                ForEach(AppColorScheme.allCases, id: \.self) { scheme in
+                                    Text(scheme.displayName).tag(scheme)
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                        }
+                        
                         NavigationLink(destination: AlternateIconView()) {
                             HStack {
                                 Image(systemName: "square.stack.fill")

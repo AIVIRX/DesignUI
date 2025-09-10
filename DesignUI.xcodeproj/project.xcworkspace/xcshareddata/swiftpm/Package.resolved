@@ -1,5 +1,5 @@
 {
-  "originHash" : "0c38a0344f5019c9dd9fe7581155e89686b9c11c3d035593e26143266d72eed4",
+  "originHash" : "ca5a9e4cbe5a373d731ee95e2cd0a195a33e1a6117eca8b1949aaa36a70ed9a7",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "61b85103a1aeed8218f17c794687781505fbbef5",
         "version" : "11.2.0"
-      }
-    },
-    {
-      "identity" : "appauth-ios",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/openid/AppAuth-iOS.git",
-      "state" : {
-        "revision" : "145104f5ea9d58ae21b60add007c33c1cc0c948e",
-        "version" : "2.0.0"
       }
     },
     {
@@ -65,15 +56,6 @@
       }
     },
     {
-      "identity" : "googlesignin-ios",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/google/GoogleSignIn-iOS.git",
-      "state" : {
-        "revision" : "3996d908c7b3ce8a87d39c808f9a6b2a08fbe043",
-        "version" : "9.0.0"
-      }
-    },
-    {
       "identity" : "googleutilities",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/GoogleUtilities.git",
@@ -98,15 +80,6 @@
       "state" : {
         "revision" : "a2ab612cb980066ee56d90d60d8462992c07f24b",
         "version" : "3.5.0"
-      }
-    },
-    {
-      "identity" : "gtmappauth",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/google/GTMAppAuth.git",
-      "state" : {
-        "revision" : "56e0ccf09a6dd29dc7e68bdf729598240ca8aa16",
-        "version" : "5.0.0"
       }
     },
     {

@@ -28,8 +28,8 @@ struct NewsContentView: View {
                 case .paragraph:
                     if let text = block.text {
                         Text(text)
-                            .font(.body)
-                            .foregroundColor(.primary)
+                            .font(.title2)
+                            .foregroundColor(.secondary)
                     }
                 case .image:
                     if let urlString = block.url, let url = URL(string: urlString) {
@@ -78,9 +78,9 @@ struct NewsContentView: View {
                             ForEach(items, id: \.self) { item in
                                 HStack(alignment: .top) {
                                     Text("•").bold()
-                                        .foregroundColor(.primary)
                                     Text(item)
-                                        .foregroundColor(.primary)
+                                        .font(.title2)
+                                        .foregroundColor(.secondary)
 
                                 }
                             }

@@ -9,7 +9,6 @@ import SwiftUI
 import Foundation
 import AuthenticationServices
 import Auth
-import GoogleSignIn
 
 @MainActor
 class AuthViewModel: ObservableObject {
@@ -167,45 +166,6 @@ class AuthViewModel: ObservableObject {
             print("Error deleting account:", error)
         }
     }
-    
-    #if os(iOS)
-    func signInWithGoogle() async {
-        isLoading = true
-        guard let presentingVC = await NSApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first?.windows.first?.rootViewController else {
-            showError = true
-            errorMessage = "No root view controller"
-            isLoading = false
-            return
-        }
-
-        do {
-            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
-            guard let idToken = result.user.idToken?.tokenString else {
-                showError = true
-                errorMessage = "No idToken found."
-                isLoading = false
-                return
-            }
-            let accessToken = result.user.accessToken.tokenString
-
-            // Send tokens to Supabase
-            try await supabase.auth.signInWithIdToken(
-                credentials: OpenIDConnectCredentials(
-                    provider: .google,
-                    idToken: idToken,
-                    accessToken: accessToken
-                )
-            )
-            // The auth state listener will update your UI
-        } catch {
-            showError = true
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-    #endif
 }
 
 

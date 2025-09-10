@@ -100,7 +100,8 @@ struct ToastView: View {
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
 #else
             Capsule()
-                .fill(Color(.windowBackgroundColor))
+                .stroke(.gray, lineWidth: 1)
+                .fill(.thinMaterial)
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
 #endif
         }

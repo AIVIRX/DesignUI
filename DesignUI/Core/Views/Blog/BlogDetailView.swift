@@ -56,18 +56,14 @@ struct NewsDetailView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
                         .lineLimit(3)
-                    Text(formattedDate(from: post.created_at))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
                     if let desc = post.description {
                         Text(desc)
-                            .font(.body)
-                            .foregroundColor(.primary)
+                            .font(.title2)
+                            .foregroundColor(.secondary)
                             .padding(.top)
                     }
                     Divider().padding(.vertical)
                     NewsContentView(blocks: post.blocks)
-                    
                 }
                 .frame(maxWidth: 700)
                 .padding(.horizontal)

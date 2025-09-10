@@ -23,8 +23,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         requestTrackingAuthorization()
         initializeGoogleMobileAds()
         
-        //UserDefaults.standard.set(0, forKey: "selectedIndex")
-        
+        //        UserDefaults.standard.set(0, forKey: "selectedIndex")
+
         return true
     }
     
@@ -48,7 +48,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
     
     private func initializeGoogleMobileAds() {
-        GADMobileAds.sharedInstance().start(completionHandler: nil)
+        MobileAds.shared.start(completionHandler: nil)
     }
     
     private func configureFirebase() {
@@ -61,6 +61,7 @@ struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let client = SupabaseManager.shared.client
     @StateObject private var store = Store()
+    @StateObject private var colorSchemeManager = ColorSchemeManager()
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
@@ -70,6 +71,11 @@ struct DesignUIApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
+                .environmentObject(colorSchemeManager)
+                .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
+                .onAppear {
+                    print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
+                }
         }
     }
 }
@@ -86,19 +92,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
+    @StateObject private var colorSchemeManager = ColorSchemeManager()
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
         hasRequestedReview = false // Reset at the start of every app session
+        UserDefaults.standard.set(0, forKey: "selectedIndex")
+
     }
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
-                .frame(minWidth: 1280, minHeight: 720)
+                .environmentObject(colorSchemeManager)
+                .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
+                .frame(minWidth: 1000, minHeight: 600)
+                .onAppear {
+                    print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
+                }
         }
         .windowStyle(DefaultWindowStyle())
-        .windowResizability(.contentSize)
+        .windowResizability(.automatic)
 
     }
 }

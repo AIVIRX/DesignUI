@@ -3,22 +3,96 @@ import HighlightSwift
 import SDWebImage
 import SDWebImageSwiftUI
 
+// MARK: - Optimized Detail WebImage Component
+struct DetailWebImage: View {
+    let url: String
+    let width: CGFloat
+    let height: CGFloat
+    let cornerRadius: CGFloat
+    let shadowRadius: CGFloat
+    
+    init(url: String, width: CGFloat, height: CGFloat, cornerRadius: CGFloat = 20, shadowRadius: CGFloat = 8) {
+        self.url = url
+        self.width = width
+        self.height = height
+        self.cornerRadius = cornerRadius
+        self.shadowRadius = shadowRadius
+    }
+    
+    var body: some View {
+        WebImage(url: URL(string: url)) { phase in
+            switch phase {
+            case .empty:
+                ProgressView()
+                    .frame(width: width, height: height)
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: width, height: height)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .clipped()
+                    .shadow(radius: shadowRadius)
+            case .failure:
+                Image(systemName: "photo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: width, height: height)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .clipped()
+                    .shadow(radius: shadowRadius)
+            }
+        }
+        .indicator(.activity)
+        .transition(.fade(duration: 0.3))
+        .onDisappear {
+            // Only clear memory cache when view disappears to prevent memory buildup
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                SDImageCache.shared.clearMemory()
+            }
+        }
+    }
+}
+
 struct DetailView: View {
-    var id: String
-    var mediaURL: String
-    var title: String
-    var description: String
-    var author: String
-    var codeSnippet: String
-    var creationDate: String
-    var isAuthorVerified: Bool
+    let id: String
+    let mediaURL: String
+    let title: String
+    let description: String
+    let author: String
+    let codeSnippet: String
+    let creationDate: String
+    let isAuthorVerified: Bool
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     @State private var toast: ToastData?
-    @State private var highlighted: AttributedString = ""
-    @State private var attributedCode: NSAttributedString = .init(string: "")
+    
+    // MARK: - Computed Properties
+    private var imageDimensions: (width: CGFloat, height: CGFloat, cornerRadius: CGFloat) {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return (width: 115, height: 250, cornerRadius: 10)
+        } else {
+            return (width: 257, height: 557, cornerRadius: 20)
+        }
+        #else
+        return (width: 257, height: 557, cornerRadius: 20)
+        #endif
+    }
+    
+    private var containerDimensions: (width: CGFloat, height: CGFloat) {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return (width: .infinity, height: 280)
+        } else {
+            return (width: 400, height: 600)
+        }
+        #else
+        return (width: 300, height: 600)
+        #endif
+    }
     
     var body: some View {
         ScrollView{
@@ -26,37 +100,20 @@ struct DetailView: View {
             if UIDevice.current.userInterfaceIdiom == .phone {
                 VStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 15)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 280)
+                        .frame(maxWidth: containerDimensions.width)
+                        .frame(height: containerDimensions.height)
                         .foregroundStyle(.thinMaterial)
-                        .overlay{
+                        .overlay {
                             RoundedRectangle(cornerRadius: 15)
-                                .frame(width: 115,height: 250)
-                                .overlay{
-                                    WebImage(url: URL(string: mediaURL)) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView()
-                                                .frame(maxWidth: .infinity, maxHeight: 350)
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                                .frame(maxWidth: .infinity, maxHeight: 370)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                .clipped()
-                                                .shadow(radius: 6)
-                                        case .failure:
-                                            Image(systemName: "photo")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                .clipped()
-                                                .shadow(radius: 8)
-                                        }
-                                    }
+                                .frame(width: imageDimensions.width, height: imageDimensions.height)
+                                .overlay {
+                                    DetailWebImage(
+                                        url: mediaURL,
+                                        width: imageDimensions.width,
+                                        height: imageDimensions.height,
+                                        cornerRadius: imageDimensions.cornerRadius,
+                                        shadowRadius: 6
+                                    )
                                 }
                         }
                         .overlay{
@@ -89,8 +146,8 @@ struct DetailView: View {
                         .font(.title2).bold()
                         .padding(.top)
                     
-                    ScrollView {
-                        VStack(alignment: .leading) {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(alignment: .leading) {
                             CodeText(codeSnippet)
                                 .highlightLanguage(.swift)
                                 .font(.system(size: 20))
@@ -138,35 +195,19 @@ struct DetailView: View {
                     HStack{
                         RoundedRectangle(cornerRadius: 15)
                             .frame(maxWidth: .infinity)
-                            .frame(width:400)
+                            .frame(width: containerDimensions.width)
                             .foregroundStyle(Color.gray.opacity(0.2))
-                            .overlay{
+                            .overlay {
                                 RoundedRectangle(cornerRadius: 20)
-                                    .frame(width: 257,height: 557)
-                                    .overlay{
-                                        WebImage(url: URL(string: mediaURL)) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                ProgressView()
-                                                    .frame(maxWidth: .infinity, maxHeight: 558)
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 558)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                            case .failure:
-                                                Image(systemName: "photo")
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(maxWidth: .infinity, maxHeight: 558)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                    .clipped()
-                                                    .shadow(radius: 8)
-                                            }
-                                        }
+                                    .frame(width: imageDimensions.width, height: imageDimensions.height)
+                                    .overlay {
+                                        DetailWebImage(
+                                            url: mediaURL,
+                                            width: imageDimensions.width,
+                                            height: imageDimensions.height,
+                                            cornerRadius: imageDimensions.cornerRadius,
+                                            shadowRadius: 8
+                                        )
                                     }
                             }
                         VStack{
@@ -200,8 +241,8 @@ struct DetailView: View {
                                     .padding(.top,5)
                             }
                             
-                            ScrollView {
-                                VStack(alignment: .leading) {
+                            ScrollView(.vertical, showsIndicators: false) {
+                                LazyVStack(alignment: .leading) {
                                     CodeText(codeSnippet)
                                         .highlightLanguage(.swift)
                                         .font(.system(size: 20))
@@ -252,35 +293,19 @@ struct DetailView: View {
                 HStack{
                     RoundedRectangle(cornerRadius: 15)
                         .frame(maxWidth: .infinity)
-                        .frame(width:300)
+                        .frame(width: containerDimensions.width)
                         .foregroundStyle(Color.gray.opacity(0.2))
-                        .overlay{
+                        .overlay {
                             RoundedRectangle(cornerRadius: 20)
-                                .frame(width: 257, height: 557)
-                                .overlay{
-                                    WebImage(url: URL(string: mediaURL)) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView()
-                                                .frame(maxWidth: .infinity, maxHeight: 558)
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 558)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                .clipped()
-                                                .shadow(radius: 8)
-                                        case .failure:
-                                            Image(systemName: "photo")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 558)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                .clipped()
-                                                .shadow(radius: 8)
-                                        }
-                                    }
+                                .frame(width: imageDimensions.width, height: imageDimensions.height)
+                                .overlay {
+                                    DetailWebImage(
+                                        url: mediaURL,
+                                        width: imageDimensions.width,
+                                        height: imageDimensions.height,
+                                        cornerRadius: imageDimensions.cornerRadius,
+                                        shadowRadius: 8
+                                    )
                                 }
                         }
                     
@@ -322,8 +347,8 @@ struct DetailView: View {
                                 .padding(.top,5)
                         }
                         
-                        ScrollView {
-                            VStack(alignment: .leading) {
+                        ScrollView(.vertical, showsIndicators: false) {
+                            LazyVStack(alignment: .leading) {
                                 CodeText(codeSnippet)
                                     .highlightLanguage(.swift)
                                     .font(.system(size: 20))
@@ -331,7 +356,6 @@ struct DetailView: View {
                                     .padding()
                             }
                         }
-                        .scrollIndicators(.never)
                         .frame(maxWidth: .infinity, maxHeight: 300)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)

@@ -20,12 +20,12 @@ struct NewsListView: View {
     var columns: [GridItem] {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
-            return [GridItem(.adaptive(minimum: 320, maximum: 320)), GridItem(.adaptive(minimum: 320, maximum: 400))]
+            return [GridItem(.adaptive(minimum: 400, maximum: 400)), GridItem(.adaptive(minimum: 400, maximum: 480))]
         } else {
-            return [GridItem(.adaptive(minimum: 215, maximum: 215))]
+            return [GridItem(.adaptive(minimum: 280, maximum: 280))]
         }
 #else
-        return [GridItem(.adaptive(minimum: 215, maximum: 215))]
+        return [GridItem(.adaptive(minimum: 280, maximum: 280))]
 #endif
     }
     
@@ -53,7 +53,7 @@ struct NewsListView: View {
                             .padding(.top, 16)
                     }
 #else
-                    LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
+                    LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0)
                         .padding(.top, 16)
 #endif
                     Text("Latest News")
@@ -120,24 +120,24 @@ struct BlogGridCard: View {
     var cardWidth: CGFloat {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
-            return min(UIScreen.main.bounds.width * 0.35, 320)
+            return min(UIScreen.main.bounds.width * 0.4, 400)
         } else {
-            return min(UIScreen.main.bounds.width * 0.9, 400)
+            return min(UIScreen.main.bounds.width * 0.9, 480)
         }
 #else
-        return 210
+        return 280
 #endif
     }
     
     var cardHeight: CGFloat {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
-            return 180
+            return 220
         } else {
-            return 260
+            return 320
         }
 #else
-        return 118
+        return 150
 #endif
     }
     
@@ -154,44 +154,57 @@ struct BlogGridCard: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: cardWidth, height: cardHeight)
+                            .scaleEffect(isHovered ? 1.05 : 1.0)
                             .clipped()
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                             )
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
                     case .failure:
                         Image(systemName: "photo")
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: cardWidth, height: cardHeight)
+                            .scaleEffect(isHovered ? 1.05 : 1.0)
                             .foregroundColor(.gray.opacity(0.5))
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(12)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
                     @unknown default:
                         Color.gray.opacity(0.2)
                             .frame(width: cardWidth, height: cardHeight)
+                            .scaleEffect(isHovered ? 1.05 : 1.0)
                             .cornerRadius(12)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
                     }
                 }
             } else {
                 Color.gray.opacity(0.2)
                     .frame(width: cardWidth, height: cardHeight)
+                    .scaleEffect(isHovered ? 1.05 : 1.0)
                     .cornerRadius(12)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
             }
             Text(post.title)
-                .font(.title3.bold())
-                .fontWeight(.semibold)
+                .font(.title3)
                 .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : Color.black)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .padding(.bottom, 8)
         }
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+        .shadow(
+            color: isHovered ? Color.black.opacity(0.15) : Color.black.opacity(0.08),
+            radius: isHovered ? 8 : 4,
+            x: 0,
+            y: isHovered ? 4 : 2
+        )
         .frame(width: cardWidth)
-        .brightness(isHovered ? 0.1 : 0)
-        .animation(.easeInOut(duration: 0.15), value: isHovered)
+        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .colorMultiply(isHovered ? Color.white : Color(white: 0.94))
+        .animation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0), value: isHovered)
         .onHover { hovering in
             isHovered = hovering
         }

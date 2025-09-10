@@ -1,67 +1,67 @@
 {
   "images" : [
     {
-      "filename" : "Artboard 1.png",
+      "filename" : "Artboard76.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
-      "filename" : "Artboard 1-16.png",
+      "filename" : "Icon-16-2.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "Artboard 1-32.png",
+      "filename" : "Icon-32-2 1.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "Artboard 1-32 1.png",
+      "filename" : "Icon-32-2.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "Artboard 1-64.png",
+      "filename" : "Icon-64-2.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "Artboard 1-128.png",
+      "filename" : "Icon-128-2.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "Artboard 1-256 1.png",
+      "filename" : "Icon-256-2 1.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "Artboard 1-256.png",
+      "filename" : "Icon-256-2.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "Artboard 1-512 1.png",
+      "filename" : "Icon-512-2 1.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "Artboard 1-512.png",
+      "filename" : "Icon-512-2.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "Artboard 2.png",
+      "filename" : "Icon-1024-2.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"
