@@ -32,10 +32,8 @@ struct StoreView: View {
 #endif
 #if os(macOS)
                 .toolbar {
-                    ToolbarItem(placement: .automatic) {
-                        Button("Restore") {
-                            store.retorePurchases()
-                        }
+                    Button("Restore") {
+                        store.retorePurchases()
                     }
                 }
 #endif

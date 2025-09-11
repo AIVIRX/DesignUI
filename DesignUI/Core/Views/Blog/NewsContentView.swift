@@ -59,30 +59,30 @@ struct NewsContentView: View {
                     }
                 case .code:
                     if let code = block.code {
-                        ScrollView {
+                        ScrollView(.vertical, showsIndicators: true) {
                             VStack(alignment: .leading) {
                                 CodeText(code)
                                     .highlightLanguage(.swift)
-                                    .font(.system(size: 20))
+                                    .font(.system(size: 16))
                                     .textSelection(.enabled)
                                     .padding()
                             }
+                            .frame(maxWidth: .infinity)
                         }
                         .frame(maxWidth: .infinity, maxHeight: 300)
                         .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                     }
                 case .bulletedList:
                     if let items = block.items {
                         VStack(alignment: .leading, spacing: 5) {
                             ForEach(items, id: \.self) { item in
                                 HStack(alignment: .top) {
-                                    Text("•").bold()
+                                    Text("•")
                                     Text(item)
-                                        .font(.title2)
-                                        .foregroundColor(.secondary)
-
                                 }
+                                .font(.title2)
+                                .foregroundStyle(.secondary)
                             }
                         }
                     }

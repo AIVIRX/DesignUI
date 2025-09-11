@@ -358,7 +358,7 @@ struct DetailView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: 300)
                         .background(Color.gray.opacity(0.2))
-                        .cornerRadius(8)
+                        .cornerRadius(10)
                         
                         Spacer()
                         

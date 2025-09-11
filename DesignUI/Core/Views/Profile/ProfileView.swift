@@ -120,7 +120,7 @@ struct ProfileView: View {
 #endif
                 
 #if os(macOS)
-                ToolbarItem() {
+                ToolbarItem(placement: .primaryAction) {
                     Button(action: {
                         showEditProfile = true
                     }) {

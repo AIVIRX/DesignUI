@@ -20,6 +20,7 @@ struct ContentView: View {
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @State private var hoveredItem: MenuItem?
     @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
+    @State private var showSidebarSettings = false
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
     
@@ -212,21 +213,46 @@ struct ContentView: View {
                     .padding(.horizontal, 10)
                     .foregroundColor(hoveredItem == .contact ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
                     .contentShape(Rectangle())
-                                            .onHover { hovering in
-                            hoveredItem = hovering ? .contact : nil
-                        }
-                    
-                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundStyle(Color.gray)
-                        .font(.body)
-                    
-                    Spacer()
+                    .onHover { hovering in
+                        hoveredItem = hovering ? .contact : nil
+                    }
+                
+                Text("v\(Bundle.main.releaseVersionNumber ?? "")")
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .foregroundStyle(Color.gray)
+                    .font(.body)
+                
+                Spacer()
             }
             .padding()
             .background(Color.clear)
             .navigationSplitViewColumnWidth(230)
+#if os(macOS)
+            .toolbar{
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        showSidebarSettings = true
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                    }
+                }
+            }
+            .sheet(isPresented: $showSidebarSettings) {
+                NavigationStack {
+                    SettingsView()
+#if os(macOS)
+                        .toolbar {
+                            ToolbarItem(placement: .primaryAction) {
+                                Button("Done") {
+                                    showSidebarSettings = false
+                                }
+                            }
+                        }
+#endif
+                }
+            }
+#endif
         }
         detail: {
             NavigationStack() {
@@ -243,28 +269,6 @@ struct ContentView: View {
                     StoreView()
                 default:
                     Text("Select a view")
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        ForEach(AppColorScheme.allCases, id: \.self) { scheme in
-                            Button(action: {
-                                print("Changing color scheme from \(colorSchemeManager.currentScheme.displayName) to \(scheme.displayName)")
-                                colorSchemeManager.currentScheme = scheme
-                                print("Color scheme changed to: \(colorSchemeManager.currentScheme.displayName)")
-                            }) {
-                                HStack {
-                                    Text(scheme.displayName)
-                                    if colorSchemeManager.currentScheme == scheme {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "paintbrush.fill")
-                    }
                 }
             }
         }

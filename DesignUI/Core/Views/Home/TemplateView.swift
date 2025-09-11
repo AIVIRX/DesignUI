@@ -91,6 +91,15 @@ struct ExploreView: View {
                 }
             }
 #endif
+#if os(macOS)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gearshape.fill")
+                    }
+                }
+            }
+#endif
             .frame(maxWidth: 1600)
             .refreshable {
                 Task {
