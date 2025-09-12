@@ -67,7 +67,7 @@ struct ExploreView: View {
                     }
                     
                 }
-                .searchable(text: $searchText)
+                .searchable(text: $searchText, prompt: "Search templates")
                 .onChange(of: searchText) { oldValue, newValue in
                     Task {
                         try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
@@ -88,15 +88,6 @@ struct ExploreView: View {
                     .simultaneousGesture(TapGesture().onEnded {
                         HapticManager.shared.triggerImpact(style: .medium)
                     })
-                }
-            }
-#endif
-#if os(macOS)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gearshape.fill")
-                    }
                 }
             }
 #endif

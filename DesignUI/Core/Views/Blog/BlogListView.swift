@@ -90,24 +90,13 @@ struct NewsListView: View {
             .refreshable {
                 await viewModel.fetchNews()
             }
-            .searchable(text: $searchText)
+            .searchable(text: $searchText, prompt: "Search posts")
 #if os(iOS)
             .sheet(item: $selectedPost) { post in
                 NewsDetailView(post: post)
             }
 #endif
             .task { await viewModel.fetchNews() }
-#if os(iOS)
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                
-                if !store.completedPurchases.isEmpty{
-                } else {
-                    AdView(adUnitID: AdUnitID.finalAd)
-                        .frame(width: 468, height: 60)
-                        .padding(5)
-                }
-            }
-#endif
         }
     }
 }

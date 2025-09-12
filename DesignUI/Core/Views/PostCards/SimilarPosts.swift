@@ -75,6 +75,11 @@ struct SimilarPostsView: View {
                     self.similarPosts = response
                 }
             } catch {
+                // Only log non-cancelled errors
+                if let urlError = error as? URLError, urlError.code == .cancelled {
+                    // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                    return
+                }
                 print("Error fetching similar posts: \(error)")
             }
         }

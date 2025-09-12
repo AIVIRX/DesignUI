@@ -25,7 +25,6 @@
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
-		EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BDA2C19E454003134B1 /* Constants.swift */; };
 		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
 		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
 		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
@@ -46,10 +45,8 @@
 		EC9F54772E188A9F00AAE9EC /* FormatDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54762E188A9F00AAE9EC /* FormatDate.swift */; };
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA632C7C160C002D7E31 /* FormatCount.swift */; };
-		ECB96F1F2C8A0A3400175E0B /* BannerAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */; };
 		ECC527512E270E4D00DAA548 /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527502E270E4D00DAA548 /* HighlightSwift */; };
 		ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = ECC527532E270E5E00DAA548 /* StatefulTabView */; };
-		ECC527572E27122A00DAA548 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = ECC527562E27122A00DAA548 /* GoogleMobileAds */; };
 		ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */; };
 		ECC5275E2E27149A00DAA548 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275D2E27149A00DAA548 /* FirebaseAnalytics */; };
 		ECC527602E27155000DAA548 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275F2E27155000DAA548 /* Supabase */; };
@@ -92,7 +89,6 @@
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		EC7D7BDA2C19E454003134B1 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
@@ -114,7 +110,6 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB1DA632C7C160C002D7E31 /* FormatCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatCount.swift; sourceTree = "<group>"; };
-		ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAds.swift; sourceTree = "<group>"; };
 		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
@@ -132,7 +127,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
-				ECC527572E27122A00DAA548 /* GoogleMobileAds in Frameworks */,
 				ECC5275E2E27149A00DAA548 /* FirebaseAnalytics in Frameworks */,
 				ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */,
 				EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */,
@@ -215,7 +209,6 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				EC7D7BDA2C19E454003134B1 /* Constants.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
 				EC9F54762E188A9F00AAE9EC /* FormatDate.swift */,
 				EC5982A32D57F54000633392 /* GridColumns.swift */,
@@ -297,7 +290,6 @@
 			isa = PBXGroup;
 			children = (
 				ECD12B362D8F487D001A73C7 /* Toast.swift */,
-				ECB96F1E2C8A0A3400175E0B /* BannerAds.swift */,
 				EC3D132D2E1DABCE00F659DB /* LargeHero.swift */,
 			);
 			path = Components;
@@ -357,7 +349,6 @@
 			packageProductDependencies = (
 				ECC527502E270E4D00DAA548 /* HighlightSwift */,
 				ECC527532E270E5E00DAA548 /* StatefulTabView */,
-				ECC527562E27122A00DAA548 /* GoogleMobileAds */,
 				ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */,
 				ECC5275D2E27149A00DAA548 /* FirebaseAnalytics */,
 				ECC5275F2E27155000DAA548 /* Supabase */,
@@ -439,7 +430,6 @@
 			packageReferences = (
 				ECC5274F2E270E4D00DAA548 /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 				ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */,
-				ECC527552E27122A00DAA548 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				ECC527582E27139100DAA548 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
@@ -474,10 +464,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
-				ECB96F1F2C8A0A3400175E0B /* BannerAds.swift in Sources */,
 				EC87D8172DB9AC8A0091FAFF /* RecipeRow.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
-				EC7D7BDB2C19E454003134B1 /* Constants.swift in Sources */,
 				EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */,
 				EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */,
 				EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */,
@@ -802,14 +790,6 @@
 				minimumVersion = 0.1.10;
 			};
 		};
-		ECC527552E27122A00DAA548 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.7.0;
-			};
-		};
 		ECC527582E27139100DAA548 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -846,11 +826,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */;
 			productName = StatefulTabView;
-		};
-		ECC527562E27122A00DAA548 /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECC527552E27122A00DAA548 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
 		};
 		ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;

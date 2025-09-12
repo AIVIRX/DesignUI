@@ -20,6 +20,7 @@ class LatestPostsViewModel: ObservableObject {
     private var lastRefreshTime: Date?
     private let refreshCooldown: TimeInterval = 1
     private var isRefreshing = false
+    private var currentTask: Task<Void, Never>?
     
     @MainActor
     func loadMorePostsIfNeeded(currentItem item: DesignPost?) async {
@@ -67,6 +68,11 @@ class LatestPostsViewModel: ObservableObject {
             hasMorePosts = false
         } catch {
             self.error = error
+            // Only log non-cancelled errors
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                return
+            }
             print("Error searching posts: \(error)")
         }
         
@@ -77,35 +83,46 @@ class LatestPostsViewModel: ObservableObject {
     func fetchPosts() async {
         guard !isLoading && hasMorePosts && !isRefreshing else { return }
         
+        // Cancel any existing task
+        currentTask?.cancel()
+        
         isLoading = true
         error = nil
         
-        do {
-            let response = try await client
-                .from("posts")
-                .select("""
-                    *,
-                    profiles!posts_author_id_fkey (
-                      username,
-                      verified
-                    )
-                """)
-                .eq("public", value: true)
-                .order("created_at", ascending: false)
-                .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
-                .execute()
+        currentTask = Task {
+            do {
+                let response = try await client
+                    .from("posts")
+                    .select("""
+                        *,
+                        profiles!posts_author_id_fkey (
+                          username,
+                          verified
+                        )
+                    """)
+                    .eq("public", value: true)
+                    .order("created_at", ascending: false)
+                    .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
+                    .execute()
+                
+                let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
+                
+                posts.append(contentsOf: newPosts)
+                currentPage += 1
+                hasMorePosts = newPosts.count == pageSize
+            } catch {
+                self.error = error
+                // Only log non-cancelled errors
+                if let urlError = error as? URLError, urlError.code == .cancelled {
+                    // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                    return
+                }
+                print("Error fetching posts: \(error)")
+            }
             
-            let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
-            
-            posts.append(contentsOf: newPosts)
-            currentPage += 1
-            hasMorePosts = newPosts.count == pageSize
-        } catch {
-            self.error = error
-            print("Error fetching posts: \(error)")
+            isLoading = false
+            currentTask = nil
         }
-        
-        isLoading = false
     }
     
     @MainActor
@@ -150,6 +167,11 @@ class LatestPostsViewModel: ObservableObject {
             }
         } catch {
             self.error = error
+            // Only log non-cancelled errors
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                return
+            }
             print("Error refreshing posts: \(error)")
         }
         
@@ -183,6 +205,11 @@ class LatestPostsViewModel: ObservableObject {
             posts = newPosts
         } catch {
             self.error = error
+            // Only log non-cancelled errors
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                return
+            }
             print("Error fetching most liked posts: \(error)")
         }
         

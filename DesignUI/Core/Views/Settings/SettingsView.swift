@@ -68,26 +68,35 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     var body: some View {
         NavigationStack {
-            VStack{
-                NavigationLink(destination: StoreView()) {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Premium")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            Text("Unlock Premium Features")
-                                .font(.subheadline)
-                                .foregroundColor(.white)
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Premium Section - Better for macOS
+                    NavigationLink(destination: StoreView()) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Premium")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Text("Unlock Premium Features")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(.trailing)
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.indigo.gradient))
                     }
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.indigo.gradient))
+                    .buttonStyle(PlainButtonStyle())
                     .padding(.horizontal)
                     .padding(.top)
-                }
-                
-                Form {
+                    
+                    Form {
                     Section(header: Text("Appearance")) {
                         // Color Scheme Picker
                         HStack {
@@ -102,14 +111,15 @@ struct SettingsView: View {
                             
                             Spacer()
                             
-                            Picker("Color Scheme", selection: $colorSchemeManager.currentScheme) {
+                            Picker("", selection: $colorSchemeManager.currentScheme) {
                                 ForEach(AppColorScheme.allCases, id: \.self) { scheme in
                                     Text(scheme.displayName).tag(scheme)
                                 }
                             }
                             .pickerStyle(MenuPickerStyle())
                         }
-                        
+#if os(iOS)
+                        //App icons
                         NavigationLink(destination: AlternateIconView()) {
                             HStack {
                                 Image(systemName: "square.stack.fill")
@@ -121,7 +131,6 @@ struct SettingsView: View {
                                 Text("App Icons")
                             }
                         }
-#if os(iOS)
                         if UIDevice.current.userInterfaceIdiom == .phone {
                             NavigationLink(destination: SFIconsView()) {
                                 HStack {
@@ -150,52 +159,93 @@ struct SettingsView: View {
                                     .background(Color.orange)
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
                                 Text("Rate Us")
+                                Spacer()
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
-                        Link("Threads", destination: URL(string: "https://www.threads.com/dockui")!)
-                            .bold()
-                    }
-                    
-                    Section(header: Text("Our Apps")) {
-                        Link(destination: URL(string: "https://apps.apple.com/us/app/crypto-profit-loss-calculator/id1638849680")!) {
-                            HStack {
-                                Image("CryptoProfitLogo")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .cornerRadius(5)
-                                Text("Crypto Profit Loss Calculator")
-                            }
-                        }
+                        .buttonStyle(PlainButtonStyle())
                         
-                        Link(destination: URL(string: "https://apps.apple.com/us/app/tasknow-simple-to-do-list/id1639588217")!) {
+                        Link(destination: URL(string: "https://www.threads.com/dockui")!) {
                             HStack {
-                                Image("TaskNowLogo")
-                                    .resizable()
+                                Image(systemName: "link")
+                                    .font(.system(size: 20))
                                     .frame(width: 30, height: 30)
-                                    .cornerRadius(5)
-                                Text("TaskNow - Simple To Do List")
+                                    .foregroundStyle(.white)
+                                    .background(Color.blue)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                Text("Threads")
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    
-                    Section("Privacy & Support") {
+                                        
+                    Section(header: Text("Privacy & Support")) {
                         Link(destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!) {
-                            Text("Privacy Policy")
+                            HStack {
+                                Image(systemName: "hand.raised.fill")
+                                    .font(.system(size: 20))
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.white)
+                                    .background(Color.green)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                Text("Privacy Policy")
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(PlainButtonStyle())
+                        
                         Button(action: {
                             isShowingMailView.toggle()
                         }) {
-                            Text("Contact Us")
+                            HStack {
+                                Image(systemName: "envelope.fill")
+                                    .font(.system(size: 20))
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.white)
+                                    .background(Color.blue)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                Text("Contact Us")
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(PlainButtonStyle())
 #if os(iOS)
                         .disabled(!MFMailComposeViewController.canSendMail())
 #endif
                     }
+                    }
+                    .accentColor(colorScheme == .dark ? .white : .black)
+                    .formStyle(.grouped)
+                    
                 }
-                .accentColor(colorScheme == .dark ? .white : .black)
+                .padding(.horizontal)
+            }
 #if os(iOS)
-                .navigationBarTitle("Settings")
-                .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+#else
+            .navigationTitle("Settings")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
 #endif
                 .alert(isPresented: $showErrorAlert) {
                     Alert(
@@ -210,22 +260,6 @@ struct SettingsView: View {
                 }
 #endif
             }
-#if os(iOS)
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                
-                if !store.completedPurchases.isEmpty{
-                } else {
-                    AdView(adUnitID: AdUnitID.finalAd)
-                        .frame(width: 468, height: 60)
-                        .padding(5)
-                }
-            }
-#endif
         }
     }
-    
-    private func showError(_ message: String) {
-        errorMessage = message
-        showErrorAlert = true
-    }
-}
+

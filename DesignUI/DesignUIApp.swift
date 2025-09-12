@@ -14,14 +14,12 @@ import AdSupport
 import Supabase
 
 #if os(iOS)
-import GoogleMobileAds
 
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureFirebase()
         requestTrackingAuthorization()
-        initializeGoogleMobileAds()
         
         //        UserDefaults.standard.set(0, forKey: "selectedIndex")
 
@@ -45,10 +43,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         } else {
             print("iOS version is below 14.0, no tracking authorization needed.")
         }
-    }
-    
-    private func initializeGoogleMobileAds() {
-        MobileAds.shared.start(completionHandler: nil)
     }
     
     private func configureFirebase() {

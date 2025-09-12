@@ -48,16 +48,5 @@ struct StoreView: View {
         }
         .buttonStyle(.plain)
         .navigationTitle("Shop")
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            
-            if !store.completedPurchases.isEmpty{
-            } else {
-                AdView(adUnitID: AdUnitID.finalAd)
-                    .frame(width: 468, height: 60)
-                    .padding(5)
-            }
-        }
-#endif
     }
 }

@@ -52,13 +52,6 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
-                if !store.completedPurchases.isEmpty{
-                } else {
-                    AdView(adUnitID: AdUnitID.finalAd)
-                        .frame(width: 320, height: 50)
-                        .padding(5)
-                }
-                
                 StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house") {
                         ExploreView()
@@ -239,18 +232,7 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showSidebarSettings) {
-                NavigationStack {
-                    SettingsView()
-#if os(macOS)
-                        .toolbar {
-                            ToolbarItem(placement: .primaryAction) {
-                                Button("Done") {
-                                    showSidebarSettings = false
-                                }
-                            }
-                        }
-#endif
-                }
+                SettingsView()
             }
 #endif
         }

@@ -4,7 +4,6 @@ struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var authViewModel: AuthViewModel
     @ObservedObject var viewModel: ProfileViewModel
-    
     @State private var displayName: String
     @State private var username: String
     @State private var isLoading = false
@@ -44,153 +43,129 @@ struct EditProfileView: View {
                     }
                     .padding(.top)
                     
-                    // Form Fields
-                    VStack(spacing: 20) {
-                        // Display Name
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Display Name", systemImage: "person.fill")
-                                .foregroundColor(.gray)
+                    Form {
+                        Section {
+                            // Key ID
+                            HStack(alignment: .top, spacing: 16) {
+                                TextField("Display Name",text: $displayName, prompt: Text("John Doe"))
+                                    .autocorrectionDisabled()
+                                    .focused($focusedField, equals: .displayName)
+                                    .submitLabel(.next)
+                                    .onSubmit {
+                                        focusedField = .username
+                                    }
+                            }
                             
-                            TextField("Enter your display name", text: $displayName)
-                                .textFieldStyle(.roundedBorder)
-                                .autocorrectionDisabled()
-                                .focused($focusedField, equals: .displayName)
-                                .submitLabel(.next)
-                                .onSubmit {
-                            focusedField = .username
-                                }
-                        }
-                        
-                        // Username
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Username", systemImage: "at")
-                                .foregroundColor(.gray)
-                            
-                            TextField("Enter your username", text: $username)
-                                .textFieldStyle(.roundedBorder)
-                                .autocorrectionDisabled()
-                                .focused($focusedField, equals: .username)
-                                .submitLabel(.done)
-                                .onSubmit {
-                            Task {
-                                await updateProfile()
+                            // Issuer ID
+                            HStack(alignment: .top, spacing: 16) {
+                                TextField("Username", text: $username, prompt: Text("johndoe"))
+                                    .autocorrectionDisabled()
+                                    .focused($focusedField, equals: .username)
+                                    .submitLabel(.done)
+                                    .onSubmit {
+                                        Task {
+                                            await updateProfile()
+                                        }
                                     }
                             }
                         }
                     }
-                    .padding(.horizontal)
+                        .formStyle(.grouped)
                     
-                    // Save Button
-                    Button {
+                }
+            }
+                .navigationTitle("Edit Profile")
 #if os(iOS)
-                        HapticManager.shared.triggerImpact(style: .medium)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                    }
+                }
+#else
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            Task {
+                                await updateProfile()
+                            }
+                        }
+                        .disabled(isLoading)
+                    }
+                }
 #endif
+                .onSubmit {
+                    switch focusedField {
+                    case .displayName:
+                        focusedField = .username
+                    case .username:
                         Task {
                             await updateProfile()
                         }
-                    } label: {
-                        if isLoading {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text("Save Changes")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                        }
-                    }
-                    .buttonStyle(BorderedProminentButtonStyle())
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .padding()
-                    .disabled(isLoading)
-                }
-            }
-            .navigationTitle("Edit Profile")
-#if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
+                    case .none:
+                        break
                     }
                 }
             }
-#else
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-#endif
-            .onSubmit {
-                switch focusedField {
-                case .displayName:
-                    focusedField = .username
-                case .username:
-                    Task {
-                        await updateProfile()
-                    }
-                case .none:
-                    break
-                }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
             }
         }
-        .alert("Error", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage)
-        }
-    }
-    
-    private func updateProfile() async {
-        guard let userId = supabase.auth.currentUser?.id else { return }
-        isLoading = true
         
-        do {
-            if username != viewModel.profile?.username {
-                let checkResponse = try await supabase
+        private func updateProfile() async {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+            isLoading = true
+            
+            do {
+                if username != viewModel.profile?.username {
+                    let checkResponse = try await supabase
+                        .from("profiles")
+                        .select("username")
+                        .eq("username", value: username)
+                        .neq("id", value: userId)
+                        .execute()
+                    
+                    let decoder = JSONDecoder()
+                    let existingUsers = try decoder.decode([Profile].self, from: checkResponse.data)
+                    
+                    if !existingUsers.isEmpty {
+                        showError = true
+                        errorMessage = "Username is already taken"
+                        isLoading = false
+                        return
+                    }
+                }
+                
+                try await supabase
                     .from("profiles")
-                    .select("username")
-                    .eq("username", value: username)
-                    .neq("id", value: userId)
+                    .upsert([
+                        "id": userId.uuidString,
+                        "display_name": displayName,
+                        "username": username.lowercased(),
+                        "updated_at": ISO8601DateFormatter().string(from: Date()),
+                    ], onConflict: "id")
+                    .select()
+                    .single()
                     .execute()
                 
-                let decoder = JSONDecoder()
-                let existingUsers = try decoder.decode([Profile].self, from: checkResponse.data)
+                await authViewModel.checkUsername()
+                await viewModel.fetchProfile()
+                dismiss()
                 
-                if !existingUsers.isEmpty {
-                    showError = true
-                    errorMessage = "Username is already taken"
-                    isLoading = false
-                    return
-                }
+            } catch {
+                showError = true
+                errorMessage = "Username is not available"
             }
             
-            try await supabase
-                .from("profiles")
-                .upsert([
-                    "id": userId.uuidString,
-                    "display_name": displayName,
-                    "username": username.lowercased(),
-                    "updated_at": ISO8601DateFormatter().string(from: Date()),
-                ], onConflict: "id")
-                .select()
-                .single()
-                .execute()
-            
-            await authViewModel.checkUsername()
-            await viewModel.fetchProfile()
-            dismiss()
-            
-        } catch {
-            showError = true
-            errorMessage = "Username is not available"
+            isLoading = false
         }
-        
-        isLoading = false
     }
-}

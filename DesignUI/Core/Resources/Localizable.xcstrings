@@ -2512,6 +2512,7 @@
       }
     },
     "Crypto Profit Loss Calculator" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4266,6 +4267,7 @@
       }
     },
     "Enter your display name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4516,6 +4518,7 @@
       }
     },
     "Enter your username" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5014,6 +5017,12 @@
           }
         }
       }
+    },
+    "John Doe" : {
+
+    },
+    "johndoe" : {
+
     },
     "Latest News" : {
       "localizations" : {
@@ -7266,6 +7275,7 @@
       }
     },
     "Our Apps" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9015,7 +9025,11 @@
         }
       }
     },
+    "Save" : {
+
+    },
     "Save Changes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -9264,6 +9278,9 @@
           }
         }
       }
+    },
+    "Search posts" : {
+
     },
     "Search SF Symbols" : {
       "localizations" : {
@@ -9514,6 +9531,9 @@
           }
         }
       }
+    },
+    "Search templates" : {
+
     },
     "Select a view" : {
       "localizations" : {
@@ -12016,6 +12036,7 @@
       }
     },
     "TaskNow - Simple To Do List" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

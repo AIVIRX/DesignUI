@@ -339,8 +339,9 @@ struct DetailView: View {
                                 .padding(.top,5)
                             
                             Text(description)
-                                .font(.system(size: 18))
+                                .font(.title2)
                                 .frame(maxHeight: 700, alignment: .top)
+                                .foregroundStyle(.secondary)
                             
                             Text("Code Snippet:")
                                 .font(.system(size: 25)).bold()
@@ -351,7 +352,7 @@ struct DetailView: View {
                             LazyVStack(alignment: .leading) {
                                 CodeText(codeSnippet)
                                     .highlightLanguage(.swift)
-                                    .font(.system(size: 20))
+                                    .font(.system(size: 16))
                                     .textSelection(.enabled)
                                     .padding()
                             }

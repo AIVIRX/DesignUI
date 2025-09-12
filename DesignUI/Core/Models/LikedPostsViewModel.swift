@@ -75,6 +75,11 @@ class LikedPostsViewModel: ObservableObject {
             hasMorePosts = newLikedPosts.count == pageSize
         } catch {
             self.error = error
+            // Only log non-cancelled errors
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                return
+            }
             print("Error fetching liked posts: \(error)")
         }
         
@@ -134,6 +139,11 @@ class LikedPostsViewModel: ObservableObject {
             } catch {
                 if !Task.isCancelled {
                     self.error = error
+                    // Only log non-cancelled errors
+                    if let urlError = error as? URLError, urlError.code == .cancelled {
+                        // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                        return
+                    }
                     print("Error refreshing liked posts: \(error)")
                 }
             }
