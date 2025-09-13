@@ -1508,6 +1508,9 @@
         }
       }
     },
+    "by %@" : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "ar" : {
@@ -1757,6 +1760,9 @@
           }
         }
       }
+    },
+    "Code Snippet" : {
+
     },
     "Code Snippet:" : {
       "localizations" : {
@@ -2260,6 +2266,9 @@
           }
         }
       }
+    },
+    "Copy" : {
+
     },
     "Copy Code" : {
       "localizations" : {
@@ -3263,6 +3272,7 @@
       }
     },
     "Description:" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5017,6 +5027,9 @@
           }
         }
       }
+    },
+    "Highlighting..." : {
+
     },
     "John Doe" : {
 

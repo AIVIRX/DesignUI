@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EC1DCB9F2E7540250008FEC8 /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC1DCB9E2E7540250008FEC8 /* HighlightSwift */; };
+		EC1DCBA12E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1DCBA02E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift */; };
+		EC206B9A2E74E07B005D8F2F /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = EC206B992E74E07B005D8F2F /* SwiftParser */; };
+		EC206B9C2E74E07B005D8F2F /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = EC206B9B2E74E07B005D8F2F /* SwiftSyntax */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC298D0B2D430762008DC36B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EC298D0A2D430762008DC36B /* GoogleService-Info.plist */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
@@ -45,7 +49,6 @@
 		EC9F54772E188A9F00AAE9EC /* FormatDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54762E188A9F00AAE9EC /* FormatDate.swift */; };
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA632C7C160C002D7E31 /* FormatCount.swift */; };
-		ECC527512E270E4D00DAA548 /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527502E270E4D00DAA548 /* HighlightSwift */; };
 		ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = ECC527532E270E5E00DAA548 /* StatefulTabView */; };
 		ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */; };
 		ECC5275E2E27149A00DAA548 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275D2E27149A00DAA548 /* FirebaseAnalytics */; };
@@ -70,6 +73,7 @@
 /* Begin PBXFileReference section */
 		BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EC1DCBA02E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSyntaxHighlightedCode.swift; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC298D0A2D430762008DC36B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
@@ -132,13 +136,15 @@
 				EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */,
 				ECC5276A2E27158D00DAA548 /* FirebaseAnalyticsCore in Frameworks */,
 				ECC527602E27155000DAA548 /* Supabase in Frameworks */,
+				EC1DCB9F2E7540250008FEC8 /* HighlightSwift in Frameworks */,
 				ECC527682E27156000DAA548 /* PostgREST in Frameworks */,
+				EC206B9C2E74E07B005D8F2F /* SwiftSyntax in Frameworks */,
+				EC206B9A2E74E07B005D8F2F /* SwiftParser in Frameworks */,
 				ECC527662E27155D00DAA548 /* Functions in Frameworks */,
 				EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
 				ECC527622E27155500DAA548 /* Storage in Frameworks */,
 				ECC527642E27155900DAA548 /* Auth in Frameworks */,
-				ECC527512E270E4D00DAA548 /* HighlightSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,6 +295,7 @@
 		ECD13FF92C18BF8800105B3E /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				EC1DCBA02E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift */,
 				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 				EC3D132D2E1DABCE00F659DB /* LargeHero.swift */,
 			);
@@ -347,7 +354,6 @@
 			);
 			name = DesignUI;
 			packageProductDependencies = (
-				ECC527502E270E4D00DAA548 /* HighlightSwift */,
 				ECC527532E270E5E00DAA548 /* StatefulTabView */,
 				ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */,
 				ECC5275D2E27149A00DAA548 /* FirebaseAnalytics */,
@@ -357,6 +363,9 @@
 				ECC527652E27155D00DAA548 /* Functions */,
 				ECC527672E27156000DAA548 /* PostgREST */,
 				ECC527692E27158D00DAA548 /* FirebaseAnalyticsCore */,
+				EC206B992E74E07B005D8F2F /* SwiftParser */,
+				EC206B9B2E74E07B005D8F2F /* SwiftSyntax */,
+				EC1DCB9E2E7540250008FEC8 /* HighlightSwift */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -428,11 +437,12 @@
 			);
 			mainGroup = ECADF5F22BCAE9610096753A;
 			packageReferences = (
-				ECC5274F2E270E4D00DAA548 /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 				ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */,
 				ECC527582E27139100DAA548 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */,
+				EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -482,6 +492,7 @@
 				EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */,
 				EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */,
 				EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */,
+				EC1DCBA12E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
@@ -774,12 +785,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		ECC5274F2E270E4D00DAA548 /* XCRemoteSwiftPackageReference "HighlightSwift" */ = {
+		EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/appstefan/HighlightSwift";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.9;
+			};
+		};
+		EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftlang/swift-syntax.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 601.0.1;
 			};
 		};
 		ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */ = {
@@ -817,10 +836,20 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		ECC527502E270E4D00DAA548 /* HighlightSwift */ = {
+		EC1DCB9E2E7540250008FEC8 /* HighlightSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = ECC5274F2E270E4D00DAA548 /* XCRemoteSwiftPackageReference "HighlightSwift" */;
+			package = EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */;
 			productName = HighlightSwift;
+		};
+		EC206B992E74E07B005D8F2F /* SwiftParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */;
+			productName = SwiftParser;
+		};
+		EC206B9B2E74E07B005D8F2F /* SwiftSyntax */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */;
+			productName = SwiftSyntax;
 		};
 		ECC527532E270E5E00DAA548 /* StatefulTabView */ = {
 			isa = XCSwiftPackageProductDependency;

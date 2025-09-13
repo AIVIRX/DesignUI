@@ -12,7 +12,7 @@ import SDWebImageSwiftUI
 
 struct NewsContentView: View {
     let blocks: [NewsBlock]
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             ForEach(blocks) { block in
@@ -59,16 +59,10 @@ struct NewsContentView: View {
                     }
                 case .code:
                     if let code = block.code {
-                        ScrollView(.vertical, showsIndicators: true) {
-                            VStack(alignment: .leading) {
-                                CodeText(code)
-                                    .highlightLanguage(.swift)
-                                    .font(.system(size: 16))
-                                    .textSelection(.enabled)
-                                    .padding()
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
+                        LiveSyntaxHighlightedCode(
+                            code: code,
+                            maxHeight: 300
+                        )
                         .frame(maxWidth: .infinity, maxHeight: 300)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(12)

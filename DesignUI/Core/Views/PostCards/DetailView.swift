@@ -1,9 +1,7 @@
 import SwiftUI
-import HighlightSwift
 import SDWebImage
 import SDWebImageSwiftUI
 
-// MARK: - Optimized Detail WebImage Component
 struct DetailWebImage: View {
     let url: String
     let width: CGFloat
@@ -69,7 +67,6 @@ struct DetailView: View {
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     @State private var toast: ToastData?
     
-    // MARK: - Computed Properties
     private var imageDimensions: (width: CGFloat, height: CGFloat, cornerRadius: CGFloat) {
         #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -146,18 +143,11 @@ struct DetailView: View {
                         .font(.title2).bold()
                         .padding(.top)
                     
-                    ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(alignment: .leading) {
-                            CodeText(codeSnippet)
-                                .highlightLanguage(.swift)
-                                .font(.system(size: 20))
-                                .textSelection(.enabled)
-                                .padding()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: 300)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
+                    LiveSyntaxHighlightedCode(
+                        code: codeSnippet,
+                        fontSize: 20,
+                        maxHeight: 300
+                    )
                     
                     Spacer()
                     
@@ -241,18 +231,11 @@ struct DetailView: View {
                                     .padding(.top,5)
                             }
                             
-                            ScrollView(.vertical, showsIndicators: false) {
-                                LazyVStack(alignment: .leading) {
-                                    CodeText(codeSnippet)
-                                        .highlightLanguage(.swift)
-                                        .font(.system(size: 20))
-                                        .textSelection(.enabled)
-                                        .padding()
-                                }
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: 300)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(8)
+                            LiveSyntaxHighlightedCode(
+                                code: codeSnippet,
+                                fontSize: 20,
+                                maxHeight: 300
+                            )
                             
                             Spacer()
                             
@@ -323,8 +306,8 @@ struct DetailView: View {
                             }
                             
                             HStack {
-                                Text(author)
-                                    .font(.system(size: 15)).bold()
+                                Text("by \(author)")
+                                    .font(.headline).bold()
                                     .foregroundColor(.secondary)
                                 
                                 if isAuthorVerified{
@@ -333,55 +316,16 @@ struct DetailView: View {
                                         .foregroundColor(.blue)
                                 }
                             }
-                            
-                            Text("Description:")
-                                .font(.system(size: 25)).bold()
-                                .padding(.top,5)
-                            
                             Text(description)
                                 .font(.title2)
                                 .frame(maxHeight: 700, alignment: .top)
                                 .foregroundStyle(.secondary)
-                            
-                            Text("Code Snippet:")
-                                .font(.system(size: 25)).bold()
-                                .padding(.top,5)
                         }
                         
-                        ScrollView(.vertical, showsIndicators: false) {
-                            LazyVStack(alignment: .leading) {
-                                CodeText(codeSnippet)
-                                    .highlightLanguage(.swift)
-                                    .font(.system(size: 16))
-                                    .textSelection(.enabled)
-                                    .padding()
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: 300)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            copyToClipboard(codeSnippet)
-                        toast = ToastData(
-                            title: "Copied",
-                            icon: .sfSymbol(name: "document.on.document", color: .gray),
-                            duration: 3.0
+                        LiveSyntaxHighlightedCode(
+                            code: codeSnippet,
+                            maxHeight: 600
                         )
-                        }) {
-                            Text("Copy Code")
-                                .padding(8)
-                                .font(.headline).bold()
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .foregroundStyle(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 10.0))
-                        .padding(.top, 10)
                     }
                 }
                 .frame(height: 600)
@@ -408,18 +352,5 @@ struct DetailView: View {
 #endif
         .padding(.horizontal, 7)
     }
-    
-    func copyToClipboard(_ text: String) {
-#if os(iOS)
-        UIPasteboard.general.string = text
-#elseif os(macOS)
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-#endif
-        if !hasRequestedReview {
-            requestReview()
-            hasRequestedReview = true
-        }
-    }
 }
+
