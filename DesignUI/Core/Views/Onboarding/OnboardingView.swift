@@ -131,7 +131,7 @@ struct OnboardingView: View {
                     } onPrimaryButtonTap: {
                         askPermission = false
                     } onSecondaryButtonTap: {
-                        askPermission = false
+                        onComplete()
                     }
                     .tag(1)
                 }
@@ -219,8 +219,6 @@ extension View {
     }
 }
 
-
-
 struct NotificationOnBoardingConfig {
     var title: String
     var content: String
@@ -255,13 +253,13 @@ struct NotificationOnBoarding<NotificationLogo: View>: View {
                 VStack(spacing: 20) {
                     Text(config.title)
                         .font(.largeTitle.bold())
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                     
                     Text(config.content)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
@@ -284,6 +282,7 @@ struct NotificationOnBoarding<NotificationLogo: View>: View {
                         } label: {
                             Text(authorization == .authorized ? "You're All Set!" : authorization == .denied ? "Go to Settings" : config.primaryButtonTitle)
                                 .fontWeight(.medium)
+                                .foregroundStyle(.black)
                                 .frame(maxWidth: .infinity)
                                 .foregroundStyle(foregroundColor)
                                 .frame(height: 55)
