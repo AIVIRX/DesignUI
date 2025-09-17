@@ -18,6 +18,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var store: Store
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
+    @EnvironmentObject private var toastManager: ToastManager
     @State private var hoveredItem: MenuItem?
     @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
     @State private var showSidebarSettings = false
@@ -49,6 +50,7 @@ struct ContentView: View {
     }
     
     var body: some View {
+        Group {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             VStack{
@@ -255,6 +257,8 @@ struct ContentView: View {
             }
         }
 #endif
+        }
+        .toast($toastManager.currentToast)
     }
     
     private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, menuItem: MenuItem, selectedIndex: Binding<Int>, currentIndex: Int) -> some View {

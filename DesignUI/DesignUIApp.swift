@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import AppTrackingTransparency
 import Firebase
 import FirebaseCore
 import FirebaseAnalytics
@@ -19,32 +18,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureFirebase()
-        requestTrackingAuthorization()
         
         //        UserDefaults.standard.set(0, forKey: "selectedIndex")
 
         return true
     }
-    
-    private func requestTrackingAuthorization() {
-        if #available(iOS 14, *) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                ATTrackingManager.requestTrackingAuthorization { status in
-                    switch status {
-                    case .authorized:
-                        print("TRACKING ENABLED \(ASIdentifierManager.shared().advertisingIdentifier.uuidString)")
-                    case .denied:
-                        print("TRACKING DISABLED \(ASIdentifierManager.shared().advertisingIdentifier.uuidString)")
-                    default:
-                        print("DEFAULT TRACKING \(ASIdentifierManager.shared().advertisingIdentifier.uuidString)")
-                    }
-                }
-            }
-        } else {
-            print("iOS version is below 14.0, no tracking authorization needed.")
-        }
-    }
-    
+        
     private func configureFirebase() {
         FirebaseApp.configure()
     }
@@ -56,6 +35,7 @@ struct DesignUIApp: App {
     let client = SupabaseManager.shared.client
     @StateObject private var store = Store()
     @StateObject private var colorSchemeManager = ColorSchemeManager()
+    @StateObject private var toastManager = ToastManager.shared
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
@@ -63,9 +43,10 @@ struct DesignUIApp: App {
     }
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environmentObject(store)
                 .environmentObject(colorSchemeManager)
+                .environmentObject(toastManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .onAppear {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
@@ -87,6 +68,7 @@ struct DesignUIApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
     @StateObject private var colorSchemeManager = ColorSchemeManager()
+    @StateObject private var toastManager = ToastManager.shared
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
@@ -96,9 +78,10 @@ struct DesignUIApp: App {
     }
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environmentObject(store)
                 .environmentObject(colorSchemeManager)
+                .environmentObject(toastManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
                 .onAppear {

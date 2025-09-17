@@ -43,19 +43,10 @@ struct NewsListView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Responsive LargeCardView for iPad
-#if os(iOS)
-                    if UIDevice.current.userInterfaceIdiom == .pad {
-                        LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
-                            .padding(.top, 32)
-                    } else {
-                        LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0, colors: [.mint,.indigo,.pink,.blue,.mint])
-                            .padding(.top, 16)
-                    }
-#else
+                    
                     LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0)
                         .padding(.top, 16)
-#endif
+                    
                     Text("Latest News")
                         .font(.largeTitle).bold()
                         .padding(.top, 16)
@@ -123,7 +114,7 @@ struct BlogGridCard: View {
         if UIDevice.current.userInterfaceIdiom == .pad {
             return 220
         } else {
-            return 320
+            return 220
         }
 #else
         return 150

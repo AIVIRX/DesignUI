@@ -9,104 +9,58 @@ import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
 
-// MARK: - Reusable WebImage Component
-struct OptimizedWebImage: View {
-    let url: String
-    let width: CGFloat
-    let height: CGFloat
-    let cornerRadius: CGFloat
-    let isHovered: Bool
-    let showHoverEffects: Bool
-    
-    init(url: String, width: CGFloat, height: CGFloat, cornerRadius: CGFloat = 20, isHovered: Bool = false, showHoverEffects: Bool = false) {
-        self.url = url
-        self.width = width
-        self.height = height
-        self.cornerRadius = cornerRadius
-        self.isHovered = isHovered
-        self.showHoverEffects = showHoverEffects
-    }
-    
-    var body: some View {
-        WebImage(url: URL(string: url)) { phase in
-            switch phase {
-            case .empty:
-                ProgressView()
-                    .frame(width: width, height: height)
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: width, height: height)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                    )
-                    .modifier(HoverEffectsModifier(isHovered: isHovered, showEffects: showHoverEffects))
-            case .failure:
-                Image(systemName: "photo")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: width, height: height)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                    )
-            }
-        }
-        .indicator(.activity)
-        .transition(.fade(duration: 0.3))
-    }
-}
-
-// MARK: - Hover Effects Modifier
-struct HoverEffectsModifier: ViewModifier {
-    let isHovered: Bool
-    let showEffects: Bool
-    
-    func body(content: Content) -> some View {
-        content
-            .shadow(
-                color: isHovered && showEffects ? Color.black.opacity(0.15) : Color.black.opacity(0.08),
-                radius: isHovered && showEffects ? 8 : 4,
-                x: 0,
-                y: isHovered && showEffects ? 4 : 2
-            )
-            .scaleEffect(isHovered && showEffects ? 1.02 : 1.0)
-            .colorMultiply(isHovered && showEffects ? Color.white : Color(white: 0.94))
-            .animation(.easeInOut(duration: 0.2), value: isHovered)
-            .zIndex(isHovered && showEffects ? 1 : 0)
-    }
-}
-
 struct DesignCards: View {
-    let id: String
-    let media: String
-    let title: String
-    let authorName: String
-    let isVerified: Bool
-    let description: String
-    let codeSnippet: String
-    let published: String
-    let likesCount: Int
-    let isLiked: Bool
+    var id: String
+    var media: String
+    var title: String
+    var authorName: String
+    var isVerified: Bool
+    var description: String
+    var codeSnippet: String
+    var published: String
+    var likesCount: Int
+    var isLiked: Bool
     
-    @State private var isHovered = false
+    @State private var isHovered: Bool = false
+    @State private var startAnimation: Bool = false
+    @State private var opacity: Double = 0.0
     @State private var isVisible = false
+    @State private var isLikedByUser: Bool = false
+    @State private var userId: String? = nil
+    @StateObject private var viewModel = LatestPostsViewModel()
+    let client = SupabaseManager.shared.client
     
-    // MARK: - Computed Properties
-    private var cardDimensions: (width: CGFloat, height: CGFloat, cornerRadius: CGFloat) {
-        #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return (width: 185, height: 280, cornerRadius: 15)
-        } else {
-            return (width: 200, height: 430, cornerRadius: 20)
+    func checkIfUserLikedPost() async {
+        guard let userId = userId else { return }
+        
+        do {
+            let result = try await client
+                .from("likes")
+                .select()
+                .eq("user_id", value: userId)
+                .eq("post_id", value: id)
+                .execute()
+                .data
+            
+            DispatchQueue.main.async {
+                isLikedByUser = !result.isEmpty
+            }
+        } catch {
+            print("Error checking like status: \(error)")
         }
-        #else
-        return (width: 185, height: 400, cornerRadius: 20)
-        #endif
+    }
+    
+    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool) {
+        self.id = id
+        self.media = media
+        self.title = title
+        self.authorName = authorName
+        self.isVerified = isVerified
+        self.description = description
+        self.codeSnippet = codeSnippet
+        self.published = published
+        self.likesCount = likesCount
+        self.isLiked = isLiked
     }
     
     var body: some View {
@@ -121,29 +75,126 @@ struct DesignCards: View {
             isAuthorVerified: isVerified
         )) {
             VStack(alignment: .center) {
-                // Optimized WebImage with platform-specific styling
-                OptimizedWebImage(
-                    url: media,
-                    width: cardDimensions.width,
-                    height: cardDimensions.height,
-                    cornerRadius: cardDimensions.cornerRadius,
-                    isHovered: isHovered,
-                    showHoverEffects: true
-                )
-                .onHover { hovering in
-                    isHovered = hovering
+#if os(iOS)
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    RoundedRectangle(cornerRadius: 15)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 280)
+                        .foregroundStyle(.regularMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                        )
+                        .overlay{
+                            RoundedRectangle(cornerRadius: 15)
+                                .frame(width: 115,height: 250)
+                                .overlay{
+                                    WebImage(url: URL(string: media)) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView()
+                                                .frame(maxWidth: .infinity, maxHeight: 350)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(maxWidth: .infinity, maxHeight: 250)
+                                                .frame(maxWidth: .infinity, maxHeight: 370)
+                                                .clipShape(RoundedRectangle(cornerRadius: 15))
+                                                .clipped()
+                                                .shadow(radius: 8)
+                                                .onDisappear {
+                                                    SDImageCache.shared.clearMemory()
+                                                }
+                                        case .failure:
+                                            Image(systemName: "wifi.slash")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(width: 50, height: 50)
+                                        }
+                                    }
+                                }
+                        }
                 }
-                // Card Content
-                VStack(alignment: .leading, spacing: 8) {
-                    // Title
-                    Text(title)
-                        .font(.system(size: 16, weight: .bold))
+                
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    WebImage(url: URL(string: media)) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 200, height: 420)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 200, height: 430)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                                )
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 200, height: 420)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                                )
+                        }
+                    }
+                }
+#endif
+#if os(macOS)
+                WebImage(url: URL(string: media)) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(width: 185, height: 400)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 185, height: 400)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                            )
+                            .scaleEffect(isHovered ? 1.02 : 1.0)
+                            .colorMultiply(isHovered ? Color.white : Color(white: 0.94))
+                            .animation(.easeInOut(duration: 0.2), value: isHovered)
+                            .background(Color.clear)
+                            .zIndex(isHovered ? 1 : 0)
+                            .onHover { hovering in
+                                isHovered = hovering
+                            }
+                            .padding(.top, 5)
+                        
+                    case .failure:
+                        Image(systemName: "photo")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 185, height: 400)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                            )
+                            .padding(.top)
+                    }
+                }
+#endif
+                VStack(alignment: .leading) {
+                    Text(title).bold()
+                        .font(.system(size: 16))
                         .lineLimit(1)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
                         .truncationMode(.tail)
                     
-                    // Author and Like Button
                     HStack {
                         Text(authorName)
                             .font(.system(size: 16))
@@ -162,9 +213,15 @@ struct DesignCards: View {
                             initialLikeCount: likesCount
                         )
                     }
+                    .padding(.bottom, 5)
                     .contentShape(Rectangle())
+                    .onHover { hovering in
+                        isHovered = hovering
+                    }
                 }
-                .frame(width: cardDimensions.width)
+#if os(iOS)
+                .frame(width: 185)
+#endif
                 .padding(.top, 1)
                 .opacity(isVisible ? 1 : 0)
                 .onAppear {

@@ -4,14 +4,12 @@ import SDWebImageSwiftUI
 struct SimilarPostsView: View {
     @State private var similarPosts: [DesignPost] = []
     var currentPostId: String
-    
     var body: some View {
         VStack(alignment: .leading) {
             if !similarPosts.isEmpty {
-                Text("More Posts")
-                    .font(.title2)
-                    .bold()
-                    .padding(.bottom, 5)
+                Text("Similar Posts")
+                    .font(.title2).bold()
+                    .padding(.top, 5)
                 
                 ScrollView(.horizontal) {
                     HStack(spacing: 15) {

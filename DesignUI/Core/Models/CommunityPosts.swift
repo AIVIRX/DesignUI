@@ -59,6 +59,7 @@ class LatestPostsViewModel: ObservableObject {
                     )
                 """)
                 .eq("public", value: true)
+                .or("title.ilike.%\(query)%,description.ilike.%\(query)%")
                 .order("created_at", ascending: false)
                 .limit(pageSize)
                 .execute()

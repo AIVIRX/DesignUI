@@ -11,8 +11,7 @@ struct SFIconsView: View {
     @State private var searchText = ""
     @State private var startAnimation: Bool = false
     @State private var opacity: Double = 0.0
-    @State private var toast: ToastData?
-
+    
     var filteredSymbols: [String] {
         if searchText.isEmpty {
             return symbols
@@ -44,7 +43,6 @@ struct SFIconsView: View {
                 opacity = 1.0
             }
         }
-        .toast($toast)
     }
     
     func copyToClipboard(_ text: String) {
@@ -55,12 +53,6 @@ struct SFIconsView: View {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 #endif
-        
-        toast = ToastData(
-            title: "Copied",
-            icon: .sfSymbol(name: "document.on.document", color: .gray),
-            duration: 3.0
-        )
     }
 }
 

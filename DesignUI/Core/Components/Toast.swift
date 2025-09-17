@@ -146,7 +146,7 @@ struct ToastView: View {
             case .system(let name):
                 Image(systemName: name)
                     .font(.system(size: 16))
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.gray)
             case .custom(let name):
                 Image(name)
                     .resizable()

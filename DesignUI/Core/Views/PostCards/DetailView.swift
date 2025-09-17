@@ -9,7 +9,7 @@ struct DetailWebImage: View {
     let cornerRadius: CGFloat
     let shadowRadius: CGFloat
     
-    init(url: String, width: CGFloat, height: CGFloat, cornerRadius: CGFloat = 20, shadowRadius: CGFloat = 8) {
+    init(url: String, width: CGFloat, height: CGFloat, cornerRadius: CGFloat = 10, shadowRadius: CGFloat = 8) {
         self.url = url
         self.width = width
         self.height = height
@@ -64,31 +64,30 @@ struct DetailView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
-    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
-    @State private var toast: ToastData?
-    
+    @EnvironmentObject private var toastManager: ToastManager
+
     private var imageDimensions: (width: CGFloat, height: CGFloat, cornerRadius: CGFloat) {
-        #if os(iOS)
+#if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
-            return (width: 115, height: 250, cornerRadius: 10)
+            return (width: 115, height: 250, cornerRadius: 20)
         } else {
             return (width: 257, height: 557, cornerRadius: 20)
         }
-        #else
+#else
         return (width: 257, height: 557, cornerRadius: 20)
-        #endif
+#endif
     }
     
     private var containerDimensions: (width: CGFloat, height: CGFloat) {
-        #if os(iOS)
+#if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             return (width: .infinity, height: 280)
         } else {
-            return (width: 400, height: 600)
+            return (width: 300, height: 600)
         }
-        #else
+#else
         return (width: 300, height: 600)
-        #endif
+#endif
     }
     
     var body: some View {
@@ -101,7 +100,7 @@ struct DetailView: View {
                         .frame(height: containerDimensions.height)
                         .foregroundStyle(.thinMaterial)
                         .overlay {
-                            RoundedRectangle(cornerRadius: 15)
+                            RoundedRectangle(cornerRadius: 20)
                                 .frame(width: imageDimensions.width, height: imageDimensions.height)
                                 .overlay {
                                     DetailWebImage(
@@ -139,40 +138,12 @@ struct DetailView: View {
                         .padding(.top)
                         .font(.body)
                     
-                    Text("Code Snippet:")
-                        .font(.title2).bold()
-                        .padding(.top)
-                    
                     LiveSyntaxHighlightedCode(
                         code: codeSnippet,
                         fontSize: 20,
                         maxHeight: 300
                     )
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        copyToClipboard(codeSnippet)
-                        HapticManager.shared.triggerImpact(style: .medium)
-                        
-                        toast = ToastData(
-                            title: "Copied",
-                            icon: .sfSymbol(name: "document.on.document", color: .gray),
-                            duration: 3.0
-                        )
-                    }) {
-                        Text("Copy Code")
-                            .padding(8)
-                            .font(.headline).bold()
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .foregroundStyle(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12.0))
-                    .padding(.top, 10)
-                    
+                                    
                     SimilarPostsView(currentPostId: id)
                         .padding(.vertical)
                 }
@@ -224,42 +195,14 @@ struct DetailView: View {
                                 
                                 Text(description)
                                     .font(.system(size: 18))
-                                    .frame(maxHeight: 700, alignment: .top)
-                                
-                                Text("Code Snippet:")
-                                    .font(.system(size: 25)).bold()
-                                    .padding(.top,5)
+                                    .frame(maxHeight: 100, alignment: .top)
                             }
                             
                             LiveSyntaxHighlightedCode(
                                 code: codeSnippet,
                                 fontSize: 20,
-                                maxHeight: 300
+                                maxHeight: 600
                             )
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                copyToClipboard(codeSnippet)
-                                
-                                HapticManager.shared.triggerImpact(style: .medium)
-                                toast = ToastData(
-                                    title: "Copied",
-                                    icon: .sfSymbol(name: "document.on.document", color: .gray),
-                                    duration: 3.0
-                                )
-                            }) {
-                                Text("Copy Code")
-                                    .padding(8)
-                                    .font(.headline).bold()
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .foregroundStyle(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10.0))
-                            .padding(.top, 10)
                         }
                     }
                     .frame(height: 600)
@@ -274,7 +217,7 @@ struct DetailView: View {
 #if os(macOS)
             VStack(alignment: .leading) {
                 HStack{
-                    RoundedRectangle(cornerRadius: 15)
+                    RoundedRectangle(cornerRadius: 20)
                         .frame(maxWidth: .infinity)
                         .frame(width: containerDimensions.width)
                         .foregroundStyle(Color.gray.opacity(0.2))
@@ -300,9 +243,6 @@ struct DetailView: View {
                                     .bold()
                                     .lineLimit(2)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                Spacer()
-                                
                             }
                             
                             HStack {
@@ -316,9 +256,10 @@ struct DetailView: View {
                                         .foregroundColor(.blue)
                                 }
                             }
+                            
                             Text(description)
                                 .font(.title2)
-                                .frame(maxHeight: 700, alignment: .top)
+                                .frame(maxHeight: 100)
                                 .foregroundStyle(.secondary)
                         }
                         
@@ -334,7 +275,6 @@ struct DetailView: View {
             }
             .padding(.vertical)
             .environment(\.symbolVariants, .none)
-            .accentColor(.none)
             .toolbar {
                 ToolbarItem() {
                     ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
@@ -343,7 +283,6 @@ struct DetailView: View {
 #endif
         }
         .scrollIndicators(.hidden)
-        .toast($toast)
 #if os(iOS)
         .toolbar {
             ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)

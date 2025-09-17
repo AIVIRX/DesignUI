@@ -8,17 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		EC1DCB9F2E7540250008FEC8 /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC1DCB9E2E7540250008FEC8 /* HighlightSwift */; };
-		EC1DCBA12E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1DCBA02E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift */; };
-		EC206B9A2E74E07B005D8F2F /* SwiftParser in Frameworks */ = {isa = PBXBuildFile; productRef = EC206B992E74E07B005D8F2F /* SwiftParser */; };
-		EC206B9C2E74E07B005D8F2F /* SwiftSyntax in Frameworks */ = {isa = PBXBuildFile; productRef = EC206B9B2E74E07B005D8F2F /* SwiftSyntax */; };
+		EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC298D0B2D430762008DC36B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EC298D0A2D430762008DC36B /* GoogleService-Info.plist */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
 		EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2D21272CBF183000FA192D /* CommunityPosts.swift */; };
 		EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D132D2E1DABCE00F659DB /* LargeHero.swift */; };
 		EC3E924B2D7A1F70005E818D /* AlternateIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3E924A2D7A1F70005E818D /* AlternateIcon.swift */; };
-		EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2B2D03FB42002EA494 /* AdSupport.framework */; platformFilters = (ios, macos, ); };
-		EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */; };
+		EC412F522E79F3A9001B923B /* CustomTextEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F512E79F3A9001B923B /* CustomTextEffect.swift */; };
+		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
 		EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC53EB7F2D91CD6300E175DB /* HapticManager.swift */; };
 		EC59829C2D56836B00633392 /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829B2D56836B00633392 /* Like.swift */; };
@@ -26,6 +24,7 @@
 		EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A12D57F4A600633392 /* LikedPostsView.swift */; };
 		EC5982A42D57F54000633392 /* GridColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A32D57F54000633392 /* GridColumns.swift */; };
 		EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */; };
+		EC67B31C2E78785600416329 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = EC67B31B2E78785600416329 /* AppIcon.icon */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
@@ -58,11 +57,13 @@
 		ECC527662E27155D00DAA548 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527652E27155D00DAA548 /* Functions */; };
 		ECC527682E27156000DAA548 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527672E27156000DAA548 /* PostgREST */; };
 		ECC5276A2E27158D00DAA548 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527692E27158D00DAA548 /* FirebaseAnalyticsCore */; };
+		ECCD98BB2E79CC0000B83C29 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCD98BA2E79CC0000B83C29 /* OnboardingView.swift */; };
+		ECCD98BD2E79D30500B83C29 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCD98BC2E79D30500B83C29 /* RootView.swift */; };
 		ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD12B362D8F487D001A73C7 /* Toast.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
+		ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */; };
 		ECE995512C98881000C60416 /* TemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE995502C98881000C60416 /* TemplateView.swift */; };
-		ECED60C52D78A69600064107 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ECED60C42D78A69600064107 /* LaunchScreen.storyboard */; platformFilter = ios; };
 		ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C782D55936B006A7FE6 /* ProfileView.swift */; };
 		ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */; };
 		ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */; };
@@ -73,7 +74,7 @@
 /* Begin PBXFileReference section */
 		BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
 		EC1C74932C0FC211000C9E9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EC1DCBA02E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSyntaxHighlightedCode.swift; sourceTree = "<group>"; };
+		EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSnippets.swift; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC298D0A2D430762008DC36B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
@@ -81,6 +82,8 @@
 		EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = ConfigStore.storekit; sourceTree = "<group>"; };
 		EC3D132D2E1DABCE00F659DB /* LargeHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHero.swift; sourceTree = "<group>"; };
 		EC3E924A2D7A1F70005E818D /* AlternateIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternateIcon.swift; sourceTree = "<group>"; };
+		EC412F512E79F3A9001B923B /* CustomTextEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextEffect.swift; sourceTree = "<group>"; };
+		EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollView.swift; sourceTree = "<group>"; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC50CFB52D1393B9006586DA /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
@@ -90,6 +93,7 @@
 		EC5982A12D57F4A600633392 /* LikedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsView.swift; sourceTree = "<group>"; };
 		EC5982A32D57F54000633392 /* GridColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridColumns.swift; sourceTree = "<group>"; };
 		EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsViewModel.swift; sourceTree = "<group>"; };
+		EC67B31B2E78785600416329 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -114,11 +118,13 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB1DA632C7C160C002D7E31 /* FormatCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatCount.swift; sourceTree = "<group>"; };
+		ECCD98BA2E79CC0000B83C29 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		ECCD98BC2E79D30500B83C29 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
 		ECE995502C98881000C60416 /* TemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateView.swift; sourceTree = "<group>"; };
-		ECED60C42D78A69600064107 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ECFF2C782D55936B006A7FE6 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileContainerView.swift; sourceTree = "<group>"; };
 		ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
@@ -133,15 +139,11 @@
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
 				ECC5275E2E27149A00DAA548 /* FirebaseAnalytics in Frameworks */,
 				ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */,
-				EC47CA2E2D03FB4F002EA494 /* AppTrackingTransparency.framework in Frameworks */,
 				ECC5276A2E27158D00DAA548 /* FirebaseAnalyticsCore in Frameworks */,
 				ECC527602E27155000DAA548 /* Supabase in Frameworks */,
 				EC1DCB9F2E7540250008FEC8 /* HighlightSwift in Frameworks */,
 				ECC527682E27156000DAA548 /* PostgREST in Frameworks */,
-				EC206B9C2E74E07B005D8F2F /* SwiftSyntax in Frameworks */,
-				EC206B9A2E74E07B005D8F2F /* SwiftParser in Frameworks */,
 				ECC527662E27155D00DAA548 /* Functions in Frameworks */,
-				EC47CA2C2D03FB42002EA494 /* AdSupport.framework in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
 				ECC527622E27155500DAA548 /* Storage in Frameworks */,
 				ECC527642E27155900DAA548 /* Auth in Frameworks */,
@@ -181,7 +183,6 @@
 		ECADF5FD2BCAE9610096753A /* DesignUI */ = {
 			isa = PBXGroup;
 			children = (
-				ECED60C42D78A69600064107 /* LaunchScreen.storyboard */,
 				EC1C74932C0FC211000C9E9A /* Info.plist */,
 				EC298D0A2D430762008DC36B /* GoogleService-Info.plist */,
 				ECD13FD32C18BA7B00105B3E /* Core */,
@@ -200,6 +201,16 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		ECB9D09D2E78E68A000A88CE /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				ECCD98BA2E79CC0000B83C29 /* OnboardingView.swift */,
+				EC412F512E79F3A9001B923B /* CustomTextEffect.swift */,
+				EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		ECD13FD32C18BA7B00105B3E /* Core */ = {
 			isa = PBXGroup;
 			children = (
@@ -215,6 +226,7 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
 				EC9F54762E188A9F00AAE9EC /* FormatDate.swift */,
 				EC5982A32D57F54000633392 /* GridColumns.swift */,
@@ -243,6 +255,7 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				ECB9D09D2E78E68A000A88CE /* Onboarding */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
@@ -257,6 +270,7 @@
 		ECD13FE62C18BDF300105B3E /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				ECCD98BC2E79D30500B83C29 /* RootView.swift */,
 				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
 				ECE995502C98881000C60416 /* TemplateView.swift */,
 			);
@@ -295,7 +309,7 @@
 		ECD13FF92C18BF8800105B3E /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				EC1DCBA02E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift */,
+				EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */,
 				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 				EC3D132D2E1DABCE00F659DB /* LargeHero.swift */,
 			);
@@ -305,6 +319,7 @@
 		ECD13FFE2C18C12400105B3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				EC67B31B2E78785600416329 /* AppIcon.icon */,
 				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
 				ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */,
 				ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */,
@@ -363,8 +378,6 @@
 				ECC527652E27155D00DAA548 /* Functions */,
 				ECC527672E27156000DAA548 /* PostgREST */,
 				ECC527692E27158D00DAA548 /* FirebaseAnalyticsCore */,
-				EC206B992E74E07B005D8F2F /* SwiftParser */,
-				EC206B9B2E74E07B005D8F2F /* SwiftSyntax */,
 				EC1DCB9E2E7540250008FEC8 /* HighlightSwift */,
 			);
 			productName = DesignUI;
@@ -379,7 +392,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 1630;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					ECADF5FA2BCAE9610096753A = {
 						CreatedOnToolsVersion = 15.2;
@@ -441,7 +454,6 @@
 				ECC527582E27139100DAA548 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
-				EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */,
 				EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
@@ -461,7 +473,7 @@
 				ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */,
 				EC298D0B2D430762008DC36B /* GoogleService-Info.plist in Resources */,
 				ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */,
-				ECED60C52D78A69600064107 /* LaunchScreen.storyboard in Resources */,
+				EC67B31C2E78785600416329 /* AppIcon.icon in Resources */,
 				EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -492,11 +504,12 @@
 				EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */,
 				EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */,
 				EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */,
-				EC1DCBA12E75417F0008FEC8 /* LiveSyntaxHighlightedCode.swift in Sources */,
+				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
+				ECCD98BB2E79CC0000B83C29 /* OnboardingView.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
@@ -504,14 +517,18 @@
 				EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				EC7D7BFD2C19E581003134B1 /* SymbolRow.swift in Sources */,
+				ECCD98BD2E79D30500B83C29 /* RootView.swift in Sources */,
 				ECE995512C98881000C60416 /* TemplateView.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
+				EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */,
 				EC5982A02D568E5500633392 /* LikeButton.swift in Sources */,
 				EC87D81B2DB9AE7A0091FAFF /* Store.swift in Sources */,
 				ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */,
 				EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */,
 				F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */,
+				EC412F522E79F3A9001B923B /* CustomTextEffect.swift in Sources */,
 				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
+				ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */,
 				EC9F54772E188A9F00AAE9EC /* FormatDate.swift in Sources */,
 				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
 			);
@@ -524,7 +541,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon2 AppIcon3 AppIcon4 AppIcon5 AppIcon6 AppIcon7 AppIcon8 AppIcon9";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -586,6 +603,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -595,7 +613,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon2 AppIcon3 AppIcon4 AppIcon5 AppIcon6 AppIcon7 AppIcon8 AppIcon9";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -650,6 +668,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -657,7 +676,7 @@
 		ECADF60B2BCAE9630096753A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon3 AppIcon2";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -667,13 +686,15 @@
 				CURRENT_PROJECT_VERSION = 69;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to show personlized ads ";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -692,7 +713,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 15;
+				MARKETING_VERSION = 26;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
@@ -710,7 +731,7 @@
 		ECADF60C2BCAE9630096753A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon3 AppIcon2";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -721,13 +742,15 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to show personlized ads ";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -746,7 +769,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 15;
+				MARKETING_VERSION = 26;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
@@ -793,14 +816,6 @@
 				minimumVersion = 1.0.9;
 			};
 		};
-		EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/swiftlang/swift-syntax.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 601.0.1;
-			};
-		};
 		ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/NicholasBellucci/StatefulTabView";
@@ -840,16 +855,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */;
 			productName = HighlightSwift;
-		};
-		EC206B992E74E07B005D8F2F /* SwiftParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */;
-			productName = SwiftParser;
-		};
-		EC206B9B2E74E07B005D8F2F /* SwiftSyntax */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC206B982E74E07B005D8F2F /* XCRemoteSwiftPackageReference "swift-syntax" */;
-			productName = SwiftSyntax;
 		};
 		ECC527532E270E5E00DAA548 /* StatefulTabView */ = {
 			isa = XCSwiftPackageProductDependency;

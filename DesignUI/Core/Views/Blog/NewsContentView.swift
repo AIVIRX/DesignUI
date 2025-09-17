@@ -63,9 +63,6 @@ struct NewsContentView: View {
                             code: code,
                             maxHeight: 300
                         )
-                        .frame(maxWidth: .infinity, maxHeight: 300)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(12)
                     }
                 case .bulletedList:
                     if let items = block.items {
