@@ -8,73 +8,131 @@
 import SwiftUI
 import AuthenticationServices
 
+struct Card: Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var image: String
+}
+
+let cards: [Card] = [
+    .init(image: "image1"),
+    .init(image: "image2"),
+    .init(image: "image3"),
+    .init(image: "image4"),
+]
+
 struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.colorScheme) var colorScheme
     @State private var email = ""
     @State private var password = ""
     @State private var signInAppleButtonId = UUID().uuidString
-    
+    @State private var activeCard: Card? = cards.first
+    @State private var timer = Timer.publish(every: 0.01, on: .current, in: .default).autoconnect()
+    @State private var initialAnimation: Bool = false
+    @State private var titleProgress: CGFloat = 0
+    #if os(iOS)
+    @State private var scrollView: UIScrollView?
+    #endif
     var body: some View {
         NavigationStack {
             ZStack {
+                AmbientBackground()
+                    .animation(.easeInOut(duration: 1), value: activeCard)
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 40) {
-                        Spacer()
-                        // Header
-                        VStack(spacing: 12) {
-                            Text("Welcome to Dock UI")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
+                        ZStack {
                             
-                            Text("Your Design Inspiration Hub")
-                                .font(.title3)
-                                .foregroundColor(.gray)
-                            
-                            VStack(alignment: .leading, spacing: 16) {
-                                // Features Section (Wrapped in Card)
-                                FeatureCard(
-                                    icon: "heart.fill",
-                                    title: "Like Designs",
-                                    description: "Like your favorite designs, and view them from your profile."
-                                )
-                                
-                                FeatureCard(
-                                    icon: "person.fill",
-                                    title: "Personalized Profile",
-                                    description: "Create your profile to showcase your liked designs."
-                                )
-                            }
-                            .padding(.top, 60)
-                            .padding(.horizontal)
-                            .frame(maxWidth: 500, alignment: .leading)
-                        }
-                        
-                        Spacer()
-                        
-                        // Sign in with Apple button
-                        VStack(spacing: 16) {
-                            Text("Sign in to unlock all features")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            
-                            SignInWithAppleButton { request in
-                                request.requestedScopes = [.email, .fullName]
-                            } onCompletion: { result in
-                                Task {
-                                    await authViewModel.handleSignInWithApple(result)
+                            VStack(spacing: 40) {
+#if os(iOS)
+                                InfiniteScrollView(collection: cards) { card in
+                                    CarouselCardView(card)
+                                } uiScrollView: {
+                                    scrollView = $0
+                                } onScroll: {
+                                    updateActiveCard()
                                 }
+                                .scrollIndicators(.hidden)
+                                .scrollClipDisabled()
+                                .containerRelativeFrame(.vertical) { value, _ in
+                                    value * 0.45
+                                }
+                                .visualEffect { [initialAnimation] content, proxy in
+                                    content
+                                        .offset(y: !initialAnimation ? -(proxy.size.height + 200) : 0)
+                                }
+#endif
+                                
+                                // title & description
+                                VStack(spacing: 4) {
+                                    Text("Introducing")
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.secondary)
+                                        .blurOpacityEffect(initialAnimation)
+                                    
+                                    Group {
+                                        if #available(iOS 18, *) {
+                                            Text("Dock UI Accounts")
+                                                .font(.largeTitle.bold())
+                                                .foregroundStyle(.white)
+                                        } else {
+                                            Text("Dock UI Accounts")
+                                                .font(.largeTitle.bold())
+                                                .foregroundStyle(.white)
+                                        }
+                                    }
+                                    .padding(.bottom)
+                                    
+                                    Text("Create your account to save favorites,\nsync across devices, and access\nexclusive features.")
+                                        .multilineTextAlignment(.center)
+                                        .foregroundStyle(.secondary)
+                                        .blurOpacityEffect(initialAnimation)
+                                    
+                                    Spacer()
+                                    
+                                    // Sign in with Apple button
+                                    VStack(spacing: 16) {
+                                        SignInWithAppleButton { request in
+                                            request.requestedScopes = [.email, .fullName]
+                                        } onCompletion: { result in
+                                            Task {
+                                                await authViewModel.handleSignInWithApple(result)
+                                            }
+                                        }
+                                        .id(signInAppleButtonId)
+                                        .signInWithAppleButtonStyle(colorScheme == .light ? .black : .white)
+                                        .onChange(of: colorScheme, { oldValue, newValue in
+                                            signInAppleButtonId = UUID().uuidString
+                                        })
+                                        .frame(height: 50)
+                                        .frame(maxWidth: 500)
+                                        .cornerRadius(12)
+                                    }
+                                    .padding()
+                                }
+                                .padding()
+                                
+                                Spacer()
+                                
                             }
-                            .id(signInAppleButtonId)
-                                .signInWithAppleButtonStyle(colorScheme == .light ? .black : .white)
-                                .onChange(of: colorScheme, { oldValue, newValue in
-                                    signInAppleButtonId = UUID().uuidString
-                                })
-                            .frame(height: 50)
-                            .frame(maxWidth: 500)
-                            .cornerRadius(12)
                         }
-                        .padding(.horizontal, 24)
+#if os(iOS)
+                        .onReceive(timer) { _ in
+                            if let scrollView = scrollView {
+                                scrollView.contentOffset.x += 0.35
+                            }
+                        }
+                        #endif
+                        .task {
+                            try? await Task.sleep(for: .seconds(0.35))
+                            
+                            withAnimation(.smooth(duration: 0.75, extraBounce: 0)) {
+                                initialAnimation = true
+                            }
+                            
+                            withAnimation(.smooth(duration: 2.5, extraBounce: 0).delay(0.3)) {
+                                titleProgress = 1
+                            }
+                        }
                     }
                     .padding(.bottom, 40)
                 }
@@ -92,68 +150,93 @@ struct SignInView: View {
         }
     }
 
-    struct FeatureCard: View {
-        var icon: String
-        var title: String
-        var description: String
-        var body: some View {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.indigo.opacity(0.15))
-                    .shadow(radius: 2)
-                
-                HStack(spacing: 12) {
-                    Image(systemName: icon)
-                        .foregroundColor(.indigo)
-                        .font(.title2)
-                    
-                    VStack(alignment: .leading) {
-                        Text(title)
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Text(description)
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer()
-                }
-                .padding()
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
-
     private func signUp() async {
         await authViewModel.signIn(email: email, password: password)
     }
-}
-
-struct FeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(.blue)
-                .frame(width: 40, height: 40)
-                .background(Color.blue.opacity(0.1))
-                .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                    .lineLimit(2)
-            }
+    
+    #if os(iOS)
+    func updateActiveCard() {
+        if let currentScrollOffset = scrollView?.contentOffset.x {
+            let activeIndex = Int((currentScrollOffset / 200).rounded()) % cards.count
+            guard activeCard?.id != cards[activeIndex].id else { return }
+            activeCard = cards[activeIndex]
         }
-        .padding()
-        .cornerRadius(12)
+    }
+    #endif
+    @ViewBuilder
+    private func AmbientBackground() -> some View {
+        GeometryReader {
+            let size = $0.size
+            
+            ZStack {
+                ForEach(cards) { card in
+                    /// Programmatically downsized for better performance
+                    Image(card.image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .ignoresSafeArea()
+                        .frame(width: size.width, height: size.height)
+                        .opacity(activeCard?.id == card.id ? 1 : 0)
+                }
+                
+                Rectangle()
+                    .fill(.black.opacity(0.45))
+                    .ignoresSafeArea()
+            }
+            .compositingGroup()
+            .blur(radius: 90, opaque: true)
+            .ignoresSafeArea()
+        }
+    }
+    
+    /// Carousel Card View
+    @ViewBuilder
+    private func CarouselCardView(_ card: Card) -> some View {
+        GeometryReader {_ in
+            Image(card.image)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 160,height: 360)
+                .clipShape(.rect(cornerRadius: 20))
+                .shadow(color: .black.opacity(0.4), radius: 10, x: 1, y: 0)
+        }
+        .frame(width: 160) // Match image width
+        .scrollTransition(.interactive.threshold(.centered), axis: .horizontal) { content, phase in
+            content
+                .offset(y: phase == .identity ? -10 : 0)
+                .rotationEffect(.degrees(phase.value * 5), anchor: .bottom)
+        }
     }
 }
+
+extension View {
+    func blurOpacityEffect(_ show: Bool) -> some View {
+        self
+            .blur(radius: show ? 0 : 2)
+            .opacity(show ? 1 : 0)
+            .scaleEffect(show ? 1 : 0.9)
+    }
+}
+
+fileprivate extension View {
+    @ViewBuilder
+    func blurOpacity(_ status: Bool) -> some View {
+        self
+            .compositingGroup()
+            .opacity(status ? 1 : 0)
+            .blur(radius: status ? 0 : 10)
+    }
+    
+    var isiOS26: Bool {
+        if #available(iOS 26, *) {
+            return true
+        }
+        
+        return false
+    }
+}
+
+#Preview{
+    SignInView()
+}
+

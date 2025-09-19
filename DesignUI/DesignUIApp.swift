@@ -18,12 +18,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureFirebase()
-        
         //        UserDefaults.standard.set(0, forKey: "selectedIndex")
-
+        
         return true
     }
-        
+    
     private func configureFirebase() {
         FirebaseApp.configure()
     }
@@ -43,7 +42,7 @@ struct DesignUIApp: App {
     }
     var body: some Scene {
         WindowGroup {
-            RootView()
+            ContentView()
                 .environmentObject(store)
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
@@ -78,7 +77,7 @@ struct DesignUIApp: App {
     }
     var body: some Scene {
         WindowGroup {
-            RootView()
+            ContentView()
                 .environmentObject(store)
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)

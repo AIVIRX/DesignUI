@@ -35,27 +35,27 @@ struct LiveSyntaxHighlightedCode: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.primary)
                 
-                Spacer()
-                
-                Button(action: {
-                    copyToClipboard(code)
-                    toastManager.showCopyToast()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 12, weight: .medium))
-                        Text("Copy code")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .foregroundColor(.primary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.gray.opacity(0.2)) 
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
+//                Spacer()
+//                
+//                Button(action: {
+//                    copyToClipboard(code)
+//                    toastManager.showCopyToast()
+//                }) {
+//                    HStack(spacing: 4) {
+//                        Image(systemName: "doc.on.doc")
+//                            .font(.system(size: 12, weight: .medium))
+//                        Text("Copy code")
+//                            .font(.system(size: 12, weight: .medium))
+//                    }
+//                    .foregroundColor(.primary)
+//                    .padding(.horizontal, 12)
+//                    .padding(.vertical, 6)
+//                    .background(
+//                        RoundedRectangle(cornerRadius: 10)
+//                            .fill(Color.gray.opacity(0.2)) 
+//                    )
+//                }
+//                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -65,44 +65,19 @@ struct LiveSyntaxHighlightedCode: View {
             )
             
             // Code content area
-            ZStack {
-                ScrollView(.vertical, showsIndicators: true) {
-                    Text(highlightedText)
-                        .font(.system(size: fontSize, design: .monospaced))
-                        .textSelection(.enabled)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(maxWidth: .infinity, maxHeight: maxHeight)
-                
-                // Loading overlay
-                if isHighlighting {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text("Highlighting...")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.gray.opacity(0.2))
-                        )
-                        Spacer()
-                    }
-                }
+            ScrollView(.vertical, showsIndicators: true) {
+                Text(highlightedText)
+                    .font(.system(size: fontSize, design: .monospaced))
+                    .textSelection(.enabled)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, maxHeight: maxHeight)
+            .overlay(loadingOverlay)
         }
-        .background(Color.gray.opacity(0.1)) // Adaptive background
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(20)
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(colorScheme == .dark ? Color(red: 0.3, green: 0.3, blue: 0.3) : Color(red: 0.8, green: 0.8, blue: 0.8), lineWidth: 1)
-        )
+        .overlay(borderOverlay)
         .onAppear {
             generateHighlightedText()
         }
@@ -110,9 +85,42 @@ struct LiveSyntaxHighlightedCode: View {
             generateHighlightedText()
         }
         .onChange(of: colorScheme) {
-            // Clear cache when color scheme changes
             highlightCache.removeAll()
             generateHighlightedText()
+        }
+    }
+    
+    private var borderOverlay: some View {
+        RoundedRectangle(cornerRadius: 20)
+            .stroke(
+                colorScheme == .dark 
+                    ? Color(red: 0.3, green: 0.3, blue: 0.3) 
+                    : Color(red: 0.8, green: 0.8, blue: 0.8), 
+                lineWidth: 1
+            )
+    }
+    
+    private var loadingOverlay: some View {
+        Group {
+            if isHighlighting {
+                VStack {
+                    Spacer()
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Highlighting...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.gray.opacity(0.2))
+                    )
+                    Spacer()
+                }
+            }
         }
     }
     
@@ -181,3 +189,4 @@ struct LiveSyntaxHighlightedCode: View {
 #endif
     }
 }
+

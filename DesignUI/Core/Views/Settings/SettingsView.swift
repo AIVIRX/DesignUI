@@ -119,18 +119,6 @@ struct SettingsView: View {
                             .pickerStyle(MenuPickerStyle())
                         }
 #if os(iOS)
-                        //App icons
-                        NavigationLink(destination: AlternateIconView()) {
-                            HStack {
-                                Image(systemName: "square.stack.fill")
-                                    .font(.system(size: 20)).bold()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.blue)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("App Icons")
-                            }
-                        }
                         if UIDevice.current.userInterfaceIdiom == .phone {
                             NavigationLink(destination: SFIconsView()) {
                                 HStack {

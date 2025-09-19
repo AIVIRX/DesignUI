@@ -67,7 +67,6 @@ struct ExploreView: View {
                     }
                     
                 }
-                .searchable(text: $searchText, prompt: "Search templates")
                 .onChange(of: searchText) { oldValue, newValue in
                     Task {
                         try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
@@ -103,6 +102,7 @@ struct ExploreView: View {
                 }
             }
         }
+        .searchable(text: $searchText, prompt: "Search templates")
         .navigationViewStyle(DefaultNavigationViewStyle())
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())

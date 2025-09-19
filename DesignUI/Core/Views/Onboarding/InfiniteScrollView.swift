@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 struct InfiniteScrollView<Content: View, Data: RandomAccessCollection>: View where Data.Element: Identifiable {
     var spacing: CGFloat = 5
     var collection: Data
@@ -157,3 +158,4 @@ extension UIView {
     }
 }
 
+#endif

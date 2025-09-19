@@ -7,11 +7,14 @@ struct ProfileContainerView: View {
     var body: some View {
         NavigationStack {
             if authViewModel.isAuthenticated {
-                ProfileView()
-                    .environmentObject(authViewModel)
-                
+                if authViewModel.hasUsername {
+                    ProfileView()
+                        .environmentObject(authViewModel)
+                } else {
+                    UsernameSelectionView()
+                        .environmentObject(authViewModel)
+                }
             } else {
-                //SignInView()
                 SignInView()
                     .environmentObject(authViewModel)
             }
@@ -19,6 +22,5 @@ struct ProfileContainerView: View {
         .task {
             await authViewModel.checkUsername()
         }
-        
     }
 }
