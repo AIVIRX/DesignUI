@@ -267,12 +267,6 @@
     "// Complete Swift File" : {
 
     },
-    "// Generated SwiftUI View" : {
-
-    },
-    "// SwiftUI Preview" : {
-
-    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -539,6 +533,12 @@
     "%lld/20" : {
 
     },
+    "%lld%%" : {
+
+    },
+    "%lld°" : {
+
+    },
     "•" : {
       "localizations" : {
         "ar" : {
@@ -789,7 +789,16 @@
         }
       }
     },
+    "Add Components" : {
+
+    },
+    "Add components here" : {
+
+    },
     "Add Layer" : {
+
+    },
+    "Add Modifier" : {
 
     },
     "App Icons" : {
@@ -1543,6 +1552,18 @@
         }
       }
     },
+    "Background Color" : {
+
+    },
+    "Blur" : {
+
+    },
+    "Bottom" : {
+
+    },
+    "Brightness" : {
+
+    },
     "by %@" : {
 
     },
@@ -1802,6 +1823,9 @@
     "Choose Your Username" : {
 
     },
+    "Clip Shape" : {
+
+    },
     "Code" : {
 
     },
@@ -1809,9 +1833,6 @@
 
     },
     "Color Scheme" : {
-
-    },
-    "Complete File" : {
 
     },
     "Complete Setup" : {
@@ -2072,6 +2093,12 @@
           }
         }
       }
+    },
+    "Contrast" : {
+
+    },
+    "Corner Radius" : {
+
     },
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
 
@@ -2841,7 +2868,7 @@
     "Drag components from the library to start building" : {
 
     },
-    "Drop component here" : {
+    "Edit Modifier" : {
 
     },
     "Edit Profile" : {
@@ -3353,10 +3380,22 @@
     "Export SwiftUI Code" : {
 
     },
+    "Font" : {
+
+    },
+    "Font Style" : {
+
+    },
+    "Font Weight" : {
+
+    },
+    "Frame Size" : {
+
+    },
     "Generated Code" : {
 
     },
-    "H:" : {
+    "Grayscale" : {
 
     },
     "Height" : {
@@ -3369,6 +3408,9 @@
 
     },
     "HStack" : {
+
+    },
+    "Hue Rotation" : {
 
     },
     "Introducing" : {
@@ -3636,6 +3678,9 @@
     "Layout" : {
 
     },
+    "Leading" : {
+
+    },
     "Loading posts..." : {
       "localizations" : {
         "ar" : {
@@ -3885,6 +3930,12 @@
           }
         }
       }
+    },
+    "Mask" : {
+
+    },
+    "MODIFIERS" : {
+
     },
     "News" : {
       "localizations" : {
@@ -4889,6 +4940,9 @@
         }
       }
     },
+    "No modifiers applied" : {
+
+    },
     "No posts found" : {
       "localizations" : {
         "ar" : {
@@ -5142,6 +5196,9 @@
     "No Selection" : {
 
     },
+    "Offset" : {
+
+    },
     "OK" : {
       "localizations" : {
         "ar" : {
@@ -5391,6 +5448,15 @@
           }
         }
       }
+    },
+    "Opacity" : {
+
+    },
+    "Overlay Color" : {
+
+    },
+    "Padding" : {
+
     },
     "Pick a unique username that represents you.\nThis will be your public identity on Dock UI." : {
 
@@ -5647,9 +5713,6 @@
           }
         }
       }
-    },
-    "Preview" : {
-
     },
     "Privacy & Support" : {
       "localizations" : {
@@ -6404,6 +6467,9 @@
     "Properties" : {
 
     },
+    "Radius" : {
+
+    },
     "Rate Us" : {
       "localizations" : {
         "ar" : {
@@ -6910,10 +6976,25 @@
         }
       }
     },
+    "Rotation" : {
+
+    },
+    "Saturation" : {
+
+    },
     "Save" : {
 
     },
+    "Scale" : {
+
+    },
+    "ScrollView" : {
+
+    },
     "Search components..." : {
+
+    },
+    "Search modifiers..." : {
 
     },
     "Search posts" : {
@@ -7424,6 +7505,9 @@
           }
         }
       }
+    },
+    "Sepia" : {
+
     },
     "Settings" : {
       "localizations" : {
@@ -8174,6 +8258,15 @@
           }
         }
       }
+    },
+    "Shadow" : {
+
+    },
+    "Shadow Color" : {
+
+    },
+    "Shape" : {
+
     },
     "Share" : {
       "localizations" : {
@@ -9184,10 +9277,16 @@
     "Similar Posts" : {
 
     },
+    "Size" : {
+
+    },
     "Size:" : {
 
     },
     "Style" : {
+
+    },
+    "SUGGESTED MODIFIERS" : {
 
     },
     "Support Us" : {
@@ -9441,9 +9540,6 @@
       }
     },
     "SwiftUI Builder" : {
-
-    },
-    "SwiftUI View" : {
 
     },
     "Templates" : {
@@ -9945,6 +10041,12 @@
           }
         }
       }
+    },
+    "Top" : {
+
+    },
+    "Trailing" : {
+
     },
     "Type:" : {
 
@@ -10705,31 +10807,28 @@
         }
       }
     },
-    "View Type" : {
-
-    },
     "Visible" : {
 
     },
     "VStack" : {
 
     },
-    "W:" : {
+    "Weight" : {
 
     },
     "Width" : {
 
     },
-    "X" : {
+    "X Offset" : {
 
     },
-    "X:" : {
+    "X Scale" : {
 
     },
-    "Y" : {
+    "Y Offset" : {
 
     },
-    "Y:" : {
+    "Y Scale" : {
 
     },
     "You need to be signed in to like a design." : {

@@ -69,15 +69,28 @@ struct ComponentLibraryView: View {
             
             Divider()
             
-            // Components list
+            // Components grid
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 8),
+                    GridItem(.flexible(), spacing: 8)
+                ], spacing: 8) {
                     ForEach(filteredComponents) { componentType in
                         ComponentLibraryItem(
                             componentType: componentType,
                             onAdd: { component in
-                                canvasManager.addComponent(component)
+                                print("Adding component: \(component.type.rawValue) with frame: \(component.frame)")
+                                // Check if there's a selected container component
+                                if let selected = selectedComponent, 
+                                   canvasManager.canAcceptChildren(selected) {
+                                    print("Adding to container: \(selected.type.rawValue)")
+                                    canvasManager.addComponentToContainer(component, container: selected)
+                                } else {
+                                    print("Adding to main canvas")
+                                    canvasManager.addComponent(component)
+                                }
                                 selectedComponent = component
+                                print("Total components: \(canvasManager.components.count)")
                             }
                         )
                     }
@@ -117,49 +130,46 @@ struct ComponentLibraryItem: View {
     @State private var isPressed = false
     
     var body: some View {
-        HStack(spacing: 12) {
+        VStack(spacing: 8) {
             // Icon
             Image(systemName: componentType.icon)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 24, weight: .medium))
                 .foregroundColor(.accentColor)
-                .frame(width: 24, height: 24)
+                .frame(width: 32, height: 32)
             
-            // Title and description
-            VStack(alignment: .leading, spacing: 2) {
-                Text(componentType.rawValue)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.primary)
-                
-                Text(componentType.category.rawValue)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-            }
+            // Title
+            Text(componentType.rawValue)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
             
-            Spacer()
-            
-            // Drag indicator
-            Image(systemName: "line.3.horizontal")
-                .font(.system(size: 12))
+            // Category
+            Text(componentType.category.rawValue)
+                .font(.system(size: 10))
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(1)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .aspectRatio(1, contentMode: .fit)
+        .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isPressed ? Color(NSColor.selectedControlColor) : Color.clear)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isPressed ? Color(NSColor.selectedControlColor) : Color(NSColor.controlBackgroundColor))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
         )
-        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .scaleEffect(isPressed ? 0.95 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isPressed)
         .onTapGesture {
-            // Create and add component to canvas
+            // Create and add component to canvas with default position
             let component = UIComponent(
                 type: componentType,
                 properties: UIComponent.defaultProperties(for: componentType),
-                frame: CGRect(x: 100, y: 100, width: 200, height: 50)
+                frame: CGRect(x: 100, y: 100, width: 0, height: 0) // Default position, natural size
             )
             onAdd(component)
         }
@@ -170,11 +180,11 @@ struct ComponentLibraryItem: View {
                 }
                 .onEnded { _ in
                     isPressed = false
-                    // Create and add component to canvas
+                    // Create and add component to canvas with default position
                     let component = UIComponent(
                         type: componentType,
                         properties: UIComponent.defaultProperties(for: componentType),
-                        frame: CGRect(x: 100, y: 100, width: 200, height: 50)
+                        frame: CGRect(x: 100, y: 100, width: 0, height: 0) // Default position, natural size
                     )
                     onAdd(component)
                 }

@@ -85,8 +85,8 @@ struct UIBuilderView: View {
     @StateObject private var canvasManager = CanvasManager()
     @State private var selectedComponent: UIComponent?
     @State private var showCodePreview = false
-    @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
+    @State private var showComponentLibrary = false
     @State private var selectedDevice: DevicePreset = .iphone16Pro
     @State private var baseZoomLevel: CGFloat = 1.0
     
@@ -94,10 +94,13 @@ struct UIBuilderView: View {
     var body: some View {
         NavigationStack {
             HStack(spacing: 0) {
-                // Component Library Panel
-                ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                    .frame(width: 280)
-                    .background(Color(NSColor.controlBackgroundColor))
+                // Layers Panel (moved from right side)
+                LayersPanelView(
+                    canvasManager: canvasManager,
+                    selectedComponent: $selectedComponent
+                )
+                .frame(width: 320)
+                .background(Color(NSColor.controlBackgroundColor))
                 
                 Divider()
                 
@@ -106,8 +109,8 @@ struct UIBuilderView: View {
                     // Toolbar
                     UIBuilderToolbar(
                         showCodePreview: $showCodePreview,
-                        showLayersPanel: $showLayersPanel,
                         showPropertiesPanel: $showPropertiesPanel,
+                        showComponentLibrary: $showComponentLibrary,
                         canvasManager: canvasManager,
                         selectedDevice: $selectedDevice
                     )
@@ -137,32 +140,15 @@ struct UIBuilderView: View {
                                 }
                         )
                         
-                        // Right Panels
-                        if showLayersPanel || showPropertiesPanel {
+                        // Right Panels (now only Properties Panel)
+                        if showPropertiesPanel {
                             Divider()
                             
-                            VStack(spacing: 0) {
-                                if showLayersPanel {
-                                    LayersPanelView(
-                                        canvasManager: canvasManager,
-                                        selectedComponent: $selectedComponent
-                                    )
-                                    .frame(height: 200)
-                                    
-                                    if showPropertiesPanel {
-                                        Divider()
-                                    }
-                                }
-                                
-                                if showPropertiesPanel {
-                                    PropertiesPanelView(
-                                        selectedComponent: $selectedComponent,
-                                        canvasManager: canvasManager
-                                    )
-                                    .frame(maxHeight: .infinity)
-                                }
-                            }
-                            .frame(width: 300)
+                            PropertiesPanelView(
+                                selectedComponent: $selectedComponent,
+                                canvasManager: canvasManager
+                            )
+                            .frame(width: 280)
                             .background(Color(NSColor.controlBackgroundColor))
                         }
                     }
@@ -173,14 +159,18 @@ struct UIBuilderView: View {
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
+        .sheet(isPresented: $showComponentLibrary) {
+            ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                .frame(width: 600, height: 500)
+        }
     }
 }
 
 // MARK: - Toolbar
 struct UIBuilderToolbar: View {
     @Binding var showCodePreview: Bool
-    @Binding var showLayersPanel: Bool
     @Binding var showPropertiesPanel: Bool
+    @Binding var showComponentLibrary: Bool
     let canvasManager: CanvasManager
     @Binding var selectedDevice: DevicePreset
     
@@ -188,8 +178,13 @@ struct UIBuilderToolbar: View {
         HStack {
             // Left side - View controls
             HStack(spacing: 12) {
-                Divider()
-                    .frame(height: 20)
+                Button(action: { showComponentLibrary = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus.circle")
+                        Text("Components")
+                    }
+                }
+                .help("Add Components")
                 
                 Button(action: { canvasManager.undo() }) {
                     Image(systemName: "arrow.uturn.backward")
@@ -269,7 +264,6 @@ struct CanvasView: View {
     let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
     @State private var dragOffset: CGSize = .zero
-    @State private var isDragging = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -311,26 +305,11 @@ struct CanvasView: View {
                     let screenCorner: CGFloat = selectedDevice == .mac ? 8 : 50
                     
                     ZStack {
-                        // Device frame background
-                        RoundedRectangle(cornerRadius: screenCorner, style: .continuous)
-                            .fill(Color.black.opacity(0.8))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: screenCorner, style: .continuous)
-                                    .stroke(Color.gray.opacity(0.6), lineWidth: 1)
-                            )
-                            .shadow(radius: 12)
-                        
                         // Screen area
                         ZStack {
                             Rectangle()
                                 .fill(Color(NSColor.windowBackgroundColor))
                                 .overlay(Color.white.opacity(0.02))
-                            
-                            // Status bar (only for phones)
-                            if selectedDevice != .mac {
-                                StatusBarView(deviceSize: deviceSize)
-                                    .zIndex(1000) // Ensure status bar is on top
-                            }
                             
                             // Components inside screen
                             ZStack {
@@ -339,53 +318,37 @@ struct CanvasView: View {
                                         component: component,
                                         isSelected: selectedComponent?.id == component.id,
                                         onSelect: { selectedComponent = component },
-                                        onMove: { offset in
-                                            canvasManager.moveComponent(component, by: offset)
-                                        },
                                         onResize: { newFrame in
                                             canvasManager.resizeComponent(component, to: newFrame)
-                                        }
+                                        },
+                                        selectedDevice: selectedDevice
                                     )
                                 }
                             }
+                            
+                            // Status bar overlay (only for phones) - on top of content
+                            if selectedDevice != .mac {
+                                VStack {
+                                    StatusBarView(deviceSize: deviceSize)
+                                        .background(Color.white.opacity(0.95))
+                                        .zIndex(1000) // Ensure status bar is on top
+                                    
+                                    Spacer()
+                                }
+                            }
                         }
-                        .clipShape(RoundedRectangle(cornerRadius: screenCorner - 4, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: screenCorner, style: .continuous)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
                         .padding(selectedDevice == .mac ? 8 : 16)
                     }
                     .frame(width: deviceSize.width, height: deviceSize.height)
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                    
-                    // Drop zone overlay (full canvas)
-                    if isDragging {
-                        Rectangle()
-                            .fill(Color.blue.opacity(0.1))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 2, dash: [5]))
-                            )
-                            .overlay(
-                                Text("Drop component here")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                            )
-                    }
                 }
                 .scaleEffect(canvasManager.zoomLevel)
                 .offset(canvasManager.canvasOffset)
-                .gesture(
-                    DragGesture(minimumDistance: 10)
-                        .onChanged { value in
-                            if !isDragging {
-                                isDragging = true
-                            }
-                            dragOffset = value.translation
-                        }
-                        .onEnded { value in
-                            isDragging = false
-                            dragOffset = .zero
-                        }
-                )
-                
             }
         }
         .clipped()
@@ -412,17 +375,17 @@ struct ComponentView: View {
     @ObservedObject var component: UIComponent
     let isSelected: Bool
     let onSelect: () -> Void
-    let onMove: (CGSize) -> Void
     let onResize: (CGRect) -> Void
-    
-    @State private var dragOffset: CGSize = .zero
-    @State private var isDragging = false
+    let selectedDevice: DevicePreset
     
     var body: some View {
         ZStack {
             // Component content
-            ComponentRenderer(component: component)
-                .frame(width: component.frame.width, height: component.frame.height)
+            ComponentRenderer(component: component, deviceSize: selectedDevice.size)
+                .frame(
+                    width: component.frame.width > 0 ? component.frame.width : nil,
+                    height: component.frame.height > 0 ? component.frame.height : nil
+                )
                 .position(x: component.frame.midX, y: component.frame.midY)
                 .onTapGesture {
                     onSelect()
@@ -432,7 +395,10 @@ struct ComponentView: View {
             if isSelected {
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(Color.blue, lineWidth: 2)
-                    .frame(width: component.frame.width, height: component.frame.height)
+                    .frame(
+                        width: component.frame.width > 0 ? component.frame.width : nil,
+                        height: component.frame.height > 0 ? component.frame.height : nil
+                    )
                     .position(x: component.frame.midX, y: component.frame.midY)
                 
                 // Resize handles
@@ -446,20 +412,6 @@ struct ComponentView: View {
                 }
             }
         }
-        .highPriorityGesture(
-            DragGesture()
-                .onChanged { value in
-                    if !isDragging {
-                        isDragging = true
-                    }
-                    dragOffset = value.translation
-                }
-                .onEnded { value in
-                    onMove(dragOffset)
-                    isDragging = false
-                    dragOffset = .zero
-                }
-        )
     }
     
     private func handlePosition(for index: Int) -> CGPoint {
@@ -547,7 +499,7 @@ struct StatusBarView: View {
     
     private var timeString: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
+        formatter.dateFormat = "h:mm"
         return formatter.string(from: currentTime)
     }
     
@@ -563,75 +515,39 @@ struct StatusBarView: View {
     }
     
     var body: some View {
-        VStack() {
-            HStack {
-                // Left side - Time
-                Text(timeString)
-                    .font(.system(size: 16, weight: .semibold, design: .default))
+        HStack {
+            // Left side - Time
+            Text(timeString)
+                .font(.system(size: 15, weight: .semibold, design: .default))
+                .foregroundColor(.primary)
+                .frame(width: 109)
+
+            Spacer()
+            
+            // Right side - Status indicators
+            HStack(spacing: 5) {
+                // Signal bars - aligned to bottom
+                Image(systemName: "cellularbars")
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.primary)
                 
-                Spacer()
+                // WiFi icon - aligned to bottom
+                Image(systemName: "wifi")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.primary)
                 
-                // Right side - Status indicators
-                HStack(spacing: 4) {
-                    // Signal bars - aligned to bottom
-                    Image(systemName: "chart.bar.fill")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.primary)
-                        .frame(height: 12, alignment: .bottom)
-                    
-                    // WiFi icon - aligned to bottom
-                    Image(systemName: "wifi")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.primary)
-                        .frame(height: 12, alignment: .bottom)
-                    
-                    // Battery - aligned to bottom
-                    HStack(spacing: 2) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.primary)
-                            .frame(width: 20, height: 10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 2)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(Color.primary)
-                                    .frame(width: 2, height: 4)
-                                    .offset(x: 11)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(Color.green)
-                                    .frame(width: 16, height: 6)
-                                    .offset(x: -1)
-                            )
-                    }
-                    .frame(height: 12, alignment: .bottom) // Fixed height with bottom alignment
-                }
+                // Battery - aligned to bottom
+                Image(systemName: "battery.100")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Rectangle()
-                    .fill(Color.black.opacity(0.05))
-                    .overlay(
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.white.opacity(0.1),
-                                        Color.clear
-                                    ]),
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                    )
-            )
+            .frame(width: 109)
         }
+        .frame(height: 53)
+        .padding(.horizontal)
+        .padding(.top, 5)
+        .background(.clear)
         .frame(maxWidth: .infinity)
-        .frame(height: statusBarHeight) // Full width of container
         .onReceive(timer) { _ in
             currentTime = Date()
         }

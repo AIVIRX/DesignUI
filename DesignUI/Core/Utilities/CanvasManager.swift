@@ -23,6 +23,14 @@ class CanvasManager: ObservableObject {
     var canRedo: Bool { !redoStack.isEmpty }
     
     init() {
+        // Add a default ScrollView as the root container
+        let defaultScrollView = UIComponent(
+            type: .scrollView,
+            properties: UIComponent.defaultProperties(for: .scrollView),
+            frame: CGRect(x: 50, y: 50, width: 300, height: 400)
+        )
+        components.append(defaultScrollView)
+        selectedComponent = defaultScrollView
         saveState()
     }
     
@@ -31,6 +39,27 @@ class CanvasManager: ObservableObject {
         components.append(component)
         selectedComponent = component
         saveState()
+    }
+    
+    func addComponentToContainer(_ component: UIComponent, container: UIComponent) {
+        // Check if the container can accept children (like ScrollView, VStack, etc.)
+        if canAcceptChildren(container) {
+            container.addChild(component)
+            selectedComponent = component
+            saveState()
+        } else {
+            // Fallback to adding to main canvas
+            addComponent(component)
+        }
+    }
+    
+    func canAcceptChildren(_ component: UIComponent) -> Bool {
+        switch component.type {
+        case .scrollView, .vstack, .hstack, .zstack, .list, .navigationView, .tabView, .form, .section:
+            return true
+        default:
+            return false
+        }
     }
     
     func removeComponent(_ component: UIComponent) {
@@ -248,13 +277,23 @@ class CanvasManager: ObservableObject {
         let code = exportCode()
         
         #if os(macOS)
-        let savePanel = NSSavePanel()
-        savePanel.allowedContentTypes = [.swiftSource]
-        savePanel.nameFieldStringValue = "GeneratedView.swift"
-        
-        if savePanel.runModal() == .OK {
-            if let url = savePanel.url {
-                try? code.write(to: url, atomically: true, encoding: String.Encoding.utf8)
+        DispatchQueue.main.async {
+            let savePanel = NSSavePanel()
+            savePanel.allowedContentTypes = [.swiftSource]
+            savePanel.nameFieldStringValue = "GeneratedView.swift"
+            savePanel.title = "Export SwiftUI Code"
+            savePanel.message = "Choose where to save the generated SwiftUI code"
+            
+            let response = savePanel.runModal()
+            if response == .OK {
+                if let url = savePanel.url {
+                    do {
+                        try code.write(to: url, atomically: true, encoding: .utf8)
+                        print("Code exported successfully to: \(url.path)")
+                    } catch {
+                        print("Failed to export code: \(error.localizedDescription)")
+                    }
+                }
             }
         }
         #endif

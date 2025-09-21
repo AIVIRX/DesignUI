@@ -44,11 +44,11 @@ struct PropertiesPanelView: View {
                         // Properties
                         PropertiesSection(component: component)
                         
-                        // Layout properties
-                        LayoutSection(component: component)
-                        
                         // Style properties
                         StyleSection(component: component)
+                        
+                        // Modifiers
+                        ModifierPanelView(component: component)
                     }
                     .padding(16)
                 }
@@ -142,73 +142,6 @@ struct PropertiesSection: View {
     }
 }
 
-struct LayoutSection: View {
-    @ObservedObject var component: UIComponent
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Layout")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            VStack(spacing: 8) {
-                // Position
-                HStack {
-                    Text("X:")
-                        .font(.caption)
-                        .frame(width: 20, alignment: .leading)
-                    
-                    TextField("X", value: Binding(
-                        get: { Double(component.frame.origin.x) },
-                        set: { newValue in
-                            component.frame.origin.x = CGFloat(newValue)
-                        }
-                    ), format: .number)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    Text("Y:")
-                        .font(.caption)
-                        .frame(width: 20, alignment: .leading)
-                    
-                    TextField("Y", value: Binding(
-                        get: { Double(component.frame.origin.y) },
-                        set: { newValue in
-                            component.frame.origin.y = CGFloat(newValue)
-                        }
-                    ), format: .number)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                
-                // Size
-                HStack {
-                    Text("W:")
-                        .font(.caption)
-                        .frame(width: 20, alignment: .leading)
-                    
-                    TextField("Width", value: Binding(
-                        get: { Double(component.frame.width) },
-                        set: { newValue in
-                            component.frame.size.width = CGFloat(newValue)
-                        }
-                    ), format: .number)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    Text("H:")
-                        .font(.caption)
-                        .frame(width: 20, alignment: .leading)
-                    
-                    TextField("Height", value: Binding(
-                        get: { Double(component.frame.height) },
-                        set: { newValue in
-                            component.frame.size.height = CGFloat(newValue)
-                        }
-                    ), format: .number)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-            }
-        }
-    }
-}
 
 struct StyleSection: View {
     @ObservedObject var component: UIComponent

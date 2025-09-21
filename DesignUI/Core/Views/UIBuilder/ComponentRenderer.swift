@@ -9,6 +9,12 @@ import SwiftUI
 
 struct ComponentRenderer: View {
     @ObservedObject var component: UIComponent
+    let deviceSize: CGSize?
+    
+    init(component: UIComponent, deviceSize: CGSize? = nil) {
+        self.component = component
+        self.deviceSize = deviceSize
+    }
     
     var body: some View {
         Group {
@@ -39,11 +45,14 @@ struct ComponentRenderer: View {
                 renderCapsule()
             case .ellipse:
                 renderEllipse()
+            case .scrollView:
+                renderScrollView()
             default:
                 renderPlaceholder()
             }
         }
         .opacity(component.isVisible ? 1.0 : 0.3)
+        .applyModifiers(component.modifiers)
     }
     
     // MARK: - Text Renderer
@@ -65,13 +74,10 @@ struct ComponentRenderer: View {
         let imageName = component.getProperty(key: "imageName") as? String ?? "photo"
         let resizable = component.getProperty(key: "resizable") as? Bool ?? true
         let aspectRatio = component.getProperty(key: "aspectRatio") as? String ?? "fit"
-        let frameWidth = component.getProperty(key: "frameWidth") as? Double ?? 100.0
-        let frameHeight = component.getProperty(key: "frameHeight") as? Double ?? 100.0
         
-        var view: some View = Image(imageName)
+        let view: some View = Image(imageName)
             .resizableIfNeeded(resizable)
             .applyAspectRatio(mode: aspectRatio)
-            .frame(width: frameWidth, height: frameHeight)
         return AnyView(view)
     }
     
@@ -81,12 +87,12 @@ struct ComponentRenderer: View {
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.blue
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.white
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
-        let padding = component.getProperty(key: "padding") as? EdgeInsets ?? EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
         
         return Button(action: {}) {
             Text(title)
                 .foregroundColor(foregroundColor)
-                .padding(padding)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
         }
         .background(backgroundColor)
         .cornerRadius(cornerRadius)
@@ -94,66 +100,70 @@ struct ComponentRenderer: View {
     
     // MARK: - VStack Renderer
     private func renderVStack() -> some View {
-        let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
-        let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        // Use default size if component has no explicit frame
+        let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
+        let frameWidth = hasExplicitFrame ? component.frame.width : (deviceSize?.width ?? 200)
+        let frameHeight = hasExplicitFrame ? component.frame.height : (deviceSize?.height ?? 150)
         
-        return VStack(alignment: horizontalAlignmentFromString(alignment), spacing: spacing) {
+        return VStack(alignment: .center, spacing: 8) {
             if component.children.isEmpty {
                 Text("VStack")
                     .foregroundColor(.secondary)
                     .font(.caption)
             } else {
                 ForEach(component.children) { child in
-                    ComponentRenderer(component: child)
+                    ComponentRenderer(component: child, deviceSize: deviceSize)
                 }
             }
         }
+        .frame(width: frameWidth, height: frameHeight)
     }
     
     // MARK: - HStack Renderer
     private func renderHStack() -> some View {
-        let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
-        let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        // Use default size if component has no explicit frame
+        let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
+        let frameWidth = hasExplicitFrame ? component.frame.width : (deviceSize?.width ?? 200)
+        let frameHeight = hasExplicitFrame ? component.frame.height : (deviceSize?.height ?? 150)
         
-        return HStack(alignment: verticalAlignmentFromString(alignment), spacing: spacing) {
+        return HStack(alignment: .center, spacing: 8) {
             if component.children.isEmpty {
                 Text("HStack")
                     .foregroundColor(.secondary)
                     .font(.caption)
             } else {
                 ForEach(component.children) { child in
-                    ComponentRenderer(component: child)
+                    ComponentRenderer(component: child, deviceSize: deviceSize)
                 }
             }
         }
+        .frame(width: frameWidth, height: frameHeight)
     }
     
     // MARK: - ZStack Renderer
     private func renderZStack() -> some View {
-        let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        // Use default size if component has no explicit frame
+        let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
+        let frameWidth = hasExplicitFrame ? component.frame.width : (deviceSize?.width ?? 200)
+        let frameHeight = hasExplicitFrame ? component.frame.height : (deviceSize?.height ?? 150)
         
-        return ZStack(alignment: alignmentFromString(alignment)) {
+        return ZStack(alignment: .center) {
             if component.children.isEmpty {
                 Text("ZStack")
                     .foregroundColor(.secondary)
                     .font(.caption)
             } else {
                 ForEach(component.children) { child in
-                    ComponentRenderer(component: child)
+                    ComponentRenderer(component: child, deviceSize: deviceSize)
                 }
             }
         }
+        .frame(width: frameWidth, height: frameHeight)
     }
     
     // MARK: - Spacer Renderer
     private func renderSpacer() -> some View {
-        let minLength = component.getProperty(key: "minLength") as? Double ?? 0.0
-        
-        if minLength > 0 {
-            return Spacer(minLength: minLength)
-        } else {
-            return Spacer()
-        }
+        return Spacer()
     }
     
     // MARK: - Divider Renderer
@@ -231,6 +241,42 @@ struct ComponentRenderer: View {
             return AnyView(Ellipse()
                 .fill(fill))
         }
+    }
+    
+    // MARK: - ScrollView Renderer
+    private func renderScrollView() -> some View {
+        return AnyView(
+            VStack(spacing: 8) {
+                if component.children.isEmpty {
+                    VStack {
+                        Image(systemName: "rectangle.stack")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                        Text("VStack")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("Add components here")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.gray.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    )
+                } else {
+                    ForEach(component.children) { child in
+                        ComponentRenderer(component: child, deviceSize: deviceSize)
+                    }
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        )
     }
     
     // MARK: - Placeholder Renderer
@@ -314,6 +360,143 @@ private extension View {
         default: return AnyView(self)
         }
     }
+    
+    func applyModifiers(_ modifiers: [ComponentModifier]) -> some View {
+        var view = AnyView(self)
+        
+        for modifier in modifiers {
+            view = AnyView(applyModifier(modifier, to: view))
+        }
+        
+        return view
+    }
+    
+    private func applyModifier(_ modifier: ComponentModifier, to view: AnyView) -> AnyView {
+        switch modifier.type {
+        case .frame:
+            let width = modifier.properties["width"] as? CGFloat ?? 0
+            let height = modifier.properties["height"] as? CGFloat ?? 0
+            return AnyView(view.frame(width: width, height: height))
+            
+        case .padding:
+            let top = modifier.properties["top"] as? CGFloat ?? 0
+            let leading = modifier.properties["leading"] as? CGFloat ?? 0
+            let bottom = modifier.properties["bottom"] as? CGFloat ?? 0
+            let trailing = modifier.properties["trailing"] as? CGFloat ?? 0
+            return AnyView(view.padding(EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing)))
+            
+        case .background:
+            let color = modifier.properties["color"] as? Color ?? Color.clear
+            return AnyView(view.background(color))
+            
+        case .overlay:
+            let color = modifier.properties["color"] as? Color ?? Color.clear
+            return AnyView(view.overlay(
+                Rectangle()
+                    .fill(color)
+            ))
+            
+        case .foregroundColor:
+            let color = modifier.properties["color"] as? Color ?? Color.primary
+            return AnyView(view.foregroundColor(color))
+            
+        case .font:
+            let style = modifier.properties["style"] as? String ?? "body"
+            let size = modifier.properties["size"] as? CGFloat ?? 16
+            let weight = modifier.properties["weight"] as? String ?? "regular"
+            
+            let font: Font
+            switch style {
+            case "largeTitle": font = .largeTitle
+            case "title": font = .title
+            case "title2": font = .title2
+            case "title3": font = .title3
+            case "headline": font = .headline
+            case "body": font = .body
+            case "callout": font = .callout
+            case "subheadline": font = .subheadline
+            case "footnote": font = .footnote
+            case "caption": font = .caption
+            case "caption2": font = .caption2
+            default: font = .system(size: size, weight: fontWeightFromString(weight))
+            }
+            
+            return AnyView(view.font(font))
+            
+        case .cornerRadius:
+            let radius = modifier.properties["radius"] as? CGFloat ?? 0
+            return AnyView(view.cornerRadius(radius))
+            
+        case .shadow:
+            let radius = modifier.properties["radius"] as? CGFloat ?? 0
+            let x = modifier.properties["x"] as? CGFloat ?? 0
+            let y = modifier.properties["y"] as? CGFloat ?? 0
+            let color = modifier.properties["color"] as? Color ?? Color.black
+            return AnyView(view.shadow(color: color, radius: radius, x: x, y: y))
+            
+        case .opacity:
+            let opacity = modifier.properties["opacity"] as? Double ?? 1.0
+            return AnyView(view.opacity(opacity))
+            
+        case .rotation:
+            let angle = modifier.properties["angle"] as? Double ?? 0
+            return AnyView(view.rotationEffect(.degrees(angle)))
+            
+        case .scale:
+            let x = modifier.properties["x"] as? Double ?? 1.0
+            let y = modifier.properties["y"] as? Double ?? 1.0
+            return AnyView(view.scaleEffect(x: x, y: y))
+            
+        case .offset:
+            let x = modifier.properties["x"] as? CGFloat ?? 0
+            let y = modifier.properties["y"] as? CGFloat ?? 0
+            return AnyView(view.offset(x: x, y: y))
+            
+        case .blur:
+            let radius = modifier.properties["radius"] as? CGFloat ?? 0
+            return AnyView(view.blur(radius: radius))
+            
+        case .brightness:
+            let amount = modifier.properties["amount"] as? Double ?? 0
+            return AnyView(view.brightness(amount))
+            
+        case .contrast:
+            let amount = modifier.properties["amount"] as? Double ?? 1
+            return AnyView(view.contrast(amount))
+            
+        case .saturation:
+            let amount = modifier.properties["amount"] as? Double ?? 1
+            return AnyView(view.saturation(amount))
+            
+        case .hueRotation:
+            let angle = modifier.properties["angle"] as? Double ?? 0
+            return AnyView(view.hueRotation(.degrees(angle)))
+            
+        case .grayscale:
+            let amount = modifier.properties["amount"] as? Double ?? 0
+            return AnyView(view.grayscale(amount))
+            
+        case .sepia:
+            let amount = modifier.properties["amount"] as? Double ?? 0
+            // Sepia effect using hue rotation and saturation
+            return AnyView(view.hueRotation(.degrees(30)).saturation(amount))
+            
+        default:
+            return view
+        }
+    }
+    
+    private func fontWeightFromString(_ weight: String) -> Font.Weight {
+        switch weight {
+        case "bold": return .bold
+        case "light": return .light
+        case "medium": return .medium
+        case "semibold": return .semibold
+        case "heavy": return .heavy
+        case "black": return .black
+        default: return .regular
+        }
+    }
 }
 
 #Preview {
@@ -326,6 +509,6 @@ private extension View {
         frame: CGRect(x: 0, y: 0, width: 200, height: 50)
     )
     
-    return ComponentRenderer(component: component)
+    return ComponentRenderer(component: component, deviceSize: CGSize(width: 393, height: 852))
         .frame(width: 200, height: 50)
 }

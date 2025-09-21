@@ -44,6 +44,8 @@ struct CodeGenerator {
             return generateCapsuleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .ellipse:
             return generateEllipseCode(component: component, indent: indent, nextIndent: nextIndent)
+        case .scrollView:
+            return generateScrollViewCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         default:
             return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
         }
@@ -110,7 +112,7 @@ struct CodeGenerator {
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
         let padding = component.getProperty(key: "padding") as? EdgeInsets ?? EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
         
-        var code = "\(indent)Button(action: {\n\(nextIndent)// Action here\n\(indent)}) {\n\(nextIndent)Text(\"\(title)\")\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))\n\(nextIndent).padding(\(edgeInsetsToString(padding)))\n\(indent)}\n\(indent).background(\(colorToString(backgroundColor)))\n\(indent).cornerRadius(\(cornerRadius))"
+        let code = "\(indent)Button(action: {\n\(nextIndent)// Action here\n\(indent)}) {\n\(nextIndent)Text(\"\(title)\")\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))\n\(nextIndent).padding(\(edgeInsetsToString(padding)))\n\(indent)}\n\(indent).background(\(colorToString(backgroundColor)))\n\(indent).cornerRadius(\(cornerRadius))"
         
         return code
     }
@@ -268,6 +270,23 @@ struct CodeGenerator {
         } else {
             code += "\n\(nextIndent).fill(\(colorToString(fill)))"
         }
+        
+        return code
+    }
+    
+    // MARK: - ScrollView Code Generation
+    private static func generateScrollViewCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
+        var code = "\(indent)VStack(spacing: 8) {"
+        
+        if component.children.isEmpty {
+            code += "\n\(nextIndent)// Add components here"
+        } else {
+            for child in component.children {
+                code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
+            }
+        }
+        
+        code += "\n\(indent)}"
         
         return code
     }

@@ -168,12 +168,14 @@ class UIComponent: ObservableObject, Identifiable {
     @Published var isSelected: Bool = false
     @Published var isVisible: Bool = true
     @Published var zIndex: Int = 0
+    @Published var modifiers: [ComponentModifier]
     
-    init(type: ComponentType, properties: [ComponentProperty] = [], children: [UIComponent] = [], frame: CGRect = .zero) {
+    init(type: ComponentType, properties: [ComponentProperty] = [], children: [UIComponent] = [], frame: CGRect = .zero, modifiers: [ComponentModifier] = []) {
         self.type = type
         self.properties = properties
         self.children = children
         self.frame = frame
+        self.modifiers = modifiers
     }
     
     // MARK: - Property Management
@@ -201,6 +203,30 @@ class UIComponent: ObservableObject, Identifiable {
         children.remove(at: index)
     }
     
+    // MARK: - Modifier Management
+    func addModifier(_ modifier: ComponentModifier) {
+        modifiers.append(modifier)
+    }
+    
+    func removeModifier(_ modifier: ComponentModifier) {
+        modifiers.removeAll { $0.id == modifier.id }
+    }
+    
+    func removeModifier(at index: Int) {
+        guard index < modifiers.count else { return }
+        modifiers.remove(at: index)
+    }
+    
+    func updateModifier(_ modifier: ComponentModifier) {
+        if let index = modifiers.firstIndex(where: { $0.id == modifier.id }) {
+            modifiers[index] = modifier
+        }
+    }
+    
+    func moveModifier(from source: IndexSet, to destination: Int) {
+        modifiers.move(fromOffsets: source, toOffset: destination)
+    }
+    
     // MARK: - Code Generation
     func generateSwiftCode() -> String {
         return CodeGenerator.generateCode(for: self)
@@ -223,23 +249,17 @@ extension UIComponent {
             return [
                 ComponentProperty(key: "imageName", type: .string, value: "photo", defaultValue: "photo"),
                 ComponentProperty(key: "resizable", type: .boolean, value: true, defaultValue: true),
-                ComponentProperty(key: "aspectRatio", type: .string, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"]),
-                ComponentProperty(key: "frameWidth", type: .number, value: 100.0, defaultValue: 100.0),
-                ComponentProperty(key: "frameHeight", type: .number, value: 100.0, defaultValue: 100.0)
+                ComponentProperty(key: "aspectRatio", type: .string, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
             ]
         case .button:
             return [
                 ComponentProperty(key: "title", type: .string, value: "Button", defaultValue: "Button"),
                 ComponentProperty(key: "backgroundColor", type: .color, value: Color.blue, defaultValue: Color.blue),
                 ComponentProperty(key: "foregroundColor", type: .color, value: Color.white, defaultValue: Color.white),
-                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
-                ComponentProperty(key: "padding", type: .padding, value: EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16), defaultValue: EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
             ]
         case .vstack, .hstack, .zstack:
-            return [
-                ComponentProperty(key: "spacing", type: .spacing, value: 8.0, defaultValue: 8.0),
-                ComponentProperty(key: "alignment", type: .alignment, value: "center", defaultValue: "center", options: ["leading", "center", "trailing", "top", "bottom", "firstTextBaseline", "lastTextBaseline"])
-            ]
+            return []
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
             return [
                 ComponentProperty(key: "fill", type: .color, value: Color.gray, defaultValue: Color.gray),
@@ -248,9 +268,9 @@ extension UIComponent {
                 ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
             ]
         case .spacer:
-            return [
-                ComponentProperty(key: "minLength", type: .number, value: 0.0, defaultValue: 0.0)
-            ]
+            return []
+        case .scrollView:
+            return []
         default:
             return []
         }

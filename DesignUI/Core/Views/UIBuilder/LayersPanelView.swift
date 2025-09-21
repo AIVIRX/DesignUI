@@ -36,6 +36,7 @@ struct LayersPanelView: View {
             ScrollView {
                 LazyVStack(spacing: 2) {
                     ForEach(canvasManager.components) { component in
+                        let _ = print("Rendering layer: \(component.type.rawValue)")
                         LayerItem(
                             component: component,
                             isSelected: selectedComponent?.id == component.id,
@@ -43,6 +44,25 @@ struct LayersPanelView: View {
                             onToggleVisibility: { component.isVisible.toggle() },
                             onDelete: { canvasManager.removeComponent(component) }
                         )
+                        
+                        // Show children if this is a container component
+                        if !component.children.isEmpty {
+                            ForEach(component.children) { child in
+                                LayerItem(
+                                    component: child,
+                                    isSelected: selectedComponent?.id == child.id,
+                                    onSelect: { selectedComponent = child },
+                                    onToggleVisibility: { child.isVisible.toggle() },
+                                    onDelete: { 
+                                        component.removeChild(child)
+                                        if selectedComponent?.id == child.id {
+                                            selectedComponent = nil
+                                        }
+                                    }
+                                )
+                                .padding(.leading, 20)
+                            }
+                        }
                     }
                     
                     if canvasManager.components.isEmpty {
@@ -104,16 +124,6 @@ struct LayerItem: View {
             
             Spacer()
             
-            // Z-index indicator
-            Text("\(component.zIndex)")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
-                .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(NSColor.controlBackgroundColor))
-                )
             
             // Delete button
             if isHovered {

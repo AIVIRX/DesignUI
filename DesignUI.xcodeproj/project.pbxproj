@@ -13,6 +13,9 @@
 		EC298D0B2D430762008DC36B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EC298D0A2D430762008DC36B /* GoogleService-Info.plist */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
 		EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2D21272CBF183000FA192D /* CommunityPosts.swift */; };
+		EC3D00382E7DC820005AA8FA /* ModifierPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D00372E7DC820005AA8FA /* ModifierPanelView.swift */; };
+		EC3D003A2E7DC858005AA8FA /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D00392E7DC858005AA8FA /* Modifier.swift */; };
+		EC3D003C2E7DCCD1005AA8FA /* ModifierEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */; };
 		EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D132D2E1DABCE00F659DB /* LargeHero.swift */; };
 		EC412F522E79F3A9001B923B /* CustomTextEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F512E79F3A9001B923B /* CustomTextEffect.swift */; };
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
@@ -86,6 +89,9 @@
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		EC2D21272CBF183000FA192D /* CommunityPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPosts.swift; sourceTree = "<group>"; };
 		EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = ConfigStore.storekit; sourceTree = "<group>"; };
+		EC3D00372E7DC820005AA8FA /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
+		EC3D00392E7DC858005AA8FA /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
+		EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierEditorView.swift; sourceTree = "<group>"; };
 		EC3D132D2E1DABCE00F659DB /* LargeHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHero.swift; sourceTree = "<group>"; };
 		EC412F512E79F3A9001B923B /* CustomTextEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextEffect.swift; sourceTree = "<group>"; };
 		EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollView.swift; sourceTree = "<group>"; };
@@ -225,6 +231,8 @@
 		ECC8DC412E7C605200026DAA /* UIBuilder */ = {
 			isa = PBXGroup;
 			children = (
+				EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */,
+				EC3D00372E7DC820005AA8FA /* ModifierPanelView.swift */,
 				ECC8DC3B2E7C605200026DAA /* CodePreviewView.swift */,
 				ECC8DC3C2E7C605200026DAA /* ComponentLibraryView.swift */,
 				ECC8DC3D2E7C605200026DAA /* ComponentRenderer.swift */,
@@ -266,6 +274,7 @@
 		ECD13FDA2C18BC3200105B3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				EC3D00392E7DC858005AA8FA /* Modifier.swift */,
 				ECC8DC4C2E7C60A400026DAA /* UIComponent.swift */,
 				ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */,
 				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
@@ -523,6 +532,7 @@
 				EC87D8152DB9AC670091FAFF /* Recipe.swift in Sources */,
 				EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */,
 				EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */,
+				EC3D00382E7DC820005AA8FA /* ModifierPanelView.swift in Sources */,
 				ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
@@ -536,6 +546,7 @@
 				EC66E8DE2E7B6B380047C8BB /* UsernameSelectionView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
+				EC3D003A2E7DC858005AA8FA /* Modifier.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
@@ -552,6 +563,7 @@
 				F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */,
 				EC412F522E79F3A9001B923B /* CustomTextEffect.swift in Sources */,
 				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
+				EC3D003C2E7DCCD1005AA8FA /* ModifierEditorView.swift in Sources */,
 				ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */,
 				ECC8DC422E7C605200026DAA /* UIBuilderView.swift in Sources */,
 				ECC8DC432E7C605200026DAA /* CodePreviewView.swift in Sources */,
