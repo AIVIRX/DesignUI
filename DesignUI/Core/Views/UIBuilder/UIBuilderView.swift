@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+#if os(macOS)
 enum DevicePreset: String, CaseIterable, Identifiable {
     // iPhone 16 Series (Latest)
     case iphone16 = "iPhone 16"
@@ -86,7 +86,6 @@ struct UIBuilderView: View {
     @State private var selectedComponent: UIComponent?
     @State private var showCodePreview = false
     @State private var showPropertiesPanel = true
-    @State private var showComponentLibrary = false
     @State private var selectedDevice: DevicePreset = .iphone16Pro
     @State private var baseZoomLevel: CGFloat = 1.0
     
@@ -110,7 +109,6 @@ struct UIBuilderView: View {
                     UIBuilderToolbar(
                         showCodePreview: $showCodePreview,
                         showPropertiesPanel: $showPropertiesPanel,
-                        showComponentLibrary: $showComponentLibrary,
                         canvasManager: canvasManager,
                         selectedDevice: $selectedDevice
                     )
@@ -159,10 +157,6 @@ struct UIBuilderView: View {
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
-        .sheet(isPresented: $showComponentLibrary) {
-            ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                .frame(width: 600, height: 500)
-        }
     }
 }
 
@@ -170,7 +164,6 @@ struct UIBuilderView: View {
 struct UIBuilderToolbar: View {
     @Binding var showCodePreview: Bool
     @Binding var showPropertiesPanel: Bool
-    @Binding var showComponentLibrary: Bool
     let canvasManager: CanvasManager
     @Binding var selectedDevice: DevicePreset
     
@@ -178,14 +171,6 @@ struct UIBuilderToolbar: View {
         HStack {
             // Left side - View controls
             HStack(spacing: 12) {
-                Button(action: { showComponentLibrary = true }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "plus.circle")
-                        Text("Components")
-                    }
-                }
-                .help("Add Components")
-                
                 Button(action: { canvasManager.undo() }) {
                     Image(systemName: "arrow.uturn.backward")
                 }
@@ -263,7 +248,6 @@ struct CanvasView: View {
     @Binding var selectedComponent: UIComponent?
     let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
-    @State private var dragOffset: CGSize = .zero
     
     var body: some View {
         GeometryReader { geometry in
@@ -312,30 +296,29 @@ struct CanvasView: View {
                                 .overlay(Color.white.opacity(0.02))
                             
                             // Components inside screen
-                            ZStack {
+                            VStack(spacing: 0) {
                                 ForEach(canvasManager.components) { component in
                                     ComponentView(
                                         component: component,
                                         isSelected: selectedComponent?.id == component.id,
                                         onSelect: { selectedComponent = component },
-                                        onResize: { newFrame in
-                                            canvasManager.resizeComponent(component, to: newFrame)
-                                        },
                                         selectedDevice: selectedDevice
                                     )
                                 }
                             }
-                            
-                            // Status bar overlay (only for phones) - on top of content
-                            if selectedDevice != .mac {
-                                VStack {
-                                    StatusBarView(deviceSize: deviceSize)
-                                        .background(Color.white.opacity(0.95))
-                                        .zIndex(1000) // Ensure status bar is on top
-                                    
-                                    Spacer()
-                                }
+                            .onTapGesture {
+                                // Deselect when clicking empty space
+                                selectedComponent = nil
                             }
+//                            if selectedDevice != .mac {
+//                                VStack {
+//                                    StatusBarView(deviceSize: deviceSize)
+//                                        .background(Color.white.opacity(0.95))
+//                                        .zIndex(1000) // Ensure status bar is on top
+//                                    
+//                                    Spacer()
+//                                }
+//                            }
                         }
                         .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
                         .overlay(
@@ -375,41 +358,20 @@ struct ComponentView: View {
     @ObservedObject var component: UIComponent
     let isSelected: Bool
     let onSelect: () -> Void
-    let onResize: (CGRect) -> Void
     let selectedDevice: DevicePreset
     
     var body: some View {
         ZStack {
             // Component content
-            ComponentRenderer(component: component, deviceSize: selectedDevice.size)
-                .frame(
-                    width: component.frame.width > 0 ? component.frame.width : nil,
-                    height: component.frame.height > 0 ? component.frame.height : nil
-                )
-                .position(x: component.frame.midX, y: component.frame.midY)
-                .onTapGesture {
-                    onSelect()
-                }
+            ComponentRenderer(component: component, deviceSize: selectedDevice.size, onTap: onSelect)
             
             // Selection overlay
             if isSelected {
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(Color.blue, lineWidth: 2)
-                    .frame(
-                        width: component.frame.width > 0 ? component.frame.width : nil,
-                        height: component.frame.height > 0 ? component.frame.height : nil
+                ComponentRenderer(component: component, deviceSize: selectedDevice.size)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.blue, lineWidth: 2)
                     )
-                    .position(x: component.frame.midX, y: component.frame.midY)
-                
-                // Resize handles
-                ForEach(0..<8) { index in
-                    ResizeHandle(
-                        position: handlePosition(for: index),
-                        onDrag: { offset in
-                            handleResize(handleIndex: index, offset: offset)
-                        }
-                    )
-                }
             }
         }
     }
@@ -427,67 +389,6 @@ struct ComponentView: View {
         case 7: return CGPoint(x: frame.minX, y: frame.midY) // Left-center
         default: return CGPoint.zero
         }
-    }
-    
-    private func handleResize(handleIndex: Int, offset: CGSize) {
-        var newFrame = component.frame
-        
-        switch handleIndex {
-        case 0: // Top-left
-            newFrame.origin.x += offset.width
-            newFrame.origin.y += offset.height
-            newFrame.size.width -= offset.width
-            newFrame.size.height -= offset.height
-        case 1: // Top-center
-            newFrame.origin.y += offset.height
-            newFrame.size.height -= offset.height
-        case 2: // Top-right
-            newFrame.origin.y += offset.height
-            newFrame.size.width += offset.width
-            newFrame.size.height -= offset.height
-        case 3: // Right-center
-            newFrame.size.width += offset.width
-        case 4: // Bottom-right
-            newFrame.size.width += offset.width
-            newFrame.size.height += offset.height
-        case 5: // Bottom-center
-            newFrame.size.height += offset.height
-        case 6: // Bottom-left
-            newFrame.origin.x += offset.width
-            newFrame.size.width -= offset.width
-            newFrame.size.height += offset.height
-        case 7: // Left-center
-            newFrame.origin.x += offset.width
-            newFrame.size.width -= offset.width
-        default:
-            break
-        }
-        
-        onResize(newFrame)
-    }
-}
-
-struct ResizeHandle: View {
-    let position: CGPoint
-    let onDrag: (CGSize) -> Void
-    
-    @State private var dragOffset: CGSize = .zero
-    
-    var body: some View {
-        Circle()
-            .fill(Color.blue)
-            .frame(width: 8, height: 8)
-            .position(position)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        dragOffset = value.translation
-                    }
-                    .onEnded { value in
-                        onDrag(dragOffset)
-                        dragOffset = .zero
-                    }
-            )
     }
 }
 
@@ -553,7 +454,4 @@ struct StatusBarView: View {
         }
     }
 }
-
-#Preview {
-    UIBuilderView()
-}
+#endif

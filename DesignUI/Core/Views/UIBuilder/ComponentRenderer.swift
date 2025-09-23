@@ -10,10 +10,12 @@ import SwiftUI
 struct ComponentRenderer: View {
     @ObservedObject var component: UIComponent
     let deviceSize: CGSize?
+    let onTap: (() -> Void)?
     
-    init(component: UIComponent, deviceSize: CGSize? = nil) {
+    init(component: UIComponent, deviceSize: CGSize? = nil, onTap: (() -> Void)? = nil) {
         self.component = component
         self.deviceSize = deviceSize
+        self.onTap = onTap
     }
     
     var body: some View {
@@ -51,8 +53,36 @@ struct ComponentRenderer: View {
                 renderPlaceholder()
             }
         }
-        .opacity(component.isVisible ? 1.0 : 0.3)
+        .opacity(component.isVisible ? 1.0 : 0.0)
         .applyModifiers(component.modifiers)
+        .background(
+            // Container selection background - only for containers
+            Group {
+                if isContainerComponent(component.type) {
+                    Rectangle()
+                        .fill(Color.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            onTap?()
+                        }
+                }
+            }
+        )
+        .onTapGesture {
+            // Direct selection for leaf components
+            if !isContainerComponent(component.type) {
+                onTap?()
+            }
+        }
+    }
+    
+    private func isContainerComponent(_ type: ComponentType) -> Bool {
+        switch type {
+        case .vstack, .hstack, .zstack, .scrollView, .list, .navigationView, .tabView, .form, .section:
+            return true
+        default:
+            return false
+        }
     }
     
     // MARK: - Text Renderer
@@ -100,65 +130,50 @@ struct ComponentRenderer: View {
     
     // MARK: - VStack Renderer
     private func renderVStack() -> some View {
-        // Use default size if component has no explicit frame
-        let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
-        let frameWidth = hasExplicitFrame ? component.frame.width : (deviceSize?.width ?? 200)
-        let frameHeight = hasExplicitFrame ? component.frame.height : (deviceSize?.height ?? 150)
-        
-        return VStack(alignment: .center, spacing: 8) {
+        let base = VStack(alignment: .center) {
             if component.children.isEmpty {
-                Text("VStack")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
+                EmptyView()
             } else {
                 ForEach(component.children) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize)
+                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: onTap)
                 }
             }
         }
-        .frame(width: frameWidth, height: frameHeight)
+        return base
     }
     
     // MARK: - HStack Renderer
     private func renderHStack() -> some View {
-        // Use default size if component has no explicit frame
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
-        let frameWidth = hasExplicitFrame ? component.frame.width : (deviceSize?.width ?? 200)
-        let frameHeight = hasExplicitFrame ? component.frame.height : (deviceSize?.height ?? 150)
-        
-        return HStack(alignment: .center, spacing: 8) {
+        let base = HStack(alignment: .center, spacing: 8) {
             if component.children.isEmpty {
-                Text("HStack")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
+                EmptyView()
             } else {
                 ForEach(component.children) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize)
+                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: onTap)
                 }
             }
         }
-        .frame(width: frameWidth, height: frameHeight)
+        return hasExplicitFrame
+            ? AnyView(base.frame(width: component.frame.width, height: component.frame.height))
+            : AnyView(base.frame(maxWidth: .infinity, maxHeight: .infinity))
     }
     
     // MARK: - ZStack Renderer
     private func renderZStack() -> some View {
-        // Use default size if component has no explicit frame
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
-        let frameWidth = hasExplicitFrame ? component.frame.width : (deviceSize?.width ?? 200)
-        let frameHeight = hasExplicitFrame ? component.frame.height : (deviceSize?.height ?? 150)
-        
-        return ZStack(alignment: .center) {
+        let base = ZStack(alignment: .center) {
             if component.children.isEmpty {
-                Text("ZStack")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
+                EmptyView()
             } else {
                 ForEach(component.children) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize)
+                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: onTap)
                 }
             }
         }
-        .frame(width: frameWidth, height: frameHeight)
+        return hasExplicitFrame
+            ? AnyView(base.frame(width: component.frame.width, height: component.frame.height))
+            : AnyView(base.frame(maxWidth: .infinity, maxHeight: .infinity))
     }
     
     // MARK: - Spacer Renderer
@@ -248,34 +263,13 @@ struct ComponentRenderer: View {
         return AnyView(
             VStack(spacing: 8) {
                 if component.children.isEmpty {
-                    VStack {
-                        Image(systemName: "rectangle.stack")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                        Text("VStack")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("Add components here")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.gray.opacity(0.1))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                            )
-                    )
+                    EmptyView()
                 } else {
                     ForEach(component.children) { child in
                         ComponentRenderer(component: child, deviceSize: deviceSize)
                     }
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         )
     }
     
@@ -353,6 +347,13 @@ private extension Image {
 }
 
 private extension View {
+    func applyOptionalFrame(hasExplicitFrame: Bool, frame: CGRect) -> some View {
+        if hasExplicitFrame {
+            return AnyView(self.frame(width: frame.width, height: frame.height))
+        } else {
+            return AnyView(self)
+        }
+    }
     func applyAspectRatio(mode: String) -> some View {
         switch mode {
         case "fit": return AnyView(self.aspectRatio(contentMode: .fit))
@@ -497,18 +498,4 @@ private extension View {
         default: return .regular
         }
     }
-}
-
-#Preview {
-    let component = UIComponent(
-        type: .text,
-        properties: [
-            ComponentProperty(key: "text", type: .string, value: "Hello World", defaultValue: "Hello World"),
-            ComponentProperty(key: "fontSize", type: .number, value: 18.0, defaultValue: 16.0)
-        ],
-        frame: CGRect(x: 0, y: 0, width: 200, height: 50)
-    )
-    
-    return ComponentRenderer(component: component, deviceSize: CGSize(width: 393, height: 852))
-        .frame(width: 200, height: 50)
 }

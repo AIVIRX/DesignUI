@@ -6,25 +6,30 @@
 //
 
 import SwiftUI
-
+#if os(macOS)
 struct LayersPanelView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
+    @State private var showComponentLibrary = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
-            HStack {
-                Text("Layers")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Button(action: {}) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 12))
+            // Header with toolbar
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Layers")
+                        .font(.title2)
+                    
+                    Spacer()
+                    
+                    // Toolbar
+                    Button(action: { showComponentLibrary = true }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 12))
+                    }
+                    .help("Add Component")
+                    .buttonStyle(.bordered)
                 }
-                .help("Add Layer")
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -86,6 +91,10 @@ struct LayersPanelView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
             }
+        }
+        .popover(isPresented: $showComponentLibrary) {
+            ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                .frame(width: 500, height: 400)
         }
     }
 }
@@ -154,13 +163,4 @@ struct LayerItem: View {
         }
     }
 }
-
-#Preview {
-    let canvasManager = CanvasManager()
-    
-    return LayersPanelView(
-        canvasManager: canvasManager,
-        selectedComponent: .constant(nil)
-    )
-    .frame(height: 200)
-}
+#endif

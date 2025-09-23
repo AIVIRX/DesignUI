@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+#if os(macOS)
 struct PropertiesPanelView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
@@ -142,7 +142,6 @@ struct PropertiesSection: View {
     }
 }
 
-
 struct StyleSection: View {
     @ObservedObject var component: UIComponent
     
@@ -249,20 +248,4 @@ struct PropertyEditor: View {
         }
     }
 }
-
-#Preview {
-    let component = UIComponent(
-        type: .text,
-        properties: [
-            ComponentProperty(key: "text", type: .string, value: "Hello World", defaultValue: "Hello World"),
-            ComponentProperty(key: "fontSize", type: .number, value: 16.0, defaultValue: 16.0)
-        ],
-        frame: CGRect(x: 100, y: 100, width: 200, height: 50)
-    )
-    
-    return PropertiesPanelView(
-        selectedComponent: .constant(component),
-        canvasManager: CanvasManager()
-    )
-    .frame(width: 300, height: 400)
-}
+#endif

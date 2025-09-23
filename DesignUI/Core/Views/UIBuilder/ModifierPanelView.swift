@@ -4,9 +4,8 @@
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //
-
 import SwiftUI
-
+#if os(macOS)
 struct ModifierPanelView: View {
     @ObservedObject var component: UIComponent
     @State private var showingAddModifier = false
@@ -351,3 +350,4 @@ struct ModifierTypeItemView: View {
     return ModifierPanelView(component: component)
         .frame(width: 280, height: 400)
 }
+#endif

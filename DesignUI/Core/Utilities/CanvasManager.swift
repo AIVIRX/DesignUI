@@ -23,14 +23,9 @@ class CanvasManager: ObservableObject {
     var canRedo: Bool { !redoStack.isEmpty }
     
     init() {
-        // Add a default ScrollView as the root container
-        let defaultScrollView = UIComponent(
-            type: .scrollView,
-            properties: UIComponent.defaultProperties(for: .scrollView),
-            frame: CGRect(x: 50, y: 50, width: 300, height: 400)
-        )
-        components.append(defaultScrollView)
-        selectedComponent = defaultScrollView
+        // Start with an empty canvas; no predefined root container
+        components = []
+        selectedComponent = nil
         saveState()
     }
     
@@ -83,12 +78,6 @@ class CanvasManager: ObservableObject {
         if let index = components.firstIndex(where: { $0.id == component.id }) {
             components[index].frame.origin.x += offset.width
             components[index].frame.origin.y += offset.height
-        }
-    }
-    
-    func resizeComponent(_ component: UIComponent, to newFrame: CGRect) {
-        if let index = components.firstIndex(where: { $0.id == component.id }) {
-            components[index].frame = newFrame
         }
     }
     

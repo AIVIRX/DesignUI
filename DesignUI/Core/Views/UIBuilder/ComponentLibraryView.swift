@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+#if os(macOS)
 struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
@@ -71,13 +71,14 @@ struct ComponentLibraryView: View {
             
             // Components grid
             ScrollView {
+                // Compact, adaptive grid
                 LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 8),
-                    GridItem(.flexible(), spacing: 8)
+                    GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 8)
                 ], spacing: 8) {
                     ForEach(filteredComponents) { componentType in
                         ComponentLibraryItem(
                             componentType: componentType,
+                            isFirstComponent: canvasManager.components.isEmpty,
                             onAdd: { component in
                                 print("Adding component: \(component.type.rawValue) with frame: \(component.frame)")
                                 // Check if there's a selected container component
@@ -95,7 +96,7 @@ struct ComponentLibraryView: View {
                         )
                     }
                 }
-                .padding(16)
+                .padding(12)
             }
         }
     }
@@ -125,51 +126,54 @@ struct CategoryButton: View {
 
 struct ComponentLibraryItem: View {
     let componentType: ComponentType
+    let isFirstComponent: Bool
     let onAdd: (UIComponent) -> Void
     
     @State private var isPressed = false
+    @State private var isHovering = false
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             // Icon
             Image(systemName: componentType.icon)
-                .font(.system(size: 24, weight: .medium))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.accentColor)
-                .frame(width: 32, height: 32)
+                .frame(width: 28, height: 28)
             
             // Title
             Text(componentType.rawValue)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
             
             // Category
             Text(componentType.category.rawValue)
-                .font(.system(size: 10))
+                .font(.system(size: 9))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(1)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .aspectRatio(1, contentMode: .fit)
-        .padding(12)
+        .frame(maxWidth: .infinity)
+        .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isPressed ? Color(NSColor.selectedControlColor) : Color(NSColor.controlBackgroundColor))
+                .fill(isPressed ? Color.accentColor.opacity(0.25) : (isHovering ? Color(NSColor.controlBackgroundColor).opacity(0.9) : Color(NSColor.controlBackgroundColor)))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+                .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(NSColor.separatorColor), lineWidth: 0.7)
         )
-        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .scaleEffect(isPressed ? 0.97 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isPressed)
+        .onHover { isHovering = $0 }
         .onTapGesture {
-            // Create and add component to canvas with default position
+            // Create and add component to canvas. First component centers (0,0 relies on renderer fallback), subsequent at a small offset.
+            let defaultOrigin = isFirstComponent ? CGPoint(x: 0, y: 0) : CGPoint(x: 100, y: 100)
             let component = UIComponent(
                 type: componentType,
                 properties: UIComponent.defaultProperties(for: componentType),
-                frame: CGRect(x: 100, y: 100, width: 0, height: 0) // Default position, natural size
+                frame: CGRect(origin: defaultOrigin, size: .zero)
             )
             onAdd(component)
         }
@@ -180,20 +184,16 @@ struct ComponentLibraryItem: View {
                 }
                 .onEnded { _ in
                     isPressed = false
-                    // Create and add component to canvas with default position
+                    // Create and add component to canvas. First component centers (0,0 relies on renderer fallback), subsequent at a small offset.
+                    let defaultOrigin = isFirstComponent ? CGPoint(x: 0, y: 0) : CGPoint(x: 100, y: 100)
                     let component = UIComponent(
                         type: componentType,
                         properties: UIComponent.defaultProperties(for: componentType),
-                        frame: CGRect(x: 100, y: 100, width: 0, height: 0) // Default position, natural size
+                        frame: CGRect(origin: defaultOrigin, size: .zero)
                     )
                     onAdd(component)
                 }
         )
     }
 }
-
-
-#Preview {
-    ComponentLibraryView(selectedComponent: .constant(nil), canvasManager: CanvasManager())
-        .frame(width: 280, height: 600)
-}
+#endif

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+#if os(macOS)
 struct CodePreviewView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Environment(\.dismiss) private var dismiss
@@ -98,9 +98,4 @@ struct CompleteFileCode: View {
         }
     }
 }
-
-#Preview {
-    let canvasManager = CanvasManager()
-    
-    return CodePreviewView(canvasManager: canvasManager)
-}
+#endif
