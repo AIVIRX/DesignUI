@@ -4,16 +4,6 @@
     "" : {
 
     },
-    "(%lld, %lld)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "(%1$lld, %2$lld)"
-          }
-        }
-      }
-    },
     "@%@" : {
       "localizations" : {
         "ar" : {
@@ -519,16 +509,6 @@
     },
     "%lld" : {
 
-    },
-    "%lld × %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld × %2$lld"
-          }
-        }
-      }
     },
     "%lld/20" : {
 
@@ -1832,9 +1812,6 @@
     "Complete Setup" : {
 
     },
-    "Component Info" : {
-
-    },
     "Components" : {
 
     },
@@ -2098,6 +2075,9 @@
 
     },
     "Creating Profile..." : {
+
+    },
+    "Default" : {
 
     },
     "Delete" : {
@@ -2599,9 +2579,6 @@
           }
         }
       }
-    },
-    "Deselect" : {
-
     },
     "Display Name" : {
       "localizations" : {
@@ -3393,6 +3370,9 @@
 
     },
     "Height" : {
+
+    },
+    "Hello World" : {
 
     },
     "Hide" : {
@@ -5453,9 +5433,6 @@
 
     },
     "Pick a unique username that represents you.\nThis will be your public identity on Dock UI." : {
-
-    },
-    "Position:" : {
 
     },
     "Premium" : {
@@ -9274,13 +9251,7 @@
     "Size" : {
 
     },
-    "Size:" : {
-
-    },
     "Style" : {
-
-    },
-    "SUGGESTED MODIFIERS" : {
 
     },
     "Support Us" : {
@@ -10042,9 +10013,6 @@
     "Trailing" : {
 
     },
-    "Type:" : {
-
-    },
     "Undo" : {
 
     },
@@ -10801,9 +10769,6 @@
         }
       }
     },
-    "Visible" : {
-
-    },
     "VStack" : {
 
     },
@@ -11074,9 +11039,6 @@
           }
         }
       }
-    },
-    "Z-Index:" : {
-
     },
     "ZStack" : {
 

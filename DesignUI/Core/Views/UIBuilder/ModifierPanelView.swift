@@ -61,9 +61,6 @@ struct ModifierPanelView: View {
                     }
                 }
             }
-            
-            // Suggested Modifiers
-            SuggestedModifiersView(component: component)
         }
         .padding(16)
         .background(Color(NSColor.controlBackgroundColor))
@@ -147,82 +144,6 @@ struct ModifierItemView: View {
         .sheet(isPresented: $showingEditor) {
             ModifierEditorView(component: component, modifier: .constant(modifier))
         }
-    }
-}
-
-struct SuggestedModifiersView: View {
-    @ObservedObject var component: UIComponent
-    
-    private var suggestedModifiers: [ModifierType] {
-        let appliedTypes = Set(component.modifiers.map { $0.type })
-        return ModifierType.allCases.filter { !appliedTypes.contains($0) }
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("SUGGESTED MODIFIERS")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            
-            LazyVStack(spacing: 8) {
-                ForEach(suggestedModifiers.prefix(5)) { modifierType in
-                    SuggestedModifierItemView(
-                        modifierType: modifierType,
-                        onAdd: {
-                            let modifier = ComponentModifier(type: modifierType)
-                            component.addModifier(modifier)
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-struct SuggestedModifierItemView: View {
-    let modifierType: ModifierType
-    let onAdd: () -> Void
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            // Modifier icon
-            Image(systemName: modifierType.icon)
-                .font(.caption)
-                .foregroundColor(.blue)
-                .frame(width: 16, height: 16)
-            
-            // Modifier info
-            VStack(alignment: .leading, spacing: 2) {
-                Text(modifierType.rawValue)
-                    .font(.caption)
-                    .foregroundColor(.blue)
-                
-                Text(modifierType.description)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            // Add button
-            Button(action: onAdd) {
-                Image(systemName: "plus")
-                    .font(.caption)
-                    .foregroundColor(.blue)
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(NSColor.controlBackgroundColor))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
-        )
     }
 }
 
@@ -333,21 +254,5 @@ struct ModifierTypeItemView: View {
                 .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
         )
     }
-}
-
-#Preview {
-    let component = UIComponent(
-        type: .text,
-        properties: [
-            ComponentProperty(key: "text", type: .string, value: "Hello World", defaultValue: "Hello World")
-        ],
-        modifiers: [
-            ComponentModifier(type: .frame, properties: ["width": 200, "height": 50]),
-            ComponentModifier(type: .padding, properties: ["top": 16, "leading": 16, "bottom": 16, "trailing": 16])
-        ]
-    )
-    
-    return ModifierPanelView(component: component)
-        .frame(width: 280, height: 400)
 }
 #endif

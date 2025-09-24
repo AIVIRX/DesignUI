@@ -19,14 +19,6 @@ struct PropertiesPanelView: View {
                     .font(.headline)
                 
                 Spacer()
-                
-                if selectedComponent != nil {
-                    Button(action: { selectedComponent = nil }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 12))
-                    }
-                    .help("Deselect")
-                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -38,15 +30,9 @@ struct PropertiesPanelView: View {
             if let component = selectedComponent {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        // Component info
-                        ComponentInfoSection(component: component)
-                        
                         // Properties
                         PropertiesSection(component: component)
-                        
-                        // Style properties
-                        StyleSection(component: component)
-                        
+                                                
                         // Modifiers
                         ModifierPanelView(component: component)
                     }
@@ -75,107 +61,26 @@ struct PropertiesPanelView: View {
     }
 }
 
-struct ComponentInfoSection: View {
-    @ObservedObject var component: UIComponent
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Component Info")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text("Type:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text(component.type.rawValue)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                }
-                
-                HStack {
-                    Text("Position:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("(\(Int(component.frame.origin.x)), \(Int(component.frame.origin.y)))")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                }
-                
-                HStack {
-                    Text("Size:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("\(Int(component.frame.width)) × \(Int(component.frame.height))")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                }
-            }
-            .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(NSColor.controlBackgroundColor))
-            )
-        }
-    }
-}
-
 struct PropertiesSection: View {
     @ObservedObject var component: UIComponent
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Properties")
-                .font(.subheadline)
+            Text(component.type.rawValue)
+                .font(.headline)
                 .fontWeight(.semibold)
             
-            VStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
                 ForEach(component.properties) { property in
                     PropertyEditor(property: property, component: component)
                 }
             }
-        }
-    }
-}
-
-struct StyleSection: View {
-    @ObservedObject var component: UIComponent
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Style")
-                .font(.subheadline)
-                .fontWeight(.semibold)
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(.gray.opacity(0.2))
+            )
             
-            VStack(spacing: 8) {
-                // Visibility
-                HStack {
-                    Toggle("Visible", isOn: Binding(
-                        get: { component.isVisible },
-                        set: { component.isVisible = $0 }
-                    ))
-                    .toggleStyle(SwitchToggleStyle())
-                }
-                
-                // Z-Index
-                HStack {
-                    Text("Z-Index:")
-                        .font(.caption)
-                    
-                    Slider(value: Binding(
-                        get: { Double(component.zIndex) },
-                        set: { component.zIndex = Int($0) }
-                    ), in: 0...100)
-                    
-                    Text("\(component.zIndex)")
-                        .font(.caption)
-                        .frame(width: 30, alignment: .trailing)
-                }
-            }
         }
     }
 }
@@ -183,20 +88,17 @@ struct StyleSection: View {
 struct PropertyEditor: View {
     var property: ComponentProperty
     @ObservedObject var component: UIComponent
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(property.key.capitalized)
-                .font(.caption)
-                .fontWeight(.medium)
-            
             switch property.type {
             case .string:
-                TextField(property.key, text: Binding(
+                TextField("Hello World", text: Binding(
                     get: { property.value as? String ?? "" },
                     set: { component.setProperty(key: property.key, value: $0) }
                 ))
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .font(.headline).fontWeight(.regular)
+                .padding(4)
+                .textFieldStyle(.plain)
                 
             case .number:
                 TextField(property.key, value: Binding(
@@ -239,6 +141,61 @@ struct PropertyEditor: View {
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
+                
+            case .segmentedControl:
+                Picker(property.key, selection: Binding(
+                    get: { property.value as? String ?? "center" },
+                    set: { component.setProperty(key: property.key, value: $0) }
+                )) {
+                    ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                        Text(option.capitalized).tag(option)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                
+            case .dropdown:
+                HStack {
+                    Text(property.key.capitalized)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text(property.value as? String ?? "Default")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // TODO: Show dropdown menu
+                }
+                
+            case .spacing:
+                HStack {
+                    Text(property.key.capitalized)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text(property.value as? String ?? "Default")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // TODO: Show spacing picker
+                }
                 
             default:
                 Text("Unsupported property type")

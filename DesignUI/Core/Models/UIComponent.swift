@@ -136,6 +136,8 @@ enum PropertyType {
     case border
     case gradient
     case animation
+    case segmentedControl
+    case dropdown
 }
 
 // MARK: - Component Property
@@ -249,7 +251,7 @@ extension UIComponent {
             return [
                 ComponentProperty(key: "imageName", type: .string, value: "photo", defaultValue: "photo"),
                 ComponentProperty(key: "resizable", type: .boolean, value: true, defaultValue: true),
-                ComponentProperty(key: "aspectRatio", type: .string, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
+                ComponentProperty(key: "aspectRatio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
             ]
         case .button:
             return [
@@ -258,8 +260,20 @@ extension UIComponent {
                 ComponentProperty(key: "foregroundColor", type: .color, value: Color.white, defaultValue: Color.white),
                 ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
             ]
-        case .vstack, .hstack, .zstack:
-            return []
+        case .vstack:
+            return [
+                ComponentProperty(key: "alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["leading", "center", "trailing"]),
+                ComponentProperty(key: "spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+            ]
+        case .hstack:
+            return [
+                ComponentProperty(key: "alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
+                ComponentProperty(key: "spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+            ]
+        case .zstack:
+            return [
+                ComponentProperty(key: "alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"])
+            ]
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
             return [
                 ComponentProperty(key: "fill", type: .color, value: Color.gray, defaultValue: Color.gray),
@@ -268,9 +282,36 @@ extension UIComponent {
                 ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
             ]
         case .spacer:
-            return []
+            return [
+                ComponentProperty(key: "minLength", type: .number, value: 0.0, defaultValue: 0.0)
+            ]
         case .scrollView:
-            return []
+            return [
+                ComponentProperty(key: "axis", type: .segmentedControl, value: "vertical", defaultValue: "vertical", options: ["vertical", "horizontal"]),
+                ComponentProperty(key: "showsIndicators", type: .boolean, value: true, defaultValue: true)
+            ]
+        case .list:
+            return [
+                ComponentProperty(key: "style", type: .dropdown, value: "plain", defaultValue: "plain", options: ["plain", "grouped", "inset", "insetGrouped"]),
+                ComponentProperty(key: "separatorStyle", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "none", "singleLine"])
+            ]
+        case .navigationView:
+            return [
+                ComponentProperty(key: "style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "stack", "columns"])
+            ]
+        case .tabView:
+            return [
+                ComponentProperty(key: "style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "page"])
+            ]
+        case .form:
+            return [
+                ComponentProperty(key: "style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "grouped"])
+            ]
+        case .section:
+            return [
+                ComponentProperty(key: "headerStyle", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "prominent"]),
+                ComponentProperty(key: "footerStyle", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "prominent"])
+            ]
         default:
             return []
         }

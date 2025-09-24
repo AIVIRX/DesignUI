@@ -110,7 +110,8 @@ struct UIBuilderView: View {
                         showCodePreview: $showCodePreview,
                         showPropertiesPanel: $showPropertiesPanel,
                         canvasManager: canvasManager,
-                        selectedDevice: $selectedDevice
+                        selectedDevice: $selectedDevice,
+                        baseZoomLevel: $baseZoomLevel
                     )
                     
                     Divider()
@@ -166,6 +167,7 @@ struct UIBuilderToolbar: View {
     @Binding var showPropertiesPanel: Bool
     let canvasManager: CanvasManager
     @Binding var selectedDevice: DevicePreset
+    @Binding var baseZoomLevel: CGFloat
     
     var body: some View {
         HStack {
@@ -208,6 +210,8 @@ struct UIBuilderToolbar: View {
                 Button(action: { 
                     // Reset to optimal zoom for current device
                     canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: CGSize(width: 800, height: 600))
+                    // Update baseZoomLevel to match the reset zoom level
+                    baseZoomLevel = canvasManager.zoomLevel
                 }) {
                     Image(systemName: "1.magnifyingglass")
                 }
@@ -306,6 +310,8 @@ struct CanvasView: View {
                                     )
                                 }
                             }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipped() // Prevent content from expanding beyond the screen bounds
                             .onTapGesture {
                                 // Deselect when clicking empty space
                                 selectedComponent = nil
