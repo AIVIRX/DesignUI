@@ -128,12 +128,13 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-struct ComponentModifier: Identifiable, Codable {
-    let id = UUID()
+struct ComponentModifier: Identifiable, Codable, Equatable {
+    let id: UUID
     let type: ModifierType
     var properties: [String: Any]
     
     init(type: ModifierType, properties: [String: Any] = [:]) {
+        self.id = UUID()
         self.type = type
         self.properties = properties
     }
@@ -145,11 +146,12 @@ struct ComponentModifier: Identifiable, Codable {
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        type = try container.decode(ModifierType.self, forKey: .type)
+        self.id = UUID() // Generate new ID for decoded instances
+        self.type = try container.decode(ModifierType.self, forKey: .type)
         
         // Decode properties as [String: Any]
         let propertiesDict = try container.decode([String: AnyCodable].self, forKey: .properties)
-        properties = propertiesDict.mapValues { $0.value }
+        self.properties = propertiesDict.mapValues { $0.value }
     }
     
     func encode(to encoder: Encoder) throws {
@@ -159,6 +161,11 @@ struct ComponentModifier: Identifiable, Codable {
         // Encode properties as [String: AnyCodable]
         let propertiesDict = properties.mapValues { AnyCodable($0) }
         try container.encode(propertiesDict, forKey: .properties)
+    }
+    
+    // MARK: - Equatable Implementation
+    static func == (lhs: ComponentModifier, rhs: ComponentModifier) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 

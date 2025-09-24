@@ -13,6 +13,8 @@
 		EC298D0B2D430762008DC36B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EC298D0A2D430762008DC36B /* GoogleService-Info.plist */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
 		EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2D21272CBF183000FA192D /* CommunityPosts.swift */; };
+		EC39712C2E83B1D100DF0EAD /* DesignBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC39712B2E83B1D100DF0EAD /* DesignBrowserView.swift */; };
+		EC39712E2E83B1DC00DF0EAD /* DesignFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC39712D2E83B1DC00DF0EAD /* DesignFile.swift */; };
 		EC3D00382E7DC820005AA8FA /* ModifierPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D00372E7DC820005AA8FA /* ModifierPanelView.swift */; };
 		EC3D003A2E7DC858005AA8FA /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D00392E7DC858005AA8FA /* Modifier.swift */; };
 		EC3D003C2E7DCCD1005AA8FA /* ModifierEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */; };
@@ -89,6 +91,8 @@
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		EC2D21272CBF183000FA192D /* CommunityPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPosts.swift; sourceTree = "<group>"; };
 		EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = ConfigStore.storekit; sourceTree = "<group>"; };
+		EC39712B2E83B1D100DF0EAD /* DesignBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignBrowserView.swift; sourceTree = "<group>"; };
+		EC39712D2E83B1DC00DF0EAD /* DesignFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignFile.swift; sourceTree = "<group>"; };
 		EC3D00372E7DC820005AA8FA /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
 		EC3D00392E7DC858005AA8FA /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
 		EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierEditorView.swift; sourceTree = "<group>"; };
@@ -231,6 +235,7 @@
 		ECC8DC412E7C605200026DAA /* UIBuilder */ = {
 			isa = PBXGroup;
 			children = (
+				EC39712B2E83B1D100DF0EAD /* DesignBrowserView.swift */,
 				EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */,
 				EC3D00372E7DC820005AA8FA /* ModifierPanelView.swift */,
 				ECC8DC3B2E7C605200026DAA /* CodePreviewView.swift */,
@@ -274,6 +279,7 @@
 		ECD13FDA2C18BC3200105B3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				EC39712D2E83B1DC00DF0EAD /* DesignFile.swift */,
 				EC3D00392E7DC858005AA8FA /* Modifier.swift */,
 				ECC8DC4C2E7C60A400026DAA /* UIComponent.swift */,
 				ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */,
@@ -522,6 +528,7 @@
 			files = (
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				EC87D8172DB9AC8A0091FAFF /* RecipeRow.swift in Sources */,
+				EC39712E2E83B1DC00DF0EAD /* DesignFile.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */,
 				EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */,
@@ -547,6 +554,7 @@
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
 				EC3D003A2E7DC858005AA8FA /* Modifier.swift in Sources */,
+				EC39712C2E83B1D100DF0EAD /* DesignBrowserView.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,

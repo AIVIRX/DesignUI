@@ -82,12 +82,20 @@ enum DevicePreset: String, CaseIterable, Identifiable {
 }
 
 struct UIBuilderView: View {
+    @ObservedObject var designFile: DesignFile
+    @ObservedObject var designManager: DesignManager
     @StateObject private var canvasManager = CanvasManager()
     @State private var selectedComponent: UIComponent?
     @State private var showCodePreview = false
     @State private var showPropertiesPanel = true
     @State private var selectedDevice: DevicePreset = .iphone16Pro
     @State private var baseZoomLevel: CGFloat = 1.0
+    
+    // Initialize with DesignFile and DesignManager
+    init(designFile: DesignFile, designManager: DesignManager) {
+        self.designFile = designFile
+        self.designManager = designManager
+    }
     
     
     var body: some View {
@@ -157,6 +165,20 @@ struct UIBuilderView: View {
         .navigationTitle("SwiftUI Builder")
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
+        }
+        .onAppear {
+            // Load components from design file
+            canvasManager.components = designFile.components
+        }
+        .onChange(of: canvasManager.components) { _ in
+            // Auto-save when components change
+            designFile.components = canvasManager.components
+            designFile.save()
+        }
+        .onChange(of: selectedComponent) { _ in
+            // Auto-save when selection changes (in case it affects the design)
+            designFile.components = canvasManager.components
+            designFile.save()
         }
     }
 }

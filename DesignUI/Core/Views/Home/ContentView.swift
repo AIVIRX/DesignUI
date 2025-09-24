@@ -153,7 +153,7 @@ struct ContentView: View {
                     case 4:
                         StoreView()
                     case 5:
-                        UIBuilderView()
+                        DesignBrowserView()
                     default:
                         Text("Select a view")
                     }
@@ -258,7 +258,7 @@ struct ContentView: View {
                 case 4:
                     StoreView()
                 case 5:
-                    UIBuilderView()
+                    DesignBrowserView()
                 default:
                     Text("Select a view")
                 }
@@ -332,7 +332,7 @@ struct ContentView: View {
         case .sfIcons:
             return AnyView(SFIconsView())
         case .uiBuilder:
-            return AnyView(UIBuilderView())
+            return AnyView(DesignBrowserView())
         }
     }
 }

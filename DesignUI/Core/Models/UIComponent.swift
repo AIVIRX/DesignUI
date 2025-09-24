@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 // MARK: - Component Types
-enum ComponentType: String, CaseIterable, Identifiable {
+enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case text = "Text"
     case image = "Image"
     case button = "Button"
@@ -117,7 +117,7 @@ enum ComponentCategory: String, CaseIterable {
 }
 
 // MARK: - Property Types
-enum PropertyType {
+enum PropertyType: Codable {
     case string
     case number
     case boolean
@@ -141,8 +141,8 @@ enum PropertyType {
 }
 
 // MARK: - Component Property
-struct ComponentProperty: Identifiable {
-    let id = UUID()
+struct ComponentProperty: Identifiable, Codable, Equatable {
+    let id: UUID
     let key: String
     let type: PropertyType
     var value: Any
@@ -151,6 +151,7 @@ struct ComponentProperty: Identifiable {
     let isRequired: Bool
     
     init(key: String, type: PropertyType, value: Any, defaultValue: Any, options: [Any]? = nil, isRequired: Bool = false) {
+        self.id = UUID()
         self.key = key
         self.type = type
         self.value = value
@@ -158,11 +159,96 @@ struct ComponentProperty: Identifiable {
         self.options = options
         self.isRequired = isRequired
     }
+    
+    // MARK: - Codable Implementation
+    enum CodingKeys: String, CodingKey {
+        case id, key, type, value, defaultValue, options, isRequired
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.key = try container.decode(String.self, forKey: .key)
+        self.type = try container.decode(PropertyType.self, forKey: .type)
+        self.isRequired = try container.decode(Bool.self, forKey: .isRequired)
+        
+        // Decode value based on type
+        self.value = try Self.decodeAnyValue(from: container, forKey: .value, type: type)
+        self.defaultValue = try Self.decodeAnyValue(from: container, forKey: .defaultValue, type: type)
+        
+        // Decode options if present
+        if let optionsStrings = try container.decodeIfPresent([String].self, forKey: .options) {
+            self.options = optionsStrings
+        } else {
+            self.options = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(key, forKey: .key)
+        try container.encode(type, forKey: .type)
+        try container.encode(isRequired, forKey: .isRequired)
+        
+        // Encode value based on type
+        try Self.encodeAnyValue(value, to: &container, forKey: .value, type: type)
+        try Self.encodeAnyValue(defaultValue, to: &container, forKey: .defaultValue, type: type)
+        
+        // Encode options if present
+        if let options = options {
+            let optionsStrings = options.map { "\($0)" }
+            try container.encode(optionsStrings, forKey: .options)
+        }
+    }
+    
+    // Helper methods for encoding/decoding Any values
+    private static func encodeAnyValue(_ value: Any, to container: inout KeyedEncodingContainer<CodingKeys>, forKey key: CodingKeys, type: PropertyType) throws {
+        switch type {
+        case .string:
+            try container.encode(value as? String ?? "", forKey: key)
+        case .number:
+            try container.encode(value as? Double ?? 0.0, forKey: key)
+        case .boolean:
+            try container.encode(value as? Bool ?? false, forKey: key)
+        case .color:
+            // Convert Color to string representation
+            if let color = value as? Color {
+                try container.encode("\(color)", forKey: key)
+            } else {
+                try container.encode("", forKey: key)
+            }
+        default:
+            try container.encode("\(value)", forKey: key)
+        }
+    }
+    
+    private static func decodeAnyValue(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys, type: PropertyType) throws -> Any {
+        switch type {
+        case .string:
+            return try container.decode(String.self, forKey: key)
+        case .number:
+            return try container.decode(Double.self, forKey: key)
+        case .boolean:
+            return try container.decode(Bool.self, forKey: key)
+        case .color:
+            let colorString = try container.decode(String.self, forKey: key)
+            // Convert string back to Color (simplified - you might want to improve this)
+            return Color.primary // For now, return a default color
+        default:
+            return try container.decode(String.self, forKey: key)
+        }
+    }
+    
+    // MARK: - Equatable Implementation
+    static func == (lhs: ComponentProperty, rhs: ComponentProperty) -> Bool {
+        return lhs.id == rhs.id
+    }
 }
 
 // MARK: - UI Component Model
-class UIComponent: ObservableObject, Identifiable {
-    let id = UUID()
+class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
+    let id: UUID
     let type: ComponentType
     @Published var properties: [ComponentProperty]
     @Published var children: [UIComponent]
@@ -173,6 +259,7 @@ class UIComponent: ObservableObject, Identifiable {
     @Published var modifiers: [ComponentModifier]
     
     init(type: ComponentType, properties: [ComponentProperty] = [], children: [UIComponent] = [], frame: CGRect = .zero, modifiers: [ComponentModifier] = []) {
+        self.id = UUID()
         self.type = type
         self.properties = properties
         self.children = children
@@ -232,6 +319,42 @@ class UIComponent: ObservableObject, Identifiable {
     // MARK: - Code Generation
     func generateSwiftCode() -> String {
         return CodeGenerator.generateCode(for: self)
+    }
+    
+    // MARK: - Codable Implementation
+    enum CodingKeys: String, CodingKey {
+        case id, type, properties, children, frame, isSelected, isVisible, zIndex, modifiers
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.type = try container.decode(ComponentType.self, forKey: .type)
+        self.properties = try container.decode([ComponentProperty].self, forKey: .properties)
+        self.children = try container.decode([UIComponent].self, forKey: .children)
+        self.frame = try container.decode(CGRect.self, forKey: .frame)
+        self.isSelected = try container.decode(Bool.self, forKey: .isSelected)
+        self.isVisible = try container.decode(Bool.self, forKey: .isVisible)
+        self.zIndex = try container.decode(Int.self, forKey: .zIndex)
+        self.modifiers = try container.decode([ComponentModifier].self, forKey: .modifiers)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(type, forKey: .type)
+        try container.encode(properties, forKey: .properties)
+        try container.encode(children, forKey: .children)
+        try container.encode(frame, forKey: .frame)
+        try container.encode(isSelected, forKey: .isSelected)
+        try container.encode(isVisible, forKey: .isVisible)
+        try container.encode(zIndex, forKey: .zIndex)
+        try container.encode(modifiers, forKey: .modifiers)
+    }
+    
+    // MARK: - Equatable Implementation
+    static func == (lhs: UIComponent, rhs: UIComponent) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 
