@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, shop, uiBuilder
+    case templates, news, profile, sfIcons, shop
 }
 
 struct ContentView: View {
@@ -181,7 +181,6 @@ struct ContentView: View {
                 navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 4)
                 
                 // UI Builder Link
-                navigationLinkButton(viewType: .uiBuilder, label: "UI Builder", systemImage: "hammer.fill", menuItem: .uiBuilder, selectedIndex: $selectedIndex, currentIndex: 5)
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
@@ -331,8 +330,6 @@ struct ContentView: View {
             return AnyView(StoreView())
         case .sfIcons:
             return AnyView(SFIconsView())
-        case .uiBuilder:
-            return AnyView(DesignBrowserView())
         }
     }
 }

@@ -24,12 +24,6 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
     case clipShape = "Clip Shape"
     case mask = "Mask"
     case blur = "Blur"
-    case brightness = "Brightness"
-    case contrast = "Contrast"
-    case saturation = "Saturation"
-    case hueRotation = "Hue Rotation"
-    case grayscale = "Grayscale"
-    case sepia = "Sepia"
     
     var id: String { rawValue }
     
@@ -65,18 +59,6 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "Masks the view"
         case .blur:
             return "Blurs the view"
-        case .brightness:
-            return "Adjusts brightness"
-        case .contrast:
-            return "Adjusts contrast"
-        case .saturation:
-            return "Adjusts saturation"
-        case .hueRotation:
-            return "Rotates hue"
-        case .grayscale:
-            return "Converts to grayscale"
-        case .sepia:
-            return "Applies sepia effect"
         }
     }
     
@@ -112,18 +94,6 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "theatermasks"
         case .blur:
             return "viewfinder"
-        case .brightness:
-            return "sun.max"
-        case .contrast:
-            return "circle.lefthalf.filled"
-        case .saturation:
-            return "paintpalette"
-        case .hueRotation:
-            return "rotate.3d"
-        case .grayscale:
-            return "circle.grid.3x3"
-        case .sepia:
-            return "photo"
         }
     }
 }

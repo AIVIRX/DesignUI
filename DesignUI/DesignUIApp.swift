@@ -89,7 +89,6 @@ struct DesignUIApp: App {
         }
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)
-
     }
 }
 #endif

@@ -19,7 +19,6 @@
 		EC3D003A2E7DC858005AA8FA /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D00392E7DC858005AA8FA /* Modifier.swift */; };
 		EC3D003C2E7DCCD1005AA8FA /* ModifierEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */; };
 		EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D132D2E1DABCE00F659DB /* LargeHero.swift */; };
-		EC412F522E79F3A9001B923B /* CustomTextEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F512E79F3A9001B923B /* CustomTextEffect.swift */; };
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
 		EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC53EB7F2D91CD6300E175DB /* HapticManager.swift */; };
@@ -28,7 +27,6 @@
 		EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A12D57F4A600633392 /* LikedPostsView.swift */; };
 		EC5982A42D57F54000633392 /* GridColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A32D57F54000633392 /* GridColumns.swift */; };
 		EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */; };
-		EC66E8DE2E7B6B380047C8BB /* UsernameSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC66E8DD2E7B6B380047C8BB /* UsernameSelectionView.swift */; };
 		EC67B31C2E78785600416329 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = EC67B31B2E78785600416329 /* AppIcon.icon */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
@@ -97,7 +95,6 @@
 		EC3D00392E7DC858005AA8FA /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
 		EC3D003B2E7DCCD1005AA8FA /* ModifierEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierEditorView.swift; sourceTree = "<group>"; };
 		EC3D132D2E1DABCE00F659DB /* LargeHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHero.swift; sourceTree = "<group>"; };
-		EC412F512E79F3A9001B923B /* CustomTextEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextEffect.swift; sourceTree = "<group>"; };
 		EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollView.swift; sourceTree = "<group>"; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
@@ -108,7 +105,6 @@
 		EC5982A12D57F4A600633392 /* LikedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsView.swift; sourceTree = "<group>"; };
 		EC5982A32D57F54000633392 /* GridColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridColumns.swift; sourceTree = "<group>"; };
 		EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsViewModel.swift; sourceTree = "<group>"; };
-		EC66E8DD2E7B6B380047C8BB /* UsernameSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSelectionView.swift; sourceTree = "<group>"; };
 		EC67B31B2E78785600416329 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
@@ -223,15 +219,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		ECB9D09D2E78E68A000A88CE /* Onboarding */ = {
-			isa = PBXGroup;
-			children = (
-				EC412F512E79F3A9001B923B /* CustomTextEffect.swift */,
-				EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */,
-			);
-			path = Onboarding;
-			sourceTree = "<group>";
-		};
 		ECC8DC412E7C605200026DAA /* UIBuilder */ = {
 			isa = PBXGroup;
 			children = (
@@ -298,7 +285,6 @@
 			isa = PBXGroup;
 			children = (
 				ECC8DC412E7C605200026DAA /* UIBuilder */,
-				ECB9D09D2E78E68A000A88CE /* Onboarding */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
@@ -382,13 +368,13 @@
 		ECFF2C772D558CCA006A7FE6 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
-				EC66E8DD2E7B6B380047C8BB /* UsernameSelectionView.swift */,
 				ECFF2C782D55936B006A7FE6 /* ProfileView.swift */,
 				EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */,
 				EC5982A12D57F4A600633392 /* LikedPostsView.swift */,
 				ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */,
 				ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */,
 				EC9B43382D639B5500B5DBCB /* SignInView.swift */,
+				EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -550,7 +536,6 @@
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
-				EC66E8DE2E7B6B380047C8BB /* UsernameSelectionView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
 				EC3D003A2E7DC858005AA8FA /* Modifier.swift in Sources */,
@@ -569,7 +554,6 @@
 				ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */,
 				EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */,
 				F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */,
-				EC412F522E79F3A9001B923B /* CustomTextEffect.swift in Sources */,
 				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
 				EC3D003C2E7DCCD1005AA8FA /* ModifierEditorView.swift in Sources */,
 				ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */,

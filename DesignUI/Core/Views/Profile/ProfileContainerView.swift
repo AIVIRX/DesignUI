@@ -1,26 +1,16 @@
 import SwiftUI
 
 struct ProfileContainerView: View {
-    @StateObject private var authViewModel = AuthViewModel()
-    @AppStorage("hasRequestedPushPermission") private var hasRequestedPushPermission = false
-    
+    @StateObject private var authViewModel = AuthViewModel()    
     var body: some View {
         NavigationStack {
             if authViewModel.isAuthenticated {
-                if authViewModel.hasUsername {
-                    ProfileView()
-                        .environmentObject(authViewModel)
-                } else {
-                    UsernameSelectionView()
-                        .environmentObject(authViewModel)
-                }
+                ProfileView()
+                    .environmentObject(authViewModel)
             } else {
                 SignInView()
                     .environmentObject(authViewModel)
             }
-        }
-        .task {
-            await authViewModel.checkUsername()
         }
     }
 }

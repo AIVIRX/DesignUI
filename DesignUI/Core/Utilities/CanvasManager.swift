@@ -80,6 +80,94 @@ class CanvasManager: ObservableObject {
             components[index].frame.origin.y += offset.height
         }
     }
+
+    // MARK: - Hierarchy Manipulation
+    /// Move a component in the hierarchy to a new parent and position
+    func moveComponentInHierarchy(componentId: UUID, newParentId: UUID?, toIndex: Int) {
+        guard let moved = removeComponentRecursively(id: componentId) else { return }
+
+        if let parentId = newParentId, let parent = findComponent(by: parentId) {
+            // Only allow inserting into container-like components
+            if canAcceptChildren(parent) {
+                let safeIndex = max(0, min(toIndex, parent.children.count))
+                parent.children.insert(moved, at: safeIndex)
+            } else {
+                // Fallback: insert after parent in its parent list
+                if let grandParentId = findParentId(of: parentId), let grandParent = findComponent(by: grandParentId) {
+                    let parentIndex = grandParent.children.firstIndex(where: { $0.id == parentId }) ?? grandParent.children.count
+                    grandParent.children.insert(moved, at: min(parentIndex + 1, grandParent.children.count))
+                } else {
+                    let parentIndex = components.firstIndex(where: { $0.id == parentId }) ?? components.count
+                    components.insert(moved, at: min(parentIndex + 1, components.count))
+                }
+            }
+        } else {
+            let safeIndex = max(0, min(toIndex, components.count))
+            components.insert(moved, at: safeIndex)
+        }
+
+        saveState()
+    }
+
+    /// Find parent id for a node anywhere in the tree
+    private func findParentId(of targetId: UUID) -> UUID? {
+        for root in components {
+            if root.children.contains(where: { $0.id == targetId }) {
+                return root.id
+            }
+            if let id = findParentIdRec(in: root, targetId: targetId) { return id }
+        }
+        return nil
+    }
+
+    private func findParentIdRec(in node: UIComponent, targetId: UUID) -> UUID? {
+        if node.children.contains(where: { $0.id == targetId }) { return node.id }
+        for child in node.children {
+            if let id = findParentIdRec(in: child, targetId: targetId) { return id }
+        }
+        return nil
+    }
+
+    /// Find a component by id anywhere in the hierarchy
+    func findComponent(by id: UUID) -> UIComponent? {
+        if let found = components.first(where: { $0.id == id }) { return found }
+        for root in components {
+            if let found = findComponentRecursively(in: root, id: id) { return found }
+        }
+        return nil
+    }
+
+    private func findComponentRecursively(in node: UIComponent, id: UUID) -> UIComponent? {
+        if node.id == id { return node }
+        for child in node.children {
+            if let found = findComponentRecursively(in: child, id: id) { return found }
+        }
+        return nil
+    }
+
+    /// Remove a component by id anywhere in the hierarchy and return it
+    @discardableResult
+    private func removeComponentRecursively(id: UUID) -> UIComponent? {
+        if let index = components.firstIndex(where: { $0.id == id }) {
+            let removed = components.remove(at: index)
+            return removed
+        }
+        for root in components {
+            if let removed = removeComponentRecursively(in: root, id: id) { return removed }
+        }
+        return nil
+    }
+
+    private func removeComponentRecursively(in node: UIComponent, id: UUID) -> UIComponent? {
+        if let index = node.children.firstIndex(where: { $0.id == id }) {
+            let removed = node.children.remove(at: index)
+            return removed
+        }
+        for child in node.children {
+            if let removed = removeComponentRecursively(in: child, id: id) { return removed }
+        }
+        return nil
+    }
     
     func duplicateComponent(_ component: UIComponent) {
         let duplicatedComponent = UIComponent(
@@ -183,9 +271,7 @@ class CanvasManager: ObservableObject {
     private func saveState() {
         let state = CanvasState(
             components: components.map { $0 },
-            selectedComponentId: selectedComponent?.id,
-            zoomLevel: zoomLevel,
-            canvasOffset: canvasOffset
+            selectedComponentId: selectedComponent?.id
         )
         
         undoStack.append(state)
@@ -202,9 +288,7 @@ class CanvasManager: ObservableObject {
         
         let currentState = CanvasState(
             components: components.map { $0 },
-            selectedComponentId: selectedComponent?.id,
-            zoomLevel: zoomLevel,
-            canvasOffset: canvasOffset
+            selectedComponentId: selectedComponent?.id
         )
         redoStack.append(currentState)
         
@@ -217,9 +301,7 @@ class CanvasManager: ObservableObject {
         
         let currentState = CanvasState(
             components: components.map { $0 },
-            selectedComponentId: selectedComponent?.id,
-            zoomLevel: zoomLevel,
-            canvasOffset: canvasOffset
+            selectedComponentId: selectedComponent?.id
         )
         undoStack.append(currentState)
         
@@ -230,8 +312,6 @@ class CanvasManager: ObservableObject {
     private func restoreState(_ state: CanvasState) {
         components = state.components
         selectedComponent = components.first { $0.id == state.selectedComponentId }
-        zoomLevel = state.zoomLevel
-        canvasOffset = state.canvasOffset
     }
     
     // MARK: - Export
@@ -261,38 +341,10 @@ class CanvasManager: ObservableObject {
         
         return code
     }
-    
-    func exportCodeToFile() {
-        let code = exportCode()
-        
-        #if os(macOS)
-        DispatchQueue.main.async {
-            let savePanel = NSSavePanel()
-            savePanel.allowedContentTypes = [.swiftSource]
-            savePanel.nameFieldStringValue = "GeneratedView.swift"
-            savePanel.title = "Export SwiftUI Code"
-            savePanel.message = "Choose where to save the generated SwiftUI code"
-            
-            let response = savePanel.runModal()
-            if response == .OK {
-                if let url = savePanel.url {
-                    do {
-                        try code.write(to: url, atomically: true, encoding: .utf8)
-                        print("Code exported successfully to: \(url.path)")
-                    } catch {
-                        print("Failed to export code: \(error.localizedDescription)")
-                    }
-                }
-            }
-        }
-        #endif
-    }
 }
 
 // MARK: - Canvas State
 struct CanvasState {
     let components: [UIComponent]
     let selectedComponentId: UUID?
-    let zoomLevel: CGFloat
-    let canvasOffset: CGSize
 }

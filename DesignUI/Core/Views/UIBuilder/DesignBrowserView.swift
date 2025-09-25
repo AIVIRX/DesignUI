@@ -104,19 +104,16 @@ struct DesignBrowserView: View {
         } message: {
             Text("Are you sure you want to delete this design? This action cannot be undone.")
         }
-        .background(
-            NavigationLink(
-                destination: designManager.currentDesign != nil ? 
-                    AnyView(UIBuilderView(designFile: designManager.currentDesign!, designManager: designManager)) : 
-                    AnyView(EmptyView()),
-                isActive: Binding(
-                    get: { designManager.currentDesign != nil },
-                    set: { if !$0 { designManager.closeCurrentDesign() } }
-                )
-            ) {
+        .navigationDestination(isPresented: Binding(
+            get: { designManager.currentDesign != nil },
+            set: { if !$0 { designManager.closeCurrentDesign() } }
+        )) {
+            if let currentDesign = designManager.currentDesign {
+                UIBuilderView(designFile: currentDesign, designManager: designManager)
+            } else {
                 EmptyView()
             }
-        )
+        }
     }
 }
 
@@ -225,7 +222,6 @@ struct NewDesignSheet: View {
             }
             .padding()
             .frame(width: 400, height: 200)
-            .navigationTitle("New Design")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -242,8 +238,4 @@ struct NewDesignSheet: View {
             }
         }
     }
-}
-
-#Preview {
-    DesignBrowserView()
 }

@@ -7,6 +7,12 @@
 
 import SwiftUI
 #if os(macOS)
+extension Notification.Name {
+    static let canvasUndo = Notification.Name("canvas.undo")
+    static let canvasRedo = Notification.Name("canvas.redo")
+}
+#endif
+#if os(macOS)
 enum DevicePreset: String, CaseIterable, Identifiable {
     // iPhone 16 Series (Latest)
     case iphone16 = "iPhone 16"
@@ -112,19 +118,9 @@ struct UIBuilderView: View {
                 Divider()
                 
                 // Main Canvas Area
-                VStack(spacing: 0) {
-                    // Toolbar
-                    UIBuilderToolbar(
-                        showCodePreview: $showCodePreview,
-                        showPropertiesPanel: $showPropertiesPanel,
-                        canvasManager: canvasManager,
-                        selectedDevice: $selectedDevice,
-                        baseZoomLevel: $baseZoomLevel
-                    )
-                    
-                    Divider()
-                    
-                    HStack(spacing: 0) {
+                VStack(spacing: 0) {                    
+                    ZStack {
+                        HStack(spacing: 0) {
                         // Canvas
                         CanvasView(
                             canvasManager: canvasManager,
@@ -158,6 +154,20 @@ struct UIBuilderView: View {
                             .frame(width: 280)
                             .background(Color(NSColor.controlBackgroundColor))
                         }
+                        }
+                        
+                        // Bottom right overlay controls
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                CanvasControlsOverlay(
+                                    selectedDevice: $selectedDevice,
+                                    canvasManager: canvasManager,
+                                    baseZoomLevel: $baseZoomLevel
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -170,101 +180,76 @@ struct UIBuilderView: View {
             // Load components from design file
             canvasManager.components = designFile.components
         }
-        .onChange(of: canvasManager.components) { _ in
+        .onChange(of: canvasManager.components) { _, _ in
             // Auto-save when components change
             designFile.components = canvasManager.components
             designFile.save()
         }
-        .onChange(of: selectedComponent) { _ in
+        .onChange(of: selectedComponent) { _, _ in
             // Auto-save when selection changes (in case it affects the design)
             designFile.components = canvasManager.components
             designFile.save()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+            canvasManager.undo()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+            canvasManager.redo()
+        }
     }
 }
 
-// MARK: - Toolbar
-struct UIBuilderToolbar: View {
-    @Binding var showCodePreview: Bool
-    @Binding var showPropertiesPanel: Bool
-    let canvasManager: CanvasManager
+
+
+// MARK: - Canvas Controls Overlay
+struct CanvasControlsOverlay: View {
     @Binding var selectedDevice: DevicePreset
+    let canvasManager: CanvasManager
     @Binding var baseZoomLevel: CGFloat
     
     var body: some View {
-        HStack {
-            // Left side - View controls
-            HStack(spacing: 12) {
-                Button(action: { canvasManager.undo() }) {
-                    Image(systemName: "arrow.uturn.backward")
+        HStack(spacing: 8) {
+            // Device picker
+            Menu {
+                ForEach(DevicePreset.allCases) { preset in
+                    Button(preset.rawValue) {
+                        selectedDevice = preset
+                    }
                 }
-                .disabled(!canvasManager.canUndo)
-                .help("Undo")
-                
-                Button(action: { canvasManager.redo() }) {
-                    Image(systemName: "arrow.uturn.forward")
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "iphone")
+                        .font(.system(size: 12))
+                    Text(selectedDevice.rawValue)
+                        .font(.system(size: 12, weight: .medium))
                 }
-                .disabled(!canvasManager.canRedo)
-                .help("Redo")
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
             }
+            .buttonStyle(.bordered)
+            .help("Choose a device preset")
             
-            Spacer()
-            
-            // Center - Device picker and Canvas controls
-            HStack(spacing: 12) {
-                Menu {
-                    ForEach(DevicePreset.allCases) { preset in
-                        Button(preset.rawValue) {
-                            selectedDevice = preset
-                        }
-                    }
-                } label: {
-                    HStack {
-                        Text(selectedDevice.rawValue)
-                    }
-                }
-                .frame(minWidth: 150)
-                .help("Choose a device preset")
-                
-                Divider()
-                    .frame(height: 20)
-                
-                Button(action: { 
-                    // Reset to optimal zoom for current device
-                    canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: CGSize(width: 800, height: 600))
-                    // Update baseZoomLevel to match the reset zoom level
-                    baseZoomLevel = canvasManager.zoomLevel
-                }) {
-                    Image(systemName: "1.magnifyingglass")
-                }
-                .help("Reset Zoom")
-                
+            // Reset zoom button
+            Button(action: { 
+                // Reset to optimal zoom for current device
+                canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: CGSize(width: 800, height: 600))
+                // Update baseZoomLevel to match the reset zoom level
+                baseZoomLevel = canvasManager.zoomLevel
+            }) {
+                Image(systemName: "1.magnifyingglass")
+                    .font(.system(size: 12))
             }
-            
-            Spacer()
-            
-            // Right side - Export and preview
-            HStack(spacing: 12) {
-                Button(action: { showCodePreview = true }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left.forwardslash.chevron.right")
-                        Text("Code")
-                    }
-                }
-                .help("Show Generated Code")
-                
-                Button(action: { canvasManager.exportCodeToFile() }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "square.and.arrow.down")
-                        Text("Export")
-                    }
-                }
-                .help("Export SwiftUI Code")
-            }
+            .buttonStyle(.bordered)
+            .help("Reset Zoom")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(Color(NSColor.controlBackgroundColor))
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(NSColor.controlBackgroundColor))
+                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        )
+        .padding(.trailing, 16)
+        .padding(.bottom, 16)
     }
 }
 

@@ -513,9 +513,6 @@
     "%lld components" : {
 
     },
-    "%lld/20" : {
-
-    },
     "%lld%%" : {
 
     },
@@ -1541,7 +1538,10 @@
     "Bottom" : {
 
     },
-    "Brightness" : {
+    "Bottom Leading" : {
+
+    },
+    "Bottom Trailing" : {
 
     },
     "by %@" : {
@@ -1797,25 +1797,25 @@
         }
       }
     },
+    "Center" : {
+
+    },
     "Choose a device preset" : {
 
     },
-    "Choose Your Username" : {
+    "Choose Color" : {
 
     },
     "Clip Shape" : {
 
     },
-    "Code" : {
-
-    },
     "Code Snippet" : {
 
     },
-    "Color Scheme" : {
+    "Color" : {
 
     },
-    "Complete Setup" : {
+    "Color Scheme" : {
 
     },
     "Components" : {
@@ -2071,9 +2071,6 @@
         }
       }
     },
-    "Contrast" : {
-
-    },
     "Corner Radius" : {
 
     },
@@ -2087,9 +2084,6 @@
 
     },
     "Create your first design to get started" : {
-
-    },
-    "Creating Profile..." : {
 
     },
     "Default" : {
@@ -2863,9 +2857,6 @@
     "Drag components from the library to start building" : {
 
     },
-    "Edit Modifier" : {
-
-    },
     "Edit Profile" : {
       "localizations" : {
         "ar" : {
@@ -3115,9 +3106,6 @@
           }
         }
       }
-    },
-    "Enter username" : {
-
     },
     "Error" : {
       "localizations" : {
@@ -3369,12 +3357,6 @@
         }
       }
     },
-    "Export" : {
-
-    },
-    "Export SwiftUI Code" : {
-
-    },
     "Font" : {
 
     },
@@ -3390,16 +3372,10 @@
     "Generated Code" : {
 
     },
-    "Grayscale" : {
-
-    },
     "Height" : {
 
     },
     "Hello World" : {
-
-    },
-    "Hide" : {
 
     },
     "Highlighting..." : {
@@ -3408,7 +3384,7 @@
     "HStack" : {
 
     },
-    "Hue Rotation" : {
+    "Icon" : {
 
     },
     "Introducing" : {
@@ -5462,13 +5438,16 @@
     "Open" : {
 
     },
-    "Overlay Color" : {
+    "Overlay" : {
+
+    },
+    "Overlay Text" : {
 
     },
     "Padding" : {
 
     },
-    "Pick a unique username that represents you.\nThis will be your public identity on Dock UI." : {
+    "Position" : {
 
     },
     "Premium" : {
@@ -6730,9 +6709,6 @@
         }
       }
     },
-    "Redo" : {
-
-    },
     "Reset Zoom" : {
 
     },
@@ -6987,9 +6963,6 @@
       }
     },
     "Rotation" : {
-
-    },
-    "Saturation" : {
 
     },
     "Save" : {
@@ -7515,9 +7488,6 @@
           }
         }
       }
-    },
-    "Sepia" : {
-
     },
     "Settings" : {
       "localizations" : {
@@ -8778,12 +8748,6 @@
         }
       }
     },
-    "Show" : {
-
-    },
-    "Show Generated Code" : {
-
-    },
     "Sign In Required" : {
       "localizations" : {
         "ar" : {
@@ -9546,6 +9510,9 @@
     "SwiftUI Builder" : {
 
     },
+    "system.icon.name" : {
+
+    },
     "Templates" : {
       "localizations" : {
         "ar" : {
@@ -9795,6 +9762,9 @@
           }
         }
       }
+    },
+    "Text Badge" : {
+
     },
     "This will create a new design file that you can start building with." : {
 
@@ -10052,10 +10022,16 @@
     "Top" : {
 
     },
+    "Top Leading" : {
+
+    },
+    "Top Trailing" : {
+
+    },
     "Trailing" : {
 
     },
-    "Undo" : {
+    "Type" : {
 
     },
     "Unlock Premium Features" : {

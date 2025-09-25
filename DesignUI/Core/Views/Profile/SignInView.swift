@@ -235,8 +235,3 @@ fileprivate extension View {
         return false
     }
 }
-
-#Preview{
-    SignInView()
-}
-

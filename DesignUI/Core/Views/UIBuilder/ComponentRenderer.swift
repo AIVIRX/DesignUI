@@ -55,25 +55,13 @@ struct ComponentRenderer: View {
         }
         .opacity(component.isVisible ? 1.0 : 0.0)
         .applyModifiers(component.modifiers)
-        .background(
-            // Container selection background - only for containers
-            Group {
-                if isContainerComponent(component.type) {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            onTap?()
-                        }
+        .contentShape(Rectangle())
+        .highPriorityGesture(
+            TapGesture()
+                .onEnded { _ in
+                    onTap?()
                 }
-            }
         )
-        .onTapGesture {
-            // Direct selection for leaf components
-            if !isContainerComponent(component.type) {
-                onTap?()
-            }
-        }
     }
     
     private func isContainerComponent(_ type: ComponentType) -> Bool {
@@ -88,15 +76,29 @@ struct ComponentRenderer: View {
     // MARK: - Text Renderer
     private func renderText() -> some View {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
-        let fontSize = component.getProperty(key: "fontSize") as? Double ?? 16.0
+        let fontSize = component.getProperty(key: "fontSize") as? String ?? "body"
         let fontWeight = component.getProperty(key: "fontWeight") as? String ?? "regular"
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
-        let alignment = component.getProperty(key: "multilineTextAlignment") as? String ?? "leading"
+        
+        let font: Font
+        switch fontSize {
+        case "largeTitle": font = .largeTitle
+        case "title": font = .title
+        case "title2": font = .title2
+        case "title3": font = .title3
+        case "headline": font = .headline
+        case "body": font = .body
+        case "callout": font = .callout
+        case "subheadline": font = .subheadline
+        case "footnote": font = .footnote
+        case "caption": font = .caption
+        case "caption2": font = .caption2
+        default: font = .body
+        }
         
         return Text(text)
-            .font(.system(size: fontSize, weight: fontWeightFromString(fontWeight)))
+            .font(font.weight(fontWeightFromString(fontWeight)))
             .foregroundColor(foregroundColor)
-            .multilineTextAlignment(textAlignmentFromString(alignment))
     }
     
     // MARK: - Image Renderer
@@ -130,7 +132,8 @@ struct ComponentRenderer: View {
     
     // MARK: - VStack Renderer
     private func renderVStack() -> some View {
-        let base = VStack(alignment: .center) {
+        let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let base = VStack(alignment: horizontalAlignmentFromString(alignment)) {
             if component.children.isEmpty {
                 EmptyView()
             } else {
@@ -145,7 +148,8 @@ struct ComponentRenderer: View {
     // MARK: - HStack Renderer
     private func renderHStack() -> some View {
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
-        let base = HStack(alignment: .center, spacing: 8) {
+        let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let base = HStack(alignment: verticalAlignmentFromString(alignment), spacing: 8) {
             if component.children.isEmpty {
                 EmptyView()
             } else {
@@ -162,7 +166,8 @@ struct ComponentRenderer: View {
     // MARK: - ZStack Renderer
     private func renderZStack() -> some View {
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
-        let base = ZStack(alignment: .center) {
+        let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let base = ZStack(alignment: alignmentFromString(alignment)) {
             if component.children.isEmpty {
                 EmptyView()
             } else {
@@ -304,10 +309,15 @@ struct ComponentRenderer: View {
     
     private func alignmentFromString(_ alignment: String) -> Alignment {
         switch alignment {
-        case "leading": return .leading
-        case "trailing": return .trailing
+        case "topLeading": return .topLeading
         case "top": return .top
+        case "topTrailing": return .topTrailing
+        case "leading": return .leading
+        case "center": return .center
+        case "trailing": return .trailing
+        case "bottomLeading": return .bottomLeading
         case "bottom": return .bottom
+        case "bottomTrailing": return .bottomTrailing
         default: return .center
         }
     }
@@ -335,6 +345,8 @@ struct ComponentRenderer: View {
         case "top": return .top
         case "bottom": return .bottom
         case "center": return .center
+        case "firstTextBaseline": return .firstTextBaseline
+        case "lastTextBaseline": return .lastTextBaseline
         default: return .center
         }
     }
@@ -391,11 +403,73 @@ private extension View {
             return AnyView(view.background(color))
             
         case .overlay:
-            let color = modifier.properties["color"] as? Color ?? Color.clear
-            return AnyView(view.overlay(
-                Rectangle()
-                    .fill(color)
-            ))
+            let overlayType = modifier.properties["type"] as? String ?? "color"
+            
+            switch overlayType {
+            case "color":
+                let color = modifier.properties["color"] as? Color ?? Color.clear
+                return AnyView(view.overlay(
+                    Rectangle()
+                        .fill(color)
+                ))
+                
+            case "text":
+                let text = modifier.properties["text"] as? String ?? "Overlay"
+                let position = modifier.properties["position"] as? String ?? "topTrailing"
+                let alignment: Alignment = {
+                    switch position {
+                    case "topLeading": return .topLeading
+                    case "top": return .top
+                    case "topTrailing": return .topTrailing
+                    case "leading": return .leading
+                    case "center": return .center
+                    case "trailing": return .trailing
+                    case "bottomLeading": return .bottomLeading
+                    case "bottom": return .bottom
+                    case "bottomTrailing": return .bottomTrailing
+                    default: return .center
+                    }
+                }()
+                return AnyView(view.overlay(
+                    Text(text)
+                        .font(.caption)
+                        .padding(4)
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(4),
+                    alignment: alignment
+                ))
+                
+            case "icon":
+                let iconName = modifier.properties["iconName"] as? String ?? "star.fill"
+                let position = modifier.properties["position"] as? String ?? "topTrailing"
+                let alignment: Alignment = {
+                    switch position {
+                    case "topLeading": return .topLeading
+                    case "top": return .top
+                    case "topTrailing": return .topTrailing
+                    case "leading": return .leading
+                    case "center": return .center
+                    case "trailing": return .trailing
+                    case "bottomLeading": return .bottomLeading
+                    case "bottom": return .bottom
+                    case "bottomTrailing": return .bottomTrailing
+                    default: return .center
+                    }
+                }()
+                return AnyView(view.overlay(
+                    Image(systemName: iconName)
+                        .font(.caption)
+                        .padding(4)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(4),
+                    alignment: alignment
+                ))
+                
+            default:
+                return view
+            }
             
         case .foregroundColor:
             let color = modifier.properties["color"] as? Color ?? Color.primary
@@ -457,30 +531,6 @@ private extension View {
             let radius = modifier.properties["radius"] as? CGFloat ?? 0
             return AnyView(view.blur(radius: radius))
             
-        case .brightness:
-            let amount = modifier.properties["amount"] as? Double ?? 0
-            return AnyView(view.brightness(amount))
-            
-        case .contrast:
-            let amount = modifier.properties["amount"] as? Double ?? 1
-            return AnyView(view.contrast(amount))
-            
-        case .saturation:
-            let amount = modifier.properties["amount"] as? Double ?? 1
-            return AnyView(view.saturation(amount))
-            
-        case .hueRotation:
-            let angle = modifier.properties["angle"] as? Double ?? 0
-            return AnyView(view.hueRotation(.degrees(angle)))
-            
-        case .grayscale:
-            let amount = modifier.properties["amount"] as? Double ?? 0
-            return AnyView(view.grayscale(amount))
-            
-        case .sepia:
-            let amount = modifier.properties["amount"] as? Double ?? 0
-            // Sepia effect using hue rotation and saturation
-            return AnyView(view.hueRotation(.degrees(30)).saturation(amount))
             
         default:
             return view

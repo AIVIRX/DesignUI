@@ -35,6 +35,7 @@ struct StoreView: View {
                     Button("Restore") {
                         store.retorePurchases()
                     }
+                    .padding()
                 }
 #endif
                 .onAppear{

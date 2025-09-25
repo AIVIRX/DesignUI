@@ -80,7 +80,6 @@ struct ComponentLibraryView: View {
                             componentType: componentType,
                             isFirstComponent: canvasManager.components.isEmpty,
                             onAdd: { component in
-                                print("Adding component: \(component.type.rawValue) with frame: \(component.frame)")
                                 // Check if there's a selected container component
                                 if let selected = selectedComponent, 
                                    canvasManager.canAcceptChildren(selected) {

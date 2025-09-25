@@ -141,8 +141,13 @@ struct ModifierItemView: View {
         .onTapGesture {
             showingEditor = true
         }
-        .sheet(isPresented: $showingEditor) {
-            ModifierEditorView(component: component, modifier: .constant(modifier))
+        .popover(isPresented: $showingEditor) {
+            ModifierEditorView(component: component, modifier: Binding(
+                get: { modifier },
+                set: { newModifier in
+                    component.updateModifier(newModifier)
+                }
+            ))
         }
     }
 }
@@ -164,7 +169,7 @@ struct AddModifierView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Search bar
                 HStack {

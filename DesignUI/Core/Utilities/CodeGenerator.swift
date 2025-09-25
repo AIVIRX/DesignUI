@@ -54,28 +54,38 @@ struct CodeGenerator {
     // MARK: - Text Code Generation
     private static func generateTextCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
-        let fontSize = component.getProperty(key: "fontSize") as? Double ?? 16.0
+        let fontSize = component.getProperty(key: "fontSize") as? String ?? "body"
         let fontWeight = component.getProperty(key: "fontWeight") as? String ?? "regular"
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
-        let alignment = component.getProperty(key: "multilineTextAlignment") as? String ?? "leading"
         
         var code = "\(indent)Text(\"\(text)\")"
         
         // Font
+        let fontStyle: String
+        switch fontSize {
+        case "largeTitle": fontStyle = ".largeTitle"
+        case "title": fontStyle = ".title"
+        case "title2": fontStyle = ".title2"
+        case "title3": fontStyle = ".title3"
+        case "headline": fontStyle = ".headline"
+        case "body": fontStyle = ".body"
+        case "callout": fontStyle = ".callout"
+        case "subheadline": fontStyle = ".subheadline"
+        case "footnote": fontStyle = ".footnote"
+        case "caption": fontStyle = ".caption"
+        case "caption2": fontStyle = ".caption2"
+        default: fontStyle = ".body"
+        }
+        
         if fontWeight != "regular" {
-            code += "\n\(nextIndent).font(.system(size: \(fontSize), weight: .\(fontWeight)))"
+            code += "\n\(nextIndent).font(\(fontStyle).weight(.\(fontWeight)))"
         } else {
-            code += "\n\(nextIndent).font(.system(size: \(fontSize)))"
+            code += "\n\(nextIndent).font(\(fontStyle))"
         }
         
         // Foreground color
         if foregroundColor != Color.primary {
             code += "\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))"
-        }
-        
-        // Multiline text alignment
-        if alignment != "leading" {
-            code += "\n\(nextIndent).multilineTextAlignment(.\(alignment))"
         }
         
         return code

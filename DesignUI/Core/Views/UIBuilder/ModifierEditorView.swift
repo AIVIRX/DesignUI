@@ -13,118 +13,88 @@ struct ModifierEditorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Modifier header
-                    HStack {
-                        Image(systemName: modifier.type.icon)
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                        
-                        VStack(alignment: .leading) {
-                            Text(modifier.type.rawValue)
-                                .font(.headline)
-                            
-                            Text(modifier.type.description)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.bottom, 10)
+        VStack(alignment: .leading, spacing: 16) {
+            // Modifier header
+            HStack {
+                Image(systemName: modifier.type.icon)
+                    .font(.title3)
+                    .foregroundColor(.blue)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(modifier.type.rawValue)
+                        .font(.headline)
                     
-                    // Modifier-specific controls
-                    Group {
-                        switch modifier.type {
-                        case .frame:
-                            FrameModifierEditor(modifier: $modifier)
-                        case .padding:
-                            PaddingModifierEditor(modifier: $modifier)
-                        case .background:
-                            BackgroundModifierEditor(modifier: $modifier)
-                        case .overlay:
-                            OverlayModifierEditor(modifier: $modifier)
-                        case .foregroundColor:
-                            ColorModifierEditor(modifier: $modifier, title: "Foreground Color")
-                        case .font:
-                            FontModifierEditor(modifier: $modifier)
-                        case .cornerRadius:
-                            CornerRadiusModifierEditor(modifier: $modifier)
-                        case .shadow:
-                            ShadowModifierEditor(modifier: $modifier)
-                        case .opacity:
-                            OpacityModifierEditor(modifier: $modifier)
-                        case .rotation:
-                            RotationModifierEditor(modifier: $modifier)
-                        case .scale:
-                            ScaleModifierEditor(modifier: $modifier)
-                        case .offset:
-                            OffsetModifierEditor(modifier: $modifier)
-                        case .blur:
-                            BlurModifierEditor(modifier: $modifier)
-                        case .brightness:
-                            BrightnessModifierEditor(modifier: $modifier)
-                        case .contrast:
-                            ContrastModifierEditor(modifier: $modifier)
-                        case .saturation:
-                            SaturationModifierEditor(modifier: $modifier)
-                        case .hueRotation:
-                            HueRotationModifierEditor(modifier: $modifier)
-                        case .grayscale:
-                            GrayscaleModifierEditor(modifier: $modifier)
-                        case .sepia:
-                            SepiaModifierEditor(modifier: $modifier)
-                        case .clipShape:
-                            ClipShapeModifierEditor(modifier: $modifier)
-                        case .mask:
-                            MaskModifierEditor(modifier: $modifier)
-                        }
-                    }
-                }
-                .padding(20)
-            }
-            .navigationTitle("Edit Modifier")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Text(modifier.type.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        component.updateModifier(modifier)
-                        dismiss()
-                    }
+                Spacer()
+            }
+            .padding(.bottom, 8)
+            
+            // Modifier-specific controls
+            Group {
+                switch modifier.type {
+                case .frame:
+                    FrameModifierEditor(modifier: $modifier)
+                case .padding:
+                    PaddingModifierEditor(modifier: $modifier)
+                case .background:
+                    BackgroundModifierEditor(modifier: $modifier)
+                case .overlay:
+                    OverlayModifierEditor(modifier: $modifier)
+                case .foregroundColor:
+                    ColorModifierEditor(modifier: $modifier, title: "Foreground Color")
+                case .font:
+                    FontModifierEditor(modifier: $modifier)
+                case .cornerRadius:
+                    CornerRadiusModifierEditor(modifier: $modifier)
+                case .shadow:
+                    ShadowModifierEditor(modifier: $modifier)
+                case .opacity:
+                    OpacityModifierEditor(modifier: $modifier)
+                case .rotation:
+                    RotationModifierEditor(modifier: $modifier)
+                case .scale:
+                    ScaleModifierEditor(modifier: $modifier)
+                case .offset:
+                    OffsetModifierEditor(modifier: $modifier)
+                case .blur:
+                    BlurModifierEditor(modifier: $modifier)
+                case .clipShape:
+                    ClipShapeModifierEditor(modifier: $modifier)
+                case .mask:
+                    MaskModifierEditor(modifier: $modifier)
                 }
             }
+            
+            // Action buttons
+            HStack {
+                Spacer()
+                
+                Button("Cancel") {
+                    dismiss()
+                }
+                .buttonStyle(.bordered)
+                
+                Button("Done") {
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding(.top, 8)
         }
-        .frame(width: 400, height: 500)
+        .padding(16)
+        .frame(width: 320)
     }
 }
 
 // MARK: - Frame Modifier Editor
 struct FrameModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    
-    private var width: Binding<CGFloat> {
-        Binding(
-            get: { modifier.properties["width"] as? CGFloat ?? 0 },
-            set: { modifier.properties["width"] = $0 }
-        )
-    }
-    
-    private var height: Binding<CGFloat> {
-        Binding(
-            get: { modifier.properties["height"] as? CGFloat ?? 0 },
-            set: { modifier.properties["height"] = $0 }
-        )
-    }
+    @State private var widthValue: CGFloat = 0
+    @State private var heightValue: CGFloat = 0
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -136,15 +106,33 @@ struct FrameModifierEditor: View {
                 VStack(alignment: .leading) {
                     Text("Width")
                         .font(.caption)
-                    TextField("Width", value: width, formatter: NumberFormatter())
+                    TextField("Width", value: $widthValue, formatter: NumberFormatter())
                         .textFieldStyle(.roundedBorder)
+                        .onAppear {
+                            widthValue = modifier.properties["width"] as? CGFloat ?? 0
+                        }
+                        .onChange(of: widthValue) { _, newValue in
+                            modifier.properties["width"] = newValue
+                        }
+                        .onSubmit {
+                            modifier.properties["width"] = widthValue
+                        }
                 }
                 
                 VStack(alignment: .leading) {
                     Text("Height")
                         .font(.caption)
-                    TextField("Height", value: height, formatter: NumberFormatter())
+                    TextField("Height", value: $heightValue, formatter: NumberFormatter())
                         .textFieldStyle(.roundedBorder)
+                        .onAppear {
+                            heightValue = modifier.properties["height"] as? CGFloat ?? 0
+                        }
+                        .onChange(of: heightValue) { _, newValue in
+                            modifier.properties["height"] = newValue
+                        }
+                        .onSubmit {
+                            modifier.properties["height"] = heightValue
+                        }
                 }
             }
         }
@@ -154,34 +142,10 @@ struct FrameModifierEditor: View {
 // MARK: - Padding Modifier Editor
 struct PaddingModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    
-    private var top: Binding<CGFloat> {
-        Binding(
-            get: { modifier.properties["top"] as? CGFloat ?? 0 },
-            set: { modifier.properties["top"] = $0 }
-        )
-    }
-    
-    private var leading: Binding<CGFloat> {
-        Binding(
-            get: { modifier.properties["leading"] as? CGFloat ?? 0 },
-            set: { modifier.properties["leading"] = $0 }
-        )
-    }
-    
-    private var bottom: Binding<CGFloat> {
-        Binding(
-            get: { modifier.properties["bottom"] as? CGFloat ?? 0 },
-            set: { modifier.properties["bottom"] = $0 }
-        )
-    }
-    
-    private var trailing: Binding<CGFloat> {
-        Binding(
-            get: { modifier.properties["trailing"] as? CGFloat ?? 0 },
-            set: { modifier.properties["trailing"] = $0 }
-        )
-    }
+    @State private var topValue: CGFloat = 0
+    @State private var leadingValue: CGFloat = 0
+    @State private var bottomValue: CGFloat = 0
+    @State private var trailingValue: CGFloat = 0
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -194,15 +158,33 @@ struct PaddingModifierEditor: View {
                     VStack(alignment: .leading) {
                         Text("Top")
                             .font(.caption)
-                        TextField("Top", value: top, formatter: NumberFormatter())
+                        TextField("Top", value: $topValue, formatter: NumberFormatter())
                             .textFieldStyle(.roundedBorder)
+                            .onAppear {
+                                topValue = modifier.properties["top"] as? CGFloat ?? 0
+                            }
+                            .onChange(of: topValue) { _, newValue in
+                                modifier.properties["top"] = newValue
+                            }
+                            .onSubmit {
+                                modifier.properties["top"] = topValue
+                            }
                     }
                     
                     VStack(alignment: .leading) {
                         Text("Leading")
                             .font(.caption)
-                        TextField("Leading", value: leading, formatter: NumberFormatter())
+                        TextField("Leading", value: $leadingValue, formatter: NumberFormatter())
                             .textFieldStyle(.roundedBorder)
+                            .onAppear {
+                                leadingValue = modifier.properties["leading"] as? CGFloat ?? 0
+                            }
+                            .onChange(of: leadingValue) { _, newValue in
+                                modifier.properties["leading"] = newValue
+                            }
+                            .onSubmit {
+                                modifier.properties["leading"] = leadingValue
+                            }
                     }
                 }
                 
@@ -210,15 +192,33 @@ struct PaddingModifierEditor: View {
                     VStack(alignment: .leading) {
                         Text("Bottom")
                             .font(.caption)
-                        TextField("Bottom", value: bottom, formatter: NumberFormatter())
+                        TextField("Bottom", value: $bottomValue, formatter: NumberFormatter())
                             .textFieldStyle(.roundedBorder)
+                            .onAppear {
+                                bottomValue = modifier.properties["bottom"] as? CGFloat ?? 0
+                            }
+                            .onChange(of: bottomValue) { _, newValue in
+                                modifier.properties["bottom"] = newValue
+                            }
+                            .onSubmit {
+                                modifier.properties["bottom"] = bottomValue
+                            }
                     }
                     
                     VStack(alignment: .leading) {
                         Text("Trailing")
                             .font(.caption)
-                        TextField("Trailing", value: trailing, formatter: NumberFormatter())
+                        TextField("Trailing", value: $trailingValue, formatter: NumberFormatter())
                             .textFieldStyle(.roundedBorder)
+                            .onAppear {
+                                trailingValue = modifier.properties["trailing"] as? CGFloat ?? 0
+                            }
+                            .onChange(of: trailingValue) { _, newValue in
+                                modifier.properties["trailing"] = newValue
+                            }
+                            .onSubmit {
+                                modifier.properties["trailing"] = trailingValue
+                            }
                     }
                 }
             }
@@ -251,6 +251,7 @@ struct BackgroundModifierEditor: View {
 // MARK: - Overlay Modifier Editor
 struct OverlayModifierEditor: View {
     @Binding var modifier: ComponentModifier
+    @State private var overlayType: String = "color"
     
     private var color: Binding<Color> {
         Binding(
@@ -259,13 +260,110 @@ struct OverlayModifierEditor: View {
         )
     }
     
+    private var overlayText: Binding<String> {
+        Binding(
+            get: { modifier.properties["text"] as? String ?? "Overlay" },
+            set: { modifier.properties["text"] = $0 }
+        )
+    }
+    
+    private var overlayPosition: Binding<String> {
+        Binding(
+            get: { modifier.properties["position"] as? String ?? "topTrailing" },
+            set: { modifier.properties["position"] = $0 }
+        )
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Overlay Color")
+            Text("Overlay")
                 .font(.subheadline)
                 .fontWeight(.semibold)
             
-            ColorPicker("Overlay Color", selection: color)
+            // Overlay type picker
+            Picker("Type", selection: $overlayType) {
+                Text("Color").tag("color")
+                Text("Text Badge").tag("text")
+                Text("Icon").tag("icon")
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .onChange(of: overlayType) { _, newValue in
+                modifier.properties["type"] = newValue
+            }
+            
+            // Type-specific controls
+            switch overlayType {
+            case "color":
+                ColorPopover(property: ComponentProperty(
+                    key: "color",
+                    type: .color,
+                    value: color.wrappedValue,
+                    defaultValue: Color.clear
+                ), component: UIComponent(type: .text))
+                
+            case "text":
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField("Overlay Text", text: overlayText)
+                        .textFieldStyle(.roundedBorder)
+                    
+                    HStack {
+                        Text("Position")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        Picker("", selection: overlayPosition) {
+                            Text("Top Leading").tag("topLeading")
+                            Text("Top Trailing").tag("topTrailing")
+                            Text("Bottom Leading").tag("bottomLeading")
+                            Text("Bottom Trailing").tag("bottomTrailing")
+                            Text("Center").tag("center")
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+                }
+                
+            case "icon":
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Icon")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        TextField("system.icon.name", text: Binding(
+                            get: { modifier.properties["iconName"] as? String ?? "star.fill" },
+                            set: { modifier.properties["iconName"] = $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    HStack {
+                        Text("Position")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        Picker("", selection: overlayPosition) {
+                            Text("Top Leading").tag("topLeading")
+                            Text("Top Trailing").tag("topTrailing")
+                            Text("Bottom Leading").tag("bottomLeading")
+                            Text("Bottom Trailing").tag("bottomTrailing")
+                            Text("Center").tag("center")
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+                }
+                
+            default:
+                EmptyView()
+            }
+        }
+        .onAppear {
+            overlayType = modifier.properties["type"] as? String ?? "color"
         }
     }
 }
@@ -311,7 +409,11 @@ struct FontModifierEditor: View {
     private var fontSize: Binding<CGFloat> {
         Binding(
             get: { modifier.properties["size"] as? CGFloat ?? 16 },
-            set: { modifier.properties["size"] = $0 }
+            set: { newValue in
+                DispatchQueue.main.async {
+                    modifier.properties["size"] = newValue
+                }
+            }
         )
     }
     
@@ -645,167 +747,6 @@ struct BlurModifierEditor: View {
     }
 }
 
-// MARK: - Brightness Modifier Editor
-struct BrightnessModifierEditor: View {
-    @Binding var modifier: ComponentModifier
-    
-    private var amount: Binding<Double> {
-        Binding(
-            get: { modifier.properties["amount"] as? Double ?? 0 },
-            set: { modifier.properties["amount"] = $0 }
-        )
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Brightness")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                Slider(value: amount, in: -1...1)
-                Text("\(String(format: "%.1f", amount.wrappedValue))")
-                    .font(.caption)
-                    .frame(width: 40)
-            }
-        }
-    }
-}
-
-// MARK: - Contrast Modifier Editor
-struct ContrastModifierEditor: View {
-    @Binding var modifier: ComponentModifier
-    
-    private var amount: Binding<Double> {
-        Binding(
-            get: { modifier.properties["amount"] as? Double ?? 1 },
-            set: { modifier.properties["amount"] = $0 }
-        )
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Contrast")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                Slider(value: amount, in: 0...3)
-                Text("\(String(format: "%.1f", amount.wrappedValue))")
-                    .font(.caption)
-                    .frame(width: 40)
-            }
-        }
-    }
-}
-
-// MARK: - Saturation Modifier Editor
-struct SaturationModifierEditor: View {
-    @Binding var modifier: ComponentModifier
-    
-    private var amount: Binding<Double> {
-        Binding(
-            get: { modifier.properties["amount"] as? Double ?? 1 },
-            set: { modifier.properties["amount"] = $0 }
-        )
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Saturation")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                Slider(value: amount, in: 0...3)
-                Text("\(String(format: "%.1f", amount.wrappedValue))")
-                    .font(.caption)
-                    .frame(width: 40)
-            }
-        }
-    }
-}
-
-// MARK: - Hue Rotation Modifier Editor
-struct HueRotationModifierEditor: View {
-    @Binding var modifier: ComponentModifier
-    
-    private var angle: Binding<Double> {
-        Binding(
-            get: { modifier.properties["angle"] as? Double ?? 0 },
-            set: { modifier.properties["angle"] = $0 }
-        )
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Hue Rotation")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                Slider(value: angle, in: -360...360)
-                Text("\(Int(angle.wrappedValue))°")
-                    .font(.caption)
-                    .frame(width: 50)
-            }
-        }
-    }
-}
-
-// MARK: - Grayscale Modifier Editor
-struct GrayscaleModifierEditor: View {
-    @Binding var modifier: ComponentModifier
-    
-    private var amount: Binding<Double> {
-        Binding(
-            get: { modifier.properties["amount"] as? Double ?? 0 },
-            set: { modifier.properties["amount"] = $0 }
-        )
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Grayscale")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                Slider(value: amount, in: 0...1)
-                Text("\(Int(amount.wrappedValue * 100))%")
-                    .font(.caption)
-                    .frame(width: 40)
-            }
-        }
-    }
-}
-
-// MARK: - Sepia Modifier Editor
-struct SepiaModifierEditor: View {
-    @Binding var modifier: ComponentModifier
-    
-    private var amount: Binding<Double> {
-        Binding(
-            get: { modifier.properties["amount"] as? Double ?? 0 },
-            set: { modifier.properties["amount"] = $0 }
-        )
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Sepia")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                Slider(value: amount, in: 0...1)
-                Text("\(Int(amount.wrappedValue * 100))%")
-                    .font(.caption)
-                    .frame(width: 40)
-            }
-        }
-    }
-}
 
 // MARK: - Clip Shape Modifier Editor
 struct ClipShapeModifierEditor: View {
@@ -863,11 +804,4 @@ struct MaskModifierEditor: View {
             }
         }
     }
-}
-
-#Preview {
-    let component = UIComponent(type: .text)
-    let modifier = ComponentModifier(type: .font, properties: ["style": "body", "size": 16.0, "weight": "regular"])
-    
-    return ModifierEditorView(component: component, modifier: .constant(modifier))
 }

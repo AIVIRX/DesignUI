@@ -78,7 +78,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .divider: return "minus"
         case .rectangle: return "rectangle"
         case .circle: return "circle"
-        case .roundedRectangle: return "rectangle.roundedtopright"
+        case .roundedRectangle: return "rectangle.ratio.4.to.3.fill"
         case .capsule: return "capsule"
         case .ellipse: return "oval"
         case .list: return "list.bullet"
@@ -232,9 +232,9 @@ struct ComponentProperty: Identifiable, Codable, Equatable {
         case .boolean:
             return try container.decode(Bool.self, forKey: key)
         case .color:
-            let colorString = try container.decode(String.self, forKey: key)
-            // Convert string back to Color (simplified - you might want to improve this)
-            return Color.primary // For now, return a default color
+            _ = try? container.decode(String.self, forKey: key)
+            // TODO: Convert stored string back to Color if needed
+            return Color.primary
         default:
             return try container.decode(String.self, forKey: key)
         }
@@ -365,10 +365,9 @@ extension UIComponent {
         case .text:
             return [
                 ComponentProperty(key: "text", type: .string, value: "Hello World", defaultValue: "Hello World"),
-                ComponentProperty(key: "fontSize", type: .number, value: 16.0, defaultValue: 16.0),
+                ComponentProperty(key: "fontSize", type: .font, value: "body", defaultValue: "body", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
                 ComponentProperty(key: "fontWeight", type: .font, value: "regular", defaultValue: "regular", options: ["regular", "bold", "light", "medium", "semibold", "heavy", "black"]),
                 ComponentProperty(key: "foregroundColor", type: .color, value: Color.primary, defaultValue: Color.primary),
-                ComponentProperty(key: "multilineTextAlignment", type: .alignment, value: "leading", defaultValue: "leading", options: ["leading", "center", "trailing"])
             ]
         case .image:
             return [
@@ -399,10 +398,8 @@ extension UIComponent {
             ]
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
             return [
-                ComponentProperty(key: "fill", type: .color, value: Color.gray, defaultValue: Color.gray),
-                ComponentProperty(key: "stroke", type: .color, value: Color.clear, defaultValue: Color.clear),
-                ComponentProperty(key: "lineWidth", type: .number, value: 1.0, defaultValue: 1.0),
-                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
+                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
+                ComponentProperty(key: "fill", type: .color, value: Color.gray, defaultValue: Color.gray)
             ]
         case .spacer:
             return [

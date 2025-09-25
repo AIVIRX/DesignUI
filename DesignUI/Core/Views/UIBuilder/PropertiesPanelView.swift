@@ -71,14 +71,19 @@ struct PropertiesSection: View {
                 .fontWeight(.semibold)
             
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(component.properties) { property in
+                ForEach(Array(component.properties.enumerated()), id: \.element.id) { index, property in
                     PropertyEditor(property: property, component: component)
+                    
+                    if index < component.properties.count - 1 {
+                        Divider()
+                            .padding(.vertical, 4)
+                    }
                 }
             }
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(.gray.opacity(0.2))
+                    .fill(.white.opacity(0.1))
             )
             
         }
@@ -88,74 +93,171 @@ struct PropertiesSection: View {
 struct PropertyEditor: View {
     var property: ComponentProperty
     @ObservedObject var component: UIComponent
+    @State private var textValue: String = ""
+    @State private var numberValue: Double = 0.0
+    
+    private let fontStyles = [
+        "largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"
+    ]
+    
+    private var displayName: String {
+        switch property.key {
+        case "fontWeight": return "Font Weight"
+        case "fontSize": return "Font Size"
+        case "foregroundColor": return "Foreground Color"
+        case "backgroundColor": return "Background"
+        case "cornerRadius": return "Corner Radius"
+        case "imageName": return "Image"
+        case "title": return "Title"
+        case "text": return "Text"
+        case "alignment": return "Alignment"
+        case "spacing": return "Spacing"
+        case "padding": return "Padding"
+        case "opacity": return "Opacity"
+        case "rotation": return "Rotation"
+        case "shadow": return "Shadow"
+        case "border": return "Border"
+        case "gradient": return "Gradient"
+        case "resizable": return "Resizable"
+        case "aspectRatio": return "Aspect Ratio"
+        default: return property.key.capitalized
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             switch property.type {
             case .string:
-                TextField("Hello World", text: Binding(
-                    get: { property.value as? String ?? "" },
-                    set: { component.setProperty(key: property.key, value: $0) }
-                ))
-                .font(.headline).fontWeight(.regular)
-                .padding(4)
-                .textFieldStyle(.plain)
+                TextField("Hello World", text: $textValue)
+                    .font(.system(size: 13, weight: .medium))
+                    .textFieldStyle(.plain)
+                    .onAppear {
+                        textValue = property.value as? String ?? ""
+                    }
+                    .onChange(of: textValue) { _, newValue in
+                        component.setProperty(key: property.key, value: newValue)
+                    }
+                    .onSubmit {
+                        // Commit the final value when Enter is pressed
+                        component.setProperty(key: property.key, value: textValue)
+                    }
                 
             case .number:
-                TextField(property.key, value: Binding(
-                    get: { property.value as? Double ?? 0.0 },
-                    set: { component.setProperty(key: property.key, value: $0) }
-                ), format: .number)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                
+                HStack {
+                    Text(displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    TextField("", value: $numberValue, format: .number)
+                    .font(.system(size: 13, weight: .medium))
+                    .textFieldStyle(.plain)
+                    .onAppear {
+                        numberValue = property.value as? Double ?? 0.0
+                    }
+                    .onChange(of: numberValue) { _, newValue in
+                        component.setProperty(key: property.key, value: newValue)
+                    }
+                    .onSubmit {
+                        // Commit the final value when Enter is pressed
+                        component.setProperty(key: property.key, value: numberValue)
+                    }
+                }
             case .boolean:
-                Toggle(property.key, isOn: Binding(
-                    get: { property.value as? Bool ?? false },
-                    set: { component.setProperty(key: property.key, value: $0) }
-                ))
-                .toggleStyle(SwitchToggleStyle())
+                HStack {
+                    Text(displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: Binding(
+                        get: { property.value as? Bool ?? false },
+                        set: { newValue in
+                            DispatchQueue.main.async {
+                                component.setProperty(key: property.key, value: newValue)
+                            }
+                        }
+                    ))
+                    .toggleStyle(SwitchToggleStyle())
+                }
                 
             case .color:
-                ColorPicker(property.key, selection: Binding(
-                    get: { property.value as? Color ?? Color.primary },
-                    set: { component.setProperty(key: property.key, value: $0) }
-                ))
+                ColorPopover(property: property, component: component)
                 
             case .font:
-                Picker(property.key, selection: Binding(
-                    get: { property.value as? String ?? "regular" },
-                    set: { component.setProperty(key: property.key, value: $0) }
-                )) {
-                    ForEach(property.options as? [String] ?? [], id: \.self) { option in
-                        Text(option.capitalized).tag(option)
+                HStack {
+                    Text(displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Picker("", selection: Binding(
+                        get: { property.value as? String ?? (property.key == "fontSize" ? "body" : "regular") },
+                        set: { newValue in
+                            DispatchQueue.main.async {
+                                component.setProperty(key: property.key, value: newValue)
+                            }
+                        }
+                    )) {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Text(option.capitalized).tag(option)
+                        }
                     }
+                    .pickerStyle(MenuPickerStyle())
                 }
-                .pickerStyle(MenuPickerStyle())
                 
             case .alignment:
-                Picker(property.key, selection: Binding(
-                    get: { property.value as? String ?? "center" },
-                    set: { component.setProperty(key: property.key, value: $0) }
-                )) {
-                    ForEach(property.options as? [String] ?? [], id: \.self) { option in
-                        Text(option.capitalized).tag(option)
+                HStack {
+                    Text(displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Picker("", selection: Binding(
+                        get: { property.value as? String ?? "center" },
+                        set: { newValue in
+                            DispatchQueue.main.async {
+                                component.setProperty(key: property.key, value: newValue)
+                            }
+                        }
+                    )) {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Text(option.capitalized).tag(option)
+                        }
                     }
+                    .pickerStyle(MenuPickerStyle())
                 }
-                .pickerStyle(MenuPickerStyle())
                 
             case .segmentedControl:
-                Picker(property.key, selection: Binding(
-                    get: { property.value as? String ?? "center" },
-                    set: { component.setProperty(key: property.key, value: $0) }
-                )) {
-                    ForEach(property.options as? [String] ?? [], id: \.self) { option in
-                        Text(option.capitalized).tag(option)
+                HStack {
+                    Text(displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Picker("", selection: Binding(
+                        get: { property.value as? String ?? "center" },
+                        set: { newValue in
+                            DispatchQueue.main.async {
+                                component.setProperty(key: property.key, value: newValue)
+                            }
+                        }
+                    )) {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Text(option.capitalized).tag(option)
+                        }
                     }
+                    .pickerStyle(MenuPickerStyle())
                 }
-                .pickerStyle(SegmentedPickerStyle())
                 
             case .dropdown:
                 HStack {
-                    Text(property.key.capitalized)
+                    Text(displayName)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -177,7 +279,7 @@ struct PropertyEditor: View {
                 
             case .spacing:
                 HStack {
-                    Text(property.key.capitalized)
+                    Text(displayName)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -197,6 +299,28 @@ struct PropertyEditor: View {
                     // TODO: Show spacing picker
                 }
                 
+            case .cornerRadius:
+                HStack {
+                    Text(displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    TextField("", value: $numberValue, format: .number)
+                        .font(.system(size: 13, weight: .medium))
+                        .textFieldStyle(.plain)
+                        .onAppear {
+                            numberValue = property.value as? Double ?? 0.0
+                        }
+                        .onChange(of: numberValue) { _, newValue in
+                            component.setProperty(key: property.key, value: newValue)
+                        }
+                        .onSubmit {
+                            component.setProperty(key: property.key, value: numberValue)
+                        }
+                }
+                
             default:
                 Text("Unsupported property type")
                     .font(.caption)
@@ -205,4 +329,159 @@ struct PropertyEditor: View {
         }
     }
 }
+
+
+// MARK: - Color Popover
+struct ColorPopover: View {
+    let property: ComponentProperty
+    @ObservedObject var component: UIComponent
+    @State private var isPresented = false
+    
+    private var displayName: String {
+        switch property.key {
+        case "fontWeight": return "Weight"
+        case "fontSize": return "Size"
+        case "foregroundColor": return "Color"
+        case "backgroundColor": return "Background"
+        case "cornerRadius": return "Corner Radius"
+        case "imageName": return "Image"
+        case "title": return "Title"
+        case "text": return "Text"
+        case "alignment": return "Alignment"
+        case "spacing": return "Spacing"
+        case "padding": return "Padding"
+        case "opacity": return "Opacity"
+        case "rotation": return "Rotation"
+        case "scale": return "Scale"
+        case "offset": return "Offset"
+        case "shadow": return "Shadow"
+        case "border": return "Border"
+        case "gradient": return "Gradient"
+        case "animation": return "Animation"
+        case "resizable": return "Resizable"
+        case "aspectRatio": return "Aspect Ratio"
+        default: return property.key.capitalized
+        }
+    }
+    
+    private let swiftUIColors: [(String, Color)] = [
+        ("Primary", .primary),
+        ("Secondary", .secondary),
+        ("Black", .black),
+        ("White", .white),
+        ("Red", .red),
+        ("Orange", .orange),
+        ("Yellow", .yellow),
+        ("Green", .green),
+        ("Mint", .mint),
+        ("Teal", .teal),
+        ("Cyan", .cyan),
+        ("Blue", .blue),
+        ("Indigo", .indigo),
+        ("Purple", .purple),
+        ("Pink", .pink),
+        ("Brown", .brown),
+        ("Gray", .gray),
+        ("Clear", .clear)
+    ]
+    
+    var body: some View {
+        HStack {
+            Text(displayName)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            Button(action: { isPresented = true }) {
+                HStack(spacing: 6) {
+                    // Color preview circle
+                    Circle()
+                        .fill(component.getProperty(key: property.key) as? Color ?? Color.primary)
+                        .frame(width: 16, height: 16)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                    
+                    Text(colorName(for: component.getProperty(key: property.key) as? Color ?? Color.primary))
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                    
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .popover(isPresented: $isPresented) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Choose Color")
+                    .font(.headline)
+                    .padding(.bottom, 4)
+                
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                    ForEach(swiftUIColors, id: \.0) { colorName, color in
+                              Button(action: {
+                                  DispatchQueue.main.async {
+                                      component.setProperty(key: property.key, value: color)
+                                  }
+                                  isPresented = false
+                              }) {
+                            VStack(spacing: 4) {
+                                Circle()
+                                    .fill(color)
+                                    .frame(width: 32, height: 32)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .overlay(
+                                        Group {
+                                            if isSelected(color) {
+                                                Image(systemName: "checkmark")
+                                                    .font(.system(size: 12, weight: .bold))
+                                                    .foregroundColor(.white)
+                                                    .shadow(color: .black, radius: 1)
+                                            }
+                                        }
+                                    )
+                                
+                                Text(colorName)
+                                    .font(.caption2)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
+            .padding()
+            .frame(width: 200)
+        }
+    }
+    
+    private func colorName(for color: Color) -> String {
+        return swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+    }
+    
+    private func isSelected(_ color: Color) -> Bool {
+        guard let currentColor = component.getProperty(key: property.key) as? Color else { return false }
+        
+        // Try direct comparison first
+        if currentColor == color {
+            return true
+        }
+        
+        // Fallback to name comparison
+        let currentColorName = colorName(for: currentColor)
+        let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+        return currentColorName == targetColorName && currentColorName != "Custom"
+    }
+}
 #endif
+
+
