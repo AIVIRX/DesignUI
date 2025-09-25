@@ -5,7 +5,6 @@
 //  Created by Maicol Cabreja on 6/11/24.
 //
 
-import Foundation
 
 struct DesignPost: Identifiable, Codable {
     let id: String
@@ -16,6 +15,7 @@ struct DesignPost: Identifiable, Codable {
     let created_at: String
     let profiles: profiles
     let likes_count: Int
+    let isPremium: Bool
     
     struct profiles: Codable {
         let username: String

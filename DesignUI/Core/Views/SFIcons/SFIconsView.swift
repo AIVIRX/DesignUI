@@ -9,50 +9,55 @@ import SwiftUI
 
 struct SFIconsView: View {
     @State private var searchText = ""
-    @State private var startAnimation: Bool = false
+    @State private var debouncedSearch = ""
+    @State private var searchTask: Task<Void, Never>?
     @State private var opacity: Double = 0.0
-    
-    var filteredSymbols: [String] {
-        if searchText.isEmpty {
-            return symbols
-        } else {
-            return symbols.filter { $0.localizedCaseInsensitiveContains(searchText)}
-        }
+    @EnvironmentObject private var toastManager: ToastManager
+
+    private var filteredSymbols: [String] {
+        guard !debouncedSearch.isEmpty else { return symbols }
+        return symbols.filter { $0.localizedCaseInsensitiveContains(debouncedSearch) }
     }
+
+    private var grid: [GridItem] {
+        [GridItem(.adaptive(minimum: 96), spacing: 16)]
+    }
+
     var body: some View {
         VStack {
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 95))], spacing: 20) {
+                LazyVGrid(columns: grid, spacing: 16) {
                     ForEach(filteredSymbols, id: \.self) { symbol in
-                        SymbolButton(symbol: symbol, onCopy: { copiedSymbol in
-                            copyToClipboard(copiedSymbol)
-                        })
+                        SymbolButton(
+                            symbol: symbol,
+                            onCopy: { copied in
+                                copyToClipboard(copied)
+                                toastManager.showCopyToast()
+                            }
+                        )
                     }
                 }
-                .padding()
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
             }
         }
         .navigationTitle("SF Symbols")
-        .padding(5)
         .searchable(text: $searchText, prompt: "Search SF Symbols")
-        .offset(y: startAnimation ? 0 : 50)
+        .onChange(of: searchText) { _, newValue in
+            searchTask?.cancel()
+            searchTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 180_000_000)
+                debouncedSearch = newValue
+            }
+        }
         .opacity(opacity)
-        .onAppear{
-            withAnimation(.easeInOut(duration: 0.3)) {
-                startAnimation = true
+        .onAppear {
+            debouncedSearch = searchText
+            withAnimation(.easeInOut(duration: 0.35)) {
                 opacity = 1.0
             }
         }
-    }
-    
-    func copyToClipboard(_ text: String) {
-#if os(iOS)
-        UIPasteboard.general.string = text
-#elseif os(macOS)
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-#endif
     }
 }
 
@@ -64,31 +69,43 @@ struct SymbolButton: View {
     var body: some View {
         Button(action: {
             onCopy(symbol)
-#if os(iOS)
+            #if os(iOS)
             HapticManager.shared.triggerImpact(style: .medium)
-#endif
+            #endif
         }) {
-            VStack {
+            VStack(spacing: 8) {
                 Image(systemName: symbol)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .scaledToFit()
+                    .symbolRenderingMode(.hierarchical)
                     .frame(width: 40, height: 40)
-                    .padding()
+                    .contentShape(Rectangle())
                 
                 Text(symbol)
                     .font(.caption)
-                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
                     .frame(maxWidth: .infinity)
             }
-            .frame(width: 100, height: 100)
-            .background(isHovered ? Color.gray.opacity(0.2) : Color.clear)
-            .cornerRadius(10)
+            .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 96)
+            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .contentShape(Rectangle())
         }
-        .buttonStyle(PlainButtonStyle())
-        .onHover { hovering in
-            isHovered = hovering
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("Copy \"\(symbol)\"") {
+                onCopy(symbol)
+            }
         }
+        #if os(macOS)
+        .onHover { isHovered = $0 }
+        #endif
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(symbol.replacingOccurrences(of: ".", with: " ").replacingOccurrences(of: "-", with: " ")))
+        .accessibilityAddTraits(.isButton)
     }
 }
 

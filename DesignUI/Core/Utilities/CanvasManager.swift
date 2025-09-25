@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Foundation
 
 class CanvasManager: ObservableObject {
     @Published var components: [UIComponent] = []

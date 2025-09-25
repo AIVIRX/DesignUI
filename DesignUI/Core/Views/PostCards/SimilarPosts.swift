@@ -22,7 +22,8 @@ struct SimilarPostsView: View {
                                 author: post.profiles.username,
                                 codeSnippet: post.code_snippet,
                                 creationDate: post.created_at,
-                                isAuthorVerified: post.profiles.verified
+                                isAuthorVerified: post.profiles.verified,
+                                isPremium: post.isPremium
                             )) {
                                 SimilarPostCard(post: post)
                             }

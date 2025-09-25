@@ -12,50 +12,67 @@ struct LiveSyntaxHighlightedCode: View {
     let code: String
     let fontSize: CGFloat
     let maxHeight: CGFloat
+    let isPremium: Bool
     
     @State private var highlightedText: AttributedString = AttributedString()
     @State private var isHighlighting = false
     @State private var highlightCache: [String: AttributedString] = [:]
+    @State private var showPaywall = false
     @EnvironmentObject private var toastManager: ToastManager
+    @EnvironmentObject private var store: Store
     @Environment(\.colorScheme) private var colorScheme
     
     private let highlight = Highlight()
     
-    init(code: String, fontSize: CGFloat = 16, maxHeight: CGFloat = 500) {
+    init(code: String, fontSize: CGFloat = 16, maxHeight: CGFloat = 500, isPremium: Bool = false) {
         self.code = code
         self.fontSize = fontSize
         self.maxHeight = maxHeight
+        self.isPremium = isPremium
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Modern header with title and copy button
             HStack {
+                HStack(spacing: 4) {
                     Text("Code Snippet")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.primary)
+                    
+                    if isPremium {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.yellow)
+                    }
+                    
+                }
                 
-//                Spacer()
-//                
-//                Button(action: {
-//                    copyToClipboard(code)
-//                    toastManager.showCopyToast()
-//                }) {
-//                    HStack(spacing: 4) {
-//                        Image(systemName: "doc.on.doc")
-//                            .font(.system(size: 12, weight: .medium))
-//                        Text("Copy code")
-//                            .font(.system(size: 12, weight: .medium))
-//                    }
-//                    .foregroundColor(.primary)
-//                    .padding(.horizontal, 12)
-//                    .padding(.vertical, 6)
-//                    .background(
-//                        RoundedRectangle(cornerRadius: 10)
-//                            .fill(Color.gray.opacity(0.2)) 
-//                    )
-//                }
-//                .buttonStyle(PlainButtonStyle())
+                Spacer()
+                
+                Button(action: {
+                    if isPremium && store.completedPurchases.isEmpty {
+                        showPaywall = true
+                    } else {
+                        copyToClipboard(code)
+                        toastManager.showCopyToast()
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 12, weight: .medium))
+                        Text("Copy code")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.gray.opacity(0.2)) 
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -65,19 +82,30 @@ struct LiveSyntaxHighlightedCode: View {
             )
             
             // Code content area
-            ScrollView(.vertical, showsIndicators: true) {
-                Text(highlightedText)
-                    .font(.system(size: fontSize, design: .monospaced))
-                    .textSelection(.enabled)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            ZStack {
+                ScrollView(.vertical, showsIndicators: true) {
+                    Text(highlightedText)
+                        .font(.system(size: fontSize, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxWidth: .infinity, maxHeight: maxHeight)
+                .overlay(loadingOverlay)
+                
+                // Premium paywall overlay
+                if isPremium && store.completedPurchases.isEmpty {
+                    PremiumPaywallOverlay()
+                        .zIndex(1)
+                }
             }
-            .frame(maxWidth: .infinity, maxHeight: maxHeight)
-            .overlay(loadingOverlay)
         }
         .background(Color.gray.opacity(0.1))
         .cornerRadius(20)
         .overlay(borderOverlay)
+        .sheet(isPresented: $showPaywall) {
+            StoreView()
+        }
         .onAppear {
             generateHighlightedText()
         }
@@ -178,15 +206,34 @@ struct LiveSyntaxHighlightedCode: View {
             await performHighlight(code)
         }
     }
-    
-    func copyToClipboard(_ text: String) {
-#if os(iOS)
-        UIPasteboard.general.string = text
-#elseif os(macOS)
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-#endif
+}
+
+// MARK: - Premium Paywall Overlay
+struct PremiumPaywallOverlay: View {
+        var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "crown.fill")
+                .font(.system(size: 40))
+                .foregroundColor(.yellow)
+            
+            VStack(spacing: 8) {
+                Text("Premium Content")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                Text("This code snippet is available to premium users only.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.regularMaterial)
+        )
     }
 }
 

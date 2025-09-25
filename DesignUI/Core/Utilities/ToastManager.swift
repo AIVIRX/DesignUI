@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Combine
 
 class ToastManager: ObservableObject {
     @Published var currentToast: ToastData?
@@ -22,7 +21,7 @@ class ToastManager: ObservableObject {
     func showCopyToast() {
         currentToast = ToastData(
             title: "Copied",
-            icon: .sfSymbol(name: "document.on.document", color: .gray),
+            icon: "document.on.document",
             duration: 3.0
         )
     }

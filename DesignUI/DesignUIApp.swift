@@ -9,7 +9,6 @@ import SwiftUI
 import Firebase
 import FirebaseCore
 import FirebaseAnalytics
-import AdSupport
 import Supabase
 
 #if os(iOS)

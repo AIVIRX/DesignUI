@@ -25,6 +25,7 @@ class Store: NSObject, ObservableObject{
                 for index in self.allRecipes.indices {
                     self.allRecipes[index].isLocked = !self.completedPurchases.contains(self.allRecipes[index].id)
                 }
+                // Premium status now checked directly via completedPurchases
             }
         }
     }

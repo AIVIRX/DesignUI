@@ -23,8 +23,6 @@ let cards: [Card] = [
 struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.colorScheme) var colorScheme
-    @State private var email = ""
-    @State private var password = ""
     @State private var signInAppleButtonId = UUID().uuidString
     @State private var activeCard: Card? = cards.first
     @State private var timer = Timer.publish(every: 0.01, on: .current, in: .default).autoconnect()
@@ -36,14 +34,47 @@ struct SignInView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                #if os(macOS)
+                // macOS modern sign-in layout
+                VStack(spacing: 24) {
+                    VStack(spacing: 8) {
+                        Image("AppLogo")
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .padding()
+                        Text("Dock UI Accounts")
+                            .font(.system(size: 28, weight: .bold))
+                        Text("Sign in to sync favorites and access exclusive features.")
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    SignInWithAppleButton { request in
+                        request.requestedScopes = [.email, .fullName]
+                    } onCompletion: { result in
+                        Task {
+                            await authViewModel.handleSignInWithApple(result)
+                        }
+                    }
+                    .id(signInAppleButtonId)
+                    .signInWithAppleButtonStyle(colorScheme == .light ? .black : .white)
+                    .onChange(of: colorScheme, { _, _ in
+                        signInAppleButtonId = UUID().uuidString
+                    })
+                    .frame(height: 44)
+                    .frame(maxWidth: 360)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .padding(32)
+                .frame(maxWidth: 520)
+                .shadow(color: .black.opacity(0.12), radius: 18, x: 0, y: 8)
+                #else
+                // iOS layout
                 AmbientBackground()
                     .animation(.easeInOut(duration: 1), value: activeCard)
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 40) {
                         ZStack {
-                            
                             VStack(spacing: 40) {
-#if os(iOS)
                                 InfiniteScrollView(collection: cards) { card in
                                     CarouselCardView(card)
                                 } uiScrollView: {
@@ -60,7 +91,6 @@ struct SignInView: View {
                                     content
                                         .offset(y: !initialAnimation ? -(proxy.size.height + 200) : 0)
                                 }
-#endif
                                 
                                 // title & description
                                 VStack(spacing: 4) {
@@ -69,18 +99,10 @@ struct SignInView: View {
                                         .foregroundStyle(.secondary)
                                         .blurOpacityEffect(initialAnimation)
                                     
-                                    Group {
-                                        if #available(iOS 18, *) {
-                                            Text("Dock UI Accounts")
-                                                .font(.largeTitle.bold())
-                                                .foregroundStyle(.white)
-                                        } else {
-                                            Text("Dock UI Accounts")
-                                                .font(.largeTitle.bold())
-                                                .foregroundStyle(.white)
-                                        }
-                                    }
-                                    .padding(.bottom)
+                                    Text("Dock UI Accounts")
+                                        .font(.largeTitle.bold())
+                                        .foregroundStyle(.white)
+                                        .padding(.bottom)
                                     
                                     Text("Create your account to save favorites,\nsync across devices, and access\nexclusive features.")
                                         .multilineTextAlignment(.center)
@@ -100,7 +122,7 @@ struct SignInView: View {
                                         }
                                         .id(signInAppleButtonId)
                                         .signInWithAppleButtonStyle(colorScheme == .light ? .black : .white)
-                                        .onChange(of: colorScheme, { oldValue, newValue in
+                                        .onChange(of: colorScheme, { _, _ in
                                             signInAppleButtonId = UUID().uuidString
                                         })
                                         .frame(height: 50)
@@ -112,16 +134,13 @@ struct SignInView: View {
                                 .padding()
                                 
                                 Spacer()
-                                
                             }
                         }
-#if os(iOS)
                         .onReceive(timer) { _ in
                             if let scrollView = scrollView {
                                 scrollView.contentOffset.x += 0.35
                             }
                         }
-                        #endif
                         .task {
                             try? await Task.sleep(for: .seconds(0.35))
                             
@@ -136,11 +155,7 @@ struct SignInView: View {
                     }
                     .padding(.bottom, 40)
                 }
-            }
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Color.clear.frame(height: 44)
-                }
+                #endif
             }
         }
         .alert("Error", isPresented: $authViewModel.showError) {
@@ -148,10 +163,6 @@ struct SignInView: View {
         } message: {
             Text(authViewModel.errorMessage)
         }
-    }
-
-    private func signUp() async {
-        await authViewModel.signIn(email: email, password: password)
     }
     
     #if os(iOS)
@@ -225,13 +236,5 @@ fileprivate extension View {
             .compositingGroup()
             .opacity(status ? 1 : 0)
             .blur(radius: status ? 0 : 10)
-    }
-    
-    var isiOS26: Bool {
-        if #available(iOS 26, *) {
-            return true
-        }
-        
-        return false
     }
 }

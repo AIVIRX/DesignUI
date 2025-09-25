@@ -25,7 +25,7 @@ struct ContentView: View {
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
     
-    private enum MenuItem {
+    enum MenuItem {
         case explore
         case news
         case profile
@@ -51,10 +51,9 @@ struct ContentView: View {
     }
     
     var body: some View {
-        Group {
+        VStack{
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            VStack{
+            if UIDevice.current.userInterfaceIdiom == .phone {
                 StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house") {
                         ExploreView()
@@ -68,11 +67,7 @@ struct ContentView: View {
                         ProfileContainerView()
                     }
                 }
-                .accentColor(effectiveColorScheme == .dark ? .white : .black)
-            }
-        }
-        
-        if UIDevice.current.userInterfaceIdiom == .pad {
+            } else {
             NavigationSplitView {
                 VStack(alignment: .leading, spacing: 5) {
                     navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
@@ -88,44 +83,28 @@ struct ContentView: View {
                     
                     // Shop Link
                     navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 4)
-                    
-                    // UI Builder Link
-                    navigationLinkButton(viewType: .uiBuilder, label: "UI Builder", systemImage: "hammer.fill", menuItem: .uiBuilder, selectedIndex: $selectedIndex, currentIndex: 5)
-                    
+                                        
                     Divider().padding(.vertical).opacity(0.5)
                     
-                    Link("Threads", destination: URL(string: "https://www.threads.com/@dockui")!)
-                        .bold()
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundColor(hoveredItem == .threads ? (colorScheme == .dark ? .white : .black) : .gray)
-                        .background(Color.clear)
-                        .contentShape(Rectangle())
-                        .onHover { hovering in
-                            hoveredItem = hovering ? .threads : nil
-                        }
+                    LinkRow(title: "Threads",
+                            urlString: "https://www.threads.com/@dockui",
+                            item: ContentView.MenuItem.threads,
+                            hoveredItem: $hoveredItem,
+                            effectiveColorScheme: effectiveColorScheme)
                     
                     // Privacy Policy Link
-                    Link("Privacy Policy", destination: URL(string: "https://dockui.com/privacy")!)
-                        .bold()
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundColor(hoveredItem == .policy ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
-                        .contentShape(Rectangle())
-                        .onHover { hovering in
-                            hoveredItem = hovering ? .policy : nil
-                        }
+                    LinkRow(title: "Privacy Policy",
+                            urlString: "https://dockui.com/privacy",
+                            item: ContentView.MenuItem.policy,
+                            hoveredItem: $hoveredItem,
+                            effectiveColorScheme: effectiveColorScheme)
                     
                     // Contact Us Link
-                    Link("Contact Us", destination: URL(string: "https://dockui.com/contact")!)
-                        .bold()
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundColor(hoveredItem == .contact ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
-                        .contentShape(Rectangle())
-                        .onHover { hovering in
-                            hoveredItem = hovering ? .contact : nil
-                        }
+                    LinkRow(title: "Contact Us",
+                            urlString: "https://dockui.com/contact",
+                            item: ContentView.MenuItem.contact,
+                            hoveredItem: $hoveredItem,
+                            effectiveColorScheme: effectiveColorScheme)
                     
                     Text("v\(Bundle.main.releaseVersionNumber ?? "")")
                         .padding(.vertical, 8)
@@ -152,8 +131,6 @@ struct ContentView: View {
                         SFIconsView()
                     case 4:
                         StoreView()
-                    case 5:
-                        DesignBrowserView()
                     default:
                         Text("Select a view")
                     }
@@ -184,46 +161,33 @@ struct ContentView: View {
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
-                Link("Threads", destination: URL(string: "https://www.threads.com/@dockui")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .threads ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
-                    .background(Color.clear)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        hoveredItem = hovering ? .threads : nil
-                    }
-                
-                // Privacy Policy Link
-                Link("Privacy Policy", destination: URL(string: "https://dockui.com/privacy")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .policy ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        hoveredItem = hovering ? .policy : nil
-                    }
-                
-                // Contact Us Link
-                Link("Contact Us", destination: URL(string: "https://dockui.com/contact")!)
-                    .bold()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundColor(hoveredItem == .contact ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        hoveredItem = hovering ? .contact : nil
-                    }
-                
-                Text("v\(Bundle.main.releaseVersionNumber ?? "")")
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .foregroundStyle(Color.gray)
-                    .font(.body)
-                
-                Spacer()
+                    LinkRow(title: "Threads",
+                            urlString: "https://www.threads.com/@dockui",
+                            item: ContentView.MenuItem.threads,
+                            hoveredItem: $hoveredItem,
+                            effectiveColorScheme: effectiveColorScheme)
+                    
+                    // Privacy Policy Link
+                    LinkRow(title: "Privacy Policy",
+                            urlString: "https://dockui.com/privacy",
+                            item: ContentView.MenuItem.policy,
+                            hoveredItem: $hoveredItem,
+                            effectiveColorScheme: effectiveColorScheme)
+                    
+                    // Contact Us Link
+                    LinkRow(title: "Contact Us",
+                            urlString: "https://dockui.com/contact",
+                            item: ContentView.MenuItem.contact,
+                            hoveredItem: $hoveredItem,
+                            effectiveColorScheme: effectiveColorScheme)
+                    
+                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .foregroundStyle(Color.gray)
+                        .font(.body)
+                    
+                    Spacer()
             }
             .padding()
             .background(Color.clear)
@@ -330,6 +294,42 @@ struct ContentView: View {
             return AnyView(StoreView())
         case .sfIcons:
             return AnyView(SFIconsView())
+        }
+    }
+}
+
+// MARK: - Reusable LinkRow
+private struct LinkRow: View {
+    let title: String
+    let urlString: String
+    let item: ContentView.MenuItem
+    @Binding var hoveredItem: ContentView.MenuItem?
+    let effectiveColorScheme: ColorScheme
+    
+    var body: some View {
+        Button(action: {
+            if let url = URL(string: urlString) {
+                #if os(iOS)
+                UIApplication.shared.open(url)
+                #elseif os(macOS)
+                NSWorkspace.shared.open(url)
+                #endif
+            }
+        }) {
+            HStack {
+                Text(title)
+                    .bold()
+                    .foregroundColor(hoveredItem == item ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            hoveredItem = hovering ? item : nil
         }
     }
 }

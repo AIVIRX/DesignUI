@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Foundation
 
 struct CodeGenerator {
     static func generateCode(for component: UIComponent) -> String {

@@ -1544,9 +1544,6 @@
     "Bottom Trailing" : {
 
     },
-    "by %@" : {
-
-    },
     "Cancel" : {
       "localizations" : {
         "ar" : {
@@ -2070,6 +2067,12 @@
           }
         }
       }
+    },
+    "Copy \"%@\"" : {
+
+    },
+    "Copy code" : {
+
     },
     "Corner Radius" : {
 
@@ -5700,6 +5703,9 @@
         }
       }
     },
+    "Premium Content" : {
+
+    },
     "Preview" : {
 
     },
@@ -8998,6 +9004,9 @@
         }
       }
     },
+    "Sign in to sync favorites and access exclusive features." : {
+
+    },
     "Sign Out" : {
       "localizations" : {
         "ar" : {
@@ -9764,6 +9773,9 @@
       }
     },
     "Text Badge" : {
+
+    },
+    "This code snippet is available to premium users only." : {
 
     },
     "This will create a new design file that you can start building with." : {

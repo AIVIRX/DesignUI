@@ -9,48 +9,23 @@ import SwiftUI
 
 struct ToastData: Equatable {
     let title: String
-    let subtitle: String?
-    let icon: ToastIcon
+    let icon: String
     let duration: Double
     
     init(
         title: String,
-        subtitle: String? = nil,
-        icon: ToastIcon = .none,
+        icon: String = "document.on.document",
         duration: Double = 2.0
     ) {
         self.title = title
-        self.subtitle = subtitle
         self.icon = icon
         self.duration = duration
     }
     
     static func == (lhs: ToastData, rhs: ToastData) -> Bool {
         return lhs.title == rhs.title &&
-               lhs.subtitle == rhs.subtitle &&
                lhs.icon == rhs.icon &&
                lhs.duration == rhs.duration
-    }
-}
-
-enum ToastIcon: Equatable {
-    case none
-    case system(name: String)
-    case custom(name: String)
-    case sfSymbol(name: String, color: Color)
-    static func == (lhs: ToastIcon, rhs: ToastIcon) -> Bool {
-        switch (lhs, rhs) {
-        case (.none, .none):
-            return true
-        case let (.system(name1), .system(name2)):
-            return name1 == name2
-        case let (.custom(name1), .custom(name2)):
-            return name1 == name2
-        case let (.sfSymbol(name1, color1), .sfSymbol(name2, color2)):
-            return name1 == name2 && color1 == color2
-        default:
-            return false
-        }
     }
 }
 
@@ -62,32 +37,18 @@ struct ToastView: View {
     @State private var dragOffset: CGFloat = 0
     var body: some View {
         HStack(spacing: 8) {
-            // Content
-            if toast.subtitle != nil {
-                // With subtitle - align left
-                VStack(alignment: .leading, spacing: 1) {
-                    // Icon
-                    iconView
-                        .imageScale(.small)
-                    
-                    Text(toast.title)
-                        .font(.system(size: 20, weight: .medium))
-                    
-                    Text(toast.subtitle!)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-            } else {
-                // Icon
-                HStack{
-                    iconView
-                        .imageScale(.medium)
-                    
-                    Text(toast.title)
-                        .font(.system(size: 18, weight: .medium))
-                }
-                    .frame(maxWidth: .infinity, alignment: .center)
+            // Icon
+            HStack{
+                Image(systemName: toast.icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(.gray)
+                    .imageScale(.medium)
+                
+                Text(toast.title)
+                    .font(.title3)
+                    .fontWeight(.medium)
             }
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
@@ -95,13 +56,12 @@ struct ToastView: View {
 #if os(iOS)
             Capsule()
                 .stroke(.gray, lineWidth: 1)
-                .fill(Color(.systemBackground))
+                .fill(.ultraThinMaterial)
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
 #else
             Capsule()
-                .stroke(.gray, lineWidth: 1)
-                .fill(.thinMaterial)
+                .fill(.ultraThinMaterial)
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
 #endif
         }
@@ -135,27 +95,6 @@ struct ToastView: View {
         )
         .onAppear {
             showToast()
-        }
-    }
-    
-    private var iconView: some View {
-        Group {
-            switch toast.icon {
-            case .none:
-                EmptyView()
-            case .system(let name):
-                Image(systemName: name)
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-            case .custom(let name):
-                Image(name)
-                    .resizable()
-                    .frame(width: 16, height: 16)
-            case .sfSymbol(let name, let color):
-                Image(systemName: name)
-                    .font(.system(size: 16))
-                    .foregroundColor(color)
-            }
         }
     }
     

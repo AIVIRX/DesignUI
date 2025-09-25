@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(macOS)
 struct DesignBrowserView: View {
     @StateObject private var designManager = DesignManager()
     @State private var showingNewDesignSheet = false
@@ -239,3 +240,4 @@ struct NewDesignSheet: View {
         }
     }
 }
+#endif

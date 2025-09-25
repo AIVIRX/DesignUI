@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+#if os(macOS)
 struct ModifierEditorView: View {
     @ObservedObject var component: UIComponent
     @Binding var modifier: ComponentModifier
@@ -805,3 +805,4 @@ struct MaskModifierEditor: View {
         }
     }
 }
+#endif

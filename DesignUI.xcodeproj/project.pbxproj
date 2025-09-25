@@ -42,6 +42,7 @@
 		EC87D81B2DB9AE7A0091FAFF /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC87D81A2DB9AE7A0091FAFF /* Store.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
+		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
 		EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54692E187D7D00AAE9EC /* NewsPost.swift */; };
 		EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */; };
 		EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54702E187FA700AAE9EC /* BlogListView.swift */; };
@@ -120,6 +121,7 @@
 		EC87D81A2DB9AE7A0091FAFF /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
 		EC9F54692E187D7D00AAE9EC /* NewsPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsPost.swift; sourceTree = "<group>"; };
 		EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogViewModel.swift; sourceTree = "<group>"; };
 		EC9F54702E187FA700AAE9EC /* BlogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogListView.swift; sourceTree = "<group>"; };
@@ -231,6 +233,9 @@
 				ECC8DC3E2E7C605200026DAA /* LayersPanelView.swift */,
 				ECC8DC3F2E7C605200026DAA /* PropertiesPanelView.swift */,
 				ECC8DC402E7C605200026DAA /* UIBuilderView.swift */,
+				EC39712D2E83B1DC00DF0EAD /* DesignFile.swift */,
+				EC3D00392E7DC858005AA8FA /* Modifier.swift */,
+				ECC8DC4C2E7C60A400026DAA /* UIComponent.swift */,
 			);
 			path = UIBuilder;
 			sourceTree = "<group>";
@@ -250,6 +255,7 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */,
 				ECC8DC482E7C609000026DAA /* CanvasManager.swift */,
 				ECC8DC492E7C609000026DAA /* CodeGenerator.swift */,
 				ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */,
@@ -266,9 +272,6 @@
 		ECD13FDA2C18BC3200105B3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				EC39712D2E83B1DC00DF0EAD /* DesignFile.swift */,
-				EC3D00392E7DC858005AA8FA /* Modifier.swift */,
-				ECC8DC4C2E7C60A400026DAA /* UIComponent.swift */,
 				ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */,
 				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
 				EC2D21272CBF183000FA192D /* CommunityPosts.swift */,
@@ -537,6 +540,7 @@
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
+				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
 				EC3D003A2E7DC858005AA8FA /* Modifier.swift in Sources */,
 				EC39712C2E83B1D100DF0EAD /* DesignBrowserView.swift in Sources */,
