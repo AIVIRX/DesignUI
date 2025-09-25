@@ -67,36 +67,34 @@ struct SettingsView: View {
     @State private var isShowingMailView = false
     @Environment(\.dismiss) var dismiss
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Premium Section - Better for macOS
-                    NavigationLink(destination: StoreView()) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Premium")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                Text("Unlock Premium Features")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white.opacity(0.9))
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.white.opacity(0.7))
-                                .padding(.trailing)
+            VStack(spacing: 20) {
+                // Premium Section - Better for macOS
+                NavigationLink(destination: StoreView()) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Premium")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Text("Unlock Premium Features")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.9))
                         }
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.indigo.gradient))
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(.trailing)
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
-                    Form {
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.indigo.gradient))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal)
+                .padding(.top)
+                
+                Form {
                     Section(header: Text("Appearance")) {
                         // Color Scheme Picker
                         HStack {
@@ -173,7 +171,7 @@ struct SettingsView: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
-                                        
+                    
                     Section(header: Text("Privacy & Support")) {
                         Link(destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!) {
                             HStack {
@@ -215,39 +213,36 @@ struct SettingsView: View {
                         .disabled(!MFMailComposeViewController.canSendMail())
 #endif
                     }
-                    }
-                    .accentColor(colorScheme == .dark ? .white : .black)
-                    .formStyle(.grouped)
-                    
                 }
-                .padding(.horizontal)
+                .accentColor(colorScheme == .dark ? .white : .black)
+                .formStyle(.grouped)
+                
             }
+            .padding(.horizontal)
 #if os(iOS)
-            .navigationBarTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
 #else
-            .navigationTitle("Settings")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
+        .navigationTitle("Settings")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") {
+                    dismiss()
                 }
-            }
-#endif
-                .alert(isPresented: $showErrorAlert) {
-                    Alert(
-                        title: Text("Error"),
-                        message: Text(errorMessage),
-                        dismissButton: .default(Text("OK"))
-                    )
-                }
-#if os(iOS)
-                .sheet(isPresented: $isShowingMailView) {
-                    MailView(result: $result)
-                }
-#endif
             }
         }
+#endif
+        .alert(isPresented: $showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(errorMessage),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+#if os(iOS)
+        .sheet(isPresented: $isShowingMailView) {
+            MailView(result: $result)
+        }
+#endif
     }
-
+}

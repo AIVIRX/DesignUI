@@ -91,6 +91,7 @@ struct SignInView: View {
                                     content
                                         .offset(y: !initialAnimation ? -(proxy.size.height + 200) : 0)
                                 }
+                                .padding(.top, 20)
                                 
                                 // title & description
                                 VStack(spacing: 4) {

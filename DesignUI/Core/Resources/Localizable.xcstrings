@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-
+      "shouldTranslate" : false
     },
     "@%@" : {
       "localizations" : {
@@ -253,9 +253,6 @@
           }
         }
       }
-    },
-    "// Complete Swift File" : {
-
     },
     "%@" : {
       "localizations" : {
@@ -508,16 +505,7 @@
       }
     },
     "%lld" : {
-
-    },
-    "%lld components" : {
-
-    },
-    "%lld%%" : {
-
-    },
-    "%lld°" : {
-
+      "shouldTranslate" : false
     },
     "•" : {
       "localizations" : {
@@ -765,263 +753,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "•"
-          }
-        }
-      }
-    },
-    "Add Component" : {
-
-    },
-    "Add Modifier" : {
-
-    },
-    "App Icons" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أيقونات التطبيقات"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Icones d’apps"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ikony aplikací"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appsymboler"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App-Symbole"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Εικονίδια εφαρμογών"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App Icons"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App Icons"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App Icons"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Iconos de apps"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Íconos de la app"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Iconos de la aplicación"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appikuvakkeet"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Icônes d’apps"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Icônes d’app"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צלמיות יישום"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ऐप आइकॉन"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ikone aplikacija"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alkalmazásikonok"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ikon App"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Icone app"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appアイコン"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "앱 아이콘"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ikon App"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App-ikoner"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appsymbolen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ikony aplikacji"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ícones de Apps"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ícones das aplicações"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pictograme aplicații"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Значки приложений"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ikony apiek"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ikone aplikacij"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appsymboler"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ไอคอนแอพ"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uygulama Simgeleri"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Іконки програм"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biểu tượng ứng dụng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "应用程序图标"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "應用程式圖標"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App圖像"
           }
         }
       }
@@ -1276,9 +1007,6 @@
         }
       }
     },
-    "Are you sure you want to delete this design? This action cannot be undone." : {
-
-    },
     "Are you sure you want to delete your account?" : {
       "localizations" : {
         "ar" : {
@@ -1528,21 +1256,6 @@
           }
         }
       }
-    },
-    "Background Color" : {
-
-    },
-    "Blur" : {
-
-    },
-    "Bottom" : {
-
-    },
-    "Bottom Leading" : {
-
-    },
-    "Bottom Trailing" : {
-
     },
     "Cancel" : {
       "localizations" : {
@@ -1794,29 +1507,11 @@
         }
       }
     },
-    "Center" : {
-
-    },
-    "Choose a device preset" : {
-
-    },
-    "Choose Color" : {
-
-    },
-    "Clip Shape" : {
-
-    },
     "Code Snippet" : {
-
-    },
-    "Color" : {
-
+      "shouldTranslate" : false
     },
     "Color Scheme" : {
-
-    },
-    "Components" : {
-
+      "shouldTranslate" : false
     },
     "Contact Us" : {
       "localizations" : {
@@ -2069,28 +1764,13 @@
       }
     },
     "Copy \"%@\"" : {
-
+      "shouldTranslate" : false
     },
     "Copy code" : {
-
-    },
-    "Corner Radius" : {
-
-    },
-    "Create" : {
-
-    },
-    "Create New Design" : {
-
+      "shouldTranslate" : false
     },
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
-
-    },
-    "Create your first design to get started" : {
-
-    },
-    "Default" : {
-
+      "shouldTranslate" : false
     },
     "Delete" : {
       "localizations" : {
@@ -2592,15 +2272,6 @@
         }
       }
     },
-    "Delete Design" : {
-
-    },
-    "Design Browser" : {
-
-    },
-    "Design Name" : {
-
-    },
     "Display Name" : {
       "localizations" : {
         "ar" : {
@@ -2852,13 +2523,10 @@
       }
     },
     "Dock UI Accounts" : {
-
+      "shouldTranslate" : false
     },
     "Done" : {
-
-    },
-    "Drag components from the library to start building" : {
-
+      "shouldTranslate" : false
     },
     "Edit Profile" : {
       "localizations" : {
@@ -3360,44 +3028,22 @@
         }
       }
     },
-    "Font" : {
-
-    },
-    "Font Style" : {
-
-    },
-    "Font Weight" : {
-
-    },
-    "Frame Size" : {
-
-    },
-    "Generated Code" : {
-
-    },
-    "Height" : {
-
-    },
-    "Hello World" : {
-
-    },
-    "Highlighting..." : {
-
-    },
-    "HStack" : {
-
-    },
-    "Icon" : {
-
-    },
     "Introducing" : {
-
+      "shouldTranslate" : false
     },
     "John Doe" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "John Doe"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "johndoe" : {
-
+      "shouldTranslate" : false
     },
     "Latest News" : {
       "localizations" : {
@@ -3649,15 +3295,6 @@
         }
       }
     },
-    "Layers" : {
-
-    },
-    "Layout" : {
-
-    },
-    "Leading" : {
-
-    },
     "Loading posts..." : {
       "localizations" : {
         "ar" : {
@@ -3907,18 +3544,6 @@
           }
         }
       }
-    },
-    "Mask" : {
-
-    },
-    "Modified %@" : {
-
-    },
-    "MODIFIERS" : {
-
-    },
-    "New Design" : {
-
     },
     "News" : {
       "localizations" : {
@@ -4420,12 +4045,6 @@
         }
       }
     },
-    "No Designs Yet" : {
-
-    },
-    "No layers yet" : {
-
-    },
     "No liked posts yet" : {
       "localizations" : {
         "ar" : {
@@ -4926,9 +4545,6 @@
         }
       }
     },
-    "No modifiers applied" : {
-
-    },
     "No posts found" : {
       "localizations" : {
         "ar" : {
@@ -5179,12 +4795,6 @@
         }
       }
     },
-    "No Selection" : {
-
-    },
-    "Offset" : {
-
-    },
     "OK" : {
       "localizations" : {
         "ar" : {
@@ -5434,24 +5044,6 @@
           }
         }
       }
-    },
-    "Opacity" : {
-
-    },
-    "Open" : {
-
-    },
-    "Overlay" : {
-
-    },
-    "Overlay Text" : {
-
-    },
-    "Padding" : {
-
-    },
-    "Position" : {
-
     },
     "Premium" : {
       "localizations" : {
@@ -5704,10 +5296,7 @@
       }
     },
     "Premium Content" : {
-
-    },
-    "Preview" : {
-
+      "shouldTranslate" : false
     },
     "Privacy & Support" : {
       "localizations" : {
@@ -6459,12 +6048,6 @@
         }
       }
     },
-    "Properties" : {
-
-    },
-    "Radius" : {
-
-    },
     "Rate Us" : {
       "localizations" : {
         "ar" : {
@@ -6714,9 +6297,6 @@
           }
         }
       }
-    },
-    "Reset Zoom" : {
-
     },
     "Restore" : {
       "localizations" : {
@@ -6968,26 +6548,11 @@
         }
       }
     },
-    "Rotation" : {
-
-    },
     "Save" : {
-
-    },
-    "Scale" : {
-
-    },
-    "ScrollView" : {
-
-    },
-    "Search components..." : {
-
-    },
-    "Search modifiers..." : {
-
+      "shouldTranslate" : false
     },
     "Search posts" : {
-
+      "shouldTranslate" : false
     },
     "Search SF Symbols" : {
       "localizations" : {
@@ -7240,10 +6805,7 @@
       }
     },
     "Search templates" : {
-
-    },
-    "Select a component to edit its properties" : {
-
+      "shouldTranslate" : false
     },
     "Select a view" : {
       "localizations" : {
@@ -8245,15 +7807,6 @@
         }
       }
     },
-    "Shadow" : {
-
-    },
-    "Shadow Color" : {
-
-    },
-    "Shape" : {
-
-    },
     "Share" : {
       "localizations" : {
         "ar" : {
@@ -9005,7 +8558,7 @@
       }
     },
     "Sign in to sync favorites and access exclusive features." : {
-
+      "shouldTranslate" : false
     },
     "Sign Out" : {
       "localizations" : {
@@ -9258,13 +8811,7 @@
       }
     },
     "Similar Posts" : {
-
-    },
-    "Size" : {
-
-    },
-    "Style" : {
-
+      "shouldTranslate" : false
     },
     "Support Us" : {
       "localizations" : {
@@ -9516,12 +9063,6 @@
         }
       }
     },
-    "SwiftUI Builder" : {
-
-    },
-    "system.icon.name" : {
-
-    },
     "Templates" : {
       "localizations" : {
         "ar" : {
@@ -9772,14 +9313,8 @@
         }
       }
     },
-    "Text Badge" : {
-
-    },
     "This code snippet is available to premium users only." : {
-
-    },
-    "This will create a new design file that you can start building with." : {
-
+      "shouldTranslate" : false
     },
     "Threads" : {
       "localizations" : {
@@ -10031,21 +9566,6 @@
         }
       }
     },
-    "Top" : {
-
-    },
-    "Top Leading" : {
-
-    },
-    "Top Trailing" : {
-
-    },
-    "Trailing" : {
-
-    },
-    "Type" : {
-
-    },
     "Unlock Premium Features" : {
       "localizations" : {
         "ar" : {
@@ -10295,9 +9815,6 @@
           }
         }
       }
-    },
-    "Unsupported property type" : {
-
     },
     "Username" : {
       "localizations" : {
@@ -10799,27 +10316,6 @@
         }
       }
     },
-    "VStack" : {
-
-    },
-    "Weight" : {
-
-    },
-    "Width" : {
-
-    },
-    "X Offset" : {
-
-    },
-    "X Scale" : {
-
-    },
-    "Y Offset" : {
-
-    },
-    "Y Scale" : {
-
-    },
     "You need to be signed in to like a design." : {
       "localizations" : {
         "ar" : {
@@ -11069,9 +10565,6 @@
           }
         }
       }
-    },
-    "ZStack" : {
-
     }
   },
   "version" : "1.0"

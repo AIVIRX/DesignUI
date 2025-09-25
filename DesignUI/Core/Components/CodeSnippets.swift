@@ -136,9 +136,6 @@ struct LiveSyntaxHighlightedCode: View {
                     HStack {
                         ProgressView()
                             .scaleEffect(0.8)
-                        Text("Highlighting...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
