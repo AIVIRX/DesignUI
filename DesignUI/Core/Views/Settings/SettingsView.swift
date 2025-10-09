@@ -8,7 +8,6 @@
 //  DesignUI
 
 import SwiftUI
-import StoreKit
 #if os(iOS)
 import MessageUI
 #endif
@@ -57,7 +56,6 @@ struct MailView: UIViewControllerRepresentable {
 struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
-    @EnvironmentObject private var store: Store
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
@@ -68,32 +66,6 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     var body: some View {
             VStack(spacing: 20) {
-                // Premium Section - Better for macOS
-                NavigationLink(destination: StoreView()) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Premium")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            Text("Unlock Premium Features")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.white.opacity(0.7))
-                            .padding(.trailing)
-                    }
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.indigo.gradient))
-                }
-                .buttonStyle(PlainButtonStyle())
-                .padding(.horizontal)
-                .padding(.top)
-                
                 Form {
                     Section(header: Text("Appearance")) {
                         // Color Scheme Picker

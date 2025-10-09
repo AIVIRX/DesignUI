@@ -61,7 +61,6 @@ struct DetailView: View {
     let codeSnippet: String
     let creationDate: String
     let isAuthorVerified: Bool
-    var isPremium: Bool = false
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
@@ -142,8 +141,7 @@ struct DetailView: View {
                     LiveSyntaxHighlightedCode(
                         code: codeSnippet,
                         fontSize: 20,
-                        maxHeight: 300,
-                        isPremium: isPremium
+                        maxHeight: 300
                     )
                                     
                     SimilarPostsView(currentPostId: id)
@@ -203,8 +201,7 @@ struct DetailView: View {
                             LiveSyntaxHighlightedCode(
                                 code: codeSnippet,
                                 fontSize: 20,
-                                maxHeight: 600,
-                                isPremium: isPremium
+                                maxHeight: 600
                             )
                         }
                     }
@@ -268,8 +265,7 @@ struct DetailView: View {
                         
                         LiveSyntaxHighlightedCode(
                             code: codeSnippet,
-                            maxHeight: 600,
-                            isPremium: isPremium
+                            maxHeight: 600
                         )
                     }
                 }

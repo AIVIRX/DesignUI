@@ -23,7 +23,6 @@ struct SimilarPostsView: View {
                                 codeSnippet: post.code_snippet,
                                 creationDate: post.created_at,
                                 isAuthorVerified: post.profiles.verified,
-                                isPremium: post.isPremium
                             )) {
                                 SimilarPostCard(post: post)
                             }

@@ -11,12 +11,11 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, shop
+    case templates, news, profile, sfIcons
 }
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject private var store: Store
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @EnvironmentObject private var toastManager: ToastManager
     @State private var hoveredItem: MenuItem?
@@ -31,7 +30,6 @@ struct ContentView: View {
         case profile
         case templates
         case sfIcons
-        case shop
         case uiBuilder
         case threads
         case policy
@@ -53,7 +51,7 @@ struct ContentView: View {
     var body: some View {
         VStack{
 #if os(iOS)
-            if UIDevice.current.userInterfaceIdiom == .phone {
+        if UIDevice.current.userInterfaceIdiom == .phone {
                 StatefulTabView(selectedIndex: $selectedIndex){
                     Tab(systemImageName: "house") {
                         ExploreView()
@@ -81,9 +79,6 @@ struct ContentView: View {
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
                     
-                    // Shop Link
-                    navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 4)
-                                        
                     Divider().padding(.vertical).opacity(0.5)
                     
                     LinkRow(title: "Threads",
@@ -154,10 +149,6 @@ struct ContentView: View {
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
                 
-                // Shop Link
-                navigationLinkButton(viewType: .shop, label: "Shop", systemImage: "cart", menuItem: .shop, selectedIndex: $selectedIndex, currentIndex: 4)
-                
-                // UI Builder Link
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
@@ -218,10 +209,6 @@ struct ContentView: View {
                     ProfileContainerView()
                 case 3:
                     SFIconsView()
-                case 4:
-                    StoreView()
-                case 5:
-                    DesignBrowserView()
                 default:
                     Text("Select a view")
                 }
@@ -290,8 +277,6 @@ struct ContentView: View {
             return AnyView(NewsListView())
         case .profile:
             return AnyView(ProfileContainerView())
-        case .shop:
-            return AnyView(StoreView())
         case .sfIcons:
             return AnyView(SFIconsView())
         }

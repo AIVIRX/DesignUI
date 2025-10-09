@@ -20,7 +20,6 @@ struct DesignCards: View {
     var published: String
     var likesCount: Int
     var isLiked: Bool
-    var isPremium: Bool
     
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
@@ -51,7 +50,7 @@ struct DesignCards: View {
         }
     }
     
-    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool, isPremium: Bool) {
+    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool) {
         self.id = id
         self.media = media
         self.title = title
@@ -62,7 +61,6 @@ struct DesignCards: View {
         self.published = published
         self.likesCount = likesCount
         self.isLiked = isLiked
-        self.isPremium = isPremium
     }
     
     var body: some View {
@@ -74,8 +72,7 @@ struct DesignCards: View {
             author: authorName,
             codeSnippet: codeSnippet,
             creationDate: published,
-            isAuthorVerified: isVerified,
-            isPremium: isPremium
+            isAuthorVerified: isVerified
         )) {
             VStack(alignment: .center) {
 #if os(iOS)

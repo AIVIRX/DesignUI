@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import StoreKit
 
 struct LikeButton: View {
     let postId: String

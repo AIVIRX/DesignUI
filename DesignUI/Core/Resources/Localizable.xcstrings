@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-      "shouldTranslate" : false
+
     },
     "@%@" : {
       "localizations" : {
@@ -505,7 +505,7 @@
       }
     },
     "%lld" : {
-      "shouldTranslate" : false
+
     },
     "•" : {
       "localizations" : {
@@ -1508,10 +1508,10 @@
       }
     },
     "Code Snippet" : {
-      "shouldTranslate" : false
+
     },
     "Color Scheme" : {
-      "shouldTranslate" : false
+
     },
     "Contact Us" : {
       "localizations" : {
@@ -1764,13 +1764,13 @@
       }
     },
     "Copy \"%@\"" : {
-      "shouldTranslate" : false
+
     },
     "Copy code" : {
-      "shouldTranslate" : false
+
     },
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
-      "shouldTranslate" : false
+
     },
     "Delete" : {
       "localizations" : {
@@ -2523,10 +2523,10 @@
       }
     },
     "Dock UI Accounts" : {
-      "shouldTranslate" : false
+
     },
     "Done" : {
-      "shouldTranslate" : false
+
     },
     "Edit Profile" : {
       "localizations" : {
@@ -3029,7 +3029,7 @@
       }
     },
     "Introducing" : {
-      "shouldTranslate" : false
+
     },
     "John Doe" : {
       "localizations" : {
@@ -3039,11 +3039,10 @@
             "value" : "John Doe"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "johndoe" : {
-      "shouldTranslate" : false
+
     },
     "Latest News" : {
       "localizations" : {
@@ -5046,6 +5045,7 @@
       }
     },
     "Premium" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5294,9 +5294,6 @@
           }
         }
       }
-    },
-    "Premium Content" : {
-      "shouldTranslate" : false
     },
     "Privacy & Support" : {
       "localizations" : {
@@ -6299,6 +6296,7 @@
       }
     },
     "Restore" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6549,10 +6547,10 @@
       }
     },
     "Save" : {
-      "shouldTranslate" : false
+
     },
     "Search posts" : {
-      "shouldTranslate" : false
+
     },
     "Search SF Symbols" : {
       "localizations" : {
@@ -6805,7 +6803,7 @@
       }
     },
     "Search templates" : {
-      "shouldTranslate" : false
+
     },
     "Select a view" : {
       "localizations" : {
@@ -8058,6 +8056,7 @@
       }
     },
     "Shop" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8558,7 +8557,7 @@
       }
     },
     "Sign in to sync favorites and access exclusive features." : {
-      "shouldTranslate" : false
+
     },
     "Sign Out" : {
       "localizations" : {
@@ -8811,7 +8810,7 @@
       }
     },
     "Similar Posts" : {
-      "shouldTranslate" : false
+
     },
     "Support Us" : {
       "localizations" : {
@@ -9313,9 +9312,6 @@
         }
       }
     },
-    "This code snippet is available to premium users only." : {
-      "shouldTranslate" : false
-    },
     "Threads" : {
       "localizations" : {
         "ar" : {
@@ -9567,6 +9563,7 @@
       }
     },
     "Unlock Premium Features" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

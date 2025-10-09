@@ -6,9 +6,6 @@
 //
 
 import SwiftUI
-import Firebase
-import FirebaseCore
-import FirebaseAnalytics
 import Supabase
 
 #if os(iOS)
@@ -16,14 +13,10 @@ import Supabase
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        configureFirebase()
-        //        UserDefaults.standard.set(0, forKey: "selectedIndex")
+        
+                UserDefaults.standard.set(0, forKey: "selectedIndex")
         
         return true
-    }
-    
-    private func configureFirebase() {
-        FirebaseApp.configure()
     }
 }
 
@@ -31,7 +24,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let client = SupabaseManager.shared.client
-    @StateObject private var store = Store()
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
@@ -42,7 +34,6 @@ struct DesignUIApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(store)
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
@@ -55,16 +46,9 @@ struct DesignUIApp: App {
 #endif
 
 #if os(macOS)
-class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        FirebaseApp.configure()
-    }
-}
 
 @main
 struct DesignUIApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var store = Store()
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
@@ -77,7 +61,6 @@ struct DesignUIApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(store)
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)

@@ -6,12 +6,10 @@
 //
 
 import SwiftUI
-import StoreKit
 
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var searchText = ""
-    @EnvironmentObject private var store: Store
     
     var filteredPosts: [DesignPost] {
         guard !searchText.isEmpty else { return viewModel.posts }
@@ -38,19 +36,18 @@ struct ExploreView: View {
                         } else {
                             LazyVGrid(columns: gridColumns, spacing: 16) {
                                 ForEach(filteredPosts) { post in
-                                    DesignCards(
-                                        id: post.id,
-                                        media: post.preview_image_url,
-                                        title: post.title,
-                                        authorName: post.profiles.username,
-                                        isVerified: post.profiles.verified,
-                                        description: post.description,
-                                        codeSnippet: post.code_snippet,
-                                        published: post.created_at,
-                                        likesCount: post.likes_count,
-                                        isLiked: false,
-                                        isPremium: post.isPremium
-                                    )
+                        DesignCards(
+                            id: post.id,
+                            media: post.preview_image_url,
+                            title: post.title,
+                            authorName: post.profiles.username,
+                            isVerified: post.profiles.verified,
+                            description: post.description,
+                            codeSnippet: post.code_snippet,
+                            published: post.created_at,
+                            likesCount: post.likes_count,
+                            isLiked: false
+                        )
                                     .task {
                                         await viewModel.loadMorePostsIfNeeded(currentItem: post)
                                     }
