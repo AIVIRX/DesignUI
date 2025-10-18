@@ -15,6 +15,12 @@ struct NewsDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
+                Text(post.title)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .lineLimit(3)
+                    .frame(maxWidth: 700, alignment: .leading)
                 // Featured image/card
                 if let imageUrl = post.image_url, let url = URL(string: imageUrl) {
                     ZStack {
@@ -46,16 +52,10 @@ struct NewsDetailView: View {
                         }
                     }
                     .frame(maxWidth: 700, maxHeight: 394)
-                    .padding(.horizontal)
                 }
 
                 // Main content card
                 VStack(alignment: .leading) {
-                    Text(post.title)
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                        .lineLimit(3)
                     if let desc = post.description {
                         Text(desc)
                             .font(.title2)
@@ -65,10 +65,9 @@ struct NewsDetailView: View {
                     Divider().padding(.vertical)
                     NewsContentView(blocks: post.blocks)
                 }
-                .frame(maxWidth: 700)
-                .padding(.horizontal)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
+            .frame(maxWidth: 700, alignment: .center)
+            .padding(.horizontal)
             .padding(.vertical, 40)
         }
         .navigationTitle("")

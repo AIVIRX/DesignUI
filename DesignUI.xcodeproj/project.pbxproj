@@ -30,6 +30,20 @@
 		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
 		EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF42C19E546003134B1 /* DesignCards.swift */; };
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
+		EC7F4AE42EA30B8D00A91B1D /* ModifierPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE02EA30B8D00A91B1D /* ModifierPanelView.swift */; };
+		EC7F4AE52EA30B8D00A91B1D /* UIBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE22EA30B8D00A91B1D /* UIBuilderView.swift */; };
+		EC7F4AE62EA30B8D00A91B1D /* DesignFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADC2EA30B8D00A91B1D /* DesignFile.swift */; };
+		EC7F4AE72EA30B8D00A91B1D /* ComponentLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AD92EA30B8D00A91B1D /* ComponentLibraryView.swift */; };
+		EC7F4AE82EA30B8D00A91B1D /* ComponentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADA2EA30B8D00A91B1D /* ComponentRenderer.swift */; };
+		EC7F4AE92EA30B8D00A91B1D /* DesignBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADB2EA30B8D00A91B1D /* DesignBrowserView.swift */; };
+		EC7F4AEA2EA30B8D00A91B1D /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AD82EA30B8D00A91B1D /* CodePreviewView.swift */; };
+		EC7F4AEB2EA30B8D00A91B1D /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADE2EA30B8D00A91B1D /* Modifier.swift */; };
+		EC7F4AEC2EA30B8D00A91B1D /* PropertiesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE12EA30B8D00A91B1D /* PropertiesPanelView.swift */; };
+		EC7F4AED2EA30B8D00A91B1D /* UIComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE32EA30B8D00A91B1D /* UIComponent.swift */; };
+		EC7F4AEE2EA30B8D00A91B1D /* LayersPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADD2EA30B8D00A91B1D /* LayersPanelView.swift */; };
+		EC7F4AEF2EA30B8D00A91B1D /* ModifierEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADF2EA30B8D00A91B1D /* ModifierEditorView.swift */; };
+		EC7F4AF12EA30C6700A91B1D /* CanvasManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */; };
+		EC7F4AF32EA30DC500A91B1D /* CodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
 		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
@@ -88,6 +102,20 @@
 		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC7D7BF42C19E546003134B1 /* DesignCards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
+		EC7F4AD82EA30B8D00A91B1D /* CodePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodePreviewView.swift; sourceTree = "<group>"; };
+		EC7F4AD92EA30B8D00A91B1D /* ComponentLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryView.swift; sourceTree = "<group>"; };
+		EC7F4ADA2EA30B8D00A91B1D /* ComponentRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentRenderer.swift; sourceTree = "<group>"; };
+		EC7F4ADB2EA30B8D00A91B1D /* DesignBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignBrowserView.swift; sourceTree = "<group>"; };
+		EC7F4ADC2EA30B8D00A91B1D /* DesignFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignFile.swift; sourceTree = "<group>"; };
+		EC7F4ADD2EA30B8D00A91B1D /* LayersPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanelView.swift; sourceTree = "<group>"; };
+		EC7F4ADE2EA30B8D00A91B1D /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
+		EC7F4ADF2EA30B8D00A91B1D /* ModifierEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierEditorView.swift; sourceTree = "<group>"; };
+		EC7F4AE02EA30B8D00A91B1D /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
+		EC7F4AE12EA30B8D00A91B1D /* PropertiesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesPanelView.swift; sourceTree = "<group>"; };
+		EC7F4AE22EA30B8D00A91B1D /* UIBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIBuilderView.swift; sourceTree = "<group>"; };
+		EC7F4AE32EA30B8D00A91B1D /* UIComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponent.swift; sourceTree = "<group>"; };
+		EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
+		EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeGenerator.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
@@ -131,6 +159,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC7F4AD72EA30B4C00A91B1D /* Studio */ = {
+			isa = PBXGroup;
+			children = (
+				EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */,
+				EC7F4AD82EA30B8D00A91B1D /* CodePreviewView.swift */,
+				EC7F4AD92EA30B8D00A91B1D /* ComponentLibraryView.swift */,
+				EC7F4ADA2EA30B8D00A91B1D /* ComponentRenderer.swift */,
+				EC7F4ADB2EA30B8D00A91B1D /* DesignBrowserView.swift */,
+				EC7F4ADC2EA30B8D00A91B1D /* DesignFile.swift */,
+				EC7F4ADD2EA30B8D00A91B1D /* LayersPanelView.swift */,
+				EC7F4ADE2EA30B8D00A91B1D /* Modifier.swift */,
+				EC7F4ADF2EA30B8D00A91B1D /* ModifierEditorView.swift */,
+				EC7F4AE02EA30B8D00A91B1D /* ModifierPanelView.swift */,
+				EC7F4AE12EA30B8D00A91B1D /* PropertiesPanelView.swift */,
+				EC7F4AE22EA30B8D00A91B1D /* UIBuilderView.swift */,
+				EC7F4AE32EA30B8D00A91B1D /* UIComponent.swift */,
+				EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */,
+			);
+			path = Studio;
+			sourceTree = "<group>";
+		};
 		EC9F546F2E187F8E00AAE9EC /* Blog */ = {
 			isa = PBXGroup;
 			children = (
@@ -223,6 +272,7 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				EC7F4AD72EA30B4C00A91B1D /* Studio */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
@@ -434,6 +484,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC7F4AE42EA30B8D00A91B1D /* ModifierPanelView.swift in Sources */,
+				EC7F4AE52EA30B8D00A91B1D /* UIBuilderView.swift in Sources */,
+				EC7F4AE62EA30B8D00A91B1D /* DesignFile.swift in Sources */,
+				EC7F4AE72EA30B8D00A91B1D /* ComponentLibraryView.swift in Sources */,
+				EC7F4AE82EA30B8D00A91B1D /* ComponentRenderer.swift in Sources */,
+				EC7F4AE92EA30B8D00A91B1D /* DesignBrowserView.swift in Sources */,
+				EC7F4AEA2EA30B8D00A91B1D /* CodePreviewView.swift in Sources */,
+				EC7F4AEB2EA30B8D00A91B1D /* Modifier.swift in Sources */,
+				EC7F4AEC2EA30B8D00A91B1D /* PropertiesPanelView.swift in Sources */,
+				EC7F4AED2EA30B8D00A91B1D /* UIComponent.swift in Sources */,
+				EC7F4AEE2EA30B8D00A91B1D /* LayersPanelView.swift in Sources */,
+				EC7F4AEF2EA30B8D00A91B1D /* ModifierEditorView.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */,
@@ -454,6 +516,7 @@
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
+				EC7F4AF32EA30DC500A91B1D /* CodeGenerator.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
@@ -462,6 +525,7 @@
 				EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				ECE995512C98881000C60416 /* TemplateView.swift in Sources */,
+				EC7F4AF12EA30C6700A91B1D /* CanvasManager.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */,
 				EC5982A02D568E5500633392 /* LikeButton.swift in Sources */,
@@ -624,7 +688,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 267;
+				CURRENT_PROJECT_VERSION = 367;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_APP_SANDBOX = YES;
@@ -634,27 +698,29 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
+				INFOPLIST_KEY_CFBundleDisplayName = DesignUI;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 26.1;
+				MARKETING_VERSION = 27;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
@@ -679,7 +745,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 267;
+				CURRENT_PROJECT_VERSION = 367;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -690,27 +756,29 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
+				INFOPLIST_KEY_CFBundleDisplayName = DesignUI;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 26.1;
+				MARKETING_VERSION = 27;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";

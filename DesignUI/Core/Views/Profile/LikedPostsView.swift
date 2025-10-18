@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LikedPostsView2: View {
+struct LikedPostsView: View {
     @StateObject private var viewModelLiked = LikedPostsViewModel()
     
     var body: some View {

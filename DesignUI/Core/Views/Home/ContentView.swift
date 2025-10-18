@@ -124,8 +124,6 @@ struct ContentView: View {
                         ProfileContainerView()
                     case 3:
                         SFIconsView()
-                    case 4:
-                        StoreView()
                     default:
                         Text("Select a view")
                     }
@@ -202,7 +200,7 @@ struct ContentView: View {
             NavigationStack() {
                 switch selectedIndex {
                 case 0:
-                    ExploreView()
+                    DesignBrowserView()
                 case 1:
                     NewsListView()
                 case 2:

@@ -56,7 +56,7 @@ struct NewsListView: View {
                             ForEach(gridPosts) { post in
                                 NavigationLink(destination: NewsDetailView(post: post)) {
                                     BlogGridCard(post: post)
-                                        .padding(.vertical, 12)
+                                        .padding(.vertical, 5)
                                         .animation(.easeInOut(duration: 0.15), value: post.id)
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -166,9 +166,9 @@ struct BlogGridCard: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
             }
             Text(post.title)
-                .font(.title3)
+                .font(.title3).bold()
                 .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : Color.black)
-                .lineLimit(2)
+                .lineLimit(1)
                 .multilineTextAlignment(.leading)
                 .padding(.bottom, 8)
         }

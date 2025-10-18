@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-
+      "shouldTranslate" : false
     },
     "@%@" : {
       "localizations" : {
@@ -253,6 +253,9 @@
           }
         }
       }
+    },
+    "// Complete Swift File" : {
+
     },
     "%@" : {
       "localizations" : {
@@ -505,6 +508,15 @@
       }
     },
     "%lld" : {
+      "shouldTranslate" : false
+    },
+    "%lld components" : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "%lld°" : {
 
     },
     "•" : {
@@ -757,6 +769,18 @@
         }
       }
     },
+    "0" : {
+
+    },
+    "Add Component" : {
+
+    },
+    "Add Modifier" : {
+
+    },
+    "Amount" : {
+
+    },
     "Appearance" : {
       "localizations" : {
         "ar" : {
@@ -1006,6 +1030,12 @@
           }
         }
       }
+    },
+    "Are you sure you want to delete this component? This action cannot be undone." : {
+
+    },
+    "Are you sure you want to delete this design? This action cannot be undone." : {
+
     },
     "Are you sure you want to delete your account?" : {
       "localizations" : {
@@ -1257,6 +1287,21 @@
         }
       }
     },
+    "Background Color" : {
+
+    },
+    "Blur" : {
+
+    },
+    "Bottom" : {
+
+    },
+    "Bottom Leading" : {
+
+    },
+    "Bottom Trailing" : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "ar" : {
@@ -1507,10 +1552,28 @@
         }
       }
     },
+    "Center" : {
+
+    },
+    "Choose a device preset" : {
+
+    },
+    "Choose Color" : {
+
+    },
+    "Clip Shape" : {
+
+    },
     "Code Snippet" : {
+      "shouldTranslate" : false
+    },
+    "Color" : {
 
     },
     "Color Scheme" : {
+      "shouldTranslate" : false
+    },
+    "Components" : {
 
     },
     "Contact Us" : {
@@ -1764,12 +1827,24 @@
       }
     },
     "Copy \"%@\"" : {
-
+      "shouldTranslate" : false
     },
     "Copy code" : {
+      "shouldTranslate" : false
+    },
+    "Corner Radius" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create New Design" : {
 
     },
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
+      "shouldTranslate" : false
+    },
+    "Create your first design to get started" : {
 
     },
     "Delete" : {
@@ -2272,6 +2347,18 @@
         }
       }
     },
+    "Delete Component" : {
+
+    },
+    "Delete Design" : {
+
+    },
+    "Design Browser" : {
+
+    },
+    "Design Name" : {
+
+    },
     "Display Name" : {
       "localizations" : {
         "ar" : {
@@ -2523,9 +2610,12 @@
       }
     },
     "Dock UI Accounts" : {
-
+      "shouldTranslate" : false
     },
     "Done" : {
+      "shouldTranslate" : false
+    },
+    "Drag components from the library to start building" : {
 
     },
     "Edit Profile" : {
@@ -3028,21 +3118,46 @@
         }
       }
     },
-    "Introducing" : {
+    "Font" : {
 
+    },
+    "Font Style" : {
+
+    },
+    "Font Weight" : {
+
+    },
+    "Frame Size" : {
+
+    },
+    "Generated Code" : {
+
+    },
+    "Height" : {
+
+    },
+    "Hello World" : {
+
+    },
+    "Icon" : {
+
+    },
+    "Introducing" : {
+      "shouldTranslate" : false
     },
     "John Doe" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "John Doe"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "johndoe" : {
-
+      "shouldTranslate" : false
     },
     "Latest News" : {
       "localizations" : {
@@ -3294,6 +3409,12 @@
         }
       }
     },
+    "Layers" : {
+
+    },
+    "Leading" : {
+
+    },
     "Loading posts..." : {
       "localizations" : {
         "ar" : {
@@ -3543,6 +3664,21 @@
           }
         }
       }
+    },
+    "Location" : {
+
+    },
+    "Mask" : {
+
+    },
+    "Modified %@" : {
+
+    },
+    "MODIFIERS" : {
+
+    },
+    "New Design" : {
+
     },
     "News" : {
       "localizations" : {
@@ -4044,6 +4180,12 @@
         }
       }
     },
+    "No Designs Yet" : {
+
+    },
+    "No layers yet" : {
+
+    },
     "No liked posts yet" : {
       "localizations" : {
         "ar" : {
@@ -4294,255 +4436,8 @@
         }
       }
     },
-    "No liked posts. Swipe down to refresh!" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا توجد مشاركات أعجبتني. مرر لأسفل للتحديث!"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hi ha publicacions que m'agradin. Llisca cap avall per actualitzar!"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Žádné oblíbené příspěvky. Přejetím dolů obnovte!"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ingen kunne lide indlæg. Stryg ned for at opdatere!"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Beiträge mit „Gefällt mir“. Zum Aktualisieren nach unten wischen!"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δεν υπάρχουν αρεστές αναρτήσεις. Σύρετε προς τα κάτω για ανανέωση!"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No liked posts. Swipe down to refresh!"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No liked posts. Swipe down to refresh!"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No liked posts. Swipe down to refresh!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay publicaciones que te gusten. ¡Desliza hacia abajo para actualizar!"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay publicaciones que te gusten. ¡Desliza hacia abajo para actualizar!"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay publicaciones que te gusten. ¡Desliza hacia abajo para actualizar!"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ei tykättyjä viestejä. Päivitä pyyhkäisemällä alas!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun article aimé. Glissez vers le bas pour actualiser !"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun article aimé. Glissez vers le bas pour actualiser !"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אין לייק לפוסטים. החלק מטה כדי לרענן!"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "कोई पोस्ट पसंद नहीं की गई। ताज़ा करने के लिए नीचे स्वाइप करें!"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nema lajkanih objava. Prijeđite prstom prema dolje za osvježavanje!"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nincsenek kedvelt bejegyzések. Húzza lefelé a frissítést!"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tidak ada postingan yang disukai. Geser ke bawah untuk menyegarkan!"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun post apprezzato. Scorri verso il basso per aggiornare!"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "いいねされた投稿はありません。下にスワイプして更新してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "좋아요를 누른 게시물이 없습니다. 아래로 스와이프하여 새로 고침하세요!"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tiada siaran yang disukai. Leret ke bawah untuk memuat semula!"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ingen likte innlegg. Sveip ned for å oppdatere!"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geen gelikete berichten. Veeg omlaag om te vernieuwen!"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Brak polubionych postów. Przesuń w dół, aby odświeżyć!"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhuma publicação curtida. Deslize para baixo para atualizar!"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhuma publicação curtida. Deslize para baixo para atualizar!"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nicio postare apreciată. Glisați în jos pentru a reîmprospăta!"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нет понравившихся постов. Проведите вниз, чтобы обновить!"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Žiadne obľúbené príspevky. Obnovte potiahnutím nadol!"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ni všečnih objav. Povlecite navzdol za osvežitev!"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inga gillade inlägg. Svep nedåt för att uppdatera!"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ไม่มีโพสต์ที่ชอบ ปัดลงเพื่อรีเฟรช!"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beğenilen gönderi yok. Yenilemek için aşağı kaydırın!"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Немає постів, які сподобалися. Проведіть пальцем вниз, щоб оновити!"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không có bài viết nào được thích. Vuốt xuống để làm mới!"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有喜欢的帖子。向下滑动即可刷新！"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有喜歡的貼文。向下滑動刷新！"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有喜歡的貼文。向下滑動刷新！"
-          }
-        }
-      }
+    "No modifiers applied" : {
+
     },
     "No posts found" : {
       "localizations" : {
@@ -4794,6 +4689,12 @@
         }
       }
     },
+    "No Selection" : {
+
+    },
+    "Offset" : {
+
+    },
     "OK" : {
       "localizations" : {
         "ar" : {
@@ -5044,256 +4945,26 @@
         }
       }
     },
-    "Premium" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "غالي"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pojistné"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Præmie"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prämie"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ασφάλιστρο"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "De primera calidad"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "De primera calidad"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "De primera calidad"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prime"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prime"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פּרֶמיָה"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "अधिमूल्य"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premija"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prémium"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premi"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premio"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プレミアム"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "프리미엄"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premie"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premia"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prêmio"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prêmio"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Премиум"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premie"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "พรีเมี่ยม"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "prim"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Преміум"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Phần thưởng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "优质的"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "優質的"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "優質的"
-          }
-        }
-      }
+    "Opacity" : {
+
+    },
+    "Open" : {
+
+    },
+    "Overlay" : {
+
+    },
+    "Overlay Text" : {
+
+    },
+    "Padding" : {
+
+    },
+    "Position" : {
+
+    },
+    "Preview" : {
+
     },
     "Privacy & Support" : {
       "localizations" : {
@@ -6045,6 +5716,12 @@
         }
       }
     },
+    "Properties" : {
+
+    },
+    "Radius" : {
+
+    },
     "Rate Us" : {
       "localizations" : {
         "ar" : {
@@ -6295,262 +5972,26 @@
         }
       }
     },
-    "Restore" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استعادة"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurar"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obnovit"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gendan"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wiederherstellen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Επαναφορά"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restore"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restore"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restore"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurar"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurar"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurar"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Palauta"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurer"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurer"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שחזר"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "रीस्टोर करें"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obnovi"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visszaállítás"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pulihkan"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ripristina"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "復元"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "복원"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pulihkan"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurere"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Herstel"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Przywróć"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurar"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurar"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurați"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Восстановить"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obnoviť"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obnovi"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Återskapa"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "กู้คืน"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geri Yükle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Відновити"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Khôi phục"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "恢复"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "恢復"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "還原"
-          }
-        }
-      }
+    "Reset Zoom" : {
+
+    },
+    "Rotation" : {
+
     },
     "Save" : {
+      "shouldTranslate" : false
+    },
+    "Scale" : {
+
+    },
+    "Search components..." : {
+
+    },
+    "Search modifiers..." : {
 
     },
     "Search posts" : {
-
+      "shouldTranslate" : false
     },
     "Search SF Symbols" : {
       "localizations" : {
@@ -6803,6 +6244,9 @@
       }
     },
     "Search templates" : {
+      "shouldTranslate" : false
+    },
+    "Select a component to edit its properties" : {
 
     },
     "Select a view" : {
@@ -7805,6 +7249,15 @@
         }
       }
     },
+    "Shadow" : {
+
+    },
+    "Shadow Color" : {
+
+    },
+    "Shape" : {
+
+    },
     "Share" : {
       "localizations" : {
         "ar" : {
@@ -8051,257 +7504,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享"
-          }
-        }
-      }
-    },
-    "Shop" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "محل"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Botiga"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nakupovat"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Butik"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geschäft"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Κατάστημα"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shop"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shop"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shop"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comercio"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comercio"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comercio"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kauppa"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boutique"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Magasin"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "לִקְנוֹת"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "दुकान"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dućan"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Üzlet"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toko"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Negozio"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "店"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가게"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kedai"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Butikk"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Winkel"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sklep"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprar"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loja"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Magazin"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Магазин"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obchod"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trgovina"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Handla"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ร้านค้า"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mağaza"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Магазин"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cửa hàng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "店铺"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "店鋪"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "店鋪"
           }
         }
       }
@@ -8557,7 +7759,7 @@
       }
     },
     "Sign in to sync favorites and access exclusive features." : {
-
+      "shouldTranslate" : false
     },
     "Sign Out" : {
       "localizations" : {
@@ -8810,6 +8012,12 @@
       }
     },
     "Similar Posts" : {
+      "shouldTranslate" : false
+    },
+    "Size" : {
+
+    },
+    "Style" : {
 
     },
     "Support Us" : {
@@ -9062,6 +8270,12 @@
         }
       }
     },
+    "SwiftUI Builder" : {
+
+    },
+    "system.icon.name" : {
+
+    },
     "Templates" : {
       "localizations" : {
         "ar" : {
@@ -9311,6 +8525,12 @@
           }
         }
       }
+    },
+    "Text Badge" : {
+
+    },
+    "This will create a new design file that you can start building with." : {
+
     },
     "Threads" : {
       "localizations" : {
@@ -9562,256 +8782,23 @@
         }
       }
     },
-    "Unlock Premium Features" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "فتح الميزات المميزة"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desbloqueja les funcions premium"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Odemkněte prémiové funkce"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lås op for premium-funktioner"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schalte Premium-Funktionen frei"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ξεκλειδώστε τις λειτουργίες Premium"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock Premium Features"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock Premium Features"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock Premium Features"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desbloquear funciones premium"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desbloquear funciones premium"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desbloquear funciones premium"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avaa Premium-ominaisuudet"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Débloquez des fonctionnalités Premium"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déverrouillez des fonctionnalités Premium"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בטל את הנעילה של תכונות פרימיום"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "प्रीमियम सुविधाएँ अनलॉक करें"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Otključajte Premium značajke"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prémium funkciók feloldása"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buka Fitur Premium"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sblocca le funzionalità Premium"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プレミアム機能のロックを解除"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "프리미엄 기능 잠금 해제"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buka kunci Ciri Premium"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lås opp premiumfunksjoner"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ontgrendel premiumfuncties"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Odblokuj funkcje premium"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desbloqueie recursos premium"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desbloqueie recursos premium"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deblocați funcții premium"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Разблокируйте премиум-функции"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Odomknite prémiové funkcie"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Odklenite Premium funkcije"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lås upp premiumfunktioner"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ปลดล็อคคุณสมบัติพรีเมี่ยม"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium Özelliklerin Kilidini Açın"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Розблокуйте преміум-функції"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mở khóa các tính năng cao cấp"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解锁高级功能"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖高級功能"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖高級功能"
-          }
-        }
-      }
+    "Top" : {
+
+    },
+    "Top Leading" : {
+
+    },
+    "Top Trailing" : {
+
+    },
+    "Trailing" : {
+
+    },
+    "Type" : {
+
+    },
+    "Unsupported property type" : {
+
     },
     "Username" : {
       "localizations" : {
@@ -10312,6 +9299,24 @@
           }
         }
       }
+    },
+    "Weight" : {
+
+    },
+    "Width" : {
+
+    },
+    "X Offset" : {
+
+    },
+    "X Scale" : {
+
+    },
+    "Y Offset" : {
+
+    },
+    "Y Scale" : {
+
     },
     "You need to be signed in to like a design." : {
       "localizations" : {

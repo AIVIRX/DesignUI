@@ -317,8 +317,7 @@ struct CanvasView: View {
                                     )
                                 }
                             }
-                            .frame(width: deviceSize.width - (selectedDevice == .mac ? 16 : 32), 
-                                   height: deviceSize.height - (selectedDevice == .mac ? 16 : 32))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped() // Prevent content from expanding beyond the screen bounds
                             .onTapGesture {
                                 // Deselect when clicking empty space
