@@ -54,7 +54,12 @@ struct LayersPanelView: View {
                             dragOverTarget: $dragOverTarget,
                             dragOverPosition: $dragOverPosition,
                             draggingId: $draggingId,
-                            onDelete: { canvasManager.removeComponent(component) },
+                            onDelete: { 
+                                canvasManager.removeComponent(component)
+                                if selectedComponent?.id == component.id {
+                                    selectedComponent = nil
+                                }
+                            },
                             onMove: { sourceId, parentId, index in
                                 canvasManager.moveComponentInHierarchy(componentId: sourceId, newParentId: parentId, toIndex: index)
                             },
@@ -198,7 +203,12 @@ private struct OutlineRow: View {
                         dragOverTarget: $dragOverTarget,
                         dragOverPosition: $dragOverPosition,
                         draggingId: $draggingId,
-                        onDelete: { component.removeChild(child) },
+                        onDelete: { 
+                            component.removeChild(child)
+                            if selectedComponent?.id == child.id {
+                                selectedComponent = nil
+                            }
+                        },
                         onMove: onMove,
                         getParentOf: getParentOf,
                         getIndexInParent: getIndexInParent

@@ -21,18 +21,19 @@ struct ModifierPanelView: View {
                 
                 Spacer()
                 
-                Button(action: { showingAddModifier = true }) {
-                    HStack(spacing: 4) {
-                        Text("Add Modifier")
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                        
-                        Image(systemName: "plus")
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                    }
+                HStack(spacing: 4) {
+                    Text("Add Modifier")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    
+                    Image(systemName: "plus")
+                        .font(.caption)
+                        .foregroundColor(.blue)
                 }
-                .buttonStyle(PlainButtonStyle())
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    showingAddModifier = true
+                }
             }
             
             // Applied Modifiers
@@ -62,7 +63,6 @@ struct ModifierPanelView: View {
                 }
             }
         }
-        .padding(16)
         .background(Color(NSColor.controlBackgroundColor))
         .sheet(isPresented: $showingAddModifier) {
             AddModifierView(component: component)
@@ -192,7 +192,7 @@ struct AddModifierView: View {
                             ModifierTypeItemView(
                                 modifierType: modifierType,
                                 onAdd: {
-                                    let modifier = ComponentModifier(type: modifierType)
+                                    let modifier = ComponentModifier.createWithDefaults(type: modifierType)
                                     component.addModifier(modifier)
                                     dismiss()
                                 }
@@ -239,14 +239,6 @@ struct ModifierTypeItemView: View {
             }
             
             Spacer()
-            
-            // Add button
-            Button(action: onAdd) {
-                Image(systemName: "plus")
-                    .font(.title3)
-                    .foregroundColor(.blue)
-            }
-            .buttonStyle(PlainButtonStyle())
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -258,6 +250,10 @@ struct ModifierTypeItemView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
         )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onAdd()
+        }
     }
 }
 #endif

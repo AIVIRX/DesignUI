@@ -13,6 +13,9 @@ class CanvasManager: ObservableObject {
     @Published var zoomLevel: CGFloat = 1.0
     @Published var canvasOffset: CGSize = .zero
     
+    // Special status bar component
+    @Published var statusBarComponent: UIComponent?
+    
     // Undo/Redo
     private var undoStack: [CanvasState] = []
     private var redoStack: [CanvasState] = []
@@ -25,7 +28,22 @@ class CanvasManager: ObservableObject {
         // Start with an empty canvas; no predefined root container
         components = []
         selectedComponent = nil
+        statusBarComponent = createStatusBarComponent()
         saveState()
+    }
+    
+    // MARK: - Status Bar Management
+    private func createStatusBarComponent() -> UIComponent {
+        let statusBarComponent = UIComponent(
+            type: .text, // Using text type as a placeholder
+            properties: [
+                ComponentProperty(key: "text", type: .string, value: "Status Bar", defaultValue: "Status Bar"),
+                ComponentProperty(key: "backgroundColor", type: .color, value: Color.white.opacity(0.95), defaultValue: Color.white.opacity(0.95)),
+                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 0.0, defaultValue: 0.0)
+            ],
+            frame: CGRect(x: 0, y: 0, width: 393, height: 53) // Default iPhone width
+        )
+        return statusBarComponent
     }
     
     // MARK: - Component Management

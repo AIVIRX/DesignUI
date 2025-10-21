@@ -142,7 +142,7 @@ struct FrameModifierEditor: View {
 // MARK: - Padding Modifier Editor
 struct PaddingModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var paddingAmount: CGFloat = 0
+    @State private var paddingAmount: CGFloat = 10
     @State private var paddingLocation: String = "all"
     
     private let paddingLocations = [
@@ -168,10 +168,10 @@ struct PaddingModifierEditor: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    TextField("0", value: $paddingAmount, formatter: NumberFormatter())
+                    TextField("10", value: $paddingAmount, formatter: NumberFormatter())
                         .textFieldStyle(.roundedBorder)
                         .onAppear {
-                            paddingAmount = modifier.properties["amount"] as? CGFloat ?? 0
+                            paddingAmount = modifier.properties["amount"] as? CGFloat ?? 10
                         }
                         .onChange(of: paddingAmount) { _, newValue in
                             modifier.properties["amount"] = newValue

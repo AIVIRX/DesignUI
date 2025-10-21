@@ -196,12 +196,13 @@ struct ComponentRenderer: View {
         let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
+        let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 0.0
         
         if stroke != Color.clear {
-            return AnyView(Rectangle()
+            return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(Rectangle()
+            return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(fill))
         }
     }

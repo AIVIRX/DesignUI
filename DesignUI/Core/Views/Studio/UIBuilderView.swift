@@ -173,6 +173,15 @@ struct UIBuilderView: View {
             }
         }
         .navigationTitle("SwiftUI Builder")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: { showCodePreview = true }) {
+                    Image(systemName: "chevron.left.forwardslash.chevron.right")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .help("Show Code")
+            }
+        }
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
@@ -323,15 +332,23 @@ struct CanvasView: View {
                                 // Deselect when clicking empty space
                                 selectedComponent = nil
                             }
-//                            if selectedDevice != .mac {
-//                                VStack {
-//                                    StatusBarView(deviceSize: deviceSize)
-//                                        .background(Color.white.opacity(0.95))
-//                                        .zIndex(1000) // Ensure status bar is on top
-//                                    
-//                                    Spacer()
-//                                }
-//                            }
+                            if selectedDevice != .mac {
+                                VStack {
+                                    StatusBarView(
+                                        deviceSize: deviceSize,
+                                        isSelected: selectedComponent?.id == canvasManager.statusBarComponent?.id,
+                                        onSelect: { 
+                                            if let statusBarComponent = canvasManager.statusBarComponent {
+                                                selectedComponent = statusBarComponent
+                                            }
+                                        }
+                                    )
+                                    .background(Color.white.opacity(0.95))
+                                    .zIndex(1000) // Ensure status bar is on top
+                                    
+                                    Spacer()
+                                }
+                            }
                         }
                         .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
                         .overlay(
@@ -362,6 +379,11 @@ struct CanvasView: View {
                 canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: CGSize(width: 800, height: 600))
                 // Update base zoom level to the new device's optimal level
                 baseZoomLevel = canvasManager.zoomLevel
+                
+                // Update status bar component frame for new device
+                if let statusBarComponent = canvasManager.statusBarComponent {
+                    statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 53)
+                }
             }
         }
     }
@@ -407,6 +429,8 @@ struct ComponentView: View {
 
 struct StatusBarView: View {
     let deviceSize: CGSize
+    let isSelected: Bool
+    let onSelect: () -> Void
     @State private var currentTime = Date()
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -429,41 +453,56 @@ struct StatusBarView: View {
     }
     
     var body: some View {
-        HStack {
-            // Left side - Time
-            Text(timeString)
-                .font(.system(size: 15, weight: .semibold, design: .default))
-                .foregroundColor(.primary)
-                .frame(width: 109)
+        ZStack {
+            HStack {
+                // Left side - Time
+                Text(timeString)
+                    .font(.system(size: 15, weight: .semibold, design: .default))
+                    .foregroundColor(.primary)
+                    .frame(width: 109)
 
-            Spacer()
-            
-            // Right side - Status indicators
-            HStack(spacing: 5) {
-                // Signal bars - aligned to bottom
-                Image(systemName: "cellularbars")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.primary)
+                Spacer()
                 
-                // WiFi icon - aligned to bottom
-                Image(systemName: "wifi")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.primary)
-                
-                // Battery - aligned to bottom
-                Image(systemName: "battery.100")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
+                // Right side - Status indicators
+                HStack(spacing: 5) {
+                    // Signal bars - aligned to bottom
+                    Image(systemName: "cellularbars")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    // WiFi icon - aligned to bottom
+                    Image(systemName: "wifi")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    // Battery - aligned to bottom
+                    Image(systemName: "battery.100")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.primary)
+                }
+                .frame(width: 109)
             }
-            .frame(width: 109)
-        }
-        .frame(height: 53)
-        .padding(.horizontal)
-        .padding(.top, 5)
-        .background(.clear)
-        .frame(maxWidth: .infinity)
-        .onReceive(timer) { _ in
-            currentTime = Date()
+            .frame(height: 53)
+            .padding(.horizontal)
+            .padding(.top, 5)
+            .background(.clear)
+            .frame(maxWidth: .infinity)
+            .onReceive(timer) { _ in
+                currentTime = Date()
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onSelect()
+            }
+            
+            // Selection overlay
+            if isSelected {
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.blue, lineWidth: 2)
+                    .frame(height: 53)
+                    .padding(.horizontal)
+                    .padding(.top, 5)
+            }
         }
     }
 }

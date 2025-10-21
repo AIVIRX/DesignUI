@@ -243,6 +243,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     func setProperty(key: String, value: Any) {
         if let index = properties.firstIndex(where: { $0.key == key }) {
             properties[index].value = value
+            objectWillChange.send()
         }
     }
     

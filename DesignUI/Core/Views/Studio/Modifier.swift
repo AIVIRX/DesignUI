@@ -109,6 +109,89 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         self.properties = properties
     }
     
+    // Factory method to create modifier with default properties
+    static func createWithDefaults(type: ModifierType) -> ComponentModifier {
+        let defaultProperties: [String: Any]
+        
+        switch type {
+        case .padding:
+            defaultProperties = [
+                "amount": CGFloat(10),
+                "location": "all"
+            ]
+        case .frame:
+            defaultProperties = [
+                "width": CGFloat(100),
+                "height": CGFloat(100)
+            ]
+        case .cornerRadius:
+            defaultProperties = [
+                "radius": CGFloat(8)
+            ]
+        case .opacity:
+            defaultProperties = [
+                "opacity": Double(1.0)
+            ]
+        case .rotation:
+            defaultProperties = [
+                "angle": Double(0)
+            ]
+        case .scale:
+            defaultProperties = [
+                "x": Double(1.0),
+                "y": Double(1.0)
+            ]
+        case .offset:
+            defaultProperties = [
+                "x": CGFloat(0),
+                "y": CGFloat(0)
+            ]
+        case .shadow:
+            defaultProperties = [
+                "radius": CGFloat(2),
+                "x": CGFloat(0),
+                "y": CGFloat(2),
+                "color": Color.black
+            ]
+        case .blur:
+            defaultProperties = [
+                "radius": CGFloat(0)
+            ]
+        case .background:
+            defaultProperties = [
+                "color": Color.clear
+            ]
+        case .foregroundColor:
+            defaultProperties = [
+                "color": Color.primary
+            ]
+        case .font:
+            defaultProperties = [
+                "style": "body",
+                "size": CGFloat(16),
+                "weight": "regular"
+            ]
+        case .overlay:
+            defaultProperties = [
+                "type": "color",
+                "color": Color.clear,
+                "text": "Overlay",
+                "position": "topTrailing",
+                "iconName": "star.fill"
+            ]
+        case .clipShape:
+            defaultProperties = [
+                "shape": "Rectangle"
+            ]
+        case .mask:
+            defaultProperties = [
+                "opacity": Double(1.0)
+            ]
+        }
+        
+        return ComponentModifier(type: type, properties: defaultProperties)
+    }
+    
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
         case type, properties

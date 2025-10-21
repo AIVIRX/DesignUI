@@ -88,7 +88,6 @@ struct PropertiesSection: View {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(.white.opacity(0.1))
             )
-            
         }
     }
 }
@@ -332,10 +331,14 @@ struct PropertyEditor: View {
                             }
                         }
                         .onChange(of: numberValue) { _, newValue in
-                            component.setProperty(key: property.key, value: newValue)
+                            DispatchQueue.main.async {
+                                component.setProperty(key: property.key, value: newValue)
+                            }
                         }
                         .onSubmit {
-                            component.setProperty(key: property.key, value: numberValue)
+                            DispatchQueue.main.async {
+                                component.setProperty(key: property.key, value: numberValue)
+                            }
                         }
                 }
                 
@@ -384,7 +387,7 @@ struct ColorPopover: View {
     
     private let swiftUIColors: [(String, Color)] = [
         ("Primary", .primary),
-        ("Secondary", .secondary),
+        ("Second", .secondary),
         ("Black", .black),
         ("White", .white),
         ("Red", .red),
