@@ -121,6 +121,8 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .frame:
             defaultProperties = [
+                "widthType": "Default",
+                "heightType": "Default",
                 "width": CGFloat(100),
                 "height": CGFloat(100)
             ]
@@ -238,7 +240,18 @@ struct AnyCodable: Codable {
         } else if let int = try? container.decode(Int.self) {
             value = int
         } else if let double = try? container.decode(Double.self) {
-            value = double
+            // Convert Double back to CGFloat for consistency
+            value = CGFloat(double)
+        } else if let colorDict = try? container.decode([String: Double].self) {
+            // Decode Color from RGBA dictionary
+            if let red = colorDict["red"],
+               let green = colorDict["green"],
+               let blue = colorDict["blue"],
+               let alpha = colorDict["alpha"] {
+                value = Color(red: red, green: green, blue: blue, opacity: alpha)
+            } else {
+                throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Invalid color data"))
+            }
         } else if let string = try? container.decode(String.self) {
             value = string
         } else if let array = try? container.decode([AnyCodable].self) {
@@ -259,6 +272,18 @@ struct AnyCodable: Codable {
             try container.encode(int)
         } else if let double = value as? Double {
             try container.encode(double)
+        } else if let cgFloat = value as? CGFloat {
+            try container.encode(Double(cgFloat))
+        } else if let color = value as? Color {
+            // Encode Color as a dictionary with RGBA values
+            let uiColor = NSColor(color)
+            let rgba = uiColor.rgbaComponents
+            try container.encode([
+                "red": Double(rgba.red),
+                "green": Double(rgba.green),
+                "blue": Double(rgba.blue),
+                "alpha": Double(rgba.alpha)
+            ])
         } else if let string = value as? String {
             try container.encode(string)
         } else if let array = value as? [Any] {
@@ -270,3 +295,18 @@ struct AnyCodable: Codable {
         }
     }
 }
+
+// MARK: - NSColor Extension for RGBA Components
+#if os(macOS)
+extension NSColor {
+    var rgbaComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        return (red: red, green: green, blue: blue, alpha: alpha)
+    }
+}
+#endif

@@ -89,19 +89,14 @@ enum DevicePreset: String, CaseIterable, Identifiable {
 
 struct UIBuilderView: View {
     @ObservedObject var designFile: DesignFile
-    @ObservedObject var designManager: DesignManager
+    @EnvironmentObject private var designManager: DesignManager
     @StateObject private var canvasManager = CanvasManager()
     @State private var selectedComponent: UIComponent?
     @State private var showCodePreview = false
     @State private var showPropertiesPanel = true
     @State private var selectedDevice: DevicePreset = .iphone16Pro
     @State private var baseZoomLevel: CGFloat = 1.0
-    
-    // Initialize with DesignFile and DesignManager
-    init(designFile: DesignFile, designManager: DesignManager) {
-        self.designFile = designFile
-        self.designManager = designManager
-    }
+    @State private var statusBarHasBackground: Bool = false
     
     
     var body: some View {
@@ -126,7 +121,8 @@ struct UIBuilderView: View {
                             canvasManager: canvasManager,
                             selectedComponent: $selectedComponent,
                             selectedDevice: selectedDevice,
-                            baseZoomLevel: $baseZoomLevel
+                            baseZoomLevel: $baseZoomLevel,
+                            statusBarHasBackground: $statusBarHasBackground
                         )
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipped() // Ensure canvas content doesn't overflow
@@ -164,7 +160,8 @@ struct UIBuilderView: View {
                                 CanvasControlsOverlay(
                                     selectedDevice: $selectedDevice,
                                     canvasManager: canvasManager,
-                                    baseZoomLevel: $baseZoomLevel
+                                    baseZoomLevel: $baseZoomLevel,
+                                    statusBarHasBackground: $statusBarHasBackground
                                 )
                             }
                         }
@@ -175,11 +172,23 @@ struct UIBuilderView: View {
         .navigationTitle("SwiftUI Builder")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: { showCodePreview = true }) {
-                    Image(systemName: "chevron.left.forwardslash.chevron.right")
-                        .font(.system(size: 14, weight: .medium))
+                HStack(spacing: 8) {
+                    Button(action: { 
+                        print("💾 Manual save button pressed")
+                        designManager.saveCurrentDesign()
+                        print("💾 Manual save triggered")
+                    }) {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .help("Save Design")
+                    
+                    Button(action: { showCodePreview = true }) {
+                        Image(systemName: "chevron.left.forwardslash.chevron.right")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .help("Show Code")
                 }
-                .help("Show Code")
             }
         }
         .sheet(isPresented: $showCodePreview) {
@@ -188,16 +197,21 @@ struct UIBuilderView: View {
         .onAppear {
             // Load components from design file
             canvasManager.components = designFile.components
+            // Set the design name for code generation
+            canvasManager.setDesignName(designFile.name)
         }
         .onChange(of: canvasManager.components) { _, _ in
-            // Auto-save when components change
+            print("🔄 Components changed - syncing to design file")
+            // Sync components to design file
             designFile.components = canvasManager.components
-            designFile.save()
+            // Mark as changed and trigger auto-save
+            designManager.markAsChanged()
         }
         .onChange(of: selectedComponent) { _, _ in
-            // Auto-save when selection changes (in case it affects the design)
+            print("🔄 Selection changed - syncing to design file")
+            // Sync components to design file when selection changes
             designFile.components = canvasManager.components
-            designFile.save()
+            designManager.markAsChanged()
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
             canvasManager.undo()
@@ -215,6 +229,7 @@ struct CanvasControlsOverlay: View {
     @Binding var selectedDevice: DevicePreset
     let canvasManager: CanvasManager
     @Binding var baseZoomLevel: CGFloat
+    @Binding var statusBarHasBackground: Bool
     
     var body: some View {
         HStack(spacing: 8) {
@@ -237,6 +252,16 @@ struct CanvasControlsOverlay: View {
             }
             .buttonStyle(.bordered)
             .help("Choose a device preset")
+            
+            // Status bar background toggle
+            Button(action: { 
+                statusBarHasBackground.toggle()
+            }) {
+                Image(systemName: statusBarHasBackground ? "rectangle.fill" : "rectangle")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(.bordered)
+            .help(statusBarHasBackground ? "Hide Status Bar Background" : "Show Status Bar Background")
             
             // Reset zoom button
             Button(action: { 
@@ -268,6 +293,7 @@ struct CanvasView: View {
     @Binding var selectedComponent: UIComponent?
     let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
+    @Binding var statusBarHasBackground: Bool
     
     var body: some View {
         GeometryReader { geometry in
@@ -317,16 +343,24 @@ struct CanvasView: View {
                             
                             // Components inside screen
                             VStack(spacing: 0) {
-                                ForEach(canvasManager.components) { component in
+                                ForEach(canvasManager.components, id: \.id) { component in
                                     ComponentView(
                                         component: component,
                                         isSelected: selectedComponent?.id == component.id,
                                         onSelect: { selectedComponent = component },
-                                        selectedDevice: selectedDevice
+                                        selectedDevice: selectedDevice,
+                                        selectedComponent: selectedComponent,
+                                        onSelectChild: { childComponent in
+                                            // Find the component in the hierarchy and select it
+                                            if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: canvasManager.components) {
+                                                selectedComponent = foundComponent
+                                            }
+                                        }
                                     )
                                 }
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.top, selectedDevice != .mac && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
                             .clipped() // Prevent content from expanding beyond the screen bounds
                             .onTapGesture {
                                 // Deselect when clicking empty space
@@ -343,7 +377,7 @@ struct CanvasView: View {
                                             }
                                         }
                                     )
-                                    .background(Color.white.opacity(0.95))
+                                    .background(statusBarHasBackground ? Color.black.opacity(0.8) : .clear)
                                     .zIndex(1000) // Ensure status bar is on top
                                     
                                     Spacer()
@@ -387,6 +421,19 @@ struct CanvasView: View {
             }
         }
     }
+    
+    // MARK: - Helper Functions
+    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
+        for component in components {
+            if component.id == componentId {
+                return component
+            }
+            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
+                return found
+            }
+        }
+        return nil
+    }
 }
 
 struct ComponentView: View {
@@ -394,21 +441,39 @@ struct ComponentView: View {
     let isSelected: Bool
     let onSelect: () -> Void
     let selectedDevice: DevicePreset
+    let selectedComponent: UIComponent?
+    let onSelectChild: ((UIComponent) -> Void)?
+    @State private var isHovered: Bool = false
+    
+    init(component: UIComponent, isSelected: Bool, onSelect: @escaping () -> Void, selectedDevice: DevicePreset, selectedComponent: UIComponent?, onSelectChild: ((UIComponent) -> Void)? = nil) {
+        self.component = component
+        self.isSelected = isSelected
+        self.onSelect = onSelect
+        self.selectedDevice = selectedDevice
+        self.selectedComponent = selectedComponent
+        self.onSelectChild = onSelectChild
+    }
     
     var body: some View {
-        ZStack {
-            // Component content
-            ComponentRenderer(component: component, deviceSize: selectedDevice.size, onTap: onSelect)
-            
-            // Selection overlay
-            if isSelected {
-                ComponentRenderer(component: component, deviceSize: selectedDevice.size)
-                    .overlay(
+        ComponentRenderer(component: component, deviceSize: selectedDevice.size, onTap: onSelect, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
+            .overlay(
+                // Selection and hover overlays
+                Group {
+                    if isSelected {
                         RoundedRectangle(cornerRadius: 4)
                             .stroke(Color.blue, lineWidth: 2)
-                    )
+                            .allowsHitTesting(false)
+                    } else if isHovered && component.children.isEmpty {
+                        // Only show hover for leaf components (components without children)
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.blue.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                            .allowsHitTesting(false)
+                    }
+                }
+            )
+            .onHover { hovering in
+                isHovered = hovering
             }
-        }
     }
     
     private func handlePosition(for index: Int) -> CGPoint {

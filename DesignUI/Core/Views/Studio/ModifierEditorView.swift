@@ -93,48 +93,93 @@ struct ModifierEditorView: View {
 // MARK: - Frame Modifier Editor
 struct FrameModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var widthValue: CGFloat = 0
-    @State private var heightValue: CGFloat = 0
+    @State private var widthType: FrameSizeType = .full
+    @State private var heightType: FrameSizeType = .full
+    @State private var widthValue: CGFloat = 100
+    @State private var heightValue: CGFloat = 100
+    
+    enum FrameSizeType: String, CaseIterable {
+        case `default` = "Default"
+        case full = "Full"
+        case custom = "Custom"
+    }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Frame Size")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Width")
-                        .font(.caption)
-                    TextField("Width", value: $widthValue, formatter: NumberFormatter())
-                        .textFieldStyle(.roundedBorder)
-                        .onAppear {
-                            widthValue = modifier.properties["width"] as? CGFloat ?? 0
-                        }
-                        .onChange(of: widthValue) { _, newValue in
-                            modifier.properties["width"] = newValue
-                        }
-                        .onSubmit {
-                            modifier.properties["width"] = widthValue
-                        }
-                }
+        VStack(alignment: .leading, spacing: 16) {
+            // Width Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Width")
+                    .font(.caption)
+                    .fontWeight(.medium)
                 
-                VStack(alignment: .leading) {
-                    Text("Height")
-                        .font(.caption)
-                    TextField("Height", value: $heightValue, formatter: NumberFormatter())
-                        .textFieldStyle(.roundedBorder)
-                        .onAppear {
-                            heightValue = modifier.properties["height"] as? CGFloat ?? 0
+                HStack {
+                    Picker("Width Type", selection: $widthType) {
+                        ForEach(FrameSizeType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
                         }
-                        .onChange(of: heightValue) { _, newValue in
-                            modifier.properties["height"] = newValue
-                        }
-                        .onSubmit {
-                            modifier.properties["height"] = heightValue
-                        }
+                    }
+                    .pickerStyle(.menu)
+                    
+                    if widthType == .custom {
+                        TextField("Width", value: $widthValue, formatter: NumberFormatter())
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 80)
+                    } else if widthType == .full {
+                        Text("Full Width")
+                            .foregroundColor(.secondary)
+                            .frame(width: 80, alignment: .leading)
+                    } else {
+                        Text("Default Width")
+                            .foregroundColor(.secondary)
+                            .frame(width: 80, alignment: .leading)
+                    }
                 }
             }
+            
+            // Height Section
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Picker("Height Type", selection: $heightType) {
+                        ForEach(FrameSizeType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    
+                    if heightType == .custom {
+                        TextField("Height", value: $heightValue, formatter: NumberFormatter())
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 80)
+                    } else if heightType == .full {
+                        Text("Full Height")
+                            .foregroundColor(.secondary)
+                            .frame(width: 80, alignment: .leading)
+                    } else {
+                        Text("Default Height")
+                            .foregroundColor(.secondary)
+                            .frame(width: 80, alignment: .leading)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            // Load existing values
+            widthType = (modifier.properties["widthType"] as? String).flatMap(FrameSizeType.init) ?? .default
+            heightType = (modifier.properties["heightType"] as? String).flatMap(FrameSizeType.init) ?? .default
+            widthValue = modifier.properties["width"] as? CGFloat ?? 100
+            heightValue = modifier.properties["height"] as? CGFloat ?? 100
+        }
+        .onChange(of: widthType) { _, newValue in
+            modifier.properties["widthType"] = newValue.rawValue
+        }
+        .onChange(of: heightType) { _, newValue in
+            modifier.properties["heightType"] = newValue.rawValue
+        }
+        .onChange(of: widthValue) { _, newValue in
+            modifier.properties["width"] = newValue
+        }
+        .onChange(of: heightValue) { _, newValue in
+            modifier.properties["height"] = newValue
         }
     }
 }
@@ -157,30 +202,7 @@ struct PaddingModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Padding")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(spacing: 12) {
-                // Padding Amount
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Amount")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    TextField("10", value: $paddingAmount, formatter: NumberFormatter())
-                        .textFieldStyle(.roundedBorder)
-                        .onAppear {
-                            paddingAmount = modifier.properties["amount"] as? CGFloat ?? 10
-                        }
-                        .onChange(of: paddingAmount) { _, newValue in
-                            modifier.properties["amount"] = newValue
-                        }
-                        .onSubmit {
-                            modifier.properties["amount"] = paddingAmount
-                        }
-                }
-                
                 // Padding Location
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Location")
@@ -199,6 +221,25 @@ struct PaddingModifierEditor: View {
                     .onChange(of: paddingLocation) { _, newValue in
                         modifier.properties["location"] = newValue
                     }
+                }
+                
+                // Padding Amount
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Amount")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("10", value: $paddingAmount, formatter: NumberFormatter())
+                        .textFieldStyle(.roundedBorder)
+                        .onAppear {
+                            paddingAmount = modifier.properties["amount"] as? CGFloat ?? 10
+                        }
+                        .onChange(of: paddingAmount) { _, newValue in
+                            modifier.properties["amount"] = newValue
+                        }
+                        .onSubmit {
+                            modifier.properties["amount"] = paddingAmount
+                        }
                 }
             }
         }
@@ -275,6 +316,7 @@ struct OverlayModifierEditor: View {
             case "color":
                 ColorPopover(property: ComponentProperty(
                     key: "color",
+                    displayName: "Color",
                     type: .color,
                     value: color.wrappedValue,
                     defaultValue: Color.clear

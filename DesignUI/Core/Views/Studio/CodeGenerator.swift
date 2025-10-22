@@ -16,38 +16,44 @@ struct CodeGenerator {
         let indent = String(repeating: "    ", count: indentLevel)
         let nextIndent = String(repeating: "    ", count: indentLevel + 1)
         
+        var baseCode: String
         switch component.type {
         case .text:
-            return generateTextCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateTextCode(component: component, indent: indent, nextIndent: nextIndent)
         case .image:
-            return generateImageCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateImageCode(component: component, indent: indent, nextIndent: nextIndent)
         case .button:
-            return generateButtonCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateButtonCode(component: component, indent: indent, nextIndent: nextIndent)
         case .vstack:
-            return generateVStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
+            baseCode = generateVStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .hstack:
-            return generateHStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
+            baseCode = generateHStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .zstack:
-            return generateZStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
+            baseCode = generateZStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .spacer:
-            return generateSpacerCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateSpacerCode(component: component, indent: indent, nextIndent: nextIndent)
         case .divider:
-            return generateDividerCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateDividerCode(component: component, indent: indent, nextIndent: nextIndent)
         case .rectangle:
-            return generateRectangleCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateRectangleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .circle:
-            return generateCircleCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateCircleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .roundedRectangle:
-            return generateRoundedRectangleCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateRoundedRectangleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .capsule:
-            return generateCapsuleCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateCapsuleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .ellipse:
-            return generateEllipseCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateEllipseCode(component: component, indent: indent, nextIndent: nextIndent)
         case .scrollView:
-            return generateScrollViewCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
+            baseCode = generateScrollViewCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
+        case .sfSymbol:
+            baseCode = generateSFSymbolCode(component: component, indent: indent, nextIndent: nextIndent)
         default:
             return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
         }
+        
+        // Apply modifiers
+        return applyModifiersToCode(baseCode: baseCode, modifiers: component.modifiers, indent: indent, nextIndent: nextIndent)
     }
     
     // MARK: - Text Code Generation
@@ -285,7 +291,13 @@ struct CodeGenerator {
     
     // MARK: - ScrollView Code Generation
     private static func generateScrollViewCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
-        var code = "\(indent)VStack(spacing: 8) {"
+        let axis = component.getProperty(key: "axis") as? String ?? "vertical"
+        let showsIndicators = component.getProperty(key: "showsIndicators") as? Bool ?? true
+        
+        let scrollAxis: String = axis == "horizontal" ? ".horizontal" : ".vertical"
+        let showsIndicatorsString = showsIndicators ? "true" : "false"
+        
+        var code = "\(indent)ScrollView(\(scrollAxis), showsIndicators: \(showsIndicatorsString)) {"
         
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"
@@ -298,6 +310,152 @@ struct CodeGenerator {
         code += "\n\(indent)}"
         
         return code
+    }
+    
+    // MARK: - Modifier Code Generation
+    private static func applyModifiersToCode(baseCode: String, modifiers: [ComponentModifier], indent: String, nextIndent: String) -> String {
+        var code = baseCode
+        
+        for modifier in modifiers {
+            code += "\n" + generateModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        }
+        
+        return code
+    }
+    
+    private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+        let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
+        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
+        let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
+        
+        let fontString: String = {
+            switch fontSize {
+            case "largeTitle": return ".largeTitle"
+            case "title": return ".title"
+            case "title2": return ".title2"
+            case "title3": return ".title3"
+            case "headline": return ".headline"
+            case "body": return ".body"
+            case "callout": return ".callout"
+            case "subheadline": return ".subheadline"
+            case "footnote": return ".footnote"
+            case "caption": return ".caption"
+            case "caption2": return ".caption2"
+            default: return ".largeTitle"
+            }
+        }()
+        
+        var code = "\(indent)Image(systemName: \"\(symbolName)\")"
+        code += "\n\(nextIndent).font(\(fontString))"
+        
+        // Foreground color
+        if foregroundColor != Color.primary {
+            code += "\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))"
+        }
+        
+        code += "\n\(nextIndent).symbolRenderingMode(.hierarchical)"
+        
+        return code
+    }
+    
+    private static func generateModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        switch modifier.type {
+        case .frame:
+            return generateFrameModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        case .padding:
+            return generatePaddingModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        case .background:
+            return generateBackgroundModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        case .foregroundColor:
+            return generateForegroundColorModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        case .cornerRadius:
+            return generateCornerRadiusModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        case .opacity:
+            return generateOpacityModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        default:
+            return "\(indent)// \(modifier.type.rawValue) modifier - Code generation not implemented yet"
+        }
+    }
+    
+    private static func generateFrameModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        let widthType = modifier.properties["widthType"] as? String ?? "Default"
+        let heightType = modifier.properties["heightType"] as? String ?? "Default"
+        let width = modifier.properties["width"] as? CGFloat ?? 100
+        let height = modifier.properties["height"] as? CGFloat ?? 100
+        
+        // Generate frame code based on type
+        if widthType == "Default" && heightType == "Default" {
+            return "" // No frame modifier applied
+        }
+        
+        var frameParts: [String] = []
+        
+        // Handle width
+        if widthType == "Full" {
+            frameParts.append("maxWidth: .infinity")
+        } else if widthType == "Custom" {
+            frameParts.append("width: \(width)")
+        }
+        // If widthType == "Default", don't add anything
+        
+        // Handle height
+        if heightType == "Full" {
+            frameParts.append("maxHeight: .infinity")
+        } else if heightType == "Custom" {
+            frameParts.append("height: \(height)")
+        }
+        // If heightType == "Default", don't add anything
+        
+        // Only generate frame if we have at least one dimension
+        if !frameParts.isEmpty {
+            return "\(indent).frame(\(frameParts.joined(separator: ", ")))"
+        } else {
+            return "" // No frame modifier applied
+        }
+    }
+    
+    private static func generatePaddingModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        let amount = modifier.properties["amount"] as? CGFloat ?? 0
+        let location = modifier.properties["location"] as? String ?? "all"
+        
+        switch location {
+        case "all":
+            return "\(indent).padding(\(amount))"
+        case "leading":
+            return "\(indent).padding(.leading, \(amount))"
+        case "trailing":
+            return "\(indent).padding(.trailing, \(amount))"
+        case "top":
+            return "\(indent).padding(.top, \(amount))"
+        case "bottom":
+            return "\(indent).padding(.bottom, \(amount))"
+        case "horizontal":
+            return "\(indent).padding(.horizontal, \(amount))"
+        case "vertical":
+            return "\(indent).padding(.vertical, \(amount))"
+        default:
+            return "\(indent).padding(\(amount))"
+        }
+    }
+    
+    private static func generateBackgroundModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        let color = modifier.properties["color"] as? Color ?? Color.clear
+        return "\(indent).background(\(colorToString(color)))"
+    }
+    
+    private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        let color = modifier.properties["color"] as? Color ?? Color.primary
+        return "\(indent).foregroundColor(\(colorToString(color)))"
+    }
+    
+    private static func generateCornerRadiusModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        let radius = modifier.properties["radius"] as? CGFloat ?? 8
+        return "\(indent).cornerRadius(\(radius))"
+    }
+    
+    private static func generateOpacityModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        let opacity = modifier.properties["opacity"] as? Double ?? 1.0
+        return "\(indent).opacity(\(opacity))"
     }
     
     // MARK: - Helper Functions

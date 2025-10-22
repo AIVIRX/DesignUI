@@ -16,6 +16,9 @@ class CanvasManager: ObservableObject {
     // Special status bar component
     @Published var statusBarComponent: UIComponent?
     
+    // Design name for code generation
+    @Published var designName: String = "GeneratedView"
+    
     // Undo/Redo
     private var undoStack: [CanvasState] = []
     private var redoStack: [CanvasState] = []
@@ -37,9 +40,9 @@ class CanvasManager: ObservableObject {
         let statusBarComponent = UIComponent(
             type: .text, // Using text type as a placeholder
             properties: [
-                ComponentProperty(key: "text", type: .string, value: "Status Bar", defaultValue: "Status Bar"),
-                ComponentProperty(key: "backgroundColor", type: .color, value: Color.white.opacity(0.95), defaultValue: Color.white.opacity(0.95)),
-                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 0.0, defaultValue: 0.0)
+                ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Status Bar", defaultValue: "Status Bar"),
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.clear, defaultValue: Color.clear),
+                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 0.0, defaultValue: 0.0)
             ],
             frame: CGRect(x: 0, y: 0, width: 393, height: 53) // Default iPhone width
         )
@@ -56,6 +59,10 @@ class CanvasManager: ObservableObject {
     func addComponentToContainer(_ component: UIComponent, container: UIComponent) {
         // Check if the container can accept children (like ScrollView, VStack, etc.)
         if canAcceptChildren(container) {
+            // Remove component from root level if it exists there
+            components.removeAll { $0.id == component.id }
+            
+            // Add to container
             container.addChild(component)
             selectedComponent = component
             saveState()
@@ -285,7 +292,7 @@ class CanvasManager: ObservableObject {
     }
     
     // MARK: - Undo/Redo
-    private func saveState() {
+    func saveState() {
         let state = CanvasState(
             components: components.map { $0 },
             selectedComponentId: selectedComponent?.id
@@ -331,30 +338,37 @@ class CanvasManager: ObservableObject {
         selectedComponent = components.first { $0.id == state.selectedComponentId }
     }
     
+    // MARK: - Design Management
+    func setDesignName(_ name: String) {
+        designName = name
+    }
+    
     // MARK: - Export
     func exportCode() -> String {
+        // Clean the design name to make it a valid Swift identifier
+        let cleanedName = designName
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "-", with: "")
+            .replacingOccurrences(of: "_", with: "")
+        let viewName = "\(cleanedName)View"
+        
         var code = """
         import SwiftUI
 
-        struct GeneratedView: View {
+        struct \(viewName): View {
             var body: some View {
         """
         
         if components.isEmpty {
             code += "\n        Text(\"No components added yet\")"
         } else {
-            // Create a ZStack to hold all components
-            code += "\n        ZStack {"
-            
             for component in components {
-                let componentCode = CodeGenerator.generateCode(for: component, indentLevel: 3)
+                let componentCode = CodeGenerator.generateCode(for: component, indentLevel: 2)
                 code += "\n" + componentCode
             }
-            
-            code += "\n        }"
         }
         
-        code += "\n    }\n}"
+        code += "\n    }\n}\n\n#Preview {\n    \(viewName)()\n}"
         
         return code
     }

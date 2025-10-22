@@ -11,11 +11,16 @@ struct ComponentRenderer: View {
     @ObservedObject var component: UIComponent
     let deviceSize: CGSize?
     let onTap: (() -> Void)?
+    let onSelectChild: ((UIComponent) -> Void)?
+    let selectedComponent: UIComponent?
+    @State private var isHovered: Bool = false
     
-    init(component: UIComponent, deviceSize: CGSize? = nil, onTap: (() -> Void)? = nil) {
+    init(component: UIComponent, deviceSize: CGSize? = nil, onTap: (() -> Void)? = nil, onSelectChild: ((UIComponent) -> Void)? = nil, selectedComponent: UIComponent? = nil) {
         self.component = component
         self.deviceSize = deviceSize
         self.onTap = onTap
+        self.onSelectChild = onSelectChild
+        self.selectedComponent = selectedComponent
     }
     
     var body: some View {
@@ -49,6 +54,8 @@ struct ComponentRenderer: View {
                 renderEllipse()
             case .scrollView:
                 renderScrollView()
+            case .sfSymbol:
+                renderSFSymbol()
             default:
                 renderPlaceholder()
             }
@@ -56,9 +63,28 @@ struct ComponentRenderer: View {
         .opacity(component.isVisible ? 1.0 : 0.0)
         .applyModifiers(component.modifiers)
         .contentShape(Rectangle())
-        .highPriorityGesture(
+        .overlay(
+            // Selection and hover overlays for child components
+            Group {
+                if selectedComponent?.id == component.id {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.blue, lineWidth: 2)
+                        .allowsHitTesting(false)
+                } else if isHovered && onSelectChild != nil && component.children.isEmpty {
+                    // Only show hover for leaf components (components without children)
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.blue.opacity(0.9), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                        .allowsHitTesting(false)
+                }
+            }
+        )
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .gesture(
             TapGesture()
                 .onEnded { _ in
+                    // Always allow selection of this component
                     onTap?()
                 }
         )
@@ -137,8 +163,10 @@ struct ComponentRenderer: View {
             if component.children.isEmpty {
                 EmptyView()
             } else {
-                ForEach(component.children) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: onTap)
+                ForEach(component.children, id: \.id) { child in
+                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                        onSelectChild?(child)
+                    }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                 }
             }
         }
@@ -153,8 +181,10 @@ struct ComponentRenderer: View {
             if component.children.isEmpty {
                 EmptyView()
             } else {
-                ForEach(component.children) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: onTap)
+                ForEach(component.children, id: \.id) { child in
+                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                        onSelectChild?(child)
+                    }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                 }
             }
         }
@@ -171,8 +201,10 @@ struct ComponentRenderer: View {
             if component.children.isEmpty {
                 EmptyView()
             } else {
-                ForEach(component.children) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: onTap)
+                ForEach(component.children, id: \.id) { child in
+                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                        onSelectChild?(child)
+                    }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                 }
             }
         }
@@ -266,16 +298,71 @@ struct ComponentRenderer: View {
     
     // MARK: - ScrollView Renderer
     private func renderScrollView() -> some View {
+        let children = component.children
+        let axis = component.getProperty(key: "axis") as? String ?? "vertical"
+        let showsIndicators = component.getProperty(key: "showsIndicators") as? Bool ?? true
+        
+        let scrollAxis: Axis.Set = axis == "horizontal" ? .horizontal : .vertical
+        
         return AnyView(
-            VStack(spacing: 8) {
-                if component.children.isEmpty {
-                    EmptyView()
+            ScrollView(scrollAxis, showsIndicators: showsIndicators) {
+                if scrollAxis == .horizontal {
+                    HStack(spacing: 8) {
+                        if children.isEmpty {
+                            EmptyView()
+                        } else {
+                            ForEach(children, id: \.id) { child in
+                                ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                                    onSelectChild?(child)
+                                }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
+                            }
+                        }
+                    }
                 } else {
-                    ForEach(component.children) { child in
-                        ComponentRenderer(component: child, deviceSize: deviceSize)
+                    VStack(spacing: 8) {
+                        if children.isEmpty {
+                            EmptyView()
+                        } else {
+                            ForEach(children, id: \.id) { child in
+                                ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                                    onSelectChild?(child)
+                                }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
+                            }
+                        }
                     }
                 }
             }
+        )
+    }
+    
+    // MARK: - SF Symbol Renderer
+    private func renderSFSymbol() -> some View {
+        let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
+        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
+        let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
+        
+        let font: Font = {
+            switch fontSize {
+            case "largeTitle": return .largeTitle
+            case "title": return .title
+            case "title2": return .title2
+            case "title3": return .title3
+            case "headline": return .headline
+            case "body": return .body
+            case "callout": return .callout
+            case "subheadline": return .subheadline
+            case "footnote": return .footnote
+            case "caption": return .caption
+            case "caption2": return .caption2
+            default: return .largeTitle
+            }
+        }()
+        
+        return AnyView(
+            Image(systemName: symbolName)
+                .font(font)
+                .foregroundColor(foregroundColor)
+                .symbolRenderingMode(.hierarchical)
         )
     }
     
@@ -388,9 +475,36 @@ private extension View {
     private func applyModifier(_ modifier: ComponentModifier, to view: AnyView) -> AnyView {
         switch modifier.type {
         case .frame:
-            let width = modifier.properties["width"] as? CGFloat ?? 0
-            let height = modifier.properties["height"] as? CGFloat ?? 0
-            return AnyView(view.frame(width: width, height: height))
+            let widthType = modifier.properties["widthType"] as? String ?? "Default"
+            let heightType = modifier.properties["heightType"] as? String ?? "Default"
+            let width = modifier.properties["width"] as? CGFloat ?? 100
+            let height = modifier.properties["height"] as? CGFloat ?? 100
+            
+            // Apply frame based on type
+            if widthType == "Default" && heightType == "Default" {
+                return view // No frame modifier applied
+            }
+            
+            // Build frame modifier dynamically
+            var modifiedView = view
+            
+            // Handle width
+            if widthType == "Full" {
+                modifiedView = AnyView(modifiedView.frame(maxWidth: .infinity))
+            } else if widthType == "Custom" {
+                modifiedView = AnyView(modifiedView.frame(width: width))
+            }
+            // If widthType == "Default", don't apply width modifier
+            
+            // Handle height
+            if heightType == "Full" {
+                modifiedView = AnyView(modifiedView.frame(maxHeight: .infinity))
+            } else if heightType == "Custom" {
+                modifiedView = AnyView(modifiedView.frame(height: height))
+            }
+            // If heightType == "Default", don't apply height modifier
+            
+            return modifiedView
             
         case .padding:
             let amount = modifier.properties["amount"] as? CGFloat ?? 0

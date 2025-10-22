@@ -16,6 +16,7 @@
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
 		EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC53EB7F2D91CD6300E175DB /* HapticManager.swift */; };
+		EC587F3F2EA8253F0039E65C /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC587F3E2EA8253F0039E65C /* SwiftUIView.swift */; };
 		EC59829C2D56836B00633392 /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829B2D56836B00633392 /* Like.swift */; };
 		EC5982A02D568E5500633392 /* LikeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829F2D568E5500633392 /* LikeButton.swift */; };
 		EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A12D57F4A600633392 /* LikedPostsView.swift */; };
@@ -88,6 +89,7 @@
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC50CFB52D1393B9006586DA /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		EC53EB7F2D91CD6300E175DB /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		EC587F3E2EA8253F0039E65C /* SwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView.swift; sourceTree = "<group>"; };
 		EC59829B2D56836B00633392 /* Like.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Like.swift; sourceTree = "<group>"; };
 		EC59829F2D568E5500633392 /* LikeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeButton.swift; sourceTree = "<group>"; };
 		EC5982A12D57F4A600633392 /* LikedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsView.swift; sourceTree = "<group>"; };
@@ -176,6 +178,7 @@
 				EC7F4AE22EA30B8D00A91B1D /* UIBuilderView.swift */,
 				EC7F4AE32EA30B8D00A91B1D /* UIComponent.swift */,
 				EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */,
+				EC587F3E2EA8253F0039E65C /* SwiftUIView.swift */,
 			);
 			path = Studio;
 			sourceTree = "<group>";
@@ -493,6 +496,7 @@
 				EC7F4AEA2EA30B8D00A91B1D /* CodePreviewView.swift in Sources */,
 				EC7F4AEB2EA30B8D00A91B1D /* Modifier.swift in Sources */,
 				EC7F4AEC2EA30B8D00A91B1D /* PropertiesPanelView.swift in Sources */,
+				EC587F3F2EA8253F0039E65C /* SwiftUIView.swift in Sources */,
 				EC7F4AED2EA30B8D00A91B1D /* UIComponent.swift in Sources */,
 				EC7F4AEE2EA30B8D00A91B1D /* LayersPanelView.swift in Sources */,
 				EC7F4AEF2EA30B8D00A91B1D /* ModifierEditorView.swift in Sources */,

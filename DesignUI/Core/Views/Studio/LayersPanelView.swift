@@ -16,6 +16,7 @@ struct LayersPanelView: View {
     @State private var dragOverTarget: UUID?
     @State private var dragOverPosition: DropPosition = .none
     @State private var draggingId: UUID?
+    @State private var cleanupTimer: Timer?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -81,8 +82,16 @@ struct LayersPanelView: View {
             // Ensure drop preview clears if a drag operation ends anywhere
             .onChange(of: draggingId) { _, newValue in
                 if newValue == nil {
-                    dragOverTarget = nil
-                    dragOverPosition = .none
+                    // Cancel any existing timer
+                    cleanupTimer?.invalidate()
+                    
+                    // Set a timer to ensure cleanup happens
+                    cleanupTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { _ in
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            dragOverTarget = nil
+                            dragOverPosition = .none
+                        }
+                    }
                 }
             }
         }
@@ -114,6 +123,24 @@ struct LayersPanelView: View {
         
         collectParentIds(from: canvasManager.components)
         expanded = allParentIds
+    }
+    
+}
+
+// MARK: - Helper Functions
+private func componentDisplayName(_ component: UIComponent) -> String {
+    switch component.type {
+    case .text:
+        let text = component.getProperty(key: "text") as? String ?? "Text"
+        return text.isEmpty ? "Text" : (text.count > 20 ? String(text.prefix(20)) + "..." : text)
+    case .button:
+        let title = component.getProperty(key: "title") as? String ?? "Button"
+        return title.isEmpty ? "Button" : (title.count > 20 ? String(title.prefix(20)) + "..." : title)
+    case .image:
+        let imageName = component.getProperty(key: "imageName") as? String ?? "Image"
+        return imageName.isEmpty ? "Image" : (imageName.count > 20 ? String(imageName.prefix(20)) + "..." : imageName)
+    default:
+        return component.type.rawValue
     }
 }
 
@@ -225,6 +252,13 @@ private struct OutlineRow: View {
     private var row: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
+                // Indentation based on level
+                HStack(spacing: 0) {
+                    ForEach(0..<level, id: \.self) { _ in
+                        Spacer().frame(width: 16)
+                    }
+                }
+                
                 // Expand/Collapse
                 if !component.children.isEmpty {
                     Button(action: { toggleExpand() }) {
@@ -237,15 +271,17 @@ private struct OutlineRow: View {
                     Spacer().frame(width: 12)
                 }
                 
-                // Icon
-                Image(systemName: component.type.icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                    .frame(width: 16)
+                // Icon with container indicator
+                HStack(spacing: 2) {
+                    Image(systemName: component.type.icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                }
+                .frame(width: 20)
                 
                 // Name
-                Text(component.type.rawValue)
-                    .font(.system(size: 13, weight: .semibold))
+                Text(componentDisplayName(component))
+                    .font(.system(size: 13, weight: level == 0 ? .semibold : .medium))
                     .foregroundColor((selectedComponent?.id == component.id) ? .white : .primary)
                     .lineLimit(1)
                 
@@ -283,6 +319,16 @@ private struct OutlineRow: View {
                 }
             )
             .overlay(
+                // Inside drop zone indicator for containers
+                Group {
+                    if dragOverTarget == component.id && dragOverPosition == .inside && canAcceptChildren(component) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.accentColor.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
+                            .padding(2)
+                    }
+                }
+            )
+            .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
                         (selectedComponent?.id == component.id) ? Color.accentColor.opacity(0.6) : Color.white.opacity(0.06),
@@ -296,6 +342,7 @@ private struct OutlineRow: View {
                 draggingId = component.id
                 return NSItemProvider(object: component.id.uuidString as NSString)
             }
+            .help(component.children.isEmpty ? "Drag to reorder" : "Drag to reorder or drop inside to make child")
             .onDrop(of: [UTType.plainText], delegate: RowDropDelegate(
                 target: component,
                 draggingId: $draggingId,
@@ -354,14 +401,20 @@ private struct RowDropDelegate: DropDelegate {
     }
     
     func performDrop(info: DropInfo) -> Bool {
-        guard let sourceId = draggingId else { return false }
+        guard let sourceId = draggingId else { 
+            cleanup()
+            return false 
+        }
+        
         let parentId = getParentOf(target.id)
         var insertIndex = getIndexInParent(target.id)
+        
         switch dragOverPosition {
         case .above:
-            break
+            onMove(sourceId, parentId, max(insertIndex, 0))
         case .below:
             insertIndex += 1
+            onMove(sourceId, parentId, max(insertIndex, 0))
         case .inside:
             // Only allow inside drop if target can accept children
             if canAcceptChildren(target) {
@@ -374,14 +427,15 @@ private struct RowDropDelegate: DropDelegate {
                 insertIndex += 1
                 onMove(sourceId, parentId, max(insertIndex, 0))
             }
-            cleanup()
-            return true
         case .none:
             cleanup()
             return false
         }
-        onMove(sourceId, parentId, max(insertIndex, 0))
-        cleanup()
+        
+        // Always cleanup after successful drop
+        DispatchQueue.main.async {
+            cleanup()
+        }
         return true
     }
     
@@ -394,25 +448,38 @@ private struct RowDropDelegate: DropDelegate {
 
     func dropEnded(info: DropInfo) {
         // Defensive clear to ensure preview lines are removed
-        dragOverTarget = nil
-        dragOverPosition = .none
+        DispatchQueue.main.async {
+            dragOverTarget = nil
+            dragOverPosition = .none
+            draggingId = nil
+        }
     }
     
     private func updatePosition(info: DropInfo) {
         let y = info.location.y
-        if y < 10 {
+        let height = 36.0 // Approximate row height
+        
+        if y < height * 0.25 {
             dragOverPosition = .above
-        } else if y > 26 {
+        } else if y > height * 0.75 {
             dragOverPosition = .below
         } else {
-            dragOverPosition = .inside
+            // Inside drop zone - only allow for containers
+            if canAcceptChildren(target) {
+                dragOverPosition = .inside
+            } else {
+                // For non-containers, default to below
+                dragOverPosition = .below
+            }
         }
     }
     
     private func cleanup() {
-        draggingId = nil
-        dragOverTarget = nil
-        dragOverPosition = .none
+        DispatchQueue.main.async {
+            draggingId = nil
+            dragOverTarget = nil
+            dragOverPosition = .none
+        }
     }
 }
 

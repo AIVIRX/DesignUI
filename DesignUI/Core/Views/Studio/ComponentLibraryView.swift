@@ -83,14 +83,17 @@ struct ComponentLibraryView: View {
                                 // Check if there's a selected container component
                                 if let selected = selectedComponent, 
                                    canvasManager.canAcceptChildren(selected) {
-                                    print("Adding to container: \(selected.type.rawValue)")
-                                    canvasManager.addComponentToContainer(component, container: selected)
+                                    // Reset frame to be relative to container
+                                    component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
+                                    
+                                    // Add directly to container - NEVER add to root level
+                                    selected.addChild(component)
+                                    selectedComponent = component
+                                    canvasManager.saveState()
                                 } else {
-                                    print("Adding to main canvas")
+                                    // Add to main canvas
                                     canvasManager.addComponent(component)
                                 }
-                                selectedComponent = component
-                                print("Total components: \(canvasManager.components.count)")
                             }
                         )
                     }
@@ -183,14 +186,7 @@ struct ComponentLibraryItem: View {
                 }
                 .onEnded { _ in
                     isPressed = false
-                    // Create and add component to canvas. First component centers (0,0 relies on renderer fallback), subsequent at a small offset.
-                    let defaultOrigin = isFirstComponent ? CGPoint(x: 0, y: 0) : CGPoint(x: 100, y: 100)
-                    let component = UIComponent(
-                        type: componentType,
-                        properties: UIComponent.defaultProperties(for: componentType),
-                        frame: CGRect(origin: defaultOrigin, size: .zero)
-                    )
-                    onAdd(component)
+                    // Note: Component creation is handled by onTapGesture to avoid duplicates
                 }
         )
     }

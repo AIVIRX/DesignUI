@@ -9,30 +9,68 @@ import SwiftUI
 
 #if os(macOS)
 struct DesignBrowserView: View {
-    @StateObject private var designManager = DesignManager()
+    @EnvironmentObject private var designManager: DesignManager
     @State private var showingNewDesignSheet = false
     @State private var newDesignName = ""
     @State private var showingDeleteAlert = false
     @State private var designToDelete: DesignFile?
+    @State private var showingSettingsMenu = false
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Header
+                // Simplified Header
                 HStack {
-                    Text("Design Browser")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("My Designs")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        
+                        Text("Create and manage your UI designs")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                     
                     Spacer()
                     
-                    Button(action: { showingNewDesignSheet = true }) {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("New Design")
+                    HStack(spacing: 12) {
+                        Menu {
+                            Button("Choose Folder") {
+                                designManager.selectDesignsDirectory()
+                            }
+                            
+                            if designManager.isUsingiCloud {
+                                Button("Switch to Local Storage") {
+                                    designManager.switchToLocal()
+                                }
+                            } else {
+                                Button("Switch to iCloud") {
+                                    designManager.switchToiCloud()
+                                }
+                            }
+                            
+                            Button("Reset to Default") {
+                                designManager.resetToDefaultDirectory()
+                            }
+                            
+                            Divider()
+                            
+                            Button("Refresh") {
+                                designManager.refreshiCloudStatus()
+                            }
+                        } label: {
+                            Image(systemName: "gearshape")
                         }
+                        .buttonStyle(.bordered)
+                        
+                        Button(action: { showingNewDesignSheet = true }) {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text("New Design")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
                 }
                 .padding()
                 
@@ -40,23 +78,33 @@ struct DesignBrowserView: View {
                 
                 // Design Grid
                 if designManager.designFiles.isEmpty {
-                    // Empty state
-                    VStack(spacing: 20) {
-                        Image(systemName: "doc.text")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
+                    // Welcome empty state
+                    VStack(spacing: 24) {
+                        VStack(spacing: 16) {
+                            Image(systemName: "paintbrush.pointed.fill")
+                                .font(.system(size: 64))
+                                .foregroundColor(.accentColor)
+                            
+                            Text("Welcome to DesignUI!")
+                                .font(.title)
+                                .fontWeight(.semibold)
+                            
+                            Text("Start creating beautiful UI designs with our intuitive drag-and-drop builder")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
                         
-                        Text("No Designs Yet")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        Text("Create your first design to get started")
-                            .foregroundColor(.secondary)
-                        
-                        Button("Create New Design") {
-                            showingNewDesignSheet = true
+                        Button(action: { showingNewDesignSheet = true }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Create Your First Design")
+                            }
+                            .font(.headline)
                         }
                         .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -105,12 +153,26 @@ struct DesignBrowserView: View {
         } message: {
             Text("Are you sure you want to delete this design? This action cannot be undone.")
         }
+        .fileImporter(
+            isPresented: $designManager.showingDirectoryPicker,
+            allowedContentTypes: [.folder],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first {
+                    designManager.setDesignsDirectory(url)
+                }
+            case .failure(let error):
+                print("❌ Failed to select directory: \(error)")
+            }
+        }
         .navigationDestination(isPresented: Binding(
             get: { designManager.currentDesign != nil },
             set: { if !$0 { designManager.closeCurrentDesign() } }
         )) {
             if let currentDesign = designManager.currentDesign {
-                UIBuilderView(designFile: currentDesign, designManager: designManager)
+                UIBuilderView(designFile: currentDesign)
             } else {
                 EmptyView()
             }
@@ -126,60 +188,80 @@ struct DesignCardView: View {
     @State private var isHovered = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Thumbnail placeholder
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(NSColor.controlBackgroundColor))
-                .frame(height: 120)
+        VStack(alignment: .leading, spacing: 16) {
+            // Design preview
+            RoundedRectangle(cornerRadius: 12)
+                .fill(
+                    LinearGradient(
+                        colors: [.accentColor.opacity(0.1), .accentColor.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(height: 140)
                 .overlay(
-                    VStack {
-                        Image(systemName: "doc.text")
-                            .font(.system(size: 30))
-                            .foregroundColor(.secondary)
-                        Text("Preview")
+                    VStack(spacing: 8) {
+                        Image(systemName: "paintbrush.pointed.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.accentColor)
+                        Text("Design Preview")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.medium)
+                            .foregroundColor(.accentColor)
                     }
                 )
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(designFile.name)
                     .font(.headline)
-                    .lineLimit(1)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
                 
-                Text("Modified \(designFile.lastModified, style: .relative)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Text("\(designFile.components.count) components")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                HStack {
+                    Image(systemName: "clock")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(designFile.lastModified, style: .relative)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    if designFile.components.count > 0 {
+                        Text("\(designFile.components.count) components")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
             
             Spacer()
             
             HStack {
-                Button("Open") {
+                Button("Open Design") {
                     onOpen()
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
                 
                 Spacer()
                 
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
+                if isHovered {
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.red)
+                    .transition(.opacity)
                 }
-                .buttonStyle(.plain)
-                .foregroundColor(.red)
-                .opacity(isHovered ? 1.0 : 0.0)
             }
         }
-        .padding()
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.controlBackgroundColor))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 16)
                         .stroke(isHovered ? Color.accentColor : Color.clear, lineWidth: 2)
                 )
         )
@@ -191,6 +273,8 @@ struct DesignCardView: View {
         .onTapGesture {
             onOpen()
         }
+        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isHovered)
     }
 }
 
@@ -201,40 +285,60 @@ struct NewDesignSheet: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Text("Create New Design")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+            VStack(spacing: 24) {
+                VStack(spacing: 12) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.accentColor)
+                    
+                    Text("Create New Design")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    Text("Give your design a name to get started")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
                 
-                TextField("Design Name", text: $designName)
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit {
-                        if !designName.isEmpty {
-                            onCreate(designName)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Design Name")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    TextField("Enter design name", text: $designName)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit {
+                            if !designName.isEmpty {
+                                onCreate(designName)
+                            }
                         }
-                    }
-                
-                Text("This will create a new design file that you can start building with.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+                }
                 
                 Spacer()
+                
+                HStack(spacing: 12) {
+                    Button("Cancel") {
+                        onCancel()
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Spacer()
+                    
+                    Button("Create Design") {
+                        onCreate(designName)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(designName.isEmpty)
+                }
             }
-            .padding()
-            .frame(width: 400, height: 200)
+            .padding(24)
+            .frame(width: 420, height: 280)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         onCancel()
                     }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        onCreate(designName)
-                    }
-                    .disabled(designName.isEmpty)
                 }
             }
         }

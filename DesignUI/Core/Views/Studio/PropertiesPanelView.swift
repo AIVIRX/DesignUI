@@ -36,6 +36,9 @@ struct PropertiesPanelView: View {
                         // Modifiers
                         ModifierPanelView(component: component)
                         
+                        // Duplicate Component Button
+                        DuplicateComponentSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
+                        
                         // Delete Component Button
                         DeleteComponentSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
                     }
@@ -86,7 +89,7 @@ struct PropertiesSection: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(.white.opacity(0.1))
+                    .fill(Color(red: 0.17, green: 0.17, blue: 0.18)) // #2C2C2E
             )
         }
     }
@@ -97,63 +100,83 @@ struct PropertyEditor: View {
     @ObservedObject var component: UIComponent
     @State private var textValue: String = ""
     @State private var numberValue: Double = 0.0
+    @State private var showSFSymbolPicker: Bool = false
     
     private let fontStyles = [
         "largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"
     ]
     
     private var displayName: String {
-        switch property.key {
-        case "fontWeight": return "Font Weight"
-        case "fontSize": return "Font Size"
-        case "foregroundColor": return "Foreground Color"
-        case "backgroundColor": return "Background"
-        case "cornerRadius": return "Corner Radius"
-        case "imageName": return "Image"
-        case "title": return "Title"
-        case "text": return "Text"
-        case "alignment": return "Alignment"
-        case "spacing": return "Spacing"
-        case "padding": return "Padding"
-        case "opacity": return "Opacity"
-        case "rotation": return "Rotation"
-        case "shadow": return "Shadow"
-        case "border": return "Border"
-        case "gradient": return "Gradient"
-        case "resizable": return "Resizable"
-        case "aspectRatio": return "Aspect Ratio"
-        default: return property.key.capitalized
-        }
+        return property.displayName
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             switch property.type {
             case .string:
-                TextField("Hello World", text: $textValue)
-                    .font(.system(size: 13, weight: .medium))
-                    .textFieldStyle(.plain)
-                    .onAppear {
-                        textValue = property.value as? String ?? ""
-                    }
-                    .onReceive(component.objectWillChange) { _ in
-                        if let stringValue = component.getProperty(key: property.key) as? String {
-                            textValue = stringValue
+                if property.key == "symbolName" {
+                    // Special SF Symbol picker
+                    HStack {
+                        Text(displayName)
+                            .font(.caption)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            // Open SF Symbols view
+                            showSFSymbolPicker = true
+                        }) {
+                            HStack {
+                                Image(systemName: textValue.isEmpty ? "star" : textValue)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.blue)
+                                
+                                Text(textValue.isEmpty ? "Select Symbol" : textValue)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.primary)
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .onAppear {
+                            textValue = property.value as? String ?? ""
+                        }
+                        .onReceive(component.objectWillChange) { _ in
+                            if let stringValue = component.getProperty(key: property.key) as? String {
+                                textValue = stringValue
+                            }
                         }
                     }
-                    .onChange(of: textValue) { _, newValue in
-                        component.setProperty(key: property.key, value: newValue)
-                    }
-                    .onSubmit {
-                        // Commit the final value when Enter is pressed
-                        component.setProperty(key: property.key, value: textValue)
-                    }
+                } else {
+                    TextField("Hello World", text: $textValue)
+                        .font(.system(size: 13, weight: .medium))
+                        .textFieldStyle(.plain)
+                        .onAppear {
+                            textValue = property.value as? String ?? ""
+                        }
+                        .onReceive(component.objectWillChange) { _ in
+                            if let stringValue = component.getProperty(key: property.key) as? String {
+                                textValue = stringValue
+                            }
+                        }
+                        .onChange(of: textValue) { _, newValue in
+                            component.setProperty(key: property.key, value: newValue)
+                        }
+                        .onSubmit {
+                            // Commit the final value when Enter is pressed
+                            component.setProperty(key: property.key, value: textValue)
+                        }
+                }
                 
             case .number:
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -180,7 +203,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -202,7 +225,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -225,7 +248,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -248,7 +271,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -271,7 +294,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -293,7 +316,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -315,7 +338,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -346,6 +369,12 @@ struct PropertyEditor: View {
                 Text("Unsupported property type")
                     .font(.caption)
                     .foregroundColor(.secondary)
+            }
+        }
+        .popover(isPresented: $showSFSymbolPicker) {
+            SFSymbolPickerView(selectedSymbol: $textValue) { selectedSymbol in
+                component.setProperty(key: property.key, value: selectedSymbol)
+                textValue = selectedSymbol
             }
         }
     }
@@ -517,16 +546,23 @@ struct DeleteComponentSection: View {
                 showDeleteAlert = true
             }) {
                 HStack {
+                    Text("Delete Component")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.red) // #FF453A
+                    
+                    Spacer()
+                    
                     Image(systemName: "trash")
                         .font(.system(size: 13, weight: .medium))
-                    Text("Delete Component")
-                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color.red) // #FF453A
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(Color.red)
-                .cornerRadius(6)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(red: 0.17, green: 0.17, blue: 0.18)) // #2C2C2E
+                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+                )
             }
             .buttonStyle(PlainButtonStyle())
             .alert("Delete Component", isPresented: $showDeleteAlert) {
@@ -538,11 +574,6 @@ struct DeleteComponentSection: View {
                 Text("Are you sure you want to delete this component? This action cannot be undone.")
             }
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.white.opacity(0.1))
-        )
     }
     
     private func deleteComponent() {
@@ -551,6 +582,228 @@ struct DeleteComponentSection: View {
         
         // Clear the selection
         selectedComponent = nil
+    }
+}
+
+struct DuplicateComponentSection: View {
+    @ObservedObject var component: UIComponent
+    @ObservedObject var canvasManager: CanvasManager
+    @Binding var selectedComponent: UIComponent?
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Actions")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+            
+            Button(action: duplicateComponent) {
+                HStack {
+                    Text("Duplicate")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.blue)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.blue)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(red: 0.17, green: 0.17, blue: 0.18)) // #2C2C2E
+                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+    }
+    
+    private func duplicateComponent() {
+        // Create a deep copy of the component with all its properties and modifiers
+        let duplicatedComponent = createDeepCopy(of: component)
+        
+        // Check if this component is a child of another component
+        if let parentComponent = findParentComponent(of: component, in: canvasManager.components) {
+            // Find the index of the original component in its parent
+            if let originalIndex = parentComponent.children.firstIndex(where: { $0.id == component.id }) {
+                // Insert the duplicate right after the original component
+                parentComponent.children.insert(duplicatedComponent, at: originalIndex + 1)
+            } else {
+                // Fallback: add to end if index not found
+                parentComponent.addChild(duplicatedComponent)
+            }
+        } else {
+            // For root components, find the index and insert after
+            if let originalIndex = canvasManager.components.firstIndex(where: { $0.id == component.id }) {
+                canvasManager.components.insert(duplicatedComponent, at: originalIndex + 1)
+            } else {
+                // Fallback: add to end if index not found
+                canvasManager.addComponent(duplicatedComponent)
+            }
+        }
+        
+        // Select the new component
+        selectedComponent = duplicatedComponent
+    }
+    
+    private func findParentComponent(of targetComponent: UIComponent, in components: [UIComponent]) -> UIComponent? {
+        for component in components {
+            if component.children.contains(where: { $0.id == targetComponent.id }) {
+                return component
+            }
+            if let found = findParentComponent(of: targetComponent, in: component.children) {
+                return found
+            }
+        }
+        return nil
+    }
+    
+    private func createDeepCopy(of component: UIComponent) -> UIComponent {
+        // Create a new component with the same type
+        let newComponent = UIComponent(type: component.type)
+        
+        // Copy all properties
+        newComponent.properties = component.properties.map { property in
+            ComponentProperty(
+                key: property.key,
+                displayName: property.displayName,
+                type: property.type,
+                value: property.value,
+                defaultValue: property.defaultValue,
+                options: property.options,
+                isRequired: property.isRequired
+            )
+        }
+        
+        // Copy all modifiers with their properties
+        newComponent.modifiers = component.modifiers.map { modifier in
+            ComponentModifier(
+                type: modifier.type,
+                properties: modifier.properties
+            )
+        }
+        
+        // Copy frame with a slight offset so it's visible
+        newComponent.frame = CGRect(
+            x: component.frame.origin.x + 20,
+            y: component.frame.origin.y + 20,
+            width: component.frame.width,
+            height: component.frame.height
+        )
+        
+        // Recursively copy children
+        newComponent.children = component.children.map { child in
+            createDeepCopy(of: child)
+        }
+        
+        return newComponent
+    }
+}
+
+// MARK: - SF Symbol Picker View
+struct SFSymbolPickerView: View {
+    @Binding var selectedSymbol: String
+    let onSymbolSelected: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var searchText = ""
+    @State private var debouncedSearch = ""
+    @State private var searchTask: Task<Void, Never>?
+    
+    private var filteredSymbols: [String] {
+        guard !debouncedSearch.isEmpty else { return symbols }
+        return symbols.filter { $0.localizedCaseInsensitiveContains(debouncedSearch) }
+    }
+    
+    private var grid: [GridItem] {
+        [GridItem(.adaptive(minimum: 70), spacing: 8)]
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Select SF Symbol")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Button("Done") {
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(NSColor.controlBackgroundColor))
+            
+            Divider()
+            
+            // Search bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                
+                TextField("Search SF Symbols", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .onChange(of: searchText) { _, newValue in
+                        searchTask?.cancel()
+                        searchTask = Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 180_000_000)
+                            debouncedSearch = newValue
+                        }
+                    }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(Color(NSColor.controlBackgroundColor))
+            
+            Divider()
+            
+            // Symbols grid
+            ScrollView {
+                LazyVGrid(columns: grid, spacing: 12) {
+                    ForEach(filteredSymbols, id: \.self) { symbol in
+                        Button(action: {
+                            selectedSymbol = symbol
+                            onSymbolSelected(symbol)
+                            dismiss()
+                        }) {
+                            VStack(spacing: 6) {
+                                Image(systemName: symbol)
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.primary)
+                                    .symbolRenderingMode(.hierarchical)
+                                
+                                Text(symbol)
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                            }
+                            .frame(width: 70, height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(selectedSymbol == symbol ? Color.blue.opacity(0.2) : Color.clear)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(selectedSymbol == symbol ? Color.blue : Color.clear, lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .frame(maxHeight: 400) // Limit height for popover
+        }
+        .frame(width: 400) // Fixed width for popover
     }
 }
 #endif

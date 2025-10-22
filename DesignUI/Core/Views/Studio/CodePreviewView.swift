@@ -30,14 +30,6 @@ struct CodePreviewView: View {
                 .padding(.vertical, 16)
                 .background(Color(NSColor.controlBackgroundColor))
                 
-                Divider()
-                
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                
-                Divider()
-                
                 // Code content
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
@@ -66,13 +58,7 @@ struct CompleteFileCode: View {
         //  Created on \(Date().formatted(date: .abbreviated, time: .shortened))
         //
 
-        import SwiftUI
-
-        struct GeneratedView: View {
-            var body: some View {
-                \(viewCode)
-            }
-        }
+        \(viewCode)
 
         #Preview {
             GeneratedView()

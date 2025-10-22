@@ -32,12 +32,13 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case toggle = "Toggle"
     case slider = "Slider"
     case textEditor = "TextEditor"
+    case sfSymbol = "SF Symbol"
     
     var id: String { rawValue }
     
     var category: ComponentCategory {
         switch self {
-        case .text, .image, .button:
+        case .text, .image, .button, .sfSymbol:
             return .basic
         case .vstack, .hstack, .zstack, .spacer, .divider:
             return .layout
@@ -74,6 +75,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .toggle: return "switch.2"
         case .slider: return "slider.horizontal.3"
         case .textEditor: return "text.alignleft"
+        case .sfSymbol: return "star"
         }
     }
 }
@@ -116,15 +118,17 @@ enum PropertyType: Codable {
 struct ComponentProperty: Identifiable, Codable, Equatable {
     let id: UUID
     let key: String
+    let displayName: String
     let type: PropertyType
     var value: Any
     let defaultValue: Any
     let options: [Any]?
     let isRequired: Bool
     
-    init(key: String, type: PropertyType, value: Any, defaultValue: Any, options: [Any]? = nil, isRequired: Bool = false) {
+    init(key: String, displayName: String, type: PropertyType, value: Any, defaultValue: Any, options: [Any]? = nil, isRequired: Bool = false) {
         self.id = UUID()
         self.key = key
+        self.displayName = displayName
         self.type = type
         self.value = value
         self.defaultValue = defaultValue
@@ -134,13 +138,14 @@ struct ComponentProperty: Identifiable, Codable, Equatable {
     
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case id, key, type, value, defaultValue, options, isRequired
+        case id, key, displayName, type, value, defaultValue, options, isRequired
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(UUID.self, forKey: .id)
         self.key = try container.decode(String.self, forKey: .key)
+        self.displayName = try container.decode(String.self, forKey: .displayName)
         self.type = try container.decode(PropertyType.self, forKey: .type)
         self.isRequired = try container.decode(Bool.self, forKey: .isRequired)
         
@@ -253,7 +258,10 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     // MARK: - Child Management
     func addChild(_ child: UIComponent) {
-        children.append(child)
+        // Prevent adding the same component multiple times
+        if !children.contains(where: { $0.id == child.id }) {
+            children.append(child)
+        }
     }
     
     func removeChild(_ child: UIComponent) {
@@ -337,68 +345,74 @@ extension UIComponent {
         switch type {
         case .text:
             return [
-                ComponentProperty(key: "text", type: .string, value: "Hello World", defaultValue: "Hello World"),
-                ComponentProperty(key: "fontSize", type: .font, value: "body", defaultValue: "body", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
-                ComponentProperty(key: "fontWeight", type: .font, value: "regular", defaultValue: "regular", options: ["regular", "bold", "light", "medium", "semibold", "heavy", "black"]),
-                ComponentProperty(key: "foregroundColor", type: .color, value: Color.primary, defaultValue: Color.primary),
+                ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Hello World", defaultValue: "Hello World"),
+                ComponentProperty(key: "fontSize", displayName: "Font Size", type: .font, value: "body", defaultValue: "body", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
+                ComponentProperty(key: "fontWeight", displayName: "Font Weight", type: .font, value: "regular", defaultValue: "regular", options: ["regular", "bold", "light", "medium", "semibold", "heavy", "black"]),
+                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: Color.primary, defaultValue: Color.primary),
             ]
         case .image:
             return [
-                ComponentProperty(key: "imageName", type: .string, value: "photo", defaultValue: "photo"),
-                ComponentProperty(key: "resizable", type: .boolean, value: true, defaultValue: true),
-                ComponentProperty(key: "aspectRatio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
+                ComponentProperty(key: "imageName", displayName: "Image Name", type: .string, value: "photo", defaultValue: "photo"),
+                ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true),
+                ComponentProperty(key: "aspectRatio", displayName: "Aspect Ratio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
             ]
         case .button:
             return [
-                ComponentProperty(key: "title", type: .string, value: "Button", defaultValue: "Button"),
-                ComponentProperty(key: "backgroundColor", type: .color, value: Color.blue, defaultValue: Color.blue),
-                ComponentProperty(key: "foregroundColor", type: .color, value: Color.white, defaultValue: Color.white),
-                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
+                ComponentProperty(key: "title", displayName: "Title", type: .string, value: "Button", defaultValue: "Button"),
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.blue, defaultValue: Color.blue),
+                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: Color.white, defaultValue: Color.white),
+                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
             ]
         case .vstack:
             return [
-                ComponentProperty(key: "alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["leading", "center", "trailing"]),
-                ComponentProperty(key: "spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+                ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["leading", "center", "trailing"]),
+                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
             ]
         case .hstack:
             return [
-                ComponentProperty(key: "alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
-                ComponentProperty(key: "spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+                ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
+                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
             ]
         case .zstack:
             return [
-                ComponentProperty(key: "alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"])
+                ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"])
             ]
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
             return [
-                ComponentProperty(key: "cornerRadius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
-                ComponentProperty(key: "fill", type: .color, value: Color.gray, defaultValue: Color.gray)
+                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
+                ComponentProperty(key: "fill", displayName: "Fill Color", type: .color, value: Color.gray, defaultValue: Color.gray)
             ]
         case .spacer:
             return [
-                ComponentProperty(key: "minLength", type: .number, value: 0.0, defaultValue: 0.0)
+                ComponentProperty(key: "minLength", displayName: "Min Length", type: .number, value: 0.0, defaultValue: 0.0)
             ]
         case .scrollView:
             return [
-                ComponentProperty(key: "axis", type: .segmentedControl, value: "vertical", defaultValue: "vertical", options: ["vertical", "horizontal"]),
-                ComponentProperty(key: "showsIndicators", type: .boolean, value: true, defaultValue: true)
+                ComponentProperty(key: "axis", displayName: "Axis", type: .segmentedControl, value: "vertical", defaultValue: "vertical", options: ["vertical", "horizontal"]),
+                ComponentProperty(key: "showsIndicators", displayName: "Shows Indicators", type: .boolean, value: true, defaultValue: true)
             ]
         case .list:
             return [
-                ComponentProperty(key: "style", type: .dropdown, value: "plain", defaultValue: "plain", options: ["plain", "grouped", "inset", "insetGrouped"]),
-                ComponentProperty(key: "separatorStyle", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "none", "singleLine"])
+                ComponentProperty(key: "style", displayName: "Style", type: .dropdown, value: "plain", defaultValue: "plain", options: ["plain", "grouped", "inset", "insetGrouped"]),
+                ComponentProperty(key: "separatorStyle", displayName: "Separator Style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "none", "singleLine"])
             ]
         case .navigationView:
             return [
-                ComponentProperty(key: "style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "stack", "columns"])
+                ComponentProperty(key: "style", displayName: "Style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "stack", "columns"])
             ]
         case .tabView:
             return [
-                ComponentProperty(key: "style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "page"])
+                ComponentProperty(key: "style", displayName: "Style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "page"])
             ]
         case .form:
             return [
-                ComponentProperty(key: "style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "grouped"])
+                ComponentProperty(key: "style", displayName: "Style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "grouped"])
+            ]
+        case .sfSymbol:
+            return [
+                ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star"),
+                ComponentProperty(key: "foregroundColor", displayName: "Color", type: .color, value: Color.primary, defaultValue: Color.primary),
+                ComponentProperty(key: "fontSize", displayName: "Size", type: .font, value: "largeTitle", defaultValue: "largeTitle", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"])
             ]
         default:
             return []
