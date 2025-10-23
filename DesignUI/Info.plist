@@ -62,5 +62,7 @@
 			<string>Any</string>
 		</dict>
 	</dict>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>

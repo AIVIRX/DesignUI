@@ -61,6 +61,10 @@ struct ContentView: View {
                         NewsListView()
                     }
                     
+//                    Tab(systemImageName: "plus.rectangle.on.folder") {
+//                        DesignBrowserView()
+//                    }
+                    
                     Tab(systemImageName: "person.crop.circle") {
                         ProfileContainerView()
                     }

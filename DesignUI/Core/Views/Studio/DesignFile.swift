@@ -60,18 +60,6 @@ class DesignFile: ObservableObject, Identifiable {
             try FileManager.default.setAttributes([.extensionHidden: true], ofItemAtPath: fileURL.path)
             print("✅ File extension hidden: \(name)")
             
-            // Also save to user Documents folder for persistence across rebuilds
-            let userDocumentsPath = "/Users/\(NSUserName())/Documents"
-            let userDocumentsURL = URL(fileURLWithPath: userDocumentsPath)
-            let userDockUIDirectory = userDocumentsURL.appendingPathComponent("DockUI")
-            
-            // Create user Documents/DockUI directory if it doesn't exist
-            try? FileManager.default.createDirectory(at: userDockUIDirectory, withIntermediateDirectories: true)
-            
-            let userFileURL = userDockUIDirectory.appendingPathComponent(fileURL.lastPathComponent)
-            try data.write(to: userFileURL)
-            print("✅ Design also saved to user Documents: \(userFileURL.path)")
-            
             // Verify the file was written
             if FileManager.default.fileExists(atPath: fileURL.path) {
                 let fileSize = try FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0
@@ -137,16 +125,32 @@ class DesignManager: ObservableObject {
     private var hasUnsavedChanges = false
     
     private init() {
-        // Use app's Documents directory (sandboxed)
-        self.documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        self.storageStatus = "Using app Documents folder"
-        print("📁 Using app Documents folder: \(documentsDirectory.path)")
+        // Try iCloud Documents first, fallback to local Documents
+        let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?
+            .appendingPathComponent("Documents/DockUI")
         
-        // Use DockUI folder in app Documents
-        self.designsDirectory = documentsDirectory.appendingPathComponent("DockUI")
+        let finalDesignsDirectory: URL
+        let finalStorageStatus: String
+        
+        if let ubiquityURL = ubiquityURL {
+            try? FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
+            finalDesignsDirectory = ubiquityURL
+            finalStorageStatus = "☁️ iCloud Drive"
+            print("☁️ Using iCloud: \(ubiquityURL.path)")
+        } else {
+            print("⚠️ iCloud not available, falling back to local documents.")
+            let localDocuments = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            finalDesignsDirectory = localDocuments.appendingPathComponent("DockUI")
+            finalStorageStatus = "📁 Local Documents"
+            print("📁 Using local Documents: \(finalDesignsDirectory.path)")
+        }
+        
+        // Initialize all stored properties
+        self.designsDirectory = finalDesignsDirectory
+        self.storageStatus = finalStorageStatus
+        self.documentsDirectory = finalDesignsDirectory.deletingLastPathComponent()
         
         print("🚀 DesignManager singleton initialized")
-        print("📁 Documents Directory: \(documentsDirectory.path)")
         print("📁 Designs Directory: \(designsDirectory.path)")
         print("📁 Storage Status: \(storageStatus)")
         
@@ -156,8 +160,10 @@ class DesignManager: ObservableObject {
     }
     
     private func createDesignsDirectoryIfNeeded() {
+        // Directory is already created in init, but ensure it exists
         if !FileManager.default.fileExists(atPath: designsDirectory.path) {
             try? FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
+            print("📁 Created designs directory: \(designsDirectory.path)")
         }
     }
     
@@ -417,7 +423,7 @@ class DesignManager: ObservableObject {
     }
     
     func migrateFromUserDocuments() {
-        print("🔄 Migrating files from user Documents folder...")
+        print("🔄 Checking for existing files to migrate...")
         
         // Check if there are files in the user's Documents/DockUI folder
         let userDocumentsPath = "/Users/\(NSUserName())/Documents"
@@ -434,10 +440,10 @@ class DesignManager: ObservableObject {
                     print("📄 Found \(designFiles.count) design files in user Documents/DockUI folder")
                     print("📄 Files: \(designFiles.map { $0.lastPathComponent }.joined(separator: ", "))")
                     
-                    // Create the app Documents/DockUI directory if it doesn't exist
+                    // Create the Documents/DockUI directory if it doesn't exist
                     try? FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
                     
-                    // Copy files to app's Documents folder with unique names
+                    // Copy files to Documents folder with unique names
                     for file in designFiles {
                         let baseName = file.deletingPathExtension().lastPathComponent
                         let uniqueFileName = generateUniqueFileName(baseName: baseName)
@@ -453,7 +459,7 @@ class DesignManager: ObservableObject {
                     
                     // Refresh the design files
                     refreshDesignFiles()
-                    print("✅ Migration completed. Found \(designFiles.count) files in app Documents folder.")
+                    print("✅ Migration completed. Found \(designFiles.count) files in Documents folder.")
                 } else {
                     print("📄 No design files found in user Documents/DockUI folder")
                 }

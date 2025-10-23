@@ -7,6 +7,9 @@
 
 import SwiftUI
 import Foundation
+#if os(macOS)
+import AppKit
+#endif
 
 enum ModifierType: String, CaseIterable, Identifiable, Codable {
     case frame = "Frame"
@@ -294,6 +297,7 @@ struct AnyCodable: Codable {
             try container.encode(Double(cgFloat))
         } else if let color = value as? Color {
             // Encode Color as a dictionary with RGBA values
+            #if os(macOS)
             let uiColor = NSColor(color)
             let rgba = uiColor.rgbaComponents
             try container.encode([
@@ -302,6 +306,15 @@ struct AnyCodable: Codable {
                 "blue": Double(rgba.blue),
                 "alpha": Double(rgba.alpha)
             ])
+            #else
+            // Fallback for non-macOS platforms
+            try container.encode([
+                "red": Double(0.0),
+                "green": Double(0.0),
+                "blue": Double(0.0),
+                "alpha": Double(1.0)
+            ])
+            #endif
         } else if let string = value as? String {
             try container.encode(string)
         } else if let array = value as? [Any] {

@@ -8,6 +8,10 @@
 import SwiftUI
 import Foundation
 
+extension Notification.Name {
+    static let designChanged = Notification.Name("design.changed")
+}
+
 // MARK: - ComponentAnyCodable Helper
 struct ComponentAnyCodable: Codable {
     let value: Any
