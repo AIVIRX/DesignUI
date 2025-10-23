@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Supabase
+import UniformTypeIdentifiers
 
 #if os(iOS)
 
@@ -47,6 +48,50 @@ struct DesignUIApp: App {
 
 #if os(macOS)
 
+// MARK: - Document Model
+struct DockUIDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.dockui] }
+    
+    var designFile: DesignFile
+    
+    init(designFile: DesignFile) {
+        self.designFile = designFile
+    }
+    
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let designData = try decoder.decode(DesignFileData.self, from: data)
+        
+        // Create a temporary URL for the design file
+        // The actual file URL will be set when the document is saved
+        let tempURL = URL(fileURLWithPath: "/tmp/\(designData.name).dockui")
+        
+        self.designFile = DesignFile(
+            name: designData.name,
+            components: designData.components,
+            fileURL: tempURL
+        )
+        self.designFile.lastModified = designData.lastModified
+    }
+    
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(DesignFileData(
+            name: designFile.name,
+            components: designFile.components,
+            lastModified: designFile.lastModified
+        ))
+        
+        return .init(regularFileWithContents: data)
+    }
+}
+
 @main
 struct DesignUIApp: App {
     @StateObject private var colorSchemeManager = ColorSchemeManager()
@@ -60,7 +105,8 @@ struct DesignUIApp: App {
     }
     
     var body: some Scene {
-        WindowGroup {
+        // Main app window - this opens by default
+        WindowGroup("DesignUI") {
             ContentView()
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)

@@ -28,12 +28,17 @@ class DesignFile: ObservableObject, Identifiable {
     func save() {
         do {
             print("💾 Saving design: \(name) to \(fileURL.path)")
+            print("💾 Components count: \(components.count)")
             
-            // Ensure parent directory exists
-            let parentDir = fileURL.deletingLastPathComponent()
-            if !FileManager.default.fileExists(atPath: parentDir.path) {
-                try FileManager.default.createDirectory(at: parentDir, withIntermediateDirectories: true)
-                print("📁 Created parent directory: \(parentDir.path)")
+            // Debug: Print component properties and modifiers
+            for (index, component) in components.enumerated() {
+                print("💾 Component \(index): \(component.type.rawValue) with \(component.properties.count) properties and \(component.modifiers.count) modifiers")
+                for property in component.properties {
+                    print("💾   - Property \(property.key): \(property.value) (type: \(property.type))")
+                }
+                for (modIndex, modifier) in component.modifiers.enumerated() {
+                    print("💾   - Modifier \(modIndex): \(modifier.type.rawValue) with properties: \(modifier.properties)")
+                }
             }
             
             let encoder = JSONEncoder()
@@ -46,58 +51,45 @@ class DesignFile: ObservableObject, Identifiable {
             
             print("💾 Encoded data size: \(data.count) bytes")
             
-            // Create backup before saving
-            createBackup()
-            
-            // Write file
             try data.write(to: fileURL)
             self.lastModified = Date()
             print("✅ Design saved successfully: \(name)")
+            print("📁 File saved to: \(fileURL.path)")
+            
+            // Hide the extension in Finder
+            try FileManager.default.setAttributes([.extensionHidden: true], ofItemAtPath: fileURL.path)
+            print("✅ File extension hidden: \(name)")
+            
+            // Also save to user Documents folder for persistence across rebuilds
+            let userDocumentsPath = "/Users/\(NSUserName())/Documents"
+            let userDocumentsURL = URL(fileURLWithPath: userDocumentsPath)
+            let userDockUIDirectory = userDocumentsURL.appendingPathComponent("DockUI")
+            
+            // Create user Documents/DockUI directory if it doesn't exist
+            try? FileManager.default.createDirectory(at: userDockUIDirectory, withIntermediateDirectories: true)
+            
+            let userFileURL = userDockUIDirectory.appendingPathComponent(fileURL.lastPathComponent)
+            try data.write(to: userFileURL)
+            print("✅ Design also saved to user Documents: \(userFileURL.path)")
             
             // Verify the file was written
             if FileManager.default.fileExists(atPath: fileURL.path) {
                 let fileSize = try FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0
-                print("✅ File verified: \(fileSize) bytes at \(fileURL.path)")
+                print("✅ File verified: \(fileSize) bytes")
+                print("📁 File location: \(fileURL.path)")
             } else {
                 print("❌ File verification failed - file not found after save")
             }
             
         } catch {
             print("❌ Failed to save design file: \(error)")
-            print("❌ Error details: \(error.localizedDescription)")
-            // Try to save to backup location
-            saveToBackup()
         }
     }
     
-    private func createBackup() {
-        let backupURL = fileURL.appendingPathExtension("backup")
-        if FileManager.default.fileExists(atPath: fileURL.path) {
-            try? FileManager.default.copyItem(at: fileURL, to: backupURL)
-        }
-    }
-    
-    private func saveToBackup() {
-        do {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(DesignFileData(
-                name: name,
-                components: components,
-                lastModified: lastModified
-            ))
-            let backupURL = fileURL.appendingPathExtension("backup")
-            try data.write(to: backupURL)
-            print("⚠️ Saved to backup location: \(backupURL.path)")
-        } catch {
-            print("❌ Failed to save even to backup: \(error)")
-        }
-    }
     
     static func load(from url: URL) -> DesignFile? {
         do {
-            // Load file with iCloud download support
-            let data = try loadFileWithiCloudSupport(from: url)
+            let data = try Data(contentsOf: url)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             let designData = try decoder.decode(DesignFileData.self, from: data)
@@ -106,26 +98,16 @@ class DesignFile: ObservableObject, Identifiable {
             designFile.lastModified = designData.lastModified
             return designFile
         } catch {
-            print("Failed to load design file from iCloud: \(error)")
-            return nil
+            print("❌ Failed to load design file: \(error)")
+            print("📄 File path: \(url.path)")
+            let fileSize = (try? Data(contentsOf: url).count) ?? 0
+            print("📄 File size: \(fileSize) bytes")
+            
+            // Try to create a basic design file with the filename
+            let filename = url.deletingPathExtension().lastPathComponent
+            print("🔄 Creating fallback design file: \(filename)")
+            return DesignFile(name: filename, components: [], fileURL: url)
         }
-    }
-    
-    // MARK: - iCloud Helper Methods
-    private static func loadFileWithiCloudSupport(from url: URL) throws -> Data {
-        // For iCloud files, try to start downloading if needed
-        if url.path.contains("iCloud") {
-            print("☁️ Loading file from iCloud: \(url.lastPathComponent)")
-            do {
-                try FileManager.default.startDownloadingUbiquitousItem(at: url)
-                // Wait a bit for download to start
-                Thread.sleep(forTimeInterval: 0.5)
-            } catch {
-                print("⚠️ Failed to start download: \(error)")
-            }
-        }
-        
-        return try Data(contentsOf: url)
     }
 }
 
@@ -146,52 +128,36 @@ class DesignManager: ObservableObject {
     @Published var designsDirectory: URL
     @Published var showingDirectoryPicker = false
     
+    // Storage status
+    @Published var storageStatus: String = "Using Documents folder"
+    
     private let documentsDirectory: URL
     private var autoSaveTimer: Timer?
     private var lastSavedComponents: [UIComponent] = []
     private var hasUnsavedChanges = false
     
     private init() {
-        // Use the app's Documents directory (sandboxed) as fallback
+        // Use app's Documents directory (sandboxed)
         self.documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        self.storageStatus = "Using app Documents folder"
+        print("📁 Using app Documents folder: \(documentsDirectory.path)")
         
-        // Try to use iCloud Documents first, fallback to local storage
-        if let iCloudURL = Self.getiCloudDocumentsURL() {
-            self.designsDirectory = iCloudURL.appendingPathComponent("Designs")
-            print("☁️ Using iCloud Documents directory: \(designsDirectory.path)")
-        } else {
-            // Check if user has previously selected a directory
-            if let savedDirectoryPath = UserDefaults.standard.string(forKey: "designsDirectory"),
-               let savedDirectory = URL(string: savedDirectoryPath),
-               FileManager.default.fileExists(atPath: savedDirectory.path) {
-                self.designsDirectory = savedDirectory
-                print("📁 Using saved designs directory: \(designsDirectory.path)")
-            } else {
-                // Use default sandboxed directory
-                self.designsDirectory = documentsDirectory.appendingPathComponent("Designs")
-                print("📁 Using default designs directory: \(designsDirectory.path)")
-            }
-        }
+        // Use DockUI folder in app Documents
+        self.designsDirectory = documentsDirectory.appendingPathComponent("DockUI")
         
         print("🚀 DesignManager singleton initialized")
         print("📁 Documents Directory: \(documentsDirectory.path)")
+        print("📁 Designs Directory: \(designsDirectory.path)")
+        print("📁 Storage Status: \(storageStatus)")
         
         createDesignsDirectoryIfNeeded()
+        migrateFromUserDocuments()
         loadDesignFiles()
     }
     
     private func createDesignsDirectoryIfNeeded() {
-        print("📁 Checking if directory exists: \(designsDirectory.path)")
         if !FileManager.default.fileExists(atPath: designsDirectory.path) {
-            print("📁 Directory doesn't exist, creating it...")
-            do {
-                try FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
-                print("✅ Directory created successfully: \(designsDirectory.path)")
-            } catch {
-                print("❌ Failed to create directory: \(error)")
-            }
-        } else {
-            print("✅ Directory already exists: \(designsDirectory.path)")
+            try? FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
         }
     }
     
@@ -200,27 +166,29 @@ class DesignManager: ObservableObject {
             print("🔍 Loading design files from: \(designsDirectory.path)")
             print("🔍 Directory exists: \(FileManager.default.fileExists(atPath: designsDirectory.path))")
             
-            // Ensure directory exists before loading
-            createDesignsDirectoryIfNeeded()
+            // Ensure directory exists before trying to read from it
+            if !FileManager.default.fileExists(atPath: designsDirectory.path) {
+                print("📁 Directory doesn't exist, creating it...")
+                try FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
+            }
             
-            // Load files from directory
             let fileURLs = try FileManager.default.contentsOfDirectory(at: designsDirectory, includingPropertiesForKeys: [.contentModificationDateKey])
-            
-            print("☁️ Found \(fileURLs.count) files in directory")
+            print("🔍 Found \(fileURLs.count) files in directory")
+            print("🔍 All files: \(fileURLs.map { $0.lastPathComponent })")
             
             // Load regular design files
             let regularFiles = fileURLs
-                .filter { $0.pathExtension == "design" }
+                .filter { $0.pathExtension == "dockui" }
                 .compactMap { DesignFile.load(from: $0) }
             
-            print("☁️ Loaded \(regularFiles.count) regular design files")
+            print("🔍 Loaded \(regularFiles.count) regular design files")
             
             // Try to recover from backup files if regular files are corrupted
             let backupFiles = fileURLs
-                .filter { $0.pathExtension == "design.backup" }
+                .filter { $0.pathExtension == "dockui.backup" }
                 .compactMap { DesignFile.load(from: $0) }
             
-            print("☁️ Found \(backupFiles.count) backup files")
+            print("🔍 Found \(backupFiles.count) backup files")
             
             // Combine and deduplicate
             var allFiles = regularFiles
@@ -232,7 +200,7 @@ class DesignManager: ObservableObject {
             }
             
             designFiles = allFiles.sorted { $0.lastModified > $1.lastModified }
-            print("☁️ Loaded \(designFiles.count) design files total")
+            print("📁 Loaded \(designFiles.count) design files total")
             
             // Print each design file name
             for design in designFiles {
@@ -247,32 +215,18 @@ class DesignManager: ObservableObject {
     }
     
     func createNewDesign(name: String) -> DesignFile {
-        print("🆕 Creating new design: \(name)")
-        print("🆕 Designs directory: \(designsDirectory.path)")
-        
-        // Ensure directory exists
-        createDesignsDirectoryIfNeeded()
-        
-        let fileName = "\(name.replacingOccurrences(of: " ", with: "_")).design"
+        let fileName = "\(name.replacingOccurrences(of: " ", with: "_")).dockui"
         let fileURL = designsDirectory.appendingPathComponent(fileName)
-        
-        print("🆕 File URL: \(fileURL.path)")
         
         let designFile = DesignFile(name: name, fileURL: fileURL)
         designFile.save()
         
         designFiles.insert(designFile, at: 0)
-        print("✅ Design created and added to list: \(name)")
         return designFile
     }
     
     func deleteDesign(_ designFile: DesignFile) {
-        do {
-            try FileManager.default.removeItem(at: designFile.fileURL)
-        } catch {
-            print("❌ Failed to delete design file: \(error)")
-        }
-        
+        try? FileManager.default.removeItem(at: designFile.fileURL)
         designFiles.removeAll { $0.id == designFile.id }
         
         if currentDesign?.id == designFile.id {
@@ -329,6 +283,7 @@ class DesignManager: ObservableObject {
         DispatchQueue.main.async {
             self.isAutoSaving = true
             print("💾 Auto-saving design: \(currentDesign.name)")
+            print("💾 Components to save: \(currentDesign.components.count)")
             
             // Save the design
             currentDesign.save()
@@ -373,58 +328,141 @@ class DesignManager: ObservableObject {
     }
     
     func resetToDefaultDirectory() {
-        let defaultDirectory = documentsDirectory.appendingPathComponent("Designs")
+        let defaultDirectory = documentsDirectory.appendingPathComponent("DockUI")
         setDesignsDirectory(defaultDirectory)
     }
     
-    // MARK: - iCloud Management
-    func refreshiCloudStatus() {
-        // Simple status refresh - could be enhanced later
-        print("☁️ iCloud status: \(isUsingiCloud ? "Using iCloud" : "Using local storage")")
+    func presentDocumentPicker() {
+        // This would present a document picker for importing designs
+        // For now, just print a message
+        print("📄 Document picker requested")
     }
     
-    func switchToiCloud() {
-        if let iCloudURL = Self.getiCloudDocumentsURL() {
-            let iCloudDesignsURL = iCloudURL.appendingPathComponent("Designs")
-            setDesignsDirectory(iCloudDesignsURL)
-            print("☁️ Switched to iCloud Documents")
+    func refreshDesignFiles() {
+        print("🔄 Refreshing design files...")
+        loadDesignFiles()
+        print("📊 Loaded \(designFiles.count) design files")
+    }
+    
+    func getStorageInfo() -> String {
+        var info = "📁 Directory: \(designsDirectory.path)\n"
+        info += "📊 Designs found: \(designFiles.count)\n"
+        info += "🔄 Status: \(storageStatus)"
+        return info
+    }
+    
+    func showInFinder() {
+        #if os(macOS)
+        NSWorkspace.shared.selectFile(designsDirectory.path, inFileViewerRootedAtPath: "")
+        print("📁 Opening Finder to: \(designsDirectory.path)")
+        #else
+        print("📁 Finder not available on iOS. Directory: \(designsDirectory.path)")
+        #endif
+    }
+    
+    
+    // MARK: - Unique Name Generation
+    func generateUniqueFileName(baseName: String) -> String {
+        let fileExtension = "dockui"
+        var fileName = baseName
+        var counter = 1
+        
+        // Clean the base name (remove invalid characters)
+        let cleanBaseName = baseName.replacingOccurrences(of: "[^a-zA-Z0-9\\s]", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        
+        if cleanBaseName.isEmpty {
+            fileName = "Untitled"
         } else {
-            print("❌ iCloud not available")
-        }
-    }
-    
-    func switchToLocal() {
-        let localDirectory = documentsDirectory.appendingPathComponent("Designs")
-        setDesignsDirectory(localDirectory)
-        print("📁 Switched to local storage")
-    }
-    
-    var isUsingiCloud: Bool {
-        return designsDirectory.path.contains("iCloud")
-    }
-    
-    // MARK: - iCloud Helper Methods
-    private static func getiCloudDocumentsURL() -> URL? {
-        // Check if iCloud is available
-        guard FileManager.default.ubiquityIdentityToken != nil else {
-            print("❌ iCloud not available - user not signed in")
-            return nil
+            fileName = cleanBaseName
         }
         
-        // Get iCloud Documents directory
-        guard let iCloudURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") else {
-            print("❌ Failed to access iCloud Documents directory")
-            return nil
+        // Check if file already exists and generate unique name
+        while FileManager.default.fileExists(atPath: designsDirectory.appendingPathComponent("\(fileName).\(fileExtension)").path) {
+            fileName = "\(cleanBaseName) (\(counter))"
+            counter += 1
         }
         
-        // Create the directory if it doesn't exist
+        return "\(fileName).\(fileExtension)"
+    }
+    
+    func createUniqueDesignFile(name: String) -> DesignFile {
+        let uniqueFileName = generateUniqueFileName(baseName: name)
+        let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
+        let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
+        
+        print("📄 Creating unique design file: \(uniqueFileName)")
+        return DesignFile(name: displayName, fileURL: fileURL)
+    }
+    
+    func renameDesign(_ design: DesignFile, to newName: String) {
+        let uniqueFileName = generateUniqueFileName(baseName: newName)
+        let newFileURL = designsDirectory.appendingPathComponent(uniqueFileName)
+        let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
+        
         do {
-            try FileManager.default.createDirectory(at: iCloudURL, withIntermediateDirectories: true, attributes: nil)
-            print("☁️ iCloud Documents directory ready: \(iCloudURL.path)")
-            return iCloudURL
+            // Move the file to the new name
+            try FileManager.default.moveItem(at: design.fileURL, to: newFileURL)
+            
+            // Update the design file properties
+            design.name = displayName
+            // Note: We can't update fileURL directly since it's a let property
+            // The design will need to be reloaded to get the new URL
+            
+            print("✅ Renamed design to: \(displayName)")
         } catch {
-            print("❌ Failed to create iCloud Documents directory: \(error)")
-            return nil
+            print("❌ Failed to rename design: \(error)")
         }
     }
+    
+    func migrateFromUserDocuments() {
+        print("🔄 Migrating files from user Documents folder...")
+        
+        // Check if there are files in the user's Documents/DockUI folder
+        let userDocumentsPath = "/Users/\(NSUserName())/Documents"
+        let userDocumentsURL = URL(fileURLWithPath: userDocumentsPath)
+        let userDockUIDirectory = userDocumentsURL.appendingPathComponent("DockUI")
+        
+        do {
+            // Check if user Documents/DockUI folder exists
+            if FileManager.default.fileExists(atPath: userDockUIDirectory.path) {
+                let userFiles = try FileManager.default.contentsOfDirectory(at: userDockUIDirectory, includingPropertiesForKeys: nil)
+                let designFiles = userFiles.filter { $0.pathExtension == "dockui" }
+                
+                if !designFiles.isEmpty {
+                    print("📄 Found \(designFiles.count) design files in user Documents/DockUI folder")
+                    print("📄 Files: \(designFiles.map { $0.lastPathComponent }.joined(separator: ", "))")
+                    
+                    // Create the app Documents/DockUI directory if it doesn't exist
+                    try? FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
+                    
+                    // Copy files to app's Documents folder with unique names
+                    for file in designFiles {
+                        let baseName = file.deletingPathExtension().lastPathComponent
+                        let uniqueFileName = generateUniqueFileName(baseName: baseName)
+                        let destination = designsDirectory.appendingPathComponent(uniqueFileName)
+                        
+                        do {
+                            try FileManager.default.copyItem(at: file, to: destination)
+                            print("✅ Copied \(file.lastPathComponent) as \(uniqueFileName)")
+                        } catch {
+                            print("❌ Failed to copy \(file.lastPathComponent): \(error)")
+                        }
+                    }
+                    
+                    // Refresh the design files
+                    refreshDesignFiles()
+                    print("✅ Migration completed. Found \(designFiles.count) files in app Documents folder.")
+                } else {
+                    print("📄 No design files found in user Documents/DockUI folder")
+                }
+            } else {
+                print("📄 No user Documents/DockUI folder found")
+            }
+        } catch {
+            print("❌ Error accessing user Documents folder: \(error)")
+        }
+    }
+    
 }

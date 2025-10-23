@@ -8,6 +8,47 @@
 import SwiftUI
 import Foundation
 
+// MARK: - ComponentAnyCodable Helper
+struct ComponentAnyCodable: Codable {
+    let value: Any
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let string = try? container.decode(String.self) {
+            value = string
+        } else if let int = try? container.decode(Int.self) {
+            value = int
+        } else if let double = try? container.decode(Double.self) {
+            value = double
+        } else if let bool = try? container.decode(Bool.self) {
+            value = bool
+        } else {
+            throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        if let string = value as? String {
+            try container.encode(string)
+        } else if let int = value as? Int {
+            try container.encode(int)
+        } else if let double = value as? Double {
+            try container.encode(double)
+        } else if let bool = value as? Bool {
+            try container.encode(bool)
+        } else {
+            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
+        }
+    }
+}
+
 // MARK: - Component Types
 enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case text = "Text"
@@ -115,7 +156,7 @@ enum PropertyType: Codable {
 }
 
 // MARK: - Component Property
-struct ComponentProperty: Identifiable, Codable, Equatable {
+struct ComponentProperty: Identifiable, Equatable {
     let id: UUID
     let key: String
     let displayName: String
@@ -136,18 +177,25 @@ struct ComponentProperty: Identifiable, Codable, Equatable {
         self.isRequired = isRequired
     }
     
+    
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
         case id, key, displayName, type, value, defaultValue, options, isRequired
     }
+}
+
+// MARK: - Codable Extension
+extension ComponentProperty: Codable {
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try container.decode(UUID.self, forKey: .id)
+        
+        // Handle backward compatibility for missing fields
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.key = try container.decode(String.self, forKey: .key)
-        self.displayName = try container.decode(String.self, forKey: .displayName)
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName) ?? self.key
         self.type = try container.decode(PropertyType.self, forKey: .type)
-        self.isRequired = try container.decode(Bool.self, forKey: .isRequired)
+        self.isRequired = try container.decodeIfPresent(Bool.self, forKey: .isRequired) ?? false
         
         // Decode value based on type
         self.value = try Self.decodeAnyValue(from: container, forKey: .value, type: type)
@@ -191,12 +239,22 @@ struct ComponentProperty: Identifiable, Codable, Equatable {
         case .color:
             // Convert Color to string representation
             if let color = value as? Color {
-                try container.encode("\(color)", forKey: key)
+                let colorString = colorToColorString(color)
+                try container.encode(colorString, forKey: key)
             } else {
-                try container.encode("", forKey: key)
+                try container.encode("primary", forKey: key)
             }
-        default:
-            try container.encode("\(value)", forKey: key)
+        case .font, .alignment, .segmentedControl, .dropdown:
+            try container.encode(value as? String ?? "", forKey: key)
+        case .spacing, .cornerRadius, .padding, .frame, .offset, .rotation, .scale, .opacity, .shadow, .border, .gradient, .animation:
+            // For numeric properties, try to encode as Double
+            if let doubleValue = value as? Double {
+                try container.encode(doubleValue, forKey: key)
+            } else if let intValue = value as? Int {
+                try container.encode(Double(intValue), forKey: key)
+            } else {
+                try container.encode("\(value)", forKey: key)
+            }
         }
     }
     
@@ -209,11 +267,82 @@ struct ComponentProperty: Identifiable, Codable, Equatable {
         case .boolean:
             return try container.decode(Bool.self, forKey: key)
         case .color:
-            _ = try? container.decode(String.self, forKey: key)
-            // TODO: Convert stored string back to Color if needed
-            return Color.primary
-        default:
+            let colorString = try container.decode(String.self, forKey: key)
+            // Convert stored string back to Color
+            return colorStringToColor(colorString)
+        case .font, .alignment, .segmentedControl, .dropdown:
             return try container.decode(String.self, forKey: key)
+        case .spacing, .cornerRadius, .padding, .frame, .offset, .rotation, .scale, .opacity, .shadow, .border, .gradient, .animation:
+            // Try to decode as Double first, fallback to String
+            if let doubleValue = try? container.decode(Double.self, forKey: key) {
+                return doubleValue
+            } else {
+                return try container.decode(String.self, forKey: key)
+            }
+        }
+    }
+    
+    // Helper to convert Color to string representation
+    private static func colorToColorString(_ color: Color) -> String {
+        // Compare with known SwiftUI colors
+        if color == .primary { return "primary" }
+        if color == .secondary { return "secondary" }
+        if color == .primary.opacity(0.6) { return "tertiary" }
+        if color == .primary.opacity(0.3) { return "quaternary" }
+        if color == .black { return "black" }
+        if color == .white { return "white" }
+        if color == .red { return "red" }
+        if color == .orange { return "orange" }
+        if color == .yellow { return "yellow" }
+        if color == .green { return "green" }
+        if color == .mint { return "mint" }
+        if color == .teal { return "teal" }
+        if color == .cyan { return "cyan" }
+        if color == .blue { return "blue" }
+        if color == .indigo { return "indigo" }
+        if color == .purple { return "purple" }
+        if color == .pink { return "pink" }
+        if color == .brown { return "brown" }
+        if color == .gray { return "gray" }
+        if color == Color(red: 0.99, green: 0.99, blue: 0.99) { return "gray2" }
+        if color == Color(red: 0.95, green: 0.95, blue: 0.97) { return "gray3" }
+        if color == Color(red: 0.90, green: 0.90, blue: 0.92) { return "gray4" }
+        if color == Color(red: 0.85, green: 0.85, blue: 0.87) { return "gray5" }
+        if color == Color(red: 0.78, green: 0.78, blue: 0.80) { return "gray6" }
+        if color == .clear { return "clear" }
+        return "primary" // Fallback
+    }
+    
+    // Helper to convert color string back to Color
+    private static func colorStringToColor(_ colorString: String) -> Color {
+        // Handle common SwiftUI colors
+        switch colorString {
+        case "primary": return .primary
+        case "secondary": return .secondary
+        case "tertiary": return .primary.opacity(0.6)
+        case "quaternary": return .primary.opacity(0.3)
+        case "black": return .black
+        case "white": return .white
+        case "red": return .red
+        case "orange": return .orange
+        case "yellow": return .yellow
+        case "green": return .green
+        case "mint": return .mint
+        case "teal": return .teal
+        case "cyan": return .cyan
+        case "blue": return .blue
+        case "indigo": return .indigo
+        case "purple": return .purple
+        case "pink": return .pink
+        case "brown": return .brown
+        case "gray": return .gray
+        case "gray2": return Color(red: 0.99, green: 0.99, blue: 0.99)
+        case "gray3": return Color(red: 0.95, green: 0.95, blue: 0.97)
+        case "gray4": return Color(red: 0.90, green: 0.90, blue: 0.92)
+        case "gray5": return Color(red: 0.85, green: 0.85, blue: 0.87)
+        case "gray6": return Color(red: 0.78, green: 0.78, blue: 0.80)
+        case "clear": return .clear
+        default: return .primary // Fallback
         }
     }
     
@@ -247,8 +376,16 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     // MARK: - Property Management
     func setProperty(key: String, value: Any) {
         if let index = properties.firstIndex(where: { $0.key == key }) {
+            let oldValue = properties[index].value
             properties[index].value = value
             objectWillChange.send()
+            
+            print("🔄 Property changed: \(key) from '\(oldValue)' to '\(value)'")
+            
+            // Post notification to trigger design file saving
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        } else {
+            print("⚠️ Property not found: \(key)")
         }
     }
     
@@ -276,25 +413,36 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     // MARK: - Modifier Management
     func addModifier(_ modifier: ComponentModifier) {
         modifiers.append(modifier)
+        objectWillChange.send()
+        print("🔄 Modifier added: \(modifier.type.rawValue)")
     }
     
     func removeModifier(_ modifier: ComponentModifier) {
         modifiers.removeAll { $0.id == modifier.id }
+        objectWillChange.send()
+        print("🔄 Modifier removed: \(modifier.type.rawValue)")
     }
     
     func removeModifier(at index: Int) {
         guard index < modifiers.count else { return }
+        let removedModifier = modifiers[index]
         modifiers.remove(at: index)
+        objectWillChange.send()
+        print("🔄 Modifier removed at index \(index): \(removedModifier.type.rawValue)")
     }
     
     func updateModifier(_ modifier: ComponentModifier) {
         if let index = modifiers.firstIndex(where: { $0.id == modifier.id }) {
             modifiers[index] = modifier
+            objectWillChange.send()
+            print("🔄 Modifier updated: \(modifier.type.rawValue)")
         }
     }
     
     func moveModifier(from source: IndexSet, to destination: Int) {
         modifiers.move(fromOffsets: source, toOffset: destination)
+        objectWillChange.send()
+        print("🔄 Modifiers reordered")
     }
     
     // MARK: - Code Generation
@@ -366,16 +514,19 @@ extension UIComponent {
         case .vstack:
             return [
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["leading", "center", "trailing"]),
-                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"]),
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.clear, defaultValue: Color.clear)
             ]
         case .hstack:
             return [
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
-                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"]),
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.clear, defaultValue: Color.clear)
             ]
         case .zstack:
             return [
-                ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"])
+                ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"]),
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.clear, defaultValue: Color.clear)
             ]
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
             return [
@@ -412,7 +563,8 @@ extension UIComponent {
             return [
                 ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star"),
                 ComponentProperty(key: "foregroundColor", displayName: "Color", type: .color, value: Color.primary, defaultValue: Color.primary),
-                ComponentProperty(key: "fontSize", displayName: "Size", type: .font, value: "largeTitle", defaultValue: "largeTitle", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"])
+                ComponentProperty(key: "fontSize", displayName: "Size", type: .font, value: "largeTitle", defaultValue: "largeTitle", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.clear, defaultValue: Color.clear)
             ]
         default:
             return []

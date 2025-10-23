@@ -159,6 +159,7 @@ struct ComponentRenderer: View {
     // MARK: - VStack Renderer
     private func renderVStack() -> some View {
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let base = VStack(alignment: horizontalAlignmentFromString(alignment)) {
             if component.children.isEmpty {
                 EmptyView()
@@ -170,6 +171,7 @@ struct ComponentRenderer: View {
                 }
             }
         }
+        .background(backgroundColor)
         return base
     }
     
@@ -177,6 +179,7 @@ struct ComponentRenderer: View {
     private func renderHStack() -> some View {
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let base = HStack(alignment: verticalAlignmentFromString(alignment), spacing: 8) {
             if component.children.isEmpty {
                 EmptyView()
@@ -188,6 +191,7 @@ struct ComponentRenderer: View {
                 }
             }
         }
+        .background(backgroundColor)
         return hasExplicitFrame
             ? AnyView(base.frame(width: component.frame.width, height: component.frame.height))
             : AnyView(base.frame(maxWidth: .infinity, maxHeight: .infinity))
@@ -197,6 +201,7 @@ struct ComponentRenderer: View {
     private func renderZStack() -> some View {
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let base = ZStack(alignment: alignmentFromString(alignment)) {
             if component.children.isEmpty {
                 EmptyView()
@@ -208,6 +213,7 @@ struct ComponentRenderer: View {
                 }
             }
         }
+        .background(backgroundColor)
         return hasExplicitFrame
             ? AnyView(base.frame(width: component.frame.width, height: component.frame.height))
             : AnyView(base.frame(maxWidth: .infinity, maxHeight: .infinity))
@@ -339,6 +345,7 @@ struct ComponentRenderer: View {
     private func renderSFSymbol() -> some View {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
         
         let font: Font = {
@@ -362,6 +369,7 @@ struct ComponentRenderer: View {
             Image(systemName: symbolName)
                 .font(font)
                 .foregroundColor(foregroundColor)
+                .background(backgroundColor)
                 .symbolRenderingMode(.hierarchical)
         )
     }
@@ -509,6 +517,7 @@ private extension View {
         case .padding:
             let amount = modifier.properties["amount"] as? CGFloat ?? 0
             let location = modifier.properties["location"] as? String ?? "all"
+            print("📏 Applying padding modifier: amount=\(amount), location=\(location)")
             
             switch location {
             case "all":
@@ -531,6 +540,7 @@ private extension View {
             
         case .background:
             let color = modifier.properties["color"] as? Color ?? Color.clear
+            print("🎨 Applying background modifier with color: \(color)")
             return AnyView(view.background(color))
             
         case .overlay:

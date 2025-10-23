@@ -10,6 +10,7 @@ import SwiftUI
 extension Notification.Name {
     static let canvasUndo = Notification.Name("canvas.undo")
     static let canvasRedo = Notification.Name("canvas.redo")
+    static let designChanged = Notification.Name("design.changed")
 }
 #endif
 #if os(macOS)
@@ -202,22 +203,34 @@ struct UIBuilderView: View {
         }
         .onChange(of: canvasManager.components) { _, _ in
             print("🔄 Components changed - syncing to design file")
+            print("🔄 Components count: \(canvasManager.components.count)")
             // Sync components to design file
             designFile.components = canvasManager.components
             // Mark as changed and trigger auto-save
             designManager.markAsChanged()
+            // Post notification for document editor
+            NotificationCenter.default.post(name: .designChanged, object: nil)
         }
         .onChange(of: selectedComponent) { _, _ in
             print("🔄 Selection changed - syncing to design file")
             // Sync components to design file when selection changes
             designFile.components = canvasManager.components
             designManager.markAsChanged()
+            // Post notification for document editor
+            NotificationCenter.default.post(name: .designChanged, object: nil)
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
             canvasManager.undo()
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
             canvasManager.redo()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
+            print("🔄 Design changed notification received - syncing components")
+            // Sync components to design file
+            designFile.components = canvasManager.components
+            // Mark as changed and trigger auto-save
+            designManager.markAsChanged()
         }
     }
 }

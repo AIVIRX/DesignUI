@@ -7,19 +7,55 @@
   },
   "groups" : [
     {
-      "blend-mode" : "normal",
+      "blend-mode-specializations" : [
+        {
+          "value" : "normal"
+        },
+        {
+          "appearance" : "tinted",
+          "value" : "normal"
+        }
+      ],
       "blur-material" : 0.5,
+      "hidden" : false,
       "layers" : [
         {
+          "blend-mode-specializations" : [
+            {
+              "value" : "normal"
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "normal"
+            }
+          ],
+          "fill" : "automatic",
           "glass" : true,
+          "hidden" : false,
           "image-name" : "1_Logo.png",
-          "name" : "1_Logo"
+          "name" : "2_Logo",
+          "opacity" : 1,
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
         }
       ],
       "lighting" : "individual",
+      "opacity" : 1,
+      "position" : {
+        "scale" : 1,
+        "translation-in-points" : [
+          0,
+          0
+        ]
+      },
       "shadow" : {
         "kind" : "neutral",
-        "opacity" : 1
+        "opacity" : 0.5
       },
       "specular" : true,
       "translucency" : {
@@ -28,17 +64,46 @@
       }
     },
     {
+      "blend-mode-specializations" : [
+        {
+          "value" : "normal"
+        },
+        {
+          "appearance" : "tinted",
+          "value" : "normal"
+        }
+      ],
       "blur-material" : 0.5,
       "hidden" : false,
       "layers" : [
         {
+          "blend-mode" : "normal",
+          "fill" : "automatic",
+          "hidden" : false,
           "image-name" : "0_Logo.png",
-          "name" : "0_Logo"
+          "name" : "1_Logo",
+          "opacity-specializations" : [
+            {
+              "value" : 1
+            },
+            {
+              "appearance" : "tinted",
+              "value" : 1
+            }
+          ]
         }
       ],
       "lighting" : "individual",
+      "opacity" : 1,
+      "position" : {
+        "scale" : 1,
+        "translation-in-points" : [
+          0,
+          0
+        ]
+      },
       "shadow" : {
-        "kind" : "layer-color",
+        "kind" : "neutral",
         "opacity" : 1
       },
       "specular" : true,

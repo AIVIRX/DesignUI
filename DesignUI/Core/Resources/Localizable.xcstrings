@@ -257,6 +257,9 @@
     "// Complete Swift File" : {
 
     },
+    "%" : {
+
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -772,7 +775,13 @@
     "0" : {
 
     },
+    "8" : {
+
+    },
     "10" : {
+
+    },
+    "100" : {
 
     },
     "Actions" : {
@@ -1564,6 +1573,9 @@
     "Choose a device preset" : {
 
     },
+    "Choose Background Color" : {
+
+    },
     "Choose Color" : {
 
     },
@@ -1844,10 +1856,7 @@
     "Corner Radius" : {
 
     },
-    "Create and manage your UI designs" : {
-
-    },
-    "Create Design" : {
+    "Create" : {
 
     },
     "Create New Design" : {
@@ -1856,7 +1865,7 @@
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
       "shouldTranslate" : false
     },
-    "Create Your First Design" : {
+    "Create your first design to get started" : {
 
     },
     "Default Height" : {
@@ -2371,10 +2380,16 @@
     "Delete Design" : {
 
     },
+    "Design Browser" : {
+
+    },
     "Design Name" : {
 
     },
-    "Design Preview" : {
+    "Designs saved to: %@" : {
+
+    },
+    "DesignUI" : {
 
     },
     "Display Name" : {
@@ -2895,7 +2910,7 @@
         }
       }
     },
-    "Enter design name" : {
+    "Empty Design" : {
 
     },
     "Error" : {
@@ -3166,9 +3181,6 @@
     "Generated Code" : {
 
     },
-    "Give your design a name to get started" : {
-
-    },
     "Height" : {
 
     },
@@ -3182,9 +3194,6 @@
 
     },
     "Hide Status Bar Background" : {
-
-    },
-    "iCloud" : {
 
     },
     "Icon" : {
@@ -3463,6 +3472,9 @@
     "Leading" : {
 
     },
+    "Loading document..." : {
+
+    },
     "Loading posts..." : {
       "localizations" : {
         "ar" : {
@@ -3713,16 +3725,19 @@
         }
       }
     },
+    "Local Documents" : {
+
+    },
     "Location" : {
 
     },
     "Mask" : {
 
     },
-    "MODIFIERS" : {
+    "Modified %@" : {
 
     },
-    "My Designs" : {
+    "MODIFIERS" : {
 
     },
     "New Design" : {
@@ -4227,6 +4242,9 @@
           }
         }
       }
+    },
+    "No Designs Yet" : {
+
     },
     "No layers yet" : {
 
@@ -4993,7 +5011,7 @@
     "Opacity" : {
 
     },
-    "Open Design" : {
+    "Open" : {
 
     },
     "Overlay" : {
@@ -5761,6 +5779,9 @@
     "Properties" : {
 
     },
+    "px" : {
+
+    },
     "Radius" : {
 
     },
@@ -6013,9 +6034,6 @@
           }
         }
       }
-    },
-    "Refresh" : {
-
     },
     "Reset to Default" : {
 
@@ -7565,6 +7583,9 @@
     "Show Code" : {
 
     },
+    "Show in Finder" : {
+
+    },
     "Show Status Bar Background" : {
 
     },
@@ -8077,7 +8098,7 @@
     "Size" : {
 
     },
-    "Start creating beautiful UI designs with our intuitive drag-and-drop builder" : {
+    "Storage" : {
 
     },
     "Style" : {
@@ -8336,13 +8357,10 @@
     "SwiftUI Builder" : {
 
     },
-    "Switch to iCloud" : {
-
-    },
-    "Switch to Local Storage" : {
-
-    },
     "system.icon.name" : {
+
+    },
+    "Tap to open" : {
 
     },
     "Templates" : {
@@ -8596,6 +8614,9 @@
       }
     },
     "Text Badge" : {
+
+    },
+    "This will create a new design file that you can start building with." : {
 
     },
     "Threads" : {
@@ -9367,9 +9388,6 @@
       }
     },
     "Weight" : {
-
-    },
-    "Welcome to DesignUI!" : {
 
     },
     "Width" : {

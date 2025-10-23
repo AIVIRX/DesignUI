@@ -204,14 +204,20 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         self.id = UUID() // Generate new ID for decoded instances
         self.type = try container.decode(ModifierType.self, forKey: .type)
         
+        print("🔧 ComponentModifier decoding type: \(type)")
+        
         // Decode properties as [String: Any]
         let propertiesDict = try container.decode([String: AnyCodable].self, forKey: .properties)
         self.properties = propertiesDict.mapValues { $0.value }
+        
+        print("🔧 ComponentModifier decoded properties: \(properties)")
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(type, forKey: .type)
+        
+        print("🔧 ComponentModifier encoding type: \(type) with properties: \(properties)")
         
         // Encode properties as [String: AnyCodable]
         let propertiesDict = properties.mapValues { AnyCodable($0) }
@@ -235,14 +241,20 @@ struct AnyCodable: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         
+        print("🔧 AnyCodable decoding from container")
+        
         if let bool = try? container.decode(Bool.self) {
+            print("🔧 Decoded Bool: \(bool)")
             value = bool
         } else if let int = try? container.decode(Int.self) {
+            print("🔧 Decoded Int: \(int)")
             value = int
         } else if let double = try? container.decode(Double.self) {
+            print("🔧 Decoded Double: \(double), converting to CGFloat")
             // Convert Double back to CGFloat for consistency
             value = CGFloat(double)
         } else if let colorDict = try? container.decode([String: Double].self) {
+            print("🔧 Decoded Color dict: \(colorDict)")
             // Decode Color from RGBA dictionary
             if let red = colorDict["red"],
                let green = colorDict["green"],
@@ -253,18 +265,24 @@ struct AnyCodable: Codable {
                 throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Invalid color data"))
             }
         } else if let string = try? container.decode(String.self) {
+            print("🔧 Decoded String: \(string)")
             value = string
         } else if let array = try? container.decode([AnyCodable].self) {
+            print("🔧 Decoded Array")
             value = array.map { $0.value }
         } else if let dict = try? container.decode([String: AnyCodable].self) {
+            print("🔧 Decoded Dictionary")
             value = dict.mapValues { $0.value }
         } else {
+            print("❌ AnyCodable decoding failed - unsupported type")
             throw DecodingError.typeMismatch(Any.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
         }
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
+        
+        print("🔧 AnyCodable encoding value: \(value) of type: \(type(of: value))")
         
         if let bool = value as? Bool {
             try container.encode(bool)
@@ -291,6 +309,7 @@ struct AnyCodable: Codable {
         } else if let dict = value as? [String: Any] {
             try container.encode(dict.mapValues { AnyCodable($0) })
         } else {
+            print("❌ AnyCodable encoding failed for unsupported type: \(type(of: value))")
             throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
         }
     }
@@ -305,7 +324,18 @@ extension NSColor {
         var blue: CGFloat = 0
         var alpha: CGFloat = 0
         
-        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        // Convert to RGB color space first to avoid color space issues
+        if let rgbColor = self.usingColorSpace(.sRGB) {
+            rgbColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        } else {
+            // Fallback for colors that can't be converted to RGB
+            // Use a default color (gray) to avoid crashes
+            red = 0.5
+            green = 0.5
+            blue = 0.5
+            alpha = 1.0
+        }
+        
         return (red: red, green: green, blue: blue, alpha: alpha)
     }
 }

@@ -386,6 +386,7 @@ struct ColorPopover: View {
     let property: ComponentProperty
     @ObservedObject var component: UIComponent
     @State private var isPresented = false
+    @State private var opacity: Double = 1.0
     
     private var displayName: String {
         switch property.key {
@@ -416,7 +417,9 @@ struct ColorPopover: View {
     
     private let swiftUIColors: [(String, Color)] = [
         ("Primary", .primary),
-        ("Second", .secondary),
+        ("Secondary", .secondary),
+        ("Tertiary", .primary.opacity(0.6)),
+        ("Quaternary", .primary.opacity(0.3)),
         ("Black", .black),
         ("White", .white),
         ("Red", .red),
@@ -432,6 +435,11 @@ struct ColorPopover: View {
         ("Pink", .pink),
         ("Brown", .brown),
         ("Gray", .gray),
+        ("Gray2", Color(red: 0.99, green: 0.99, blue: 0.99)),
+        ("Gray3", Color(red: 0.95, green: 0.95, blue: 0.97)),
+        ("Gray4", Color(red: 0.90, green: 0.90, blue: 0.92)),
+        ("Gray5", Color(red: 0.85, green: 0.85, blue: 0.87)),
+        ("Gray6", Color(red: 0.78, green: 0.78, blue: 0.80)),
         ("Clear", .clear)
     ]
     
@@ -468,22 +476,46 @@ struct ColorPopover: View {
         .padding(.vertical, 4)
         .contentShape(Rectangle())
         .popover(isPresented: $isPresented) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Choose Color")
                     .font(.headline)
                     .padding(.bottom, 4)
                 
+                    // Opacity Text Field
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Opacity")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        HStack {
+                            TextField("100", value: $opacity, formatter: NumberFormatter())
+                                .textFieldStyle(.roundedBorder)
+                                .onSubmit {
+                                    updateColorWithOpacity(opacity)
+                                }
+                            
+                            Text("%")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                .padding(.bottom, 8)
+                
+                Divider()
+                
+                // Color Grid
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                     ForEach(swiftUIColors, id: \.0) { colorName, color in
                               Button(action: {
                                   DispatchQueue.main.async {
-                                      component.setProperty(key: property.key, value: color)
+                                      let colorWithOpacity = color.opacity(opacity)
+                                      component.setProperty(key: property.key, value: colorWithOpacity)
                                   }
                                   isPresented = false
                               }) {
                             VStack(spacing: 4) {
                                 Circle()
-                                    .fill(color)
+                                    .fill(color.opacity(opacity))
                                     .frame(width: 32, height: 32)
                                     .overlay(
                                         Circle()
@@ -510,7 +542,14 @@ struct ColorPopover: View {
                 }
             }
             .padding()
-            .frame(width: 200)
+            .frame(width: 220)
+            .onAppear {
+                // Initialize opacity from current color
+                if component.getProperty(key: property.key) as? Color != nil {
+                    // For now, default to full opacity since extracting opacity from Color is complex
+                    opacity = 1.0
+                }
+            }
         }
     }
     
@@ -530,6 +569,27 @@ struct ColorPopover: View {
         let currentColorName = colorName(for: currentColor)
         let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
         return currentColorName == targetColorName && currentColorName != "Custom"
+    }
+    
+    private func updateColorWithOpacity(_ newOpacity: Double) {
+        // Get the current color and apply the new opacity
+        if let currentColor = component.getProperty(key: property.key) as? Color {
+            // Find the base color without opacity
+            let baseColor = findBaseColor(for: currentColor)
+            let colorWithOpacity = baseColor.opacity(newOpacity)
+            component.setProperty(key: property.key, value: colorWithOpacity)
+        }
+    }
+    
+    private func findBaseColor(for color: Color) -> Color {
+        // Try to find the base color by comparing with known colors
+        for (_, baseColor) in swiftUIColors {
+            if color == baseColor {
+                return baseColor
+            }
+        }
+        // If no match found, return the color as-is
+        return color
     }
 }
 

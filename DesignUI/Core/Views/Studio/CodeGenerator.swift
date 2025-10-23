@@ -136,6 +136,7 @@ struct CodeGenerator {
     private static func generateVStackCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         
         var code = "\(indent)VStack(alignment: .\(alignment), spacing: \(spacing)) {"
         
@@ -149,6 +150,11 @@ struct CodeGenerator {
         
         code += "\n\(indent)}"
         
+        // Background color
+        if backgroundColor != Color.clear {
+            code += "\n\(indent).background(\(colorToString(backgroundColor)))"
+        }
+        
         return code
     }
     
@@ -156,6 +162,7 @@ struct CodeGenerator {
     private static func generateHStackCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         
         var code = "\(indent)HStack(alignment: .\(alignment), spacing: \(spacing)) {"
         
@@ -169,12 +176,18 @@ struct CodeGenerator {
         
         code += "\n\(indent)}"
         
+        // Background color
+        if backgroundColor != Color.clear {
+            code += "\n\(indent).background(\(colorToString(backgroundColor)))"
+        }
+        
         return code
     }
     
     // MARK: - ZStack Code Generation
     private static func generateZStackCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         
         var code = "\(indent)ZStack(alignment: .\(alignment)) {"
         
@@ -187,6 +200,11 @@ struct CodeGenerator {
         }
         
         code += "\n\(indent)}"
+        
+        // Background color
+        if backgroundColor != Color.clear {
+            code += "\n\(indent).background(\(colorToString(backgroundColor)))"
+        }
         
         return code
     }
@@ -326,6 +344,7 @@ struct CodeGenerator {
     private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
+        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
         
         let fontString: String = {
@@ -351,6 +370,11 @@ struct CodeGenerator {
         // Foreground color
         if foregroundColor != Color.primary {
             code += "\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))"
+        }
+        
+        // Background color
+        if backgroundColor != Color.clear {
+            code += "\n\(nextIndent).background(\(colorToString(backgroundColor)))"
         }
         
         code += "\n\(nextIndent).symbolRenderingMode(.hierarchical)"

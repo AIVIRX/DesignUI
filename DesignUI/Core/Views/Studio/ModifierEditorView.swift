@@ -124,6 +124,10 @@ struct FrameModifierEditor: View {
                         TextField("Width", value: $widthValue, formatter: NumberFormatter())
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 80)
+                            .onSubmit {
+                                modifier.properties["width"] = widthValue
+                                NotificationCenter.default.post(name: .designChanged, object: nil)
+                            }
                     } else if widthType == .full {
                         Text("Full Width")
                             .foregroundColor(.secondary)
@@ -150,6 +154,10 @@ struct FrameModifierEditor: View {
                         TextField("Height", value: $heightValue, formatter: NumberFormatter())
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 80)
+                            .onSubmit {
+                                modifier.properties["height"] = heightValue
+                                NotificationCenter.default.post(name: .designChanged, object: nil)
+                            }
                     } else if heightType == .full {
                         Text("Full Height")
                             .foregroundColor(.secondary)
@@ -171,15 +179,11 @@ struct FrameModifierEditor: View {
         }
         .onChange(of: widthType) { _, newValue in
             modifier.properties["widthType"] = newValue.rawValue
+            NotificationCenter.default.post(name: .designChanged, object: nil)
         }
         .onChange(of: heightType) { _, newValue in
             modifier.properties["heightType"] = newValue.rawValue
-        }
-        .onChange(of: widthValue) { _, newValue in
-            modifier.properties["width"] = newValue
-        }
-        .onChange(of: heightValue) { _, newValue in
-            modifier.properties["height"] = newValue
+            NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     }
 }
@@ -219,7 +223,9 @@ struct PaddingModifierEditor: View {
                         paddingLocation = modifier.properties["location"] as? String ?? "all"
                     }
                     .onChange(of: paddingLocation) { _, newValue in
+                        print("📏 Padding location changed to: \(newValue)")
                         modifier.properties["location"] = newValue
+                        NotificationCenter.default.post(name: .designChanged, object: nil)
                     }
                 }
                 
@@ -235,10 +241,14 @@ struct PaddingModifierEditor: View {
                             paddingAmount = modifier.properties["amount"] as? CGFloat ?? 10
                         }
                         .onChange(of: paddingAmount) { _, newValue in
+                            print("📏 Padding amount changed to: \(newValue)")
                             modifier.properties["amount"] = newValue
+                            NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                         .onSubmit {
+                            print("📏 Padding amount submitted: \(paddingAmount)")
                             modifier.properties["amount"] = paddingAmount
+                            NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                 }
             }
@@ -249,13 +259,48 @@ struct PaddingModifierEditor: View {
 // MARK: - Background Modifier Editor
 struct BackgroundModifierEditor: View {
     @Binding var modifier: ComponentModifier
+    @State private var isPresented = false
+    @State private var opacity: Double = 1.0
     
     private var color: Binding<Color> {
         Binding(
             get: { modifier.properties["color"] as? Color ?? Color.clear },
-            set: { modifier.properties["color"] = $0 }
+            set: { newColor in
+                print("🎨 Background color changed to: \(newColor)")
+                modifier.properties["color"] = newColor
+                // Trigger change detection
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
+    
+    private let swiftUIColors: [(String, Color)] = [
+        ("Primary", .primary),
+        ("Secondary", .secondary),
+        ("Tertiary", .primary.opacity(0.6)),
+        ("Quaternary", .primary.opacity(0.3)),
+        ("Black", .black),
+        ("White", .white),
+        ("Red", .red),
+        ("Orange", .orange),
+        ("Yellow", .yellow),
+        ("Green", .green),
+        ("Mint", .mint),
+        ("Teal", .teal),
+        ("Cyan", .cyan),
+        ("Blue", .blue),
+        ("Indigo", .indigo),
+        ("Purple", .purple),
+        ("Pink", .pink),
+        ("Brown", .brown),
+        ("Gray", .gray),
+        ("Gray2", Color(red: 0.99, green: 0.99, blue: 0.99)),
+        ("Gray3", Color(red: 0.95, green: 0.95, blue: 0.97)),
+        ("Gray4", Color(red: 0.90, green: 0.90, blue: 0.92)),
+        ("Gray5", Color(red: 0.85, green: 0.85, blue: 0.87)),
+        ("Gray6", Color(red: 0.78, green: 0.78, blue: 0.80)),
+        ("Clear", .clear)
+    ]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -263,8 +308,156 @@ struct BackgroundModifierEditor: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
             
-            ColorPicker("Background Color", selection: color)
+            HStack {
+                Text("Background Color")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Button(action: { isPresented = true }) {
+                    HStack(spacing: 6) {
+                        // Color preview circle
+                        Circle()
+                            .fill(color.wrappedValue)
+                            .frame(width: 16, height: 16)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                        
+                        Text(colorName(for: color.wrappedValue))
+                            .font(.caption)
+                            .foregroundColor(.primary)
+                        
+                        Image(systemName: "chevron.down")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+            .popover(isPresented: $isPresented) {
+                ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Choose Background Color")
+                        .font(.headline)
+                        .padding(.bottom, 4)
+                    
+                    // Opacity Text Field
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Opacity")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        HStack {
+                            TextField("100", value: $opacity, formatter: NumberFormatter())
+                                .textFieldStyle(.roundedBorder)
+                                .onSubmit {
+                                    updateColorWithOpacity(opacity)
+                                }
+                            
+                            Text("%")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.bottom, 8)
+                    
+                    Divider()
+                    
+                    // Color Grid
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                        ForEach(swiftUIColors, id: \.0) { colorName, color in
+                            Button(action: {
+                                DispatchQueue.main.async {
+                                    let colorWithOpacity = color.opacity(opacity)
+                                    self.color.wrappedValue = colorWithOpacity
+                                }
+                                isPresented = false
+                            }) {
+                                VStack(spacing: 4) {
+                                    Circle()
+                                        .fill(color.opacity(opacity))
+                                        .frame(width: 32, height: 32)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                        )
+                                        .overlay(
+                                            Group {
+                                                if isSelected(color) {
+                                                    Image(systemName: "checkmark")
+                                                        .font(.system(size: 12, weight: .bold))
+                                                        .foregroundColor(.white)
+                                                        .shadow(color: .black, radius: 1)
+                                                }
+                                            }
+                                        )
+                                    
+                                    Text(colorName)
+                                        .font(.caption2)
+                                        .foregroundColor(.primary)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                }
+                .padding()
+                .frame(width: 220)
+                .onAppear {
+                    // Initialize opacity from current color
+                    if modifier.properties["color"] as? Color != nil {
+                        opacity = 1.0
+                    }
+                }
+                }
+            }
         }
+    }
+    
+    private func colorName(for color: Color) -> String {
+        return swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+    }
+    
+    private func isSelected(_ color: Color) -> Bool {
+        guard let currentColor = modifier.properties["color"] as? Color else { return false }
+        
+        // Try direct comparison first
+        if currentColor == color {
+            return true
+        }
+        
+        // Fallback to name comparison
+        let currentColorName = colorName(for: currentColor)
+        let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+        return currentColorName == targetColorName && currentColorName != "Custom"
+    }
+    
+    private func updateColorWithOpacity(_ newOpacity: Double) {
+        // Get the current color and apply the new opacity
+        if let currentColor = modifier.properties["color"] as? Color {
+            // Find the base color without opacity
+            let baseColor = findBaseColor(for: currentColor)
+            let colorWithOpacity = baseColor.opacity(newOpacity)
+            print("🎨 Background color opacity changed to: \(newOpacity) for color: \(colorWithOpacity)")
+            modifier.properties["color"] = colorWithOpacity
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    private func findBaseColor(for color: Color) -> Color {
+        // Try to find the base color by comparing with known colors
+        for (_, baseColor) in swiftUIColors {
+            if color == baseColor {
+                return baseColor
+            }
+        }
+        // If no match found, return the color as-is
+        return color
     }
 }
 
@@ -501,7 +694,10 @@ struct CornerRadiusModifierEditor: View {
     private var radius: Binding<CGFloat> {
         Binding(
             get: { modifier.properties["radius"] as? CGFloat ?? 0 },
-            set: { modifier.properties["radius"] = $0 }
+            set: { newValue in
+                modifier.properties["radius"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
@@ -512,10 +708,16 @@ struct CornerRadiusModifierEditor: View {
                 .fontWeight(.semibold)
             
             HStack {
-                Slider(value: radius, in: 0...50)
-                Text("\(Int(radius.wrappedValue))")
+                TextField("8", value: radius, formatter: NumberFormatter())
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit {
+                        // Trigger change detection
+                        NotificationCenter.default.post(name: .designChanged, object: nil)
+                    }
+                
+                Text("px")
                     .font(.caption)
-                    .frame(width: 30)
+                    .foregroundColor(.secondary)
             }
         }
     }
@@ -528,28 +730,40 @@ struct ShadowModifierEditor: View {
     private var radius: Binding<CGFloat> {
         Binding(
             get: { modifier.properties["radius"] as? CGFloat ?? 0 },
-            set: { modifier.properties["radius"] = $0 }
+            set: { newValue in
+                modifier.properties["radius"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
     private var x: Binding<CGFloat> {
         Binding(
             get: { modifier.properties["x"] as? CGFloat ?? 0 },
-            set: { modifier.properties["x"] = $0 }
+            set: { newValue in
+                modifier.properties["x"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
     private var y: Binding<CGFloat> {
         Binding(
             get: { modifier.properties["y"] as? CGFloat ?? 0 },
-            set: { modifier.properties["y"] = $0 }
+            set: { newValue in
+                modifier.properties["y"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
     private var color: Binding<Color> {
         Binding(
             get: { modifier.properties["color"] as? Color ?? Color.black },
-            set: { modifier.properties["color"] = $0 }
+            set: { newValue in
+                modifier.properties["color"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
@@ -600,7 +814,10 @@ struct OpacityModifierEditor: View {
     private var opacity: Binding<Double> {
         Binding(
             get: { modifier.properties["opacity"] as? Double ?? 1.0 },
-            set: { modifier.properties["opacity"] = $0 }
+            set: { newValue in
+                modifier.properties["opacity"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
@@ -611,10 +828,16 @@ struct OpacityModifierEditor: View {
                 .fontWeight(.semibold)
             
             HStack {
-                Slider(value: opacity, in: 0...1)
-                Text("\(Int(opacity.wrappedValue * 100))%")
+                TextField("100", value: opacity, formatter: NumberFormatter())
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit {
+                        // Trigger change detection
+                        NotificationCenter.default.post(name: .designChanged, object: nil)
+                    }
+                
+                Text("%")
                     .font(.caption)
-                    .frame(width: 40)
+                    .foregroundColor(.secondary)
             }
         }
     }
@@ -627,7 +850,10 @@ struct RotationModifierEditor: View {
     private var angle: Binding<Double> {
         Binding(
             get: { modifier.properties["angle"] as? Double ?? 0 },
-            set: { modifier.properties["angle"] = $0 }
+            set: { newValue in
+                modifier.properties["angle"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
@@ -805,7 +1031,10 @@ struct MaskModifierEditor: View {
     private var opacity: Binding<Double> {
         Binding(
             get: { modifier.properties["opacity"] as? Double ?? 1.0 },
-            set: { modifier.properties["opacity"] = $0 }
+            set: { newValue in
+                modifier.properties["opacity"] = newValue
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         )
     }
     
