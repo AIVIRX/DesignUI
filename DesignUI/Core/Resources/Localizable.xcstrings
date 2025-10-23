@@ -1579,9 +1579,6 @@
     "Choose Color" : {
 
     },
-    "Choose Folder" : {
-
-    },
     "Clip Shape" : {
 
     },
@@ -2384,9 +2381,6 @@
 
     },
     "Design Name" : {
-
-    },
-    "Designs saved to: %@" : {
 
     },
     "DesignUI" : {
@@ -4240,6 +4234,9 @@
         }
       }
     },
+    "No Component Selected" : {
+
+    },
     "No Designs Yet" : {
 
     },
@@ -6031,9 +6028,6 @@
           }
         }
       }
-    },
-    "Reset to Default" : {
-
     },
     "Reset Zoom" : {
 
@@ -8355,6 +8349,9 @@
 
     },
     "system.icon.name" : {
+
+    },
+    "Tap on a component in the canvas to edit its properties" : {
 
     },
     "Tap to open" : {

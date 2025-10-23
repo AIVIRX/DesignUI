@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-#if os(macOS)
+
 struct CodePreviewView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Environment(\.dismiss) private var dismiss
@@ -28,7 +28,7 @@ struct CodePreviewView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(Color.secondary.opacity(0.1))
                 
                 // Code content
                 ScrollView {
@@ -37,7 +37,7 @@ struct CodePreviewView: View {
                     }
                     .padding(20)
                 }
-                .background(Color(NSColor.textBackgroundColor))
+                .background(Color(red: 0.95, green: 0.95, blue: 0.97))
             }
         }
         .frame(minWidth: 600, minHeight: 500)
@@ -79,9 +79,8 @@ struct CompleteFileCode: View {
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(NSColor.controlBackgroundColor))
+                        .fill(Color.secondary.opacity(0.1))
                 )
         }
     }
 }
-#endif

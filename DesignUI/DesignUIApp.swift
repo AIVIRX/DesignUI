@@ -9,6 +9,13 @@ import SwiftUI
 import Supabase
 import UniformTypeIdentifiers
 
+// MARK: - Custom UTType Extension
+extension UTType {
+    static var dockui: UTType {
+        UTType(importedAs: "com.designui.dockui")
+    }
+}
+
 #if os(iOS)
 
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -27,6 +34,7 @@ struct DesignUIApp: App {
     let client = SupabaseManager.shared.client
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
+    @StateObject private var designManager = DesignManager.shared
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
@@ -37,6 +45,7 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
+                .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .onAppear {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-#if os(macOS)
 struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
@@ -41,7 +40,7 @@ struct ComponentLibraryView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(Color.secondary.opacity(0.1))
                 .cornerRadius(8)
                 
                 // Category filter
@@ -65,7 +64,7 @@ struct ComponentLibraryView: View {
                 }
             }
             .padding(16)
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(Color.secondary.opacity(0.1))
             
             Divider()
             
@@ -119,7 +118,7 @@ struct CategoryButton: View {
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(isSelected ? Color.accentColor : Color(NSColor.controlBackgroundColor))
+                        .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.1))
                 )
         }
         .buttonStyle(PlainButtonStyle())
@@ -160,11 +159,11 @@ struct ComponentLibraryItem: View {
         .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isPressed ? Color.accentColor.opacity(0.25) : (isHovering ? Color(NSColor.controlBackgroundColor).opacity(0.9) : Color(NSColor.controlBackgroundColor)))
+                .fill(isPressed ? Color.accentColor.opacity(0.25) : (isHovering ? Color.secondary.opacity(0.1).opacity(0.9) : Color.secondary.opacity(0.1)))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color(NSColor.separatorColor), lineWidth: 0.7)
+                .stroke(isHovering ? Color.accentColor.opacity(0.5) : Color.gray.opacity(0.3), lineWidth: 0.7)
         )
         .scaleEffect(isPressed ? 0.97 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isPressed)
@@ -191,4 +190,3 @@ struct ComponentLibraryItem: View {
         )
     }
 }
-#endif

@@ -18,6 +18,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @EnvironmentObject private var toastManager: ToastManager
+    @EnvironmentObject private var designManager: DesignManager
     @State private var hoveredItem: MenuItem?
     @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
     @State private var showSidebarSettings = false
@@ -61,9 +62,10 @@ struct ContentView: View {
                         NewsListView()
                     }
                     
-//                    Tab(systemImageName: "plus.rectangle.on.folder") {
-//                        DesignBrowserView()
-//                    }
+                    Tab(systemImageName: "plus.rectangle.on.folder") {
+                        DesignBrowserView()
+                            .environmentObject(designManager)
+                    }
                     
                     Tab(systemImageName: "person.crop.circle") {
                         ProfileContainerView()

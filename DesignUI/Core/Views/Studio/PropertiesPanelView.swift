@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-#if os(macOS)
+
 struct PropertiesPanelView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
@@ -22,7 +22,7 @@ struct PropertiesPanelView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(Color.secondary.opacity(0.1))
             
             Divider()
             
@@ -799,7 +799,7 @@ struct SFSymbolPickerView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(Color.secondary.opacity(0.1))
             
             Divider()
             
@@ -820,7 +820,7 @@ struct SFSymbolPickerView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(Color.secondary.opacity(0.1))
             
             Divider()
             
@@ -866,6 +866,5 @@ struct SFSymbolPickerView: View {
         .frame(width: 400) // Fixed width for popover
     }
 }
-#endif
 
 

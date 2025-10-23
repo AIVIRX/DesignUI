@@ -7,7 +7,7 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
-#if os(macOS)
+
 struct ModifierPanelView: View {
     @ObservedObject var component: UIComponent
     @State private var showingAddModifier = false
@@ -47,14 +47,14 @@ struct ModifierPanelView: View {
                     .padding(.vertical, 20)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .fill(Color.secondary.opacity(0.1).opacity(0.5))
                     )
                     .padding(.horizontal, 8)
             } else {
                 ModifierReorderableList(component: component)
             }
         }
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(Color.secondary.opacity(0.1))
         .sheet(isPresented: $showingAddModifier) {
             AddModifierView(component: component)
         }
@@ -151,7 +151,7 @@ struct ModifierItemView: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(NSColor.controlBackgroundColor))
+                    .fill(Color.secondary.opacity(0.1))
             )
             .overlay(
                 VStack(spacing: 0) {
@@ -166,7 +166,7 @@ struct ModifierItemView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
             )
             .onTapGesture {
                 showingEditor = true
@@ -309,7 +309,7 @@ struct AddModifierView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(Color.secondary.opacity(0.1))
                 
                 Divider()
                 
@@ -371,11 +371,11 @@ struct ModifierTypeItemView: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(NSColor.controlBackgroundColor))
+                .fill(Color.secondary.opacity(0.1))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
         )
         .contentShape(Rectangle())
         .onTapGesture {
@@ -383,4 +383,3 @@ struct ModifierTypeItemView: View {
         }
     }
 }
-#endif

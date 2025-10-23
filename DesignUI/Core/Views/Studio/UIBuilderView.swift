@@ -6,14 +6,13 @@
 //
 
 import SwiftUI
-#if os(macOS)
+
 extension Notification.Name {
     static let canvasUndo = Notification.Name("canvas.undo")
     static let canvasRedo = Notification.Name("canvas.redo")
     static let designChanged = Notification.Name("design.changed")
 }
-#endif
-#if os(macOS)
+
 enum DevicePreset: String, CaseIterable, Identifiable {
     // iPhone 16 Series (Latest)
     case iphone16 = "iPhone 16"
@@ -99,25 +98,120 @@ struct UIBuilderView: View {
     @State private var baseZoomLevel: CGFloat = 1.0
     @State private var statusBarHasBackground: Bool = false
     
+    // iOS half sheet states
+    @State private var showLayersSheet = false
+    @State private var showPropertiesSheet = false
+    @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
+    @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
+    
     
     var body: some View {
         NavigationStack {
+            #if os(iOS)
+            // iOS: Full screen canvas with floating panels
+            ZStack {
+                mainCanvasArea
+                
+                // Floating action buttons for panels
+                VStack {
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 12) {
+                            Button(action: { showLayersSheet = true }) {
+                                Image(systemName: "list.bullet")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.accentColor)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 4)
+                            }
+                            
+                            Button(action: { showPropertiesSheet = true }) {
+                                Image(systemName: "slider.horizontal.3")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.accentColor)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 4)
+                            }
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.trailing, 16)
+                .padding(.top, 16)
+            }
+            #else
+            // macOS: Traditional side-by-side layout
             HStack(spacing: 0) {
-                // Layers Panel (moved from right side)
+                layersPanel
+                Divider()
+                mainCanvasArea
+            }
+            #endif
+        }
+        .navigationTitle("SwiftUI Builder")
+        .toolbar { toolbarButtons }
+        .sheet(isPresented: $showCodePreview) {
+            CodePreviewView(canvasManager: canvasManager)
+        }
+        #if os(iOS)
+        .sheet(isPresented: $showLayersSheet) {
+            layersHalfSheet
+        }
+        .sheet(isPresented: $showPropertiesSheet) {
+            propertiesHalfSheet
+        }
+        #endif
+        .onAppear {
+            setupCanvas()
+        }
+        .onChange(of: canvasManager.components) { _, _ in
+            syncComponents()
+        }
+        .onChange(of: selectedComponent) { _, _ in
+            syncSelection()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+            canvasManager.undo()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+            canvasManager.redo()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
+            syncDesignChanges()
+        }
+    }
+    
+    // MARK: - Computed Views
+    
+    private var layersPanel: some View {
                 LayersPanelView(
                     canvasManager: canvasManager,
                     selectedComponent: $selectedComponent
                 )
                 .frame(width: 320)
-                .background(Color(NSColor.controlBackgroundColor))
+        .background(Color.secondary.opacity(0.1))
+    }
                 
-                Divider()
-                
-                // Main Canvas Area
-                VStack(spacing: 0) {                    
-                    ZStack {
-                        HStack(spacing: 0) {
-                        // Canvas
+    private var mainCanvasArea: some View {
+        ZStack {
+            HStack(spacing: 0) {
+                canvasView
+                #if os(macOS)
+                if showPropertiesPanel {
+                    Divider()
+                    propertiesPanel
+                }
+                #endif
+            }
+            bottomRightOverlay
+        }
+    }
+    
+    private var canvasView: some View {
                         CanvasView(
                             canvasManager: canvasManager,
                             selectedComponent: $selectedComponent,
@@ -126,34 +220,119 @@ struct UIBuilderView: View {
                             statusBarHasBackground: $statusBarHasBackground
                         )
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .clipped() // Ensure canvas content doesn't overflow
-                        .gesture(
-                            MagnificationGesture()
-                                .onChanged { value in
-                                    let newZoom = baseZoomLevel * value
-                                    // Limit maximum zoom to prevent UI overlap
-                                    let limitedZoom = min(newZoom, 3.0)
-                                    canvasManager.setZoomLevel(limitedZoom)
-                                }
-                                .onEnded { value in
-                                    baseZoomLevel = canvasManager.zoomLevel
-                                }
-                        )
-                        
-                        // Right Panels (now only Properties Panel)
-                        if showPropertiesPanel {
-                            Divider()
-                            
+        .clipped()
+        .gesture(magnificationGesture)
+    }
+    
+    private var propertiesPanel: some View {
                             PropertiesPanelView(
                                 selectedComponent: $selectedComponent,
                                 canvasManager: canvasManager
                             )
                             .frame(width: 280)
-                            .background(Color(NSColor.controlBackgroundColor))
-                        }
-                        }
-                        
-                        // Bottom right overlay controls
+        .background(Color.secondary.opacity(0.1))
+    }
+    
+    #if os(iOS)
+    private var layersHalfSheet: some View {
+        VStack(spacing: 0) {
+            // Handle for dragging
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.secondary)
+                .frame(width: 36, height: 4)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+            
+            // Header
+            HStack {
+                Text("Layers")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                Button("Done") {
+                    showLayersSheet = false
+                }
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.accentColor)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            
+            Divider()
+            
+            // Layers content
+            LayersPanelView(
+                canvasManager: canvasManager,
+                selectedComponent: $selectedComponent
+            )
+        }
+        .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(false)
+    }
+    
+    private var propertiesHalfSheet: some View {
+        VStack(spacing: 0) {
+            // Handle for dragging
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.secondary)
+                .frame(width: 36, height: 4)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+            
+            // Header
+            HStack {
+                Text("Properties")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                Button("Done") {
+                    showPropertiesSheet = false
+                }
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.accentColor)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            
+            Divider()
+            
+            // Properties content
+            if selectedComponent != nil {
+                PropertiesPanelView(
+                    selectedComponent: $selectedComponent,
+                    canvasManager: canvasManager
+                )
+            } else {
+                VStack(spacing: 16) {
+                    Image(systemName: "cursorarrow.click")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    
+                    Text("No Component Selected")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                    
+                    Text("Tap on a component in the canvas to edit its properties")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            }
+        }
+        .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(false)
+    }
+    #endif
+    
+    private var bottomRightOverlay: some View {
                         VStack {
                             Spacer()
                             HStack {
@@ -167,18 +346,11 @@ struct UIBuilderView: View {
                             }
                         }
                     }
-                }
-            }
-        }
-        .navigationTitle("SwiftUI Builder")
-        .toolbar {
+    
+    private var toolbarButtons: some ToolbarContent {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
-                    Button(action: { 
-                        print("💾 Manual save button pressed")
-                        designManager.saveCurrentDesign()
-                        print("💾 Manual save triggered")
-                    }) {
+                Button(action: saveDesign) {
                         Image(systemName: "square.and.arrow.down")
                             .font(.system(size: 14, weight: .medium))
                     }
@@ -192,46 +364,51 @@ struct UIBuilderView: View {
                 }
             }
         }
-        .sheet(isPresented: $showCodePreview) {
-            CodePreviewView(canvasManager: canvasManager)
-        }
-        .onAppear {
-            // Load components from design file
+    
+    private var magnificationGesture: some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                let newZoom = baseZoomLevel * value
+                let limitedZoom = min(newZoom, 3.0)
+                canvasManager.setZoomLevel(limitedZoom)
+            }
+            .onEnded { _ in
+                baseZoomLevel = canvasManager.zoomLevel
+            }
+    }
+    
+    // MARK: - Actions
+    
+    private func saveDesign() {
+        print("💾 Manual save button pressed")
+        designManager.saveCurrentDesign()
+        print("💾 Manual save triggered")
+    }
+    
+    private func setupCanvas() {
             canvasManager.components = designFile.components
-            // Set the design name for code generation
             canvasManager.setDesignName(designFile.name)
         }
-        .onChange(of: canvasManager.components) { _, _ in
+    
+    private func syncComponents() {
             print("🔄 Components changed - syncing to design file")
             print("🔄 Components count: \(canvasManager.components.count)")
-            // Sync components to design file
             designFile.components = canvasManager.components
-            // Mark as changed and trigger auto-save
             designManager.markAsChanged()
-            // Post notification for document editor
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
-        .onChange(of: selectedComponent) { _, _ in
+    
+    private func syncSelection() {
             print("🔄 Selection changed - syncing to design file")
-            // Sync components to design file when selection changes
             designFile.components = canvasManager.components
             designManager.markAsChanged()
-            // Post notification for document editor
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
-            canvasManager.undo()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
-            canvasManager.redo()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
+    
+    private func syncDesignChanges() {
             print("🔄 Design changed notification received - syncing components")
-            // Sync components to design file
             designFile.components = canvasManager.components
-            // Mark as changed and trigger auto-save
             designManager.markAsChanged()
-        }
     }
 }
 
@@ -292,7 +469,7 @@ struct CanvasControlsOverlay: View {
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(NSColor.controlBackgroundColor))
+                .fill(Color.secondary.opacity(0.1))
                 .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
         )
         .padding(.trailing, 16)
@@ -313,7 +490,7 @@ struct CanvasView: View {
             ZStack {
                 // Static grid background - doesn't zoom with canvas
                 Rectangle()
-                    .fill(Color(NSColor.textBackgroundColor))
+                    .fill(Color(red: 0.95, green: 0.95, blue: 0.97))
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .overlay(
                         // Static grid pattern - fixed reference
@@ -351,7 +528,7 @@ struct CanvasView: View {
                         // Screen area
                         ZStack {
                             Rectangle()
-                                .fill(Color(NSColor.windowBackgroundColor))
+                                .fill(Color(red: 0.95, green: 0.95, blue: 0.97))
                                 .overlay(Color.white.opacity(0.02))
                             
                             // Components inside screen
@@ -584,4 +761,3 @@ struct StatusBarView: View {
         }
     }
 }
-#endif

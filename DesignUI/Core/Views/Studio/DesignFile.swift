@@ -135,7 +135,7 @@ class DesignManager: ObservableObject {
         if let ubiquityURL = ubiquityURL {
             try? FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
             finalDesignsDirectory = ubiquityURL
-            finalStorageStatus = "☁️ iCloud Drive"
+            finalStorageStatus = "iCloud Drive"
             print("☁️ Using iCloud: \(ubiquityURL.path)")
         } else {
             print("⚠️ iCloud not available, falling back to local documents.")

@@ -57,7 +57,7 @@ struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
-    @StateObject private var designManager = DesignManager.shared
+    @EnvironmentObject private var designManager: DesignManager
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
 #if os(iOS)

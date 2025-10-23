@@ -7,7 +7,7 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
-#if os(macOS)
+
 struct LayersPanelView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
@@ -39,7 +39,7 @@ struct LayersPanelView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(Color.secondary.opacity(0.1))
             
             Divider()
             
@@ -251,111 +251,154 @@ private struct OutlineRow: View {
     
     private var row: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                // Indentation based on level
-                HStack(spacing: 0) {
-                    ForEach(0..<level, id: \.self) { _ in
-                        Spacer().frame(width: 16)
-                    }
-                }
-                
-                // Expand/Collapse
-                if !component.children.isEmpty {
-                    Button(action: { toggleExpand() }) {
-                        Image(systemName: expanded.contains(component.id) ? "chevron.down" : "chevron.right")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                } else {
-                    Spacer().frame(width: 12)
-                }
-                
-                // Icon with container indicator
-                HStack(spacing: 2) {
-                    Image(systemName: component.type.icon)
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                }
-                .frame(width: 20)
-                
-                // Name
-                Text(componentDisplayName(component))
-                    .font(.system(size: 13, weight: level == 0 ? .semibold : .medium))
-                    .foregroundColor((selectedComponent?.id == component.id) ? .white : .primary)
-                    .lineLimit(1)
-                
-                Spacer()
-                
-                if isHovered {
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                            .font(.system(size: 10))
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .help("Delete")
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        (selectedComponent?.id == component.id)
-                        ? Color.accentColor.opacity(0.12)
-                        : (isHovered ? Color(NSColor.controlBackgroundColor) : Color(NSColor.controlBackgroundColor).opacity(0.6))
-                    )
-            )
-            .overlay(
-                VStack(spacing: 0) {
-                    if dragOverTarget == component.id && dragOverPosition == .above {
-                        Divider().overlay(Color.accentColor).frame(height: 2)
-                    }
-                    Spacer(minLength: 0)
-                    if dragOverTarget == component.id && dragOverPosition == .below {
-                        Divider().overlay(Color.accentColor).frame(height: 2)
-                    }
-                }
-            )
-            .overlay(
-                // Inside drop zone indicator for containers
-                Group {
-                    if dragOverTarget == component.id && dragOverPosition == .inside && canAcceptChildren(component) {
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.accentColor.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
-                            .padding(2)
-                    }
-                }
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(
-                        (selectedComponent?.id == component.id) ? Color.accentColor.opacity(0.6) : Color.white.opacity(0.06),
-                        lineWidth: 1
-                    )
-            )
-            .contentShape(Rectangle())
-            .onTapGesture { selectedComponent = component }
-            .onHover { isHovered = $0 }
-            .onDrag {
-                draggingId = component.id
-                return NSItemProvider(object: component.id.uuidString as NSString)
-            }
-            .help(component.children.isEmpty ? "Drag to reorder" : "Drag to reorder or drop inside to make child")
-            .onDrop(of: [UTType.plainText], delegate: RowDropDelegate(
-                target: component,
-                draggingId: $draggingId,
-                dragOverTarget: $dragOverTarget,
-                dragOverPosition: $dragOverPosition,
-                expanded: $expanded,
-                getParentOf: getParentOf,
-                getIndexInParent: getIndexInParent,
-                onMove: onMove
-            ))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            rowContent
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(backgroundShape)
+                .overlay(dragOverlay)
+                .overlay(dropZoneOverlay)
+                .overlay(borderOverlay)
+                .contentShape(Rectangle())
+                .onTapGesture { selectedComponent = component }
+                .onHover { isHovered = $0 }
+                .onDrag { dragAction }
+                .help(component.children.isEmpty ? "Drag to reorder" : "Drag to reorder or drop inside to make child")
+                .onDrop(of: [UTType.plainText], delegate: dropDelegate)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
         }
+    }
+    
+    private var rowContent: some View {
+        HStack(spacing: 8) {
+            indentationSpacers
+            expandCollapseButton
+            componentIcon
+            componentName
+            Spacer()
+            deleteButton
+        }
+    }
+    
+    private var indentationSpacers: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<level, id: \.self) { _ in
+                Spacer().frame(width: 16)
+            }
+        }
+    }
+    
+    private var expandCollapseButton: some View {
+        Group {
+            if !component.children.isEmpty {
+                Button(action: { toggleExpand() }) {
+                    Image(systemName: expanded.contains(component.id) ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                Spacer().frame(width: 12)
+            }
+        }
+    }
+    
+    private var componentIcon: some View {
+        HStack(spacing: 2) {
+            Image(systemName: component.type.icon)
+                .font(.system(size: 14))
+                .foregroundColor(.gray)
+        }
+        .frame(width: 20)
+    }
+    
+    private var componentName: some View {
+        Text(componentDisplayName(component))
+            .font(.system(size: 13, weight: level == 0 ? .semibold : .medium))
+            .foregroundColor((selectedComponent?.id == component.id) ? .white : .primary)
+            .lineLimit(1)
+    }
+    
+    private var deleteButton: some View {
+        Group {
+            if isHovered {
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 10))
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .help("Delete")
+            }
+        }
+    }
+    
+    private var backgroundShape: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(backgroundFill)
+    }
+    
+    private var backgroundFill: Color {
+        if selectedComponent?.id == component.id {
+            return Color.accentColor.opacity(0.12)
+        } else if isHovered {
+            return Color.secondary.opacity(0.1)
+        } else {
+            return Color.secondary.opacity(0.1).opacity(0.6)
+        }
+    }
+    
+    private var dragOverlay: some View {
+        VStack(spacing: 0) {
+            if dragOverTarget == component.id && dragOverPosition == .above {
+                Divider().overlay(Color.accentColor).frame(height: 2)
+            }
+            Spacer(minLength: 0)
+            if dragOverTarget == component.id && dragOverPosition == .below {
+                Divider().overlay(Color.accentColor).frame(height: 2)
+            }
+        }
+    }
+    
+    private var dropZoneOverlay: some View {
+        Group {
+            if dragOverTarget == component.id && dragOverPosition == .inside && canAcceptChildren(component) {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.accentColor.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
+                    .padding(2)
+            }
+        }
+    }
+    
+    private var borderOverlay: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .stroke(borderColor, lineWidth: 1)
+    }
+    
+    private var borderColor: Color {
+        if selectedComponent?.id == component.id {
+            return Color.accentColor.opacity(0.6)
+        } else {
+            return Color.white.opacity(0.06)
+        }
+    }
+    
+    private var dragAction: NSItemProvider {
+        draggingId = component.id
+        return NSItemProvider(object: component.id.uuidString as NSString)
+    }
+    
+    private var dropDelegate: RowDropDelegate {
+        RowDropDelegate(
+            target: component,
+            draggingId: $draggingId,
+            dragOverTarget: $dragOverTarget,
+            dragOverPosition: $dragOverPosition,
+            expanded: $expanded,
+            getParentOf: getParentOf,
+            getIndexInParent: getIndexInParent,
+            onMove: onMove
+        )
     }
     
     private func toggleExpand() {
@@ -523,7 +566,7 @@ struct LayerItem: View {
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(isSelected ? Color.accentColor.opacity(0.1) : (isHovered ? Color(NSColor.controlBackgroundColor) : Color.clear))
+                .fill(isSelected ? Color.accentColor.opacity(0.1) : (isHovered ? Color.secondary.opacity(0.1) : Color.clear))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 6)
@@ -537,4 +580,3 @@ struct LayerItem: View {
         }
     }
 }
-#endif

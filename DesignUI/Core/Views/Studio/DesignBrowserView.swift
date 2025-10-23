@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-#if os(macOS)
 struct DesignBrowserView: View {
     @EnvironmentObject private var designManager: DesignManager
     @State private var showingNewDesignSheet = false
@@ -16,8 +15,7 @@ struct DesignBrowserView: View {
     @State private var designToDelete: DesignFile?
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
                 // Header
                 HStack {
                     Text("Design Browser")
@@ -26,47 +24,39 @@ struct DesignBrowserView: View {
                     
                     Spacer()
                     
-                    HStack(spacing: 12) {
-                        Button(action: { designManager.selectDesignsDirectory() }) {
-                            HStack {
-                                Image(systemName: "folder")
-                                Text("Choose Folder")
-                            }
+                    Button(action: { showingNewDesignSheet = true }) {
+                        HStack {
+                            Image(systemName: "plus")
+                            Text("New Design")
                         }
-                        .buttonStyle(.bordered)
-                        
-                        Button(action: { showingNewDesignSheet = true }) {
-                            HStack {
-                                Image(systemName: "plus")
-                                Text("New Design")
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
                     }
+                    .buttonStyle(.borderedProminent)
                 }
                 .padding()
                 
                 Divider()
                 
-                // Current Directory Info
+                // Storage Status
                 HStack {
-                    Image(systemName: "folder.fill")
+                    Image(systemName: designManager.storageStatus.contains("iCloud") ? "icloud.fill" : "folder.fill")
                         .foregroundColor(.secondary)
-                    Text("Designs saved to: \(designManager.designsDirectory.path)")
+                    Text(designManager.storageStatus)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Button("Reset to Default") {
-                        designManager.resetToDefaultDirectory()
+                    #if os(macOS)
+                    Button("Show in Finder") {
+                        designManager.showInFinder()
                     }
                     .font(.caption)
                     .foregroundColor(.blue)
+                    #endif
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
-                .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                .background(Color.secondary.opacity(0.1).opacity(0.5))
                 
                 Divider()
                 
@@ -111,7 +101,6 @@ struct DesignBrowserView: View {
                     }
                 }
             }
-        }
         .sheet(isPresented: $showingNewDesignSheet) {
             NewDesignSheet(
                 designName: $newDesignName,
@@ -137,30 +126,27 @@ struct DesignBrowserView: View {
         } message: {
             Text("Are you sure you want to delete this design? This action cannot be undone.")
         }
-        .fileImporter(
-            isPresented: $designManager.showingDirectoryPicker,
-            allowedContentTypes: [.folder],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                if let url = urls.first {
-                    designManager.setDesignsDirectory(url)
-                }
-            case .failure(let error):
-                print("❌ Failed to select directory: \(error)")
+        #if os(iOS)
+        .fullScreenCover(isPresented: Binding(
+            get: { designManager.currentDesign != nil },
+            set: { if !$0 { designManager.closeCurrentDesign() } }
+        )) {
+            if let currentDesign = designManager.currentDesign {
+                UIBuilderView(designFile: currentDesign)
+                    .environmentObject(designManager)
             }
         }
+        #else
         .navigationDestination(isPresented: Binding(
             get: { designManager.currentDesign != nil },
             set: { if !$0 { designManager.closeCurrentDesign() } }
         )) {
             if let currentDesign = designManager.currentDesign {
                 UIBuilderView(designFile: currentDesign)
-            } else {
-                EmptyView()
+                    .environmentObject(designManager)
             }
         }
+        #endif
     }
 }
 
@@ -177,7 +163,7 @@ struct DesignCardView: View {
             // Canvas Preview
             CanvasPreviewView(designFile: designFile)
                 .frame(height: 120)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(Color.secondary.opacity(0.1))
                 .cornerRadius(8)
             
             VStack(alignment: .leading, spacing: 4) {
@@ -205,9 +191,11 @@ struct DesignCardView: View {
                 Spacer()
                 
                 Menu {
+                    #if os(macOS)
                     Button("Show in Finder") {
                         NSWorkspace.shared.activateFileViewerSelecting([designFile.fileURL])
                     }
+                    #endif
                     
                     Button("Delete", role: .destructive) {
                         onDelete()
@@ -224,7 +212,7 @@ struct DesignCardView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(NSColor.controlBackgroundColor))
+                .fill(Color.secondary.opacity(0.1))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(isHovered ? Color.accentColor : Color.clear, lineWidth: 2)
@@ -352,4 +340,3 @@ struct ComponentPreviewRenderer: View {
         )
     }
 }
-#endif
