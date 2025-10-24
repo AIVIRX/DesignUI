@@ -39,10 +39,8 @@ struct LayersPanelView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color.secondary.opacity(0.1))
-            
-            Divider()
-            
+            .background(Color.clear)
+                        
             // Layers outline
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -79,6 +77,7 @@ struct LayersPanelView: View {
                 .padding(.horizontal, 4)
                 .padding(.vertical, 8)
             }
+            .background(Color.clear)
             // Ensure drop preview clears if a drag operation ends anywhere
             .onChange(of: draggingId) { _, newValue in
                 if newValue == nil {

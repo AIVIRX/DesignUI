@@ -1302,6 +1302,9 @@
         }
       }
     },
+    "Auto" : {
+
+    },
     "Background Color" : {
 
     },
@@ -1577,6 +1580,9 @@
 
     },
     "Choose Color" : {
+
+    },
+    "Choose color scheme" : {
 
     },
     "Clip Shape" : {
@@ -1863,6 +1869,9 @@
       "shouldTranslate" : false
     },
     "Create your first design to get started" : {
+
+    },
+    "Dark" : {
 
     },
     "Default Height" : {
@@ -3187,9 +3196,6 @@
     "Hello, World!" : {
 
     },
-    "Hide Status Bar Background" : {
-
-    },
     "Icon" : {
 
     },
@@ -3464,6 +3470,9 @@
 
     },
     "Leading" : {
+
+    },
+    "Light" : {
 
     },
     "Loading posts..." : {
@@ -7575,9 +7584,6 @@
 
     },
     "Show in Finder" : {
-
-    },
-    "Show Status Bar Background" : {
 
     },
     "Sign In Required" : {

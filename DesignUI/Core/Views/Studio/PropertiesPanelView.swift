@@ -12,20 +12,7 @@ struct PropertiesPanelView: View {
     @ObservedObject var canvasManager: CanvasManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header
-            HStack {
-                Text("Properties")
-                    .font(.headline)
-                
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color.secondary.opacity(0.1))
-            
-            Divider()
-            
+        VStack(alignment: .leading) {
             // Properties content
             if let component = selectedComponent {
                 ScrollView {
@@ -41,8 +28,7 @@ struct PropertiesPanelView: View {
                         
                         // Delete Component Button
                         DeleteComponentSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
-                    }
-                    .padding(16)
+                    }.padding()
                 }
             } else {
                 // No selection state
@@ -61,7 +47,6 @@ struct PropertiesPanelView: View {
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(20)
             }
         }
     }
@@ -79,18 +64,8 @@ struct PropertiesSection: View {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(Array(component.properties.enumerated()), id: \.element.id) { index, property in
                     PropertyEditor(property: property, component: component)
-                    
-                    if index < component.properties.count - 1 {
-                        Divider()
-                            .padding(.vertical, 4)
-                    }
                 }
             }
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(red: 0.17, green: 0.17, blue: 0.18)) // #2C2C2E
-            )
         }
     }
 }
@@ -101,6 +76,7 @@ struct PropertyEditor: View {
     @State private var textValue: String = ""
     @State private var numberValue: Double = 0.0
     @State private var showSFSymbolPicker: Bool = false
+    @State private var isHovered: Bool = false
     
     private let fontStyles = [
         "largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"
@@ -154,7 +130,7 @@ struct PropertyEditor: View {
                 } else {
                     TextField("Hello World", text: $textValue)
                         .font(.system(size: 13, weight: .medium))
-                        .textFieldStyle(.plain)
+                        .textFieldStyle(.roundedBorder)
                         .onAppear {
                             textValue = property.value as? String ?? ""
                         }
@@ -176,7 +152,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
@@ -203,7 +179,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
@@ -225,7 +201,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
@@ -241,14 +217,26 @@ struct PropertyEditor: View {
                             Text(option.capitalized).tag(option)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(.menu)
+                    .foregroundStyle(.secondary)
+                    .buttonStyle(.borderless)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered ? Color(red: 0.21, green: 0.21, blue: 0.21) : Color.clear)
+                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+                .contentShape(Rectangle())
                 
             case .alignment:
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
@@ -264,14 +252,25 @@ struct PropertyEditor: View {
                             Text(option.capitalized).tag(option)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(.menu)
+                    .accentColor(.secondary)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered ? Color(red: 0.21, green: 0.21, blue: 0.21) : Color.clear)
+                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+                .contentShape(Rectangle())
                 
             case .segmentedControl:
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
@@ -287,25 +286,37 @@ struct PropertyEditor: View {
                             Text(option.capitalized).tag(option)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(.menu)
+                    .accentColor(.secondary)
+                    .buttonStyle(.plain)
                 }
                 
             case .dropdown:
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
                     Text(component.getProperty(key: property.key) as? String ?? "Default")
                         .font(.caption)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.secondary)
                     
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered ? Color(red: 0.21, green: 0.21, blue: 0.21) : Color.clear)
+                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+                .contentShape(Rectangle())
                 .padding(.vertical, 4)
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -316,13 +327,13 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
                     Text(component.getProperty(key: property.key) as? String ?? "Default")
                         .font(.caption)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.secondary)
                     
                     Image(systemName: "chevron.right")
                         .font(.caption2)
@@ -338,7 +349,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
@@ -464,7 +475,7 @@ struct ColorPopover: View {
                     
                     Text(colorName(for: component.getProperty(key: property.key) as? Color ?? Color.primary))
                         .font(.caption)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.secondary)
                     
                     Image(systemName: "chevron.down")
                         .font(.caption2)
@@ -799,7 +810,7 @@ struct SFSymbolPickerView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color.secondary.opacity(0.1))
+            .background(Color.clear)
             
             Divider()
             
@@ -820,7 +831,7 @@ struct SFSymbolPickerView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color.secondary.opacity(0.1))
+            .background(Color.clear)
             
             Divider()
             

@@ -193,7 +193,7 @@ extension ComponentProperty: Codable {
         // Handle backward compatibility for missing fields
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.key = try container.decode(String.self, forKey: .key)
-        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName) ?? self.key
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName) ?? Self.properDisplayName(for: self.key)
         self.type = try container.decode(PropertyType.self, forKey: .type)
         self.isRequired = try container.decodeIfPresent(Bool.self, forKey: .isRequired) ?? false
         
@@ -349,6 +349,28 @@ extension ComponentProperty: Codable {
     // MARK: - Equatable Implementation
     static func == (lhs: ComponentProperty, rhs: ComponentProperty) -> Bool {
         return lhs.id == rhs.id
+    }
+    
+    // MARK: - Display Name Helper
+    static func properDisplayName(for key: String) -> String {
+        switch key {
+        case "fontSize": return "Font Size"
+        case "fontWeight": return "Font Weight"
+        case "foregroundColor": return "Text Color"
+        case "backgroundColor": return "Background Color"
+        case "text": return "Text"
+        case "title": return "Title"
+        case "imageName": return "Image Name"
+        case "resizable": return "Resizable"
+        case "aspectRatio": return "Aspect Ratio"
+        case "cornerRadius": return "Corner Radius"
+        case "alignment": return "Alignment"
+        case "spacing": return "Spacing"
+        case "symbolName": return "Symbol Name"
+        case "size": return "Size"
+        case "color": return "Color"
+        default: return key.capitalized
+        }
     }
 }
 

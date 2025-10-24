@@ -60,10 +60,6 @@ struct CompleteFileCode: View {
 
         \(viewCode)
 
-        #Preview {
-            GeneratedView()
-                .padding()
-        }
         """
     }
     

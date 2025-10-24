@@ -93,10 +93,16 @@ struct UIBuilderView: View {
     @StateObject private var canvasManager = CanvasManager()
     @State private var selectedComponent: UIComponent?
     @State private var showCodePreview = false
-    @State private var showPropertiesPanel = true
     @State private var selectedDevice: DevicePreset = .iphone16Pro
     @State private var baseZoomLevel: CGFloat = 1.0
     @State private var statusBarHasBackground: Bool = false
+    @State private var colorScheme: ColorScheme? = nil
+    
+    // Panel states
+    @State private var layersPanelWidth: CGFloat = 320
+    @State private var propertiesPanelWidth: CGFloat = 300
+    @State private var showLayersPanel = true
+    @State private var showPropertiesPanel = true
     
     // iOS half sheet states
     @State private var showLayersSheet = false
@@ -144,11 +150,45 @@ struct UIBuilderView: View {
                 .padding(.top, 16)
             }
             #else
-            // macOS: Traditional side-by-side layout
-            HStack(spacing: 0) {
-                layersPanel
-                Divider()
+            // macOS: Resizable panels layout
+            ZStack {
                 mainCanvasArea
+                
+                // Floating panels with proper margins
+                HStack(spacing: 0) {
+                    if showLayersPanel {
+                        ResizablePanel(
+                            width: $layersPanelWidth,
+                            minWidth: 250,
+                            maxWidth: 500,
+                            isVisible: $showLayersPanel,
+                            handlePosition: .right
+                        ) {
+                            layersPanel
+                        }
+                        .transition(.move(edge: .leading))
+                        .padding()
+                    }
+                    
+                    Spacer()
+                    
+                    if showPropertiesPanel && selectedComponent != nil {
+                        ResizablePanel(
+                            width: $propertiesPanelWidth,
+                            minWidth: 250,
+                            maxWidth: 500,
+                            isVisible: $showPropertiesPanel,
+                            handlePosition: .left
+                        ) {
+                            propertiesPanel
+                        }
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .trailing).combined(with: .opacity)
+                        ))
+                        .padding()
+                    }
+                }
             }
             #endif
         }
@@ -188,25 +228,15 @@ struct UIBuilderView: View {
     // MARK: - Computed Views
     
     private var layersPanel: some View {
-                LayersPanelView(
-                    canvasManager: canvasManager,
-                    selectedComponent: $selectedComponent
-                )
-                .frame(width: 320)
-        .background(Color.secondary.opacity(0.1))
+        LayersPanelView(
+            canvasManager: canvasManager,
+            selectedComponent: $selectedComponent
+        )
     }
                 
     private var mainCanvasArea: some View {
         ZStack {
-            HStack(spacing: 0) {
-                canvasView
-                #if os(macOS)
-                if showPropertiesPanel {
-                    Divider()
-                    propertiesPanel
-                }
-                #endif
-            }
+            canvasView
             bottomRightOverlay
         }
     }
@@ -217,7 +247,8 @@ struct UIBuilderView: View {
                             selectedComponent: $selectedComponent,
                             selectedDevice: selectedDevice,
                             baseZoomLevel: $baseZoomLevel,
-                            statusBarHasBackground: $statusBarHasBackground
+                            statusBarHasBackground: $statusBarHasBackground,
+                            colorScheme: colorScheme
                         )
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
@@ -225,12 +256,10 @@ struct UIBuilderView: View {
     }
     
     private var propertiesPanel: some View {
-                            PropertiesPanelView(
-                                selectedComponent: $selectedComponent,
-                                canvasManager: canvasManager
-                            )
-                            .frame(width: 280)
-        .background(Color.secondary.opacity(0.1))
+        PropertiesPanelView(
+            selectedComponent: $selectedComponent,
+            canvasManager: canvasManager
+        )
     }
     
     #if os(iOS)
@@ -341,13 +370,15 @@ struct UIBuilderView: View {
                                     selectedDevice: $selectedDevice,
                                     canvasManager: canvasManager,
                                     baseZoomLevel: $baseZoomLevel,
-                                    statusBarHasBackground: $statusBarHasBackground
+                                    statusBarHasBackground: $statusBarHasBackground,
+                                    colorScheme: $colorScheme
                                 )
                             }
                         }
                     }
     
     private var toolbarButtons: some ToolbarContent {
+        Group {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
                 Button(action: saveDesign) {
@@ -364,6 +395,7 @@ struct UIBuilderView: View {
                 }
             }
         }
+    }
     
     private var magnificationGesture: some Gesture {
         MagnificationGesture()
@@ -420,6 +452,7 @@ struct CanvasControlsOverlay: View {
     let canvasManager: CanvasManager
     @Binding var baseZoomLevel: CGFloat
     @Binding var statusBarHasBackground: Bool
+    @Binding var colorScheme: ColorScheme?
     
     var body: some View {
         HStack(spacing: 8) {
@@ -443,15 +476,39 @@ struct CanvasControlsOverlay: View {
             .buttonStyle(.bordered)
             .help("Choose a device preset")
             
-            // Status bar background toggle
-            Button(action: { 
-                statusBarHasBackground.toggle()
-            }) {
-                Image(systemName: statusBarHasBackground ? "rectangle.fill" : "rectangle")
-                    .font(.system(size: 12))
+            // Color scheme picker
+            Menu {
+                Button("Auto") {
+                    colorScheme = nil
+                }
+                Button("Light") {
+                    colorScheme = .light
+                }
+                Button("Dark") {
+                    colorScheme = .dark
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: colorScheme == nil ? "circle.lefthalf.filled" : (colorScheme == .light ? "sun.max" : "moon"))
+                        .font(.system(size: 12))
+                    Text(colorScheme == nil ? "Auto" : (colorScheme == .light ? "Light" : "Dark"))
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
             }
             .buttonStyle(.bordered)
-            .help(statusBarHasBackground ? "Hide Status Bar Background" : "Show Status Bar Background")
+            .help("Choose color scheme")
+            
+//            // Status bar background toggle
+//            Button(action: { 
+//                statusBarHasBackground.toggle()
+//            }) {
+//                Image(systemName: statusBarHasBackground ? "rectangle.fill" : "rectangle")
+//                    .font(.system(size: 12))
+//            }
+//            .buttonStyle(.bordered)
+//            .help(statusBarHasBackground ? "Hide Status Bar Background" : "Show Status Bar Background")
             
             // Reset zoom button
             Button(action: { 
@@ -484,106 +541,15 @@ struct CanvasView: View {
     let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
     @Binding var statusBarHasBackground: Bool
+    let colorScheme: ColorScheme?
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Static grid background - doesn't zoom with canvas
-                Rectangle()
-                    .fill(Color(red: 0.95, green: 0.95, blue: 0.97))
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .overlay(
-                        // Static grid pattern - fixed reference
-                        Canvas { context, size in
-                            let gridSize: CGFloat = 20
-                            let maxLines = max(Int(size.width / gridSize), Int(size.height / gridSize)) + 10
-                            
-                            for i in 0..<maxLines {
-                                // Vertical lines - extend beyond visible area
-                                let x = CGFloat(i) * gridSize
-                                context.stroke(
-                                    Path(CGRect(x: x, y: -100, width: 0, height: size.height + 200)),
-                                    with: .color(.gray.opacity(0.2)),
-                                    lineWidth: 0.5
-                                )
-                                
-                                // Horizontal lines - extend beyond visible area
-                                let y = CGFloat(i) * gridSize
-                                context.stroke(
-                                    Path(CGRect(x: -100, y: y, width: size.width + 200, height: 0)),
-                                    with: .color(.gray.opacity(0.2)),
-                                    lineWidth: 0.5
-                                )
-                            }
-                        }
-                    )
+                gridBackground(geometry: geometry)
                 
                 // Zoomable canvas content
-                ZStack {
-                    // Centered device frame
-                    let deviceSize = selectedDevice.size
-                    let screenCorner: CGFloat = selectedDevice == .mac ? 8 : 50
-                    
-                    ZStack {
-                        // Screen area
-                        ZStack {
-                            Rectangle()
-                                .fill(Color(red: 0.95, green: 0.95, blue: 0.97))
-                                .overlay(Color.white.opacity(0.02))
-                            
-                            // Components inside screen
-                            VStack(spacing: 0) {
-                                ForEach(canvasManager.components, id: \.id) { component in
-                                    ComponentView(
-                                        component: component,
-                                        isSelected: selectedComponent?.id == component.id,
-                                        onSelect: { selectedComponent = component },
-                                        selectedDevice: selectedDevice,
-                                        selectedComponent: selectedComponent,
-                                        onSelectChild: { childComponent in
-                                            // Find the component in the hierarchy and select it
-                                            if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: canvasManager.components) {
-                                                selectedComponent = foundComponent
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .padding(.top, selectedDevice != .mac && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
-                            .clipped() // Prevent content from expanding beyond the screen bounds
-                            .onTapGesture {
-                                // Deselect when clicking empty space
-                                selectedComponent = nil
-                            }
-                            if selectedDevice != .mac {
-                                VStack {
-                                    StatusBarView(
-                                        deviceSize: deviceSize,
-                                        isSelected: selectedComponent?.id == canvasManager.statusBarComponent?.id,
-                                        onSelect: { 
-                                            if let statusBarComponent = canvasManager.statusBarComponent {
-                                                selectedComponent = statusBarComponent
-                                            }
-                                        }
-                                    )
-                                    .background(statusBarHasBackground ? Color.black.opacity(0.8) : .clear)
-                                    .zIndex(1000) // Ensure status bar is on top
-                                    
-                                    Spacer()
-                                }
-                            }
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: screenCorner, style: .continuous)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
-                        .padding(selectedDevice == .mac ? 8 : 16)
-                    }
-                    .frame(width: deviceSize.width, height: deviceSize.height)
-                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                }
+                devicePreview(geometry: geometry)
                 .scaleEffect(canvasManager.zoomLevel)
                 .offset(canvasManager.canvasOffset)
             }
@@ -609,6 +575,116 @@ struct CanvasView: View {
                     statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 53)
                 }
             }
+        }
+    }
+    
+    // MARK: - Computed Properties
+    private func gridBackground(geometry: GeometryProxy) -> some View {
+        Rectangle()
+            .fill(Color(red: 0.149, green: 0.149, blue: 0.149))
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .overlay(
+                Canvas { context, size in
+                    let gridSize: CGFloat = 20
+                    let maxLines = max(Int(size.width / gridSize), Int(size.height / gridSize)) + 10
+                    
+                    for i in 0..<maxLines {
+                        // Vertical lines - extend beyond visible area
+                        let x = CGFloat(i) * gridSize
+                        context.stroke(
+                            Path(CGRect(x: x, y: -100, width: 0, height: size.height + 200)),
+                            with: .color(.gray.opacity(0.2)),
+                            lineWidth: 0.5
+                        )
+                        
+                        // Horizontal lines - extend beyond visible area
+                        let y = CGFloat(i) * gridSize
+                        context.stroke(
+                            Path(CGRect(x: -100, y: y, width: size.width + 200, height: 0)),
+                            with: .color(.gray.opacity(0.2)),
+                            lineWidth: 0.5
+                        )
+                    }
+                }
+            )
+    }
+    
+    private func devicePreview(geometry: GeometryProxy) -> some View {
+        ZStack {
+            // Canvas background with tap gesture for deselection
+            Rectangle()
+                .fill(Color.clear)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // Deselect when clicking on canvas background
+                    selectedComponent = nil
+                }
+            
+            // Centered device frame
+            let deviceSize = selectedDevice.size
+            let screenCorner: CGFloat = selectedDevice == .mac ? 8 : 50
+            
+            ZStack {
+                // Screen area
+                ZStack {
+                    Rectangle()
+                        .fill(Color(red: 0.98, green: 0.98, blue: 0.99))
+                        .overlay(Color.black.opacity(0.01))
+                    
+                    // Components inside screen
+                    VStack(spacing: 0) {
+                        ForEach(canvasManager.components, id: \.id) { component in
+                            ComponentView(
+                                component: component,
+                                isSelected: selectedComponent?.id == component.id,
+                                onSelect: { selectedComponent = component },
+                                selectedDevice: selectedDevice,
+                                selectedComponent: selectedComponent,
+                                onSelectChild: { childComponent in
+                                    // Find the component in the hierarchy and select it
+                                    if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: canvasManager.components) {
+                                        selectedComponent = foundComponent
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.top, selectedDevice != .mac && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
+                    .clipped() // Prevent content from expanding beyond the screen bounds
+                    .onTapGesture {
+                        // Deselect when clicking empty space
+                        selectedComponent = nil
+                    }
+                    if selectedDevice != .mac {
+                        VStack {
+                            StatusBarView(
+                                deviceSize: deviceSize,
+                                isSelected: selectedComponent?.id == canvasManager.statusBarComponent?.id,
+                                colorScheme: colorScheme,
+                                onSelect: { 
+                                    if let statusBarComponent = canvasManager.statusBarComponent {
+                                        selectedComponent = statusBarComponent
+                                    }
+                                }
+                            )
+                            .background(statusBarHasBackground ? Color.black.opacity(0.8) : .clear)
+                            .zIndex(1000) // Ensure status bar is on top
+                            
+                            Spacer()
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: screenCorner, style: .continuous)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+                .padding(selectedDevice == .mac ? 8 : 16)
+            }
+            .frame(width: deviceSize.width, height: deviceSize.height)
+            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            .colorScheme(colorScheme ?? .light)
         }
     }
     
@@ -685,6 +761,7 @@ struct ComponentView: View {
 struct StatusBarView: View {
     let deviceSize: CGSize
     let isSelected: Bool
+    let colorScheme: ColorScheme?
     let onSelect: () -> Void
     @State private var currentTime = Date()
     
@@ -707,13 +784,23 @@ struct StatusBarView: View {
         }
     }
     
+    private var statusBarTextColor: Color {
+        // Use black for light mode, white for dark mode
+        if let scheme = colorScheme {
+            return scheme == .light ? .black : .white
+        } else {
+            // Auto mode - use system colors
+            return .primary
+        }
+    }
+    
     var body: some View {
         ZStack {
             HStack {
                 // Left side - Time
                 Text(timeString)
                     .font(.system(size: 15, weight: .semibold, design: .default))
-                    .foregroundColor(.primary)
+                    .foregroundColor(statusBarTextColor)
                     .frame(width: 109)
 
                 Spacer()
@@ -723,17 +810,17 @@ struct StatusBarView: View {
                     // Signal bars - aligned to bottom
                     Image(systemName: "cellularbars")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.primary)
+                        .foregroundColor(statusBarTextColor)
                     
                     // WiFi icon - aligned to bottom
                     Image(systemName: "wifi")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.primary)
+                        .foregroundColor(statusBarTextColor)
                     
                     // Battery - aligned to bottom
                     Image(systemName: "battery.100")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.primary)
+                        .foregroundColor(statusBarTextColor)
                 }
                 .frame(width: 109)
             }
@@ -759,5 +846,98 @@ struct StatusBarView: View {
                     .padding(.top, 5)
             }
         }
+    }
+}
+
+// MARK: - Resizable Panel Component
+struct ResizablePanel<Content: View>: View {
+    @Binding var width: CGFloat
+    let minWidth: CGFloat
+    let maxWidth: CGFloat
+    @Binding var isVisible: Bool
+    let content: Content
+    let handlePosition: HandlePosition
+    
+    @State private var isDragging = false
+    
+    enum HandlePosition {
+        case left, right
+    }
+    
+    init(
+        width: Binding<CGFloat>,
+        minWidth: CGFloat,
+        maxWidth: CGFloat,
+        isVisible: Binding<Bool>,
+        handlePosition: HandlePosition = .right,
+        @ViewBuilder content: () -> Content
+    ) {
+        self._width = width
+        self.minWidth = minWidth
+        self.maxWidth = maxWidth
+        self._isVisible = isVisible
+        self.handlePosition = handlePosition
+        self.content = content()
+    }
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            // Handle on left for Properties panel
+            if handlePosition == .left {
+                resizeHandle
+            }
+            
+            // Panel content
+            content
+                .frame(width: width)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 4)
+            
+            // Handle on right for Layers panel
+            if handlePosition == .right {
+                resizeHandle
+            }
+        }
+        .frame(maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(red: 0.121, green: 0.121, blue: 0.121))
+                .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+    
+    private var resizeHandle: some View {
+        Rectangle()
+            .fill(Color.secondary.opacity(0.3))
+            .frame(width: 4)
+            .frame(maxHeight: .infinity)
+            .onHover { hovering in
+                #if os(macOS)
+                if hovering {
+                    NSCursor.resizeLeftRight.push()
+                } else {
+                    NSCursor.pop()
+                }
+                #endif
+            }
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                isDragging = true
+                                let translation = handlePosition == .left ? -value.translation.width : value.translation.width
+                                let newWidth = width + translation
+                                // Clamp between minWidth and maxWidth
+                                let clampedWidth = max(minWidth, min(maxWidth, newWidth))
+                                width = clampedWidth
+                            }
+                            .onEnded { _ in
+                                isDragging = false
+                            }
+                    )
     }
 }
