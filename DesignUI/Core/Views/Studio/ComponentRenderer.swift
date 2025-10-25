@@ -14,6 +14,8 @@ struct ComponentRenderer: View {
     let onSelectChild: ((UIComponent) -> Void)?
     let selectedComponent: UIComponent?
     @State private var isHovered: Bool = false
+    @State private var forceRefresh: Int = 0
+    @State private var hasAppliedModifiers: Bool = false
     
     init(component: UIComponent, deviceSize: CGSize? = nil, onTap: (() -> Void)? = nil, onSelectChild: ((UIComponent) -> Void)? = nil, selectedComponent: UIComponent? = nil) {
         self.component = component
@@ -25,6 +27,8 @@ struct ComponentRenderer: View {
     
     var body: some View {
         Group {
+            let _ = print("🎨 ComponentRenderer body called for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+            let _ = print("🎨 ComponentRenderer forceRefresh: \(forceRefresh)")
             switch component.type {
             case .text:
                 renderText()
@@ -63,6 +67,28 @@ struct ComponentRenderer: View {
         .opacity(component.isVisible ? 1.0 : 0.0)
         .applyModifiers(component.modifiers)
         .contentShape(Rectangle())
+        .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))-\(forceRefresh)")
+        .onChange(of: component.modifiers) { _, _ in
+            print("🎨 ComponentRenderer: Modifiers changed for \(component.type.rawValue)")
+        }
+        .onAppear {
+            print("🎨 ComponentRenderer: Appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+            hasAppliedModifiers = true
+            print("🎨 ComponentRenderer: hasAppliedModifiers set to true")
+            // Force refresh to ensure modifiers are applied
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                forceRefresh += 1
+                print("🎨 ComponentRenderer: Force refresh triggered for \(component.type.rawValue)")
+            }
+            // Also try immediate refresh
+            DispatchQueue.main.async {
+                forceRefresh += 1
+                print("🎨 ComponentRenderer: Immediate force refresh for \(component.type.rawValue)")
+            }
+        }
+        .onChange(of: forceRefresh) { _, _ in
+            print("🎨 ComponentRenderer: forceRefresh changed to \(forceRefresh)")
+        }
         .overlay(
             // Selection and hover overlays for child components
             Group {
@@ -473,7 +499,9 @@ private extension View {
     func applyModifiers(_ modifiers: [ComponentModifier]) -> some View {
         var view = AnyView(self)
         
-        for modifier in modifiers {
+        print("🎨 Applying \(modifiers.count) modifiers to component")
+        for (index, modifier) in modifiers.enumerated() {
+            print("🎨   - Modifier \(index): \(modifier.type.rawValue) with properties: \(modifier.properties)")
             view = AnyView(applyModifier(modifier, to: view))
         }
         
@@ -515,132 +543,63 @@ private extension View {
             return modifiedView
             
         case .padding:
-            let amount = modifier.properties["amount"] as? CGFloat ?? 0
+            let amount: CGFloat
+            if let cgFloatAmount = modifier.properties["amount"] as? CGFloat {
+                amount = cgFloatAmount
+            } else if let doubleAmount = modifier.properties["amount"] as? Double {
+                amount = CGFloat(doubleAmount)
+            } else if let intAmount = modifier.properties["amount"] as? Int {
+                amount = CGFloat(intAmount)
+            } else {
+                amount = 0
+                print("⚠️ Could not cast amount to CGFloat, raw value: \(modifier.properties["amount"] ?? "nil")")
+            }
             let location = modifier.properties["location"] as? String ?? "all"
             print("📏 Applying padding modifier: amount=\(amount), location=\(location)")
             
+            let result: AnyView
             switch location {
             case "all":
-                return AnyView(view.padding(amount))
+                result = AnyView(view.padding(amount))
             case "leading":
-                return AnyView(view.padding(.leading, amount))
+                result = AnyView(view.padding(.leading, amount))
             case "trailing":
-                return AnyView(view.padding(.trailing, amount))
+                result = AnyView(view.padding(.trailing, amount))
             case "top":
-                return AnyView(view.padding(.top, amount))
+                result = AnyView(view.padding(.top, amount))
             case "bottom":
-                return AnyView(view.padding(.bottom, amount))
+                result = AnyView(view.padding(.bottom, amount))
             case "horizontal":
-                return AnyView(view.padding(.horizontal, amount))
+                result = AnyView(view.padding(.horizontal, amount))
             case "vertical":
-                return AnyView(view.padding(.vertical, amount))
+                result = AnyView(view.padding(.vertical, amount))
             default:
-                return AnyView(view.padding(amount))
+                result = AnyView(view.padding(amount))
             }
+            print("📏 Applied padding: \(location) with amount \(amount)")
+            return result
             
         case .background:
             let color = modifier.properties["color"] as? Color ?? Color.clear
             print("🎨 Applying background modifier with color: \(color)")
             return AnyView(view.background(color))
             
-        case .overlay:
-            let overlayType = modifier.properties["type"] as? String ?? "color"
-            
-            switch overlayType {
-            case "color":
-                let color = modifier.properties["color"] as? Color ?? Color.clear
-                return AnyView(view.overlay(
-                    Rectangle()
-                        .fill(color)
-                ))
-                
-            case "text":
-                let text = modifier.properties["text"] as? String ?? "Overlay"
-                let position = modifier.properties["position"] as? String ?? "topTrailing"
-                let alignment: Alignment = {
-                    switch position {
-                    case "topLeading": return .topLeading
-                    case "top": return .top
-                    case "topTrailing": return .topTrailing
-                    case "leading": return .leading
-                    case "center": return .center
-                    case "trailing": return .trailing
-                    case "bottomLeading": return .bottomLeading
-                    case "bottom": return .bottom
-                    case "bottomTrailing": return .bottomTrailing
-                    default: return .center
-                    }
-                }()
-                return AnyView(view.overlay(
-                    Text(text)
-                        .font(.caption)
-                        .padding(4)
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(4),
-                    alignment: alignment
-                ))
-                
-            case "icon":
-                let iconName = modifier.properties["iconName"] as? String ?? "star.fill"
-                let position = modifier.properties["position"] as? String ?? "topTrailing"
-                let alignment: Alignment = {
-                    switch position {
-                    case "topLeading": return .topLeading
-                    case "top": return .top
-                    case "topTrailing": return .topTrailing
-                    case "leading": return .leading
-                    case "center": return .center
-                    case "trailing": return .trailing
-                    case "bottomLeading": return .bottomLeading
-                    case "bottom": return .bottom
-                    case "bottomTrailing": return .bottomTrailing
-                    default: return .center
-                    }
-                }()
-                return AnyView(view.overlay(
-                    Image(systemName: iconName)
-                        .font(.caption)
-                        .padding(4)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(4),
-                    alignment: alignment
-                ))
-                
-            default:
-                return view
-            }
-            
         case .foregroundColor:
             let color = modifier.properties["color"] as? Color ?? Color.primary
             return AnyView(view.foregroundColor(color))
             
-        case .font:
-            let style = modifier.properties["style"] as? String ?? "body"
-            let size = modifier.properties["size"] as? CGFloat ?? 16
-            let weight = modifier.properties["weight"] as? String ?? "regular"
-            
-            let font: Font
-            switch style {
-            case "largeTitle": font = .largeTitle
-            case "title": font = .title
-            case "title2": font = .title2
-            case "title3": font = .title3
-            case "headline": font = .headline
-            case "body": font = .body
-            case "callout": font = .callout
-            case "subheadline": font = .subheadline
-            case "footnote": font = .footnote
-            case "caption": font = .caption
-            case "caption2": font = .caption2
-            default: font = .system(size: size, weight: fontWeightFromString(weight))
-            }
-            
-            return AnyView(view.font(font))
-            
         case .cornerRadius:
-            let radius = modifier.properties["radius"] as? CGFloat ?? 0
+            let radius: CGFloat
+            if let cgFloatRadius = modifier.properties["radius"] as? CGFloat {
+                radius = cgFloatRadius
+            } else if let doubleRadius = modifier.properties["radius"] as? Double {
+                radius = CGFloat(doubleRadius)
+            } else if let intRadius = modifier.properties["radius"] as? Int {
+                radius = CGFloat(intRadius)
+            } else {
+                radius = 0
+                print("⚠️ Could not cast radius to CGFloat, raw value: \(modifier.properties["radius"] ?? "nil")")
+            }
             return AnyView(view.cornerRadius(radius))
             
         case .shadow:

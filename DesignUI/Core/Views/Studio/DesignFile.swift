@@ -82,6 +82,20 @@ class DesignFile: ObservableObject, Identifiable {
             decoder.dateDecodingStrategy = .iso8601
             let designData = try decoder.decode(DesignFileData.self, from: data)
             
+            print("📂 Loading design: \(designData.name)")
+            print("📂 Components count: \(designData.components.count)")
+            
+            // Debug: Print loaded component properties and modifiers
+            for (index, component) in designData.components.enumerated() {
+                print("📂 Component \(index): \(component.type.rawValue) with \(component.properties.count) properties and \(component.modifiers.count) modifiers")
+                for property in component.properties {
+                    print("📂   - Property \(property.key): \(property.value) (type: \(property.type))")
+                }
+                for (modIndex, modifier) in component.modifiers.enumerated() {
+                    print("📂   - Modifier \(modIndex): \(modifier.type.rawValue) with properties: \(modifier.properties)")
+                }
+            }
+            
             let designFile = DesignFile(name: designData.name, components: designData.components, fileURL: url)
             designFile.lastModified = designData.lastModified
             return designFile

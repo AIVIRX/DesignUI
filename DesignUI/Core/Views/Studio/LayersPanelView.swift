@@ -261,7 +261,6 @@ private struct OutlineRow: View {
                 .onTapGesture { selectedComponent = component }
                 .onHover { isHovered = $0 }
                 .onDrag { dragAction }
-                .help(component.children.isEmpty ? "Drag to reorder" : "Drag to reorder or drop inside to make child")
                 .onDrop(of: [UTType.plainText], delegate: dropDelegate)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
@@ -314,7 +313,7 @@ private struct OutlineRow: View {
     private var componentName: some View {
         Text(componentDisplayName(component))
             .font(.system(size: 13, weight: level == 0 ? .semibold : .medium))
-            .foregroundColor((selectedComponent?.id == component.id) ? .white : .primary)
+            .foregroundColor((selectedComponent?.id == component.id) ? .primary : .secondary)
             .lineLimit(1)
     }
     

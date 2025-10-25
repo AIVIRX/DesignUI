@@ -432,7 +432,7 @@ struct CodeGenerator {
         
         // Only generate frame if we have at least one dimension
         if !frameParts.isEmpty {
-            return "\(indent).frame(\(frameParts.joined(separator: ", ")))"
+            return "\(nextIndent).frame(\(frameParts.joined(separator: ", ")))"
         } else {
             return "" // No frame modifier applied
         }
@@ -444,42 +444,42 @@ struct CodeGenerator {
         
         switch location {
         case "all":
-            return "\(indent).padding(\(amount))"
+            return "\(nextIndent).padding(\(amount))"
         case "leading":
-            return "\(indent).padding(.leading, \(amount))"
+            return "\(nextIndent).padding(.leading, \(amount))"
         case "trailing":
-            return "\(indent).padding(.trailing, \(amount))"
+            return "\(nextIndent).padding(.trailing, \(amount))"
         case "top":
-            return "\(indent).padding(.top, \(amount))"
+            return "\(nextIndent).padding(.top, \(amount))"
         case "bottom":
-            return "\(indent).padding(.bottom, \(amount))"
+            return "\(nextIndent).padding(.bottom, \(amount))"
         case "horizontal":
-            return "\(indent).padding(.horizontal, \(amount))"
+            return "\(nextIndent).padding(.horizontal, \(amount))"
         case "vertical":
-            return "\(indent).padding(.vertical, \(amount))"
+            return "\(nextIndent).padding(.vertical, \(amount))"
         default:
-            return "\(indent).padding(\(amount))"
+            return "\(nextIndent).padding(\(amount))"
         }
     }
     
     private static func generateBackgroundModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let color = modifier.properties["color"] as? Color ?? Color.clear
-        return "\(indent).background(\(colorToString(color)))"
+        return "\(nextIndent).background(\(colorToString(color)))"
     }
     
     private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let color = modifier.properties["color"] as? Color ?? Color.primary
-        return "\(indent).foregroundColor(\(colorToString(color)))"
+        return "\(nextIndent).foregroundColor(\(colorToString(color)))"
     }
     
     private static func generateCornerRadiusModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let radius = modifier.properties["radius"] as? CGFloat ?? 8
-        return "\(indent).cornerRadius(\(radius))"
+        return "\(nextIndent).cornerRadius(\(radius))"
     }
     
     private static func generateOpacityModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let opacity = modifier.properties["opacity"] as? Double ?? 1.0
-        return "\(indent).opacity(\(opacity))"
+        return "\(nextIndent).opacity(\(opacity))"
     }
     
     // MARK: - Helper Functions

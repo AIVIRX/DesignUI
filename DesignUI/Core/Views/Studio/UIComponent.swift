@@ -437,12 +437,18 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         modifiers.append(modifier)
         objectWillChange.send()
         print("🔄 Modifier added: \(modifier.type.rawValue)")
+        
+        // Post notification to trigger design file saving
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func removeModifier(_ modifier: ComponentModifier) {
         modifiers.removeAll { $0.id == modifier.id }
         objectWillChange.send()
         print("🔄 Modifier removed: \(modifier.type.rawValue)")
+        
+        // Post notification to trigger design file saving
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func removeModifier(at index: Int) {
@@ -457,7 +463,12 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         if let index = modifiers.firstIndex(where: { $0.id == modifier.id }) {
             modifiers[index] = modifier
             objectWillChange.send()
-            print("🔄 Modifier updated: \(modifier.type.rawValue)")
+            print("🔄 Modifier updated: \(modifier.type.rawValue) with properties: \(modifier.properties)")
+            
+            // Post notification to trigger design file saving
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        } else {
+            print("⚠️ Modifier not found for update: \(modifier.id)")
         }
     }
     
@@ -465,6 +476,9 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         modifiers.move(fromOffsets: source, toOffset: destination)
         objectWillChange.send()
         print("🔄 Modifiers reordered")
+        
+        // Post notification to trigger design file saving
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     // MARK: - Code Generation

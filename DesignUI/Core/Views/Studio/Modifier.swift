@@ -15,9 +15,7 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
     case frame = "Frame"
     case padding = "Padding"
     case background = "Background"
-    case overlay = "Overlay"
     case foregroundColor = "Foreground Color"
-    case font = "Font"
     case cornerRadius = "Corner Radius"
     case shadow = "Shadow"
     case opacity = "Opacity"
@@ -38,12 +36,8 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "Adds padding to one or more sides"
         case .background:
             return "Adds elements behind"
-        case .overlay:
-            return "Adds elements on top"
         case .foregroundColor:
             return "Changes text and icon color"
-        case .font:
-            return "Changes text font and size"
         case .cornerRadius:
             return "Rounds the corners"
         case .shadow:
@@ -73,12 +67,8 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "rectangle.inset.filled"
         case .background:
             return "square.stack.3d.down.right"
-        case .overlay:
-            return "square.stack.3d.up"
         case .foregroundColor:
             return "paintbrush"
-        case .font:
-            return "textformat"
         case .cornerRadius:
             return "rectangle.roundedtop"
         case .shadow:
@@ -170,20 +160,6 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             defaultProperties = [
                 "color": Color.primary
             ]
-        case .font:
-            defaultProperties = [
-                "style": "body",
-                "size": CGFloat(16),
-                "weight": "regular"
-            ]
-        case .overlay:
-            defaultProperties = [
-                "type": "color",
-                "color": Color.clear,
-                "text": "Overlay",
-                "position": "topTrailing",
-                "iconName": "star.fill"
-            ]
         case .clipShape:
             defaultProperties = [
                 "shape": "Rectangle"
@@ -214,6 +190,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         self.properties = propertiesDict.mapValues { $0.value }
         
         print("🔧 ComponentModifier decoded properties: \(properties)")
+        print("🔧 ComponentModifier decoded properties types: \(properties.mapValues { Swift.type(of: $0) })")
     }
     
     func encode(to encoder: Encoder) throws {

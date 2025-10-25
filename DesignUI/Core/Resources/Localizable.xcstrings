@@ -516,12 +516,6 @@
     "%lld components" : {
 
     },
-    "%lld%%" : {
-
-    },
-    "%lld°" : {
-
-    },
     "•" : {
       "localizations" : {
         "ar" : {
@@ -775,10 +769,28 @@
     "0" : {
 
     },
+    "0.3" : {
+
+    },
+    "1.0" : {
+
+    },
+    "2" : {
+
+    },
+    "4" : {
+
+    },
     "8" : {
 
     },
+    "9:41" : {
+
+    },
     "10" : {
+
+    },
+    "17" : {
 
     },
     "100" : {
@@ -794,6 +806,9 @@
 
     },
     "Amount" : {
+
+    },
+    "Angle (degrees)" : {
 
     },
     "Appearance" : {
@@ -1302,13 +1317,13 @@
         }
       }
     },
-    "Auto" : {
-
-    },
     "Background Color" : {
 
     },
     "Blur" : {
+
+    },
+    "Blur Radius" : {
 
     },
     "Bottom" : {
@@ -1571,6 +1586,9 @@
       }
     },
     "Center" : {
+
+    },
+    "Choose %@" : {
 
     },
     "Choose a device preset" : {
@@ -2654,12 +2672,6 @@
     "Drag components from the library to start building" : {
 
     },
-    "Drag to reorder" : {
-
-    },
-    "Drag to reorder or drop inside to make child" : {
-
-    },
     "Duplicate" : {
 
     },
@@ -3169,7 +3181,10 @@
     "Font" : {
 
     },
-    "Font Style" : {
+    "Font Name" : {
+
+    },
+    "Font Size" : {
 
     },
     "Font Weight" : {
@@ -3194,9 +3209,6 @@
 
     },
     "Hello, World!" : {
-
-    },
-    "Icon" : {
 
     },
     "Introducing" : {
@@ -3734,10 +3746,13 @@
     "Mask" : {
 
     },
+    "Mask Type" : {
+
+    },
     "Modified %@" : {
 
     },
-    "MODIFIERS" : {
+    "Modifiers" : {
 
     },
     "New Design" : {
@@ -4761,6 +4776,12 @@
     "Offset" : {
 
     },
+    "Offset X" : {
+
+    },
+    "Offset Y" : {
+
+    },
     "OK" : {
       "localizations" : {
         "ar" : {
@@ -5018,6 +5039,9 @@
 
     },
     "Overlay" : {
+
+    },
+    "Overlay Color" : {
 
     },
     "Overlay Text" : {
@@ -5782,9 +5806,6 @@
     "Properties" : {
 
     },
-    "px" : {
-
-    },
     "Radius" : {
 
     },
@@ -6051,6 +6072,12 @@
 
     },
     "Scale" : {
+
+    },
+    "Scale X" : {
+
+    },
+    "Scale Y" : {
 
     },
     "Search components..." : {
@@ -7324,10 +7351,7 @@
     "Shadow" : {
 
     },
-    "Shadow Color" : {
-
-    },
-    "Shape" : {
+    "Shape Type" : {
 
     },
     "Share" : {
@@ -8352,9 +8376,6 @@
       }
     },
     "SwiftUI Builder" : {
-
-    },
-    "system.icon.name" : {
 
     },
     "Tap on a component in the canvas to edit its properties" : {
@@ -9394,18 +9415,6 @@
 
     },
     "Width Type" : {
-
-    },
-    "X Offset" : {
-
-    },
-    "X Scale" : {
-
-    },
-    "Y Offset" : {
-
-    },
-    "Y Scale" : {
 
     },
     "You need to be signed in to like a design." : {

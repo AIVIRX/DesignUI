@@ -16,8 +16,8 @@ struct ModifierPanelView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack {
-                Text("MODIFIERS")
-                    .font(.caption)
+                Text("Modifiers")
+                    .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
                 
@@ -43,18 +43,17 @@ struct ModifierPanelView: View {
                 Text("No modifiers applied")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 100, alignment: .center)
                     .padding(.vertical, 20)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.secondary.opacity(0.1).opacity(0.5))
+                            .fill(Color.secondary.opacity(0.1))
                     )
-                    .padding(.horizontal, 8)
             } else {
                 ModifierReorderableList(component: component)
             }
         }
-        .background(Color.secondary.opacity(0.1))
         .sheet(isPresented: $showingAddModifier) {
             AddModifierView(component: component)
         }
@@ -66,6 +65,7 @@ struct ModifierReorderableList: View {
     @State private var dragOverTarget: UUID?
     @State private var dragOverPosition: ModifierDropPosition = .none
     @State private var draggingId: UUID?
+    @State private var cleanupTimer: Timer?
     
     enum ModifierDropPosition { case none, above, below }
     
@@ -90,11 +90,24 @@ struct ModifierReorderableList: View {
         }
         .onChange(of: draggingId) { _, newValue in
             if newValue == nil {
+                cleanupTimer?.invalidate()
                 withAnimation(.easeOut(duration: 0.2)) {
                     dragOverTarget = nil
                     dragOverPosition = .none
                 }
+            } else {
+                // Start cleanup timer when dragging starts
+                cleanupTimer?.invalidate()
+                cleanupTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        dragOverTarget = nil
+                        dragOverPosition = .none
+                    }
+                }
             }
+        }
+        .onDisappear {
+            cleanupTimer?.invalidate()
         }
     }
 }
@@ -247,15 +260,23 @@ struct ModifierDropDelegate: DropDelegate {
     
     func dropExited(info: DropInfo) {
         if dragOverTarget == target.id {
-            dragOverTarget = nil
-            dragOverPosition = .none
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    dragOverTarget = nil
+                    dragOverPosition = .none
+                }
+            }
         }
     }
     
     func dropEnded(info: DropInfo) {
-        dragOverTarget = nil
-        dragOverPosition = .none
-        draggingId = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.easeOut(duration: 0.2)) {
+                dragOverTarget = nil
+                dragOverPosition = .none
+                draggingId = nil
+            }
+        }
     }
     
     private func updatePosition(info: DropInfo) {
@@ -270,9 +291,13 @@ struct ModifierDropDelegate: DropDelegate {
     }
     
     private func cleanup() {
-        draggingId = nil
-        dragOverTarget = nil
-        dragOverPosition = .none
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.easeOut(duration: 0.2)) {
+                draggingId = nil
+                dragOverTarget = nil
+                dragOverPosition = .none
+            }
+        }
     }
     
     private func findModifierIndex(id: UUID) -> Int? {

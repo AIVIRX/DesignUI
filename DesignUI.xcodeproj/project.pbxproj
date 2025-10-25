@@ -22,6 +22,20 @@
 		EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A12D57F4A600633392 /* LikedPostsView.swift */; };
 		EC5982A42D57F54000633392 /* GridColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A32D57F54000633392 /* GridColumns.swift */; };
 		EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */; };
+		EC6059462EAC69E100FF542B /* CanvasControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059432EAC69E100FF542B /* CanvasControlsOverlay.swift */; };
+		EC6059472EAC69E100FF542B /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059452EAC69E100FF542B /* StatusBarView.swift */; };
+		EC6059482EAC69E100FF542B /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059442EAC69E100FF542B /* CanvasView.swift */; };
+		EC6059552EAC6D0400FF542B /* OverlayModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059502EAC6D0400FF542B /* OverlayModifierEditor.swift */; };
+		EC6059562EAC6D0400FF542B /* BackgroundModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059492EAC6D0400FF542B /* BackgroundModifierEditor.swift */; };
+		EC6059572EAC6D0400FF542B /* ColorModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594A2EAC6D0400FF542B /* ColorModifierEditor.swift */; };
+		EC6059582EAC6D0400FF542B /* EffectModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594C2EAC6D0400FF542B /* EffectModifierEditors.swift */; };
+		EC6059592EAC6D0400FF542B /* FontModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594D2EAC6D0400FF542B /* FontModifierEditor.swift */; };
+		EC60595A2EAC6D0400FF542B /* ShadowModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059522EAC6D0400FF542B /* ShadowModifierEditor.swift */; };
+		EC60595B2EAC6D0400FF542B /* OpacityModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594F2EAC6D0400FF542B /* OpacityModifierEditor.swift */; };
+		EC60595C2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594B2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift */; };
+		EC60595D2EAC6D0400FF542B /* FrameModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594E2EAC6D0400FF542B /* FrameModifierEditor.swift */; };
+		EC60595E2EAC6D0400FF542B /* TransformModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059532EAC6D0400FF542B /* TransformModifierEditors.swift */; };
+		EC60595F2EAC6D0400FF542B /* PaddingModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059512EAC6D0400FF542B /* PaddingModifierEditor.swift */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
@@ -95,6 +109,20 @@
 		EC5982A12D57F4A600633392 /* LikedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsView.swift; sourceTree = "<group>"; };
 		EC5982A32D57F54000633392 /* GridColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridColumns.swift; sourceTree = "<group>"; };
 		EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsViewModel.swift; sourceTree = "<group>"; };
+		EC6059432EAC69E100FF542B /* CanvasControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasControlsOverlay.swift; sourceTree = "<group>"; };
+		EC6059442EAC69E100FF542B /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		EC6059452EAC69E100FF542B /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
+		EC6059492EAC6D0400FF542B /* BackgroundModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundModifierEditor.swift; sourceTree = "<group>"; };
+		EC60594A2EAC6D0400FF542B /* ColorModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorModifierEditor.swift; sourceTree = "<group>"; };
+		EC60594B2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerRadiusModifierEditor.swift; sourceTree = "<group>"; };
+		EC60594C2EAC6D0400FF542B /* EffectModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectModifierEditors.swift; sourceTree = "<group>"; };
+		EC60594D2EAC6D0400FF542B /* FontModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontModifierEditor.swift; sourceTree = "<group>"; };
+		EC60594E2EAC6D0400FF542B /* FrameModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameModifierEditor.swift; sourceTree = "<group>"; };
+		EC60594F2EAC6D0400FF542B /* OpacityModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpacityModifierEditor.swift; sourceTree = "<group>"; };
+		EC6059502EAC6D0400FF542B /* OverlayModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayModifierEditor.swift; sourceTree = "<group>"; };
+		EC6059512EAC6D0400FF542B /* PaddingModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaddingModifierEditor.swift; sourceTree = "<group>"; };
+		EC6059522EAC6D0400FF542B /* ShadowModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowModifierEditor.swift; sourceTree = "<group>"; };
+		EC6059532EAC6D0400FF542B /* TransformModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformModifierEditors.swift; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -161,9 +189,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC6059542EAC6D0400FF542B /* ModifierEditors */ = {
+			isa = PBXGroup;
+			children = (
+				EC6059492EAC6D0400FF542B /* BackgroundModifierEditor.swift */,
+				EC60594A2EAC6D0400FF542B /* ColorModifierEditor.swift */,
+				EC60594B2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift */,
+				EC60594C2EAC6D0400FF542B /* EffectModifierEditors.swift */,
+				EC60594D2EAC6D0400FF542B /* FontModifierEditor.swift */,
+				EC60594E2EAC6D0400FF542B /* FrameModifierEditor.swift */,
+				EC60594F2EAC6D0400FF542B /* OpacityModifierEditor.swift */,
+				EC6059502EAC6D0400FF542B /* OverlayModifierEditor.swift */,
+				EC6059512EAC6D0400FF542B /* PaddingModifierEditor.swift */,
+				EC6059522EAC6D0400FF542B /* ShadowModifierEditor.swift */,
+				EC6059532EAC6D0400FF542B /* TransformModifierEditors.swift */,
+			);
+			path = ModifierEditors;
+			sourceTree = "<group>";
+		};
 		EC7F4AD72EA30B4C00A91B1D /* Studio */ = {
 			isa = PBXGroup;
 			children = (
+				EC6059542EAC6D0400FF542B /* ModifierEditors */,
+				EC6059432EAC69E100FF542B /* CanvasControlsOverlay.swift */,
+				EC6059442EAC69E100FF542B /* CanvasView.swift */,
+				EC6059452EAC69E100FF542B /* StatusBarView.swift */,
 				EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */,
 				EC7F4AD82EA30B8D00A91B1D /* CodePreviewView.swift */,
 				EC7F4AD92EA30B8D00A91B1D /* ComponentLibraryView.swift */,
@@ -488,6 +538,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC7F4AE42EA30B8D00A91B1D /* ModifierPanelView.swift in Sources */,
+				EC6059552EAC6D0400FF542B /* OverlayModifierEditor.swift in Sources */,
+				EC6059562EAC6D0400FF542B /* BackgroundModifierEditor.swift in Sources */,
+				EC6059572EAC6D0400FF542B /* ColorModifierEditor.swift in Sources */,
+				EC6059582EAC6D0400FF542B /* EffectModifierEditors.swift in Sources */,
+				EC6059592EAC6D0400FF542B /* FontModifierEditor.swift in Sources */,
+				EC60595A2EAC6D0400FF542B /* ShadowModifierEditor.swift in Sources */,
+				EC60595B2EAC6D0400FF542B /* OpacityModifierEditor.swift in Sources */,
+				EC60595C2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift in Sources */,
+				EC60595D2EAC6D0400FF542B /* FrameModifierEditor.swift in Sources */,
+				EC60595E2EAC6D0400FF542B /* TransformModifierEditors.swift in Sources */,
+				EC60595F2EAC6D0400FF542B /* PaddingModifierEditor.swift in Sources */,
 				EC7F4AE52EA30B8D00A91B1D /* UIBuilderView.swift in Sources */,
 				EC7F4AE62EA30B8D00A91B1D /* DesignFile.swift in Sources */,
 				EC7F4AE72EA30B8D00A91B1D /* ComponentLibraryView.swift in Sources */,
@@ -523,6 +584,9 @@
 				EC7F4AF32EA30DC500A91B1D /* CodeGenerator.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
+				EC6059462EAC69E100FF542B /* CanvasControlsOverlay.swift in Sources */,
+				EC6059472EAC69E100FF542B /* StatusBarView.swift in Sources */,
+				EC6059482EAC69E100FF542B /* CanvasView.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
@@ -704,7 +768,7 @@
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DesignUI;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Dock UI needs access to your Documents folder to save and load design files.";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -763,7 +827,7 @@
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DesignUI;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "Dock UI needs access to your Documents folder to save and load design files.";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

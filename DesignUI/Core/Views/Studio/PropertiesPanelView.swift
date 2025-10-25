@@ -23,11 +23,8 @@ struct PropertiesPanelView: View {
                         // Modifiers
                         ModifierPanelView(component: component)
                         
-                        // Duplicate Component Button
-                        DuplicateComponentSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
-                        
-                        // Delete Component Button
-                        DeleteComponentSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
+                        // Component Actions
+                        ComponentActionsSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
                     }.padding()
                 }
             } else {
@@ -77,7 +74,8 @@ struct PropertyEditor: View {
     @State private var numberValue: Double = 0.0
     @State private var showSFSymbolPicker: Bool = false
     @State private var isHovered: Bool = false
-    
+    @Environment(\.colorScheme) var colorScheme
+
     private let fontStyles = [
         "largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"
     ]
@@ -130,7 +128,17 @@ struct PropertyEditor: View {
                 } else {
                     TextField("Hello World", text: $textValue)
                         .font(.system(size: 13, weight: .medium))
-                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(colorScheme == .dark ? Color.black : Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                        .textFieldStyle(.plain)
                         .onAppear {
                             textValue = property.value as? String ?? ""
                         }
@@ -151,7 +159,7 @@ struct PropertyEditor: View {
             case .number:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
@@ -178,7 +186,7 @@ struct PropertyEditor: View {
             case .boolean:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
@@ -195,37 +203,45 @@ struct PropertyEditor: View {
                 }
                 
             case .color:
+                
                 ColorPopover(property: property, component: component)
                 
             case .font:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Picker("", selection: Binding(
-                        get: { component.getProperty(key: property.key) as? String ?? (property.key == "fontSize" ? "body" : "regular") },
-                        set: { newValue in
-                            DispatchQueue.main.async {
-                                component.setProperty(key: property.key, value: newValue)
+                    Menu {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Button(action: {
+                                DispatchQueue.main.async {
+                                    component.setProperty(key: property.key, value: option)
+                                }
+                            }) {
+                                Text(option.capitalized)
+                                    .foregroundColor(.primary)
                             }
                         }
-                    )) {
-                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
-                            Text(option.capitalized).tag(option)
+                    } label: {
+                        HStack {
+                            Text((component.getProperty(key: property.key) as? String ?? (property.key == "fontSize" ? "body" : "regular")).capitalized)
+                                .foregroundColor(.secondary)
+                                                        
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .pickerStyle(.menu)
-                    .foregroundStyle(.secondary)
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color(red: 0.21, green: 0.21, blue: 0.21) : Color.clear)
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
                 )
                 .onHover { hovering in
                     isHovered = hovering
@@ -235,7 +251,7 @@ struct PropertyEditor: View {
             case .alignment:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
@@ -259,7 +275,7 @@ struct PropertyEditor: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color(red: 0.21, green: 0.21, blue: 0.21) : Color.clear)
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
                 )
                 .onHover { hovering in
                     isHovered = hovering
@@ -269,7 +285,7 @@ struct PropertyEditor: View {
             case .segmentedControl:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
@@ -294,7 +310,7 @@ struct PropertyEditor: View {
             case .dropdown:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
@@ -311,7 +327,7 @@ struct PropertyEditor: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color(red: 0.21, green: 0.21, blue: 0.21) : Color.clear)
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
                 )
                 .onHover { hovering in
                     isHovered = hovering
@@ -326,7 +342,7 @@ struct PropertyEditor: View {
             case .spacing:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
@@ -348,7 +364,7 @@ struct PropertyEditor: View {
             case .cornerRadius:
                 HStack {
                     Text(displayName)
-                        .font(.caption)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Spacer()
@@ -397,7 +413,7 @@ struct ColorPopover: View {
     let property: ComponentProperty
     @ObservedObject var component: UIComponent
     @State private var isPresented = false
-    @State private var opacity: Double = 1.0
+    @State private var isHovered = false
     
     private var displayName: String {
         switch property.key {
@@ -412,7 +428,6 @@ struct ColorPopover: View {
         case "alignment": return "Alignment"
         case "spacing": return "Spacing"
         case "padding": return "Padding"
-        case "opacity": return "Opacity"
         case "rotation": return "Rotation"
         case "scale": return "Scale"
         case "offset": return "Offset"
@@ -427,7 +442,7 @@ struct ColorPopover: View {
     }
     
     private let swiftUIColors: [(String, Color)] = [
-        ("Primary", .primary),
+        ("Primary", Color.black),
         ("Secondary", .secondary),
         ("Tertiary", .primary.opacity(0.6)),
         ("Quaternary", .primary.opacity(0.3)),
@@ -457,7 +472,7 @@ struct ColorPopover: View {
     var body: some View {
         HStack {
             Text(displayName)
-                .font(.caption)
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.secondary)
             
             Spacer()
@@ -484,7 +499,15 @@ struct ColorPopover: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+        )
+        .onHover { hovering in
+            isHovered = hovering
+        }
         .contentShape(Rectangle())
         .popover(isPresented: $isPresented) {
             VStack(alignment: .leading, spacing: 12) {
@@ -492,46 +515,61 @@ struct ColorPopover: View {
                     .font(.headline)
                     .padding(.bottom, 4)
                 
-                    // Opacity Text Field
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Opacity")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        HStack {
-                            TextField("100", value: $opacity, formatter: NumberFormatter())
-                                .textFieldStyle(.roundedBorder)
-                                .onSubmit {
-                                    updateColorWithOpacity(opacity)
-                                }
-                            
-                            Text("%")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                .padding(.bottom, 8)
-                
-                Divider()
-                
                 // Color Grid
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                     ForEach(swiftUIColors, id: \.0) { colorName, color in
                               Button(action: {
                                   DispatchQueue.main.async {
-                                      let colorWithOpacity = color.opacity(opacity)
-                                      component.setProperty(key: property.key, value: colorWithOpacity)
+                                      component.setProperty(key: property.key, value: color)
                                   }
                                   isPresented = false
                               }) {
                             VStack(spacing: 4) {
-                                Circle()
-                                    .fill(color.opacity(opacity))
-                                    .frame(width: 32, height: 32)
+                                Group {
+                                    if colorName == "Primary" {
+                                        // Split circle for Primary color
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.black)
+                                                .frame(width: 32, height: 32)
+                                            
+                                            Circle()
+                                                .fill(Color.white)
+                                                .frame(width: 32, height: 32)
+                                                .mask(
+                                                    Rectangle()
+                                                        .frame(width: 16, height: 32)
+                                                        .offset(x: 8)
+                                                )
+                                        }
+                                    } else if colorName == "Clear" {
+                                        // Special visual for Clear color
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.gray.opacity(0.1))
+                                                .frame(width: 32, height: 32)
+                                            
+                                            Circle()
+                                                .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                                                .frame(width: 32, height: 32)
+                                            
+                                            // Diagonal line to indicate "no color"
+                                            Rectangle()
+                                                .fill(Color.red)
+                                                .frame(width: 2, height: 20)
+                                                .rotationEffect(.degrees(45))
+                                        }
+                                    } else {
+                                        Circle()
+                                            .fill(color)
+                                            .frame(width: 32, height: 32)
+                                    }
+                                }
                                     .overlay(
                                         Circle()
                                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                                     )
+                                    .contentShape(Circle())
                                     .overlay(
                                         Group {
                                             if isSelected(color) {
@@ -554,18 +592,11 @@ struct ColorPopover: View {
             }
             .padding()
             .frame(width: 220)
-            .onAppear {
-                // Initialize opacity from current color
-                if component.getProperty(key: property.key) as? Color != nil {
-                    // For now, default to full opacity since extracting opacity from Color is complex
-                    opacity = 1.0
-                }
-            }
         }
     }
     
     private func colorName(for color: Color) -> String {
-        return swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+        return swiftUIColors.first { $0.1 == color }?.0 ?? "Primary"
     }
     
     private func isSelected(_ color: Color) -> Bool {
@@ -582,37 +613,45 @@ struct ColorPopover: View {
         return currentColorName == targetColorName && currentColorName != "Custom"
     }
     
-    private func updateColorWithOpacity(_ newOpacity: Double) {
-        // Get the current color and apply the new opacity
-        if let currentColor = component.getProperty(key: property.key) as? Color {
-            // Find the base color without opacity
-            let baseColor = findBaseColor(for: currentColor)
-            let colorWithOpacity = baseColor.opacity(newOpacity)
-            component.setProperty(key: property.key, value: colorWithOpacity)
-        }
-    }
-    
-    private func findBaseColor(for color: Color) -> Color {
-        // Try to find the base color by comparing with known colors
-        for (_, baseColor) in swiftUIColors {
-            if color == baseColor {
-                return baseColor
-            }
-        }
-        // If no match found, return the color as-is
-        return color
-    }
 }
 
-// MARK: - Delete Component Section
-struct DeleteComponentSection: View {
-    let component: UIComponent
+// MARK: - Component Actions Section
+struct ComponentActionsSection: View {
+    @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
     @State private var showDeleteAlert = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Text("Actions")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+            
+            // Duplicate Button
+            Button(action: duplicateComponent) {
+                HStack {
+                    Text("Duplicate")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.blue)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.blue)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.1))
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Delete Button
             Button(action: {
                 showDeleteAlert = true
             }) {
@@ -631,8 +670,7 @@ struct DeleteComponentSection: View {
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 0.17, green: 0.17, blue: 0.18)) // #2C2C2E
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+                        .fill(Color.secondary.opacity(0.1))
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -653,43 +691,6 @@ struct DeleteComponentSection: View {
         
         // Clear the selection
         selectedComponent = nil
-    }
-}
-
-struct DuplicateComponentSection: View {
-    @ObservedObject var component: UIComponent
-    @ObservedObject var canvasManager: CanvasManager
-    @Binding var selectedComponent: UIComponent?
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Actions")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
-            
-            Button(action: duplicateComponent) {
-                HStack {
-                    Text("Duplicate")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.blue)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "doc.on.doc")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.blue)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 0.17, green: 0.17, blue: 0.18)) // #2C2C2E
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
     }
     
     private func duplicateComponent() {

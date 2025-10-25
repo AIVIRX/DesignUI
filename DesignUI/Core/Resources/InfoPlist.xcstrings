@@ -519,18 +519,6 @@
     },
     "Dock UI Document" : {
 
-    },
-    "NSDocumentsFolderUsageDescription" : {
-      "comment" : "Privacy - Documents Folder Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Dock UI needs access to your Documents folder to save and load design files."
-          }
-        }
-      }
     }
   },
   "version" : "1.0"
