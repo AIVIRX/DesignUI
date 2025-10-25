@@ -510,8 +510,24 @@
         }
       }
     },
+    "%@ Size" : {
+
+    },
+    "%@ Widget" : {
+
+    },
     "%lld" : {
       "shouldTranslate" : false
+    },
+    "%lld × %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld × %2$lld"
+          }
+        }
+      }
     },
     "%lld components" : {
 
@@ -1585,6 +1601,9 @@
         }
       }
     },
+    "Capture and catalogue your trips, adventures, and more." : {
+
+    },
     "Center" : {
 
     },
@@ -1878,6 +1897,9 @@
 
     },
     "Create" : {
+
+    },
+    "Create an account to save your trips and share planning with friends." : {
 
     },
     "Create New Design" : {
@@ -3206,9 +3228,6 @@
 
     },
     "Hello World" : {
-
-    },
-    "Hello, World!" : {
 
     },
     "Introducing" : {
@@ -7863,6 +7882,9 @@
     "Sign in to sync favorites and access exclusive features." : {
       "shouldTranslate" : false
     },
+    "Sign In With Apple" : {
+
+    },
     "Sign Out" : {
       "localizations" : {
         "ar" : {
@@ -8902,6 +8924,9 @@
     "Trailing" : {
 
     },
+    "Travel Pro" : {
+
+    },
     "Type" : {
 
     },
@@ -9409,6 +9434,15 @@
       }
     },
     "Weight" : {
+
+    },
+    "Widget Builder" : {
+
+    },
+    "Widget Preview" : {
+
+    },
+    "Widget Size" : {
 
     },
     "Width" : {

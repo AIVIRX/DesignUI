@@ -59,6 +59,8 @@
 		EC7F4AF12EA30C6700A91B1D /* CanvasManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */; };
 		EC7F4AF32EA30DC500A91B1D /* CodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
+		EC9247322EAD930D009469BF /* WidgetBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9247312EAD930D009469BF /* WidgetBuilderView.swift */; };
+		EC9247332EAD930D009469BF /* ModifierPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9247302EAD930D009469BF /* ModifierPanelView.swift */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
 		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
 		EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54692E187D7D00AAE9EC /* NewsPost.swift */; };
@@ -146,6 +148,8 @@
 		EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
 		EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeGenerator.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		EC9247302EAD930D009469BF /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
+		EC9247312EAD930D009469BF /* WidgetBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBuilderView.swift; sourceTree = "<group>"; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
 		EC9F54692E187D7D00AAE9EC /* NewsPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsPost.swift; sourceTree = "<group>"; };
@@ -210,6 +214,8 @@
 		EC7F4AD72EA30B4C00A91B1D /* Studio */ = {
 			isa = PBXGroup;
 			children = (
+				EC9247302EAD930D009469BF /* ModifierPanelView.swift */,
+				EC9247312EAD930D009469BF /* WidgetBuilderView.swift */,
 				EC6059542EAC6D0400FF542B /* ModifierEditors */,
 				EC6059432EAC69E100FF542B /* CanvasControlsOverlay.swift */,
 				EC6059442EAC69E100FF542B /* CanvasView.swift */,
@@ -581,6 +587,8 @@
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
+				EC9247322EAD930D009469BF /* WidgetBuilderView.swift in Sources */,
+				EC9247332EAD930D009469BF /* ModifierPanelView.swift in Sources */,
 				EC7F4AF32EA30DC500A91B1D /* CodeGenerator.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,

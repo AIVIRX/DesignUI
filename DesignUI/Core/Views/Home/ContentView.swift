@@ -11,7 +11,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons
+    case templates, news, profile, sfIcons, widgetBuilder
 }
 
 struct ContentView: View {
@@ -31,7 +31,7 @@ struct ContentView: View {
         case profile
         case templates
         case sfIcons
-        case uiBuilder
+        case widgetBuilder
         case threads
         case policy
         case contact
@@ -85,6 +85,9 @@ struct ContentView: View {
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
                     
+                    // Widget Builder Link
+                    navigationLinkButton(viewType: .widgetBuilder, label: "Widget Builder", systemImage: "rectangle.3.group", menuItem: .widgetBuilder, selectedIndex: $selectedIndex, currentIndex: 4)
+                    
                     Divider().padding(.vertical).opacity(0.5)
                     
                     LinkRow(title: "Threads",
@@ -130,6 +133,8 @@ struct ContentView: View {
                         ProfileContainerView()
                     case 3:
                         SFIconsView()
+                    case 4:
+                        WidgetBuilderView()
                     default:
                         Text("Select a view")
                     }
@@ -153,6 +158,8 @@ struct ContentView: View {
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
                 
+                // Widget Builder Link
+                navigationLinkButton(viewType: .widgetBuilder, label: "Widget Builder", systemImage: "rectangle.3.group", menuItem: .widgetBuilder, selectedIndex: $selectedIndex, currentIndex: 4)
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
@@ -213,6 +220,8 @@ struct ContentView: View {
                     ProfileContainerView()
                 case 3:
                     SFIconsView()
+                case 4:
+                    WidgetBuilderView()
                 default:
                     Text("Select a view")
                 }
@@ -283,6 +292,8 @@ struct ContentView: View {
             return AnyView(ProfileContainerView())
         case .sfIcons:
             return AnyView(SFIconsView())
+        case .widgetBuilder:
+            return AnyView(WidgetBuilderView())
         }
     }
 }
