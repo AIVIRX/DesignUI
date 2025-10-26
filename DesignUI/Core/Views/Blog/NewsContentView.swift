@@ -59,10 +59,24 @@ struct NewsContentView: View {
                     }
                 case .code:
                     if let code = block.code {
-                        LiveSyntaxHighlightedCode(
-                            code: code,
-                            maxHeight: 300
-                        )
+                        VStack {
+                            LiveSyntaxHighlightedCode(
+                                code: code
+                            )
+                        }
+                        .frame(maxWidth: 700, maxHeight: 300)
+                        .clipped()
+                    }
+                case .link:
+                    if let text = block.text, let urlString = block.url, let url = URL(string: urlString) {
+                        Link(destination: url) {
+                            HStack {
+                                Text(text)
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(.accentColor)
+                        }
                     }
                 case .bulletedList:
                     if let items = block.items {

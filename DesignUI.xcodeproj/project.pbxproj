@@ -16,26 +16,11 @@
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
 		EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC53EB7F2D91CD6300E175DB /* HapticManager.swift */; };
-		EC587F3F2EA8253F0039E65C /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC587F3E2EA8253F0039E65C /* SwiftUIView.swift */; };
 		EC59829C2D56836B00633392 /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829B2D56836B00633392 /* Like.swift */; };
 		EC5982A02D568E5500633392 /* LikeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829F2D568E5500633392 /* LikeButton.swift */; };
 		EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A12D57F4A600633392 /* LikedPostsView.swift */; };
 		EC5982A42D57F54000633392 /* GridColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A32D57F54000633392 /* GridColumns.swift */; };
 		EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */; };
-		EC6059462EAC69E100FF542B /* CanvasControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059432EAC69E100FF542B /* CanvasControlsOverlay.swift */; };
-		EC6059472EAC69E100FF542B /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059452EAC69E100FF542B /* StatusBarView.swift */; };
-		EC6059482EAC69E100FF542B /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059442EAC69E100FF542B /* CanvasView.swift */; };
-		EC6059552EAC6D0400FF542B /* OverlayModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059502EAC6D0400FF542B /* OverlayModifierEditor.swift */; };
-		EC6059562EAC6D0400FF542B /* BackgroundModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059492EAC6D0400FF542B /* BackgroundModifierEditor.swift */; };
-		EC6059572EAC6D0400FF542B /* ColorModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594A2EAC6D0400FF542B /* ColorModifierEditor.swift */; };
-		EC6059582EAC6D0400FF542B /* EffectModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594C2EAC6D0400FF542B /* EffectModifierEditors.swift */; };
-		EC6059592EAC6D0400FF542B /* FontModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594D2EAC6D0400FF542B /* FontModifierEditor.swift */; };
-		EC60595A2EAC6D0400FF542B /* ShadowModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059522EAC6D0400FF542B /* ShadowModifierEditor.swift */; };
-		EC60595B2EAC6D0400FF542B /* OpacityModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594F2EAC6D0400FF542B /* OpacityModifierEditor.swift */; };
-		EC60595C2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594B2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift */; };
-		EC60595D2EAC6D0400FF542B /* FrameModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60594E2EAC6D0400FF542B /* FrameModifierEditor.swift */; };
-		EC60595E2EAC6D0400FF542B /* TransformModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059532EAC6D0400FF542B /* TransformModifierEditors.swift */; };
-		EC60595F2EAC6D0400FF542B /* PaddingModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6059512EAC6D0400FF542B /* PaddingModifierEditor.swift */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
@@ -44,23 +29,7 @@
 		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
 		EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF42C19E546003134B1 /* DesignCards.swift */; };
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
-		EC7F4AE42EA30B8D00A91B1D /* ModifierPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE02EA30B8D00A91B1D /* ModifierPanelView.swift */; };
-		EC7F4AE52EA30B8D00A91B1D /* UIBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE22EA30B8D00A91B1D /* UIBuilderView.swift */; };
-		EC7F4AE62EA30B8D00A91B1D /* DesignFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADC2EA30B8D00A91B1D /* DesignFile.swift */; };
-		EC7F4AE72EA30B8D00A91B1D /* ComponentLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AD92EA30B8D00A91B1D /* ComponentLibraryView.swift */; };
-		EC7F4AE82EA30B8D00A91B1D /* ComponentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADA2EA30B8D00A91B1D /* ComponentRenderer.swift */; };
-		EC7F4AE92EA30B8D00A91B1D /* DesignBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADB2EA30B8D00A91B1D /* DesignBrowserView.swift */; };
-		EC7F4AEA2EA30B8D00A91B1D /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AD82EA30B8D00A91B1D /* CodePreviewView.swift */; };
-		EC7F4AEB2EA30B8D00A91B1D /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADE2EA30B8D00A91B1D /* Modifier.swift */; };
-		EC7F4AEC2EA30B8D00A91B1D /* PropertiesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE12EA30B8D00A91B1D /* PropertiesPanelView.swift */; };
-		EC7F4AED2EA30B8D00A91B1D /* UIComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AE32EA30B8D00A91B1D /* UIComponent.swift */; };
-		EC7F4AEE2EA30B8D00A91B1D /* LayersPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADD2EA30B8D00A91B1D /* LayersPanelView.swift */; };
-		EC7F4AEF2EA30B8D00A91B1D /* ModifierEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4ADF2EA30B8D00A91B1D /* ModifierEditorView.swift */; };
-		EC7F4AF12EA30C6700A91B1D /* CanvasManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */; };
-		EC7F4AF32EA30DC500A91B1D /* CodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
-		EC9247322EAD930D009469BF /* WidgetBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9247312EAD930D009469BF /* WidgetBuilderView.swift */; };
-		EC9247332EAD930D009469BF /* ModifierPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9247302EAD930D009469BF /* ModifierPanelView.swift */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
 		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
 		EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54692E187D7D00AAE9EC /* NewsPost.swift */; };
@@ -105,26 +74,11 @@
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC50CFB52D1393B9006586DA /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		EC53EB7F2D91CD6300E175DB /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
-		EC587F3E2EA8253F0039E65C /* SwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView.swift; sourceTree = "<group>"; };
 		EC59829B2D56836B00633392 /* Like.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Like.swift; sourceTree = "<group>"; };
 		EC59829F2D568E5500633392 /* LikeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeButton.swift; sourceTree = "<group>"; };
 		EC5982A12D57F4A600633392 /* LikedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsView.swift; sourceTree = "<group>"; };
 		EC5982A32D57F54000633392 /* GridColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridColumns.swift; sourceTree = "<group>"; };
 		EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsViewModel.swift; sourceTree = "<group>"; };
-		EC6059432EAC69E100FF542B /* CanvasControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasControlsOverlay.swift; sourceTree = "<group>"; };
-		EC6059442EAC69E100FF542B /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
-		EC6059452EAC69E100FF542B /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
-		EC6059492EAC6D0400FF542B /* BackgroundModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundModifierEditor.swift; sourceTree = "<group>"; };
-		EC60594A2EAC6D0400FF542B /* ColorModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorModifierEditor.swift; sourceTree = "<group>"; };
-		EC60594B2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerRadiusModifierEditor.swift; sourceTree = "<group>"; };
-		EC60594C2EAC6D0400FF542B /* EffectModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectModifierEditors.swift; sourceTree = "<group>"; };
-		EC60594D2EAC6D0400FF542B /* FontModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontModifierEditor.swift; sourceTree = "<group>"; };
-		EC60594E2EAC6D0400FF542B /* FrameModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameModifierEditor.swift; sourceTree = "<group>"; };
-		EC60594F2EAC6D0400FF542B /* OpacityModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpacityModifierEditor.swift; sourceTree = "<group>"; };
-		EC6059502EAC6D0400FF542B /* OverlayModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayModifierEditor.swift; sourceTree = "<group>"; };
-		EC6059512EAC6D0400FF542B /* PaddingModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaddingModifierEditor.swift; sourceTree = "<group>"; };
-		EC6059522EAC6D0400FF542B /* ShadowModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowModifierEditor.swift; sourceTree = "<group>"; };
-		EC6059532EAC6D0400FF542B /* TransformModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformModifierEditors.swift; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -133,23 +87,7 @@
 		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC7D7BF42C19E546003134B1 /* DesignCards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
-		EC7F4AD82EA30B8D00A91B1D /* CodePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodePreviewView.swift; sourceTree = "<group>"; };
-		EC7F4AD92EA30B8D00A91B1D /* ComponentLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryView.swift; sourceTree = "<group>"; };
-		EC7F4ADA2EA30B8D00A91B1D /* ComponentRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentRenderer.swift; sourceTree = "<group>"; };
-		EC7F4ADB2EA30B8D00A91B1D /* DesignBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignBrowserView.swift; sourceTree = "<group>"; };
-		EC7F4ADC2EA30B8D00A91B1D /* DesignFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignFile.swift; sourceTree = "<group>"; };
-		EC7F4ADD2EA30B8D00A91B1D /* LayersPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanelView.swift; sourceTree = "<group>"; };
-		EC7F4ADE2EA30B8D00A91B1D /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
-		EC7F4ADF2EA30B8D00A91B1D /* ModifierEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierEditorView.swift; sourceTree = "<group>"; };
-		EC7F4AE02EA30B8D00A91B1D /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
-		EC7F4AE12EA30B8D00A91B1D /* PropertiesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesPanelView.swift; sourceTree = "<group>"; };
-		EC7F4AE22EA30B8D00A91B1D /* UIBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIBuilderView.swift; sourceTree = "<group>"; };
-		EC7F4AE32EA30B8D00A91B1D /* UIComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponent.swift; sourceTree = "<group>"; };
-		EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
-		EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeGenerator.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
-		EC9247302EAD930D009469BF /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
-		EC9247312EAD930D009469BF /* WidgetBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBuilderView.swift; sourceTree = "<group>"; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
 		EC9F54692E187D7D00AAE9EC /* NewsPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsPost.swift; sourceTree = "<group>"; };
@@ -193,52 +131,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		EC6059542EAC6D0400FF542B /* ModifierEditors */ = {
-			isa = PBXGroup;
-			children = (
-				EC6059492EAC6D0400FF542B /* BackgroundModifierEditor.swift */,
-				EC60594A2EAC6D0400FF542B /* ColorModifierEditor.swift */,
-				EC60594B2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift */,
-				EC60594C2EAC6D0400FF542B /* EffectModifierEditors.swift */,
-				EC60594D2EAC6D0400FF542B /* FontModifierEditor.swift */,
-				EC60594E2EAC6D0400FF542B /* FrameModifierEditor.swift */,
-				EC60594F2EAC6D0400FF542B /* OpacityModifierEditor.swift */,
-				EC6059502EAC6D0400FF542B /* OverlayModifierEditor.swift */,
-				EC6059512EAC6D0400FF542B /* PaddingModifierEditor.swift */,
-				EC6059522EAC6D0400FF542B /* ShadowModifierEditor.swift */,
-				EC6059532EAC6D0400FF542B /* TransformModifierEditors.swift */,
-			);
-			path = ModifierEditors;
-			sourceTree = "<group>";
-		};
-		EC7F4AD72EA30B4C00A91B1D /* Studio */ = {
-			isa = PBXGroup;
-			children = (
-				EC9247302EAD930D009469BF /* ModifierPanelView.swift */,
-				EC9247312EAD930D009469BF /* WidgetBuilderView.swift */,
-				EC6059542EAC6D0400FF542B /* ModifierEditors */,
-				EC6059432EAC69E100FF542B /* CanvasControlsOverlay.swift */,
-				EC6059442EAC69E100FF542B /* CanvasView.swift */,
-				EC6059452EAC69E100FF542B /* StatusBarView.swift */,
-				EC7F4AF22EA30DC500A91B1D /* CodeGenerator.swift */,
-				EC7F4AD82EA30B8D00A91B1D /* CodePreviewView.swift */,
-				EC7F4AD92EA30B8D00A91B1D /* ComponentLibraryView.swift */,
-				EC7F4ADA2EA30B8D00A91B1D /* ComponentRenderer.swift */,
-				EC7F4ADB2EA30B8D00A91B1D /* DesignBrowserView.swift */,
-				EC7F4ADC2EA30B8D00A91B1D /* DesignFile.swift */,
-				EC7F4ADD2EA30B8D00A91B1D /* LayersPanelView.swift */,
-				EC7F4ADE2EA30B8D00A91B1D /* Modifier.swift */,
-				EC7F4ADF2EA30B8D00A91B1D /* ModifierEditorView.swift */,
-				EC7F4AE02EA30B8D00A91B1D /* ModifierPanelView.swift */,
-				EC7F4AE12EA30B8D00A91B1D /* PropertiesPanelView.swift */,
-				EC7F4AE22EA30B8D00A91B1D /* UIBuilderView.swift */,
-				EC7F4AE32EA30B8D00A91B1D /* UIComponent.swift */,
-				EC7F4AF02EA30C6700A91B1D /* CanvasManager.swift */,
-				EC587F3E2EA8253F0039E65C /* SwiftUIView.swift */,
-			);
-			path = Studio;
-			sourceTree = "<group>";
-		};
 		EC9F546F2E187F8E00AAE9EC /* Blog */ = {
 			isa = PBXGroup;
 			children = (
@@ -331,7 +223,6 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				EC7F4AD72EA30B4C00A91B1D /* Studio */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
@@ -543,30 +434,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC7F4AE42EA30B8D00A91B1D /* ModifierPanelView.swift in Sources */,
-				EC6059552EAC6D0400FF542B /* OverlayModifierEditor.swift in Sources */,
-				EC6059562EAC6D0400FF542B /* BackgroundModifierEditor.swift in Sources */,
-				EC6059572EAC6D0400FF542B /* ColorModifierEditor.swift in Sources */,
-				EC6059582EAC6D0400FF542B /* EffectModifierEditors.swift in Sources */,
-				EC6059592EAC6D0400FF542B /* FontModifierEditor.swift in Sources */,
-				EC60595A2EAC6D0400FF542B /* ShadowModifierEditor.swift in Sources */,
-				EC60595B2EAC6D0400FF542B /* OpacityModifierEditor.swift in Sources */,
-				EC60595C2EAC6D0400FF542B /* CornerRadiusModifierEditor.swift in Sources */,
-				EC60595D2EAC6D0400FF542B /* FrameModifierEditor.swift in Sources */,
-				EC60595E2EAC6D0400FF542B /* TransformModifierEditors.swift in Sources */,
-				EC60595F2EAC6D0400FF542B /* PaddingModifierEditor.swift in Sources */,
-				EC7F4AE52EA30B8D00A91B1D /* UIBuilderView.swift in Sources */,
-				EC7F4AE62EA30B8D00A91B1D /* DesignFile.swift in Sources */,
-				EC7F4AE72EA30B8D00A91B1D /* ComponentLibraryView.swift in Sources */,
-				EC7F4AE82EA30B8D00A91B1D /* ComponentRenderer.swift in Sources */,
-				EC7F4AE92EA30B8D00A91B1D /* DesignBrowserView.swift in Sources */,
-				EC7F4AEA2EA30B8D00A91B1D /* CodePreviewView.swift in Sources */,
-				EC7F4AEB2EA30B8D00A91B1D /* Modifier.swift in Sources */,
-				EC7F4AEC2EA30B8D00A91B1D /* PropertiesPanelView.swift in Sources */,
-				EC587F3F2EA8253F0039E65C /* SwiftUIView.swift in Sources */,
-				EC7F4AED2EA30B8D00A91B1D /* UIComponent.swift in Sources */,
-				EC7F4AEE2EA30B8D00A91B1D /* LayersPanelView.swift in Sources */,
-				EC7F4AEF2EA30B8D00A91B1D /* ModifierEditorView.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */,
@@ -587,21 +454,14 @@
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
-				EC9247322EAD930D009469BF /* WidgetBuilderView.swift in Sources */,
-				EC9247332EAD930D009469BF /* ModifierPanelView.swift in Sources */,
-				EC7F4AF32EA30DC500A91B1D /* CodeGenerator.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
-				EC6059462EAC69E100FF542B /* CanvasControlsOverlay.swift in Sources */,
-				EC6059472EAC69E100FF542B /* StatusBarView.swift in Sources */,
-				EC6059482EAC69E100FF542B /* CanvasView.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
 				EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				ECE995512C98881000C60416 /* TemplateView.swift in Sources */,
-				EC7F4AF12EA30C6700A91B1D /* CanvasManager.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
 				EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */,
 				EC5982A02D568E5500633392 /* LikeButton.swift in Sources */,

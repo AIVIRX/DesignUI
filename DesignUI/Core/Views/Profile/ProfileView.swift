@@ -31,6 +31,15 @@ struct ProfileView: View {
                             Text("@\(viewModel.profile?.username ?? "username")")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
+                            
+                            if let bio = viewModel.profile?.bio, !bio.isEmpty {
+                                Text(String(bio.prefix(130)))
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(nil)
+                                    .padding(.horizontal)
+                            }
                         }
                     }
                     .padding(.vertical)

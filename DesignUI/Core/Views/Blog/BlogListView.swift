@@ -52,7 +52,7 @@ struct NewsListView: View {
                     // Grid of remaining blogs
                     let gridPosts = Array(filteredPosts)
                     if !gridPosts.isEmpty {
-                        LazyVGrid(columns: columns, spacing: 24) {
+                        LazyVGrid(columns: columns) {
                             ForEach(gridPosts) { post in
                                 NavigationLink(destination: NewsDetailView(post: post)) {
                                     BlogGridCard(post: post)
@@ -168,8 +168,9 @@ struct BlogGridCard: View {
             Text(post.title)
                 .font(.title3).bold()
                 .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : Color.black)
-                .lineLimit(1)
+                .lineLimit(2)
                 .multilineTextAlignment(.leading)
+                .frame(height: 48, alignment: .top)
                 .padding(.bottom, 8)
         }
         .cornerRadius(12)

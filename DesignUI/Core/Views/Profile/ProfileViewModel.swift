@@ -12,6 +12,7 @@ class ProfileViewModel: ObservableObject {
     struct Profile: Decodable {
         let display_name: String?
         let username: String?
+        let bio: String?
     }
     
     func fetchProfile() async {

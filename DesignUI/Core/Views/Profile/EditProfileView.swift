@@ -6,6 +6,7 @@ struct EditProfileView: View {
     @ObservedObject var viewModel: ProfileViewModel
     @State private var displayName: String
     @State private var username: String
+    @State private var bio: String
     @State private var isLoading = false
     @State private var showError = false
     @State private var errorMessage = ""
@@ -15,6 +16,7 @@ struct EditProfileView: View {
     private enum Field {
         case displayName
         case username
+        case bio
     }
     
     private let supabase = SupabaseManager.shared.client
@@ -23,6 +25,7 @@ struct EditProfileView: View {
         self.viewModel = viewModel
         _displayName = State(initialValue: viewModel.profile?.display_name ?? "")
         _username = State(initialValue: viewModel.profile?.username ?? "")
+        _bio = State(initialValue: viewModel.profile?.bio ?? "")
     }
     
     var body: some View {
@@ -56,15 +59,41 @@ struct EditProfileView: View {
                                     }
                             }
                             
-                            // Issuer ID
+                            // Username
                             HStack(alignment: .top, spacing: 16) {
                                 TextField("Username", text: $username, prompt: Text("johndoe"))
                                     .autocorrectionDisabled()
                                     .focused($focusedField, equals: .username)
+                                    .submitLabel(.next)
+                                    .onSubmit {
+                                        focusedField = .bio
+                                    }
+                            }
+                            
+                            // Bio
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Bio")
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(bio.count)/130")
+                                        .font(.caption)
+                                        .foregroundColor(bio.count > 130 ? .red : .secondary)
+                                }
+                                
+                                TextField("", text: $bio, prompt: Text("Tell us about yourself..."), axis: .vertical)
+                                    .focused($focusedField, equals: .bio)
                                     .submitLabel(.done)
                                     .onSubmit {
                                         Task {
                                             await updateProfile()
+                                        }
+                                    }
+                                    .lineLimit(3...6)
+                                    .onChange(of: bio) { newValue in
+                                        if newValue.count > 130 {
+                                            bio = String(newValue.prefix(130))
                                         }
                                     }
                             }
@@ -106,6 +135,8 @@ struct EditProfileView: View {
                     case .displayName:
                         focusedField = .username
                     case .username:
+                        focusedField = .bio
+                    case .bio:
                         Task {
                             await updateProfile()
                         }
@@ -151,6 +182,7 @@ struct EditProfileView: View {
                         "id": userId.uuidString,
                         "display_name": displayName,
                         "username": username.lowercased(),
+                        "bio": bio,
                         "updated_at": ISO8601DateFormatter().string(from: Date()),
                     ], onConflict: "id")
                     .select()

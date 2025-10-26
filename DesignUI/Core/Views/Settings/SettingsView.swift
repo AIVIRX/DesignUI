@@ -57,7 +57,6 @@ struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
-    @EnvironmentObject private var designManager: DesignManager
     @State private var errorMessage: String = ""
     @State private var showErrorAlert: Bool = false
 #if os(iOS)
@@ -104,49 +103,6 @@ struct SettingsView: View {
                             }
                         }
 #endif
-                    }
-                    
-                    Section(header: Text("Storage")) {
-                        HStack {
-                            Image(systemName: "folder.fill")
-                                .font(.system(size: 20))
-                                .frame(width: 30, height: 30)
-                                .foregroundStyle(.white)
-                                .background(Color.blue)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Local Documents")
-                                    .font(.body)
-                                Text(designManager.storageStatus)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        }
-                        
-                        // Show in Finder Button
-                        Button(action: {
-                            designManager.showInFinder()
-                        }) {
-                            HStack {
-                                Image(systemName: "folder.badge.gearshape")
-                                    .font(.system(size: 20))
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.orange)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("Show in Finder")
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     Section(header: Text("Support Us")) {

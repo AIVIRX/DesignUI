@@ -52,7 +52,7 @@ struct LiveSyntaxHighlightedCode: View {
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.gray.opacity(0.2)) 
+                            .fill(Color.gray.opacity(0.2))
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -93,9 +93,9 @@ struct LiveSyntaxHighlightedCode: View {
     private var borderOverlay: some View {
         RoundedRectangle(cornerRadius: 20)
             .stroke(
-                colorScheme == .dark 
-                    ? Color(red: 0.3, green: 0.3, blue: 0.3) 
-                    : Color(red: 0.8, green: 0.8, blue: 0.8), 
+                colorScheme == .dark
+                    ? Color(red: 0.3, green: 0.3, blue: 0.3)
+                    : Color(red: 0.8, green: 0.8, blue: 0.8),
                 lineWidth: 1
             )
     }
@@ -176,5 +176,4 @@ struct LiveSyntaxHighlightedCode: View {
         }
     }
 }
-
 

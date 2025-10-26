@@ -35,6 +35,7 @@ enum NewsBlockType: String, Codable {
     case image
     case code
     case bulletedList = "bulleted-list"
+    case link
 }
 
 struct NewsBlock: Codable, Identifiable {
@@ -44,4 +45,7 @@ struct NewsBlock: Codable, Identifiable {
     let url: String?
     let code: String?
     let items: [String]?
+    let level: Int?
+    let language: String?
+    let title: String?
 }
