@@ -10,6 +10,8 @@ import SwiftUI
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var searchText = ""
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @EnvironmentObject private var paywallManager: PaywallManager
     
     var filteredPosts: [DesignPost] {
         guard !searchText.isEmpty else { return viewModel.posts }
@@ -36,21 +38,11 @@ struct ExploreView: View {
                         } else {
                             LazyVGrid(columns: gridColumns, spacing: 16) {
                                 ForEach(filteredPosts) { post in
-                        DesignCards(
-                            id: post.id,
-                            media: post.preview_image_url,
-                            title: post.title,
-                            authorName: post.profiles.username,
-                            isVerified: post.profiles.verified,
-                            description: post.description,
-                            codeSnippet: post.code_snippet,
-                            published: post.created_at,
-                            likesCount: post.likes_count,
-                            isLiked: false
-                        )
-                                    .task {
-                                        await viewModel.loadMorePostsIfNeeded(currentItem: post)
-                                    }
+                                    postCell(for: post)
+                                        .buttonStyle(PlainButtonStyle())
+                                        .task {
+                                            await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                                        }
                                 }
                             }
                             .padding()
@@ -105,5 +97,48 @@ struct ExploreView: View {
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
 #endif
+    }
+}
+
+// MARK: - Helpers
+extension ExploreView {
+    @ViewBuilder
+    private func postCell(for post: DesignPost) -> some View {
+        if (post.isPremium == true) && !subscriptionManager.isSubscribed {
+            Button { paywallManager.present() } label: {
+                designCard(for: post, isPremium: true)
+            }
+        } else {
+            NavigationLink(destination: DetailView(
+                id: post.id,
+                mediaURL: post.preview_image_url,
+                title: post.title,
+                description: post.description,
+                author: post.profiles.username,
+                codeSnippet: post.code_snippet,
+                creationDate: post.created_at,
+                isAuthorVerified: post.profiles.verified,
+                isPremium: post.isPremium == true
+            )) {
+                designCard(for: post, isPremium: post.isPremium == true)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func designCard(for post: DesignPost, isPremium: Bool) -> some View {
+        DesignCards(
+            id: post.id,
+            media: post.preview_image_url,
+            title: post.title,
+            authorName: post.profiles.username,
+            isVerified: post.profiles.verified,
+            description: post.description,
+            codeSnippet: post.code_snippet,
+            published: post.created_at,
+            likesCount: post.likes_count,
+            isLiked: false,
+            isPremium: isPremium
+        )
     }
 }

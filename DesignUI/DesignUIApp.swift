@@ -7,14 +7,7 @@
 
 import SwiftUI
 import Supabase
-import UniformTypeIdentifiers
-
-// MARK: - Custom UTType Extension
-extension UTType {
-    static var dockui: UTType {
-        UTType(importedAs: "com.designui.dockui")
-    }
-}
+import RevenueCat
 
 #if os(iOS)
 
@@ -22,7 +15,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-                UserDefaults.standard.set(0, forKey: "selectedIndex")
+        UserDefaults.standard.set(0, forKey: "selectedIndex")
+        
+        // Configure RevenueCat
+        Purchases.logLevel = .debug
+        Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
         
         return true
     }
@@ -34,18 +31,22 @@ struct DesignUIApp: App {
     let client = SupabaseManager.shared.client
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
-    @StateObject private var designManager = DesignManager.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var paywallManager = PaywallManager.shared
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
         hasRequestedReview = false // Reset at the start of every app session
+        // Ensure paywall is not shown on launch
+        PaywallManager.shared.isPresenting = false
     }
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
-                .environmentObject(designManager)
+                .environmentObject(subscriptionManager)
+                .environmentObject(paywallManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .onAppear {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
@@ -61,11 +62,19 @@ struct DesignUIApp: App {
 struct DesignUIApp: App {
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var paywallManager = PaywallManager.shared
     @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
-        hasRequestedReview = false // Reset at the start of every app session
+        hasRequestedReview = false
         UserDefaults.standard.set(0, forKey: "selectedIndex")
+        
+        // Configure RevenueCat for macOS
+        Purchases.logLevel = .debug
+        Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
+        // Ensure paywall is not shown on launch
+        PaywallManager.shared.isPresenting = false
     }
     
     var body: some Scene {
@@ -74,6 +83,8 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
+                .environmentObject(subscriptionManager)
+                .environmentObject(paywallManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
                 .onAppear {

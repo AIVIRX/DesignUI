@@ -91,7 +91,7 @@ struct EditProfileView: View {
                                         }
                                     }
                                     .lineLimit(3...6)
-                                    .onChange(of: bio) { newValue in
+                                    .onChange(of: bio) { _, newValue in
                                         if newValue.count > 130 {
                                             bio = String(newValue.prefix(130))
                                         }

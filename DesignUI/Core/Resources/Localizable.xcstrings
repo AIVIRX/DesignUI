@@ -2537,8 +2537,11 @@
     "Dock UI Accounts" : {
       "shouldTranslate" : false
     },
-    "Done" : {
-      "shouldTranslate" : false
+    "Download" : {
+
+    },
+    "Download Resources" : {
+
     },
     "Edit Profile" : {
       "localizations" : {
@@ -3040,6 +3043,9 @@
         }
       }
     },
+    "Get the design files and assets for this article" : {
+
+    },
     "Introducing" : {
       "shouldTranslate" : false
     },
@@ -3307,6 +3313,9 @@
         }
       }
     },
+    "Legal" : {
+
+    },
     "Light" : {
 
     },
@@ -3559,6 +3568,12 @@
           }
         }
       }
+    },
+    "Loading subscription..." : {
+
+    },
+    "More Apps" : {
+
     },
     "News" : {
       "localizations" : {
@@ -4810,7 +4825,14 @@
         }
       }
     },
+    "Premium" : {
+
+    },
+    "Premium Template" : {
+
+    },
     "Privacy & Support" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5561,6 +5583,7 @@
       }
     },
     "Rate Us" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6319,6 +6342,9 @@
         }
       }
     },
+    "Send Feedback" : {
+
+    },
     "Settings" : {
       "localizations" : {
         "ar" : {
@@ -6570,6 +6596,7 @@
       }
     },
     "SF Icons" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7825,7 +7852,23 @@
     "Similar Posts" : {
       "shouldTranslate" : false
     },
+    "Stock Profit Calculator 2025" : {
+
+    },
+    "Subscribe" : {
+
+    },
+    "Subscribe to access this template." : {
+
+    },
+    "Subscription" : {
+
+    },
+    "Support" : {
+
+    },
     "Support Us" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8327,6 +8370,9 @@
           }
         }
       }
+    },
+    "Terms of Service" : {
+
     },
     "Threads" : {
       "localizations" : {
@@ -9078,7 +9124,10 @@
         }
       }
     },
-    "Widget Builder" : {
+    "Version %@" : {
+
+    },
+    "You have access to all premium features" : {
 
     },
     "You need to be signed in to like a design." : {

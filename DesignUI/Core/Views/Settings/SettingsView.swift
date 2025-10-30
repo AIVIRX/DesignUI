@@ -1,16 +1,20 @@
 //
 //  SettingsView.swift
-//  DesignUI
+//  CluoGames
 //
-//  Created by Maicol Cabreja on 6/11/24.
+//  Created by Assistant on 10/01/25.
 //
-//  SettingsView.swift
-//  DesignUI
 
 import SwiftUI
+import StoreKit
+import RevenueCatUI
 #if os(iOS)
 import MessageUI
+import UIKit
+#elseif os(macOS)
+import AppKit
 #endif
+
 #if os(iOS)
 struct MailView: UIViewControllerRepresentable {
     @Environment(\.presentationMode) var presentationMode
@@ -54,167 +58,276 @@ struct MailView: UIViewControllerRepresentable {
 #endif
 
 struct SettingsView: View {
-    @Environment(\.colorScheme) var colorScheme
-    @Environment(\.requestReview) var requestReview
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
-    @State private var errorMessage: String = ""
-    @State private var showErrorAlert: Bool = false
+    @StateObject private var purchases = PurchasesService.shared
+    @State private var showPaywall = false
 #if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
 #endif
     @State private var isShowingMailView = false
-    @Environment(\.dismiss) var dismiss
+    @AppStorage("appearanceMode") private var appearanceMode: String = "auto"
+
     var body: some View {
-            VStack(spacing: 20) {
-                Form {
-                    Section(header: Text("Appearance")) {
-                        // Color Scheme Picker
+#if os(macOS)
+        // macOS: Modern card-style layout
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Subscription Card
+                HStack {
+                    HStack(spacing: 10) {
+                        Image(systemName: purchases.hasPremium ? "checkmark.seal.fill" : "xmark.seal.fill")
+                            .foregroundColor(purchases.hasPremium ? .green : .red)
+                        Text("Premium")
+                            .font(.headline)
+                    }
+                    
+                    Spacer()
+
+                    if !purchases.hasPremium {
+                        Button("Subscribe") { showPaywall = true }
+                        .buttonStyle(.borderedProminent)
+                    } else {
+                        Text("You have access to all premium features")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                    }
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                // Appearance Card
+                HStack {
+                    Text("Appearance")
+                        .font(.headline)
+                    Spacer()
+
+                    Picker("Color Scheme", selection: $colorSchemeManager.currentScheme) {
+                        ForEach(AppColorScheme.allCases, id: \.self) { scheme in
+                            Text(scheme.displayName).tag(scheme)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                // More Apps Card
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("More Apps")
+                        .font(.headline)
+                    Button {
+                        if let url = URL(string: "https://apps.apple.com/us/app/stock-profit-calculator-2025/id6479931561") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
                         HStack {
-                            Image(systemName: "paintbrush.fill")
-                                .font(.system(size: 20)).bold()
-                                .frame(width: 30, height: 30)
-                                .foregroundStyle(.white)
-                                .background(Color.purple)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
-                            
-                            Text("Color Scheme")
-                            
+                            Image("stockscalc")
+                                .resizable()
+                                .frame(width: 30, height:30)
+                                .cornerRadius(5)
+                            Text("Stock Profit Calculator 2025")
                             Spacer()
-                            
-                            Picker("", selection: $colorSchemeManager.currentScheme) {
-                                ForEach(AppColorScheme.allCases, id: \.self) { scheme in
-                                    Text(scheme.displayName).tag(scheme)
-                                }
-                            }
-                            .pickerStyle(MenuPickerStyle())
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
                         }
-#if os(iOS)
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                            NavigationLink(destination: SFIconsView()) {
-                                HStack {
-                                    Image(systemName: "plus.square.dashed")
-                                        .font(.system(size: 20)).bold()
-                                        .frame(width: 30, height: 30)
-                                        .foregroundStyle(.white)
-                                        .background(Color.black)
-                                        .clipShape(RoundedRectangle(cornerRadius: 5))
-                                    Text("SF Icons")
-                                }
-                            }
-                        }
-#endif
                     }
-                    
-                    Section(header: Text("Support Us")) {
+                    .buttonStyle(.plain)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                // Legal Card (macOS): Removed Send Feedback per platform constraints
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Legal")
+                        .font(.headline)
+                    HStack(spacing: 12) {
                         Button {
-                            requestReview()
+                            if let url = URL(string: "https://dockui.com/privacy") { NSWorkspace.shared.open(url) }
                         } label: {
-                            HStack {
-                                Image(systemName: "star.leadinghalf.filled")
-                                    .font(.system(size: 20))
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.orange)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("Rate Us")
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
+                            Text("Privacy Policy")
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        Link(destination: URL(string: "https://www.threads.com/dockui")!) {
-                            HStack {
-                                Image(systemName: "link")
-                                    .font(.system(size: 20))
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.blue)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("Threads")
-                                Spacer()
-                                Image(systemName: "arrow.up.right")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
+                        Button {
+                            if let url = URL(string: "https://dockui.com/terms") { NSWorkspace.shared.open(url) }
+                        } label: {
+                            Text("Terms of Service")
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        Spacer()
                     }
-                    
-                    Section(header: Text("Privacy & Support")) {
-                        Link(destination: URL(string: "https://www.aivirx.com/dockui/privacy-policy")!) {
-                            HStack {
-                                Image(systemName: "hand.raised.fill")
-                                    .font(.system(size: 20))
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.green)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("Privacy Policy")
-                                Spacer()
-                                Image(systemName: "arrow.up.right")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                // Version
+                HStack {
+                    Spacer()
+                    Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "5.0.0")")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+            }
+            .padding(24)
+        }
+        #if os(iOS)
+        .fullScreenCover(isPresented: $showPaywall) {
+            CustomPaywallView()
+        }
+        #elseif os(macOS)
+        .sheet(isPresented: $showPaywall) {
+            CustomPaywallView()
+                .frame(minWidth: 760, minHeight: 560)
+        }
+        #endif
+        .onAppear {
+            Task { await purchases.loadCustomerInfo() }
+        }
+#else
+        // iOS: Keep List-based layout
+        NavigationStack {
+            List {
+                // Subscription status
+                Section("Subscription") {
+                    HStack {
+                        Image(systemName: purchases.hasPremium ? "checkmark.seal.fill" : "xmark.seal.fill")
+                            .foregroundColor(purchases.hasPremium ? .green : .red)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Premium")
+                                .fontWeight(.semibold)
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        Button(action: {
-                            isShowingMailView.toggle()
-                        }) {
+                        Spacer()
+                        if !purchases.hasPremium {
+                            Button("Subscribe") { }
+                                .buttonStyle(.bordered)
+                        }
+                    }
+                }
+                
+                // Appearance Section
+                Section("Appearance") {
+                    Picker("Color Scheme", selection: $colorSchemeManager.currentScheme) {
+                        ForEach(AppColorScheme.allCases, id: \.self) { scheme in
+                            Text(scheme.displayName).tag(scheme)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                
+                // Other Apps Section
+                Section("More Apps") {
+                    Button {
+                        if let url = URL(string: "https://apps.apple.com/us/app/stock-profit-calculator-2025/id6479931561") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        HStack {
+                            Image("stockscalc")
+                                .resizable()
+                                .frame(width: 30, height:30)
+                                .cornerRadius(5)
+                            Text("Stock Profit Calculator 2025")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundColor(.primary)
+                }
+                
+                // Support Section
+                Section("Support") {
+                    Button(action: { isShowingMailView.toggle() }) {
+                        HStack {
                             HStack {
                                 Image(systemName: "envelope.fill")
-                                    .font(.system(size: 20))
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.white)
-                                    .background(Color.blue)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                Text("Contact Us")
+                                    .foregroundColor(.green)
+                                    .frame(width: 24)
+                                Text("Send Feedback")
                                 Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
                         }
-                        .buttonStyle(PlainButtonStyle())
-#if os(iOS)
-                        .disabled(!MFMailComposeViewController.canSendMail())
-#endif
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(!MFMailComposeViewController.canSendMail())
+                }
+                
+                // Legal Section
+                Section("Legal") {
+                    Button {
+                        if let url = URL(string: "https://dockui.com/privacy") { UIApplication.shared.open(url) }
+                    } label: {
+                        HStack {
+                            Image(systemName: "hand.raised.fill")
+                                .foregroundColor(.purple)
+                                .frame(width: 24)
+                            Text("Privacy Policy")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    
+                    Button {
+                        if let url = URL(string: "https://dockui.com/terms") { UIApplication.shared.open(url) }
+                    } label: {
+                        HStack {
+                            Image(systemName: "doc.text.fill")
+                                .foregroundColor(.gray)
+                                .frame(width: 24)
+                            Text("Terms of Service")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundColor(.primary)
+                }
+                
+                // Version Section
+                Section {
+                    HStack {
+                        Spacer()
+                        Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "5.0.0")")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
                     }
                 }
-                .accentColor(colorScheme == .dark ? .white : .black)
-                .formStyle(.grouped)
-                
             }
-            .padding(.horizontal)
-#if os(iOS)
-        .navigationBarTitle("Settings")
-        .navigationBarTitleDisplayMode(.inline)
-#else
-        .navigationTitle("Settings")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
-                    dismiss()
-                }
-            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
         }
-#endif
-        .alert(isPresented: $showErrorAlert) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("OK"))
-            )
+        #if os(iOS)
+        .fullScreenCover(isPresented: $showPaywall) {
+            CustomPaywallView()
         }
-#if os(iOS)
-        .sheet(isPresented: $isShowingMailView) {
-            MailView(result: $result)
+        #endif
+        .onAppear {
+            Task { await purchases.loadCustomerInfo() }
         }
 #endif
     }
 }
+
+//
+
+// (No manageSubscriptionsSheet; Manage opens paywall instead on all platforms)

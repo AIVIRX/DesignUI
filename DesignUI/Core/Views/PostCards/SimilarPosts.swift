@@ -4,6 +4,8 @@ import SDWebImageSwiftUI
 struct SimilarPostsView: View {
     @State private var similarPosts: [DesignPost] = []
     var currentPostId: String
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @EnvironmentObject private var paywallManager: PaywallManager
     var body: some View {
         VStack(alignment: .leading) {
             if !similarPosts.isEmpty {
@@ -14,24 +16,39 @@ struct SimilarPostsView: View {
                 ScrollView(.horizontal) {
                     HStack(spacing: 15) {
                         ForEach(similarPosts) { post in
-                            NavigationLink(destination: DetailView(
-                                id: post.id,
-                                mediaURL: post.preview_image_url,
-                                title: post.title,
-                                description: post.description,
-                                author: post.profiles.username,
-                                codeSnippet: post.code_snippet,
-                                creationDate: post.created_at,
-                                isAuthorVerified: post.profiles.verified,
-                            )) {
-                                SimilarPostCard(post: post)
-                            }
-                            .buttonStyle(PlainButtonStyle())
+                            if (post.isPremium == true) && !subscriptionManager.isSubscribed {
+                                Button {
+                                    paywallManager.present()
+                                } label: {
+                                    SimilarPostCard(post: post)
+                                }
+                                .buttonStyle(PlainButtonStyle())
 #if os(iOS)
-                            .simultaneousGesture(TapGesture().onEnded {
-                                HapticManager.shared.triggerImpact(style: .heavy)
-                            })
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    HapticManager.shared.triggerImpact(style: .heavy)
+                                })
 #endif
+                            } else {
+                                NavigationLink(destination: DetailView(
+                                    id: post.id,
+                                    mediaURL: post.preview_image_url,
+                                    title: post.title,
+                                    description: post.description,
+                                    author: post.profiles.username,
+                                    codeSnippet: post.code_snippet,
+                                    creationDate: post.created_at,
+                                    isAuthorVerified: post.profiles.verified,
+                                    isPremium: post.isPremium == true,
+                                )) {
+                                    SimilarPostCard(post: post)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+#if os(iOS)
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    HapticManager.shared.triggerImpact(style: .heavy)
+                                })
+#endif
+                            }
                         }
                     }
                 }
@@ -112,7 +129,7 @@ struct SimilarPostCard: View {
 #if os(iOS)
                         .frame(width: 115, height: 250)
 #endif
-                    
+                        
 #if os(macOS)
                         .frame(width: 115, height: 250)
 #endif
@@ -155,18 +172,28 @@ struct SimilarPostCard: View {
                     .multilineTextAlignment(.leading)
                     .truncationMode(.tail)
                 HStack {
-                    Text(post.profiles.username)
-                        .font(.system(size: 16))
-                        .foregroundColor(.secondary)
-                    
-                    if post.profiles.verified {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 13))
-                            .foregroundColor(.blue)
+                    if post.isPremium == true {
+                        Text("Premium")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.clear)
+                            .overlay(
+                                LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                    .mask(
+                                        Text("Premium")
+                                            .font(.system(size: 16, weight: .bold))
+                                    )
+                            )
+                    } else {
+                        Text(post.profiles.username)
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                        if post.profiles.verified {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 13))
+                                .foregroundColor(.blue)
+                        }
                     }
-                    
                     Spacer()
-                    
                     LikeButton(
                         postId: post.id,
                         initialLikeCount: post.likes_count

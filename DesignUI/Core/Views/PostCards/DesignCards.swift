@@ -15,6 +15,7 @@ struct DesignCards: View {
     var title: String
     var authorName: String
     var isVerified: Bool
+    var isPremium: Bool
     var description: String
     var codeSnippet: String
     var published: String
@@ -50,7 +51,7 @@ struct DesignCards: View {
         }
     }
     
-    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool) {
+    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool, isPremium: Bool = false) {
         self.id = id
         self.media = media
         self.title = title
@@ -61,6 +62,7 @@ struct DesignCards: View {
         self.published = published
         self.likesCount = likesCount
         self.isLiked = isLiked
+        self.isPremium = isPremium
     }
     
     var body: some View {
@@ -72,7 +74,8 @@ struct DesignCards: View {
             author: authorName,
             codeSnippet: codeSnippet,
             creationDate: published,
-            isAuthorVerified: isVerified
+            isAuthorVerified: isVerified,
+            isPremium: isPremium
         )) {
             VStack(alignment: .center) {
 #if os(iOS)
@@ -196,14 +199,26 @@ struct DesignCards: View {
                         .truncationMode(.tail)
                     
                     HStack {
-                        Text(authorName)
-                            .font(.system(size: 16))
-                            .foregroundColor(.secondary)
-                        
-                        if isVerified {
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.system(size: 13))
-                                .foregroundColor(.blue)
+                        if isPremium {
+                            Text("Premium")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.clear)
+                                .overlay(
+                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                        .mask(
+                                            Text("Premium")
+                                                .font(.system(size: 16, weight: .bold))
+                                        )
+                                )
+                        } else {
+                            Text(authorName)
+                                .font(.system(size: 16))
+                                .foregroundColor(.secondary)
+                            if isVerified {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.blue)
+                            }
                         }
                         
                         Spacer()

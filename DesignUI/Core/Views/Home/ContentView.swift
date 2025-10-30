@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import RevenueCat
+import RevenueCatUI
 #if os(iOS)
 import StatefulTabView
 #endif
@@ -18,6 +20,8 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @EnvironmentObject private var toastManager: ToastManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @EnvironmentObject private var paywallManager: PaywallManager
     @State private var hoveredItem: MenuItem?
     @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
     @State private var showSidebarSettings = false
@@ -61,11 +65,6 @@ struct ContentView: View {
                         NewsListView()
                     }
                     
-                    Tab(systemImageName: "plus.rectangle.on.folder") {
-                        DesignBrowserView()
-                            .environmentObject(designManager)
-                    }
-                    
                     Tab(systemImageName: "person.crop.circle") {
                         ProfileContainerView()
                     }
@@ -83,9 +82,6 @@ struct ContentView: View {
                     
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
-                    
-                    // Widget Builder Link
-                    navigationLinkButton(viewType: .widgetBuilder, label: "Widget Builder", systemImage: "rectangle.3.group", menuItem: .widgetBuilder, selectedIndex: $selectedIndex, currentIndex: 4)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -132,8 +128,6 @@ struct ContentView: View {
                         ProfileContainerView()
                     case 3:
                         SFIconsView()
-                    case 4:
-                        WidgetBuilderView()
                     default:
                         Text("Select a view")
                     }
@@ -203,6 +197,9 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showSidebarSettings) {
                 SettingsView()
+#if os(macOS)
+                    .frame(minWidth: 720, minHeight: 560)
+#endif
             }
 #endif
         }
@@ -225,6 +222,15 @@ struct ContentView: View {
 #endif
         }
         .toast($toastManager.currentToast)
+        .sheet(isPresented: $paywallManager.isPresenting) {
+            CustomPaywallView()
+#if os(macOS)
+                .frame(minWidth: 760, minHeight: 560)
+#endif
+                .onDisappear {
+                    subscriptionManager.checkSubscriptionStatus()
+                }
+        }
     }
     
     private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, menuItem: MenuItem, selectedIndex: Binding<Int>, currentIndex: Int) -> some View {
@@ -290,6 +296,8 @@ struct ContentView: View {
         }
     }
 }
+
+//
 
 // MARK: - Reusable LinkRow
 private struct LinkRow: View {

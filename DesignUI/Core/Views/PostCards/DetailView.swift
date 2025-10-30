@@ -61,10 +61,13 @@ struct DetailView: View {
     let codeSnippet: String
     let creationDate: String
     let isAuthorVerified: Bool
+    let isPremium: Bool
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.requestReview) var requestReview
     @EnvironmentObject private var toastManager: ToastManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @EnvironmentObject private var paywallManager: PaywallManager
 
     private var imageDimensions: (width: CGFloat, height: CGFloat, cornerRadius: CGFloat) {
 #if os(iOS)
@@ -290,6 +293,28 @@ struct DetailView: View {
         .navigationBarTitle(title)
 #endif
         .padding(.horizontal, 7)
+        .overlay(
+            Group {
+                if isPremium && !subscriptionManager.isSubscribed {
+                    ZStack {
+                        Color.black.opacity(0.25).ignoresSafeArea()
+                        VStack(spacing: 16) {
+                            Text("Premium Template")
+                                .font(.title2).bold()
+                            Text("Subscribe to access this template.")
+                                .foregroundColor(.secondary)
+                            Button("Subscribe") {
+                                paywallManager.present()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding()
+                        .background(.regularMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+            }
+        )
     }
 }
 

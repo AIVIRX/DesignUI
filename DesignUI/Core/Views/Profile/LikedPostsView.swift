@@ -40,7 +40,8 @@ struct LikedPostsView: View {
                             codeSnippet: post.code_snippet,
                             published: post.created_at,
                             likesCount: post.likes_count,
-                            isLiked: false
+                            isLiked: false,
+                            isPremium: post.isPremium == true
                         )
                         .task {
                             await viewModelLiked.loadMoreLikedPostsIfNeeded(currentItem: post)

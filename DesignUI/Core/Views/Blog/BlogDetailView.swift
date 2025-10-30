@@ -6,11 +6,14 @@
 //
 
 import SwiftUI
+import RevenueCat
+import RevenueCatUI
 import SDWebImage
 import SDWebImageSwiftUI
 
 struct NewsDetailView: View {
     let post: NewsPost
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     var body: some View {
         ScrollView {
@@ -64,6 +67,40 @@ struct NewsDetailView: View {
                                 .padding(.top)
                         }
                         Divider().padding(.vertical)
+                        
+                        // Resources section (no premium gating)
+                        VStack(spacing: 16) {
+                            HStack {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.title2)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Download Resources")
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                    Text("Get the design files and assets for this article")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Button(action: {
+                                    downloadResources()
+                                }) {
+                                    Text("Download")
+                                        .fontWeight(.semibold)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+                                }
+                            }
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .padding(.vertical, 8)
+                        
                         NewsContentView(blocks: post.blocks)
                     }
                 }
@@ -74,6 +111,7 @@ struct NewsDetailView: View {
             .frame(maxWidth: .infinity)
         }
         .navigationTitle("")
+        
         .toolbar {
 #if os(iOS)
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -90,5 +128,11 @@ struct NewsDetailView: View {
             }
 #endif
         }
+    }
+    
+    private func downloadResources() {
+        // Implement download logic here
+        print("Downloading resources for: \(post.title)")
+        // You can add actual download functionality here
     }
 }

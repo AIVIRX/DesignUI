@@ -1,0 +1,68 @@
+import SwiftUI
+import RevenueCat
+import RevenueCatUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
+
+struct CustomPaywallView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var purchases = PurchasesService.shared
+    @State private var showingError = false
+    @State private var errorMessage = ""
+    
+    var body: some View {
+        NavigationView {
+            if let offerings = purchases.offerings, let currentOffering = offerings.current {
+                PaywallView(offering: currentOffering)
+                    .onPurchaseCompleted { _ in
+                        Task { await purchases.loadCustomerInfo() }
+                        dismiss()
+                    }
+                    .onPurchaseFailure { error in
+                        errorMessage = error.localizedDescription
+                        showingError = true
+                    }
+                    .onRestoreCompleted { _ in
+                        Task { await purchases.loadCustomerInfo() }
+                        dismiss()
+                    }
+                    .onRestoreFailure { error in
+                        errorMessage = error.localizedDescription
+                        showingError = true
+                    }
+                    .onPurchaseCancelled {
+                        dismiss()
+                    }
+            } else {
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                    Text("Loading subscription...")
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+#if os(iOS)
+                .background(Color(UIColor.systemGroupedBackground))
+#elseif os(macOS)
+                .background(Color(NSColor.windowBackgroundColor))
+#endif
+            }
+        }
+        .alert("Error", isPresented: $showingError) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage)
+        }
+        .onAppear {
+            Task {
+                await purchases.loadOfferings()
+                await purchases.loadCustomerInfo()
+            }
+        }
+    }
+}
+
+

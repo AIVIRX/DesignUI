@@ -1,5 +1,5 @@
 {
-  "originHash" : "1cd8b8c789bbea6fc2876009422f7fa82f05fef66d70c82c322fc07f73811d8b",
+  "originHash" : "226ac9919a5b61661598f067b2f6bed2d49d78d11d5112a9e3d3cf61893da292",
   "pins" : [
     {
       "identity" : "highlightswift",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "784ca3ccfc8a2cf724fbb2f06cb6ec3329424da3",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "purchases-ios-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RevenueCat/purchases-ios-spm.git",
+      "state" : {
+        "revision" : "5a0985f297ccd8870c85d86fde97695ca466ff99",
+        "version" : "5.45.0"
       }
     },
     {
@@ -89,6 +98,15 @@
       "state" : {
         "revision" : "a0a57e949a8903563aba4615869310c0ebf14c03",
         "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "swiftui-shimmer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/markiv/SwiftUI-Shimmer.git",
+      "state" : {
+        "revision" : "0226e21f9bf355d40e07e5f5e1c33679d50e167f",
+        "version" : "1.5.1"
       }
     },
     {

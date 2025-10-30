@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95BD2EB29F1200AA6A84 /* Constants.swift */; };
+		EC0C95C22EB2A08500AA6A84 /* PaywallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */; };
+		EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */; };
+		EC0C95C72EB2A18F00AA6A84 /* CustomPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */; };
+		EC0C95CC2EB2E2A300AA6A84 /* Shimmer in Frameworks */ = {isa = PBXBuildFile; productRef = EC0C95CB2EB2E2A300AA6A84 /* Shimmer */; };
 		EC1DCB9F2E7540250008FEC8 /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EC1DCB9E2E7540250008FEC8 /* HighlightSwift */; };
 		EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
@@ -32,12 +37,15 @@
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
 		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
+		EC9E02E42EB16B060094D7C6 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */; };
 		EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54692E187D7D00AAE9EC /* NewsPost.swift */; };
 		EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */; };
 		EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54702E187FA700AAE9EC /* BlogListView.swift */; };
 		EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */; };
 		EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54742E1889B700AAE9EC /* NewsContentView.swift */; };
 		EC9F54772E188A9F00AAE9EC /* FormatDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54762E188A9F00AAE9EC /* FormatDate.swift */; };
+		ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA42EB06B5D00420663 /* RevenueCat */; };
+		ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA62EB06B5D00420663 /* RevenueCatUI */; };
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA632C7C160C002D7E31 /* FormatCount.swift */; };
 		ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = ECC527532E270E5E00DAA548 /* StatefulTabView */; };
@@ -62,6 +70,10 @@
 
 /* Begin PBXFileReference section */
 		BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
+		EC0C95BD2EB29F1200AA6A84 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallManager.swift; sourceTree = "<group>"; };
+		EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesService.swift; sourceTree = "<group>"; };
+		EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPaywallView.swift; sourceTree = "<group>"; };
 		EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSnippets.swift; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
@@ -90,6 +102,7 @@
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
+		EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		EC9F54692E187D7D00AAE9EC /* NewsPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsPost.swift; sourceTree = "<group>"; };
 		EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogViewModel.swift; sourceTree = "<group>"; };
 		EC9F54702E187FA700AAE9EC /* BlogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogListView.swift; sourceTree = "<group>"; };
@@ -116,8 +129,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC0C95CC2EB2E2A300AA6A84 /* Shimmer in Frameworks */,
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
 				ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */,
+				ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */,
+				ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */,
 				ECC527602E27155000DAA548 /* Supabase in Frameworks */,
 				EC1DCB9F2E7540250008FEC8 /* HighlightSwift in Frameworks */,
 				ECC527682E27156000DAA548 /* PostgREST in Frameworks */,
@@ -131,6 +147,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC0C95C62EB2A18F00AA6A84 /* Paywall */ = {
+			isa = PBXGroup;
+			children = (
+				EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */,
+			);
+			path = Paywall;
+			sourceTree = "<group>";
+		};
 		EC9F546F2E187F8E00AAE9EC /* Blog */ = {
 			isa = PBXGroup;
 			children = (
@@ -193,6 +217,10 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */,
+				EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */,
+				EC0C95BD2EB29F1200AA6A84 /* Constants.swift */,
+				EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */,
 				EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */,
 				ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
@@ -223,6 +251,7 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				EC0C95C62EB2A18F00AA6A84 /* Paywall */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
@@ -330,6 +359,9 @@
 				ECC527652E27155D00DAA548 /* Functions */,
 				ECC527672E27156000DAA548 /* PostgREST */,
 				EC1DCB9E2E7540250008FEC8 /* HighlightSwift */,
+				ECB10DA42EB06B5D00420663 /* RevenueCat */,
+				ECB10DA62EB06B5D00420663 /* RevenueCatUI */,
+				EC0C95CB2EB2E2A300AA6A84 /* Shimmer */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -405,6 +437,8 @@
 				ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */,
+				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				EC0C95CA2EB2E2A300AA6A84 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -439,16 +473,21 @@
 				EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */,
 				EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */,
 				EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */,
+				EC0C95C22EB2A08500AA6A84 /* PaywallManager.swift in Sources */,
 				EC59829C2D56836B00633392 /* Like.swift in Sources */,
+				EC9E02E42EB16B060094D7C6 /* SubscriptionManager.swift in Sources */,
 				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */,
 				EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */,
 				ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
+				EC0C95C72EB2A18F00AA6A84 /* CustomPaywallView.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC5982A42D57F54000633392 /* GridColumns.swift in Sources */,
 				EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */,
+				EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */,
 				EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */,
+				EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */,
 				EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
@@ -755,12 +794,28 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		EC0C95CA2EB2E2A300AA6A84 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/markiv/SwiftUI-Shimmer.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.1;
+			};
+		};
 		EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/appstefan/HighlightSwift";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.9;
+			};
+		};
+		ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.45.0;
 			};
 		};
 		ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */ = {
@@ -790,10 +845,25 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		EC0C95CB2EB2E2A300AA6A84 /* Shimmer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC0C95CA2EB2E2A300AA6A84 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */;
+			productName = Shimmer;
+		};
 		EC1DCB9E2E7540250008FEC8 /* HighlightSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */;
 			productName = HighlightSwift;
+		};
+		ECB10DA42EB06B5D00420663 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		ECB10DA62EB06B5D00420663 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
 		};
 		ECC527532E270E5E00DAA548 /* StatefulTabView */ = {
 			isa = XCSwiftPackageProductDependency;
