@@ -80,6 +80,7 @@ struct SimilarPostsView: View {
                       verified
                     )
                 """)
+                    .eq("public", value: true)
                     .neq("id", value: currentPostId)
                     .order("created_at", ascending: false)
                     .limit(3)
@@ -187,6 +188,7 @@ struct SimilarPostCard: View {
                         Text(post.profiles.username)
                             .font(.system(size: 16))
                             .foregroundColor(.secondary)
+                            .textSelection(.disabled)
                         if post.profiles.verified {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 13))
@@ -195,8 +197,7 @@ struct SimilarPostCard: View {
                     }
                     Spacer()
                     LikeButton(
-                        postId: post.id,
-                        initialLikeCount: post.likes_count
+                        postId: post.id
                     )
                 }
             }

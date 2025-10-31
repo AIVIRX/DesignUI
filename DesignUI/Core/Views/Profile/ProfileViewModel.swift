@@ -20,7 +20,7 @@ class ProfileViewModel: ObservableObject {
             let response = try await supabase
                 .from("profiles")
                 .select()
-                .eq("id", value: supabase.auth.currentUser?.id ?? "")
+                .eq("id", value: supabase.auth.currentUser?.id.uuidString ?? "")
                 .single()
                 .execute()
             

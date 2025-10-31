@@ -9,6 +9,8 @@ import AppKit
 
 struct CustomPaywallView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var paywallManager: PaywallManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @StateObject private var purchases = PurchasesService.shared
     @State private var showingError = false
     @State private var errorMessage = ""
@@ -18,22 +20,35 @@ struct CustomPaywallView: View {
             if let offerings = purchases.offerings, let currentOffering = offerings.current {
                 PaywallView(offering: currentOffering)
                     .onPurchaseCompleted { _ in
-                        Task { await purchases.loadCustomerInfo() }
-                        dismiss()
+                        Task {
+                            await purchases.loadCustomerInfo()
+                            await MainActor.run {
+                                subscriptionManager.checkSubscriptionStatus()
+                                paywallManager.dismiss()
+                                dismiss()
+                            }
+                        }
                     }
                     .onPurchaseFailure { error in
                         errorMessage = error.localizedDescription
                         showingError = true
                     }
                     .onRestoreCompleted { _ in
-                        Task { await purchases.loadCustomerInfo() }
-                        dismiss()
+                        Task {
+                            await purchases.loadCustomerInfo()
+                            await MainActor.run {
+                                subscriptionManager.checkSubscriptionStatus()
+                                paywallManager.dismiss()
+                                dismiss()
+                            }
+                        }
                     }
                     .onRestoreFailure { error in
                         errorMessage = error.localizedDescription
                         showingError = true
                     }
                     .onPurchaseCancelled {
+                        paywallManager.dismiss()
                         dismiss()
                     }
             } else {

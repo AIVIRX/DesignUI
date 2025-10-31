@@ -19,7 +19,6 @@ struct DesignCards: View {
     var description: String
     var codeSnippet: String
     var published: String
-    var likesCount: Int
     var isLiked: Bool
     
     @State private var isHovered: Bool = false
@@ -51,7 +50,7 @@ struct DesignCards: View {
         }
     }
     
-    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, likesCount: Int, isLiked: Bool, isPremium: Bool = false) {
+    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, isLiked: Bool, isPremium: Bool = false) {
         self.id = id
         self.media = media
         self.title = title
@@ -60,7 +59,6 @@ struct DesignCards: View {
         self.description = description
         self.codeSnippet = codeSnippet
         self.published = published
-        self.likesCount = likesCount
         self.isLiked = isLiked
         self.isPremium = isPremium
     }
@@ -224,8 +222,7 @@ struct DesignCards: View {
                         Spacer()
                         
                         LikeButton(
-                            postId: id,
-                            initialLikeCount: likesCount
+                            postId: id
                         )
                     }
                     .padding(.bottom, 5)

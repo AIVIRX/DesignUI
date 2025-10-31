@@ -58,6 +58,7 @@ class LikedPostsViewModel: ObservableObject {
                     )
                 """)
                 .eq("user_id", value: userId)
+                .eq("posts.public", value: true)
                 .order("created_at", ascending: false)
                 .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                 .execute()
@@ -88,21 +89,53 @@ class LikedPostsViewModel: ObservableObject {
     
     @MainActor
     func refreshPosts() async {
-        // Cancel any existing refresh task
-        currentTask?.cancel()
-        
         guard !isRefreshing else { return }
         guard let userId = client.auth.currentUser?.id else { return }
         
         isRefreshing = true
+        isLoading = true
         currentPage = 0
         likedPosts.removeAll()
         hasMorePosts = true
         error = nil
         
-        currentTask = Task {
-            do {
-                let response = try await client
+        defer {
+            isRefreshing = false
+            isLoading = false
+        }
+        
+        do {
+            // Fetch first page
+            var response = try await client
+                .from("likes")
+                .select("""
+                    created_at,
+                    posts!inner (
+                        *,
+                        profiles!posts_author_id_fkey (
+                          username,
+                          verified
+                        )
+                    )
+                    """)
+                .eq("user_id", value: userId)
+                .eq("posts.public", value: true)
+                .order("created_at", ascending: false)
+                .range(from: 0, to: pageSize - 1)
+                .execute()
+            
+            struct LikeResponse: Codable {
+                let created_at: String
+                let posts: DesignPost
+            }
+            
+            var likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
+            var allLikedPosts = likeResponses.map { $0.posts }
+            currentPage = 1
+            
+            // Continue fetching until we get fewer posts than pageSize (meaning no more pages)
+            while likeResponses.count == pageSize {
+                response = try await client
                     .from("likes")
                     .select("""
                         created_at,
@@ -115,40 +148,37 @@ class LikedPostsViewModel: ObservableObject {
                         )
                         """)
                     .eq("user_id", value: userId)
+                    .eq("posts.public", value: true)
                     .order("created_at", ascending: false)
-                    .range(from: 0, to: pageSize - 1)
+                    .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                     .execute()
                 
-                if Task.isCancelled { return }
-                
-                struct LikeResponse: Codable {
-                    let created_at: String
-                    let posts: DesignPost
-                }
-                
-                let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
+                likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
                 let newLikedPosts = likeResponses.map { $0.posts }
                 
-                likedPosts = newLikedPosts
-                currentPage = 1
-                hasMorePosts = newLikedPosts.count == pageSize
-                
-                if hasMorePosts && !Task.isCancelled {
-                    await fetchLikedPosts()
+                if newLikedPosts.isEmpty {
+                    break
                 }
-            } catch {
-                if !Task.isCancelled {
-                    self.error = error
-                    // Only log non-cancelled errors
-                    if let urlError = error as? URLError, urlError.code == .cancelled {
-                        // Silently handle cancelled requests - these are usually due to view lifecycle changes
-                        return
-                    }
-                    print("Error refreshing liked posts: \(error)")
+                
+                allLikedPosts.append(contentsOf: newLikedPosts)
+                currentPage += 1
+                
+                // Limit to prevent excessive fetching
+                if currentPage > 10 {
+                    break
                 }
             }
             
-            isRefreshing = false
+            likedPosts = allLikedPosts
+            hasMorePosts = likeResponses.count == pageSize
+        } catch {
+            self.error = error
+            // Only log non-cancelled errors
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                return
+            }
+            print("Error refreshing liked posts: \(error)")
         }
     }
     

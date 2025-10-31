@@ -8,11 +8,11 @@
 import Foundation
 
 struct Profile: Codable {
-    let id: String
-    let username: String
-    let display_name: String
-    let bio: String
-    let verified: Bool
+    let id: UUID
+    let username: String?
+    let display_name: String?
+    let bio: String?
+    let verified: Bool?
     let avatarUrl: String?
     
     enum CodingKeys: String, CodingKey {

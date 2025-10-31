@@ -507,6 +507,12 @@
     "%lld" : {
       "shouldTranslate" : false
     },
+    "%lld/15" : {
+
+    },
+    "%lld/50" : {
+
+    },
     "%lld/130" : {
 
     },
@@ -1513,6 +1519,9 @@
         }
       }
     },
+    "Choose a username" : {
+
+    },
     "Code Snippet" : {
       "shouldTranslate" : false
     },
@@ -1768,6 +1777,9 @@
           }
         }
       }
+    },
+    "Continue" : {
+
     },
     "Copy \"%@\"" : {
       "shouldTranslate" : false
@@ -3826,6 +3838,7 @@
       }
     },
     "No" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8374,6 +8387,9 @@
     "Terms of Service" : {
 
     },
+    "This will be your public handle. You can change it later." : {
+
+    },
     "Threads" : {
       "localizations" : {
         "ar" : {
@@ -8623,6 +8639,9 @@
           }
         }
       }
+    },
+    "username" : {
+
     },
     "Username" : {
       "localizations" : {

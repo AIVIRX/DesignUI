@@ -14,7 +14,6 @@ struct DesignPost: Identifiable, Codable {
     let code_snippet: String
     let created_at: String
     let profiles: AuthorProfile
-    let likes_count: Int
     let isPremium: Bool?
     
     struct AuthorProfile: Codable {
@@ -30,7 +29,6 @@ struct DesignPost: Identifiable, Codable {
         case code_snippet
         case created_at
         case profiles
-        case likes_count
         case isPremium
         case is_premium
     }
@@ -44,7 +42,6 @@ struct DesignPost: Identifiable, Codable {
         code_snippet = try container.decode(String.self, forKey: .code_snippet)
         created_at = try container.decode(String.self, forKey: .created_at)
         profiles = try container.decode(AuthorProfile.self, forKey: .profiles)
-        likes_count = try container.decode(Int.self, forKey: .likes_count)
         // Support either camelCase (isPremium) or snake_case (is_premium)
         if let premium = try container.decodeIfPresent(Bool.self, forKey: .isPremium) {
             isPremium = premium
@@ -62,7 +59,6 @@ struct DesignPost: Identifiable, Codable {
         try container.encode(code_snippet, forKey: .code_snippet)
         try container.encode(created_at, forKey: .created_at)
         try container.encode(profiles, forKey: .profiles)
-        try container.encode(likes_count, forKey: .likes_count)
         if let isPremium = isPremium {
             try container.encode(isPremium, forKey: .isPremium)
         }

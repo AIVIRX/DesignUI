@@ -18,20 +18,29 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage = ""
     @Published var userProfile: Profile?
     @Published var hasUsername = false
+    @Published var isAuthResolved = false
     
     let supabase = SupabaseManager.shared.client
     private var authChangeTask: Task<Void, Never>?
     
     init() {
+        isLoading = true
         authChangeTask = Task {
             for await state in supabase.auth.authStateChanges {
                 await MainActor.run {
                     if let user = state.session?.user {
                         self.currentUser = user
                         self.isAuthenticated = true
+                        Task { await self.checkUsername() }
                     } else {
                         self.currentUser = nil
                         self.isAuthenticated = false
+                        self.hasUsername = false
+                    }
+                    // Mark initial auth state as resolved after first emission
+                    if self.isAuthResolved == false {
+                        self.isAuthResolved = true
+                        self.isLoading = false
                     }
                 }
             }
@@ -48,17 +57,22 @@ class AuthViewModel: ObservableObject {
             let response = try await supabase
                 .from("profiles")
                 .select()
-                .eq("id", value: userId)
+                .eq("id", value: userId.uuidString)
                 .single()
                 .execute()
             
             let decoder = JSONDecoder()
             if let profile = try? decoder.decode(Profile.self, from: response.data) {
-                print("Username found: \(profile)")
-                
+                let usernameValue = profile.username?.trimmingCharacters(in: .whitespacesAndNewlines)
                 await MainActor.run {
-                    hasUsername = true
                     self.userProfile = profile
+                    self.hasUsername = (usernameValue?.isEmpty == false)
+                    self.objectWillChange.send()
+                }
+            } else {
+                await MainActor.run {
+                    self.userProfile = nil
+                    self.hasUsername = false
                     self.objectWillChange.send()
                 }
             }
@@ -154,12 +168,13 @@ class AuthViewModel: ObservableObject {
             try await supabase.rpc("delete_user").execute()
             
             // Sign out the user locally
-            try await supabase.auth.signOut()
+            try await supabase.auth.signOut(scope: .local)
             
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.currentUser = nil
                 self.isAuthenticated = false
                 self.hasUsername = false
+                self.objectWillChange.send()
             }
         } catch {
             print("Error deleting account:", error)

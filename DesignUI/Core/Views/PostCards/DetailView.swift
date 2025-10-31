@@ -126,6 +126,7 @@ struct DetailView: View {
                                         .font(.subheadline).bold()
                                         .foregroundColor(.secondary)
                                         .padding(.top, 3)
+                                        .textSelection(.disabled)
                                     
                                     if isAuthorVerified{
                                         Image(systemName: "checkmark.seal.fill")
@@ -188,6 +189,7 @@ struct DetailView: View {
                                     Text(author)
                                         .font(.system(size: 15)).bold()
                                         .foregroundColor(.secondary)
+                                        .textSelection(.disabled)
                                     
                                     if isAuthorVerified{
                                         Image(systemName: "checkmark.seal.fill")
@@ -252,6 +254,7 @@ struct DetailView: View {
                                 Text(author)
                                     .font(.headline).bold()
                                     .foregroundColor(.secondary)
+                                    .textSelection(.disabled)
                                 
                                 if isAuthorVerified{
                                     Image(systemName: "checkmark.seal.fill")

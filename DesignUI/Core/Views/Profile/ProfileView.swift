@@ -68,7 +68,7 @@ struct ProfileView: View {
                 }
                 .alert("Are you sure you want to delete your account?",
                        isPresented: $showDeleteAlert) {
-                    Button("No", role: .cancel) { }
+                    Button("Cancel", role: .cancel) { }
                     Button("Delete", role: .destructive) {
                         Task {
                             await authViewModel.deleteAccount()
@@ -83,59 +83,58 @@ struct ProfileView: View {
 #endif
             .toolbar {
 #if os(iOS)
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        showEditProfile = true
-                    }) {
-                        Image(systemName: "slider.vertical.3").bold()
-                    }
-                }
-#endif
-                
-#if os(macOS)
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
                         Button(action: {
                             showEditProfile = true
                         }) {
-                            Image(systemName: "slider.vertical.3").bold()
+                            Label("Edit Profile", systemImage: "slider.vertical.3")
                         }
-                    }
-#endif
-                
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button("Sign Out"){
+                        
+                        Button {
                             Task {
                                 await authViewModel.signOut()
                             }
+                        } label: {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
                         }
-                        Button("Delete Account", role: .destructive) {
-                            Task {
-                                await authViewModel.deleteAccount()
-                            }
+                        
+                        Button(role: .destructive) {
+                            showDeleteAlert = true
+                        } label: {
+                            Label("Delete Account", systemImage: "trash")
                         }
                     } label: {
-                        Image(systemName: "person.badge.key.fill")
+                        Image(systemName: "ellipsis.circle")
                             .font(.title2)
                     }
                 }
 #endif
                 
 #if os(macOS)
-                ToolbarItem {
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
-                        Button("Sign Out") {
+                        Button(action: {
+                            showEditProfile = true
+                        }) {
+                            Label("Edit Profile", systemImage: "slider.vertical.3")
+                        }
+                        
+                        Button {
                             Task {
                                 await authViewModel.signOut()
                             }
+                        } label: {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
                         }
                         
-                        Button("Delete Account", role: .destructive) {
-                            showDeleteAlert = true // Show confirmation alert
+                        Button(role: .destructive) {
+                            showDeleteAlert = true
+                        } label: {
+                            Label("Delete Account", systemImage: "trash")
                         }
                     } label: {
-                        Image(systemName: "person.badge.key.fill")
+                        Image(systemName: "ellipsis.circle")
                             .font(.title2)
                     }
                 }
@@ -145,6 +144,7 @@ struct ProfileView: View {
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
                     .environmentObject(authViewModel)
+                    .presentationDetents([.medium, .large])
             }
             .refreshable {
                 await viewModel.fetchProfile()

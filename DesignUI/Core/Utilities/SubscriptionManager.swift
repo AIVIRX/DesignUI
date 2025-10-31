@@ -33,8 +33,8 @@ class SubscriptionManager: ObservableObject {
                 await MainActor.run {
                     self.customerInfo = customerInfo
                     self.offerings = offerings
-                    // Check for specific entitlement instead of all active entitlements
-                    self.isSubscribed = customerInfo.entitlements["premium"]?.isActive == true
+                    // Check for specific entitlement using shared constant
+                    self.isSubscribed = customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true
                     self.isLoading = false
                 }
             } catch {
@@ -55,11 +55,11 @@ class SubscriptionManager: ObservableObject {
             
             await MainActor.run {
                 self.customerInfo = customerInfo
-                self.isSubscribed = customerInfo.entitlements["premium"]?.isActive == true
+                self.isSubscribed = customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true
                 self.isLoading = false
             }
             
-            return customerInfo.entitlements["premium"]?.isActive == true
+            return customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true
         } catch {
             await MainActor.run {
                 self.isLoading = false
@@ -77,7 +77,7 @@ class SubscriptionManager: ObservableObject {
             
             await MainActor.run {
                 self.customerInfo = customerInfo
-                self.isSubscribed = customerInfo.entitlements["premium"]?.isActive == true
+                self.isSubscribed = customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true
                 self.isLoading = false
             }
             

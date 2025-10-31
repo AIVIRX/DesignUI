@@ -178,42 +178,4 @@ class LatestPostsViewModel: ObservableObject {
         
         isRefreshing = false
     }
-    
-    @MainActor
-    func fetchMostLikedPosts() async {
-        guard !isLoading else { return }
-        
-        isLoading = true
-        error = nil
-        posts.removeAll()
-        
-        do {
-            let response = try await client
-                .from("posts")
-                .select("""
-                    *,
-                    profiles!posts_author_id_fkey (
-                      username,
-                      verified
-                    )
-                """)
-                .eq("public", value: true)
-                .order("likes_count", ascending: false)
-                .limit(5)
-                .execute()
-            
-            let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
-            posts = newPosts
-        } catch {
-            self.error = error
-            // Only log non-cancelled errors
-            if let urlError = error as? URLError, urlError.code == .cancelled {
-                // Silently handle cancelled requests - these are usually due to view lifecycle changes
-                return
-            }
-            print("Error fetching most liked posts: \(error)")
-        }
-        
-        isLoading = false
-    }
 }

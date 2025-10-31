@@ -39,7 +39,6 @@ struct LikedPostsView: View {
                             description: post.description,
                             codeSnippet: post.code_snippet,
                             published: post.created_at,
-                            likesCount: post.likes_count,
                             isLiked: false,
                             isPremium: post.isPremium == true
                         )
@@ -53,6 +52,9 @@ struct LikedPostsView: View {
         }
         .task {
             await viewModelLiked.fetchLikedPosts()
+        }
+        .refreshable {
+            await viewModelLiked.refreshPosts()
         }
     }
 }

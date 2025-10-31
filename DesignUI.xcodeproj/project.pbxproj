@@ -59,6 +59,7 @@
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
 		ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */; };
+		ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */; };
 		ECE995512C98881000C60416 /* TemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE995502C98881000C60416 /* TemplateView.swift */; };
 		ECFC6AC62EA9C48400177480 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ECFC6AC52EA9C48400177480 /* AppIcon.icon */; };
 		ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C782D55936B006A7FE6 /* ProfileView.swift */; };
@@ -116,6 +117,7 @@
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
+		ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSetupView.swift; sourceTree = "<group>"; };
 		ECE995502C98881000C60416 /* TemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateView.swift; sourceTree = "<group>"; };
 		ECFC6AC52EA9C48400177480 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		ECFF2C782D55936B006A7FE6 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -323,6 +325,7 @@
 		ECFF2C772D558CCA006A7FE6 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */,
 				ECFF2C782D55936B006A7FE6 /* ProfileView.swift */,
 				EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */,
 				EC5982A12D57F4A600633392 /* LikedPostsView.swift */,
@@ -498,6 +501,7 @@
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
+				ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */,
 				EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */,
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				ECE995512C98881000C60416 /* TemplateView.swift in Sources */,

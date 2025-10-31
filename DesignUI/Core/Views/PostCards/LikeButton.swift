@@ -10,20 +10,15 @@ import StoreKit
 
 struct LikeButton: View {
     let postId: String
-    let initialLikeCount: Int
     @State private var isLiked: Bool = false
-    @State private var likeCount: Int
     @State private var isLoading = false
     @State private var showAlert = false
     @Environment(\.requestReview) var requestReview
     @EnvironmentObject var authViewModel: AuthViewModel
     private let supabase = SupabaseManager.shared.client
-    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
-    init(postId: String, initialLikeCount: Int) {
+    init(postId: String) {
         self.postId = postId
-        self.initialLikeCount = initialLikeCount
-        _likeCount = State(initialValue: initialLikeCount)
     }
     
     var body: some View {
@@ -31,10 +26,6 @@ struct LikeButton: View {
             Task {
                 if supabase.auth.currentUser != nil {
                     await handleLike()
-                    if !hasRequestedReview {
-                        requestReview()
-                        hasRequestedReview = true
-                    }
                 } else {
                     showAlert = true
                 }
@@ -44,10 +35,6 @@ struct LikeButton: View {
                 Image(systemName: isLiked ? "heart.fill" : "heart")
                     .foregroundColor(isLiked ? .red : .gray)
                     .font(.system(size: 16))
-                
-                Text("\(formatCount(likeCount))")
-                    .font(.footnote)
-                    .foregroundColor(.gray)
             }
         }
         .disabled(isLoading)
@@ -106,7 +93,6 @@ struct LikeButton: View {
                     .execute()
                 
                 isLiked = false
-                likeCount = max(0, likeCount - 1)
             } else {
                 let insertData: [String: UUID] = [
                     "post_id": postUUID,
@@ -118,7 +104,6 @@ struct LikeButton: View {
                     .execute()
                 
                 isLiked = true
-                likeCount += 1
             }
         } catch {
             print("Error toggling like:", error)
