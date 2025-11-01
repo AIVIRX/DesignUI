@@ -6,7 +6,7 @@
 //
 
 
-struct DesignPost: Identifiable, Codable {
+struct DesignPost: Identifiable, Codable, Equatable {
     let id: String
     let preview_image_url: String
     let title: String
@@ -17,7 +17,7 @@ struct DesignPost: Identifiable, Codable {
     let isPremium: Bool?
     let post_type: String?
     
-    struct AuthorProfile: Codable {
+    struct AuthorProfile: Codable, Equatable {
         let username: String
         let verified: Bool
     }

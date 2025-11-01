@@ -27,7 +27,6 @@
 		EC5982A42D57F54000633392 /* GridColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A32D57F54000633392 /* GridColumns.swift */; };
 		EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */; };
 		EC5E634D2EB5398100133C05 /* UploadTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E634C2EB5398100133C05 /* UploadTemplateView.swift */; };
-		EC5E634F2EB5A42C00133C05 /* MasonryLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E634E2EB5A42C00133C05 /* MasonryLayout.swift */; };
 		EC5E63512EB5B1CD00133C05 /* LazyMasonryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
@@ -96,7 +95,6 @@
 		EC5982A32D57F54000633392 /* GridColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridColumns.swift; sourceTree = "<group>"; };
 		EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsViewModel.swift; sourceTree = "<group>"; };
 		EC5E634C2EB5398100133C05 /* UploadTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadTemplateView.swift; sourceTree = "<group>"; };
-		EC5E634E2EB5A42C00133C05 /* MasonryLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasonryLayout.swift; sourceTree = "<group>"; };
 		EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LazyMasonryView.swift; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
@@ -226,7 +224,6 @@
 			isa = PBXGroup;
 			children = (
 				EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */,
-				EC5E634E2EB5A42C00133C05 /* MasonryLayout.swift */,
 				EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */,
 				EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */,
 				EC0C95BD2EB29F1200AA6A84 /* Constants.swift */,
@@ -493,7 +490,6 @@
 				EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */,
 				ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */,
 				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
-				EC5E634F2EB5A42C00133C05 /* MasonryLayout.swift in Sources */,
 				EC0C95C72EB2A18F00AA6A84 /* CustomPaywallView.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC5982A42D57F54000633392 /* GridColumns.swift in Sources */,

@@ -21,13 +21,14 @@ class LatestPostsViewModel: ObservableObject {
     private let refreshCooldown: TimeInterval = 1
     private var isRefreshing = false
     private var currentTask: Task<Void, Never>?
+    private var filterTask: Task<Void, Never>?
     
     @MainActor
     func loadMorePostsIfNeeded(currentItem item: DesignPost?) async {
         guard !isLoading, !isRefreshing, hasMorePosts else { return }
         
         guard let item = item else {
-            await fetchPosts()
+            await fetchPosts(postType: currentFilterType)
             return
         }
         
@@ -36,14 +37,15 @@ class LatestPostsViewModel: ObservableObject {
         let thresholdIndex = posts.index(posts.endIndex, offsetBy: -thresholdOffset, limitedBy: posts.startIndex) ?? posts.startIndex
         if let itemIndex = posts.firstIndex(where: { $0.id == item.id }),
            itemIndex >= thresholdIndex {
-            await fetchPosts()
+            await fetchPosts(postType: currentFilterType)
         }
     }
     
     @MainActor
     func searchPosts(query: String) async {
         guard !query.isEmpty else {
-            await refreshPosts() // Reset to default posts if query is cleared
+            // Reset to current filter if query is cleared
+            await refreshPosts(filterType: currentFilterType, isAllPosts: isAllPostsMode)
             return
         }
         
@@ -51,7 +53,7 @@ class LatestPostsViewModel: ObservableObject {
         error = nil
         
         do {
-            let response = try await client
+            var queryBuilder = client
                 .from("posts")
                 .select("""
                     *,
@@ -61,6 +63,18 @@ class LatestPostsViewModel: ObservableObject {
                     )
                 """)
                 .eq("public", value: true)
+            
+            // Apply current filter if not in "all posts" mode
+            if !isAllPostsMode {
+                if let filterType = currentFilterType {
+                    queryBuilder = queryBuilder.eq("post_type", value: filterType)
+                } else {
+                    // Templates: exclude components
+                    queryBuilder = queryBuilder.or("post_type.neq.component,post_type.is.null")
+                }
+            }
+            
+            let response = try await queryBuilder
                 .or("title.ilike.%\(query)%,description.ilike.%\(query)%")
                 .order("created_at", ascending: false)
                 .limit(pageSize)
@@ -83,7 +97,7 @@ class LatestPostsViewModel: ObservableObject {
     }
     
     @MainActor
-    func fetchPosts() async {
+    func fetchPosts(postType: String? = nil) async {
         guard !isLoading && hasMorePosts && !isRefreshing else { return }
         
         // Cancel any existing task
@@ -94,7 +108,7 @@ class LatestPostsViewModel: ObservableObject {
         
         currentTask = Task {
             do {
-                let response = try await client
+                var query = client
                     .from("posts")
                     .select("""
                         *,
@@ -104,6 +118,19 @@ class LatestPostsViewModel: ObservableObject {
                         )
                     """)
                     .eq("public", value: true)
+                
+                // Apply filter based on current mode
+                let filterType = postType ?? currentFilterType
+                if isAllPostsMode {
+                    // No filter - fetch all posts
+                } else if let filterType = filterType {
+                    query = query.eq("post_type", value: filterType)
+                } else {
+                    // Templates: exclude components
+                    query = query.or("post_type.neq.component,post_type.is.null")
+                }
+                
+                let response = try await query
                     .order("created_at", ascending: false)
                     .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                     .execute()
@@ -128,8 +155,114 @@ class LatestPostsViewModel: ObservableObject {
         }
     }
     
+    private var isAllPostsMode: Bool = true
+    
     @MainActor
-    func refreshPosts() async {
+    func fetchPostsByType(postType: String?, isAllPosts: Bool = false) async {
+        // Cancel any pending filter task
+        filterTask?.cancel()
+        
+        // Cancel any in-flight fetch
+        currentTask?.cancel()
+        
+        // Reset pagination and fetch fresh posts with filter
+        currentPage = 0
+        posts.removeAll()
+        hasMorePosts = true
+        currentFilterType = postType
+        isAllPostsMode = isAllPosts
+        
+        await fetchFilteredPosts(filterType: postType, isAllPosts: isAllPosts)
+    }
+    
+    @MainActor
+    func fetchPostsByTypeDebounced(postType: String?, isAllPosts: Bool, delay: TimeInterval = 0.3) async {
+        // Cancel previous filter task if any
+        filterTask?.cancel()
+        
+        filterTask = Task {
+            // Wait for debounce delay
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            
+            // Check if task was cancelled
+            guard !Task.isCancelled else { return }
+            
+            // Cancel any in-flight fetch
+            currentTask?.cancel()
+            
+            // Reset pagination and fetch fresh posts with filter
+            currentPage = 0
+            posts.removeAll()
+            hasMorePosts = true
+            currentFilterType = postType
+            isAllPostsMode = isAllPosts
+            
+            await fetchFilteredPosts(filterType: postType, isAllPosts: isAllPosts)
+        }
+        
+        await filterTask?.value
+    }
+    
+    @MainActor
+    private func fetchFilteredPosts(filterType: String?, isAllPosts: Bool) async {
+        guard !isLoading && !isRefreshing else { return }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            var query = client
+                .from("posts")
+                .select("""
+                    *,
+                    profiles!posts_author_id_fkey (
+                      username,
+                      verified
+                    )
+                """)
+                .eq("public", value: true)
+            
+            if isAllPosts {
+                // Fetch all posts - no post_type filter
+                // Don't add any post_type filter
+            } else if let filterType = filterType {
+                // Filter for specific post_type (e.g., "component")
+                query = query.eq("post_type", value: filterType)
+            } else {
+                // For templates: exclude components (post_type is NOT "component" or is null)
+                query = query.or("post_type.neq.component,post_type.is.null")
+            }
+            
+            let response = try await query
+                .order("created_at", ascending: false)
+                .range(from: 0, to: pageSize - 1)
+                .execute()
+            
+            let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
+            posts = newPosts
+            currentPage = 1
+            hasMorePosts = newPosts.count == pageSize
+            
+            // Continue loading if needed
+            if hasMorePosts {
+                await fetchPosts(postType: filterType)
+            }
+        } catch {
+            self.error = error
+            // Only log non-cancelled errors
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                return
+            }
+            print("Error fetching filtered posts: \(error)")
+        }
+        
+        isLoading = false
+    }
+    
+    private var currentFilterType: String? = nil
+    
+    @MainActor
+    func refreshPosts(filterType: String? = nil, isAllPosts: Bool? = nil) async {
         guard !isRefreshing else { return }
         
         let now = Date()
@@ -141,42 +274,17 @@ class LatestPostsViewModel: ObservableObject {
         isRefreshing = true
         lastRefreshTime = now
         currentPage = 0
+        if let filterType = filterType {
+            currentFilterType = filterType
+        }
+        if let isAllPosts = isAllPosts {
+            isAllPostsMode = isAllPosts
+        }
         error = nil
         posts.removeAll()
         hasMorePosts = true
         
-        do {
-            let response = try await client
-                .from("posts")
-                .select("""
-                    *,
-                    profiles!posts_author_id_fkey (
-                      username,
-                      verified
-                    )
-                """)
-                .eq("public", value: true)
-                .order("created_at", ascending: false)
-                .range(from: 0, to: pageSize - 1)
-                .execute()
-            
-            let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
-            posts = newPosts
-            currentPage = 1
-            hasMorePosts = newPosts.count == pageSize
-            
-            if hasMorePosts {
-                await fetchPosts()
-            }
-        } catch {
-            self.error = error
-            // Only log non-cancelled errors
-            if let urlError = error as? URLError, urlError.code == .cancelled {
-                // Silently handle cancelled requests - these are usually due to view lifecycle changes
-                return
-            }
-            print("Error refreshing posts: \(error)")
-        }
+        await fetchFilteredPosts(filterType: filterType ?? currentFilterType, isAllPosts: isAllPosts ?? isAllPostsMode)
         
         isRefreshing = false
     }

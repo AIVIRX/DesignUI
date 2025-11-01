@@ -35,11 +35,11 @@ struct LikeButton: View {
                 }
             }
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: isLiked ? "heart.fill" : "heart")
-                    .foregroundColor(isLiked ? .red : .gray)
-                    .font(.system(size: 16))
-            }
+            Image(systemName: isLiked ? "heart.fill" : "heart")
+                .foregroundColor(isLiked ? .red : .white)
+                .font(.system(size: 16))
+                .padding(8)
+                .background(.ultraThinMaterial, in: Circle())
         }
         .disabled(isLoading)
         .scaleEffect(isLoading ? 0.95 : 1.0)
