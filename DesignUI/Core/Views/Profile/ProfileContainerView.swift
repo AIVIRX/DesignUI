@@ -4,7 +4,7 @@ struct ProfileContainerView: View {
     @StateObject private var authViewModel = AuthViewModel()    
     var body: some View {
         NavigationStack {
-            if !authViewModel.isAuthResolved {
+            if !authViewModel.isAuthResolved || authViewModel.isCheckingUsername {
                 ProgressView()
                     .progressViewStyle(.circular)
             } else if authViewModel.isAuthenticated {

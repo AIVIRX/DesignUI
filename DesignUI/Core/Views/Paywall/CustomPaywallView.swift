@@ -16,7 +16,7 @@ struct CustomPaywallView: View {
     @State private var errorMessage = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             if let offerings = purchases.offerings, let currentOffering = offerings.current {
                 PaywallView(offering: currentOffering)
                     .onPurchaseCompleted { _ in

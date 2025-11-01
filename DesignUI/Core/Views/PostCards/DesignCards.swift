@@ -20,6 +20,7 @@ struct DesignCards: View {
     var codeSnippet: String
     var published: String
     var isLiked: Bool
+    var isComponent: Bool = false // New property to distinguish components
     
     @State private var isHovered: Bool = false
     @State private var startAnimation: Bool = false
@@ -50,7 +51,7 @@ struct DesignCards: View {
         }
     }
     
-    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, isLiked: Bool, isPremium: Bool = false) {
+    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, isLiked: Bool, isPremium: Bool = false, isComponent: Bool = false) {
         self.id = id
         self.media = media
         self.title = title
@@ -61,6 +62,7 @@ struct DesignCards: View {
         self.published = published
         self.isLiked = isLiked
         self.isPremium = isPremium
+        self.isComponent = isComponent
     }
     
     var body: some View {
@@ -75,48 +77,52 @@ struct DesignCards: View {
             isAuthorVerified: isVerified,
             isPremium: isPremium
         )) {
-            VStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 8) {
 #if os(iOS)
                 if UIDevice.current.userInterfaceIdiom == .phone {
-                    RoundedRectangle(cornerRadius: 15)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 280)
-                        .foregroundStyle(.regularMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                        )
-                        .overlay{
-                            RoundedRectangle(cornerRadius: 15)
-                                .frame(width: 115,height: 250)
-                                .overlay{
-                                    WebImage(url: URL(string: media)) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView()
-                                                .frame(maxWidth: .infinity, maxHeight: 350)
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(maxWidth: .infinity, maxHeight: 250)
-                                                .frame(maxWidth: .infinity, maxHeight: 370)
-                                                .clipShape(RoundedRectangle(cornerRadius: 15))
-                                                .clipped()
-                                                .shadow(radius: 8)
-                                                .onDisappear {
-                                                    SDImageCache.shared.clearMemory()
-                                                }
-                                        case .failure:
-                                            Image(systemName: "wifi.slash")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(width: 50, height: 50)
-                                        }
-                                    }
-                                }
+                    // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
+                    // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
+                    let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
+                    WebImage(url: URL(string: media)) { phase in
+                        switch phase {
+                        case .empty:
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.1))
+                                .aspectRatio(aspectRatio, contentMode: .fit)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    ProgressView()
+                                )
+                        case .success(let image):
+                            Color.clear
+                                .aspectRatio(aspectRatio, contentMode: .fit)
+                                .overlay(
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                )
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                )
+                        case .failure:
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.1))
+                                .aspectRatio(aspectRatio, contentMode: .fit)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    Image(systemName: "photo")
+                                        .foregroundColor(.gray.opacity(0.5))
+                                )
                         }
+                    }
+                    .onDisappear {
+                        SDImageCache.shared.clearMemory()
+                    }
                 }
+                
                 
                 if UIDevice.current.userInterfaceIdiom == .pad {
                     WebImage(url: URL(string: media)) { phase in
@@ -188,33 +194,33 @@ struct DesignCards: View {
                     }
                 }
 #endif
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(title).bold()
-                        .font(.system(size: 16))
-                        .lineLimit(1)
+                        .font(.system(size: 14, weight: .semibold))
+                        .lineLimit(2)
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.leading)
-                        .truncationMode(.tail)
+                        .fixedSize(horizontal: false, vertical: true)
                     
-                    HStack {
+                    HStack(spacing: 4) {
                         if isPremium {
                             Text("Premium")
-                                .font(.system(size: 16, weight: .bold))
+                                .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(.clear)
                                 .overlay(
                                     LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
                                         .mask(
                                             Text("Premium")
-                                                .font(.system(size: 16, weight: .bold))
+                                                .font(.system(size: 12, weight: .bold))
                                         )
                                 )
                         } else {
                             Text(authorName)
-                                .font(.system(size: 16))
+                                .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                             if isVerified {
                                 Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 13))
+                                    .font(.system(size: 10))
                                     .foregroundColor(.blue)
                             }
                         }
@@ -225,16 +231,12 @@ struct DesignCards: View {
                             postId: id
                         )
                     }
-                    .padding(.bottom, 5)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        isHovered = hovering
-                    }
                 }
 #if os(iOS)
+                .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? nil : 185)
+#else
                 .frame(width: 185)
 #endif
-                .padding(.top, 1)
                 .opacity(isVisible ? 1 : 0)
                 .onAppear {
                     withAnimation(.easeIn(duration: 0.2)) {

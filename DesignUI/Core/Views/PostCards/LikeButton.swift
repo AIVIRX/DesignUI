@@ -8,6 +8,10 @@
 import SwiftUI
 import StoreKit
 
+extension Notification.Name {
+    static let likesChanged = Notification.Name("likesChanged")
+}
+
 struct LikeButton: View {
     let postId: String
     @State private var isLiked: Bool = false
@@ -93,6 +97,10 @@ struct LikeButton: View {
                     .execute()
                 
                 isLiked = false
+                NotificationCenter.default.post(name: .likesChanged, object: nil, userInfo: [
+                    "postId": postId,
+                    "isLiked": false
+                ])
             } else {
                 let insertData: [String: UUID] = [
                     "post_id": postUUID,
@@ -104,6 +112,10 @@ struct LikeButton: View {
                     .execute()
                 
                 isLiked = true
+                NotificationCenter.default.post(name: .likesChanged, object: nil, userInfo: [
+                    "postId": postId,
+                    "isLiked": true
+                ])
             }
         } catch {
             print("Error toggling like:", error)

@@ -28,7 +28,7 @@ struct LikedPostsView: View {
                 .padding(.top, 5)
                 .frame(maxWidth: .infinity, minHeight: 300)
             } else {
-                LazyVGrid(columns: gridColumns, spacing: 16) {
+                LazyVGrid(columns: gridColumns, spacing: UIDevice.current.userInterfaceIdiom == .phone ? 8 : 16) {
                     ForEach(viewModelLiked.likedPosts) { post in
                         DesignCards(
                             id: post.id,
@@ -47,11 +47,25 @@ struct LikedPostsView: View {
                         }
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 8 : 16)
             }
         }
         .task {
             await viewModelLiked.fetchLikedPosts()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .likesChanged)) { notification in
+            guard
+                let info = notification.userInfo,
+                let postId = info["postId"] as? String,
+                let isLiked = info["isLiked"] as? Bool
+            else { return }
+
+            if !isLiked {
+                // Remove unliked post from the grid immediately
+                if let index = viewModelLiked.likedPosts.firstIndex(where: { $0.id == postId }) {
+                    viewModelLiked.likedPosts.remove(at: index)
+                }
+            }
         }
         .refreshable {
             await viewModelLiked.refreshPosts()

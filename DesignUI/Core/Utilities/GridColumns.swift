@@ -13,8 +13,8 @@ var gridColumns: [GridItem] {
 #else
     if UIDevice.current.userInterfaceIdiom == .phone {
         return [
-            GridItem(.flexible(), spacing: 16),
-            GridItem(.flexible(), spacing: 16)
+            GridItem(.flexible(), spacing: 8),
+            GridItem(.flexible(), spacing: 8)
         ]
     } else if UIDevice.current.userInterfaceIdiom == .pad {
         return [GridItem(.adaptive(minimum: 180), spacing: 16)]

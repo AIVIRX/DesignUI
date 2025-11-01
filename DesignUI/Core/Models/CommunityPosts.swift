@@ -24,14 +24,16 @@ class LatestPostsViewModel: ObservableObject {
     
     @MainActor
     func loadMorePostsIfNeeded(currentItem item: DesignPost?) async {
-        guard !isLoading, !isRefreshing else { return }
+        guard !isLoading, !isRefreshing, hasMorePosts else { return }
         
         guard let item = item else {
             await fetchPosts()
             return
         }
         
-        let thresholdIndex = posts.index(posts.endIndex, offsetBy: -1)
+        // Load more when we're within the last 3 items
+        let thresholdOffset = min(3, posts.count)
+        let thresholdIndex = posts.index(posts.endIndex, offsetBy: -thresholdOffset, limitedBy: posts.startIndex) ?? posts.startIndex
         if let itemIndex = posts.firstIndex(where: { $0.id == item.id }),
            itemIndex >= thresholdIndex {
             await fetchPosts()

@@ -2,109 +2,276 @@ import SwiftUI
 
 struct UsernameSetupView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var displayName: String = ""
     @State private var username: String = ""
+    @State private var bio: String = ""
     @State private var isSaving: Bool = false
-    @State private var errorMessage: String = ""
+    @State private var displayNameError: String = ""
+    @State private var usernameError: String = ""
+    
+    @FocusState private var focusedField: Field?
+    
+    private enum Field {
+        case displayName
+        case username
+        case bio
+    }
     
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Choose a username")
-                .font(.title2.bold())
-            Text("This will be your public handle. You can change it later.")
-                .foregroundStyle(.secondary)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Username")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    Spacer()
-                    
-                    Text("\(username.count)/15")
-                        .font(.caption)
-                        .foregroundColor(username.count > 15 || !errorMessage.isEmpty ? .red : .secondary)
-                }
-                
-                TextField("username", text: $username)
-                    .textFieldStyle(.roundedBorder)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .disabled(isSaving)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(errorMessage.isEmpty ? Color.clear : Color.red, lineWidth: 1)
-                    )
-                    .onChange(of: username) { _, newValue in
-                        // Filter to only alphanumeric characters
-                        let filtered = newValue.filter { $0.isLetter || $0.isNumber }
-                        if filtered != newValue {
-                            username = filtered
-                        }
-                        
-                        // Limit to 15 characters
-                        if username.count > 15 {
-                            username = String(username.prefix(15))
-                        }
-                        
-                        validateUsername()
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header
+                    VStack(spacing: 8) {
+                        Text("Complete Your Profile")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Text("Tell us a bit about yourself")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                
-                if !errorMessage.isEmpty {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.red)
+                    .padding(.top)
+                    
+                    // Display Name Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Display Name")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
+                            Text("\(displayName.count)/50")
+                                .font(.caption)
+                                .foregroundColor(displayName.count > 50 ? .red : .secondary)
+                        }
+                        
+                        TextField("John Doe", text: $displayName)
+                            .autocorrectionDisabled()
+                            .focused($focusedField, equals: .displayName)
+                            .submitLabel(.next)
+                            .onSubmit {
+                                validateDisplayName()
+                                if displayNameError.isEmpty {
+                                    focusedField = .username
+                                }
+                            }
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 14)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(
+                                        displayNameError.isEmpty ? (focusedField == .displayName ? Color.white : Color.gray.opacity(0.3)) : Color.red,
+                                        lineWidth: focusedField == .displayName || !displayNameError.isEmpty ? 2 : 1
+                                    )
+                            )
+                            .shadow(color: focusedField == .displayName ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
+                            .onChange(of: displayName) { _, newValue in
+                                if newValue.count > 50 {
+                                    displayName = String(newValue.prefix(50))
+                                }
+                                validateDisplayName()
+                            }
+                        
+                        if !displayNameError.isEmpty {
+                            Text(displayNameError)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 4)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Username Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Username")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
+                            Text("\(username.count)/15")
+                                .font(.caption)
+                                .foregroundColor(username.count > 15 || !usernameError.isEmpty ? .red : .secondary)
+                        }
+                        
+                        TextField("johndoe", text: $username)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                            .focused($focusedField, equals: .username)
+                            .submitLabel(.next)
+                            .onSubmit {
+                                validateUsername()
+                                if usernameError.isEmpty {
+                                    focusedField = .bio
+                                }
+                            }
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 14)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(
+                                        usernameError.isEmpty ? (focusedField == .username ? Color.white : Color.gray.opacity(0.3)) : Color.red,
+                                        lineWidth: focusedField == .username || !usernameError.isEmpty ? 2 : 1
+                                    )
+                            )
+                            .shadow(color: focusedField == .username ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
+                            .onChange(of: username) { _, newValue in
+                                // Filter to only alphanumeric characters
+                                let filtered = newValue.filter { $0.isLetter || $0.isNumber }
+                                if filtered != newValue {
+                                    username = filtered
+                                }
+                                
+                                // Limit to 15 characters
+                                if username.count > 15 {
+                                    username = String(username.prefix(15))
+                                }
+                                
+                                validateUsername()
+                            }
+                        
+                        if !usernameError.isEmpty {
+                            Text(usernameError)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 4)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Bio Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Bio")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
+                            Text("\(bio.count)/130")
+                                .font(.caption)
+                                .foregroundColor(bio.count > 130 ? .red : .secondary)
+                        }
+                        
+                        ZStack(alignment: .topLeading) {
+                            if bio.isEmpty {
+                                Text("Tell us about yourself...")
+                                    .foregroundColor(Color(uiColor: .placeholderText))
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 18)
+                                    .allowsHitTesting(false)
+                            }
+                            
+                            TextEditor(text: $bio)
+                                .focused($focusedField, equals: .bio)
+                                .scrollContentBackground(.hidden)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .frame(minHeight: 120)
+                                .background(Color(.systemBackground))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(
+                                            focusedField == .bio ? Color.white : Color.gray.opacity(0.3),
+                                            lineWidth: focusedField == .bio ? 2 : 1
+                                        )
+                                )
+                                .shadow(color: focusedField == .bio ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
+                                .onChange(of: bio) { _, newValue in
+                                    if newValue.count > 130 {
+                                        bio = String(newValue.prefix(130))
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom)
                 }
             }
-            
-            Button(action: { 
-                validateUsername()
-                if errorMessage.isEmpty {
-                    Task { await saveUsername() }
+            .navigationTitle("Setup Profile")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        validateDisplayName()
+                        validateUsername()
+                        if displayNameError.isEmpty && usernameError.isEmpty {
+                            Task { await saveProfile() }
+                        }
+                    } label: {
+                        if isSaving {
+                            ProgressView()
+                        } else {
+                            Text("Continue")
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .disabled(isSaving || !displayNameError.isEmpty || !usernameError.isEmpty || displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-            }) {
-                if isSaving { ProgressView() } else { Text("Continue") }
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSaving || !errorMessage.isEmpty)
         }
-        .padding()
+    }
+    
+    private func validateDisplayName() {
+        if displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            displayNameError = "Display name cannot be empty"
+        } else if displayName.count > 50 {
+            displayNameError = "Display name must be 50 characters or less"
+        } else {
+            displayNameError = ""
+        }
     }
     
     private func validateUsername() {
         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if trimmedUsername.isEmpty {
-            errorMessage = "Username cannot be empty"
+            usernameError = "Username cannot be empty"
         } else if trimmedUsername.count > 15 {
-            errorMessage = "Username must be 15 characters or less"
+            usernameError = "Username must be 15 characters or less"
         } else if !trimmedUsername.allSatisfy({ $0.isLetter || $0.isNumber }) {
-            errorMessage = "Username can only contain letters and numbers"
+            usernameError = "Username can only contain letters and numbers"
         } else {
-            errorMessage = ""
+            usernameError = ""
         }
     }
     
-    private func saveUsername() async {
+    private func saveProfile() async {
         guard let userId = authViewModel.currentUser?.id else { return }
-        let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !trimmed.isEmpty else { return }
         
         // Final validation
+        validateDisplayName()
         validateUsername()
-        if !errorMessage.isEmpty {
+        if !displayNameError.isEmpty || !usernameError.isEmpty {
             return
         }
         
+        let trimmedDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        
+        guard !trimmedDisplayName.isEmpty && !trimmedUsername.isEmpty else { return }
+        
         isSaving = true
-        errorMessage = ""
+        displayNameError = ""
+        usernameError = ""
         
         do {
             // Check if username is already taken
             let checkResponse = try await authViewModel.supabase
                 .from("profiles")
                 .select("username")
-                .eq("username", value: trimmed)
+                .eq("username", value: trimmedUsername)
                 .execute()
             
             let decoder = JSONDecoder()
@@ -113,7 +280,7 @@ struct UsernameSetupView: View {
             
             if !existingUsers.isEmpty {
                 await MainActor.run {
-                    errorMessage = "Username is already taken"
+                    usernameError = "Username is already taken"
                     isSaving = false
                 }
                 return
@@ -123,8 +290,14 @@ struct UsernameSetupView: View {
                 let id: UUID
                 let username: String
                 let display_name: String
+                let bio: String?
             }
-            let payload = ProfileUpsertPayload(id: userId, username: trimmed, display_name: trimmed)
+            let payload = ProfileUpsertPayload(
+                id: userId,
+                username: trimmedUsername,
+                display_name: trimmedDisplayName,
+                bio: bio.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : bio.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
             _ = try await authViewModel.supabase
                 .from("profiles")
                 .upsert(payload, onConflict: "id")
@@ -132,12 +305,11 @@ struct UsernameSetupView: View {
             await authViewModel.checkUsername()
         } catch {
             await MainActor.run {
-                errorMessage = "Failed to save username. Please try again."
+                usernameError = "Failed to save profile. Please try again."
+                isSaving = false
             }
         }
         
         isSaving = false
     }
 }
-
-

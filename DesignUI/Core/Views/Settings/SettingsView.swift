@@ -87,9 +87,28 @@ struct SettingsView: View {
                         Button("Subscribe") { showPaywall = true }
                         .buttonStyle(.borderedProminent)
                     } else {
-                        Text("You have access to all premium features")
-                            .foregroundColor(.secondary)
-                            .font(.subheadline)
+                        VStack(alignment: .trailing, spacing: 8) {
+                            Text("You have access to all premium features")
+                                .foregroundColor(.secondary)
+                                .font(.subheadline)
+                            Button("Change Plan") {
+                                #if os(iOS)
+                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                    Task {
+                                        try? await AppStore.showManageSubscriptions(in: windowScene)
+                                    }
+                                }
+                                #elseif os(macOS)
+                                if let windowScene = NSApplication.shared.keyWindow?.windowScene {
+                                    Task {
+                                        try? await AppStore.showManageSubscriptions(in: windowScene)
+                                    }
+                                }
+                                #endif
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
                     }
                 }
                 .padding(16)
@@ -207,9 +226,36 @@ struct SettingsView: View {
                         }
                         Spacer()
                         if !purchases.hasPremium {
-                            Button("Subscribe") { }
+                            Button("Subscribe") { 
+                                showPaywall = true
+                            }
                                 .buttonStyle(.bordered)
                         }
+                    }
+                    
+                    if purchases.hasPremium {
+                        Button {
+                            #if os(iOS)
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                Task {
+                                    try? await AppStore.showManageSubscriptions(in: windowScene)
+                                }
+                            }
+                            #endif
+                        } label: {
+                            HStack {
+                                Image(systemName: "creditcard.fill")
+                                    .foregroundColor(.blue)
+                                    .frame(width: 24)
+                                Text("Change Plan")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundColor(.primary)
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
                 

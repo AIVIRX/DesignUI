@@ -19,6 +19,7 @@ class AuthViewModel: ObservableObject {
     @Published var userProfile: Profile?
     @Published var hasUsername = false
     @Published var isAuthResolved = false
+    @Published var isCheckingUsername = false
     
     let supabase = SupabaseManager.shared.client
     private var authChangeTask: Task<Void, Never>?
@@ -31,16 +32,28 @@ class AuthViewModel: ObservableObject {
                     if let user = state.session?.user {
                         self.currentUser = user
                         self.isAuthenticated = true
-                        Task { await self.checkUsername() }
+                        self.isCheckingUsername = true
+                        Task {
+                            await self.checkUsername()
+                            await MainActor.run {
+                                self.isCheckingUsername = false
+                                // Mark auth as resolved after username check completes
+                                if self.isAuthResolved == false {
+                                    self.isAuthResolved = true
+                                    self.isLoading = false
+                                }
+                            }
+                        }
                     } else {
                         self.currentUser = nil
                         self.isAuthenticated = false
                         self.hasUsername = false
-                    }
-                    // Mark initial auth state as resolved after first emission
-                    if self.isAuthResolved == false {
-                        self.isAuthResolved = true
-                        self.isLoading = false
+                        self.isCheckingUsername = false
+                        // Mark auth as resolved immediately when not authenticated
+                        if self.isAuthResolved == false {
+                            self.isAuthResolved = true
+                            self.isLoading = false
+                        }
                     }
                 }
             }

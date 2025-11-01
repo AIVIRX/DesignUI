@@ -4,6 +4,9 @@
     "" : {
       "shouldTranslate" : false
     },
+    " " : {
+
+    },
     "@%@" : {
       "localizations" : {
         "ar" : {
@@ -513,7 +516,16 @@
     "%lld/50" : {
 
     },
+    "%lld/100" : {
+
+    },
     "%lld/130" : {
+
+    },
+    "%lld/500" : {
+
+    },
+    "%lld/10000" : {
 
     },
     "•" : {
@@ -1519,7 +1531,10 @@
         }
       }
     },
-    "Choose a username" : {
+    "Change Plan" : {
+
+    },
+    "Code" : {
 
     },
     "Code Snippet" : {
@@ -1527,6 +1542,9 @@
     },
     "Color Scheme" : {
       "shouldTranslate" : false
+    },
+    "Complete Your Profile" : {
+
     },
     "Contact Us" : {
       "localizations" : {
@@ -2292,6 +2310,12 @@
           }
         }
       }
+    },
+    "Describe your design..." : {
+
+    },
+    "Description" : {
+
     },
     "DesignUI" : {
 
@@ -3587,6 +3611,9 @@
     "More Apps" : {
 
     },
+    "My Awesome Design" : {
+
+    },
     "News" : {
       "localizations" : {
         "ar" : {
@@ -4837,6 +4864,9 @@
           }
         }
       }
+    },
+    "Paste your SwiftUI code here..." : {
+
     },
     "Premium" : {
 
@@ -6103,7 +6133,7 @@
       }
     },
     "Search templates" : {
-      "shouldTranslate" : false
+
     },
     "Select a view" : {
       "localizations" : {
@@ -6607,6 +6637,9 @@
           }
         }
       }
+    },
+    "Setup Profile" : {
+
     },
     "SF Icons" : {
       "extractionState" : "stale",
@@ -8131,6 +8164,9 @@
         }
       }
     },
+    "Tell us a bit about yourself" : {
+
+    },
     "Tell us about yourself..." : {
 
     },
@@ -8387,9 +8423,6 @@
     "Terms of Service" : {
 
     },
-    "This will be your public handle. You can change it later." : {
-
-    },
     "Threads" : {
       "localizations" : {
         "ar" : {
@@ -8639,6 +8672,15 @@
           }
         }
       }
+    },
+    "Title" : {
+
+    },
+    "Upload" : {
+
+    },
+    "Upload Template" : {
+
     },
     "username" : {
 

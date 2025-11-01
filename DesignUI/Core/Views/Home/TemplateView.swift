@@ -28,7 +28,24 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 12) {
+#if os(iOS)
+                    // Custom Search Bar
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+                            TextField("Search templates", text: $searchText)
+                                .textFieldStyle(.plain)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 8 : 16)
+                        .padding(.top, UIDevice.current.userInterfaceIdiom == .phone ? 8 : 16)
+                    }
+#endif
                     // Posts Grid
                     if !viewModel.posts.isEmpty {
                         if filteredPosts.isEmpty && !searchText.isEmpty {
@@ -36,6 +53,57 @@ struct ExploreView: View {
                                 .foregroundColor(.secondary)
                                 .padding()
                         } else {
+#if os(iOS)
+                            if UIDevice.current.userInterfaceIdiom == .phone {
+                                // Pinterest-style masonry layout - fills columns vertically with lazy loading
+                                if #available(iOS 16.0, *) {
+                                    LazyMasonryView(
+                                        items: filteredPosts,
+                                        columns: 2,
+                                        spacing: 8,
+                                        hasMorePosts: viewModel.hasMorePosts,
+                                        isLoading: viewModel.isLoading,
+                                        loadMoreHandler: { item in
+                                            Task {
+                                                await viewModel.loadMorePostsIfNeeded(currentItem: item)
+                                            }
+                                        }
+                                    ) { post in
+                                        postCell(for: post)
+                                            .buttonStyle(PlainButtonStyle())
+                                            .task {
+                                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                                            }
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 8)
+                                } else {
+                                    LazyVGrid(columns: gridColumns, spacing: 8) {
+                                        ForEach(filteredPosts) { post in
+                                            postCell(for: post)
+                                                .buttonStyle(PlainButtonStyle())
+                                                .task {
+                                                    await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                                                }
+                                        }
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 8)
+                                }
+                            } else {
+                                LazyVGrid(columns: gridColumns, spacing: 16) {
+                                    ForEach(filteredPosts) { post in
+                                        postCell(for: post)
+                                            .buttonStyle(PlainButtonStyle())
+                                            .task {
+                                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                                            }
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 16)
+                            }
+#else
                             LazyVGrid(columns: gridColumns, spacing: 16) {
                                 ForEach(filteredPosts) { post in
                                     postCell(for: post)
@@ -45,7 +113,9 @@ struct ExploreView: View {
                                         }
                                 }
                             }
-                            .padding()
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+#endif
                         }
                     } else if viewModel.isLoading {
                         ProgressView("Loading posts...")
@@ -66,20 +136,6 @@ struct ExploreView: View {
                     }
                 }
             }
-            .navigationTitle("Templates")
-#if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gear")
-                    }
-                    .simultaneousGesture(TapGesture().onEnded {
-                        HapticManager.shared.triggerImpact(style: .medium)
-                    })
-                }
-            }
-#endif
             .frame(maxWidth: 1600)
             .refreshable {
                 Task {
@@ -92,7 +148,13 @@ struct ExploreView: View {
                 }
             }
         }
+#if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(false)
+#else
         .searchable(text: $searchText, prompt: "Search templates")
+#endif
         .navigationViewStyle(DefaultNavigationViewStyle())
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
@@ -127,6 +189,11 @@ extension ExploreView {
     
     @ViewBuilder
     private func designCard(for post: DesignPost, isPremium: Bool) -> some View {
+        // Determine if it's a component based on post_type
+        // Support both "component" (singular) and "components" (plural)
+        let postType = post.post_type?.lowercased() ?? ""
+        let isComponent = postType == "component" || postType == "components"
+        
         DesignCards(
             id: post.id,
             media: post.preview_image_url,
@@ -137,7 +204,8 @@ extension ExploreView {
             codeSnippet: post.code_snippet,
             published: post.created_at,
             isLiked: false,
-            isPremium: isPremium
+            isPremium: isPremium,
+            isComponent: isComponent
         )
     }
 }

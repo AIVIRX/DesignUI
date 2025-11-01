@@ -5,6 +5,7 @@ struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showEditProfile = false
     @State private var showDeleteAlert = false
+    @State private var showUploadTemplate = false
     
     var body: some View {
         NavigationStack {
@@ -84,11 +85,25 @@ struct ProfileView: View {
             .toolbar {
 #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showUploadTemplate = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {
                             showEditProfile = true
                         }) {
                             Label("Edit Profile", systemImage: "slider.vertical.3")
+                        }
+                        
+                        NavigationLink(destination: SettingsView()) {
+                            Label("Settings", systemImage: "gear")
                         }
                         
                         Button {
@@ -113,11 +128,25 @@ struct ProfileView: View {
                 
 #if os(macOS)
                 ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showUploadTemplate = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(action: {
                             showEditProfile = true
                         }) {
                             Label("Edit Profile", systemImage: "slider.vertical.3")
+                        }
+                        
+                        NavigationLink(destination: SettingsView()) {
+                            Label("Settings", systemImage: "gear")
                         }
                         
                         Button {
@@ -145,6 +174,11 @@ struct ProfileView: View {
                 EditProfileView(viewModel: viewModel)
                     .environmentObject(authViewModel)
                     .presentationDetents([.medium, .large])
+            }
+            .sheet(isPresented: $showUploadTemplate) {
+                UploadTemplateView()
+                    .environmentObject(authViewModel)
+                    .presentationDetents([.large])
             }
             .refreshable {
                 await viewModel.fetchProfile()
