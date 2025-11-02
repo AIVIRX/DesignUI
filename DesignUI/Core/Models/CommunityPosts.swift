@@ -13,13 +13,13 @@ class LatestPostsViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var hasMorePosts: Bool = true
     @Published var error: Error?
+    @Published var isRefreshing = false
     
     private var currentPage: Int = 0
     private let pageSize: Int = 6
     private let client = SupabaseManager.shared.client
     private var lastRefreshTime: Date?
     private let refreshCooldown: TimeInterval = 1
-    private var isRefreshing = false
     private var currentTask: Task<Void, Never>?
     private var filterTask: Task<Void, Never>?
     
@@ -180,12 +180,18 @@ class LatestPostsViewModel: ObservableObject {
         // Cancel previous filter task if any
         filterTask?.cancel()
         
-        filterTask = Task {
+        filterTask = Task { @MainActor in
             // Wait for debounce delay
             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             
             // Check if task was cancelled
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled else {
+                // Ensure loading state is reset if cancelled
+                if isLoading {
+                    isLoading = false
+                }
+                return
+            }
             
             // Cancel any in-flight fetch
             currentTask?.cancel()
@@ -200,7 +206,11 @@ class LatestPostsViewModel: ObservableObject {
             await fetchFilteredPosts(filterType: postType, isAllPosts: isAllPosts)
         }
         
-        await filterTask?.value
+        // Await the task - it handles its own errors and loading state internally
+        // Since Task<Void, Never> never throws, we can safely await without try
+        if let task = filterTask {
+            await task.value
+        }
     }
     
     @MainActor
@@ -209,6 +219,11 @@ class LatestPostsViewModel: ObservableObject {
         
         isLoading = true
         error = nil
+        
+        // Use defer to ensure isLoading is always reset, even if cancelled
+        defer {
+            isLoading = false
+        }
         
         do {
             var query = client
@@ -238,6 +253,9 @@ class LatestPostsViewModel: ObservableObject {
                 .range(from: 0, to: pageSize - 1)
                 .execute()
             
+            // Check for cancellation before processing results
+            try Task.checkCancellation()
+            
             let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
             posts = newPosts
             currentPage = 1
@@ -248,15 +266,17 @@ class LatestPostsViewModel: ObservableObject {
                 await fetchPosts(postType: filterType)
             }
         } catch {
-            self.error = error
-            // Only log non-cancelled errors
+            // Check if it's a cancellation error
             if let urlError = error as? URLError, urlError.code == .cancelled {
-                return
+                return // Silently handle cancelled requests
             }
+            if error is CancellationError {
+                return // Silently handle cancellation
+            }
+            
+            self.error = error
             print("Error fetching filtered posts: \(error)")
         }
-        
-        isLoading = false
     }
     
     private var currentFilterType: String? = nil
@@ -281,10 +301,23 @@ class LatestPostsViewModel: ObservableObject {
             isAllPostsMode = isAllPosts
         }
         error = nil
-        posts.removeAll()
+        // Don't clear posts immediately - wait until new ones are loaded
+        // This prevents showing "No posts found" during refresh
         hasMorePosts = true
         
+        // Cancel any in-flight fetch
+        currentTask?.cancel()
+        filterTask?.cancel()
+        
+        // Store current posts as backup
+        let previousPosts = posts
+        
         await fetchFilteredPosts(filterType: filterType ?? currentFilterType, isAllPosts: isAllPosts ?? isAllPostsMode)
+        
+        // Only clear if fetch failed and we have an error
+        if error != nil && posts.isEmpty {
+            posts = previousPosts
+        }
         
         isRefreshing = false
     }

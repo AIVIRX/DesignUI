@@ -23,9 +23,6 @@ struct DesignCards: View {
     var isComponent: Bool = false // New property to distinguish components
     
     @State private var isHovered: Bool = false
-    @State private var startAnimation: Bool = false
-    @State private var opacity: Double = 0.0
-    @State private var isVisible = false
     @State private var isLikedByUser: Bool = false
     @State private var userId: String? = nil
     @StateObject private var viewModel = LatestPostsViewModel()
@@ -109,8 +106,26 @@ struct DesignCards: View {
                                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                                     )
                                     .overlay(alignment: .topTrailing) {
-                                        LikeButton(postId: id)
-                                            .padding(12)
+                                        HStack {
+                                            if isPremium {
+                                                Image(systemName: "sparkle")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                                    .foregroundColor(.clear)
+                                                    .overlay(
+                                                        LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                                            .mask(
+                                                                Image(systemName: "sparkle")
+                                                                    .font(.system(size: 14, weight: .semibold))
+                                                            )
+                                                    )
+                                                    .padding(.leading, 8)
+                                            }
+                                            LikeButton(postId: id)
+                                        }
+                                        .background(.thickMaterial, in: Capsule())
+                                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                                        .padding(6)
+
                                     }
                             case .failure:
                                 Rectangle()
@@ -145,8 +160,27 @@ struct DesignCards: View {
                                             .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                                     )
                                     .overlay(alignment: .topTrailing) {
-                                        LikeButton(postId: id)
-                                            .padding(12)
+                                        HStack(spacing: 6) {
+                                            if isPremium {
+                                                Image(systemName: "sparkle")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                                    .foregroundColor(.clear)
+                                                    .overlay(
+                                                        LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                                            .mask(
+                                                                Image(systemName: "sparkle")
+                                                                    .font(.system(size: 14, weight: .semibold))
+                                                            )
+                                                    )
+                                                    .padding(.leading, 8)
+                                            }
+                                            LikeButton(postId: id)
+                                        }
+                                        .padding(.vertical, 6)
+                                        .padding(.trailing, 6)
+                                        .background(.regularMaterial, in: Capsule())
+                                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                                        .padding()
                                     }
                             case .failure:
                                 Image(systemName: "photo")
@@ -179,8 +213,27 @@ struct DesignCards: View {
                                         .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                                 )
                                 .overlay(alignment: .topTrailing) {
-                                    LikeButton(postId: id)
-                                        .padding(12)
+                                    HStack(spacing: 6) {
+                                        if isPremium {
+                                            Image(systemName: "sparkles")
+                                                .font(.system(size: 14, weight: .semibold))
+                                                .foregroundColor(.clear)
+                                                .overlay(
+                                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                                        .mask(
+                                                            Image(systemName: "sparkles")
+                                                                .font(.system(size: 14, weight: .semibold))
+                                                        )
+                                                )
+                                                .padding(.leading, 8)
+                                        }
+                                        LikeButton(postId: id)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.trailing, 6)
+                                    .background(.regularMaterial, in: Capsule())
+                                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                                    .padding(12)
                                 }
                                 .scaleEffect(isHovered ? 1.02 : 1.0)
                                 .colorMultiply(isHovered ? Color.white : Color(white: 0.94))
@@ -206,39 +259,6 @@ struct DesignCards: View {
                         }
                     }
 #endif
-                    HStack {
-                        
-                        if isPremium {
-                            Text("Premium")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.clear)
-                                .overlay(
-                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                        .mask(
-                                            Text("Premium")
-                                                .font(.system(size: 14, weight: .bold))
-                                        )
-                                )
-                        } else {
-                            Text(title).bold()
-                                .font(.system(size: 14, weight: .semibold))
-                                .lineLimit(2)
-                                .foregroundColor(.primary)
-                                .multilineTextAlignment(.leading)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-#if os(iOS)
-                    .frame(width: UIDevice.current.userInterfaceIdiom == .phone ? nil : 185)
-#else
-                    .frame(width: 185)
-#endif
-                    .opacity(isVisible ? 1 : 0)
-                    .onAppear {
-                        withAnimation(.easeIn(duration: 0.2)) {
-                            isVisible = true
-                        }
-                    }
                 }
                 .buttonStyle(PlainButtonStyle())
             }

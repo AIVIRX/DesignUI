@@ -98,12 +98,6 @@ struct SettingsView: View {
                                         try? await AppStore.showManageSubscriptions(in: windowScene)
                                     }
                                 }
-                                #elseif os(macOS)
-                                if let windowScene = NSApplication.shared.keyWindow?.windowScene {
-                                    Task {
-                                        try? await AppStore.showManageSubscriptions(in: windowScene)
-                                    }
-                                }
                                 #endif
                             }
                             .buttonStyle(.bordered)

@@ -29,6 +29,11 @@
 		EC5E634D2EB5398100133C05 /* UploadTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E634C2EB5398100133C05 /* UploadTemplateView.swift */; };
 		EC5E63512EB5B1CD00133C05 /* LazyMasonryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
+		EC70F84B2EB6C24C001D39DC /* FeedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC70F84A2EB6C24C001D39DC /* FeedItem.swift */; };
+		EC70F84D2EB6C280001D39DC /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC70F84C2EB6C280001D39DC /* AdManager.swift */; };
+		EC70F8502EB6C2FD001D39DC /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */; };
+		EC70F8522EB6C3C9001D39DC /* NativeAdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */; };
+		EC70F8532EB6DD06001D39DC /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC419E5B2E85D6B60081C5D2 /* AdSupport.framework */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
 		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
@@ -97,6 +102,9 @@
 		EC5E634C2EB5398100133C05 /* UploadTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadTemplateView.swift; sourceTree = "<group>"; };
 		EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LazyMasonryView.swift; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		EC70F84A2EB6C24C001D39DC /* FeedItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItem.swift; sourceTree = "<group>"; };
+		EC70F84C2EB6C280001D39DC /* AdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdManager.swift; sourceTree = "<group>"; };
+		EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
@@ -140,6 +148,7 @@
 				ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */,
 				ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */,
 				ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */,
+				EC70F8502EB6C2FD001D39DC /* GoogleMobileAds in Frameworks */,
 				ECC527602E27155000DAA548 /* Supabase in Frameworks */,
 				EC1DCB9F2E7540250008FEC8 /* HighlightSwift in Frameworks */,
 				ECC527682E27156000DAA548 /* PostgREST in Frameworks */,
@@ -147,6 +156,7 @@
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
 				ECC527622E27155500DAA548 /* Storage in Frameworks */,
 				ECC527642E27155900DAA548 /* Auth in Frameworks */,
+				EC70F8532EB6DD06001D39DC /* AdSupport.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,9 +223,9 @@
 			children = (
 				ECD13FF92C18BF8800105B3E /* Components */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
+				ECD13FFE2C18C12400105B3E /* Resources */,
 				ECD13FD72C18BBB900105B3E /* Utilities */,
 				ECD13FDF2C18BCCF00105B3E /* Views */,
-				ECD13FFE2C18C12400105B3E /* Resources */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -223,19 +233,20 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */,
-				EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */,
-				EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */,
+				EC70F84C2EB6C280001D39DC /* AdManager.swift */,
+				BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */,
 				EC0C95BD2EB29F1200AA6A84 /* Constants.swift */,
-				EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */,
 				EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */,
-				ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */,
 				ECB1DA632C7C160C002D7E31 /* FormatCount.swift */,
 				EC9F54762E188A9F00AAE9EC /* FormatDate.swift */,
 				EC5982A32D57F54000633392 /* GridColumns.swift */,
 				EC53EB7F2D91CD6300E175DB /* HapticManager.swift */,
+				EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */,
+				EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */,
+				EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */,
+				EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */,
 				EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */,
-				BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */,
+				ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -247,6 +258,7 @@
 				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
 				EC2D21272CBF183000FA192D /* CommunityPosts.swift */,
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
+				EC70F84A2EB6C24C001D39DC /* FeedItem.swift */,
 				EC59829B2D56836B00633392 /* Like.swift */,
 				EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */,
 				EC9F54692E187D7D00AAE9EC /* NewsPost.swift */,
@@ -258,13 +270,13 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				EC0C95C62EB2A18F00AA6A84 /* Paywall */,
+				EC9F546F2E187F8E00AAE9EC /* Blog */,
 				ECD13FE62C18BDF300105B3E /* Home */,
+				EC0C95C62EB2A18F00AA6A84 /* Paywall */,
+				ECD13FEA2C18BE5C00105B3E /* PostCards */,
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
-				ECD13FEA2C18BE5C00105B3E /* PostCards */,
 				ECD13FF42C18BF3500105B3E /* SFIcons */,
-				EC9F546F2E187F8E00AAE9EC /* Blog */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -308,6 +320,7 @@
 		ECD13FF92C18BF8800105B3E /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */,
 				EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */,
 				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 				EC3D132D2E1DABCE00F659DB /* LargeHero.swift */,
@@ -371,6 +384,7 @@
 				ECB10DA42EB06B5D00420663 /* RevenueCat */,
 				ECB10DA62EB06B5D00420663 /* RevenueCatUI */,
 				EC0C95CB2EB2E2A300AA6A84 /* Shimmer */,
+				EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -448,6 +462,7 @@
 				EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				EC0C95CA2EB2E2A300AA6A84 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */,
+				EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -499,6 +514,7 @@
 				EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */,
 				EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
+				EC70F84B2EB6C24C001D39DC /* FeedItem.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
@@ -512,12 +528,14 @@
 				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				ECE995512C98881000C60416 /* TemplateView.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
+				EC70F8522EB6C3C9001D39DC /* NativeAdView.swift in Sources */,
 				EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */,
 				EC5982A02D568E5500633392 /* LikeButton.swift in Sources */,
 				ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */,
 				EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */,
 				F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */,
 				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
+				EC70F84D2EB6C280001D39DC /* AdManager.swift in Sources */,
 				ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */,
 				EC9F54772E188A9F00AAE9EC /* FormatDate.swift in Sources */,
 				ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */,
@@ -822,6 +840,14 @@
 				minimumVersion = 1.0.9;
 			};
 		};
+		EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.12.0;
+			};
+		};
 		ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
@@ -866,6 +892,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EC1DCB9D2E7540250008FEC8 /* XCRemoteSwiftPackageReference "HighlightSwift" */;
 			productName = HighlightSwift;
+		};
+		EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 		ECB10DA42EB06B5D00420663 /* RevenueCat */ = {
 			isa = XCSwiftPackageProductDependency;

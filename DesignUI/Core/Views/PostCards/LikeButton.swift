@@ -36,10 +36,10 @@ struct LikeButton: View {
             }
         } label: {
             Image(systemName: isLiked ? "heart.fill" : "heart")
-                .foregroundColor(isLiked ? .red : .white)
+                .foregroundColor(isLiked ? .red : .primary)
                 .font(.system(size: 16))
-                .padding(8)
-                .background(.ultraThinMaterial, in: Circle())
+                .padding(6)
+                .background(.thickMaterial, in: Circle())
         }
         .disabled(isLoading)
         .scaleEffect(isLoading ? 0.95 : 1.0)

@@ -10,6 +10,9 @@ import Supabase
 import RevenueCat
 
 #if os(iOS)
+#if canImport(GoogleMobileAds)
+import GoogleMobileAds
+#endif
 
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
@@ -20,6 +23,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // Configure RevenueCat
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
+        
+        #if canImport(GoogleMobileAds)
+        // Initialize AdMob
+        // Note: Once Google Mobile Ads SDK is added, uncomment this:
+        // GADMobileAds.sharedInstance().start(completionHandler: nil)
+        #endif
         
         return true
     }

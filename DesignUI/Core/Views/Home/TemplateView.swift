@@ -45,6 +45,102 @@ struct ExploreView: View {
         }
     }
     
+    @State private var adInterval: Int = 7 // Optimized interval: ads every 7 posts (good balance for revenue & UX)
+    @State private var adIdentifiers: [Int: String] = [:] // Cache ad identifiers by position to prevent shifting
+    
+    // Combine posts with ads, inserting ads every 7 posts
+    var feedItems: [FeedItem] {
+        let posts = filteredPosts
+        var items: [FeedItem] = []
+        
+        // Don't show ads on macOS (AdMob SDK not supported) or if user is subscribed
+        #if os(iOS)
+        let shouldShowAds = !subscriptionManager.isSubscribed
+        #else
+        let shouldShowAds = false // No ads on macOS
+        #endif
+        
+        // Use the current adInterval
+        let currentInterval = adInterval
+        
+        for (index, post) in posts.enumerated() {
+            items.append(.post(post))
+            
+            // Only insert ads if we should show them (iOS and not subscribed)
+            if shouldShowAds {
+                // Insert ad after every adInterval posts, but not at the very end
+                // Make sure we have at least one more post after the ad
+                if (index + 1) % currentInterval == 0 && index < posts.count - 1 {
+                    // Use stable identifier based on post position to prevent ad shifting
+                    let adPosition = index + 1
+                    // Don't modify state here - use existing identifier or generate in onAppear/onChange
+                    if let identifier = adIdentifiers[adPosition] {
+                        items.append(.ad(identifier))
+                    }
+                }
+            }
+        }
+        
+        return items
+    }
+    
+    // Generate ad identifiers when posts change to avoid modifying state during view update
+    private func generateAdIdentifiers(for posts: [DesignPost]) {
+        // Only generate ad identifiers if we should show ads (iOS and not subscribed)
+        #if os(iOS)
+        guard !posts.isEmpty && !subscriptionManager.isSubscribed else {
+            adIdentifiers = [:] // Clear identifiers if we shouldn't show ads
+            return
+        }
+        
+        var newIdentifiers: [Int: String] = [:]
+        let currentInterval = adInterval
+        
+        for (index, _) in posts.enumerated() {
+            if (index + 1) % currentInterval == 0 && index < posts.count - 1 {
+                let adPosition = index + 1
+                // Reuse existing identifier if available, otherwise generate new one
+                if let existing = adIdentifiers[adPosition] {
+                    newIdentifiers[adPosition] = existing
+                } else {
+                    newIdentifiers[adPosition] = UUID().uuidString
+                }
+            }
+        }
+        
+        adIdentifiers = newIdentifiers
+        #else
+        // No ads on macOS
+        adIdentifiers = [:]
+        #endif
+    }
+    
+    // Generate identifiers only for newly added posts during pagination
+    private func generateAdIdentifiersForNewPosts(oldCount: Int, newPosts: [DesignPost]) {
+        // Only generate ad identifiers if we should show ads (iOS and not subscribed)
+        #if os(iOS)
+        guard oldCount < newPosts.count && !subscriptionManager.isSubscribed else { return }
+        
+        let currentInterval = adInterval
+        var updatedIdentifiers = adIdentifiers
+        
+        // Only generate identifiers for positions that are now in range
+        for index in oldCount..<newPosts.count {
+            if (index + 1) % currentInterval == 0 && index < newPosts.count - 1 {
+                let adPosition = index + 1
+                // Only add if we don't already have an identifier for this position
+                if updatedIdentifiers[adPosition] == nil {
+                    updatedIdentifiers[adPosition] = UUID().uuidString
+                }
+            }
+        }
+        
+        adIdentifiers = updatedIdentifiers
+        #else
+        // No ads on macOS - do nothing
+        #endif
+    }
+    
     private func getFilterTypeForDatabase() -> (postType: String?, isAllPosts: Bool) {
         switch selectedFilter {
         case .all:
@@ -86,6 +182,21 @@ struct ExploreView: View {
                     await viewModel.fetchPostsByType(postType: filter.postType, isAllPosts: filter.isAllPosts)
                 }
             }
+            .onChange(of: viewModel.posts) { oldPosts, newPosts in
+                // Only regenerate identifiers if posts actually changed (different count or different posts)
+                // Don't regenerate during pagination if we're just appending more posts
+                let oldCount = oldPosts.count
+                let newCount = newPosts.count
+                
+                // If we have fewer posts (refresh/filter change), regenerate
+                // If we have more posts (pagination), only regenerate if identifiers are empty
+                if newCount < oldCount || (newCount > oldCount && adIdentifiers.isEmpty) || (oldCount == 0 && newCount > 0) {
+                    generateAdIdentifiers(for: newPosts)
+                } else if newCount > oldCount {
+                    // Pagination: generate identifiers for new positions only
+                    generateAdIdentifiersForNewPosts(oldCount: oldCount, newPosts: newPosts)
+                }
+            }
             .onChange(of: selectedFilter) { oldValue, newValue in
                 // Debounce filter changes to prevent rapid database queries
                 // Only process if filter actually changed
@@ -94,6 +205,20 @@ struct ExploreView: View {
                 Task {
                     let filter = getFilterTypeForDatabase()
                     await viewModel.fetchPostsByTypeDebounced(postType: filter.postType, isAllPosts: filter.isAllPosts)
+                }
+            }
+            .onChange(of: subscriptionManager.isSubscribed) { oldValue, newValue in
+                // Update ad identifiers when subscription status changes
+                // If user subscribed, clear ad identifiers
+                // If user unsubscribed, regenerate ad identifiers
+                if newValue {
+                    // User subscribed - clear ads
+                    adIdentifiers = [:]
+                } else {
+                    // User unsubscribed - regenerate ad identifiers if on iOS
+                    #if os(iOS)
+                    generateAdIdentifiers(for: viewModel.posts)
+                    #endif
                 }
             }
         }
@@ -140,9 +265,9 @@ extension ExploreView {
                     filterButton(for: filterType)
                 }
             }
-            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 16 : 20)
+            
+            .padding(16)
         }
-        .padding(.vertical, 8)
     }
     
     private func filterButton(for filterType: FilterType) -> some View {
@@ -160,9 +285,17 @@ extension ExploreView {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .background(
-                selectedFilter == filterType
-                    ? Color.primary
-                    : Color(.systemGray5)
+                Group {
+                    if selectedFilter == filterType {
+                        Color.primary
+                    } else {
+                        #if os(iOS)
+                        Color(uiColor: .systemGray5)
+                        #else
+                        Color(NSColor.controlBackgroundColor)
+                        #endif
+                    }
+                }
             )
             .foregroundColor(
                 selectedFilter == filterType
@@ -184,7 +317,7 @@ extension ExploreView {
             } else {
                 postsGridView
             }
-        } else if viewModel.isLoading {
+        } else if viewModel.isLoading || viewModel.isRefreshing {
             ProgressView("Loading posts...")
                 .padding()
         } else {
@@ -200,22 +333,24 @@ extension ExploreView {
         if UIDevice.current.userInterfaceIdiom == .phone {
             if #available(iOS 16.0, *) {
                 LazyMasonryView(
-                    items: filteredPosts,
+                    items: feedItems,
                     columns: 2,
                     spacing: 8,
                     hasMorePosts: viewModel.hasMorePosts,
                     isLoading: viewModel.isLoading,
                     loadMoreHandler: { item in
-                        Task {
-                            await viewModel.loadMorePostsIfNeeded(currentItem: item)
+                        guard let feedItem = item else { return }
+                        
+                        // Only trigger loading for posts, not ads
+                        if case .post(let post) = feedItem {
+                            Task {
+                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                            }
                         }
+                        // Ad items don't trigger loading - just return
                     }
-                ) { post in
-                    postCell(for: post)
-                        .buttonStyle(PlainButtonStyle())
-                        .task {
-                            await viewModel.loadMorePostsIfNeeded(currentItem: post)
-                        }
+                ) { item in
+                    feedItemCell(for: item)
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
@@ -232,16 +367,43 @@ extension ExploreView {
     
     private func gridView(spacing: CGFloat, horizontalPadding: CGFloat, verticalPadding: CGFloat) -> some View {
         LazyVGrid(columns: gridColumns, spacing: spacing) {
-            ForEach(filteredPosts) { post in
-                postCell(for: post)
+            ForEach(feedItems) { item in
+                feedItemCell(for: item)
                     .buttonStyle(PlainButtonStyle())
                     .task {
-                        await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                        if case .post(let post) = item {
+                            await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                        }
                     }
             }
         }
         .padding(.horizontal, horizontalPadding)
         .padding(.vertical, verticalPadding)
+    }
+    
+    @ViewBuilder
+    private func feedItemCell(for item: FeedItem) -> some View {
+        switch item {
+        case .post(let post):
+            postCell(for: post)
+        case .ad(let identifier):
+            // Only show ads on iOS - never on macOS
+            #if os(iOS)
+            NativeAdView(adIdentifier: identifier)
+                .frame(maxWidth: .infinity)
+                .fixedSize(horizontal: false, vertical: true) // Prevent layout shifts by maintaining size
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+                .padding(.vertical, 4)
+            #else
+            // Empty view on macOS - ads should never appear here due to feedItems filtering,
+            // but this is an extra safety check
+            EmptyView()
+            #endif
+        }
     }
     @ViewBuilder
     private func postCell(for post: DesignPost) -> some View {

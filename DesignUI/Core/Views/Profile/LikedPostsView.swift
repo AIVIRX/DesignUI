@@ -28,26 +28,7 @@ struct LikedPostsView: View {
                 .padding(.top, 5)
                 .frame(maxWidth: .infinity, minHeight: 300)
             } else {
-                LazyVGrid(columns: gridColumns, spacing: UIDevice.current.userInterfaceIdiom == .phone ? 8 : 16) {
-                    ForEach(viewModelLiked.likedPosts) { post in
-                        DesignCards(
-                            id: post.id,
-                            media: post.preview_image_url,
-                            title: post.title,
-                            authorName: post.profiles.username,
-                            isVerified: post.profiles.verified,
-                            description: post.description,
-                            codeSnippet: post.code_snippet,
-                            published: post.created_at,
-                            isLiked: false,
-                            isPremium: post.isPremium == true
-                        )
-                        .task {
-                            await viewModelLiked.loadMoreLikedPostsIfNeeded(currentItem: post)
-                        }
-                    }
-                }
-                .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .phone ? 8 : 16)
+                postsGridView
             }
         }
         .task {
@@ -70,5 +51,71 @@ struct LikedPostsView: View {
         .refreshable {
             await viewModelLiked.refreshPosts()
         }
+    }
+    
+    @ViewBuilder
+    private var postsGridView: some View {
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            if #available(iOS 16.0, *) {
+                LazyMasonryView(
+                    items: viewModelLiked.likedPosts,
+                    columns: 2,
+                    spacing: 8,
+                    hasMorePosts: viewModelLiked.hasMorePosts,
+                    isLoading: viewModelLiked.isLoading,
+                    loadMoreHandler: { post in
+                        guard let post = post else { return }
+                        Task {
+                            await viewModelLiked.loadMoreLikedPostsIfNeeded(currentItem: post)
+                        }
+                    }
+                ) { post in
+                    likedPostCell(for: post)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+            } else {
+                gridView(spacing: 8, horizontalPadding: 8)
+            }
+        } else {
+            gridView(spacing: 16, horizontalPadding: 16)
+        }
+#else
+        gridView(spacing: 16, horizontalPadding: 16)
+#endif
+    }
+    
+    private func gridView(spacing: CGFloat, horizontalPadding: CGFloat) -> some View {
+        LazyVGrid(columns: gridColumns, spacing: spacing) {
+            ForEach(viewModelLiked.likedPosts) { post in
+                likedPostCell(for: post)
+                    .task {
+                        await viewModelLiked.loadMoreLikedPostsIfNeeded(currentItem: post)
+                    }
+            }
+        }
+        .padding(.horizontal, horizontalPadding)
+    }
+    
+    @ViewBuilder
+    private func likedPostCell(for post: DesignPost) -> some View {
+        // Determine if it's a component based on post_type
+        let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let isComponent = postType == "component"
+        
+        DesignCards(
+            id: post.id,
+            media: post.preview_image_url,
+            title: post.title,
+            authorName: post.profiles.username,
+            isVerified: post.profiles.verified,
+            description: post.description,
+            codeSnippet: post.code_snippet,
+            published: post.created_at,
+            isLiked: false,
+            isPremium: post.isPremium == true,
+            isComponent: isComponent
+        )
     }
 }

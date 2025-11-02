@@ -174,16 +174,7 @@ struct SimilarPostCard: View {
                     .truncationMode(.tail)
                 HStack {
                     if post.isPremium == true {
-                        Text("Premium")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.clear)
-                            .overlay(
-                                LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                    .mask(
-                                        Text("Premium")
-                                            .font(.system(size: 16, weight: .bold))
-                                    )
-                            )
+                        // Empty space since sparkle icon will be shown next to like button
                     } else {
                         Text(post.profiles.username)
                             .font(.system(size: 16))
@@ -196,9 +187,26 @@ struct SimilarPostCard: View {
                         }
                     }
                     Spacer()
-                    LikeButton(
-                        postId: post.id
-                    )
+                    HStack(spacing: 6) {
+                        if post.isPremium == true {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.clear)
+                                .overlay(
+                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                        .mask(
+                                            Image(systemName: "sparkles")
+                                                .font(.system(size: 14, weight: .semibold))
+                                        )
+                                )
+                                .padding(.leading, 8)
+                        }
+                        LikeButton(postId: post.id)
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.trailing, 6)
+                    .background(.regularMaterial, in: Capsule())
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
                 }
             }
         }
