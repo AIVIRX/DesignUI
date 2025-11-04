@@ -1,6 +1,6 @@
 //
 //  SubscriptionManager.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //

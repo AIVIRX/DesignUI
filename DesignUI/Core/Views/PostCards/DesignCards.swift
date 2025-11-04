@@ -1,6 +1,6 @@
 //
 //  DesignCards.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 6/11/24.
 //
@@ -90,6 +90,8 @@ struct DesignCards: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .overlay(
                                         ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle())
+                                            .frame(width: 32, height: 32)
                                     )
                             case .success(let image):
                                 Color.clear
@@ -197,71 +199,105 @@ struct DesignCards: View {
                     }
 #endif
 #if os(macOS)
-                    WebImage(url: URL(string: media)) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(width: 185, height: 400)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 185, height: 400)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                                )
-                                .overlay(alignment: .topTrailing) {
-                                    HStack(spacing: 6) {
-                                        if isPremium {
-                                            Image(systemName: "sparkles")
-                                                .font(.system(size: 14, weight: .semibold))
-                                                .foregroundColor(.clear)
-                                                .overlay(
-                                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                                        .mask(
-                                                            Image(systemName: "sparkles")
-                                                                .font(.system(size: 14, weight: .semibold))
-                                                        )
-                                                )
-                                                .padding(.leading, 8)
-                                        }
-                                        LikeButton(postId: id)
-                                    }
-                                    .padding(.vertical, 6)
-                                    .padding(.trailing, 6)
-                                    .background(.regularMaterial, in: Capsule())
-                                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                                    .padding(12)
-                                }
-                                .scaleEffect(isHovered ? 1.02 : 1.0)
-                                .colorMultiply(isHovered ? Color.white : Color(white: 0.94))
-                                .animation(.easeInOut(duration: 0.2), value: isHovered)
-                                .background(Color.clear)
-                                .zIndex(isHovered ? 1 : 0)
-                                .onHover { hovering in
-                                    isHovered = hovering
-                                }
-                                .padding(.top, 5)
-                            
-                        case .failure:
-                            Image(systemName: "photo")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 185, height: 400)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                                )
-                                .padding(.top)
+                    // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
+                    // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
+                    let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
+                    ZStack(alignment: .topTrailing) {
+                        WebImage(url: URL(string: media)) { phase in
+                            switch phase {
+                            case .empty:
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.1))
+                                    .aspectRatio(aspectRatio, contentMode: .fit)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .overlay(
+                                        Color.clear
+                                            .frame(width: 32, height: 32)
+                                            .overlay(
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle())
+                                            )
+                                    )
+                            case .success(let image):
+                                Color.clear
+                                    .aspectRatio(aspectRatio, contentMode: .fit)
+                                    .overlay(
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                    )
+                                    .clipped()
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                            case .failure:
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.1))
+                                    .aspectRatio(aspectRatio, contentMode: .fit)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .overlay(
+                                        Image(systemName: "photo")
+                                            .foregroundColor(.gray.opacity(0.5))
+                                    )
+                            }
                         }
+                        .indicator(.activity)
+                        .transition(.fade(duration: 0.3))
+                        .onDisappear {
+                            SDImageCache.shared.clearMemory()
+                        }
+                        
+                        HStack(spacing: 6) {
+                            if isPremium {
+                                Image(systemName: "sparkle")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.clear)
+                                    .overlay(
+                                        LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                            .mask(
+                                                Image(systemName: "sparkle")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                            )
+                                    )
+                                    .padding(.leading, 8)
+                            }
+                            LikeButton(postId: id)
+                        }
+                        .background(.thickMaterial, in: Capsule())
+                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                        .padding(6)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .contentShape(Rectangle())
+                    .overlay(
+                        Color.white.opacity(isHovered ? 0.1 : 0)
+                            .blendMode(.screen)
+                    )
+                    .scaleEffect(isHovered ? 1.02 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: isHovered)
+                    .zIndex(isHovered ? 10 : 0)
+                    .allowsHitTesting(true)
+                    .onHover { hovering in
+                        isHovered = hovering
                     }
 #endif
                 }
                 .buttonStyle(PlainButtonStyle())
             }
+#if os(macOS)
+            .buttonStyle(PlainButtonStyle())
+            .accentColor(.clear)
+#endif
 #if os(iOS)
             .simultaneousGesture(TapGesture().onEnded {
                 HapticManager.shared.triggerImpact(style: .heavy)

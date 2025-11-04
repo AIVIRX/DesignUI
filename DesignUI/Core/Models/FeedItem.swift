@@ -1,6 +1,6 @@
 //
 //  FeedItem.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Assistant on 1/11/25.
 //

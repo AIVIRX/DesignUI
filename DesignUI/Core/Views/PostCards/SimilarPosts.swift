@@ -138,8 +138,12 @@ struct SimilarPostCard: View {
                             WebImage(url: URL(string: post.preview_image_url)) { phase in
                                 switch phase {
                                 case .empty:
-                                    ProgressView()
-                                        .frame(maxWidth: .infinity, maxHeight: 350)
+                                    Color.clear
+                                        .frame(width: 32, height: 32)
+                                        .overlay(
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle())
+                                        )
                                 case .success(let image):
                                     image
                                         .resizable()
@@ -200,7 +204,7 @@ struct SimilarPostCard: View {
                                         )
                                 )
                                 .padding(.leading, 8)
-                        }
+                        } 
                         LikeButton(postId: post.id)
                     }
                     .padding(.vertical, 6)

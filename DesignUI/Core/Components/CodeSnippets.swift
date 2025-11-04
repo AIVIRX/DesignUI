@@ -1,6 +1,6 @@
 //
 //  LiveSyntaxHighlightedCode.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //
@@ -106,8 +106,17 @@ struct LiveSyntaxHighlightedCode: View {
                 VStack {
                     Spacer()
                     HStack {
+                        #if os(macOS)
+                        Color.clear
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                            )
+                        #else
                         ProgressView()
                             .scaleEffect(0.8)
+                        #endif
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)

@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 8/18/24.
 //

@@ -1,6 +1,6 @@
 //
 //  CommunityPosts.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 10/15/24.
 //

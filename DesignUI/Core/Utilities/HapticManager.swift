@@ -1,6 +1,6 @@
 //
 //  HapticManager.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 3/24/25.
 //

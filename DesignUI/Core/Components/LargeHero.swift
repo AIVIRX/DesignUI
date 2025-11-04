@@ -1,6 +1,6 @@
 //
 //  LargeHero.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 7/8/25.
 //

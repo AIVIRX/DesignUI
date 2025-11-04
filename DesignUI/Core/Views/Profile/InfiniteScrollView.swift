@@ -1,6 +1,6 @@
 //
 //  InfiniteScrollView.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 9/16/25.
 //

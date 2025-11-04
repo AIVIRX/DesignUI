@@ -1,6 +1,6 @@
 //
 //  LazyMasonryView.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Assistant on 1/10/25.
 //
@@ -14,7 +14,7 @@ struct HeightPreferenceKey: PreferenceKey {
     }
 }
 
-@available(iOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, *)
 struct LazyMasonryView<Content: View, Item: Identifiable>: View {
     let items: [Item]
     let columns: Int
@@ -101,9 +101,23 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                     
                     // Loading indicator at bottom of column
                     if isLoading && columnIndex == 0 { // Only show one loading indicator
+                        #if os(macOS)
+                        HStack {
+                            Spacer()
+                            Color.clear
+                                .frame(width: 32, height: 32)
+                                .overlay(
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                )
+                            Spacer()
+                        }
+                        .padding()
+                        #else
                         ProgressView()
                             .frame(maxWidth: .infinity)
                             .padding()
+                        #endif
                     }
                 }
                 .frame(maxWidth: .infinity)

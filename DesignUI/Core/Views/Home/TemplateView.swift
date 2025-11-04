@@ -1,6 +1,6 @@
 //
 //  ExploreView.swift
-//  DesignUI
+//  DockUI
 //
 //  Created by Maicol Cabreja on 9/16/24.
 //
@@ -265,8 +265,7 @@ extension ExploreView {
                     filterButton(for: filterType)
                 }
             }
-            
-            .padding(16)
+            .padding(.horizontal)
         }
     }
     
@@ -361,7 +360,47 @@ extension ExploreView {
             gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
         }
 #else
-        gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
+        if #available(macOS 13.0, *) {
+            LazyMasonryView(
+                items: feedItems,
+                columns: 5,
+                spacing: 16,
+                hasMorePosts: viewModel.hasMorePosts,
+                isLoading: viewModel.isLoading,
+                loadMoreHandler: { item in
+                    guard let feedItem = item else { return }
+                    
+                    // Only trigger loading for posts, not ads
+                    if case .post(let post) = feedItem {
+                        Task {
+                            await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                        }
+                    }
+                    // Ad items don't trigger loading - just return
+                }
+            ) { item in
+                feedItemCell(for: item)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+        } else {
+            gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
+        }
+#endif
+    }
+    
+    private var gridColumns: [GridItem] {
+#if os(macOS)
+        // More columns for macOS - allows 5+ columns based on screen width
+        // Minimum width of 160px per column means ~5 columns on typical macOS screens
+        [
+            GridItem(.adaptive(minimum: 160), spacing: 16)
+        ]
+#else
+        // iOS: 2 columns for iPad
+        [
+            GridItem(.adaptive(minimum: 200), spacing: 16)
+        ]
 #endif
     }
     
@@ -369,7 +408,6 @@ extension ExploreView {
         LazyVGrid(columns: gridColumns, spacing: spacing) {
             ForEach(feedItems) { item in
                 feedItemCell(for: item)
-                    .buttonStyle(PlainButtonStyle())
                     .task {
                         if case .post(let post) = item {
                             await viewModel.loadMorePostsIfNeeded(currentItem: post)
@@ -407,25 +445,39 @@ extension ExploreView {
     }
     @ViewBuilder
     private func postCell(for post: DesignPost) -> some View {
+        // DesignCards already contains NavigationLink, so we don't wrap it again
+        // This prevents nested NavigationLinks which cause rendering issues on macOS
         if (post.isPremium == true) && !subscriptionManager.isSubscribed {
+            // For premium posts, we need to intercept the NavigationLink
+            // Replace the DesignCards NavigationLink with a Button that shows paywall
             Button { paywallManager.present() } label: {
-                designCard(for: post, isPremium: true)
+                designCardContent(for: post, isPremium: true)
             }
         } else {
-            NavigationLink(destination: DetailView(
-                id: post.id,
-                mediaURL: post.preview_image_url,
-                title: post.title,
-                description: post.description,
-                author: post.profiles.username,
-                codeSnippet: post.code_snippet,
-                creationDate: post.created_at,
-                isAuthorVerified: post.profiles.verified,
-                isPremium: post.isPremium == true
-            )) {
-                designCard(for: post, isPremium: post.isPremium == true)
-            }
+            designCard(for: post, isPremium: post.isPremium == true)
         }
+    }
+    
+    @ViewBuilder
+    private func designCardContent(for post: DesignPost, isPremium: Bool) -> some View {
+        // Determine if it's a component based on post_type
+        let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let isComponent = postType == "component"
+        
+        // Return just the card content without NavigationLink wrapper
+        DesignCards(
+            id: post.id,
+            media: post.preview_image_url,
+            title: post.title,
+            authorName: post.profiles.username,
+            isVerified: post.profiles.verified,
+            description: post.description,
+            codeSnippet: post.code_snippet,
+            published: post.created_at,
+            isLiked: false,
+            isPremium: isPremium,
+            isComponent: isComponent
+        )
     }
     
     @ViewBuilder
