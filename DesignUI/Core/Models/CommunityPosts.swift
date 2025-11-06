@@ -98,7 +98,8 @@ class LatestPostsViewModel: ObservableObject {
     
     @MainActor
     func fetchPosts(postType: String? = nil) async {
-        guard !isLoading && hasMorePosts && !isRefreshing else { return }
+        // Don't block on isRefreshing - allow pagination after refresh completes
+        guard !isLoading && hasMorePosts else { return }
         
         // Cancel any existing task
         currentTask?.cancel()
@@ -215,7 +216,8 @@ class LatestPostsViewModel: ObservableObject {
     
     @MainActor
     private func fetchFilteredPosts(filterType: String?, isAllPosts: Bool) async {
-        guard !isLoading && !isRefreshing else { return }
+        // Allow this to run during refresh
+        guard !isLoading else { return }
         
         isLoading = true
         error = nil
@@ -262,7 +264,8 @@ class LatestPostsViewModel: ObservableObject {
             hasMorePosts = newPosts.count == pageSize
             
             // Continue loading if needed
-            if hasMorePosts {
+            // Only skip if we're in the middle of a refresh (will be handled after refresh completes)
+            if hasMorePosts && !isRefreshing {
                 await fetchPosts(postType: filterType)
             }
         } catch {
@@ -293,7 +296,15 @@ class LatestPostsViewModel: ObservableObject {
         
         isRefreshing = true
         lastRefreshTime = now
+        
+        // Cancel any in-flight fetch
+        currentTask?.cancel()
+        filterTask?.cancel()
+        
+        // Reset pagination state completely
         currentPage = 0
+        hasMorePosts = true
+        
         if let filterType = filterType {
             currentFilterType = filterType
         }
@@ -301,24 +312,24 @@ class LatestPostsViewModel: ObservableObject {
             isAllPostsMode = isAllPosts
         }
         error = nil
-        // Don't clear posts immediately - wait until new ones are loaded
-        // This prevents showing "No posts found" during refresh
-        hasMorePosts = true
-        
-        // Cancel any in-flight fetch
-        currentTask?.cancel()
-        filterTask?.cancel()
         
         // Store current posts as backup
         let previousPosts = posts
         
         await fetchFilteredPosts(filterType: filterType ?? currentFilterType, isAllPosts: isAllPosts ?? isAllPostsMode)
         
-        // Only clear if fetch failed and we have an error
+        // Only restore if fetch failed and we have an error
         if error != nil && posts.isEmpty {
             posts = previousPosts
+            hasMorePosts = true // Ensure pagination can continue even after error
         }
         
         isRefreshing = false
+        
+        // After refresh completes, continue loading more posts if available
+        // This ensures pagination works after refresh
+        if hasMorePosts && !isLoading {
+            await fetchPosts(postType: filterType ?? currentFilterType)
+        }
     }
 }

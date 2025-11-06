@@ -102,10 +102,6 @@ struct ProfileView: View {
                             Label("Edit Profile", systemImage: "slider.vertical.3")
                         }
                         
-                        NavigationLink(destination: SettingsView()) {
-                            Label("Settings", systemImage: "gear")
-                        }
-                        
                         Button {
                             Task {
                                 await authViewModel.signOut()

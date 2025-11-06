@@ -21,15 +21,9 @@ class AdManager: ObservableObject {
     private var adDelegates: [String: AdLoaderDelegate] = [:] // Keep strong references to delegates
     
     private init() {
-        // Replace with your actual AdMob Native Ad Unit ID
         // For testing, you can use: "ca-app-pub-3940256099942544/3986624511"
-        self.adUnitID = "ca-app-pub-3940256099942544/3986624511" // Test ad unit ID
-        
-        #if os(iOS)
-        // Initialize GADMobileAds if not already done
-        // Note: This should be called in AppDelegate's didFinishLaunching
-        // We'll handle initialization there instead to avoid issues
-        #endif
+
+        self.adUnitID = "ca-app-pub-2043555402127024/3628489512" // TODO: Replace with production ID
     }
     
     func loadNativeAd(for identifier: String) {

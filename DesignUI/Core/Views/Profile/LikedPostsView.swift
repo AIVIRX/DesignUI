@@ -79,10 +79,51 @@ struct LikedPostsView: View {
                 gridView(spacing: 8, horizontalPadding: 8)
             }
         } else {
-            gridView(spacing: 16, horizontalPadding: 16)
+            // iPad: Use LazyMasonryView with 5 columns like Mac
+            if #available(iOS 16.0, *) {
+                LazyMasonryView(
+                    items: viewModelLiked.likedPosts,
+                    columns: 5,
+                    spacing: 16,
+                    hasMorePosts: viewModelLiked.hasMorePosts,
+                    isLoading: viewModelLiked.isLoading,
+                    loadMoreHandler: { post in
+                        guard let post = post else { return }
+                        Task {
+                            await viewModelLiked.loadMoreLikedPostsIfNeeded(currentItem: post)
+                        }
+                    }
+                ) { post in
+                    likedPostCell(for: post)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+            } else {
+                gridView(spacing: 16, horizontalPadding: 16)
+            }
         }
 #else
-        gridView(spacing: 16, horizontalPadding: 16)
+        if #available(macOS 13.0, *) {
+            LazyMasonryView(
+                items: viewModelLiked.likedPosts,
+                columns: 5,
+                spacing: 16,
+                hasMorePosts: viewModelLiked.hasMorePosts,
+                isLoading: viewModelLiked.isLoading,
+                loadMoreHandler: { post in
+                    guard let post = post else { return }
+                    Task {
+                        await viewModelLiked.loadMoreLikedPostsIfNeeded(currentItem: post)
+                    }
+                }
+            ) { post in
+                likedPostCell(for: post)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+        } else {
+            gridView(spacing: 16, horizontalPadding: 16)
+        }
 #endif
     }
     

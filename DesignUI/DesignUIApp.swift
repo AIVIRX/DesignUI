@@ -8,7 +8,6 @@
 import SwiftUI
 import Supabase
 import RevenueCat
-
 #if os(iOS)
 #if canImport(GoogleMobileAds)
 import GoogleMobileAds
@@ -24,11 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
         
-        #if canImport(GoogleMobileAds)
-        // Initialize AdMob
-        // Note: Once Google Mobile Ads SDK is added, uncomment this:
-        // GADMobileAds.sharedInstance().start(completionHandler: nil)
-        #endif
+        MobileAds.shared.start()
         
         return true
     }
@@ -42,10 +37,10 @@ struct DesignUIApp: App {
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
-    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
-        hasRequestedReview = false // Reset at the start of every app session
+        // Reset review manager for new session and start 30-second timer
+        ReviewManager.shared.resetForNewSession()
         // Ensure paywall is not shown on launch
         PaywallManager.shared.isPresenting = false
     }
@@ -66,18 +61,18 @@ struct DesignUIApp: App {
 #endif
 
 #if os(macOS)
-
 @main
 struct DesignUIApp: App {
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
-    @AppStorage("hasRequestedReview") private var hasRequestedReview = false
     
     init() {
-        hasRequestedReview = false
         UserDefaults.standard.set(0, forKey: "selectedIndex")
+        
+        // Reset review manager for new session and start 30-second timer
+        ReviewManager.shared.resetForNewSession()
         
         // Configure RevenueCat for macOS
         Purchases.logLevel = .debug

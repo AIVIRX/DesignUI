@@ -68,39 +68,6 @@ struct NewsDetailView: View {
                         }
                         Divider().padding(.vertical)
                         
-                        // Resources section (no premium gating)
-                        VStack(spacing: 16) {
-                            HStack {
-                                Image(systemName: "arrow.down.circle.fill")
-                                    .foregroundColor(.blue)
-                                    .font(.title2)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Download Resources")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                    Text("Get the design files and assets for this article")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                                Button(action: {
-                                    downloadResources()
-                                }) {
-                                    Text("Download")
-                                        .fontWeight(.semibold)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                }
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(12)
-                        }
-                        .padding(.vertical, 8)
-                        
                         NewsContentView(blocks: post.blocks)
                     }
                 }

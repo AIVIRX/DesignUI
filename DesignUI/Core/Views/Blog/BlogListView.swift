@@ -14,17 +14,9 @@ struct NewsListView: View {
     @State private var selectedPost: NewsPost?
     @State private var searchText: String = ""
     
-    // Responsive columns for iPad
+    // Responsive columns - iPad now matches Mac
     var columns: [GridItem] {
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return [GridItem(.adaptive(minimum: 400, maximum: 400)), GridItem(.adaptive(minimum: 400, maximum: 480))]
-        } else {
-            return [GridItem(.adaptive(minimum: 280, maximum: 280))]
-        }
-#else
         return [GridItem(.adaptive(minimum: 280, maximum: 280))]
-#endif
     }
     
     var filteredPosts: [NewsPost] {
@@ -65,11 +57,7 @@ struct NewsListView: View {
                         .frame(maxWidth: 1400)
                     }
                 }
-#if os(iOS)
-                .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .pad ? 48 : 16)
-#else
                 .padding(.horizontal)
-#endif
                 .frame(maxWidth: .infinity)
                 .navigationTitle("News")
 #if os(iOS)
@@ -97,10 +85,11 @@ struct BlogGridCard: View {
     
     var cardWidth: CGFloat {
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return min(UIScreen.main.bounds.width * 0.4, 400)
-        } else {
+        if UIDevice.current.userInterfaceIdiom == .phone {
             return min(UIScreen.main.bounds.width * 0.9, 480)
+        } else {
+            // iPad: use same as Mac
+            return 280
         }
 #else
         return 280
@@ -109,10 +98,11 @@ struct BlogGridCard: View {
     
     var cardHeight: CGFloat {
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        if UIDevice.current.userInterfaceIdiom == .phone {
             return 220
         } else {
-            return 220
+            // iPad: use same as Mac
+            return 150
         }
 #else
         return 150

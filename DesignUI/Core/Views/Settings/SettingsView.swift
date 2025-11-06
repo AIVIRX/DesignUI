@@ -247,6 +247,8 @@ struct SettingsView: View {
                                     .foregroundColor(.secondary)
                                     .font(.caption)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
                         .foregroundColor(.primary)
                         .buttonStyle(PlainButtonStyle())
@@ -261,6 +263,19 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                }
+                
+                // Features Section
+                Section("Features") {
+                    NavigationLink(destination: SFIconsView()) {
+                        HStack {
+                            Image(systemName: "plus.square.dashed")
+                                .foregroundColor(.blue)
+                                .frame(width: 24)
+                            Text("SF Symbols")
+                        }
+                    }
+                    .foregroundColor(.primary)
                 }
                 
                 // Other Apps Section

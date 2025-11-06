@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import StoreKit
 
 extension Notification.Name {
     static let likesChanged = Notification.Name("likesChanged")
@@ -17,7 +16,6 @@ struct LikeButton: View {
     @State private var isLiked: Bool = false
     @State private var isLoading = false
     @State private var showAlert = false
-    @Environment(\.requestReview) var requestReview
     @EnvironmentObject var authViewModel: AuthViewModel
     private let supabase = SupabaseManager.shared.client
     
@@ -59,7 +57,7 @@ struct LikeButton: View {
         })
 #endif
 #if os(macOS)
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(BorderlessButtonStyle())
 #endif
     }
     
@@ -116,6 +114,9 @@ struct LikeButton: View {
                     "postId": postId,
                     "isLiked": true
                 ])
+                
+                // Request review when user favorites a post (only once per session)
+                ReviewManager.shared.requestReviewIfNeeded()
             }
         } catch {
             print("Error toggling like:", error)

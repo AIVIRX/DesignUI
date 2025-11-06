@@ -77,125 +77,69 @@ struct DesignCards: View {
             )) {
                 VStack(alignment: .leading, spacing: 8) {
 #if os(iOS)
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
-                        // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
-                        let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
-                        WebImage(url: URL(string: media)) { phase in
-                            switch phase {
-                            case .empty:
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.1))
-                                    .aspectRatio(aspectRatio, contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle())
-                                            .frame(width: 32, height: 32)
-                                    )
-                            case .success(let image):
-                                Color.clear
-                                    .aspectRatio(aspectRatio, contentMode: .fit)
-                                    .overlay(
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    )
-                                    .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                    )
-                                    .overlay(alignment: .topTrailing) {
-                                        HStack {
-                                            if isPremium {
-                                                Image(systemName: "sparkle")
-                                                    .font(.system(size: 14, weight: .semibold))
-                                                    .foregroundColor(.clear)
-                                                    .overlay(
-                                                        LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                                            .mask(
-                                                                Image(systemName: "sparkle")
-                                                                    .font(.system(size: 14, weight: .semibold))
-                                                            )
-                                                    )
-                                                    .padding(.leading, 8)
-                                            }
-                                            LikeButton(postId: id)
+                    // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
+                    // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
+                    let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
+                    WebImage(url: URL(string: media)) { phase in
+                        switch phase {
+                        case .empty:
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.1))
+                                .aspectRatio(aspectRatio, contentMode: .fit)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                        .frame(width: 32, height: 32)
+                                )
+                        case .success(let image):
+                            Color.clear
+                                .aspectRatio(aspectRatio, contentMode: .fit)
+                                .overlay(
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                )
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                )
+                                .overlay(alignment: .topTrailing) {
+                                    HStack {
+                                        if isPremium {
+                                            Image(systemName: "sparkle")
+                                                .font(.system(size: 14, weight: .semibold))
+                                                .foregroundColor(.clear)
+                                                .overlay(
+                                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                                        .mask(
+                                                            Image(systemName: "sparkle")
+                                                                .font(.system(size: 14, weight: .semibold))
+                                                        )
+                                                )
+                                                .padding(.leading, 8)
                                         }
-                                        .background(.thickMaterial, in: Capsule())
-                                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                                        .padding(6)
-
+                                        LikeButton(postId: id)
                                     }
-                            case .failure:
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.1))
-                                    .aspectRatio(aspectRatio, contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        Image(systemName: "photo")
-                                            .foregroundColor(.gray.opacity(0.5))
-                                    )
-                            }
-                        }
-                        .onDisappear {
-                            SDImageCache.shared.clearMemory()
+                                    .background(.thickMaterial, in: Capsule())
+                                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                                    .padding(6)
+                                }
+                        case .failure:
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.1))
+                                .aspectRatio(aspectRatio, contentMode: .fit)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    Image(systemName: "photo")
+                                        .foregroundColor(.gray.opacity(0.5))
+                                )
                         }
                     }
-                    
-                    if UIDevice.current.userInterfaceIdiom == .pad {
-                        WebImage(url: URL(string: media)) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                                    .frame(width: 200, height: 420)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 200, height: 430)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                                    )
-                                    .overlay(alignment: .topTrailing) {
-                                        HStack(spacing: 6) {
-                                            if isPremium {
-                                                Image(systemName: "sparkle")
-                                                    .font(.system(size: 14, weight: .semibold))
-                                                    .foregroundColor(.clear)
-                                                    .overlay(
-                                                        LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                                            .mask(
-                                                                Image(systemName: "sparkle")
-                                                                    .font(.system(size: 14, weight: .semibold))
-                                                            )
-                                                    )
-                                                    .padding(.leading, 8)
-                                            }
-                                            LikeButton(postId: id)
-                                        }
-                                        .padding(.vertical, 6)
-                                        .padding(.trailing, 6)
-                                        .background(.regularMaterial, in: Capsule())
-                                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                                        .padding()
-                                    }
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 200, height: 420)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                                    )
-                            }
-                        }
+                    .onDisappear {
+                        SDImageCache.shared.clearMemory()
                     }
 #endif
 #if os(macOS)
@@ -282,6 +226,7 @@ struct DesignCards: View {
                     .overlay(
                         Color.white.opacity(isHovered ? 0.1 : 0)
                             .blendMode(.screen)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
                     )
                     .scaleEffect(isHovered ? 1.02 : 1.0)
                     .animation(.easeInOut(duration: 0.2), value: isHovered)

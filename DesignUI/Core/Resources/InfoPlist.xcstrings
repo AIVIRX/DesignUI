@@ -44,7 +44,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "DesignUI"
+            "value" : "Dock UI"
           }
         },
         "en-AU" : {
@@ -516,9 +516,6 @@
           }
         }
       }
-    },
-    "Dock UI Document" : {
-
     }
   },
   "version" : "1.0"

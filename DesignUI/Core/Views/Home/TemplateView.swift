@@ -221,12 +221,22 @@ struct ExploreView: View {
                     #endif
                 }
             }
-        }
+            .navigationTitle("Designs")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
 #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .navigationBarBackButtonHidden(false)
-#else
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gearshape")
+                            .font(.title3)
+                    }
+                }
+#endif
+            }
+        }
+#if os(macOS)
         .searchable(text: $searchText, prompt: "Search templates")
 #endif
         .navigationViewStyle(DefaultNavigationViewStyle())
@@ -357,7 +367,33 @@ extension ExploreView {
                 gridView(spacing: 8, horizontalPadding: 8, verticalPadding: 8)
             }
         } else {
-            gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
+            // iPad: Use LazyMasonryView with 5 columns like Mac
+            if #available(iOS 16.0, *) {
+                LazyMasonryView(
+                    items: feedItems,
+                    columns: 5,
+                    spacing: 16,
+                    hasMorePosts: viewModel.hasMorePosts,
+                    isLoading: viewModel.isLoading,
+                    loadMoreHandler: { item in
+                        guard let feedItem = item else { return }
+                        
+                        // Only trigger loading for posts, not ads
+                        if case .post(let post) = feedItem {
+                            Task {
+                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                            }
+                        }
+                        // Ad items don't trigger loading - just return
+                    }
+                ) { item in
+                    feedItemCell(for: item)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+            } else {
+                gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
+            }
         }
 #else
         if #available(macOS 13.0, *) {
@@ -397,10 +433,18 @@ extension ExploreView {
             GridItem(.adaptive(minimum: 160), spacing: 16)
         ]
 #else
-        // iOS: 2 columns for iPad
-        [
-            GridItem(.adaptive(minimum: 200), spacing: 16)
-        ]
+        // iOS: iPad uses LazyMasonryView now, but keep this for fallback
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8)
+            ]
+        } else {
+            // iPad fallback
+            [
+                GridItem(.adaptive(minimum: 160), spacing: 16)
+            ]
+        }
 #endif
     }
     

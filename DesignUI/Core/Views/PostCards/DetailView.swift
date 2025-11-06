@@ -64,7 +64,6 @@ struct DetailView: View {
     let isPremium: Bool
     
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.requestReview) var requestReview
     @EnvironmentObject private var toastManager: ToastManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
