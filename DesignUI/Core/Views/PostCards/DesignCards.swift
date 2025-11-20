@@ -62,8 +62,70 @@ struct DesignCards: View {
         self.isComponent = isComponent
     }
     
+    private var aspectRatio: CGFloat {
+        // Components: horizontal/landscape (1.6 = width > height)
+        // Templates: vertical/portrait (0.55 = height > width)
+        isComponent ? 1.6 : 0.55
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+#if os(macOS)
+            // macOS: Use ZStack to separate NavigationLink from LikeButton
+            ZStack(alignment: .topTrailing) {
+                NavigationLink(destination: DetailView(
+                    id: id,
+                    mediaURL: media,
+                    title: title,
+                    description: description,
+                    author: authorName,
+                    codeSnippet: codeSnippet,
+                    creationDate: published,
+                    isAuthorVerified: isVerified,
+                    isPremium: isPremium
+                )) {
+                    imageView
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(PlainButtonStyle())
+                .accentColor(.clear)
+                
+                // Like button outside NavigationLink to prevent tap propagation
+                HStack(spacing: 6) {
+                    if isPremium {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.clear)
+                            .overlay(
+                                LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                    .mask(
+                                        Image(systemName: "sparkles")
+                                            .font(.system(size: 14, weight: .semibold))
+                                    )
+                            )
+                    }
+                    LikeButton(postId: id)
+                }
+                .padding(6)
+                .background(.black.opacity(0.8), in: Capsule())
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                .contentShape(Capsule())
+                .allowsHitTesting(true)
+                .offset(x: -6, y: 6)
+            }
+            .overlay(
+                Color.white.opacity(isHovered ? 0.1 : 0)
+                    .blendMode(.screen)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .allowsHitTesting(false)
+            )
+            .scaleEffect(isHovered ? 1.02 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isHovered)
+            .zIndex(isHovered ? 10 : 0)
+            .onHover { hovering in
+                isHovered = hovering
+            }
+#else
             NavigationLink(destination: DetailView(
                 id: id,
                 mediaURL: media,
@@ -75,179 +137,90 @@ struct DesignCards: View {
                 isAuthorVerified: isVerified,
                 isPremium: isPremium
             )) {
-                VStack(alignment: .leading, spacing: 8) {
-#if os(iOS)
-                    // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
-                    // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
-                    let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
-                    WebImage(url: URL(string: media)) { phase in
-                        switch phase {
-                        case .empty:
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.1))
-                                .aspectRatio(aspectRatio, contentMode: .fit)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .overlay(
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle())
-                                        .frame(width: 32, height: 32)
-                                )
-                        case .success(let image):
-                            Color.clear
-                                .aspectRatio(aspectRatio, contentMode: .fit)
-                                .overlay(
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                )
-                                .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                )
-                                .overlay(alignment: .topTrailing) {
-                                    HStack {
-                                        if isPremium {
-                                            Image(systemName: "sparkle")
-                                                .font(.system(size: 14, weight: .semibold))
-                                                .foregroundColor(.clear)
-                                                .overlay(
-                                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                                        .mask(
-                                                            Image(systemName: "sparkle")
-                                                                .font(.system(size: 14, weight: .semibold))
-                                                        )
-                                                )
-                                                .padding(.leading, 8)
-                                        }
-                                        LikeButton(postId: id)
-                                    }
-                                    .background(.thickMaterial, in: Capsule())
-                                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                                    .padding(6)
-                                }
-                        case .failure:
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.1))
-                                .aspectRatio(aspectRatio, contentMode: .fit)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(.gray.opacity(0.5))
-                                )
-                        }
-                    }
-                    .onDisappear {
-                        SDImageCache.shared.clearMemory()
-                    }
+                imageView
+                    .buttonStyle(PlainButtonStyle())
+            }
+            .simultaneousGesture(TapGesture().onEnded {
+                HapticManager.shared.triggerImpact(style: .heavy)
+            })
 #endif
-#if os(macOS)
-                    // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
-                    // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
-                    let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
-                    ZStack(alignment: .topTrailing) {
-                        WebImage(url: URL(string: media)) { phase in
-                            switch phase {
-                            case .empty:
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.1))
-                                    .aspectRatio(aspectRatio, contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                    )
-                                    .overlay(
-                                        Color.clear
-                                            .frame(width: 32, height: 32)
-                                            .overlay(
-                                                ProgressView()
-                                                    .progressViewStyle(CircularProgressViewStyle())
-                                            )
-                                    )
-                            case .success(let image):
-                                Color.clear
-                                    .aspectRatio(aspectRatio, contentMode: .fit)
-                                    .overlay(
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    )
-                                    .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                    )
-                            case .failure:
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.1))
-                                    .aspectRatio(aspectRatio, contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                    )
-                                    .overlay(
-                                        Image(systemName: "photo")
-                                            .foregroundColor(.gray.opacity(0.5))
-                                    )
-                            }
-                        }
-                        .indicator(.activity)
-                        .transition(.fade(duration: 0.3))
-                        .onDisappear {
-                            SDImageCache.shared.clearMemory()
-                        }
-                        
+        }
+    }
+    
+    @ViewBuilder
+    private var imageView: some View {
+        // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
+        // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
+        let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
+        WebImage(url: URL(string: media)) { phase in
+            switch phase {
+            case .empty:
+                Rectangle()
+                    .fill(Color.gray.opacity(0.1))
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .overlay(
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .frame(width: 32, height: 32)
+                    )
+            case .success(let image):
+                Color.clear
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .overlay(
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    )
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                    .overlay(alignment: .topTrailing) {
+                        #if os(iOS)
                         HStack(spacing: 6) {
                             if isPremium {
-                                Image(systemName: "sparkle")
+                                Image(systemName: "sparkles")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.clear)
                                     .overlay(
                                         LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
                                             .mask(
-                                                Image(systemName: "sparkle")
+                                                Image(systemName: "sparkles")
                                                     .font(.system(size: 14, weight: .semibold))
                                             )
                                     )
-                                    .padding(.leading, 8)
                             }
                             LikeButton(postId: id)
                         }
-                        .background(.thickMaterial, in: Capsule())
+                        .padding(6)
+                        .background(.black.opacity(0.8), in: Capsule())
                         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
                         .padding(6)
+                        #endif
                     }
+            case .failure:
+                Rectangle()
+                    .fill(Color.gray.opacity(0.1))
+                    .aspectRatio(aspectRatio, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .contentShape(Rectangle())
                     .overlay(
-                        Color.white.opacity(isHovered ? 0.1 : 0)
-                            .blendMode(.screen)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                        Image(systemName: "photo")
+                            .foregroundColor(.gray.opacity(0.5))
                     )
-                    .scaleEffect(isHovered ? 1.02 : 1.0)
-                    .animation(.easeInOut(duration: 0.2), value: isHovered)
-                    .zIndex(isHovered ? 10 : 0)
-                    .allowsHitTesting(true)
-                    .onHover { hovering in
-                        isHovered = hovering
-                    }
-#endif
-                }
-                .buttonStyle(PlainButtonStyle())
+            @unknown default:
+                Rectangle()
+                    .fill(Color.gray.opacity(0.1))
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
             }
-#if os(macOS)
-            .buttonStyle(PlainButtonStyle())
-            .accentColor(.clear)
-#endif
-#if os(iOS)
-            .simultaneousGesture(TapGesture().onEnded {
-                HapticManager.shared.triggerImpact(style: .heavy)
-            })
-#endif
+        }
+        .indicator(.activity)
+        .transition(.fade(duration: 0.3))
+        .onDisappear {
+            SDImageCache.shared.clearMemory()
         }
     }
 }

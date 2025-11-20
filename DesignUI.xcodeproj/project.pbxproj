@@ -42,8 +42,40 @@
 		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
 		EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF42C19E546003134B1 /* DesignCards.swift */; };
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
+		EC7ECECD2ECD667800AC657C /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB22ECD667800AC657C /* CodePreviewView.swift */; };
+		EC7ECECE2ECD667800AC657C /* FrameModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEBE2ECD667800AC657C /* FrameModifierEditor.swift */; };
+		EC7ECECF2ECD667800AC657C /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB02ECD667800AC657C /* CanvasView.swift */; };
+		EC7ECED02ECD667800AC657C /* ComponentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB42ECD667800AC657C /* ComponentRenderer.swift */; };
+		EC7ECED12ECD667800AC657C /* DesignFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB62ECD667800AC657C /* DesignFile.swift */; };
+		EC7ECED22ECD667800AC657C /* ColorModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEBA2ECD667800AC657C /* ColorModifierEditor.swift */; };
+		EC7ECED32ECD667800AC657C /* EffectModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEBC2ECD667800AC657C /* EffectModifierEditors.swift */; };
+		EC7ECED42ECD667800AC657C /* PaddingModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC12ECD667800AC657C /* PaddingModifierEditor.swift */; };
+		EC7ECED52ECD667800AC657C /* OverlayModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC02ECD667800AC657C /* OverlayModifierEditor.swift */; };
+		EC7ECED62ECD667800AC657C /* CanvasManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEAF2ECD667800AC657C /* CanvasManager.swift */; };
+		EC7ECED72ECD667800AC657C /* ShadowModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC22ECD667800AC657C /* ShadowModifierEditor.swift */; };
+		EC7ECED82ECD667800AC657C /* ModifierPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC62ECD667800AC657C /* ModifierPanelView.swift */; };
+		EC7ECED92ECD667800AC657C /* CanvasControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEAE2ECD667800AC657C /* CanvasControlsOverlay.swift */; };
+		EC7ECEDA2ECD667800AC657C /* WidgetBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECECC2ECD667800AC657C /* WidgetBuilderView.swift */; };
+		EC7ECEDB2ECD667800AC657C /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC92ECD667800AC657C /* SwiftUIView.swift */; };
+		EC7ECEDC2ECD667800AC657C /* FontModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEBD2ECD667800AC657C /* FontModifierEditor.swift */; };
+		EC7ECEDD2ECD667800AC657C /* PropertiesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC72ECD667800AC657C /* PropertiesPanelView.swift */; };
+		EC7ECEDE2ECD667800AC657C /* ModifierEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC52ECD667800AC657C /* ModifierEditorView.swift */; };
+		EC7ECEDF2ECD667800AC657C /* OpacityModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEBF2ECD667800AC657C /* OpacityModifierEditor.swift */; };
+		EC7ECEE02ECD667800AC657C /* CodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB12ECD667800AC657C /* CodeGenerator.swift */; };
+		EC7ECEE12ECD667800AC657C /* DesignBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB52ECD667800AC657C /* DesignBrowserView.swift */; };
+		EC7ECEE22ECD667800AC657C /* TransformModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC32ECD667800AC657C /* TransformModifierEditors.swift */; };
+		EC7ECEE32ECD667800AC657C /* ComponentLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB32ECD667800AC657C /* ComponentLibraryView.swift */; };
+		EC7ECEE42ECD667800AC657C /* LayersPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB72ECD667800AC657C /* LayersPanelView.swift */; };
+		EC7ECEE52ECD667800AC657C /* CornerRadiusModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEBB2ECD667800AC657C /* CornerRadiusModifierEditor.swift */; };
+		EC7ECEE62ECD667800AC657C /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEC82ECD667800AC657C /* StatusBarView.swift */; };
+		EC7ECEE72ECD667800AC657C /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB82ECD667800AC657C /* Modifier.swift */; };
+		EC7ECEE82ECD667800AC657C /* UIBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECECA2ECD667800AC657C /* UIBuilderView.swift */; };
+		EC7ECEE92ECD667800AC657C /* UIComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECECB2ECD667800AC657C /* UIComponent.swift */; };
+		EC7ECEEA2ECD667800AC657C /* BackgroundModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7ECEB92ECD667800AC657C /* BackgroundModifierEditor.swift */; };
+		EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
+		EC9C05D22ECEDA5900A89C80 /* TextAlignmentModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C05D12ECEDA5900A89C80 /* TextAlignmentModifierEditor.swift */; };
 		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
 		EC9E02E42EB16B060094D7C6 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */; };
 		EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54692E187D7D00AAE9EC /* NewsPost.swift */; };
@@ -114,8 +146,40 @@
 		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC7D7BF42C19E546003134B1 /* DesignCards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
+		EC7ECEAE2ECD667800AC657C /* CanvasControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasControlsOverlay.swift; sourceTree = "<group>"; };
+		EC7ECEAF2ECD667800AC657C /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
+		EC7ECEB02ECD667800AC657C /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		EC7ECEB12ECD667800AC657C /* CodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeGenerator.swift; sourceTree = "<group>"; };
+		EC7ECEB22ECD667800AC657C /* CodePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodePreviewView.swift; sourceTree = "<group>"; };
+		EC7ECEB32ECD667800AC657C /* ComponentLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryView.swift; sourceTree = "<group>"; };
+		EC7ECEB42ECD667800AC657C /* ComponentRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentRenderer.swift; sourceTree = "<group>"; };
+		EC7ECEB52ECD667800AC657C /* DesignBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignBrowserView.swift; sourceTree = "<group>"; };
+		EC7ECEB62ECD667800AC657C /* DesignFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignFile.swift; sourceTree = "<group>"; };
+		EC7ECEB72ECD667800AC657C /* LayersPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanelView.swift; sourceTree = "<group>"; };
+		EC7ECEB82ECD667800AC657C /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
+		EC7ECEB92ECD667800AC657C /* BackgroundModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEBA2ECD667800AC657C /* ColorModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEBB2ECD667800AC657C /* CornerRadiusModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerRadiusModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEBC2ECD667800AC657C /* EffectModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectModifierEditors.swift; sourceTree = "<group>"; };
+		EC7ECEBD2ECD667800AC657C /* FontModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEBE2ECD667800AC657C /* FrameModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEBF2ECD667800AC657C /* OpacityModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpacityModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEC02ECD667800AC657C /* OverlayModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEC12ECD667800AC657C /* PaddingModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaddingModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEC22ECD667800AC657C /* ShadowModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowModifierEditor.swift; sourceTree = "<group>"; };
+		EC7ECEC32ECD667800AC657C /* TransformModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformModifierEditors.swift; sourceTree = "<group>"; };
+		EC7ECEC52ECD667800AC657C /* ModifierEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierEditorView.swift; sourceTree = "<group>"; };
+		EC7ECEC62ECD667800AC657C /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
+		EC7ECEC72ECD667800AC657C /* PropertiesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesPanelView.swift; sourceTree = "<group>"; };
+		EC7ECEC82ECD667800AC657C /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
+		EC7ECEC92ECD667800AC657C /* SwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView.swift; sourceTree = "<group>"; };
+		EC7ECECA2ECD667800AC657C /* UIBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIBuilderView.swift; sourceTree = "<group>"; };
+		EC7ECECB2ECD667800AC657C /* UIComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponent.swift; sourceTree = "<group>"; };
+		EC7ECECC2ECD667800AC657C /* WidgetBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBuilderView.swift; sourceTree = "<group>"; };
+		EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		EC9C05D12ECEDA5900A89C80 /* TextAlignmentModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextAlignmentModifierEditor.swift; sourceTree = "<group>"; };
 		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
 		EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		EC9F54692E187D7D00AAE9EC /* NewsPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsPost.swift; sourceTree = "<group>"; };
@@ -145,6 +209,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */,
 				EC0C95CC2EB2E2A300AA6A84 /* Shimmer in Frameworks */,
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
 				ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */,
@@ -171,6 +236,52 @@
 				EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */,
 			);
 			path = Paywall;
+			sourceTree = "<group>";
+		};
+		EC7ECEA62ECD499D00AC657C /* UIEditor */ = {
+			isa = PBXGroup;
+			children = (
+				EC7ECEAE2ECD667800AC657C /* CanvasControlsOverlay.swift */,
+				EC7ECEAF2ECD667800AC657C /* CanvasManager.swift */,
+				EC7ECEB02ECD667800AC657C /* CanvasView.swift */,
+				EC7ECEB12ECD667800AC657C /* CodeGenerator.swift */,
+				EC7ECEB22ECD667800AC657C /* CodePreviewView.swift */,
+				EC7ECEB32ECD667800AC657C /* ComponentLibraryView.swift */,
+				EC7ECEB42ECD667800AC657C /* ComponentRenderer.swift */,
+				EC7ECEB52ECD667800AC657C /* DesignBrowserView.swift */,
+				EC7ECEB62ECD667800AC657C /* DesignFile.swift */,
+				EC7ECEB72ECD667800AC657C /* LayersPanelView.swift */,
+				EC7ECEB82ECD667800AC657C /* Modifier.swift */,
+				EC7ECEC42ECD667800AC657C /* ModifierEditors */,
+				EC7ECEC52ECD667800AC657C /* ModifierEditorView.swift */,
+				EC7ECEC62ECD667800AC657C /* ModifierPanelView.swift */,
+				EC7ECEC72ECD667800AC657C /* PropertiesPanelView.swift */,
+				EC7ECEC82ECD667800AC657C /* StatusBarView.swift */,
+				EC7ECEC92ECD667800AC657C /* SwiftUIView.swift */,
+				EC7ECECA2ECD667800AC657C /* UIBuilderView.swift */,
+				EC7ECECB2ECD667800AC657C /* UIComponent.swift */,
+				EC7ECECC2ECD667800AC657C /* WidgetBuilderView.swift */,
+			);
+			path = UIEditor;
+			sourceTree = "<group>";
+		};
+		EC7ECEC42ECD667800AC657C /* ModifierEditors */ = {
+			isa = PBXGroup;
+			children = (
+				EC9C05D12ECEDA5900A89C80 /* TextAlignmentModifierEditor.swift */,
+				EC7ECEB92ECD667800AC657C /* BackgroundModifierEditor.swift */,
+				EC7ECEBA2ECD667800AC657C /* ColorModifierEditor.swift */,
+				EC7ECEBB2ECD667800AC657C /* CornerRadiusModifierEditor.swift */,
+				EC7ECEBC2ECD667800AC657C /* EffectModifierEditors.swift */,
+				EC7ECEBD2ECD667800AC657C /* FontModifierEditor.swift */,
+				EC7ECEBE2ECD667800AC657C /* FrameModifierEditor.swift */,
+				EC7ECEBF2ECD667800AC657C /* OpacityModifierEditor.swift */,
+				EC7ECEC02ECD667800AC657C /* OverlayModifierEditor.swift */,
+				EC7ECEC12ECD667800AC657C /* PaddingModifierEditor.swift */,
+				EC7ECEC22ECD667800AC657C /* ShadowModifierEditor.swift */,
+				EC7ECEC32ECD667800AC657C /* TransformModifierEditors.swift */,
+			);
+			path = ModifierEditors;
 			sourceTree = "<group>";
 		};
 		EC9F546F2E187F8E00AAE9EC /* Blog */ = {
@@ -212,6 +323,7 @@
 		ECADF6182BCC83AB0096753A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */,
 				EC419E5B2E85D6B60081C5D2 /* AdSupport.framework */,
 				EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */,
 				EC47CA2B2D03FB42002EA494 /* AdSupport.framework */,
@@ -273,6 +385,7 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				EC7ECEA62ECD499D00AC657C /* UIEditor */,
 				EC9F546F2E187F8E00AAE9EC /* Blog */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				EC0C95C62EB2A18F00AA6A84 /* Paywall */,
@@ -520,6 +633,36 @@
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				EC70F84B2EB6C24C001D39DC /* FeedItem.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
+				EC7ECECD2ECD667800AC657C /* CodePreviewView.swift in Sources */,
+				EC7ECECE2ECD667800AC657C /* FrameModifierEditor.swift in Sources */,
+				EC7ECECF2ECD667800AC657C /* CanvasView.swift in Sources */,
+				EC7ECED02ECD667800AC657C /* ComponentRenderer.swift in Sources */,
+				EC7ECED12ECD667800AC657C /* DesignFile.swift in Sources */,
+				EC7ECED22ECD667800AC657C /* ColorModifierEditor.swift in Sources */,
+				EC7ECED32ECD667800AC657C /* EffectModifierEditors.swift in Sources */,
+				EC7ECED42ECD667800AC657C /* PaddingModifierEditor.swift in Sources */,
+				EC7ECED52ECD667800AC657C /* OverlayModifierEditor.swift in Sources */,
+				EC7ECED62ECD667800AC657C /* CanvasManager.swift in Sources */,
+				EC7ECED72ECD667800AC657C /* ShadowModifierEditor.swift in Sources */,
+				EC7ECED82ECD667800AC657C /* ModifierPanelView.swift in Sources */,
+				EC7ECED92ECD667800AC657C /* CanvasControlsOverlay.swift in Sources */,
+				EC7ECEDA2ECD667800AC657C /* WidgetBuilderView.swift in Sources */,
+				EC7ECEDB2ECD667800AC657C /* SwiftUIView.swift in Sources */,
+				EC7ECEDC2ECD667800AC657C /* FontModifierEditor.swift in Sources */,
+				EC7ECEDD2ECD667800AC657C /* PropertiesPanelView.swift in Sources */,
+				EC7ECEDE2ECD667800AC657C /* ModifierEditorView.swift in Sources */,
+				EC7ECEDF2ECD667800AC657C /* OpacityModifierEditor.swift in Sources */,
+				EC7ECEE02ECD667800AC657C /* CodeGenerator.swift in Sources */,
+				EC7ECEE12ECD667800AC657C /* DesignBrowserView.swift in Sources */,
+				EC7ECEE22ECD667800AC657C /* TransformModifierEditors.swift in Sources */,
+				EC7ECEE32ECD667800AC657C /* ComponentLibraryView.swift in Sources */,
+				EC7ECEE42ECD667800AC657C /* LayersPanelView.swift in Sources */,
+				EC7ECEE52ECD667800AC657C /* CornerRadiusModifierEditor.swift in Sources */,
+				EC7ECEE62ECD667800AC657C /* StatusBarView.swift in Sources */,
+				EC7ECEE72ECD667800AC657C /* Modifier.swift in Sources */,
+				EC7ECEE82ECD667800AC657C /* UIBuilderView.swift in Sources */,
+				EC7ECEE92ECD667800AC657C /* UIComponent.swift in Sources */,
+				EC7ECEEA2ECD667800AC657C /* BackgroundModifierEditor.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
@@ -538,6 +681,7 @@
 				ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */,
 				EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */,
 				F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */,
+				EC9C05D22ECEDA5900A89C80 /* TextAlignmentModifierEditor.swift in Sources */,
 				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
 				EC70F84D2EB6C280001D39DC /* AdManager.swift in Sources */,
 				ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */,
@@ -697,7 +841,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 628;
+				CURRENT_PROJECT_VERSION = 701;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_APP_SANDBOX = YES;
@@ -710,6 +854,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -731,7 +876,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 28;
+				MARKETING_VERSION = 28.1;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
@@ -756,7 +901,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 628;
+				CURRENT_PROJECT_VERSION = 701;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -770,6 +915,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -791,7 +937,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 28;
+				MARKETING_VERSION = 28.1;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";

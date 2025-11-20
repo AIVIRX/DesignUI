@@ -254,6 +254,28 @@
         }
       }
     },
+    "%" : {
+
+    },
+    "%@ Size" : {
+
+    },
+    "%@ Widget" : {
+
+    },
+    "%lld × %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld × %2$lld"
+          }
+        }
+      }
+    },
+    "%lld components" : {
+
+    },
     "%lld/15" : {
       "localizations" : {
         "ar" : {
@@ -2004,6 +2026,57 @@
         }
       }
     },
+    "0" : {
+
+    },
+    "0.3" : {
+
+    },
+    "1.0" : {
+
+    },
+    "2" : {
+
+    },
+    "4" : {
+
+    },
+    "8" : {
+
+    },
+    "9:41" : {
+
+    },
+    "10" : {
+
+    },
+    "17" : {
+
+    },
+    "100" : {
+
+    },
+    "Actions" : {
+
+    },
+    "Add Component" : {
+
+    },
+    "Add Modifier" : {
+
+    },
+    "Add Overlay Component" : {
+
+    },
+    "Alignment" : {
+
+    },
+    "Amount" : {
+
+    },
+    "Angle (degrees)" : {
+
+    },
     "Appearance" : {
       "localizations" : {
         "ar" : {
@@ -2253,6 +2326,12 @@
           }
         }
       }
+    },
+    "Are you sure you want to delete this component? This action cannot be undone." : {
+
+    },
+    "Are you sure you want to delete this design? This action cannot be undone." : {
+
     },
     "Are you sure you want to delete your account?" : {
       "localizations" : {
@@ -2504,6 +2583,9 @@
         }
       }
     },
+    "Background Color" : {
+
+    },
     "Bio" : {
       "localizations" : {
         "ar" : {
@@ -2753,6 +2835,27 @@
           }
         }
       }
+    },
+    "Blur" : {
+
+    },
+    "Blur Radius" : {
+
+    },
+    "Border" : {
+
+    },
+    "Border Color" : {
+
+    },
+    "Border Width" : {
+
+    },
+    "Bottom Leading" : {
+
+    },
+    "Bottom Trailing" : {
+
     },
     "Cancel" : {
       "localizations" : {
@@ -3004,6 +3107,12 @@
         }
       }
     },
+    "Capture and catalogue your trips, adventures, and more." : {
+
+    },
+    "Center" : {
+
+    },
     "Change Plan" : {
       "localizations" : {
         "ar" : {
@@ -3253,6 +3362,24 @@
           }
         }
       }
+    },
+    "Choose %@" : {
+
+    },
+    "Choose a device preset" : {
+
+    },
+    "Choose Background Color" : {
+
+    },
+    "Choose Color" : {
+
+    },
+    "Choose color scheme" : {
+
+    },
+    "Clip Shape" : {
+
     },
     "Code" : {
       "localizations" : {
@@ -3754,6 +3881,9 @@
         }
       }
     },
+    "Color" : {
+
+    },
     "Color Scheme" : {
       "localizations" : {
         "ar" : {
@@ -4253,6 +4383,9 @@
           }
         }
       }
+    },
+    "Components" : {
+
     },
     "Continue" : {
       "localizations" : {
@@ -5004,6 +5137,18 @@
         }
       }
     },
+    "Corner Radius" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create an account to save your trips and share planning with friends." : {
+
+    },
+    "Create New Design" : {
+
+    },
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
       "localizations" : {
         "ar" : {
@@ -5253,6 +5398,18 @@
           }
         }
       }
+    },
+    "Create your first design to get started" : {
+
+    },
+    "Dark" : {
+
+    },
+    "Default Height" : {
+
+    },
+    "Default Width" : {
+
     },
     "Delete" : {
       "localizations" : {
@@ -5754,6 +5911,12 @@
         }
       }
     },
+    "Delete Component" : {
+
+    },
+    "Delete Design" : {
+
+    },
     "Describe your design..." : {
       "localizations" : {
         "ar" : {
@@ -6254,255 +6417,11 @@
         }
       }
     },
-    "Designs" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "التصاميم"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dissenys"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Návrhy"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Design"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Designs"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Σχέδια"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Designs"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Designs"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Designs"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diseños"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diseños"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diseños"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suunnitelmat"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modèles"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modèles"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "עיצובים"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "डिजाइन"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dizajni"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tervek"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desain"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disegni"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "デザイン"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "디자인"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reka bentuk"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Design"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ontwerpen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projekty"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desenhos"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desenhos"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Design-uri"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дизайны"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dizajny"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dizajni"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Design"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "การออกแบบ"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tasarımlar"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дизайн"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thiết kế"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设计"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設計"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設計"
-          }
-        }
-      }
+    "Design Browser" : {
+
+    },
+    "Design Name" : {
+
     },
     "DesignUI" : {
       "localizations" : {
@@ -7254,6 +7173,15 @@
         }
       }
     },
+    "Done" : {
+
+    },
+    "Drag components from the library to start building" : {
+
+    },
+    "Duplicate" : {
+
+    },
     "Edit Profile" : {
       "localizations" : {
         "ar" : {
@@ -7503,6 +7431,9 @@
           }
         }
       }
+    },
+    "Empty Design" : {
+
     },
     "Error" : {
       "localizations" : {
@@ -8004,6 +7935,36 @@
         }
       }
     },
+    "Font" : {
+
+    },
+    "Font Name" : {
+
+    },
+    "Font Size" : {
+
+    },
+    "Font Weight" : {
+
+    },
+    "Full Height" : {
+
+    },
+    "Full Width" : {
+
+    },
+    "Generated Code" : {
+
+    },
+    "Height" : {
+
+    },
+    "Height Type" : {
+
+    },
+    "Hello World" : {
+
+    },
     "Introducing" : {
       "localizations" : {
         "ar" : {
@@ -8253,6 +8214,9 @@
           }
         }
       }
+    },
+    "Is Visible" : {
+
     },
     "John Doe" : {
       "localizations" : {
@@ -9004,6 +8968,12 @@
         }
       }
     },
+    "Layers" : {
+
+    },
+    "Layout" : {
+
+    },
     "Legal" : {
       "localizations" : {
         "ar" : {
@@ -9253,6 +9223,9 @@
           }
         }
       }
+    },
+    "Light" : {
+
     },
     "Loading posts..." : {
       "localizations" : {
@@ -9754,6 +9727,21 @@
         }
       }
     },
+    "Location" : {
+
+    },
+    "Mask" : {
+
+    },
+    "Mask Type" : {
+
+    },
+    "Modified %@" : {
+
+    },
+    "Modifiers" : {
+
+    },
     "More Apps" : {
       "localizations" : {
         "ar" : {
@@ -10254,6 +10242,9 @@
         }
       }
     },
+    "New Design" : {
+
+    },
     "News" : {
       "localizations" : {
         "ar" : {
@@ -10503,6 +10494,12 @@
           }
         }
       }
+    },
+    "No Designs Yet" : {
+
+    },
+    "No layers yet" : {
+
     },
     "No liked posts yet" : {
       "localizations" : {
@@ -10754,6 +10751,9 @@
         }
       }
     },
+    "No modifiers applied" : {
+
+    },
     "No posts found" : {
       "localizations" : {
         "ar" : {
@@ -11003,6 +11003,18 @@
           }
         }
       }
+    },
+    "No Selection" : {
+
+    },
+    "Offset" : {
+
+    },
+    "Offset X" : {
+
+    },
+    "Offset Y" : {
+
     },
     "OK" : {
       "localizations" : {
@@ -11254,6 +11266,24 @@
         }
       }
     },
+    "Opacity" : {
+
+    },
+    "Open" : {
+
+    },
+    "Overlay" : {
+
+    },
+    "Overlay Color" : {
+
+    },
+    "Overlay Text" : {
+
+    },
+    "Padding" : {
+
+    },
     "Paste your SwiftUI code here..." : {
       "localizations" : {
         "ar" : {
@@ -11503,6 +11533,9 @@
           }
         }
       }
+    },
+    "Position" : {
+
     },
     "Premium" : {
       "localizations" : {
@@ -12504,6 +12537,18 @@
         }
       }
     },
+    "Properties" : {
+
+    },
+    "Radius" : {
+
+    },
+    "Reset Zoom" : {
+
+    },
+    "Rotation" : {
+
+    },
     "Save" : {
       "localizations" : {
         "ar" : {
@@ -12753,6 +12798,24 @@
           }
         }
       }
+    },
+    "Save Design" : {
+
+    },
+    "Scale" : {
+
+    },
+    "Scale X" : {
+
+    },
+    "Scale Y" : {
+
+    },
+    "Search components..." : {
+
+    },
+    "Search modifiers..." : {
+
     },
     "Search posts" : {
       "localizations" : {
@@ -13504,6 +13567,9 @@
         }
       }
     },
+    "Select a component to edit its properties" : {
+
+    },
     "Select a view" : {
       "localizations" : {
         "ar" : {
@@ -13753,6 +13819,9 @@
           }
         }
       }
+    },
+    "Select SF Symbol" : {
+
     },
     "Send Feedback" : {
       "localizations" : {
@@ -14754,6 +14823,12 @@
         }
       }
     },
+    "Shadow" : {
+
+    },
+    "Shape Type" : {
+
+    },
     "Share" : {
       "localizations" : {
         "ar" : {
@@ -15003,6 +15078,12 @@
           }
         }
       }
+    },
+    "Show Code" : {
+
+    },
+    "Show in Finder" : {
+
     },
     "Sign In Required" : {
       "localizations" : {
@@ -15504,6 +15585,9 @@
         }
       }
     },
+    "Sign In With Apple" : {
+
+    },
     "Sign Out" : {
       "localizations" : {
         "ar" : {
@@ -16003,6 +16087,9 @@
           }
         }
       }
+    },
+    "Spacing" : {
+
     },
     "Stock Profit Calculator 2025" : {
       "localizations" : {
@@ -17254,6 +17341,12 @@
         }
       }
     },
+    "SwiftUI Builder" : {
+
+    },
+    "Tap to open" : {
+
+    },
     "Tell us a bit about yourself" : {
       "localizations" : {
         "ar" : {
@@ -17754,6 +17847,9 @@
         }
       }
     },
+    "Templates" : {
+      "shouldTranslate" : false
+    },
     "Terms of Service" : {
       "localizations" : {
         "ar" : {
@@ -18004,6 +18100,18 @@
         }
       }
     },
+    "Text" : {
+
+    },
+    "Text Badge" : {
+
+    },
+    "Text Color" : {
+
+    },
+    "This will create a new design file that you can start building with." : {
+
+    },
     "Title" : {
       "localizations" : {
         "ar" : {
@@ -18253,6 +18361,21 @@
           }
         }
       }
+    },
+    "Top Leading" : {
+
+    },
+    "Top Trailing" : {
+
+    },
+    "Travel Pro" : {
+
+    },
+    "Type" : {
+
+    },
+    "Unsupported property type" : {
+
     },
     "Upload" : {
       "localizations" : {
@@ -19503,6 +19626,21 @@
           }
         }
       }
+    },
+    "Widget Builder" : {
+
+    },
+    "Widget Preview" : {
+
+    },
+    "Widget Size" : {
+
+    },
+    "Width" : {
+
+    },
+    "Width Type" : {
+
     },
     "You have access to all premium features" : {
       "localizations" : {

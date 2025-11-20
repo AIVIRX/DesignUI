@@ -46,6 +46,11 @@ struct LikedPostsView: View {
                 if let index = viewModelLiked.likedPosts.firstIndex(where: { $0.id == postId }) {
                     viewModelLiked.likedPosts.remove(at: index)
                 }
+            } else {
+                // Post was liked - fetch and add it to the list
+                Task {
+                    await viewModelLiked.addLikedPost(postId: postId)
+                }
             }
         }
         .refreshable {

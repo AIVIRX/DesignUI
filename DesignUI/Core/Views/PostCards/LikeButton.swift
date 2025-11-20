@@ -34,15 +34,10 @@ struct LikeButton: View {
             }
         } label: {
             Image(systemName: isLiked ? "heart.fill" : "heart")
-                .foregroundColor(isLiked ? .red : .primary)
+                .foregroundColor(isLiked ? .red : .white)
                 .font(.system(size: 16))
-                .padding(6)
-                .background(.thickMaterial, in: Circle())
         }
         .disabled(isLoading)
-        .scaleEffect(isLoading ? 0.95 : 1.0)
-        .opacity(isLoading ? 0.7 : 1.0)
-        .animation(.spring(response: 0.2), value: isLoading)
         .task {
             await fetchLikeStatus()
         }

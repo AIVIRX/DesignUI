@@ -34,7 +34,6 @@ struct ContentView: View {
         case profile
         case templates
         case sfIcons
-        case widgetBuilder
         case threads
         case policy
         case contact
@@ -183,10 +182,9 @@ struct ContentView: View {
                     Spacer()
             }
             .padding()
-            .background(Color.clear)
             .navigationSplitViewColumnWidth(230)
 #if os(macOS)
-            .toolbar{
+            .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {
                         showSidebarSettings = true
@@ -207,7 +205,7 @@ struct ContentView: View {
             NavigationStack() {
                 switch selectedIndex {
                 case 0:
-                    ExploreView()
+                    DesignBrowserView()
                 case 1:
                     NewsListView()
                 case 2:

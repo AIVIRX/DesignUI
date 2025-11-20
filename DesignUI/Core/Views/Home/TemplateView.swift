@@ -203,8 +203,15 @@ struct ExploreView: View {
                 guard oldValue != newValue else { return }
                 
                 Task {
-                    let filter = getFilterTypeForDatabase()
-                    await viewModel.fetchPostsByTypeDebounced(postType: filter.postType, isAllPosts: filter.isAllPosts)
+                    // If there's a search text, re-run the search with the new filter
+                    // Otherwise, just fetch posts with the new filter
+                    if !searchText.isEmpty {
+                        let filter = getFilterTypeForDatabase()
+                        await viewModel.searchPosts(query: searchText, filterType: filter.postType, isAllPosts: filter.isAllPosts)
+                    } else {
+                        let filter = getFilterTypeForDatabase()
+                        await viewModel.fetchPostsByTypeDebounced(postType: filter.postType, isAllPosts: filter.isAllPosts)
+                    }
                 }
             }
             .onChange(of: subscriptionManager.isSubscribed) { oldValue, newValue in
@@ -221,9 +228,15 @@ struct ExploreView: View {
                     #endif
                 }
             }
-            .navigationTitle("Designs")
+            .navigationTitle("Templates")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
+            #if os(iOS)
+            .modifier(iPadSearchableModifier(searchText: $searchText))
+            #endif
+            #if os(macOS)
+            .searchable(text: $searchText, prompt: "Search templates")
             #endif
             .toolbar {
 #if os(iOS)
@@ -236,9 +249,6 @@ struct ExploreView: View {
 #endif
             }
         }
-#if os(macOS)
-        .searchable(text: $searchText, prompt: "Search templates")
-#endif
         .navigationViewStyle(DefaultNavigationViewStyle())
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
@@ -312,6 +322,12 @@ extension ExploreView {
                     : Color.primary
             )
             .cornerRadius(20)
+            #if os(macOS)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.primary, lineWidth: 1)
+            )
+            #endif
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -361,6 +377,8 @@ extension ExploreView {
                 ) { item in
                     feedItemCell(for: item)
                 }
+                .id("masonry-\(searchText)") // Reset layout when search changes
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
             } else {
@@ -389,6 +407,7 @@ extension ExploreView {
                 ) { item in
                     feedItemCell(for: item)
                 }
+                .id("masonry-\(searchText)") // Reset layout when search changes
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
             } else {
@@ -417,6 +436,7 @@ extension ExploreView {
             ) { item in
                 feedItemCell(for: item)
             }
+            .id("masonry-\(searchText)-\(feedItems.count)") // Reset layout when search or items change
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
         } else {
@@ -489,39 +509,8 @@ extension ExploreView {
     }
     @ViewBuilder
     private func postCell(for post: DesignPost) -> some View {
-        // DesignCards already contains NavigationLink, so we don't wrap it again
-        // This prevents nested NavigationLinks which cause rendering issues on macOS
-        if (post.isPremium == true) && !subscriptionManager.isSubscribed {
-            // For premium posts, we need to intercept the NavigationLink
-            // Replace the DesignCards NavigationLink with a Button that shows paywall
-            Button { paywallManager.present() } label: {
-                designCardContent(for: post, isPremium: true)
-            }
-        } else {
-            designCard(for: post, isPremium: post.isPremium == true)
-        }
-    }
-    
-    @ViewBuilder
-    private func designCardContent(for post: DesignPost, isPremium: Bool) -> some View {
-        // Determine if it's a component based on post_type
-        let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let isComponent = postType == "component"
-        
-        // Return just the card content without NavigationLink wrapper
-        DesignCards(
-            id: post.id,
-            media: post.preview_image_url,
-            title: post.title,
-            authorName: post.profiles.username,
-            isVerified: post.profiles.verified,
-            description: post.description,
-            codeSnippet: post.code_snippet,
-            published: post.created_at,
-            isLiked: false,
-            isPremium: isPremium,
-            isComponent: isComponent
-        )
+        // DesignCards contains NavigationLink - DetailView will handle premium paywall
+        designCard(for: post, isPremium: post.isPremium == true)
     }
     
     @ViewBuilder
@@ -545,4 +534,18 @@ extension ExploreView {
         )
     }
 }
+
+#if os(iOS)
+struct iPadSearchableModifier: ViewModifier {
+    @Binding var searchText: String
+    
+    func body(content: Content) -> some View {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            content.searchable(text: $searchText, prompt: "Search templates")
+        } else {
+            content
+        }
+    }
+}
+#endif
 

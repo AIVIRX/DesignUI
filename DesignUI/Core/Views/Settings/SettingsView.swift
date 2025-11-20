@@ -82,26 +82,27 @@ struct SettingsView: View {
                     }
                     
                     Spacer()
-
+                    
                     if !purchases.hasPremium {
                         Button("Subscribe") { showPaywall = true }
-                        .buttonStyle(.borderedProminent)
+                            .buttonStyle(.borderedProminent)
                     } else {
                         VStack(alignment: .trailing, spacing: 8) {
                             Text("You have access to all premium features")
                                 .foregroundColor(.secondary)
                                 .font(.subheadline)
+#if os(iOS)
                             Button("Change Plan") {
-                                #if os(iOS)
+                                
                                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                                     Task {
                                         try? await AppStore.showManageSubscriptions(in: windowScene)
                                     }
                                 }
-                                #endif
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
+#endif
                         }
                     }
                 }
@@ -109,13 +110,13 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-
+                
                 // Appearance Card
                 HStack {
                     Text("Appearance")
                         .font(.headline)
                     Spacer()
-
+                    
                     Picker("Color Scheme", selection: $colorSchemeManager.currentScheme) {
                         ForEach(AppColorScheme.allCases, id: \.self) { scheme in
                             Text(scheme.displayName).tag(scheme)
@@ -128,7 +129,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-
+                
                 // More Apps Card
                 VStack(alignment: .leading, spacing: 8) {
                     Text("More Apps")
@@ -156,7 +157,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-
+                
                 // Legal Card (macOS): Removed Send Feedback per platform constraints
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Legal")
@@ -179,7 +180,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-
+                
                 // Version
                 HStack {
                     Spacer()

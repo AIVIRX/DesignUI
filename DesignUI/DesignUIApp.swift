@@ -9,21 +9,34 @@ import SwiftUI
 import Supabase
 import RevenueCat
 #if os(iOS)
-#if canImport(GoogleMobileAds)
+import AppTrackingTransparency
 import GoogleMobileAds
-#endif
 
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
+                    if #available(iOS 14, *) {
+                        ATTrackingManager.requestTrackingAuthorization { status in
+                            switch status {
+                            case .authorized:
+                                MobileAds.shared.start(completionHandler: nil)
+                            case .denied:
+                                MobileAds.shared.start(completionHandler: nil)
+                            default:
+                                MobileAds.shared.start(completionHandler: nil)
+                            }
+                        }
+                    } else {
+                        MobileAds.shared.start(completionHandler: nil)
+                    }
+                })
         
         UserDefaults.standard.set(0, forKey: "selectedIndex")
         
         // Configure RevenueCat
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
-        
-        MobileAds.shared.start()
         
         return true
     }
@@ -67,6 +80,8 @@ struct DesignUIApp: App {
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
+    @StateObject private var designManager = DesignManager.shared
+
     
     init() {
         UserDefaults.standard.set(0, forKey: "selectedIndex")
@@ -87,13 +102,13 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
+                .environmentObject(designManager)
                 .environmentObject(subscriptionManager)
                 .environmentObject(paywallManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
-                .onAppear {
-                    print("🚀 App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
-                }
+            
+            
         }
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)

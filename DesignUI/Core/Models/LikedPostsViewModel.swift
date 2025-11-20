@@ -182,6 +182,40 @@ class LikedPostsViewModel: ObservableObject {
         }
     }
     
+    @MainActor
+    func addLikedPost(postId: String) async {
+        // Check if post is already in the list
+        guard !likedPosts.contains(where: { $0.id == postId }) else { return }
+        
+        guard client.auth.currentUser != nil else { return }
+        
+        do {
+            // Fetch the post details
+            let postResponse = try await client
+                .from("posts")
+                .select("""
+                    *,
+                    profiles!posts_author_id_fkey (
+                        username,
+                        verified
+                    )
+                """)
+                .eq("id", value: postId)
+                .eq("public", value: true)
+                .single()
+                .execute()
+            
+            let post = try JSONDecoder().decode(DesignPost.self, from: postResponse.data)
+            
+            // Add to the beginning of the list (most recent likes first)
+            likedPosts.insert(post, at: 0)
+        } catch {
+            print("Error adding liked post: \(error)")
+            // If fetching fails, just refresh the list
+            await refreshPosts()
+        }
+    }
+    
     deinit {
         currentTask?.cancel()
     }
