@@ -3378,6 +3378,12 @@
     "Choose color scheme" : {
 
     },
+    "Choose File" : {
+
+    },
+    "Clear" : {
+
+    },
     "Clip Shape" : {
 
     },
@@ -9736,9 +9742,6 @@
     "Mask Type" : {
 
     },
-    "Modified %@" : {
-
-    },
     "Modifiers" : {
 
     },
@@ -13820,6 +13823,9 @@
         }
       }
     },
+    "Select Image" : {
+
+    },
     "Select SF Symbol" : {
 
     },
@@ -17345,6 +17351,9 @@
 
     },
     "Tap to open" : {
+
+    },
+    "Tap to Select Image" : {
 
     },
     "Tell us a bit about yourself" : {

@@ -117,6 +117,10 @@ struct UIBuilderView: View {
     @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
     
+    // Screenshot capture debouncing
+    @State private var lastScreenshotTime: Date = Date.distantPast
+    private let screenshotDebounceInterval: TimeInterval = 0.5 // Minimum 0.5 seconds between screenshots
+    
     
     var body: some View {
         NavigationStack {
@@ -214,12 +218,24 @@ struct UIBuilderView: View {
         #endif
         .onAppear {
             setupCanvas()
+            // Restore saved device preset and color scheme
+            restoreCanvasSettings()
+            // Capture initial screenshot if design has components
+            if !canvasManager.components.isEmpty {
+                captureScreenshot()
+            }
         }
         .onChange(of: canvasManager.components) { _, _ in
             syncComponents()
         }
         .onChange(of: selectedComponent) { _, _ in
             syncSelection()
+        }
+        .onChange(of: selectedDevice) { _, _ in
+            saveCanvasSettings()
+        }
+        .onChange(of: colorScheme) { _, _ in
+            saveCanvasSettings()
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
             canvasManager.undo()
@@ -405,8 +421,13 @@ struct UIBuilderView: View {
     
     private func saveDesign() {
         print("💾 Manual save button pressed")
-        designManager.saveCurrentDesign()
-        print("💾 Manual save triggered")
+        // Capture screenshot before saving
+        captureScreenshot()
+        // Wait a bit for screenshot to be captured, then save
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.designManager.saveCurrentDesign()
+            print("💾 Manual save triggered")
+        }
     }
     
     private func setupCanvas() {
@@ -414,10 +435,46 @@ struct UIBuilderView: View {
             canvasManager.setDesignName(designFile.name)
         }
     
+    private func restoreCanvasSettings() {
+        // Restore selected device preset
+        if let savedDevicePreset = designFile.selectedDevicePreset,
+           let devicePreset = DevicePreset.allCases.first(where: { $0.rawValue == savedDevicePreset }) {
+            selectedDevice = devicePreset
+        }
+        
+        // Restore canvas color scheme
+        if let savedColorScheme = designFile.canvasColorScheme {
+            if savedColorScheme.lowercased() == "light" {
+                colorScheme = .light
+            } else if savedColorScheme.lowercased() == "dark" {
+                colorScheme = .dark
+            }
+        }
+    }
+    
+    private func saveCanvasSettings() {
+        // Save selected device preset
+        designFile.selectedDevicePreset = selectedDevice.rawValue
+        
+        // Save canvas color scheme
+        if let scheme = colorScheme {
+            designFile.canvasColorScheme = scheme == .light ? "light" : "dark"
+        } else {
+            designFile.canvasColorScheme = nil
+        }
+        
+        // Trigger save
+        designManager.markAsChanged()
+    }
+    
     private func syncComponents() {
             print("🔄 Components changed - syncing to design file")
             print("🔄 Components count: \(canvasManager.components.count)")
             designFile.components = canvasManager.components
+            
+            // Capture screenshot for thumbnail
+            captureScreenshot()
+            
             designManager.markAsChanged()
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
@@ -425,6 +482,10 @@ struct UIBuilderView: View {
     private func syncSelection() {
             print("🔄 Selection changed - syncing to design file")
             designFile.components = canvasManager.components
+            
+            // Capture screenshot for thumbnail
+            captureScreenshot()
+            
             designManager.markAsChanged()
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
@@ -443,14 +504,50 @@ struct UIBuilderView: View {
             }
             
             designFile.components = canvasManager.components
+            
+            // Capture screenshot for thumbnail
+            captureScreenshot()
+            
             designFile.objectWillChange.send() // Force design file to recognize changes
             designManager.markAsChanged()
     }
+    
+    // MARK: - Screenshot Capture
+    private func captureScreenshot() {
+        // Debounce: Only capture if enough time has passed since last capture
+        let now = Date()
+        guard now.timeIntervalSince(lastScreenshotTime) >= screenshotDebounceInterval else {
+            print("⏭️ Skipping screenshot capture (too soon since last capture)")
+            return
+        }
+        
+        // Update last capture time
+        lastScreenshotTime = now
+        
+        // Capture screenshot asynchronously to avoid blocking UI
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let screenshotView = CanvasScreenshotView(
+                components: self.canvasManager.components,
+                deviceSize: self.selectedDevice.size,
+                colorScheme: self.colorScheme ?? .light,
+                statusBarComponent: self.canvasManager.statusBarComponent,
+                statusBarHasBackground: self.statusBarHasBackground
+            )
+            
+            if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
+                of: screenshotView,
+                size: self.selectedDevice.size,
+                colorScheme: self.colorScheme ?? .light
+            ) {
+                // This will overwrite the previous thumbnail and store device preset
+                self.designFile.setThumbnail(thumbnailData, devicePreset: self.selectedDevice.rawValue)
+                print("✅ Screenshot captured and set on design file (overwrites previous)")
+            } else {
+                print("⚠️ Failed to capture screenshot")
+            }
+        }
+    }
 }
-
-
-
-
 
 struct ComponentView: View {
     @ObservedObject var component: UIComponent

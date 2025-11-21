@@ -6,6 +6,20 @@
 //
 
 import SwiftUI
+#if os(iOS)
+import PhotosUI
+#endif
+#if os(macOS)
+import AppKit
+import UniformTypeIdentifiers
+#endif
+#if os(iOS)
+import PhotosUI
+#endif
+#if os(macOS)
+import AppKit
+import UniformTypeIdentifiers
+#endif
 
 struct PropertiesPanelView: View {
     @Binding var selectedComponent: UIComponent?
@@ -99,6 +113,7 @@ struct PropertyEditor: View {
     @State private var textValue: String = ""
     @State private var numberValue: Double = 0.0
     @State private var showSFSymbolPicker: Bool = false
+    @State private var showImagePicker: Bool = false
     @State private var isHovered: Bool = false
     @Environment(\.colorScheme) var colorScheme
 
@@ -114,7 +129,13 @@ struct PropertyEditor: View {
         VStack(alignment: .leading, spacing: 4) {
             switch property.type {
             case .string:
-                if property.key == "symbolName" {
+                if property.key == "imageData" && component.type == .image {
+                    // Image picker for custom images (only show this one for image components)
+                    ImagePickerEditor(property: property, component: component, useImageData: true)
+                } else if property.key == "imageName" && component.type == .image {
+                    // Hide imageName property - we use imageData instead
+                    EmptyView()
+                } else if property.key == "symbolName" {
                     // Special SF Symbol picker
                     HStack {
                         Text(displayName)
@@ -970,4 +991,299 @@ struct SFSymbolPickerView: View {
     }
 }
 
+// MARK: - Image Picker Editor
+struct ImagePickerEditor: View {
+    var property: ComponentProperty
+    @ObservedObject var component: UIComponent
+    var useImageData: Bool = false // If true, sets imageData property instead of the current property
+    @State private var selectedImage: Data?
+    #if os(iOS)
+    @State private var selectedItem: PhotosPickerItem?
+    #endif
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(property.displayName)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.secondary)
+            
+            // Image preview or placeholder - tappable to open picker
+            let imageDataKey = useImageData ? "imageData" : property.key
+            #if os(iOS)
+            // iOS: Use PhotosPicker directly as the tappable area
+            PhotosPicker(
+                selection: $selectedItem,
+                matching: .images,
+                photoLibrary: .shared()
+            ) {
+                imagePreviewView(imageDataKey: imageDataKey)
+            }
+            #else
+            // macOS: Use tappable view that opens NSOpenPanel
+            imagePreviewView(imageDataKey: imageDataKey)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    openImagePicker()
+                }
+            #endif
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        #if os(iOS)
+        .onChange(of: selectedItem) { oldItem, newItem in
+            print("🖼️ PhotosPicker item changed: \(newItem != nil ? "selected" : "nil")")
+            guard let item = newItem else {
+                selectedImage = nil
+                return
+            }
+            Task {
+                print("🖼️ Loading image data from PhotosPicker...")
+                // Try loading as UIImage first, then convert to Data
+                if let image = try? await item.loadTransferable(type: UIImage.self) {
+                    print("🖼️ Successfully loaded UIImage")
+                    if let imageData = image.jpegData(compressionQuality: 0.8) {
+                        print("🖼️ Converted to JPEG data: \(imageData.count) bytes")
+                        await MainActor.run {
+                            selectedImage = imageData
+                        }
+                    } else {
+                        print("⚠️ Failed to convert UIImage to JPEG data")
+                    }
+                } else if let data = try? await item.loadTransferable(type: Data.self) {
+                    print("🖼️ Successfully loaded image data directly: \(data.count) bytes")
+                    await MainActor.run {
+                        selectedImage = data
+                    }
+                } else {
+                    print("⚠️ Failed to load image data from PhotosPicker")
+                }
+            }
+        }
+        #endif
+        .onChange(of: selectedImage) { _, newImageData in
+            if let imageData = newImageData {
+                print("🖼️ Image selected, size: \(imageData.count) bytes")
+                // Convert to base64 and store
+                let base64String = imageData.base64EncodedString()
+                print("🖼️ Base64 string length: \(base64String.count)")
+                if useImageData {
+                    // Store in imageData property
+                    component.setProperty(key: "imageData", value: base64String)
+                    print("✅ Stored image in imageData property")
+                } else {
+                    // Store in the current property
+                    component.setProperty(key: property.key, value: base64String)
+                    print("✅ Stored image in \(property.key) property")
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func imagePreviewView(imageDataKey: String) -> some View {
+        let imageDataString = component.getProperty(key: imageDataKey) as? String ?? ""
+        
+        ZStack {
+            if !imageDataString.isEmpty,
+               let imageData = Data(base64Encoded: imageDataString),
+               let image = createImage(from: imageData) {
+                // Show preview of selected image
+                #if os(macOS)
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                #else
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                #endif
+            } else {
+                // Placeholder
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(height: 150)
+                    .overlay(
+                        VStack(spacing: 8) {
+                            Image(systemName: "photo.badge.plus")
+                                .font(.system(size: 32))
+                                .foregroundColor(.secondary)
+                            Text("Tap to Select Image")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+            }
+            
+            // Clear button overlay (only show if image exists)
+            if !imageDataString.isEmpty {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            // Clear image
+                            if useImageData {
+                                component.setProperty(key: "imageData", value: "")
+                            } else {
+                                component.setProperty(key: property.key, value: "")
+                            }
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white)
+                                .background(Circle().fill(Color.black.opacity(0.6)))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(8)
+                    }
+                    Spacer()
+                }
+            }
+        }
+    }
+    
+    private func openImagePicker() {
+        #if os(macOS)
+        // Open NSOpenPanel directly for macOS (Finder)
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image, .png, .jpeg, .tiff, .gif]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        
+        if panel.runModal() == .OK {
+            if let url = panel.url,
+               let imageData = try? Data(contentsOf: url) {
+                selectedImage = imageData
+            }
+        }
+        #else
+        // For iOS, PhotosPicker will be triggered by the binding
+        // The picker is already attached to the view, so we just need to programmatically trigger it
+        // Since PhotosPicker doesn't support programmatic triggering easily,
+        // we'll use a workaround with a button that's always present but hidden
+        #endif
+    }
+    
+    #if os(macOS)
+    private func createImage(from data: Data) -> NSImage? {
+        return NSImage(data: data)
+    }
+    #else
+    private func createImage(from data: Data) -> UIImage? {
+        return UIImage(data: data)
+    }
+    #endif
+}
+
+#if os(macOS)
+import AppKit
+import UniformTypeIdentifiers
+
+struct ImagePickerMacOS: View {
+    @Binding var selectedImage: Data?
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Select Image")
+                .font(.headline)
+            
+            Button("Choose File") {
+                let panel = NSOpenPanel()
+                panel.allowedContentTypes = [.image, .png, .jpeg, .tiff, .gif]
+                panel.allowsMultipleSelection = false
+                panel.canChooseDirectories = false
+                panel.canChooseFiles = true
+                panel.message = "Choose an image file"
+                panel.prompt = "Choose"
+                
+                if panel.runModal() == .OK {
+                    if let url = panel.url,
+                       let imageData = try? Data(contentsOf: url) {
+                        selectedImage = imageData
+                        dismiss()
+                    }
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            
+            Button("Cancel") {
+                dismiss()
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
+        .frame(width: 300, height: 200)
+    }
+}
+#else
+import PhotosUI
+import UniformTypeIdentifiers
+
+struct ImagePicker: View {
+    @Binding var selectedImage: Data?
+    @State private var selectedItem: PhotosPickerItem?
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("Select Image")
+                    .font(.headline)
+                    .padding(.top)
+                
+                // Use PhotosPicker which shows native iOS picker with Photos, Files, etc.
+                PhotosPicker(
+                    selection: $selectedItem,
+                    matching: .images,
+                    photoLibrary: .shared()
+                ) {
+                    Label("Choose from Photos", systemImage: "photo.on.rectangle")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .onChange(of: selectedItem) { _, newItem in
+                    Task {
+                        if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                            selectedImage = data
+                            dismiss()
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Select Image")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+#endif
 

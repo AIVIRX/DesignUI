@@ -84,7 +84,7 @@ struct DesignBrowserView: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [
-                            GridItem(.adaptive(minimum: 200, maximum: 300), spacing: 20)
+                            GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)
                         ], spacing: 20) {
                             ForEach(designManager.designFiles) { designFile in
                                 DesignCardView(
@@ -160,24 +160,16 @@ struct DesignCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Canvas Preview
+            // Canvas Preview - taller area for phone display
             CanvasPreviewView(designFile: designFile)
-                .frame(height: 120)
+                .frame(height: 200)
                 .background(Color.secondary.opacity(0.1))
-                .cornerRadius(8)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(designFile.name)
                     .font(.headline)
                     .lineLimit(1)
-                
-                Text("Modified \(designFile.lastModified, style: .relative)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Text("\(designFile.components.count) components")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
             
             Spacer()
@@ -253,11 +245,9 @@ struct NewDesignSheet: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                
-                Spacer()
             }
             .padding()
-            .frame(width: 400, height: 200)
+            .frame(width: 400)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -285,7 +275,37 @@ struct CanvasPreviewView: View {
             // Background
             Color.gray.opacity(0.1)
             
-            if designFile.components.isEmpty {
+            if let thumbnailData = designFile.thumbnail,
+               let image = createImage(from: thumbnailData) {
+                // Get device type and aspect ratio from stored device preset
+                let deviceType = getDeviceType(from: designFile.devicePreset, aspectRatio: 0, size: .zero)
+                let aspectRatio = getAspectRatio(for: designFile.devicePreset)
+                
+                // Use aspectRatio modifier to fit within the area without stretching
+                #if os(macOS)
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous)
+                            .stroke(Color.black.opacity(0.15), lineWidth: 1.5)
+                    )
+                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    .allowsHitTesting(false)
+                #else
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous)
+                            .stroke(Color.black.opacity(0.15), lineWidth: 1.5)
+                    )
+                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    .allowsHitTesting(false)
+                #endif
+            } else if designFile.components.isEmpty {
                 // Empty state
                 VStack {
                     Image(systemName: "doc.text")
@@ -296,7 +316,7 @@ struct CanvasPreviewView: View {
                         .foregroundColor(.secondary)
                 }
             } else {
-                // Simple preview - just show component count and basic info
+                // Fallback: show component count if no thumbnail yet
                 VStack(spacing: 4) {
                     Image(systemName: "rectangle.stack")
                         .font(.system(size: 24))
@@ -317,6 +337,80 @@ struct CanvasPreviewView: View {
                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
         )
     }
+    
+    // MARK: - Device Type Detection
+    private enum DeviceType {
+        case iPhone
+        case iPad
+        case mac
+        
+        var cornerRadius: CGFloat {
+            switch self {
+            case .iPhone: return 8 // Smaller rounded corners for preview
+            case .iPad: return 6 // Slightly rounded for iPad preview
+            case .mac: return 4 // Minimal rounding for Mac preview
+            }
+        }
+    }
+    
+    private func getDeviceType(from devicePreset: String?, aspectRatio: CGFloat, size: CGSize) -> DeviceType {
+        // Use stored device preset
+        if let preset = devicePreset {
+            if preset.lowercased().contains("iphone") {
+                return .iPhone
+            } else if preset.lowercased().contains("ipad") {
+                return .iPad
+            } else if preset.lowercased().contains("mac") {
+                return .mac
+            }
+        }
+        
+        // Fallback: default to iPhone if no preset
+        return .iPhone
+    }
+    
+    private func getAspectRatio(for devicePreset: String?) -> CGFloat {
+        // Get aspect ratio based on device preset
+        guard let preset = devicePreset else {
+            // Default to iPhone aspect ratio
+            return 9.0 / 19.5
+        }
+        
+        let presetLower = preset.lowercased()
+        
+        if presetLower.contains("iphone") {
+            // iPhone: 19.5:9 ratio in portrait = 9/19.5
+            return 9.0 / 19.5
+        } else if presetLower.contains("ipad") {
+            // iPad: typically 4:3 in portrait = 3/4, but we use width/height so 4/3 for landscape
+            // For portrait iPad, it's 834:1194 ≈ 0.699, but let's use 3/4 = 0.75
+            return 3.0 / 4.0
+        } else if presetLower.contains("mac") {
+            // Mac: 16:10 = 1.6
+            return 16.0 / 10.0
+        }
+        
+        // Default to iPhone
+        return 9.0 / 19.5
+    }
+    
+    #if os(macOS)
+    private func createImage(from data: Data) -> NSImage? {
+        return NSImage(data: data)
+    }
+    
+    private func getImageSize(_ image: NSImage) -> CGSize {
+        return image.size
+    }
+    #else
+    private func createImage(from data: Data) -> UIImage? {
+        return UIImage(data: data)
+    }
+    
+    private func getImageSize(_ image: UIImage) -> CGSize {
+        return image.size
+    }
+    #endif
 }
 
 // MARK: - Component Preview Renderer

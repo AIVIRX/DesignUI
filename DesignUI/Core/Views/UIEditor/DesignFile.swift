@@ -15,6 +15,9 @@ class DesignFile: ObservableObject, Identifiable {
     @Published var components: [UIComponent]
     @Published var lastModified: Date
     @Published var thumbnail: Data?
+    @Published var devicePreset: String? // Store device preset name for thumbnail styling
+    @Published var selectedDevicePreset: String? // Store selected device preset for canvas
+    @Published var canvasColorScheme: String? // Store canvas color scheme (light/dark)
     let fileURL: URL
     
     init(name: String, components: [UIComponent] = [], fileURL: URL) {
@@ -22,6 +25,16 @@ class DesignFile: ObservableObject, Identifiable {
         self.components = components
         self.lastModified = Date()
         self.fileURL = fileURL
+    }
+    
+    // MARK: - Thumbnail Management
+    func setThumbnail(_ thumbnailData: Data?, devicePreset: String? = nil) {
+        // Explicitly clear old thumbnail data to free memory before setting new one
+        self.thumbnail = nil
+        // Set new thumbnail (this overwrites any previous thumbnail)
+        self.thumbnail = thumbnailData
+        // Store device preset for proper styling
+        self.devicePreset = devicePreset
     }
     
     // MARK: - Auto-save functionality
@@ -46,12 +59,20 @@ class DesignFile: ObservableObject, Identifiable {
             let data = try encoder.encode(DesignFileData(
                 name: name,
                 components: components,
-                lastModified: lastModified
+                lastModified: lastModified,
+                thumbnail: thumbnail,
+                devicePreset: devicePreset,
+                selectedDevicePreset: selectedDevicePreset,
+                canvasColorScheme: canvasColorScheme
             ))
             
             print("💾 Encoded data size: \(data.count) bytes")
+            if let thumbnailSize = thumbnail?.count {
+                print("💾 Thumbnail size: \(thumbnailSize) bytes")
+            }
             
-            try data.write(to: fileURL)
+            // Write file atomically to ensure complete replacement (overwrites old file)
+            try data.write(to: fileURL, options: .atomic)
             self.lastModified = Date()
             print("✅ Design saved successfully: \(name)")
             print("📁 File saved to: \(fileURL.path)")
@@ -98,6 +119,10 @@ class DesignFile: ObservableObject, Identifiable {
             
             let designFile = DesignFile(name: designData.name, components: designData.components, fileURL: url)
             designFile.lastModified = designData.lastModified
+            designFile.thumbnail = designData.thumbnail
+            designFile.devicePreset = designData.devicePreset
+            designFile.selectedDevicePreset = designData.selectedDevicePreset
+            designFile.canvasColorScheme = designData.canvasColorScheme
             return designFile
         } catch {
             print("❌ Failed to load design file: \(error)")
@@ -118,6 +143,20 @@ struct DesignFileData: Codable {
     let name: String
     let components: [UIComponent]
     let lastModified: Date
+    let thumbnail: Data?
+    let devicePreset: String?
+    let selectedDevicePreset: String?
+    let canvasColorScheme: String?
+    
+    init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil) {
+        self.name = name
+        self.components = components
+        self.lastModified = lastModified
+        self.thumbnail = thumbnail
+        self.devicePreset = devicePreset
+        self.selectedDevicePreset = selectedDevicePreset
+        self.canvasColorScheme = canvasColorScheme
+    }
 }
 
 // MARK: - Design Manager

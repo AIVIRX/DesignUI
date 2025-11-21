@@ -86,41 +86,44 @@ struct CanvasView: View {
                         .overlay(Color.black.opacity(0.01))
                         .animation(.easeInOut(duration: 0.3), value: colorScheme)
                     
-                    // Components inside screen
-                    VStack(spacing: 0) {
-                        ForEach(canvasManager.components, id: \.id) { component in
-                            let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
-                            ComponentView(
-                                component: component,
-                                isSelected: selectedComponent?.id == component.id,
-                                onSelect: { selectedComponent = component },
-                                selectedDevice: selectedDevice,
-                                selectedComponent: selectedComponent,
-                                onSelectChild: { childComponent in
-                                    // Find the component in the hierarchy and select it
-                                    if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: canvasManager.components) {
-                                        selectedComponent = foundComponent
+                    // Components inside screen - constrained to device bounds
+                    GeometryReader { screenGeometry in
+                        VStack(spacing: 0) {
+                            ForEach(canvasManager.components, id: \.id) { component in
+                                let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                                ComponentView(
+                                    component: component,
+                                    isSelected: selectedComponent?.id == component.id,
+                                    onSelect: { selectedComponent = component },
+                                    selectedDevice: selectedDevice,
+                                    selectedComponent: selectedComponent,
+                                    onSelectChild: { childComponent in
+                                        // Find the component in the hierarchy and select it
+                                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: canvasManager.components) {
+                                            selectedComponent = foundComponent
+                                        }
                                     }
-                                }
-                            )
-                            .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
-                            .onAppear {
-                                print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
-                                // Force a refresh after a short delay
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    print("🎨 ComponentView force refresh for \(component.type.rawValue)")
+                                )
+                                .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
+                                .onAppear {
+                                    print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                                    // Force a refresh after a short delay
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        print("🎨 ComponentView force refresh for \(component.type.rawValue)")
+                                    }
                                 }
                             }
                         }
+                        .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
+                        .padding(.top, selectedDevice != .mac && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
+                        .clipped() // Prevent content from expanding beyond the screen bounds
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            // Deselect when clicking empty space
+                            selectedComponent = nil
+                        }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.top, selectedDevice != .mac && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
-                    .clipped() // Prevent content from expanding beyond the screen bounds
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        // Deselect when clicking empty space
-                        selectedComponent = nil
-                    }
+                    .frame(width: deviceSize.width, height: deviceSize.height)
                     if selectedDevice != .mac {
                         VStack {
                             StatusBarView(

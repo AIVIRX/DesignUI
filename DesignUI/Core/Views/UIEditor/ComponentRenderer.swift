@@ -65,7 +65,7 @@ struct ComponentRenderer: View {
             }
         }
         .opacity(component.isVisible ? 1.0 : 0.0)
-        .applyModifiers(component.modifiers)
+        .applyModifiers(component.modifiers, deviceSize: deviceSize)
         .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
         .contentShape(Rectangle())
         .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))-\(forceRefresh)")
@@ -156,15 +156,68 @@ struct ComponentRenderer: View {
     
     // MARK: - Image Renderer
     private func renderImage() -> some View {
-        let imageName = component.getProperty(key: "imageName") as? String ?? "photo"
         let resizable = component.getProperty(key: "resizable") as? Bool ?? true
         let aspectRatio = component.getProperty(key: "aspectRatio") as? String ?? "fit"
         
-        let view: some View = Image(imageName)
+        // Check if custom image data exists
+        if let imageDataString = component.getProperty(key: "imageData") as? String,
+           !imageDataString.isEmpty {
+            print("🖼️ Found imageData string, length: \(imageDataString.count)")
+            // Try to decode base64 image data
+            if let imageData = Data(base64Encoded: imageDataString) {
+                print("🖼️ Decoded image data, size: \(imageData.count) bytes")
+                if let image = createImage(from: imageData) {
+                    print("✅ Successfully created image from data")
+                // Use custom image - constrain size to device bounds to prevent canvas expansion
+                let maxWidth = deviceSize?.width ?? 1000
+                let maxHeight = deviceSize?.height ?? 1000
+                #if os(macOS)
+                let view: some View = Image(nsImage: image)
+                    .resizableIfNeeded(resizable)
+                    .applyAspectRatio(mode: aspectRatio)
+                    .frame(maxWidth: maxWidth, maxHeight: maxHeight)
+                #else
+                let view: some View = Image(uiImage: image)
+                    .resizableIfNeeded(resizable)
+                    .applyAspectRatio(mode: aspectRatio)
+                    .frame(maxWidth: maxWidth, maxHeight: maxHeight)
+                #endif
+                return AnyView(view)
+                } else {
+                    print("⚠️ Failed to create image from data")
+                }
+            } else {
+                print("⚠️ Failed to decode base64 string to Data")
+            }
+        } else {
+            print("ℹ️ No imageData found, using system image")
+        }
+        
+        // Fallback to system image
+        let imageName = component.getProperty(key: "imageName") as? String ?? "photo"
+        let view: some View = Image(systemName: imageName)
             .resizableIfNeeded(resizable)
             .applyAspectRatio(mode: aspectRatio)
         return AnyView(view)
     }
+    
+    #if os(macOS)
+    private func createImage(from data: Data) -> NSImage? {
+        guard let image = NSImage(data: data) else {
+            print("⚠️ Failed to create NSImage from data")
+            return nil
+        }
+        return image
+    }
+    #else
+    private func createImage(from data: Data) -> UIImage? {
+        guard let image = UIImage(data: data) else {
+            print("⚠️ Failed to create UIImage from data")
+            return nil
+        }
+        return image
+    }
+    #endif
     
     // MARK: - Button Renderer
     private func renderButton() -> some View {
@@ -471,19 +524,19 @@ private extension View {
         return view
     }
     
-    func applyModifiers(_ modifiers: [ComponentModifier]) -> some View {
+    func applyModifiers(_ modifiers: [ComponentModifier], deviceSize: CGSize?) -> some View {
         var view = AnyView(self)
         
         print("🎨 Applying \(modifiers.count) modifiers to component")
         for (index, modifier) in modifiers.enumerated() {
             print("🎨   - Modifier \(index): \(modifier.type.rawValue) with properties: \(modifier.properties)")
-            view = AnyView(applyModifier(modifier, to: view))
+            view = AnyView(applyModifier(modifier, to: view, deviceSize: deviceSize))
         }
         
         return view
     }
     
-    private func applyModifier(_ modifier: ComponentModifier, to view: AnyView) -> AnyView {
+    private func applyModifier(_ modifier: ComponentModifier, to view: AnyView, deviceSize: CGSize?) -> AnyView {
         switch modifier.type {
         case .frame:
             let widthType = modifier.properties["widthType"] as? String ?? "Default"
@@ -499,19 +552,29 @@ private extension View {
             // Build frame modifier dynamically
             var modifiedView = view
             
-            // Handle width
+            // Handle width - constrain to device bounds to prevent canvas expansion
             if widthType == "Full" {
-                modifiedView = AnyView(modifiedView.frame(maxWidth: .infinity))
+                // Full width should still be constrained to device width
+                let maxWidth = deviceSize?.width ?? 1000
+                modifiedView = AnyView(modifiedView.frame(maxWidth: maxWidth))
             } else if widthType == "Custom" {
-                modifiedView = AnyView(modifiedView.frame(width: width))
+                // Constrain custom width to device width to prevent canvas expansion
+                let maxWidth = deviceSize?.width ?? 1000
+                let constrainedWidth = min(width, maxWidth)
+                modifiedView = AnyView(modifiedView.frame(width: constrainedWidth))
             }
             // If widthType == "Default", don't apply width modifier
             
-            // Handle height
+            // Handle height - constrain to device bounds to prevent canvas expansion
             if heightType == "Full" {
-                modifiedView = AnyView(modifiedView.frame(maxHeight: .infinity))
+                // Full height should still be constrained to device height
+                let maxHeight = deviceSize?.height ?? 1000
+                modifiedView = AnyView(modifiedView.frame(maxHeight: maxHeight))
             } else if heightType == "Custom" {
-                modifiedView = AnyView(modifiedView.frame(height: height))
+                // Constrain custom height to device height to prevent canvas expansion
+                let maxHeight = deviceSize?.height ?? 1000
+                let constrainedHeight = min(height, maxHeight)
+                modifiedView = AnyView(modifiedView.frame(height: constrainedHeight))
             }
             // If heightType == "Default", don't apply height modifier
             

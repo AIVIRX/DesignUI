@@ -88,6 +88,8 @@
 		ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA62EB06B5D00420663 /* RevenueCatUI */; };
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB1DA642C7C160C002D7E31 /* FormatCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA632C7C160C002D7E31 /* FormatCount.swift */; };
+		ECB6E3D82ECFF5E700E2008A /* ScreenshotUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB6E3D72ECFF5E700E2008A /* ScreenshotUtility.swift */; };
+		ECB6E3D92ECFF5E700E2008A /* CanvasScreenshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB6E3D62ECFF5E700E2008A /* CanvasScreenshotView.swift */; };
 		ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = ECC527532E270E5E00DAA548 /* StatefulTabView */; };
 		ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */; };
 		ECC527602E27155000DAA548 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275F2E27155000DAA548 /* Supabase */; };
@@ -191,6 +193,8 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB1DA632C7C160C002D7E31 /* FormatCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatCount.swift; sourceTree = "<group>"; };
+		ECB6E3D62ECFF5E700E2008A /* CanvasScreenshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasScreenshotView.swift; sourceTree = "<group>"; };
+		ECB6E3D72ECFF5E700E2008A /* ScreenshotUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotUtility.swift; sourceTree = "<group>"; };
 		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
@@ -241,6 +245,8 @@
 		EC7ECEA62ECD499D00AC657C /* UIEditor */ = {
 			isa = PBXGroup;
 			children = (
+				ECB6E3D62ECFF5E700E2008A /* CanvasScreenshotView.swift */,
+				ECB6E3D72ECFF5E700E2008A /* ScreenshotUtility.swift */,
 				EC7ECEAE2ECD667800AC657C /* CanvasControlsOverlay.swift */,
 				EC7ECEAF2ECD667800AC657C /* CanvasManager.swift */,
 				EC7ECEB02ECD667800AC657C /* CanvasView.swift */,
@@ -634,6 +640,8 @@
 				EC70F84B2EB6C24C001D39DC /* FeedItem.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				EC7ECECD2ECD667800AC657C /* CodePreviewView.swift in Sources */,
+				ECB6E3D82ECFF5E700E2008A /* ScreenshotUtility.swift in Sources */,
+				ECB6E3D92ECFF5E700E2008A /* CanvasScreenshotView.swift in Sources */,
 				EC7ECECE2ECD667800AC657C /* FrameModifierEditor.swift in Sources */,
 				EC7ECECF2ECD667800AC657C /* CanvasView.swift in Sources */,
 				EC7ECED02ECD667800AC657C /* ComponentRenderer.swift in Sources */,

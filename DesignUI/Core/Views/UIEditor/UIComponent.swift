@@ -404,7 +404,22 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             // Post notification to trigger design file saving
             NotificationCenter.default.post(name: .designChanged, object: nil)
         } else {
-            print("⚠️ Property not found: \(key)")
+            // Property doesn't exist, add it
+            print("⚠️ Property not found: \(key), adding it")
+            let newProperty = ComponentProperty(
+                key: key,
+                displayName: ComponentProperty.properDisplayName(for: key),
+                type: .string, // Default to string type
+                value: value,
+                defaultValue: value
+            )
+            properties.append(newProperty)
+            objectWillChange.send()
+            
+            print("✅ Property added: \(key) with value: \(value)")
+            
+            // Post notification to trigger design file saving
+            NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     }
     
@@ -555,7 +570,8 @@ extension UIComponent {
             ]
         case .image:
             return [
-                ComponentProperty(key: "imageName", displayName: "Image Name", type: .string, value: "photo", defaultValue: "photo"),
+                ComponentProperty(key: "imageData", displayName: "Image", type: .string, value: "", defaultValue: ""),
+                ComponentProperty(key: "imageName", displayName: "System Image Name", type: .string, value: "photo", defaultValue: "photo"),
                 ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true),
                 ComponentProperty(key: "aspectRatio", displayName: "Aspect Ratio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
             ]
