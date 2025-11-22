@@ -158,7 +158,9 @@ struct BlogGridCard: View {
             Text(post.title)
                 .font(.title3).bold()
                 .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : Color.black)
+                #if os(iOS)
                 .lineLimit(2)
+                #endif
                 .multilineTextAlignment(.leading)
                 .frame(height: 48, alignment: .top)
                 .padding(.bottom, 8)

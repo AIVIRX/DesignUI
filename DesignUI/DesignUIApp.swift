@@ -107,11 +107,16 @@ struct DesignUIApp: App {
                 .environmentObject(paywallManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
-            
-            
         }
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)
+        .commands {
+            // Add keyboard shortcuts via Commands API
+            CommandGroup(replacing: .undoRedo) {
+                // This replaces the default undo/redo with our custom handlers
+                // But we'll handle it in the view instead
+            }
+        }
     }
 }
 #endif

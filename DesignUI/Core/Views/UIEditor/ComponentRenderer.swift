@@ -10,6 +10,7 @@ import SwiftUI
 struct ComponentRenderer: View {
     @ObservedObject var component: UIComponent
     let deviceSize: CGSize?
+    let colorScheme: ColorScheme?
     let onTap: (() -> Void)?
     let onSelectChild: ((UIComponent) -> Void)?
     let selectedComponent: UIComponent?
@@ -17,9 +18,10 @@ struct ComponentRenderer: View {
     @State private var forceRefresh: Int = 0
     @State private var hasAppliedModifiers: Bool = false
     
-    init(component: UIComponent, deviceSize: CGSize? = nil, onTap: (() -> Void)? = nil, onSelectChild: ((UIComponent) -> Void)? = nil, selectedComponent: UIComponent? = nil) {
+    init(component: UIComponent, deviceSize: CGSize? = nil, colorScheme: ColorScheme? = nil, onTap: (() -> Void)? = nil, onSelectChild: ((UIComponent) -> Void)? = nil, selectedComponent: UIComponent? = nil) {
         self.component = component
         self.deviceSize = deviceSize
+        self.colorScheme = colorScheme
         self.onTap = onTap
         self.onSelectChild = onSelectChild
         self.selectedComponent = selectedComponent
@@ -66,7 +68,8 @@ struct ComponentRenderer: View {
         }
         .opacity(component.isVisible ? 1.0 : 0.0)
         .applyModifiers(component.modifiers, deviceSize: deviceSize)
-        .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
+        .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
+        .colorScheme(colorScheme ?? .light)
         .contentShape(Rectangle())
         .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))-\(forceRefresh)")
         .onChange(of: component.modifiers) { _, _ in
@@ -163,26 +166,29 @@ struct ComponentRenderer: View {
         if let imageDataString = component.getProperty(key: "imageData") as? String,
            !imageDataString.isEmpty {
             print("🖼️ Found imageData string, length: \(imageDataString.count)")
-            // Try to decode base64 image data
-            if let imageData = Data(base64Encoded: imageDataString) {
+            // Try to decode base64 image data with options to handle invalid data gracefully
+            if let imageData = Data(base64Encoded: imageDataString, options: .ignoreUnknownCharacters),
+               !imageData.isEmpty {
                 print("🖼️ Decoded image data, size: \(imageData.count) bytes")
+                
+                // Create image from validated data
                 if let image = createImage(from: imageData) {
                     print("✅ Successfully created image from data")
-                // Use custom image - constrain size to device bounds to prevent canvas expansion
-                let maxWidth = deviceSize?.width ?? 1000
-                let maxHeight = deviceSize?.height ?? 1000
-                #if os(macOS)
-                let view: some View = Image(nsImage: image)
-                    .resizableIfNeeded(resizable)
-                    .applyAspectRatio(mode: aspectRatio)
-                    .frame(maxWidth: maxWidth, maxHeight: maxHeight)
-                #else
-                let view: some View = Image(uiImage: image)
-                    .resizableIfNeeded(resizable)
-                    .applyAspectRatio(mode: aspectRatio)
-                    .frame(maxWidth: maxWidth, maxHeight: maxHeight)
-                #endif
-                return AnyView(view)
+                    // Use custom image - constrain size to device bounds to prevent canvas expansion
+                    let maxWidth = deviceSize?.width ?? 1000
+                    let maxHeight = deviceSize?.height ?? 1000
+                    #if os(macOS)
+                    let view: some View = Image(nsImage: image)
+                        .resizableIfNeeded(resizable)
+                        .applyAspectRatio(mode: aspectRatio)
+                        .frame(maxWidth: maxWidth, maxHeight: maxHeight)
+                    #else
+                    let view: some View = Image(uiImage: image)
+                        .resizableIfNeeded(resizable)
+                        .applyAspectRatio(mode: aspectRatio)
+                        .frame(maxWidth: maxWidth, maxHeight: maxHeight)
+                    #endif
+                    return AnyView(view)
                 } else {
                     print("⚠️ Failed to create image from data")
                 }
@@ -203,18 +209,46 @@ struct ComponentRenderer: View {
     
     #if os(macOS)
     private func createImage(from data: Data) -> NSImage? {
+        // Validate data is not empty
+        guard !data.isEmpty else {
+            print("⚠️ Image data is empty")
+            return nil
+        }
+        
+        // Create image from data
         guard let image = NSImage(data: data) else {
             print("⚠️ Failed to create NSImage from data")
             return nil
         }
+        
+        // Validate the image is valid and can be used
+        guard image.isValid else {
+            print("⚠️ NSImage is invalid")
+            return nil
+        }
+        
         return image
     }
     #else
     private func createImage(from data: Data) -> UIImage? {
+        // Validate data is not empty
+        guard !data.isEmpty else {
+            print("⚠️ Image data is empty")
+            return nil
+        }
+        
+        // Create image from data
         guard let image = UIImage(data: data) else {
             print("⚠️ Failed to create UIImage from data")
             return nil
         }
+        
+        // Validate the image has valid size
+        guard image.size.width > 0 && image.size.height > 0 else {
+            print("⚠️ UIImage has invalid size")
+            return nil
+        }
+        
         return image
     }
     #endif
@@ -256,7 +290,7 @@ struct ComponentRenderer: View {
                 EmptyView()
             } else {
                 ForEach(component.children, id: \.id) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                    ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: {
                         onSelectChild?(child)
                     }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                 }
@@ -274,7 +308,7 @@ struct ComponentRenderer: View {
                 EmptyView()
             } else {
                 ForEach(component.children, id: \.id) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                    ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: {
                         onSelectChild?(child)
                     }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                 }
@@ -294,7 +328,7 @@ struct ComponentRenderer: View {
                 EmptyView()
             } else {
                 ForEach(component.children, id: \.id) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                    ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: {
                         onSelectChild?(child)
                     }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                 }
@@ -404,7 +438,7 @@ struct ComponentRenderer: View {
                             EmptyView()
                         } else {
                             ForEach(children, id: \.id) { child in
-                                ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                                ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: {
                                     onSelectChild?(child)
                                 }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                             }
@@ -416,7 +450,7 @@ struct ComponentRenderer: View {
                             EmptyView()
                         } else {
                             ForEach(children, id: \.id) { child in
-                                ComponentRenderer(component: child, deviceSize: deviceSize, onTap: {
+                                ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: {
                                     onSelectChild?(child)
                                 }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
                             }
@@ -501,7 +535,7 @@ private extension View {
         }
     }
     
-    func applyOverlayChildren(_ overlayChildren: [UIComponent], deviceSize: CGSize?, onSelectChild: ((UIComponent) -> Void)?, selectedComponent: UIComponent?) -> some View {
+    func applyOverlayChildren(_ overlayChildren: [UIComponent], deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent) -> Void)?, selectedComponent: UIComponent?) -> some View {
         var view = AnyView(self)
         
         // Apply overlay children in order, each one overlaying the previous
@@ -509,6 +543,7 @@ private extension View {
             let overlayView = ComponentRenderer(
                 component: overlayChild,
                 deviceSize: deviceSize,
+                colorScheme: colorScheme,
                 onTap: {
                     onSelectChild?(overlayChild)
                 },

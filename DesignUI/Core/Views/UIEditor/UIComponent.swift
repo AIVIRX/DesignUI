@@ -7,6 +7,11 @@
 
 import SwiftUI
 import Foundation
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 // MARK: - ComponentAnyCodable Helper
 struct ComponentAnyCodable: Codable {
@@ -223,9 +228,12 @@ extension ComponentProperty: Codable {
         case .boolean:
             try container.encode(value as? Bool ?? false, forKey: key)
         case .color:
-            // Convert Color to string representation
+            // Convert Color to string representation, or use string value if already a string
             if let color = value as? Color {
                 let colorString = colorToColorString(color)
+                try container.encode(colorString, forKey: key)
+            } else if let colorString = value as? String {
+                // Already a string (from setProperty conversion), encode it directly
                 try container.encode(colorString, forKey: key)
             } else {
                 try container.encode("primary", forKey: key)
@@ -268,8 +276,8 @@ extension ComponentProperty: Codable {
         }
     }
     
-    // Helper to convert Color to string representation
-    private static func colorToColorString(_ color: Color) -> String {
+    // Helper to convert Color to string representation (make it accessible)
+    static func colorToColorString(_ color: Color) -> String {
         // Compare with known SwiftUI colors
         if color == .primary { return "primary" }
         if color == .secondary { return "secondary" }
@@ -290,17 +298,38 @@ extension ComponentProperty: Codable {
         if color == .pink { return "pink" }
         if color == .brown { return "brown" }
         if color == .gray { return "gray" }
-        if color == Color(red: 0.99, green: 0.99, blue: 0.99) { return "gray2" }
-        if color == Color(red: 0.95, green: 0.95, blue: 0.97) { return "gray3" }
-        if color == Color(red: 0.90, green: 0.90, blue: 0.92) { return "gray4" }
-        if color == Color(red: 0.85, green: 0.85, blue: 0.87) { return "gray5" }
-        if color == Color(red: 0.78, green: 0.78, blue: 0.80) { return "gray6" }
         if color == .clear { return "clear" }
-        return "primary" // Fallback
+        
+        // For custom colors, extract RGB values
+        #if os(macOS)
+        let nsColor = NSColor(color)
+        let rgbColor = nsColor.usingColorSpace(.sRGB) ?? nsColor
+        let r = Double(rgbColor.redComponent)
+        let g = Double(rgbColor.greenComponent)
+        let b = Double(rgbColor.blueComponent)
+        let a = Double(rgbColor.alphaComponent)
+        if a < 1.0 {
+            return String(format: "rgba(%.3f,%.3f,%.3f,%.3f)", r, g, b, a)
+        } else {
+            return String(format: "rgb(%.3f,%.3f,%.3f)", r, g, b)
+        }
+        #else
+        let uiColor = UIColor(color)
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        if a < 1.0 {
+            return String(format: "rgba(%.3f,%.3f,%.3f,%.3f)", Double(r), Double(g), Double(b), Double(a))
+        } else {
+            return String(format: "rgb(%.3f,%.3f,%.3f)", Double(r), Double(g), Double(b))
+        }
+        #endif
     }
     
-    // Helper to convert color string back to Color
-    private static func colorStringToColor(_ colorString: String) -> Color {
+    // Helper to convert color string back to Color (make it accessible)
+    static func colorStringToColor(_ colorString: String) -> Color {
         // Handle common SwiftUI colors
         switch colorString {
         case "primary": return .primary
@@ -322,13 +351,24 @@ extension ComponentProperty: Codable {
         case "pink": return .pink
         case "brown": return .brown
         case "gray": return .gray
-        case "gray2": return Color(red: 0.99, green: 0.99, blue: 0.99)
-        case "gray3": return Color(red: 0.95, green: 0.95, blue: 0.97)
-        case "gray4": return Color(red: 0.90, green: 0.90, blue: 0.92)
-        case "gray5": return Color(red: 0.85, green: 0.85, blue: 0.87)
-        case "gray6": return Color(red: 0.78, green: 0.78, blue: 0.80)
         case "clear": return .clear
-        default: return .primary // Fallback
+        default:
+            // Try to parse RGB/RGBA format
+            if colorString.hasPrefix("rgb(") || colorString.hasPrefix("rgba(") {
+                let cleaned = colorString
+                    .replacingOccurrences(of: "rgb(", with: "")
+                    .replacingOccurrences(of: "rgba(", with: "")
+                    .replacingOccurrences(of: ")", with: "")
+                let components = cleaned.split(separator: ",").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+                if components.count >= 3 {
+                    let r = components[0]
+                    let g = components[1]
+                    let b = components[2]
+                    let a = components.count >= 4 ? components[3] : 1.0
+                    return Color(red: r, green: g, blue: b, opacity: a)
+                }
+            }
+            return .primary // Fallback
         }
     }
     
@@ -396,27 +436,54 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     func setProperty(key: String, value: Any) {
         if let index = properties.firstIndex(where: { $0.key == key }) {
             let oldValue = properties[index].value
-            properties[index].value = value
+            let property = properties[index]
+            
+            // For color properties, convert Color objects to strings to preserve semantic colors
+            var finalValue = value
+            if property.type == .color, let color = value as? Color {
+                let colorString = ComponentProperty.colorToColorString(color)
+                finalValue = colorString
+                print("🎨 Converting color to string: \(colorString)")
+            }
+            
+            properties[index].value = finalValue
             objectWillChange.send()
             
-            print("🔄 Property changed: \(key) from '\(oldValue)' to '\(value)'")
+            print("🔄 Property changed: \(key) from '\(oldValue)' to '\(finalValue)'")
             
             // Post notification to trigger design file saving
             NotificationCenter.default.post(name: .designChanged, object: nil)
         } else {
             // Property doesn't exist, add it
             print("⚠️ Property not found: \(key), adding it")
+            
+            // Determine property type - check if it's a color property by key name
+            let propertyType: PropertyType = {
+                if key.contains("color") || key.contains("Color") || key.contains("fill") || key.contains("stroke") || key.contains("background") || key.contains("foreground") {
+                    return .color
+                }
+                return .string // Default to string type
+            }()
+            
+            // For color properties, convert Color objects to strings
+            var finalValue = value
+            if propertyType == .color, let color = value as? Color {
+                let colorString = ComponentProperty.colorToColorString(color)
+                finalValue = colorString
+                print("🎨 Converting color to string for new property: \(colorString)")
+            }
+            
             let newProperty = ComponentProperty(
                 key: key,
                 displayName: ComponentProperty.properDisplayName(for: key),
-                type: .string, // Default to string type
-                value: value,
-                defaultValue: value
+                type: propertyType,
+                value: finalValue,
+                defaultValue: finalValue
             )
             properties.append(newProperty)
             objectWillChange.send()
             
-            print("✅ Property added: \(key) with value: \(value)")
+            print("✅ Property added: \(key) with value: \(finalValue)")
             
             // Post notification to trigger design file saving
             NotificationCenter.default.post(name: .designChanged, object: nil)
@@ -430,7 +497,30 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     }
     
     func getProperty(key: String) -> Any? {
-        return properties.first(where: { $0.key == key })?.value
+        guard let property = properties.first(where: { $0.key == key }) else {
+            return nil
+        }
+        
+        // For color properties, ensure semantic colors are preserved
+        if property.type == .color {
+            // If stored as string, convert to Color (semantic colors will adapt)
+            if let colorString = property.value as? String {
+                return ComponentProperty.colorStringToColor(colorString)
+            }
+            // If stored as Color, check if it's a semantic color and preserve it
+            if let color = property.value as? Color {
+                // Check if it matches semantic colors - if so, return the semantic color
+                let colorString = ComponentProperty.colorToColorString(color)
+                if colorString == "primary" || colorString == "secondary" || 
+                   colorString == "tertiary" || colorString == "quaternary" {
+                    return ComponentProperty.colorStringToColor(colorString)
+                }
+                // Otherwise return the color as-is
+                return color
+            }
+        }
+        
+        return property.value
     }
     
     // MARK: - Child Management
@@ -566,7 +656,7 @@ extension UIComponent {
                 ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Hello World", defaultValue: "Hello World"),
                 ComponentProperty(key: "fontSize", displayName: "Font Size", type: .font, value: "body", defaultValue: "body", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
                 ComponentProperty(key: "fontWeight", displayName: "Font Weight", type: .font, value: "regular", defaultValue: "regular", options: ["regular", "bold", "light", "medium", "semibold", "heavy", "black"]),
-                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: Color.primary, defaultValue: Color.primary),
+                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: "primary", defaultValue: "primary"),
             ]
         case .image:
             return [
@@ -578,8 +668,8 @@ extension UIComponent {
         case .button:
             return [
                 ComponentProperty(key: "title", displayName: "Title", type: .string, value: "Button", defaultValue: "Button"),
-                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.blue, defaultValue: Color.blue),
-                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: Color.white, defaultValue: Color.white),
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: "blue", defaultValue: "blue"),
+                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: "white", defaultValue: "white"),
                 ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
                 ComponentProperty(key: "horizontalPadding", displayName: "Horizontal Padding", type: .number, value: 16.0, defaultValue: 16.0),
                 ComponentProperty(key: "verticalPadding", displayName: "Vertical Padding", type: .number, value: 8.0, defaultValue: 8.0)
@@ -601,7 +691,7 @@ extension UIComponent {
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
             return [
                 ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
-                ComponentProperty(key: "fill", displayName: "Fill Color", type: .color, value: Color.gray, defaultValue: Color.gray)
+                ComponentProperty(key: "fill", displayName: "Fill Color", type: .color, value: "gray", defaultValue: "gray")
             ]
         case .spacer:
             return [

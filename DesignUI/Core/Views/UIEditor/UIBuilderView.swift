@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 extension Notification.Name {
     static let canvasUndo = Notification.Name("canvas.undo")
@@ -106,10 +109,12 @@ struct UIBuilderView: View {
     @State private var colorScheme: ColorScheme? = .light
     
     // Panel states
-    @State private var layersPanelWidth: CGFloat = 320
+    @State private var layersPanelWidth: CGFloat = 300 // Shared width for both layers and AI panels
     @State private var propertiesPanelWidth: CGFloat = 300
+    @State private var layersPanelHeight: CGFloat = 400 // Height for layers panel
     @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
+    @State private var showAIPanel = false
     
     // iOS half sheet states
     @State private var showLayersSheet = false
@@ -167,17 +172,73 @@ struct UIBuilderView: View {
                 
                 // Floating panels with proper margins
                 HStack(spacing: 0) {
-                    if showLayersPanel {
-                        ResizablePanel(
-                            width: $layersPanelWidth,
-                            minWidth: 250,
-                            maxWidth: 500,
-                            isVisible: $showLayersPanel,
-                            handlePosition: .right
-                        ) {
-                            layersPanel
+                    // Left side: Layers and AI panels stacked vertically with resizable divider
+                    if showLayersPanel || showAIPanel {
+                        VStack(spacing: 0) {
+                            if showLayersPanel {
+                                ResizablePanel(
+                                    width: $layersPanelWidth,
+                                    minWidth: 250,
+                                    maxWidth: 500,
+                                    isVisible: $showLayersPanel,
+                                    handlePosition: .right
+                                ) {
+                                    layersPanel
+                                }
+                                .frame(height: layersPanelHeight)
+                                .transition(.move(edge: .leading))
+                            }
+                            
+                            // Draggable divider between panels
+                            if showLayersPanel && showAIPanel {
+                                HStack {
+                                    Divider()
+                                        .frame(height: 4)
+                                        .background(Color.secondary.opacity(0.3))
+                                        .overlay(
+                                            Rectangle()
+                                                .fill(Color.clear)
+                                                .frame(height: 8)
+                                                .contentShape(Rectangle())
+                                        )
+                                        .gesture(
+                                            DragGesture()
+                                                .onChanged { value in
+                                                    let newHeight = layersPanelHeight + value.translation.height
+                                                    // Clamp between reasonable min/max heights
+                                                    let minHeight: CGFloat = 200
+                                                    let maxHeight: CGFloat = 700
+                                                    layersPanelHeight = max(minHeight, min(maxHeight, newHeight))
+                                                }
+                                        )
+                                        .onHover { hovering in
+                                            #if os(macOS)
+                                            if hovering {
+                                                NSCursor.resizeUpDown.push()
+                                            } else {
+                                                NSCursor.pop()
+                                            }
+                                            #endif
+                                        }
+                                    Spacer()
+                                }
+                                .frame(width: layersPanelWidth)
+                            }
+                            
+                            if showAIPanel {
+                                ResizablePanel(
+                                    width: $layersPanelWidth, // Use same width as layers panel
+                                    minWidth: 250,
+                                    maxWidth: 500,
+                                    isVisible: $showAIPanel,
+                                    handlePosition: .right
+                                ) {
+                                    aiPanel
+                                }
+                                .frame(maxHeight: .infinity) // Takes remaining space
+                                .transition(.move(edge: .leading))
+                            }
                         }
-                        .transition(.move(edge: .leading))
                         .padding()
                     }
                     
@@ -247,9 +308,7 @@ struct UIBuilderView: View {
             syncDesignChanges()
         }
     }
-    
-    // MARK: - Computed Views
-    
+        
     private var layersPanel: some View {
         LayersPanelView(
             canvasManager: canvasManager,
@@ -264,15 +323,15 @@ struct UIBuilderView: View {
     }
     
     private var canvasView: some View {
-                        CanvasView(
-                            canvasManager: canvasManager,
-                            selectedComponent: $selectedComponent,
-                            selectedDevice: $selectedDevice,
-                            baseZoomLevel: $baseZoomLevel,
-                            statusBarHasBackground: $statusBarHasBackground,
-                            colorScheme: $colorScheme
-                        )
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        CanvasView(
+            canvasManager: canvasManager,
+            selectedComponent: $selectedComponent,
+            selectedDevice: $selectedDevice,
+            baseZoomLevel: $baseZoomLevel,
+            statusBarHasBackground: $statusBarHasBackground,
+            colorScheme: $colorScheme
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
         .contentShape(Rectangle())
         .gesture(magnificationGesture)
@@ -388,20 +447,54 @@ struct UIBuilderView: View {
         Group {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
-                Button(action: saveDesign) {
-                        Image(systemName: "square.and.arrow.down")
-                            .font(.system(size: 14, weight: .medium))
+                    
+                    Group{
+                        // Undo button
+                        Button(action: {
+                            canvasManager.undo()
+                        }) {
+                            Image(systemName: "arrow.uturn.backward")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .keyboardShortcut("z", modifiers: .command)
+                        .disabled(!canvasManager.canUndo)
+                        .help("Undo")
+                        
+                        // Redo button
+                        Button(action: {
+                            canvasManager.redo()
+                        }) {
+                            Image(systemName: "arrow.uturn.forward")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .keyboardShortcut("z", modifiers: [.command, .shift])
+                        .disabled(!canvasManager.canRedo)
+                        .help("Redo")
                     }
-                    .help("Save Design")
                     
                     Button(action: { showCodePreview = true }) {
                         Image(systemName: "chevron.left.forwardslash.chevron.right")
                             .font(.system(size: 14, weight: .medium))
                     }
                     .help("Show Code")
+                    
+                    // AI Panel button
+                    Button(action: { showAIPanel.toggle() }) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(showAIPanel ? .blue : .primary)
+                    }
+                    .help("AI Assistant")
                 }
             }
         }
+    }
+    
+    private var aiPanel: some View {
+        AIPanelView(
+            canvasManager: canvasManager,
+            selectedComponent: $selectedComponent
+        )
     }
     
     private var magnificationGesture: some Gesture {
@@ -433,6 +526,10 @@ struct UIBuilderView: View {
     private func setupCanvas() {
             canvasManager.components = designFile.components
             canvasManager.setDesignName(designFile.name)
+            
+            // Save the initial loaded state as the base state (but don't allow undo to this)
+            // This ensures we can undo back to the loaded state, but undo is disabled until we make a change
+            canvasManager.saveInitialState()
         }
     
     private func restoreCanvasSettings() {
@@ -468,14 +565,15 @@ struct UIBuilderView: View {
     }
     
     private func syncComponents() {
-            print("🔄 Components changed - syncing to design file")
-            print("🔄 Components count: \(canvasManager.components.count)")
+            print("🔄 syncComponents: Components changed - syncing to design file")
+            print("🔄 syncComponents: Components count: \(canvasManager.components.count)")
             designFile.components = canvasManager.components
             
             // Capture screenshot for thumbnail
             captureScreenshot()
             
             designManager.markAsChanged()
+            print("🔄 syncComponents: Posting .designChanged notification")
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     
@@ -554,21 +652,23 @@ struct ComponentView: View {
     let isSelected: Bool
     let onSelect: () -> Void
     let selectedDevice: DevicePreset
+    let colorScheme: ColorScheme?
     let selectedComponent: UIComponent?
     let onSelectChild: ((UIComponent) -> Void)?
     @State private var isHovered: Bool = false
     
-    init(component: UIComponent, isSelected: Bool, onSelect: @escaping () -> Void, selectedDevice: DevicePreset, selectedComponent: UIComponent?, onSelectChild: ((UIComponent) -> Void)? = nil) {
+    init(component: UIComponent, isSelected: Bool, onSelect: @escaping () -> Void, selectedDevice: DevicePreset, colorScheme: ColorScheme?, selectedComponent: UIComponent?, onSelectChild: ((UIComponent) -> Void)? = nil) {
         self.component = component
         self.isSelected = isSelected
         self.onSelect = onSelect
         self.selectedDevice = selectedDevice
+        self.colorScheme = colorScheme
         self.selectedComponent = selectedComponent
         self.onSelectChild = onSelectChild
     }
     
     var body: some View {
-        ComponentRenderer(component: component, deviceSize: selectedDevice.size, onTap: onSelect, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
+        ComponentRenderer(component: component, deviceSize: selectedDevice.size, colorScheme: colorScheme, onTap: onSelect, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
             .overlay(
                 // Selection and hover overlays
                 Group {
@@ -584,6 +684,10 @@ struct ComponentView: View {
                     }
                 }
             )
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.frame)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.isVisible)
+            .animation(.easeInOut(duration: 0.2), value: isSelected)
+            .animation(.easeInOut(duration: 0.15), value: isHovered)
             .onHover { hovering in
                 isHovered = hovering
             }

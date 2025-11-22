@@ -554,7 +554,7 @@ struct ColorPopover: View {
     }
     
     private let swiftUIColors: [(String, Color)] = [
-        ("Primary", Color.black),
+        ("Primary", .primary),
         ("Secondary", .secondary),
         ("Tertiary", .primary.opacity(0.6)),
         ("Quaternary", .primary.opacity(0.3)),
@@ -573,11 +573,6 @@ struct ColorPopover: View {
         ("Pink", .pink),
         ("Brown", .brown),
         ("Gray", .gray),
-        ("Gray2", Color(red: 0.99, green: 0.99, blue: 0.99)),
-        ("Gray3", Color(red: 0.95, green: 0.95, blue: 0.97)),
-        ("Gray4", Color(red: 0.90, green: 0.90, blue: 0.92)),
-        ("Gray5", Color(red: 0.85, green: 0.85, blue: 0.87)),
-        ("Gray6", Color(red: 0.78, green: 0.78, blue: 0.80)),
         ("Clear", .clear)
     ]
     
@@ -712,17 +707,32 @@ struct ColorPopover: View {
     }
     
     private func isSelected(_ color: Color) -> Bool {
-        guard let currentColor = component.getProperty(key: property.key) as? Color else { return false }
+        // Get the property to check its stored value
+        guard let property = component.properties.first(where: { $0.key == self.property.key }),
+              property.type == .color else { return false }
         
-        // Try direct comparison first
-        if currentColor == color {
+        // If stored as string, compare string values
+        if let storedString = property.value as? String {
+            let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+            // Normalize the stored string (lowercase) and compare
+            let normalizedStored = storedString.lowercased()
+            let normalizedTarget = targetColorName.lowercased()
+            return normalizedStored == normalizedTarget
+        }
+        
+        // If stored as Color, try direct comparison
+        if let storedColor = property.value as? Color {
+            if storedColor == color {
             return true
         }
         
         // Fallback to name comparison
-        let currentColorName = colorName(for: currentColor)
+            let currentColorName = colorName(for: storedColor)
         let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
         return currentColorName == targetColorName && currentColorName != "Custom"
+        }
+        
+        return false
     }
     
 }
@@ -732,7 +742,6 @@ struct ComponentActionsSection: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
-    @State private var showDeleteAlert = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -764,9 +773,7 @@ struct ComponentActionsSection: View {
             .buttonStyle(PlainButtonStyle())
             
             // Delete Button
-            Button(action: {
-                showDeleteAlert = true
-            }) {
+            Button(action: deleteComponent) {
                 HStack {
                     Text("Delete Component")
                         .font(.system(size: 13, weight: .semibold))
@@ -786,14 +793,6 @@ struct ComponentActionsSection: View {
                 )
             }
             .buttonStyle(PlainButtonStyle())
-            .alert("Delete Component", isPresented: $showDeleteAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    deleteComponent()
-                }
-            } message: {
-                Text("Are you sure you want to delete this component? This action cannot be undone.")
-            }
         }
     }
     

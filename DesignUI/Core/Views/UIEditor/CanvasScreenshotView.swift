@@ -37,6 +37,7 @@ struct CanvasScreenshotView: View {
                     ComponentRenderer(
                         component: component,
                         deviceSize: deviceSize,
+                        colorScheme: colorScheme,
                         onTap: nil,
                         onSelectChild: nil,
                         selectedComponent: nil
@@ -44,10 +45,10 @@ struct CanvasScreenshotView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.top, statusBarHasBackground ? 0 : 53) // Safe area for status bar
+            .padding(.top, (statusBarComponent?.isVisible ?? true) && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
             
-            // Status bar if needed
-            if statusBarComponent != nil {
+            // Status bar if needed and visible
+            if let statusBarComponent = statusBarComponent, statusBarComponent.isVisible {
                 VStack {
                     StatusBarView(
                         deviceSize: deviceSize,
@@ -66,4 +67,3 @@ struct CanvasScreenshotView: View {
         .clipShape(RoundedRectangle(cornerRadius: deviceSize.width > 800 ? 8 : 50, style: .continuous))
     }
 }
-

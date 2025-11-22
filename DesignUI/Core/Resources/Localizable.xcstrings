@@ -276,6 +276,16 @@
     "%lld components" : {
 
     },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
     "%lld/15" : {
       "localizations" : {
         "ar" : {
@@ -2026,6 +2036,9 @@
         }
       }
     },
+    "👋 Hi! I'm your AI assistant" : {
+
+    },
     "0" : {
 
     },
@@ -2066,6 +2079,12 @@
 
     },
     "Add Overlay Component" : {
+
+    },
+    "AI Assistant" : {
+
+    },
+    "AI is thinking..." : {
 
     },
     "Alignment" : {
@@ -2326,9 +2345,6 @@
           }
         }
       }
-    },
-    "Are you sure you want to delete this component? This action cannot be undone." : {
-
     },
     "Are you sure you want to delete this design? This action cannot be undone." : {
 
@@ -3106,9 +3122,6 @@
           }
         }
       }
-    },
-    "Capture and catalogue your trips, adventures, and more." : {
-
     },
     "Center" : {
 
@@ -5147,9 +5160,6 @@
 
     },
     "Create" : {
-
-    },
-    "Create an account to save your trips and share planning with friends." : {
 
     },
     "Create New Design" : {
@@ -7971,6 +7981,9 @@
     "Hello World" : {
 
     },
+    "I can help you with:" : {
+
+    },
     "Introducing" : {
       "localizations" : {
         "ar" : {
@@ -9740,6 +9753,9 @@
 
     },
     "Mask Type" : {
+
+    },
+    "Message" : {
 
     },
     "Modifiers" : {
@@ -12544,6 +12560,9 @@
 
     },
     "Radius" : {
+
+    },
+    "Redo" : {
 
     },
     "Reset Zoom" : {
@@ -15591,9 +15610,6 @@
         }
       }
     },
-    "Sign In With Apple" : {
-
-    },
     "Sign Out" : {
       "localizations" : {
         "ar" : {
@@ -18377,10 +18393,10 @@
     "Top Trailing" : {
 
     },
-    "Travel Pro" : {
+    "Type" : {
 
     },
-    "Type" : {
+    "Undo" : {
 
     },
     "Unsupported property type" : {

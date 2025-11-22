@@ -45,11 +45,6 @@ struct BackgroundModifierEditor: View {
         ("Pink", .pink),
         ("Brown", .brown),
         ("Gray", .gray),
-        ("Gray2", Color(red: 0.99, green: 0.99, blue: 0.99)),
-        ("Gray3", Color(red: 0.95, green: 0.95, blue: 0.97)),
-        ("Gray4", Color(red: 0.90, green: 0.90, blue: 0.92)),
-        ("Gray5", Color(red: 0.85, green: 0.85, blue: 0.87)),
-        ("Gray6", Color(red: 0.78, green: 0.78, blue: 0.80)),
         ("Clear", .clear)
     ]
     

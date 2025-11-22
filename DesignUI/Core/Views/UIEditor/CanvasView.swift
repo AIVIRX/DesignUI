@@ -88,59 +88,29 @@ struct CanvasView: View {
                     
                     // Components inside screen - constrained to device bounds
                     GeometryReader { screenGeometry in
-                        VStack(spacing: 0) {
-                            ForEach(canvasManager.components, id: \.id) { component in
-                                let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
-                                ComponentView(
-                                    component: component,
-                                    isSelected: selectedComponent?.id == component.id,
-                                    onSelect: { selectedComponent = component },
-                                    selectedDevice: selectedDevice,
-                                    selectedComponent: selectedComponent,
-                                    onSelectChild: { childComponent in
-                                        // Find the component in the hierarchy and select it
-                                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: canvasManager.components) {
-                                            selectedComponent = foundComponent
-                                        }
-                                    }
-                                )
-                                .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
-                                .onAppear {
-                                    print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
-                                    // Force a refresh after a short delay
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        print("🎨 ComponentView force refresh for \(component.type.rawValue)")
-                                    }
-                                }
-                            }
-                        }
-                        .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
-                        .padding(.top, selectedDevice != .mac && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
-                        .clipped() // Prevent content from expanding beyond the screen bounds
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            // Deselect when clicking empty space
-                            selectedComponent = nil
-                        }
+                        ComponentsContainerView(
+                            components: canvasManager.components,
+                            selectedComponent: $selectedComponent,
+                            selectedDevice: selectedDevice,
+                            colorScheme: colorScheme,
+                            statusBarComponent: canvasManager.statusBarComponent,
+                            statusBarHasBackground: statusBarHasBackground,
+                            canvasManager: canvasManager,
+                            screenGeometry: screenGeometry
+                        )
                     }
                     .frame(width: deviceSize.width, height: deviceSize.height)
-                    if selectedDevice != .mac {
-                        VStack {
-                            StatusBarView(
-                                deviceSize: deviceSize,
-                                isSelected: selectedComponent?.id == canvasManager.statusBarComponent?.id,
-                                colorScheme: colorScheme,
-                                onSelect: { 
-                                    if let statusBarComponent = canvasManager.statusBarComponent {
-                                        selectedComponent = statusBarComponent
-                                    }
-                                }
-                            )
-                            .background(statusBarHasBackground ? Color.black.opacity(0.8) : .clear)
-                            .zIndex(1000) // Ensure status bar is on top
-                            
-                            Spacer()
-                        }
+                    if let statusBarComponent = canvasManager.statusBarComponent {
+                        StatusBarContainerView(
+                            statusBarComponent: statusBarComponent,
+                            deviceSize: deviceSize,
+                            isSelected: selectedComponent?.id == statusBarComponent.id,
+                            colorScheme: colorScheme,
+                            statusBarHasBackground: statusBarHasBackground,
+                            onSelect: { 
+                                selectedComponent = statusBarComponent
+                            }
+                        )
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
@@ -176,5 +146,213 @@ struct CanvasView: View {
             }
         }
         return nil
+    }
+}
+
+// MARK: - Components Container View
+// Separate view to observe the status bar component's isVisible property for padding
+struct ComponentsContainerView: View {
+    let components: [UIComponent]
+    @Binding var selectedComponent: UIComponent?
+    let selectedDevice: DevicePreset
+    let colorScheme: ColorScheme?
+    let statusBarComponent: UIComponent?
+    let statusBarHasBackground: Bool
+    let canvasManager: CanvasManager
+    let screenGeometry: GeometryProxy
+    
+    var body: some View {
+        Group {
+            if let statusBarComponent = statusBarComponent {
+                ComponentsContainerWithStatusBar(
+                    components: components,
+                    selectedComponent: $selectedComponent,
+                    selectedDevice: selectedDevice,
+                    colorScheme: colorScheme,
+                    statusBarComponent: statusBarComponent,
+                    statusBarHasBackground: statusBarHasBackground,
+                    screenGeometry: screenGeometry
+                )
+            } else {
+                ComponentsContainerWithoutStatusBar(
+                    components: components,
+                    selectedComponent: $selectedComponent,
+                    selectedDevice: selectedDevice,
+                    colorScheme: colorScheme,
+                    screenGeometry: screenGeometry
+                )
+            }
+        }
+    }
+    
+    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
+        for component in components {
+            if component.id == componentId {
+                return component
+            }
+            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
+                return found
+            }
+        }
+        return nil
+    }
+}
+
+// MARK: - Components Container With Status Bar
+// Observes status bar component for visibility changes
+struct ComponentsContainerWithStatusBar: View {
+    let components: [UIComponent]
+    @Binding var selectedComponent: UIComponent?
+    let selectedDevice: DevicePreset
+    let colorScheme: ColorScheme?
+    @ObservedObject var statusBarComponent: UIComponent
+    let statusBarHasBackground: Bool
+    let screenGeometry: GeometryProxy
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(components, id: \.id) { component in
+                let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                ComponentView(
+                    component: component,
+                    isSelected: selectedComponent?.id == component.id,
+                    onSelect: { selectedComponent = component },
+                    selectedDevice: selectedDevice,
+                    colorScheme: colorScheme,
+                    selectedComponent: selectedComponent,
+                    onSelectChild: { childComponent in
+                        // Find the component in the hierarchy and select it
+                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
+                            selectedComponent = foundComponent
+                        }
+                    }
+                )
+                .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 0.95)).combined(with: .move(edge: .top)),
+                    removal: .opacity.combined(with: .scale(scale: 0.95))
+                ))
+                .onAppear {
+                    print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                    // Force a refresh after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        print("🎨 ComponentView force refresh for \(component.type.rawValue)")
+                    }
+                }
+            }
+        }
+        .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
+        .padding(.top, statusBarComponent.isVisible && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
+        .clipped() // Prevent content from expanding beyond the screen bounds
+        .contentShape(Rectangle())
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarComponent.isVisible)
+        .onTapGesture {
+            // Deselect when clicking empty space
+            selectedComponent = nil
+        }
+    }
+    
+    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
+        for component in components {
+            if component.id == componentId {
+                return component
+            }
+            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
+                return found
+            }
+        }
+        return nil
+    }
+}
+
+// MARK: - Components Container Without Status Bar
+struct ComponentsContainerWithoutStatusBar: View {
+    let components: [UIComponent]
+    @Binding var selectedComponent: UIComponent?
+    let selectedDevice: DevicePreset
+    let colorScheme: ColorScheme?
+    let screenGeometry: GeometryProxy
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(components, id: \.id) { component in
+                let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                ComponentView(
+                    component: component,
+                    isSelected: selectedComponent?.id == component.id,
+                    onSelect: { selectedComponent = component },
+                    selectedDevice: selectedDevice,
+                    colorScheme: colorScheme,
+                    selectedComponent: selectedComponent,
+                    onSelectChild: { childComponent in
+                        // Find the component in the hierarchy and select it
+                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
+                            selectedComponent = foundComponent
+                        }
+                    }
+                )
+                .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 0.95)).combined(with: .move(edge: .top)),
+                    removal: .opacity.combined(with: .scale(scale: 0.95))
+                ))
+                .onAppear {
+                    print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                    // Force a refresh after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        print("🎨 ComponentView force refresh for \(component.type.rawValue)")
+                    }
+                }
+            }
+        }
+        .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
+        .clipped() // Prevent content from expanding beyond the screen bounds
+        .contentShape(Rectangle())
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
+        .onTapGesture {
+            // Deselect when clicking empty space
+            selectedComponent = nil
+        }
+    }
+    
+    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
+        for component in components {
+            if component.id == componentId {
+                return component
+            }
+            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
+                return found
+            }
+        }
+        return nil
+    }
+}
+
+// MARK: - Status Bar Container View
+// Separate view to observe the status bar component's isVisible property
+struct StatusBarContainerView: View {
+    @ObservedObject var statusBarComponent: UIComponent
+    let deviceSize: CGSize
+    let isSelected: Bool
+    let colorScheme: ColorScheme?
+    let statusBarHasBackground: Bool
+    let onSelect: () -> Void
+    
+    var body: some View {
+        if statusBarComponent.isVisible {
+            VStack {
+                StatusBarView(
+                    deviceSize: deviceSize,
+                    isSelected: isSelected,
+                    colorScheme: colorScheme,
+                    onSelect: onSelect
+                )
+                .background(statusBarHasBackground ? Color.black.opacity(0.8) : .clear)
+                .zIndex(1000) // Ensure status bar is on top
+                
+                Spacer()
+            }
+        }
     }
 }

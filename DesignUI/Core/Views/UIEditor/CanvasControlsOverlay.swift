@@ -59,7 +59,7 @@ struct CanvasControlsOverlay: View {
             .help("Choose color scheme")
             
             // Reset zoom button
-            Button(action: { 
+            Button(action: {
                 // Reset to optimal zoom for current device
                 canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: CGSize(width: 800, height: 600))
                 // Update baseZoomLevel to match the reset zoom level

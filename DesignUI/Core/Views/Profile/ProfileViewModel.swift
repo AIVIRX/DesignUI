@@ -13,6 +13,7 @@ class ProfileViewModel: ObservableObject {
         let display_name: String?
         let username: String?
         let bio: String?
+        let verified: Bool?
     }
     
     func fetchProfile() async {

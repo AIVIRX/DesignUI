@@ -24,8 +24,13 @@ struct LayersPanelView: View {
             // Header with toolbar
             VStack(spacing: 0) {
                 HStack {
-                    Text("Layers")
-                        .font(.headline)
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.3.layers.3d.top.filled")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                        Text("Layers")
+                            .font(.headline)
+                    }
                     
                     Spacer()
                     
@@ -334,50 +339,54 @@ private struct OutlineRow: View {
     
     private var row: some View {
         VStack(spacing: 0) {
-            rowContent
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(backgroundShape)
-                .overlay(dragOverlay)
-                .overlay(dropZoneOverlay)
-                .overlay(borderOverlay)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    // Handle double-tap
-                    let now = Date()
-                    if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < 0.3 {
-                        // Double tap detected
-                        onDoubleTap?()
-                        lastTapTime = nil
-                    } else {
-                        // Single tap - select component
-                        selectedComponent = component
-                        lastTapTime = now
+            HStack(spacing: 0) {
+                // Indentation spacers (outside background)
+                indentationSpacers
+                
+                // Content with background (indented)
+                rowContent
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(backgroundShape)
+                    .overlay(dragOverlay)
+                    .overlay(dropZoneOverlay)
+                    .overlay(borderOverlay)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        // Handle double-tap
+                        let now = Date()
+                        if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < 0.3 {
+                            // Double tap detected
+                            onDoubleTap?()
+                            lastTapTime = nil
+                        } else {
+                            // Single tap - select component
+                            selectedComponent = component
+                            lastTapTime = now
+                        }
                     }
-                }
-                .onHover { isHovered = $0 }
-                .onDrag { dragAction }
-                .onDrop(of: [UTType.plainText], delegate: dropDelegate)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                    .onHover { isHovered = $0 }
+                    .onDrag { dragAction }
+                    .onDrop(of: [UTType.plainText], delegate: dropDelegate)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
         }
     }
     
     private var rowContent: some View {
         HStack(spacing: 8) {
-            indentationSpacers
             expandCollapseButton
             componentIcon
             componentName
             Spacer()
-            deleteButton
         }
     }
     
     private var indentationSpacers: some View {
         HStack(spacing: 0) {
             ForEach(0..<level, id: \.self) { _ in
-                Spacer().frame(width: 16)
+                Spacer().frame(width: 24)
             }
         }
     }
@@ -411,20 +420,6 @@ private struct OutlineRow: View {
             .font(.system(size: 13, weight: level == 0 ? .semibold : .medium))
             .foregroundColor((selectedComponent?.id == component.id) ? .primary : .secondary)
             .lineLimit(1)
-    }
-    
-    private var deleteButton: some View {
-        Group {
-            if isHovered {
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 10))
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .help("Delete")
-            }
-        }
     }
     
     private var backgroundShape: some View {
@@ -639,7 +634,7 @@ private struct OverlayFolderRow: View {
                 // Indentation
                 HStack(spacing: 0) {
                     ForEach(0..<level, id: \.self) { _ in
-                        Spacer().frame(width: 16)
+                        Spacer().frame(width: 24)
                     }
                 }
                 
@@ -753,18 +748,6 @@ struct LayerItem: View {
                 .lineLimit(1)
             
             Spacer()
-            
-            
-            // Delete button
-            if isHovered {
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 10))
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .help("Delete")
-            }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)

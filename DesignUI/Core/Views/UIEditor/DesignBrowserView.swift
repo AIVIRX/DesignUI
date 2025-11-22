@@ -423,6 +423,7 @@ struct ComponentPreviewRenderer: View {
         ComponentRenderer(
             component: component,
             deviceSize: CGSize(width: 375, height: 667),
+            colorScheme: .light,
             onTap: {},
             onSelectChild: nil,
             selectedComponent: nil
