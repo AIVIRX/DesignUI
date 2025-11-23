@@ -100,6 +100,9 @@ struct CanvasView: View {
                         )
                     }
                     .frame(width: deviceSize.width, height: deviceSize.height)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
+                .overlay(alignment: .top) {
                     if let statusBarComponent = canvasManager.statusBarComponent {
                         StatusBarContainerView(
                             statusBarComponent: statusBarComponent,
@@ -113,12 +116,10 @@ struct CanvasView: View {
                         )
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: screenCorner, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: screenCorner, style: .continuous)
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                 )
-                .padding(selectedDevice == .mac ? 8 : 16)
                 .frame(width: deviceSize.width, height: deviceSize.height)
                 .colorScheme(colorScheme ?? .light)
                 
@@ -211,6 +212,11 @@ struct ComponentsContainerWithStatusBar: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            if statusBarComponent.isVisible {
+                Spacer()
+                    .frame(height: 53) // Top padding for status bar
+            }
+            
             ForEach(components, id: \.id) { component in
                 let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                 ComponentView(
@@ -240,9 +246,10 @@ struct ComponentsContainerWithStatusBar: View {
                     }
                 }
             }
+            
+            Spacer() // Push content to top, allow bottom content to reach bottom
         }
         .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
-        .padding(.top, statusBarComponent.isVisible && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
         .clipped() // Prevent content from expanding beyond the screen bounds
         .contentShape(Rectangle())
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
@@ -341,18 +348,14 @@ struct StatusBarContainerView: View {
     
     var body: some View {
         if statusBarComponent.isVisible {
-            VStack {
-                StatusBarView(
-                    deviceSize: deviceSize,
-                    isSelected: isSelected,
-                    colorScheme: colorScheme,
-                    onSelect: onSelect
-                )
-                .background(statusBarHasBackground ? Color.black.opacity(0.8) : .clear)
-                .zIndex(1000) // Ensure status bar is on top
-                
-                Spacer()
-            }
+            StatusBarView(
+                deviceSize: deviceSize,
+                isSelected: isSelected,
+                colorScheme: colorScheme,
+                onSelect: onSelect
+            )
+            .background(.clear)
+            .allowsHitTesting(true)
         }
     }
 }

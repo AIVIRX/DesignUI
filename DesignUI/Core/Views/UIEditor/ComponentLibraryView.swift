@@ -10,10 +10,9 @@ struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
     @State private var searchText = ""
-    @State private var selectedCategory: ComponentCategory? = nil
     
     private var filteredComponents: [ComponentType] {
-        let components = (selectedCategory == nil ? ComponentType.allCases : ComponentType.allCases.filter { $0.category == selectedCategory })
+        let components = ComponentType.allCases
             .filter { $0 != .statusBar } // Exclude status bar from component library
         
         if searchText.isEmpty {
@@ -43,26 +42,6 @@ struct ComponentLibraryView: View {
                 .padding(.vertical, 8)
                 .background(Color.secondary.opacity(0.1))
                 .cornerRadius(8)
-                
-                // Category filter
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        CategoryButton(
-                            title: "All",
-                            isSelected: selectedCategory == nil,
-                            action: { selectedCategory = nil }
-                        )
-                        
-                        ForEach(ComponentCategory.allCases, id: \.self) { category in
-                            CategoryButton(
-                                title: category.rawValue,
-                                isSelected: selectedCategory == category,
-                                action: { selectedCategory = category }
-                            )
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
             }
             .padding(16)
             .background(Color.secondary.opacity(0.1))
@@ -81,8 +60,8 @@ struct ComponentLibraryView: View {
                             isFirstComponent: canvasManager.components.isEmpty,
                             onAdd: { component in
                                 // Check if there's a selected container component
-                                if let selected = selectedComponent, 
-                                   canvasManager.canAcceptChildren(selected) {
+                                if let selected = selectedComponent,
+                                    canvasManager.canAcceptChildren(selected) {
                                     // Reset frame to be relative to container
                                     component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
                                     
@@ -101,28 +80,6 @@ struct ComponentLibraryView: View {
                 .padding(12)
             }
         }
-    }
-}
-
-struct CategoryButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .white : .primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.1))
-                )
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -150,11 +107,11 @@ struct ComponentLibraryItem: View {
                 .lineLimit(2)
             
             // Category
-            Text(componentType.category.rawValue)
-                .font(.system(size: 9))
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(1)
+//            Text(componentType.category.rawValue)
+//                .font(.system(size: 9))
+//                .foregroundColor(.secondary)
+//                .multilineTextAlignment(.center)
+//                .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
         .padding(10)
@@ -191,3 +148,4 @@ struct ComponentLibraryItem: View {
         )
     }
 }
+

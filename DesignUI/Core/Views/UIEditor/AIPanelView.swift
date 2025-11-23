@@ -150,11 +150,7 @@ struct AIPanelView: View {
                     .padding(.bottom, 8)
             }
         }
-        #if os(macOS)
-        .background(Color(NSColor.controlBackgroundColor))
-        #else
-        .background(Color(.systemBackground))
-        #endif
+        .background(.thinMaterial)
     }
     
     private var welcomeView: some View {
@@ -413,6 +409,9 @@ struct AIPanelView: View {
 
 struct ChatBubble: View {
     let message: ChatMessage
+    @State private var displayedText: String = ""
+    @State private var typingTask: Task<Void, Never>?
+    @State private var hasTyped = false
     
     var body: some View {
         HStack {
@@ -421,7 +420,7 @@ struct ChatBubble: View {
             }
             
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
-                Text(message.content)
+                Text(message.role == .user ? message.content : displayedText)
                     .font(.system(size: 13))
                     .foregroundColor(message.role == .user ? .white : .primary)
                     .padding(.horizontal, 12)
@@ -439,6 +438,51 @@ struct ChatBubble: View {
             }
         }
         .padding(.horizontal, 16)
+        .onAppear {
+            if message.role == .assistant && !hasTyped {
+                startTypingEffect()
+            } else if message.role == .user {
+                displayedText = message.content
+            }
+        }
+        .onDisappear {
+            typingTask?.cancel()
+        }
+    }
+    
+    private func startTypingEffect() {
+        guard !hasTyped else { return }
+        typingTask?.cancel()
+        displayedText = ""
+        hasTyped = true
+        
+        let fullText = message.content
+        let characters = Array(fullText)
+        var currentIndex = 0
+        
+        typingTask = Task {
+            while currentIndex < characters.count {
+                // Check if task was cancelled
+                if Task.isCancelled {
+                    break
+                }
+                
+                // Add next character(s) - can adjust speed here
+                let chunkSize = 1 // Characters per update (increase for faster typing)
+                let endIndex = min(currentIndex + chunkSize, characters.count)
+                let chunk = String(characters[currentIndex..<endIndex])
+                
+                await MainActor.run {
+                    displayedText += chunk
+                }
+                
+                currentIndex = endIndex
+                
+                // Delay between characters (adjust for speed: lower = faster)
+                // 20ms per character = ~50 chars/sec
+                try? await Task.sleep(nanoseconds: 20_000_000)
+            }
+        }
     }
 }
 

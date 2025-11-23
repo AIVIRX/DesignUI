@@ -56,7 +56,7 @@ struct CanvasScreenshotView: View {
                         colorScheme: colorScheme,
                         onSelect: {}
                     )
-                    .background(statusBarHasBackground ? Color.black.opacity(0.8) : .clear)
+                    .background(.clear)
                     
                     Spacer()
                 }

@@ -76,21 +76,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     
     var id: String { rawValue }
     
-    var category: ComponentCategory {
-        switch self {
-        case .text, .image, .button, .sfSymbol:
-            return .basic
-        case .vstack, .hstack, .zstack, .spacer, .divider:
-            return .layout
-        case .rectangle, .circle, .roundedRectangle, .capsule, .ellipse:
-            return .shapes
-        case .list, .scrollView:
-            return .containers
-        case .statusBar:
-            return .basic // Special component, not shown in library
-        }
-    }
-    
     var icon: String {
         switch self {
         case .text: return "textformat"
@@ -112,14 +97,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .statusBar: return "iphone"
         }
     }
-}
-
-enum ComponentCategory: String, CaseIterable {
-    case basic = "Basic"
-    case layout = "Layout"
-    case shapes = "Shapes"
-    case containers = "Containers"
-    case controls = "Controls"
 }
 
 // MARK: - Property Types
@@ -670,19 +647,17 @@ extension UIComponent {
                 ComponentProperty(key: "title", displayName: "Title", type: .string, value: "Button", defaultValue: "Button"),
                 ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: "blue", defaultValue: "blue"),
                 ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: "white", defaultValue: "white"),
-                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
-                ComponentProperty(key: "horizontalPadding", displayName: "Horizontal Padding", type: .number, value: 16.0, defaultValue: 16.0),
-                ComponentProperty(key: "verticalPadding", displayName: "Vertical Padding", type: .number, value: 8.0, defaultValue: 8.0)
+                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
             ]
         case .vstack:
             return [
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["leading", "center", "trailing"]),
-                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+                ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 8.0, defaultValue: 8.0)
             ]
         case .hstack:
             return [
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
-                ComponentProperty(key: "spacing", displayName: "Spacing", type: .dropdown, value: "default", defaultValue: "default", options: ["default", "0", "4", "8", "12", "16", "20", "24", "32"])
+                ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 8.0, defaultValue: 8.0)
             ]
         case .zstack:
             return [

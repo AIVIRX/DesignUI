@@ -26,9 +26,9 @@ struct ProfileView: View {
                         // User Info
                         VStack(spacing: 8) {
                             HStack(spacing: 6) {
-                                Text(viewModel.profile?.display_name ?? "user")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
+                            Text(viewModel.profile?.display_name ?? "user")
+                                .font(.title2)
+                                .fontWeight(.bold)
                                 
                                 if viewModel.profile?.verified == true {
                                     Image(systemName: "checkmark.seal.fill")

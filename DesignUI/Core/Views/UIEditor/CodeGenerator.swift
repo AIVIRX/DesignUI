@@ -23,7 +23,7 @@ struct CodeGenerator {
         case .image:
             baseCode = generateImageCode(component: component, indent: indent, nextIndent: nextIndent)
         case .button:
-            baseCode = generateButtonCode(component: component, indent: indent, nextIndent: nextIndent)
+            baseCode = generateButtonCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .vstack:
             baseCode = generateVStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .hstack:
@@ -120,25 +120,47 @@ struct CodeGenerator {
     }
     
     // MARK: - Button Code Generation
-    private static func generateButtonCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateButtonCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
+        // If button has children, use container approach
+        if !component.children.isEmpty {
+            var code = "\(indent)Button(action: {\n\(nextIndent)// Action here\n\(indent)}) {"
+            for child in component.children {
+                code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
+            }
+            code += "\n\(indent)}"
+            code += "\n\(indent).buttonStyle(PlainButtonStyle())"
+            return code
+        }
+        
+        // No children: Use default SwiftUI button with label-based initializer and apply properties
         let title = component.getProperty(key: "title") as? String ?? "Button"
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.blue
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.white
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
-        let horizontalPadding = component.getProperty(key: "horizontalPadding") as? Double ?? 16.0
-        let verticalPadding = component.getProperty(key: "verticalPadding") as? Double ?? 8.0
         
-        let code = "\(indent)Button(action: {\n\(nextIndent)// Action here\n\(indent)}) {\n\(nextIndent)Text(\"\(title)\")\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))\n\(nextIndent).padding(.horizontal, \(horizontalPadding))\n\(nextIndent).padding(.vertical, \(verticalPadding))\n\(indent)}\n\(indent).background(\(colorToString(backgroundColor)))\n\(indent).cornerRadius(\(cornerRadius))"
-        
+        var code = "\(indent)Button(\"\(title)\") {}"
+        code += "\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))"
+        code += "\n\(nextIndent).padding(.horizontal, 16)"
+        code += "\n\(nextIndent).padding(.vertical, 8)"
+        code += "\n\(nextIndent).background(\(colorToString(backgroundColor)))"
+        code += "\n\(nextIndent).cornerRadius(\(cornerRadius))"
         return code
     }
     
     // MARK: - VStack Code Generation
     private static func generateVStackCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
-        let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
+        // Get spacing as Double (defaults to 8.0 if not set or invalid)
+        let spacingValue: Double
+        if let spacing = component.getProperty(key: "spacing") as? Double {
+            spacingValue = spacing
+        } else if let spacingString = component.getProperty(key: "spacing") as? String, spacingString != "default" {
+            spacingValue = Double(spacingString) ?? 8.0
+        } else {
+            spacingValue = 8.0
+        }
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
         
-        var code = "\(indent)VStack(alignment: .\(alignment), spacing: \(spacing)) {"
+        var code = "\(indent)VStack(alignment: .\(alignment), spacing: \(spacingValue)) {"
         
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"
@@ -155,10 +177,18 @@ struct CodeGenerator {
     
     // MARK: - HStack Code Generation
     private static func generateHStackCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
-        let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
+        // Get spacing as Double (defaults to 8.0 if not set or invalid)
+        let spacingValue: Double
+        if let spacing = component.getProperty(key: "spacing") as? Double {
+            spacingValue = spacing
+        } else if let spacingString = component.getProperty(key: "spacing") as? String, spacingString != "default" {
+            spacingValue = Double(spacingString) ?? 8.0
+        } else {
+            spacingValue = 8.0
+        }
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
         
-        var code = "\(indent)HStack(alignment: .\(alignment), spacing: \(spacing)) {"
+        var code = "\(indent)HStack(alignment: .\(alignment), spacing: \(spacingValue)) {"
         
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"

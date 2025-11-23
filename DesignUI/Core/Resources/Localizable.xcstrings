@@ -2075,6 +2075,9 @@
     "Add Component" : {
 
     },
+    "Add components from the library to start!" : {
+
+    },
     "Add Modifier" : {
 
     },
@@ -7192,9 +7195,6 @@
     "Done" : {
 
     },
-    "Drag components from the library to start building" : {
-
-    },
     "Duplicate" : {
 
     },
@@ -7700,6 +7700,9 @@
           }
         }
       }
+    },
+    "Export" : {
+
     },
     "Features" : {
       "localizations" : {
@@ -8988,9 +8991,6 @@
       }
     },
     "Layers" : {
-
-    },
-    "Layout" : {
 
     },
     "Legal" : {
@@ -12821,9 +12821,6 @@
         }
       }
     },
-    "Save Design" : {
-
-    },
     "Scale" : {
 
     },
@@ -15104,9 +15101,6 @@
         }
       }
     },
-    "Show Code" : {
-
-    },
     "Show in Finder" : {
 
     },
@@ -17362,9 +17356,6 @@
           }
         }
       }
-    },
-    "SwiftUI Builder" : {
-
     },
     "Tap to open" : {
 
@@ -19651,6 +19642,9 @@
           }
         }
       }
+    },
+    "View Code" : {
+
     },
     "Widget Builder" : {
 

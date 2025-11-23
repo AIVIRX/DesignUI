@@ -248,10 +248,9 @@
 			isa = PBXGroup;
 			children = (
 				ECCD8EB32ED15F02005C6C4B /* AIPanelView.swift */,
-				ECB6E3D62ECFF5E700E2008A /* CanvasScreenshotView.swift */,
-				ECB6E3D72ECFF5E700E2008A /* ScreenshotUtility.swift */,
 				EC7ECEAE2ECD667800AC657C /* CanvasControlsOverlay.swift */,
 				EC7ECEAF2ECD667800AC657C /* CanvasManager.swift */,
+				ECB6E3D62ECFF5E700E2008A /* CanvasScreenshotView.swift */,
 				EC7ECEB02ECD667800AC657C /* CanvasView.swift */,
 				EC7ECEB12ECD667800AC657C /* CodeGenerator.swift */,
 				EC7ECEB22ECD667800AC657C /* CodePreviewView.swift */,
@@ -265,6 +264,7 @@
 				EC7ECEC52ECD667800AC657C /* ModifierEditorView.swift */,
 				EC7ECEC62ECD667800AC657C /* ModifierPanelView.swift */,
 				EC7ECEC72ECD667800AC657C /* PropertiesPanelView.swift */,
+				ECB6E3D72ECFF5E700E2008A /* ScreenshotUtility.swift */,
 				EC7ECEC82ECD667800AC657C /* StatusBarView.swift */,
 				EC7ECECA2ECD667800AC657C /* UIBuilderView.swift */,
 				EC7ECECB2ECD667800AC657C /* UIComponent.swift */,

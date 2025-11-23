@@ -102,7 +102,7 @@ class CanvasManager: ObservableObject {
     
     func canAcceptChildren(_ component: UIComponent) -> Bool {
         switch component.type {
-        case .scrollView, .vstack, .hstack, .zstack, .list:
+        case .scrollView, .vstack, .hstack, .zstack, .list, .button:
             return true
         default:
             return false

@@ -72,9 +72,9 @@ struct PropertiesSection: View {
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            VStack(alignment: .leading, spacing: 8) {
-                // For status bar, only show isVisible
-                if component.type == .statusBar {
+            // For status bar, only show isVisible
+            if component.type == .statusBar {
+                GroupBox {
                     HStack {
                         Text("Is Visible")
                             .font(.system(size: 12, weight: .medium))
@@ -90,16 +90,22 @@ struct PropertiesSection: View {
                         ))
                         .toggleStyle(SwitchToggleStyle())
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.clear)
-                    )
-                } else {
-                    // For all other components, show their properties
-                    ForEach(Array(component.properties.enumerated()), id: \.element.id) { index, property in
-                        PropertyEditor(property: property, component: component)
+                    .padding(.horizontal, 4)
+                }
+            } else {
+                // For all other components, show their properties in a grouped form
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(component.properties.enumerated()), id: \.element.id) { index, property in
+                            PropertyEditor(property: property, component: component)
+                            
+                            // Add divider between properties if there are 2+ and not the last one
+                            if component.properties.count >= 2 && index < component.properties.count - 1 {
+                                Divider()
+                                    .opacity(0.3)
+                                    .padding(.vertical, 2)
+                            }
+                        }
                     }
                 }
             }
@@ -214,30 +220,28 @@ struct PropertyEditor: View {
                 }
                 
             case .number:
-                HStack {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
-                    Spacer()
-                    
-                    TextField("", value: $numberValue, format: .number)
-                    .font(.system(size: 13, weight: .medium))
-                    .textFieldStyle(.plain)
-                    .onAppear {
-                        numberValue = property.value as? Double ?? 0.0
-                    }
-                    .onReceive(component.objectWillChange) { _ in
-                        if let doubleValue = component.getProperty(key: property.key) as? Double {
-                            numberValue = doubleValue
-                        }
-                    }
-                    .onChange(of: numberValue) { _, newValue in
-                        component.setProperty(key: property.key, value: newValue)
-                    }
-                    .onSubmit {
-                        // Commit the final value when Enter is pressed
-                        component.setProperty(key: property.key, value: numberValue)
+                    HStack {
+                        Spacer()
+                        
+                        TextField("", value: $numberValue, format: .number)
+                            .font(.system(size: 13, weight: .medium))
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(colorScheme == .dark ? Color.black : Color.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                            .frame(maxWidth: 200) // Limit width, align to trailing
                     }
                 }
                 .padding(.horizontal, 12)
@@ -250,6 +254,21 @@ struct PropertyEditor: View {
                     isHovered = hovering
                 }
                 .contentShape(Rectangle())
+                .onAppear {
+                    numberValue = property.value as? Double ?? 0.0
+                }
+                .onReceive(component.objectWillChange) { _ in
+                    if let doubleValue = component.getProperty(key: property.key) as? Double {
+                        numberValue = doubleValue
+                    }
+                }
+                .onChange(of: numberValue) { _, newValue in
+                    component.setProperty(key: property.key, value: newValue)
+                }
+                .onSubmit {
+                    // Commit the final value when Enter is pressed
+                    component.setProperty(key: property.key, value: numberValue)
+                }
             case .boolean:
                 HStack {
                     Text(displayName)
@@ -793,6 +812,9 @@ struct ComponentActionsSection: View {
                 )
             }
             .buttonStyle(PlainButtonStyle())
+#if os(macOS)
+            .keyboardShortcut(.delete, modifiers: [])
+#endif
         }
     }
     

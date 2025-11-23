@@ -136,25 +136,61 @@ struct ComponentRenderer: View {
         let fontWeight = component.getProperty(key: "fontWeight") as? String ?? "regular"
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
         
-        let font: Font
-        switch fontSize {
-        case "largeTitle": font = .largeTitle
-        case "title": font = .title
-        case "title2": font = .title2
-        case "title3": font = .title3
-        case "headline": font = .headline
-        case "body": font = .body
-        case "callout": font = .callout
-        case "subheadline": font = .subheadline
-        case "footnote": font = .footnote
-        case "caption": font = .caption
-        case "caption2": font = .caption2
-        default: font = .body
-        }
+        // Use iOS-specific font sizes to match simulator
+        let font = iosFont(for: fontSize, weight: fontWeightFromString(fontWeight))
         
         return Text(text)
-            .font(font.weight(fontWeightFromString(fontWeight)))
+            .font(font)
             .foregroundColor(foregroundColor)
+    }
+    
+    // MARK: - Platform Font Helper
+    // Returns platform-specific font sizes per Apple Human Interface Guidelines
+    // Reference: https://developer.apple.com/design/human-interface-guidelines/typography
+    private func iosFont(for fontSize: String, weight: Font.Weight) -> Font {
+        // Detect device type from deviceSize
+        let deviceWidth = deviceSize?.width ?? 393 // Default to iPhone
+        let isiPad = deviceWidth >= 700 && deviceWidth < 1200 // iPad range: 834-1024
+        let isMac = deviceWidth >= 1200 // Mac: 1280+
+        
+        let size: CGFloat
+        switch fontSize {
+        case "largeTitle":
+            if isMac { size = 40 } // macOS Large Title: 40pt
+            else if isiPad { size = 40 } // iPad Large Title: 40pt
+            else { size = 34 } // iOS Large Title: 34pt
+        case "title":
+            if isMac { size = 32 } // macOS Title 1: 32pt
+            else if isiPad { size = 34 } // iPad Title 1: 34pt
+            else { size = 28 } // iOS Title 1: 28pt
+        case "title2":
+            if isMac { size = 24 } // macOS Title 2: 24pt
+            else if isiPad { size = 28 } // iPad Title 2: 28pt
+            else { size = 22 } // iOS Title 2: 22pt
+        case "title3":
+            if isMac { size = 20 } // macOS Title 3: 20pt
+            else if isiPad { size = 22 } // iPad Title 3: 22pt
+            else { size = 20 } // iOS Title 3: 20pt
+        case "headline":
+            size = isMac ? 18 : 17 // macOS: 18pt, iOS/iPad: 17pt (always semibold)
+            return .system(size: size, weight: .semibold)
+        case "body":
+            size = isMac ? 15 : 17 // macOS: 15pt, iOS/iPad: 17pt
+        case "callout":
+            size = isMac ? 14 : 16 // macOS: 14pt, iOS/iPad: 16pt
+        case "subheadline":
+            size = isMac ? 13 : 15 // macOS: 13pt, iOS/iPad: 15pt
+        case "footnote":
+            size = isMac ? 12 : 13 // macOS: 12pt, iOS/iPad: 13pt
+        case "caption":
+            size = isMac ? 11 : 12 // macOS: 11pt, iOS/iPad: 12pt
+        case "caption2":
+            size = isMac ? 10 : 11 // macOS: 10pt, iOS/iPad: 11pt
+        default:
+            size = isMac ? 15 : 17 // Default to body
+        }
+        
+        return .system(size: size, weight: weight)
     }
     
     // MARK: - Image Renderer
@@ -255,12 +291,25 @@ struct ComponentRenderer: View {
     
     // MARK: - Button Renderer
     private func renderButton() -> some View {
+        // If button has children, render them inside the button (container approach)
+        if !component.children.isEmpty {
+            return AnyView(
+                Button(action: {}) {
+                    ForEach(component.children, id: \.id) { child in
+                        ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: {
+                            onSelectChild?(child)
+                        }, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
+                    }
+                }
+                    .buttonStyle(PlainButtonStyle())
+            )
+        }
+        
+        // No children: Use default SwiftUI button with label-based initializer and apply properties
         let title = component.getProperty(key: "title") as? String ?? "Button"
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.blue
         let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.white
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
-        let horizontalPadding = component.getProperty(key: "horizontalPadding") as? Double ?? 16.0
-        let verticalPadding = component.getProperty(key: "verticalPadding") as? Double ?? 8.0
         
         // Check if there's a frame modifier with full width
         let hasFullWidthFrame = component.modifiers.contains { modifier in
@@ -271,21 +320,29 @@ struct ComponentRenderer: View {
             return false
         }
         
-        return Button(action: {}) {
-            Text(title)
-                .foregroundColor(foregroundColor)
-                .frame(maxWidth: hasFullWidthFrame ? .infinity : nil)
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, verticalPadding)
-        }
-        .background(backgroundColor)
-        .cornerRadius(cornerRadius)
+        // Detect device type for platform-specific button font size
+        let deviceWidth = deviceSize?.width ?? 393
+        let isMac = deviceWidth >= 1200
+        let buttonFontSize: CGFloat = isMac ? 15 : 17 // macOS: 15pt, iOS/iPad: 17pt
+        
+        return AnyView(
+            Button(action: {}) {
+                Text(title)
+                    .font(.system(size: buttonFontSize, weight: .regular))
+                    .padding(8)
+                    .foregroundColor(foregroundColor)
+                    .frame(maxWidth: hasFullWidthFrame ? .infinity : nil)
+            }
+                .background(backgroundColor)
+                .cornerRadius(cornerRadius)
+        )
     }
     
     // MARK: - VStack Renderer
     private func renderVStack() -> some View {
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
-        let base = VStack(alignment: horizontalAlignmentFromString(alignment)) {
+        let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
+        let base = VStack(alignment: horizontalAlignmentFromString(alignment), spacing: spacing) {
             if component.children.isEmpty {
                 EmptyView()
             } else {
@@ -303,7 +360,8 @@ struct ComponentRenderer: View {
     private func renderHStack() -> some View {
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
-        let base = HStack(alignment: verticalAlignmentFromString(alignment), spacing: 8) {
+        let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
+        let base = HStack(alignment: verticalAlignmentFromString(alignment), spacing: spacing) {
             if component.children.isEmpty {
                 EmptyView()
             } else {
@@ -468,22 +526,8 @@ struct ComponentRenderer: View {
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
         
-        let font: Font = {
-            switch fontSize {
-            case "largeTitle": return .largeTitle
-            case "title": return .title
-            case "title2": return .title2
-            case "title3": return .title3
-            case "headline": return .headline
-            case "body": return .body
-            case "callout": return .callout
-            case "subheadline": return .subheadline
-            case "footnote": return .footnote
-            case "caption": return .caption
-            case "caption2": return .caption2
-            default: return .largeTitle
-            }
-        }()
+        // Use iOS-specific font sizes to match simulator
+        let font = iosFont(for: fontSize, weight: .regular)
         
         return AnyView(
             Image(systemName: symbolName)

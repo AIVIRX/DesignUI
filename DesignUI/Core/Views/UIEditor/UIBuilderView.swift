@@ -61,17 +61,17 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         // Physical pixels: 1320 × 2868, Logical points: 440 × 956 (3x scale)
         case .iphone17ProMax: return CGSize(width: 440, height: 956) // 6.9" display
         
-        // iPhone 16 Series - Based on actual viewport dimensions
-        case .iphone16: return CGSize(width: 393, height: 852) // 6.1" display
-        case .iphone16Plus: return CGSize(width: 430, height: 932) // 6.7" display
-        case .iphone16Pro: return CGSize(width: 402, height: 874) // 6.3" display
-        case .iphone16ProMax: return CGSize(width: 440, height: 956) // 6.9" display
+        // iPhone 16 Series - Logical points (matches iOS Simulator exactly)
+        case .iphone16: return CGSize(width: 390, height: 844) // 6.1" display
+        case .iphone16Plus: return CGSize(width: 428, height: 926) // 6.7" display
+        case .iphone16Pro: return CGSize(width: 414, height: 896) // 6.3" display
+        case .iphone16ProMax: return CGSize(width: 430, height: 932) // 6.9" display
         
-        // iPhone 15 Series - Based on actual viewport dimensions
+        // iPhone 15 Series - Logical points (matches iOS Simulator)
         case .iphone15Pro: return CGSize(width: 393, height: 852) // 6.1" display
-        case .iphone15ProMax: return CGSize(width: 430, height: 932) // 6.7" display
-        case .iphone15: return CGSize(width: 393, height: 852) // 6.1" display
-        case .iphone15Plus: return CGSize(width: 430, height: 932) // 6.7" display
+        case .iphone15ProMax: return CGSize(width: 430, height: 932) // 6.9" display
+        case .iphone15: return CGSize(width: 390, height: 844) // 6.1" display
+        case .iphone15Plus: return CGSize(width: 428, height: 926) // 6.7" display
         
         // iPhone 14 Series - Based on actual viewport dimensions
         case .iphone14: return CGSize(width: 390, height: 844) // 6.1" display
@@ -129,7 +129,7 @@ struct UIBuilderView: View {
     
     var body: some View {
         NavigationStack {
-            #if os(iOS)
+#if os(iOS)
             // iOS: Full screen canvas with floating panels
             ZStack {
                 mainCanvasArea
@@ -165,7 +165,7 @@ struct UIBuilderView: View {
                 .padding(.trailing, 16)
                 .padding(.top, 16)
             }
-            #else
+#else
             // macOS: Resizable panels layout
             ZStack {
                 mainCanvasArea
@@ -185,44 +185,42 @@ struct UIBuilderView: View {
                                 ) {
                                     layersPanel
                                 }
-                                .frame(height: layersPanelHeight)
-                                .transition(.move(edge: .leading))
+                                .frame(height: showAIPanel ? layersPanelHeight : nil)
+                                .frame(maxHeight: showAIPanel ? nil : .infinity)
+                                .transition(.move(edge: .leading).combined(with: .opacity))
                             }
                             
-                            // Draggable divider between panels
+                            // Draggable divider between panels (hidden but still interactable)
                             if showLayersPanel && showAIPanel {
-                                HStack {
-                                    Divider()
-                                        .frame(height: 4)
-                                        .background(Color.secondary.opacity(0.3))
-                                        .overlay(
-                                            Rectangle()
-                                                .fill(Color.clear)
-                                                .frame(height: 8)
-                                                .contentShape(Rectangle())
-                                        )
-                                        .gesture(
-                                            DragGesture()
-                                                .onChanged { value in
+                                Rectangle()
+                                    .fill(Color.clear)
+                                    .frame(height: 8)
+                                    .frame(width: layersPanelWidth)
+                                    .contentShape(Rectangle())
+                                    .gesture(
+                                        DragGesture()
+                                            .onChanged { value in
+                                                var transaction = Transaction()
+                                                transaction.disablesAnimations = true
+                                                withTransaction(transaction) {
                                                     let newHeight = layersPanelHeight + value.translation.height
                                                     // Clamp between reasonable min/max heights
-                                                    let minHeight: CGFloat = 200
-                                                    let maxHeight: CGFloat = 700
+                                                    let minHeight: CGFloat = 300
+                                                    let maxHeight: CGFloat = 600
                                                     layersPanelHeight = max(minHeight, min(maxHeight, newHeight))
                                                 }
-                                        )
-                                        .onHover { hovering in
-                                            #if os(macOS)
-                                            if hovering {
-                                                NSCursor.resizeUpDown.push()
-                                            } else {
-                                                NSCursor.pop()
                                             }
-                                            #endif
+                                    )
+                                    .onHover { hovering in
+#if os(macOS)
+                                        if hovering {
+                                            NSCursor.resizeUpDown.push()
+                                        } else {
+                                            NSCursor.pop()
                                         }
-                                    Spacer()
-                                }
-                                .frame(width: layersPanelWidth)
+#endif
+                                    }
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
                             }
                             
                             if showAIPanel {
@@ -236,10 +234,12 @@ struct UIBuilderView: View {
                                     aiPanel
                                 }
                                 .frame(maxHeight: .infinity) // Takes remaining space
-                                .transition(.move(edge: .leading))
+                                .transition(.move(edge: .leading).combined(with: .opacity))
                             }
                         }
                         .padding()
+                        .animation(.easeInOut(duration: 0.3), value: showLayersPanel)
+                        .animation(.easeInOut(duration: 0.3), value: showAIPanel)
                     }
                     
                     Spacer()
@@ -259,24 +259,24 @@ struct UIBuilderView: View {
                             removal: .move(edge: .trailing).combined(with: .opacity)
                         ))
                         .padding()
+                        .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
                     }
                 }
             }
-            #endif
+#endif
         }
-        .navigationTitle("SwiftUI Builder")
         .toolbar { toolbarButtons }
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
-        #if os(iOS)
+#if os(iOS)
         .sheet(isPresented: $showLayersSheet) {
             layersHalfSheet
         }
         .sheet(isPresented: $showPropertiesSheet) {
             propertiesHalfSheet
         }
-        #endif
+#endif
         .onAppear {
             setupCanvas()
             // Restore saved device preset and color scheme
@@ -308,14 +308,15 @@ struct UIBuilderView: View {
             syncDesignChanges()
         }
     }
-        
+    
     private var layersPanel: some View {
         LayersPanelView(
             canvasManager: canvasManager,
-            selectedComponent: $selectedComponent
+            selectedComponent: $selectedComponent,
+            showAIPanel: $showAIPanel
         )
     }
-                
+    
     private var mainCanvasArea: some View {
         VStack {
             canvasView
@@ -344,7 +345,7 @@ struct UIBuilderView: View {
         )
     }
     
-    #if os(iOS)
+#if os(iOS)
     private var layersHalfSheet: some View {
         VStack(spacing: 0) {
             // Handle for dragging
@@ -376,7 +377,8 @@ struct UIBuilderView: View {
             // Layers content
             LayersPanelView(
                 canvasManager: canvasManager,
-                selectedComponent: $selectedComponent
+                selectedComponent: $selectedComponent,
+                showAIPanel: $showAIPanel
             )
         }
         .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
@@ -441,54 +443,52 @@ struct UIBuilderView: View {
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(false)
     }
-    #endif
+#endif
     
     private var toolbarButtons: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .primaryAction) {
-                HStack(spacing: 8) {
-                    
-                    Group{
-                        // Undo button
-                        Button(action: {
-                            canvasManager.undo()
-                        }) {
-                            Image(systemName: "arrow.uturn.backward")
-                                .font(.system(size: 14, weight: .medium))
-                        }
-                        .keyboardShortcut("z", modifiers: .command)
-                        .disabled(!canvasManager.canUndo)
-                        .help("Undo")
-                        
-                        // Redo button
-                        Button(action: {
-                            canvasManager.redo()
-                        }) {
-                            Image(systemName: "arrow.uturn.forward")
-                                .font(.system(size: 14, weight: .medium))
-                        }
-                        .keyboardShortcut("z", modifiers: [.command, .shift])
-                        .disabled(!canvasManager.canRedo)
-                        .help("Redo")
-                    }
-                    
-                    Button(action: { showCodePreview = true }) {
-                        Image(systemName: "chevron.left.forwardslash.chevron.right")
-                            .font(.system(size: 14, weight: .medium))
-                    }
-                    .help("Show Code")
-                    
-                    // AI Panel button
-                    Button(action: { showAIPanel.toggle() }) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(showAIPanel ? .blue : .primary)
-                    }
-                    .help("AI Assistant")
+        Group{
+            ToolbarItemGroup(placement: .primaryAction) {
+                // Undo button
+                Button(action: {
+                    canvasManager.undo()
+                }) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.system(size: 14, weight: .medium))
                 }
+                .keyboardShortcut("z", modifiers: .command)
+                .disabled(!canvasManager.canUndo)
+                .help("Undo")
+                
+                // Redo button
+                Button(action: {
+                    canvasManager.redo()
+                }) {
+                    Image(systemName: "arrow.uturn.forward")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .keyboardShortcut("z", modifiers: [.command, .shift])
+                .disabled(!canvasManager.canRedo)
+                .help("Redo")
+            }
+            
+            if #available(macOS 26.0, *) {
+                ToolbarSpacer(.flexible, placement: .primaryAction)
+            }
+            
+            ToolbarItemGroup(placement: .primaryAction) {
+                Menu {
+                    Button(action: { showCodePreview = true }) {
+                        Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .help("Export")
             }
         }
     }
+
     
     private var aiPanel: some View {
         AIPanelView(
@@ -763,19 +763,15 @@ struct ResizablePanel<Content: View>: View {
         .frame(maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(colorScheme == .dark ? Color(red: 0.121, green: 0.121, blue: 0.121) : Color.white)
-                .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
+                .fill(.thickMaterial)
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
         )
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
     private var resizeHandle: some View {
         Rectangle()
-            .fill(Color.secondary.opacity(0.3))
+            .fill(Color(red: 0.121, green: 0.121, blue: 0.121))
             .frame(width: 4)
             .frame(maxHeight: .infinity)
             .onHover { hovering in
