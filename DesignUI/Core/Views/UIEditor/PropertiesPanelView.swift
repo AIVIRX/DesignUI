@@ -96,11 +96,16 @@ struct PropertiesSection: View {
                 // For all other components, show their properties in a grouped form
                 GroupBox {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(component.properties.enumerated()), id: \.element.id) { index, property in
+                        // Filter out minLength property for Spacer components
+                        let filteredProperties = component.type == .spacer 
+                            ? component.properties.filter { $0.key != "minLength" }
+                            : component.properties
+                        
+                        ForEach(Array(filteredProperties.enumerated()), id: \.element.id) { index, property in
                             PropertyEditor(property: property, component: component)
                             
                             // Add divider between properties if there are 2+ and not the last one
-                            if component.properties.count >= 2 && index < component.properties.count - 1 {
+                            if filteredProperties.count >= 2 && index < filteredProperties.count - 1 {
                                 Divider()
                                     .opacity(0.3)
                                     .padding(.vertical, 2)

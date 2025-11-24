@@ -2072,6 +2072,9 @@
     "Actions" : {
 
     },
+    "Add Another" : {
+
+    },
     "Add Component" : {
 
     },
@@ -4405,6 +4408,15 @@
           }
         }
       }
+    },
+    "Component Background" : {
+
+    },
+    "Component Mask" : {
+
+    },
+    "Component Overlay" : {
+
     },
     "Components" : {
 
@@ -12563,6 +12575,9 @@
 
     },
     "Redo" : {
+
+    },
+    "Replace" : {
 
     },
     "Reset Zoom" : {

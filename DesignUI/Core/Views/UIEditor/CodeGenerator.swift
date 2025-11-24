@@ -224,13 +224,7 @@ struct CodeGenerator {
     
     // MARK: - Spacer Code Generation
     private static func generateSpacerCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let minLength = component.getProperty(key: "minLength") as? Double ?? 0.0
-        
-        if minLength > 0 {
-            return "\(indent)Spacer(minLength: \(minLength))"
-        } else {
-            return "\(indent)Spacer()"
-        }
+        return "\(indent)Spacer()"
     }
     
     // MARK: - Divider Code Generation

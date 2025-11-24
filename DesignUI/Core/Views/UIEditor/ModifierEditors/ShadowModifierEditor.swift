@@ -57,14 +57,14 @@ struct ShadowModifierEditor: View {
                         if newValue.isEmpty { return }
                         if let value = Double(newValue) {
                             var updatedModifier = modifier
-                            updatedModifier.properties["offsetX"] = CGFloat(value)
+                            updatedModifier.properties["x"] = CGFloat(value)
                             modifier = updatedModifier
                             NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                     }
                     .onSubmit {
                         if offsetXText.isEmpty || Double(offsetXText) == nil {
-                            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "offsetX", defaultValue: 0))
+                            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "x", defaultValue: 0))
                         }
                     }
             }
@@ -81,14 +81,14 @@ struct ShadowModifierEditor: View {
                         if newValue.isEmpty { return }
                         if let value = Double(newValue) {
                             var updatedModifier = modifier
-                            updatedModifier.properties["offsetY"] = CGFloat(value)
+                            updatedModifier.properties["y"] = CGFloat(value)
                             modifier = updatedModifier
                             NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                     }
                     .onSubmit {
                         if offsetYText.isEmpty || Double(offsetYText) == nil {
-                            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "offsetY", defaultValue: 2))
+                            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "y", defaultValue: 2))
                         }
                     }
             }
@@ -106,6 +106,9 @@ struct ShadowModifierEditor: View {
                         if let value = Double(newValue) {
                             var updatedModifier = modifier
                             updatedModifier.properties["opacity"] = value
+                            // Update the color with the new opacity
+                            let baseColor = modifier.properties["color"] as? Color ?? Color.black
+                            updatedModifier.properties["color"] = baseColor.opacity(value)
                             modifier = updatedModifier
                             NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
@@ -119,8 +122,24 @@ struct ShadowModifierEditor: View {
         }
         .onAppear {
             radiusText = String(format: "%.0f", modifier.getCGFloat(key: "radius", defaultValue: 4))
-            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "offsetX", defaultValue: 0))
-            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "offsetY", defaultValue: 2))
+            // Support both "x"/"y" and "offsetX"/"offsetY" for backward compatibility
+            if let x = modifier.properties["x"] as? CGFloat {
+                offsetXText = String(format: "%.0f", x)
+            } else if let offsetX = modifier.properties["offsetX"] as? CGFloat {
+                offsetXText = String(format: "%.0f", offsetX)
+            } else {
+                offsetXText = "0"
+            }
+            
+            if let y = modifier.properties["y"] as? CGFloat {
+                offsetYText = String(format: "%.0f", y)
+            } else if let offsetY = modifier.properties["offsetY"] as? CGFloat {
+                offsetYText = String(format: "%.0f", offsetY)
+            } else {
+                offsetYText = "2"
+            }
+            
+            // Initialize opacity text
             opacityText = String(format: "%.1f", modifier.getDouble(key: "opacity", defaultValue: 0.3))
         }
         .onChange(of: modifier) { _, _ in
@@ -129,14 +148,32 @@ struct ShadowModifierEditor: View {
             if Double(radiusText) != Double(currentRadius) {
                 radiusText = String(format: "%.0f", currentRadius)
             }
-            let currentOffsetX = modifier.getCGFloat(key: "offsetX", defaultValue: 0)
+            
+            // Support both "x"/"y" and "offsetX"/"offsetY"
+            let currentOffsetX: CGFloat
+            if let x = modifier.properties["x"] as? CGFloat {
+                currentOffsetX = x
+            } else if let offsetX = modifier.properties["offsetX"] as? CGFloat {
+                currentOffsetX = offsetX
+            } else {
+                currentOffsetX = 0
+            }
             if Double(offsetXText) != Double(currentOffsetX) {
                 offsetXText = String(format: "%.0f", currentOffsetX)
             }
-            let currentOffsetY = modifier.getCGFloat(key: "offsetY", defaultValue: 2)
+            
+            let currentOffsetY: CGFloat
+            if let y = modifier.properties["y"] as? CGFloat {
+                currentOffsetY = y
+            } else if let offsetY = modifier.properties["offsetY"] as? CGFloat {
+                currentOffsetY = offsetY
+            } else {
+                currentOffsetY = 2
+            }
             if Double(offsetYText) != Double(currentOffsetY) {
                 offsetYText = String(format: "%.0f", currentOffsetY)
             }
+            
             let currentOpacity = modifier.getDouble(key: "opacity", defaultValue: 0.3)
             if Double(opacityText) != currentOpacity {
                 opacityText = String(format: "%.1f", currentOpacity)

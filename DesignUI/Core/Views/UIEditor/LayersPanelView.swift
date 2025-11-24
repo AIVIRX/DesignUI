@@ -18,7 +18,6 @@ struct LayersPanelView: View {
     @State private var dragOverTarget: UUID?
     @State private var dragOverPosition: DropPosition = .none
     @State private var draggingId: UUID?
-    @State private var cleanupTimer: Timer?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -135,18 +134,12 @@ struct LayersPanelView: View {
                 .padding(.vertical, 8)
             }
             .background(Color.clear)
-            // Ensure drop preview clears if a drag operation ends anywhere
+            // When drag ends (draggingId becomes nil), immediately clear drop indicators
             .onChange(of: draggingId) { _, newValue in
                 if newValue == nil {
-                    // Cancel any existing timer
-                    cleanupTimer?.invalidate()
-                    
-                    // Set a timer to ensure cleanup happens
-                    cleanupTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { _ in
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            dragOverTarget = nil
-                            dragOverPosition = .none
-                        }
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        dragOverTarget = nil
+                        dragOverPosition = .none
                     }
                 }
             }
@@ -215,6 +208,11 @@ struct LayersPanelView: View {
 
 // MARK: - Helper Functions
 private func componentDisplayName(_ component: UIComponent) -> String {
+    // If this is a modifier parent component, show the modifier type name
+    if let modifierType = component.modifierType {
+        return modifierType.rawValue
+    }
+    
     switch component.type {
     case .text:
         let text = component.getProperty(key: "text") as? String ?? "Text"
@@ -327,8 +325,8 @@ private struct OutlineRow: View {
         VStack(spacing: 0) {
             row
             if expanded.contains(component.id) {
-                // Only render regular children (overlay children are shown in OverlayFolderRow)
-                ForEach(component.getRegularChildren()) { child in
+                // Render all children (regular + modifier parents)
+                ForEach(component.children.filter { !$0.isOverlay }) { child in
                     OutlineRow(
                         component: child,
                         level: level + 1,
@@ -338,7 +336,13 @@ private struct OutlineRow: View {
                         dragOverPosition: $dragOverPosition,
                         draggingId: $draggingId,
                         onDelete: { 
-                            component.removeChild(child)
+                            // If it's a modifier parent, also remove the modifier
+                            if let modifierId = child.modifierId,
+                               let modifier = component.modifiers.first(where: { $0.id == modifierId }) {
+                                component.removeModifier(modifier)
+                            } else {
+                                component.removeChild(child)
+                            }
                             if selectedComponent?.id == child.id {
                                 selectedComponent = nil
                             }
@@ -353,12 +357,18 @@ private struct OutlineRow: View {
                                     y: child.frame.origin.y + 20,
                                     width: child.frame.width,
                                     height: child.frame.height
-                                )
+                                ),
+                                modifierId: child.modifierId,
+                                modifierType: child.modifierType
                             )
                             if let childIndex = component.children.firstIndex(where: { $0.id == child.id }) {
                                 component.children.insert(duplicatedChild, at: childIndex + 1)
                             } else {
-                                component.addChild(duplicatedChild)
+                                if let modifierId = child.modifierId {
+                                    component.addModifierChild(duplicatedChild, modifierId: modifierId)
+                                } else {
+                                    component.addChild(duplicatedChild)
+                                }
                             }
                             selectedComponent = duplicatedChild
                         },
@@ -459,9 +469,16 @@ private struct OutlineRow: View {
     
     private var componentIcon: some View {
         HStack(spacing: 2) {
-            Image(systemName: component.type.icon)
-                .font(.system(size: 14))
-                .foregroundColor(componentIconColor)
+            // If this is a modifier parent, show the modifier icon instead
+            if let modifierType = component.modifierType {
+                Image(systemName: modifierType.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(componentIconColor)
+            } else {
+                Image(systemName: component.type.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(componentIconColor)
+            }
         }
         .frame(width: 20)
     }
@@ -521,20 +538,30 @@ private struct OutlineRow: View {
     }
     
     private var dragOverlay: some View {
-        VStack(spacing: 0) {
-            if dragOverTarget == component.id && dragOverPosition == .above {
-                Divider().overlay(Color.accentColor).frame(height: 2)
-            }
-            Spacer(minLength: 0)
-            if dragOverTarget == component.id && dragOverPosition == .below {
-                Divider().overlay(Color.accentColor).frame(height: 2)
+        // Only show drop line when actively dragging and hovering over this item
+        Group {
+            if draggingId != nil && dragOverTarget == component.id && dragOverPosition != .none {
+                VStack(spacing: 0) {
+                    if dragOverPosition == .above {
+                        Divider()
+                            .overlay(Color.accentColor)
+                            .frame(height: 2)
+                    }
+                    Spacer()
+                    if dragOverPosition == .below {
+                        Divider()
+                            .overlay(Color.accentColor)
+                            .frame(height: 2)
+                    }
+                }
             }
         }
     }
     
     private var dropZoneOverlay: some View {
+        // Only show drop zone when actively dragging and hovering over this item
         Group {
-            if dragOverTarget == component.id && dragOverPosition == .inside && canAcceptChildren(component) {
+            if draggingId != nil && dragOverTarget == component.id && dragOverPosition == .inside && canAcceptChildren(component) {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(Color.accentColor.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
                     .padding(2)
@@ -599,12 +626,16 @@ private struct RowDropDelegate: DropDelegate {
     }
     
     func dropEntered(info: DropInfo) {
+        // Only show drop line if we're actually dragging something
+        guard draggingId != nil else { return }
         dragOverTarget = target.id
         updatePosition(info: info)
         // Don't auto-expand collapsed hierarchies when dragging over them
     }
     
     func dropUpdated(info: DropInfo) -> DropProposal? {
+        // Only update if we're actually dragging something
+        guard draggingId != nil else { return nil }
         dragOverTarget = target.id
         updatePosition(info: info)
         return DropProposal(operation: .move)
@@ -612,7 +643,7 @@ private struct RowDropDelegate: DropDelegate {
     
     func performDrop(info: DropInfo) -> Bool {
         guard let sourceId = draggingId else { 
-            cleanup()
+            clearDropIndicators()
             return false 
         }
         
@@ -637,29 +668,35 @@ private struct RowDropDelegate: DropDelegate {
                 onMove(sourceId, parentId, max(insertIndex, 0))
             }
         case .none:
-            cleanup()
+            clearDropIndicators()
             return false
         }
         
-        // Always cleanup after successful drop
+        // Clear indicators immediately before performing move
+        clearDropIndicators()
+        
+        // Clear draggingId to signal drag is complete
         DispatchQueue.main.async {
-            cleanup()
+            draggingId = nil
         }
+        
         return true
     }
     
     func dropExited(info: DropInfo) {
+        // Only clear if this was the target we were hovering over
         if dragOverTarget == target.id {
-            dragOverTarget = nil
-            dragOverPosition = .none
+            withAnimation(.easeOut(duration: 0.15)) {
+                dragOverTarget = nil
+                dragOverPosition = .none
+            }
         }
     }
 
     func dropEnded(info: DropInfo) {
-        // Defensive clear to ensure preview lines are removed
+        // Clear everything immediately when drag ends
+        clearDropIndicators()
         DispatchQueue.main.async {
-            dragOverTarget = nil
-            dragOverPosition = .none
             draggingId = nil
         }
     }
@@ -668,24 +705,25 @@ private struct RowDropDelegate: DropDelegate {
         let y = info.location.y
         let height = 36.0 // Approximate row height
         
-        if y < height * 0.25 {
-            dragOverPosition = .above
-        } else if y > height * 0.75 {
-            dragOverPosition = .below
-        } else {
-            // Inside drop zone - only allow for containers
-            if canAcceptChildren(target) {
-                dragOverPosition = .inside
-            } else {
-                // For non-containers, default to below
+        withAnimation(.easeOut(duration: 0.1)) {
+            if y < height * 0.25 {
+                dragOverPosition = .above
+            } else if y > height * 0.75 {
                 dragOverPosition = .below
+            } else {
+                // Inside drop zone - only allow for containers
+                if canAcceptChildren(target) {
+                    dragOverPosition = .inside
+                } else {
+                    // For non-containers, default to below
+                    dragOverPosition = .below
+                }
             }
         }
     }
     
-    private func cleanup() {
-        DispatchQueue.main.async {
-            draggingId = nil
+    private func clearDropIndicators() {
+        withAnimation(.easeOut(duration: 0.15)) {
             dragOverTarget = nil
             dragOverPosition = .none
         }

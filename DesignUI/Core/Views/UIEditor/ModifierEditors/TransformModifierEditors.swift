@@ -76,14 +76,14 @@ struct ScaleModifierEditor: View {
                         if newValue.isEmpty { return }
                         if let value = Double(newValue) {
                             var updatedModifier = modifier
-                            updatedModifier.properties["scaleX"] = value
+                            updatedModifier.properties["x"] = value
                             modifier = updatedModifier
                             NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                     }
                     .onSubmit {
                         if scaleXText.isEmpty || Double(scaleXText) == nil {
-                            scaleXText = String(format: "%.1f", modifier.getDouble(key: "scaleX", defaultValue: 1.0))
+                            scaleXText = String(format: "%.1f", modifier.getDouble(key: "x", defaultValue: 1.0))
                         }
                     }
             }
@@ -99,28 +99,28 @@ struct ScaleModifierEditor: View {
                         if newValue.isEmpty { return }
                         if let value = Double(newValue) {
                             var updatedModifier = modifier
-                            updatedModifier.properties["scaleY"] = value
+                            updatedModifier.properties["y"] = value
                             modifier = updatedModifier
                             NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                     }
                     .onSubmit {
                         if scaleYText.isEmpty || Double(scaleYText) == nil {
-                            scaleYText = String(format: "%.1f", modifier.getDouble(key: "scaleY", defaultValue: 1.0))
+                            scaleYText = String(format: "%.1f", modifier.getDouble(key: "y", defaultValue: 1.0))
                         }
                     }
             }
         }
         .onAppear {
-            scaleXText = String(format: "%.1f", modifier.getDouble(key: "scaleX", defaultValue: 1.0))
-            scaleYText = String(format: "%.1f", modifier.getDouble(key: "scaleY", defaultValue: 1.0))
+            scaleXText = String(format: "%.1f", modifier.getDouble(key: "x", defaultValue: 1.0))
+            scaleYText = String(format: "%.1f", modifier.getDouble(key: "y", defaultValue: 1.0))
         }
         .onChange(of: modifier) { _, _ in
-            let currentScaleX = modifier.getDouble(key: "scaleX", defaultValue: 1.0)
+            let currentScaleX = modifier.getDouble(key: "x", defaultValue: 1.0)
             if Double(scaleXText) != currentScaleX {
                 scaleXText = String(format: "%.1f", currentScaleX)
             }
-            let currentScaleY = modifier.getDouble(key: "scaleY", defaultValue: 1.0)
+            let currentScaleY = modifier.getDouble(key: "y", defaultValue: 1.0)
             if Double(scaleYText) != currentScaleY {
                 scaleYText = String(format: "%.1f", currentScaleY)
             }
@@ -151,14 +151,14 @@ struct OffsetModifierEditor: View {
                         if newValue.isEmpty { return }
                         if let value = Double(newValue) {
                             var updatedModifier = modifier
-                            updatedModifier.properties["offsetX"] = CGFloat(value)
+                            updatedModifier.properties["x"] = CGFloat(value)
                             modifier = updatedModifier
                             NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                     }
                     .onSubmit {
                         if offsetXText.isEmpty || Double(offsetXText) == nil {
-                            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "offsetX", defaultValue: 0))
+                            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "x", defaultValue: 0))
                         }
                     }
             }
@@ -174,28 +174,28 @@ struct OffsetModifierEditor: View {
                         if newValue.isEmpty { return }
                         if let value = Double(newValue) {
                             var updatedModifier = modifier
-                            updatedModifier.properties["offsetY"] = CGFloat(value)
+                            updatedModifier.properties["y"] = CGFloat(value)
                             modifier = updatedModifier
                             NotificationCenter.default.post(name: .designChanged, object: nil)
                         }
                     }
                     .onSubmit {
                         if offsetYText.isEmpty || Double(offsetYText) == nil {
-                            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "offsetY", defaultValue: 0))
+                            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "y", defaultValue: 0))
                         }
                     }
             }
         }
         .onAppear {
-            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "offsetX", defaultValue: 0))
-            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "offsetY", defaultValue: 0))
+            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "x", defaultValue: 0))
+            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "y", defaultValue: 0))
         }
         .onChange(of: modifier) { _, _ in
-            let currentOffsetX = modifier.getCGFloat(key: "offsetX", defaultValue: 0)
+            let currentOffsetX = modifier.getCGFloat(key: "x", defaultValue: 0)
             if Double(offsetXText) != Double(currentOffsetX) {
                 offsetXText = String(format: "%.0f", currentOffsetX)
             }
-            let currentOffsetY = modifier.getCGFloat(key: "offsetY", defaultValue: 0)
+            let currentOffsetY = modifier.getCGFloat(key: "y", defaultValue: 0)
             if Double(offsetYText) != Double(currentOffsetY) {
                 offsetYText = String(format: "%.0f", currentOffsetY)
             }

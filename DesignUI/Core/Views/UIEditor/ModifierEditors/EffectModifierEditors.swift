@@ -56,14 +56,14 @@ struct BlurModifierEditor: View {
 // MARK: - Clip Shape Modifier Editor
 struct ClipShapeModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var clipShapeType: String = "rectangle"
+    @State private var clipShapeType: String = "Rectangle"
     
     private let clipShapeTypes = [
-        ("rectangle", "Rectangle"),
-        ("circle", "Circle"),
-        ("roundedRectangle", "Rounded Rectangle"),
-        ("capsule", "Capsule"),
-        ("ellipse", "Ellipse")
+        ("Rectangle", "Rectangle"),
+        ("Circle", "Circle"),
+        ("RoundedRectangle", "Rounded Rectangle"),
+        ("Capsule", "Capsule"),
+        ("Ellipse", "Ellipse")
     ]
     
     var body: some View {
@@ -84,13 +84,23 @@ struct ClipShapeModifierEditor: View {
                 }
                 .pickerStyle(.menu)
                 .onChange(of: clipShapeType) { _, newValue in
-                    modifier.properties["shapeType"] = newValue
+                    modifier.properties["shape"] = newValue
                     NotificationCenter.default.post(name: .designChanged, object: nil)
                 }
             }
         }
         .onAppear {
-            clipShapeType = modifier.properties["shapeType"] as? String ?? "rectangle"
+            // Support both "shape" and "shapeType" for backward compatibility
+            if let shape = modifier.properties["shape"] as? String {
+                clipShapeType = shape
+            } else if let shapeType = modifier.properties["shapeType"] as? String {
+                // Convert old lowercase values to capitalized
+                let capitalized = shapeType.capitalized
+                clipShapeType = capitalized == "Roundedrectangle" ? "RoundedRectangle" : capitalized
+                modifier.properties["shape"] = clipShapeType
+            } else {
+                clipShapeType = "Rectangle"
+            }
         }
     }
 }
@@ -98,7 +108,9 @@ struct ClipShapeModifierEditor: View {
 // MARK: - Mask Modifier Editor
 struct MaskModifierEditor: View {
     @Binding var modifier: ComponentModifier
+    @ObservedObject var component: UIComponent
     @State private var maskType: String = "rectangle"
+    @State private var showComponentLibrary = false
     
     private let maskTypes = [
         ("rectangle", "Rectangle"),
@@ -133,6 +145,73 @@ struct MaskModifierEditor: View {
         }
         .onAppear {
             maskType = modifier.properties["maskType"] as? String ?? "rectangle"
+        }
+        
+        Divider()
+            .padding(.vertical, 8)
+        
+        // Component mask section
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Component Mask")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            let modifierChildren = component.getChildrenForModifier(modifier.id)
+            
+            if modifierChildren.isEmpty {
+                Button(action: { showComponentLibrary = true }) {
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text("Add Component")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            } else {
+                // Show existing child
+                ForEach(modifierChildren) { child in
+                    HStack {
+                        Image(systemName: child.type.icon)
+                            .font(.caption)
+                        Text(child.type.rawValue)
+                            .font(.caption)
+                        Spacer()
+                        Button(action: {
+                            component.removeChild(child)
+                        }) {
+                            Image(systemName: "trash")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                Button(action: { showComponentLibrary = true }) {
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text("Replace")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .sheet(isPresented: $showComponentLibrary) {
+            ComponentLibraryForModifierView(
+                modifier: modifier,
+                component: component,
+                onAdd: { newComponent in
+                    // Remove existing children first (mask only supports one)
+                    let existingChildren = component.getChildrenForModifier(modifier.id)
+                    for child in existingChildren {
+                        component.removeChild(child)
+                    }
+                    component.addModifierChild(newComponent, modifierId: modifier.id)
+                    showComponentLibrary = false
+                }
+            )
         }
     }
 }

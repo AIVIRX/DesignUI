@@ -10,7 +10,9 @@ import SwiftUI
 // MARK: - Overlay Modifier Editor
 struct OverlayModifierEditor: View {
     @Binding var modifier: ComponentModifier
+    @ObservedObject var component: UIComponent
     @State private var overlayType: String = "color"
+    @State private var showComponentLibrary = false
     
     private var color: Binding<Color> {
         Binding(
@@ -89,6 +91,73 @@ struct OverlayModifierEditor: View {
         }
         .onAppear {
             overlayType = modifier.properties["overlayType"] as? String ?? "color"
+        }
+        
+        Divider()
+            .padding(.vertical, 8)
+        
+        // Component overlay section
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Component Overlay")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            let modifierChildren = component.getChildrenForModifier(modifier.id)
+            
+            if modifierChildren.isEmpty {
+                Button(action: { showComponentLibrary = true }) {
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text("Add Component")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            } else {
+                // Show existing child
+                ForEach(modifierChildren) { child in
+                    HStack {
+                        Image(systemName: child.type.icon)
+                            .font(.caption)
+                        Text(child.type.rawValue)
+                            .font(.caption)
+                        Spacer()
+                        Button(action: {
+                            component.removeChild(child)
+                        }) {
+                            Image(systemName: "trash")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                Button(action: { showComponentLibrary = true }) {
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text("Replace")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .sheet(isPresented: $showComponentLibrary) {
+            ComponentLibraryForModifierView(
+                modifier: modifier,
+                component: component,
+                onAdd: { newComponent in
+                    // Remove existing children first (overlay only supports one)
+                    let existingChildren = component.getChildrenForModifier(modifier.id)
+                    for child in existingChildren {
+                        component.removeChild(child)
+                    }
+                    component.addModifierChild(newComponent, modifierId: modifier.id)
+                    showComponentLibrary = false
+                }
+            )
         }
     }
 }

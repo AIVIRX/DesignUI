@@ -41,7 +41,7 @@ struct ModifierEditorView: View {
                 case .padding:
                     PaddingModifierEditor(modifier: $modifier, component: component)
                 case .background:
-                    BackgroundModifierEditor(modifier: $modifier)
+                    BackgroundModifierEditor(modifier: $modifier, component: component)
                 case .foregroundColor:
                     ColorModifierEditor(modifier: $modifier, title: "Foreground Color")
                 case .cornerRadius:
@@ -61,13 +61,15 @@ struct ModifierEditorView: View {
                 case .clipShape:
                     ClipShapeModifierEditor(modifier: $modifier)
                 case .mask:
-                    MaskModifierEditor(modifier: $modifier)
+                    MaskModifierEditor(modifier: $modifier, component: component)
                 case .overlay:
-                    OverlayModifierEditor(modifier: $modifier)
+                    OverlayModifierEditor(modifier: $modifier, component: component)
                 case .border:
                     BorderModifierEditor(modifier: $modifier)
                 case .textAlignment:
                     TextAlignmentModifierEditor(modifier: $modifier, component: component)
+                case .fill:
+                    ColorModifierEditor(modifier: $modifier, title: "Fill Color")
                 }
             }
             

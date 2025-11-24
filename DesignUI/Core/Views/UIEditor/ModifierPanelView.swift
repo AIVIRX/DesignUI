@@ -62,10 +62,9 @@ struct ModifierPanelView: View {
 
 struct ModifierReorderableList: View {
     @ObservedObject var component: UIComponent
-    @State private var dragOverTarget: UUID?
+    @State private var dragOverTarget: UUID? 
     @State private var dragOverPosition: ModifierDropPosition = .none
     @State private var draggingId: UUID?
-    @State private var cleanupTimer: Timer?
     
     enum ModifierDropPosition { case none, above, below }
     
@@ -76,9 +75,6 @@ struct ModifierReorderableList: View {
                     component: component,
                     modifier: modifier,
                     index: index,
-                    onDelete: {
-                        component.removeModifier(modifier)
-                    },
                     dragOverTarget: $dragOverTarget,
                     dragOverPosition: $dragOverPosition,
                     draggingId: $draggingId,
@@ -89,25 +85,13 @@ struct ModifierReorderableList: View {
             }
         }
         .onChange(of: draggingId) { _, newValue in
+            // When drag ends (draggingId becomes nil), immediately clear drop indicators
             if newValue == nil {
-                cleanupTimer?.invalidate()
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(.easeOut(duration: 0.15)) {
                     dragOverTarget = nil
                     dragOverPosition = .none
                 }
-            } else {
-                // Start cleanup timer when dragging starts
-                cleanupTimer?.invalidate()
-                cleanupTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        dragOverTarget = nil
-                        dragOverPosition = .none
-                    }
-                }
             }
-        }
-        .onDisappear {
-            cleanupTimer?.invalidate()
         }
     }
 }
@@ -116,26 +100,15 @@ struct ModifierItemView: View {
     @ObservedObject var component: UIComponent
     let modifier: ComponentModifier
     let index: Int
-    let onDelete: () -> Void
     @Binding var dragOverTarget: UUID?
     @Binding var dragOverPosition: ModifierReorderableList.ModifierDropPosition
     @Binding var draggingId: UUID?
     let onMove: (Int, Int) -> Void
     @State private var showingEditor = false
-    @State private var isHovered = false
     
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                // Drag handle
-                Image(systemName: "line.3.horizontal")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .onDrag {
-                        draggingId = modifier.id
-                        return NSItemProvider(object: modifier.id.uuidString as NSString)
-                    }
-                
                 // Modifier icon and name
                 HStack(spacing: 8) {
                     Image(systemName: modifier.type.icon)
@@ -149,16 +122,6 @@ struct ModifierItemView: View {
                 }
                 
                 Spacer()
-                
-                // Delete button
-                if isHovered {
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -167,13 +130,22 @@ struct ModifierItemView: View {
                     .fill(Color.secondary.opacity(0.1))
             )
             .overlay(
-                VStack(spacing: 0) {
-                    if dragOverTarget == modifier.id && dragOverPosition == .above {
-                        Divider().overlay(Color.accentColor).frame(height: 2)
-                    }
-                    Spacer(minLength: 0)
-                    if dragOverTarget == modifier.id && dragOverPosition == .below {
-                        Divider().overlay(Color.accentColor).frame(height: 2)
+                // Only show drop line when actively dragging and hovering over this item
+                Group {
+                    if draggingId != nil && dragOverTarget == modifier.id && dragOverPosition != .none {
+                        VStack(spacing: 0) {
+                            if dragOverPosition == .above {
+                                Divider()
+                                    .overlay(Color.accentColor)
+                                    .frame(height: 2)
+                            }
+                            Spacer()
+                            if dragOverPosition == .below {
+                                Divider()
+                                    .overlay(Color.accentColor)
+                                    .frame(height: 2)
+                            }
+                        }
                     }
                 }
             )
@@ -181,10 +153,29 @@ struct ModifierItemView: View {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
             )
-            .onTapGesture {
-                showingEditor = true
+            .onDrag {
+                draggingId = modifier.id
+                return NSItemProvider(object: modifier.id.uuidString as NSString)
             }
-            .onHover { isHovered = $0 }
+            .onTapGesture {
+                // Only show editor for modifiers that don't have parent components
+                if modifier.type != .overlay && modifier.type != .mask && modifier.type != .background {
+                    showingEditor = true
+                }
+            }
+            .contextMenu {
+                Button(action: {
+                    duplicateModifier()
+                }) {
+                    Label("Duplicate", systemImage: "doc.on.doc")
+                }
+                
+                Button(role: .destructive, action: {
+                    component.removeModifier(modifier)
+                }) {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
             .onDrop(of: [UTType.plainText], delegate: ModifierDropDelegate(
                 target: modifier,
                 targetIndex: index,
@@ -287,6 +278,23 @@ struct ModifierItemView: View {
             return baseName
         }
     }
+    
+    /// Duplicates the current modifier and inserts it right after the current one
+    private func duplicateModifier() {
+        // Create a new modifier with the same type and properties
+        let duplicatedModifier = ComponentModifier(
+            type: modifier.type,
+            properties: modifier.properties
+        )
+        
+        // Insert the duplicate right after the current modifier
+        let insertIndex = index + 1
+        component.modifiers.insert(duplicatedModifier, at: insertIndex)
+        component.objectWillChange.send()
+        
+        // Post notification to trigger design file saving
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
 }
 
 struct ModifierDropDelegate: DropDelegate {
@@ -303,11 +311,15 @@ struct ModifierDropDelegate: DropDelegate {
     }
     
     func dropEntered(info: DropInfo) {
+        // Only show drop line if we're actually dragging something
+        guard draggingId != nil else { return }
         dragOverTarget = target.id
         updatePosition(info: info)
     }
     
     func dropUpdated(info: DropInfo) -> DropProposal? {
+        // Only update if we're actually dragging something
+        guard draggingId != nil else { return nil }
         dragOverTarget = target.id
         updatePosition(info: info)
         return DropProposal(operation: .move)
@@ -315,13 +327,13 @@ struct ModifierDropDelegate: DropDelegate {
     
     func performDrop(info: DropInfo) -> Bool {
         guard let sourceId = draggingId else { 
-            cleanup()
+            clearDropIndicators()
             return false 
         }
         
         // Find source index
         guard let sourceIndex = findModifierIndex(id: sourceId) else {
-            cleanup()
+            clearDropIndicators()
             return false
         }
         
@@ -332,33 +344,37 @@ struct ModifierDropDelegate: DropDelegate {
         case .below:
             targetIndex += 1
         case .none:
-            cleanup()
+            clearDropIndicators()
             return false
         }
         
+        // Clear indicators immediately before performing move
+        clearDropIndicators()
         onMove(sourceIndex, targetIndex)
-        cleanup()
+        
+        // Clear draggingId to signal drag is complete
+        DispatchQueue.main.async {
+            draggingId = nil
+        }
+        
         return true
     }
     
     func dropExited(info: DropInfo) {
+        // Only clear if this was the target we were hovering over
         if dragOverTarget == target.id {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeOut(duration: 0.2)) {
-                    dragOverTarget = nil
-                    dragOverPosition = .none
-                }
+            withAnimation(.easeOut(duration: 0.15)) {
+                dragOverTarget = nil
+                dragOverPosition = .none
             }
         }
     }
     
     func dropEnded(info: DropInfo) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.easeOut(duration: 0.2)) {
-                dragOverTarget = nil
-                dragOverPosition = .none
-                draggingId = nil
-            }
+        // Clear everything immediately when drag ends
+        clearDropIndicators()
+        DispatchQueue.main.async {
+            draggingId = nil
         }
     }
     
@@ -366,20 +382,19 @@ struct ModifierDropDelegate: DropDelegate {
         let y = info.location.y
         let height = 32.0 // Approximate row height
         
-        if y < height * 0.5 {
-            dragOverPosition = .above
-        } else {
-            dragOverPosition = .below
+        withAnimation(.easeOut(duration: 0.1)) {
+            if y < height * 0.5 {
+                dragOverPosition = .above
+            } else {
+                dragOverPosition = .below
+            }
         }
     }
     
-    private func cleanup() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.easeOut(duration: 0.2)) {
-                draggingId = nil
-                dragOverTarget = nil
-                dragOverPosition = .none
-            }
+    private func clearDropIndicators() {
+        withAnimation(.easeOut(duration: 0.15)) {
+            dragOverTarget = nil
+            dragOverPosition = .none
         }
     }
     

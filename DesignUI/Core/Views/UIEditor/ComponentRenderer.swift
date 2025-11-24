@@ -67,7 +67,7 @@ struct ComponentRenderer: View {
             }
         }
         .opacity(component.isVisible ? 1.0 : 0.0)
-        .applyModifiers(component.modifiers, deviceSize: deviceSize)
+        .applyModifiers(component.modifiers, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
         .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
         .colorScheme(colorScheme ?? .light)
         .contentShape(Rectangle())
@@ -603,19 +603,19 @@ private extension View {
         return view
     }
     
-    func applyModifiers(_ modifiers: [ComponentModifier], deviceSize: CGSize?) -> some View {
+    func applyModifiers(_ modifiers: [ComponentModifier], component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent) -> Void)?, selectedComponent: UIComponent?) -> some View {
         var view = AnyView(self)
         
         print("🎨 Applying \(modifiers.count) modifiers to component")
         for (index, modifier) in modifiers.enumerated() {
             print("🎨   - Modifier \(index): \(modifier.type.rawValue) with properties: \(modifier.properties)")
-            view = AnyView(applyModifier(modifier, to: view, deviceSize: deviceSize))
+            view = AnyView(applyModifier(modifier, to: view, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponent: selectedComponent))
         }
         
         return view
     }
     
-    private func applyModifier(_ modifier: ComponentModifier, to view: AnyView, deviceSize: CGSize?) -> AnyView {
+    private func applyModifier(_ modifier: ComponentModifier, to view: AnyView, component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent) -> Void)?, selectedComponent: UIComponent?) -> AnyView {
         switch modifier.type {
         case .frame:
             let widthType = modifier.properties["widthType"] as? String ?? "Default"
@@ -687,6 +687,23 @@ private extension View {
             return result
             
         case .background:
+            // Get parent component for this modifier
+            if let parentComponent = component.getParentComponentForModifier(modifier.id) {
+                // Render the parent component and its children as background
+                let backgroundView = ComponentRenderer(
+                    component: parentComponent,
+                    deviceSize: deviceSize,
+                    colorScheme: colorScheme,
+                    onTap: {
+                        onSelectChild?(parentComponent)
+                    },
+                    onSelectChild: onSelectChild,
+                    selectedComponent: selectedComponent
+                )
+                return AnyView(view.background(backgroundView))
+            }
+            
+            // Fallback to color background for backward compatibility
             let color = modifier.properties["color"] as? Color ?? Color.clear
             print("🎨 Applying background modifier with color: \(color)")
             return AnyView(view.background(color))
@@ -695,15 +712,42 @@ private extension View {
             let color = modifier.properties["color"] as? Color ?? Color.primary
             return AnyView(view.foregroundColor(color))
             
+        case .fill:
+            let color = modifier.properties["color"] as? Color ?? Color.blue
+            return AnyView(view.background(color))
+            
         case .cornerRadius:
             let radius = modifier.getCGFloat(key: "radius", defaultValue: 0)
             return AnyView(view.cornerRadius(radius))
             
         case .shadow:
             let radius = modifier.getCGFloat(key: "radius", defaultValue: 0)
-            let x = modifier.getCGFloat(key: "x", defaultValue: 0)
-            let y = modifier.getCGFloat(key: "y", defaultValue: 0)
-            let color = modifier.properties["color"] as? Color ?? Color.black
+            
+            // Support both "x"/"y" and "offsetX"/"offsetY" for backward compatibility
+            let x: CGFloat
+            if let offsetX = modifier.properties["offsetX"] as? CGFloat {
+                x = offsetX
+            } else if let offsetX = modifier.properties["offsetX"] as? Double {
+                x = CGFloat(offsetX)
+            } else {
+                x = modifier.getCGFloat(key: "x", defaultValue: 0)
+            }
+            
+            let y: CGFloat
+            if let offsetY = modifier.properties["offsetY"] as? CGFloat {
+                y = offsetY
+            } else if let offsetY = modifier.properties["offsetY"] as? Double {
+                y = CGFloat(offsetY)
+            } else {
+                y = modifier.getCGFloat(key: "y", defaultValue: 0)
+            }
+            
+            // Get color, applying opacity if specified
+            var color = modifier.properties["color"] as? Color ?? Color.black
+            if let opacity = modifier.properties["opacity"] as? Double {
+                color = color.opacity(opacity)
+            }
+            
             return AnyView(view.shadow(color: color, radius: radius, x: x, y: y))
             
         case .opacity:
@@ -715,45 +759,63 @@ private extension View {
             return AnyView(view.rotationEffect(.degrees(angle)))
             
         case .scale:
-            let x = modifier.getDouble(key: "x", defaultValue: 1.0)
-            let y = modifier.getDouble(key: "y", defaultValue: 1.0)
+            // Support both "x"/"y" and "scaleX"/"scaleY" for backward compatibility
+            let x: Double
+            if let scaleX = modifier.properties["scaleX"] as? Double {
+                x = scaleX
+            } else {
+                x = modifier.getDouble(key: "x", defaultValue: 1.0)
+            }
+            
+            let y: Double
+            if let scaleY = modifier.properties["scaleY"] as? Double {
+                y = scaleY
+            } else {
+                y = modifier.getDouble(key: "y", defaultValue: 1.0)
+            }
             return AnyView(view.scaleEffect(x: x, y: y))
             
         case .offset:
-            let x = modifier.getCGFloat(key: "x", defaultValue: 0)
-            let y = modifier.getCGFloat(key: "y", defaultValue: 0)
+            // Support both "x"/"y" and "offsetX"/"offsetY" for backward compatibility
+            let x: CGFloat
+            if let offsetX = modifier.properties["offsetX"] as? CGFloat {
+                x = offsetX
+            } else if let offsetX = modifier.properties["offsetX"] as? Double {
+                x = CGFloat(offsetX)
+            } else {
+                x = modifier.getCGFloat(key: "x", defaultValue: 0)
+            }
+            
+            let y: CGFloat
+            if let offsetY = modifier.properties["offsetY"] as? CGFloat {
+                y = offsetY
+            } else if let offsetY = modifier.properties["offsetY"] as? Double {
+                y = CGFloat(offsetY)
+            } else {
+                y = modifier.getCGFloat(key: "y", defaultValue: 0)
+            }
             return AnyView(view.offset(x: x, y: y))
         case .blur:
             let radius = modifier.getCGFloat(key: "radius", defaultValue: 0)
             return AnyView(view.blur(radius: radius))
             
         case .overlay:
-            // For overlay, we need to render a component if it exists in properties
-            // Since we can't easily store UIComponent in properties directly due to AnyCodable limitations,
-            // we might need to handle this differently.
-            // Ideally, the overlay component should be a child of the main component but marked as "overlay".
-            // But since we are using modifiers, we need to reconstruct the component from the dictionary if possible.
-            
-            // Simplified approach: Render a placeholder or text for now if we can't fully reconstruct.
-            // Better approach: If we have a "component" property that is a dictionary, try to decode it?
-            // Or, if we have a "text" property, render a text overlay.
-            
-            // Let's support a simple text overlay for now to demonstrate functionality
-            if let text = modifier.properties["text"] as? String {
+            // Get parent component for this modifier
+            if let parentComponent = component.getParentComponentForModifier(modifier.id) {
+                // Render the parent component and its children as overlay
+                let overlayView = ComponentRenderer(
+                    component: parentComponent,
+                    deviceSize: deviceSize,
+                    colorScheme: colorScheme,
+                    onTap: {
+                        onSelectChild?(parentComponent)
+                    },
+                    onSelectChild: onSelectChild,
+                    selectedComponent: selectedComponent
+                )
                 let alignment = alignmentFromString(modifier.properties["alignment"] as? String ?? "center")
-                return AnyView(view.overlay(
-                    Text(text)
-                        .foregroundColor(.white)
-                        .padding(4)
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(4),
-                    alignment: alignment
-                ))
+                return AnyView(view.overlay(overlayView, alignment: alignment))
             }
-            
-            // If we have a full component dictionary (future proofing)
-            // This part is tricky without a way to decode UIComponent from [String: Any] easily here.
-            // We'll stick to the text overlay or a simple shape overlay for this iteration.
             
             return view
             
@@ -763,19 +825,46 @@ private extension View {
             return AnyView(view.border(color, width: width))
             
         case .clipShape:
-            let shapeName = modifier.properties["shape"] as? String ?? "Rectangle"
+            // Support both "shape" and "shapeType" for backward compatibility
+            var shapeName: String
+            if let shape = modifier.properties["shape"] as? String {
+                shapeName = shape
+            } else if let shapeType = modifier.properties["shapeType"] as? String {
+                // Convert old lowercase values to capitalized
+                let capitalized = shapeType.capitalized
+                shapeName = capitalized == "Roundedrectangle" ? "RoundedRectangle" : capitalized
+            } else {
+                shapeName = "Rectangle"
+            }
+            
             switch shapeName {
             case "Circle": return AnyView(view.clipShape(Circle()))
             case "Capsule": return AnyView(view.clipShape(Capsule()))
             case "RoundedRectangle":
                 let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 8)
                 return AnyView(view.clipShape(RoundedRectangle(cornerRadius: radius)))
+            case "Ellipse": return AnyView(view.clipShape(Ellipse()))
             default: return AnyView(view.clipShape(Rectangle()))
             }
             
         case .mask:
-            // Simplified mask: Mask with another view (e.g. a shape or text)
-            // For now, let's support masking with a shape
+            // Get parent component for this modifier
+            if let parentComponent = component.getParentComponentForModifier(modifier.id) {
+                // Render the parent component and its children as mask
+                let maskView = ComponentRenderer(
+                    component: parentComponent,
+                    deviceSize: deviceSize,
+                    colorScheme: colorScheme,
+                    onTap: {
+                        onSelectChild?(parentComponent)
+                    },
+                    onSelectChild: onSelectChild,
+                    selectedComponent: selectedComponent
+                )
+                return AnyView(view.mask(maskView))
+            }
+            
+            // Fallback to shape mask for backward compatibility
             let shapeName = modifier.properties["shape"] as? String ?? "Rectangle"
             switch shapeName {
             case "Circle": return AnyView(view.mask(Circle()))

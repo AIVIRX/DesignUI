@@ -28,6 +28,7 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
     case overlay = "Overlay"
     case border = "Border"
     case textAlignment = "Text Alignment"
+    case fill = "Fill"
     
     var id: String { rawValue }
     
@@ -65,6 +66,8 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "Adds a border with color and width"
         case .textAlignment:
             return "Aligns text content"
+        case .fill:
+            return "Fills the view with a color"
         }
     }
     
@@ -102,6 +105,8 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "square.dashed"
         case .textAlignment:
             return "text.alignleft"
+        case .fill:
+            return "paintbrush.fill"
         }
     }
 }
@@ -196,6 +201,10 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         case .textAlignment:
             defaultProperties = [
                 "alignment": "leading"
+            ]
+        case .fill:
+            defaultProperties = [
+                "color": Color.blue
             ]
         }
         

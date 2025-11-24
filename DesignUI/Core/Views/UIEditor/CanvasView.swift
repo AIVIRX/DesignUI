@@ -246,8 +246,6 @@ struct ComponentsContainerWithStatusBar: View {
                     }
                 }
             }
-            
-            Spacer() // Push content to top, allow bottom content to reach bottom
         }
         .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
         .clipped() // Prevent content from expanding beyond the screen bounds

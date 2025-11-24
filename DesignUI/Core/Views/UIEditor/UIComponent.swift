@@ -398,8 +398,10 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     @Published var zIndex: Int = 0
     @Published var modifiers: [ComponentModifier]
     @Published var isOverlay: Bool = false // Marks this component as an overlay child
+    @Published var modifierId: UUID? // ID of the modifier this child belongs to (for overlay, mask, background)
+    @Published var modifierType: ModifierType? // Type of modifier this parent component belongs to
     
-    init(type: ComponentType, properties: [ComponentProperty] = [], children: [UIComponent] = [], frame: CGRect = .zero, modifiers: [ComponentModifier] = [], isOverlay: Bool = false) {
+    init(type: ComponentType, properties: [ComponentProperty] = [], children: [UIComponent] = [], frame: CGRect = .zero, modifiers: [ComponentModifier] = [], isOverlay: Bool = false, modifierId: UUID? = nil, modifierType: ModifierType? = nil) {
         self.id = UUID()
         self.type = type
         self.properties = properties
@@ -407,6 +409,8 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         self._frame = frame
         self.modifiers = modifiers
         self.isOverlay = isOverlay
+        self.modifierId = modifierId
+        self.modifierType = modifierType
     }
     
     // MARK: - Property Management
@@ -519,7 +523,22 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     }
     
     func getRegularChildren() -> [UIComponent] {
-        return children.filter { !$0.isOverlay }
+        return children.filter { !$0.isOverlay && $0.modifierId == nil }
+    }
+    
+    func getChildrenForModifier(_ modifierId: UUID) -> [UIComponent] {
+        return children.filter { $0.modifierId == modifierId }
+    }
+    
+    func getParentComponentForModifier(_ modifierId: UUID) -> UIComponent? {
+        // The parent component is the one directly linked to the modifier
+        // It should be the first child with this modifierId (there should only be one)
+        return children.first { $0.modifierId == modifierId }
+    }
+    
+    func addModifierChild(_ child: UIComponent, modifierId: UUID) {
+        child.modifierId = modifierId
+        addChild(child)
     }
     
     func removeChild(_ child: UIComponent) {
@@ -533,15 +552,43 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     // MARK: - Modifier Management
     func addModifier(_ modifier: ComponentModifier) {
-        modifiers.append(modifier)
+        var newModifier = modifier
+        
+        // For overlay, mask, and background modifiers, create a parent component
+        if modifier.type == .overlay || modifier.type == .mask || modifier.type == .background {
+            let parentComponent = UIComponent(
+                type: .vstack, // Use vstack as container type
+                properties: [],
+                children: [],
+                frame: .zero,
+                modifiers: [],
+                isOverlay: false,
+                modifierId: modifier.id,
+                modifierType: modifier.type
+            )
+            // Store parent component ID in modifier
+            newModifier.properties["parentComponentId"] = parentComponent.id.uuidString
+            // Add parent component as child
+            addModifierChild(parentComponent, modifierId: modifier.id)
+        }
+        
+        modifiers.append(newModifier)
         objectWillChange.send()
-        print("🔄 Modifier added: \(modifier.type.rawValue)")
+        print("🔄 Modifier added: \(newModifier.type.rawValue)")
         
         // Post notification to trigger design file saving
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func removeModifier(_ modifier: ComponentModifier) {
+        // For overlay, mask, and background modifiers, remove the parent component
+        if modifier.type == .overlay || modifier.type == .mask || modifier.type == .background {
+            let modifierChildren = getChildrenForModifier(modifier.id)
+            for child in modifierChildren {
+                removeChild(child)
+            }
+        }
+        
         modifiers.removeAll { $0.id == modifier.id }
         objectWillChange.send()
         print("🔄 Modifier removed: \(modifier.type.rawValue)")
@@ -587,7 +634,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case id, type, properties, children, frame, isSelected, isVisible, zIndex, modifiers, isOverlay
+        case id, type, properties, children, frame, isSelected, isVisible, zIndex, modifiers, isOverlay, modifierId, modifierType
     }
     
     required init(from decoder: Decoder) throws {
@@ -602,6 +649,8 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         self.zIndex = try container.decodeIfPresent(Int.self, forKey: .zIndex) ?? 0
         self.modifiers = try container.decodeIfPresent([ComponentModifier].self, forKey: .modifiers) ?? []
         self.isOverlay = try container.decodeIfPresent(Bool.self, forKey: .isOverlay) ?? false
+        self.modifierId = try container.decodeIfPresent(UUID.self, forKey: .modifierId)
+        self.modifierType = try container.decodeIfPresent(ModifierType.self, forKey: .modifierType)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -616,6 +665,8 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         try container.encode(zIndex, forKey: .zIndex)
         try container.encode(modifiers, forKey: .modifiers)
         try container.encode(isOverlay, forKey: .isOverlay)
+        try container.encodeIfPresent(modifierId, forKey: .modifierId)
+        try container.encodeIfPresent(modifierType, forKey: .modifierType)
     }
     
     // MARK: - Equatable Implementation
@@ -669,9 +720,7 @@ extension UIComponent {
                 ComponentProperty(key: "fill", displayName: "Fill Color", type: .color, value: "gray", defaultValue: "gray")
             ]
         case .spacer:
-            return [
-                ComponentProperty(key: "minLength", displayName: "Min Length", type: .number, value: 0.0, defaultValue: 0.0)
-            ]
+            return []
         case .scrollView:
             return [
                 ComponentProperty(key: "axis", displayName: "Axis", type: .segmentedControl, value: "vertical", defaultValue: "vertical", options: ["vertical", "horizontal"]),
