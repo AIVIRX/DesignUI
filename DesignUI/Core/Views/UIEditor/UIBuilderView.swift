@@ -336,6 +336,22 @@ struct UIBuilderView: View {
         .clipped()
         .contentShape(Rectangle())
         .gesture(magnificationGesture)
+#if os(macOS)
+        .background(
+            // Hidden button to capture delete key without showing focus ring
+            Button(action: {
+                if let component = selectedComponent {
+                    canvasManager.removeComponent(component)
+                    selectedComponent = nil
+                }
+            }) {
+                EmptyView()
+            }
+            .keyboardShortcut(.delete, modifiers: [])
+            .hidden()
+            .frame(width: 0, height: 0)
+        )
+#endif
     }
     
     private var propertiesPanel: some View {
@@ -721,6 +737,7 @@ struct ResizablePanel<Content: View>: View {
     @Environment(\.colorScheme) var colorScheme
     
     @State private var isDragging = false
+    @State private var isHoveringHandle = false
     
     enum HandlePosition {
         case left, right
@@ -763,18 +780,40 @@ struct ResizablePanel<Content: View>: View {
         .frame(maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(.thickMaterial)
+                .fill(panelBackgroundColor)
                 .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
         )
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
+    private var panelBackgroundColor: Color {
+        if colorScheme == .dark {
+            return Color(red: 17/255, green: 17/255, blue: 17/255) // #111111
+        } else {
+            return Color.white
+        }
+    }
+    
+    private var handleColor: Color {
+        if isHoveringHandle || isDragging {
+            // Show subtle indicator when hovering or dragging
+            if colorScheme == .dark {
+                return Color(red: 0.2, green: 0.2, blue: 0.2) // Slightly lighter on hover
+            } else {
+                return Color(red: 0.9, green: 0.9, blue: 0.9) // Slightly darker on hover
+            }
+        }
+        // Blend in with panel when not hovering
+        return panelBackgroundColor
+    }
+    
     private var resizeHandle: some View {
         Rectangle()
-            .fill(Color(red: 0.121, green: 0.121, blue: 0.121))
+            .fill(handleColor)
             .frame(width: 4)
             .frame(maxHeight: .infinity)
             .onHover { hovering in
+                isHoveringHandle = hovering
 #if os(macOS)
                 if hovering {
                     NSCursor.resizeLeftRight.push()

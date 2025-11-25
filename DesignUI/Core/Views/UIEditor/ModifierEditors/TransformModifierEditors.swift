@@ -14,10 +14,6 @@ struct RotationModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Rotation")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Angle (degrees)")
                     .font(.caption)
@@ -61,10 +57,6 @@ struct ScaleModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Scale")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Scale X")
                     .font(.caption)
@@ -136,10 +128,6 @@ struct OffsetModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Offset")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Offset X")
                     .font(.caption)

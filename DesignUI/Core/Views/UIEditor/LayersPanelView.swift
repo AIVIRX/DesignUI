@@ -27,9 +27,10 @@ struct LayersPanelView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "square.3.layers.3d.top.filled")
                             .font(.system(size: 14))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.primary)
                         Text("Layers")
-                            .font(.headline)
+                            .font(.headline).fontWeight(.semibold)
+                            
                     }
                     
                     Spacer()
@@ -121,9 +122,6 @@ struct LayersPanelView: View {
                             getIndexInParent: { id in
                                 indexInParent(of: id, in: canvasManager.components)
                             },
-                            onDoubleTap: {
-                                canvasManager.createOverlayFolder(for: component)
-                            }
                         )
                     }
                     if canvasManager.components.isEmpty {
@@ -258,12 +256,21 @@ private func indexInParent(of targetId: UUID, in roots: [UIComponent]) -> Int {
 }
 
 private func canAcceptChildren(_ component: UIComponent) -> Bool {
+    // Check if component type can accept children
     switch component.type {
-    case .scrollView, .vstack, .hstack, .zstack, .list, .button:
+    case .scrollView, .vstack, .hstack, .zstack, .button:
         return true
     default:
-        return false
+        break
     }
+    
+    // Check if component has modifiers that create parent components (folders)
+    // Overlay, mask, and background modifiers create parent components
+    let hasFolderModifier = component.modifiers.contains { modifier in
+        modifier.type == .overlay || modifier.type == .mask || modifier.type == .background
+    }
+    
+    return hasFolderModifier
 }
 
 private enum DropPosition { case none, above, inside, below }
@@ -299,13 +306,10 @@ private struct OutlineRow: View {
     let onMove: (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void
     let getParentOf: (UUID) -> UUID?
     let getIndexInParent: (UUID) -> Int
-    let onDoubleTap: (() -> Void)?
-    
     @State private var isHovered = false
-    @State private var lastTapTime: Date?
     @Environment(\.colorScheme) var colorScheme
     
-    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int, onDoubleTap: (() -> Void)? = nil) {
+    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int) {
         self.component = component
         self.level = level
         self._expanded = expanded
@@ -318,7 +322,6 @@ private struct OutlineRow: View {
         self.onMove = onMove
         self.getParentOf = getParentOf
         self.getIndexInParent = getIndexInParent
-        self.onDoubleTap = onDoubleTap
     }
     
     var body: some View {
@@ -348,6 +351,14 @@ private struct OutlineRow: View {
                             }
                         },
                         onDuplicate: {
+                            // Copy modifiers with their properties and order
+                            let duplicatedModifiers = child.modifiers.map { modifier in
+                                ComponentModifier(
+                                    type: modifier.type,
+                                    properties: modifier.properties
+                                )
+                            }
+                            
                             let duplicatedChild = UIComponent(
                                 type: child.type,
                                 properties: child.properties,
@@ -358,6 +369,7 @@ private struct OutlineRow: View {
                                     width: child.frame.width,
                                     height: child.frame.height
                                 ),
+                                modifiers: duplicatedModifiers,
                                 modifierId: child.modifierId,
                                 modifierType: child.modifierType
                             )
@@ -415,17 +427,8 @@ private struct OutlineRow: View {
                 }
             }
             .onTapGesture {
-                // Handle double-tap
-                let now = Date()
-                if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < 0.3 {
-                    // Double tap detected
-                    onDoubleTap?()
-                    lastTapTime = nil
-                } else {
-                    // Single tap - select component
-                    selectedComponent = component
-                    lastTapTime = now
-                }
+                // Select component
+                selectedComponent = component
             }
             .onHover { isHovered = $0 }
             .onDrag { dragAction }
@@ -440,7 +443,6 @@ private struct OutlineRow: View {
             expandCollapseButton
             componentIcon
             componentName
-            Spacer()
         }
     }
     
@@ -458,11 +460,13 @@ private struct OutlineRow: View {
                 Button(action: { toggleExpand() }) {
                     Image(systemName: expanded.contains(component.id) ? "chevron.down" : "chevron.right")
                         .font(.system(size: 12))
-                        .foregroundColor(selectedComponent?.id == component.id ? .black : .secondary)
+                        .foregroundColor(selectedComponent?.id == component.id ? (colorScheme == .dark ? .black : .white) : .secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .frame(width: 24, height: 24)
+                .contentShape(Rectangle())
             } else {
-                Spacer().frame(width: 12)
+                Spacer().frame(width: 24)
             }
         }
     }
@@ -485,37 +489,29 @@ private struct OutlineRow: View {
     
     private var componentIconColor: Color {
         if selectedComponent?.id == component.id {
-            return .black
+            // Use black in dark mode, white in light mode when selected
+            return colorScheme == .dark ? .black : .white
         }
-        // Color code: parents (can accept children) vs children
-        if canAcceptChildren(component) {
-            // Parent/container components - #02bfa5
-            return Color(red: 2/255, green: 191/255, blue: 165/255)
-        } else {
-            // Child components - #b2ff59
-            return Color(red: 178/255, green: 255/255, blue: 89/255)
-        }
+        // Use blue for all components
+        return .blue
     }
     
     private var componentName: some View {
         Text(componentDisplayName(component))
-            .font(.system(size: 13, weight: level == 0 ? .semibold : .medium))
+            .font(.system(size: 13, weight: (level == 0 || canAcceptChildren(component)) ? .semibold : .medium))
             .foregroundColor(componentNameColor)
             .lineLimit(1)
+            .truncationMode(.tail)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
     
     private var componentNameColor: Color {
         if selectedComponent?.id == component.id {
-            return .black
+            // Use black in dark mode, white in light mode when selected
+            return colorScheme == .dark ? .black : .white
         }
-        // Color code: parents (can accept children) vs children
-        if canAcceptChildren(component) {
-            // Parent/container components - #02bfa5
-            return Color(red: 2/255, green: 191/255, blue: 165/255)
-        } else {
-            // Child components - #b2ff59
-            return Color(red: 178/255, green: 255/255, blue: 89/255)
-        }
+        // Use primary for all components
+        return .primary
     }
     
     private var backgroundFill: some View {
@@ -524,9 +520,7 @@ private struct OutlineRow: View {
     }
     
     private var backgroundFillColor: Color {
-        let componentColor = canAcceptChildren(component) 
-            ? Color(red: 2/255, green: 191/255, blue: 165/255) // #02bfa5 for parents
-            : Color(red: 178/255, green: 255/255, blue: 89/255) // #b2ff59 for children
+        let componentColor = Color.primary // Use primary for all components
         
         if selectedComponent?.id == component.id {
             return componentColor
@@ -747,6 +741,7 @@ private struct OverlayFolderRow: View {
     @Binding var expandedOverlayFolders: Set<UUID>
     
     @State private var isHovered = false
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack(spacing: 0) {
@@ -763,9 +758,11 @@ private struct OverlayFolderRow: View {
                 Button(action: { toggleExpand() }) {
                     Image(systemName: expandedOverlayFolders.contains(component.id) ? "chevron.down" : "chevron.right")
                         .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(selectedComponent?.id == component.id ? (colorScheme == .dark ? .black : .white) : .secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .frame(width: 24, height: 24)
+                .contentShape(Rectangle())
                 
                 // Folder icon
                 Image(systemName: "square.stack.3d.up")
@@ -823,6 +820,14 @@ private struct OverlayFolderRow: View {
                             }
                         },
                         onDuplicate: {
+                            // Copy modifiers with their properties and order
+                            let duplicatedModifiers = child.modifiers.map { modifier in
+                                ComponentModifier(
+                                    type: modifier.type,
+                                    properties: modifier.properties
+                                )
+                            }
+                            
                             let duplicatedChild = UIComponent(
                                 type: child.type,
                                 properties: child.properties,
@@ -833,6 +838,7 @@ private struct OverlayFolderRow: View {
                                     width: child.frame.width,
                                     height: child.frame.height
                                 ),
+                                modifiers: duplicatedModifiers,
                                 isOverlay: true
                             )
                             // Find the index of the original child in the children array

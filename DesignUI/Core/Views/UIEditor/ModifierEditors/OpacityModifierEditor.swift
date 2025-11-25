@@ -14,10 +14,6 @@ struct OpacityModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Opacity")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Opacity")
                     .font(.caption)

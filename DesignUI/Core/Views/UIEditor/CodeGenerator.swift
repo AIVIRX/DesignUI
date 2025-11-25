@@ -61,7 +61,6 @@ struct CodeGenerator {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
         let fontSize = component.getProperty(key: "fontSize") as? String ?? "body"
         let fontWeight = component.getProperty(key: "fontWeight") as? String ?? "regular"
-        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
         
         var code = "\(indent)Text(\"\(text)\")"
         
@@ -86,11 +85,6 @@ struct CodeGenerator {
             code += "\n\(nextIndent).font(\(fontStyle).weight(.\(fontWeight)))"
         } else {
             code += "\n\(nextIndent).font(\(fontStyle))"
-        }
-        
-        // Foreground color
-        if foregroundColor != Color.primary {
-            code += "\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))"
         }
         
         return code
@@ -135,15 +129,11 @@ struct CodeGenerator {
         // No children: Use default SwiftUI button with label-based initializer and apply properties
         let title = component.getProperty(key: "title") as? String ?? "Button"
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.blue
-        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.white
-        let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
         
         var code = "\(indent)Button(\"\(title)\") {}"
-        code += "\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))"
         code += "\n\(nextIndent).padding(.horizontal, 16)"
         code += "\n\(nextIndent).padding(.vertical, 8)"
         code += "\n\(nextIndent).background(\(colorToString(backgroundColor)))"
-        code += "\n\(nextIndent).cornerRadius(\(cornerRadius))"
         return code
     }
     
@@ -234,7 +224,6 @@ struct CodeGenerator {
     
     // MARK: - Shape Code Generation
     private static func generateRectangleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
@@ -242,15 +231,12 @@ struct CodeGenerator {
         
         if stroke != Color.clear {
             code += "\n\(nextIndent).stroke(\(colorToString(stroke)), lineWidth: \(lineWidth))"
-        } else {
-            code += "\n\(nextIndent).fill(\(colorToString(fill)))"
         }
         
         return code
     }
     
     private static func generateCircleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
@@ -258,15 +244,12 @@ struct CodeGenerator {
         
         if stroke != Color.clear {
             code += "\n\(nextIndent).stroke(\(colorToString(stroke)), lineWidth: \(lineWidth))"
-        } else {
-            code += "\n\(nextIndent).fill(\(colorToString(fill)))"
         }
         
         return code
     }
     
     private static func generateRoundedRectangleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
@@ -275,15 +258,12 @@ struct CodeGenerator {
         
         if stroke != Color.clear {
             code += "\n\(nextIndent).stroke(\(colorToString(stroke)), lineWidth: \(lineWidth))"
-        } else {
-            code += "\n\(nextIndent).fill(\(colorToString(fill)))"
         }
         
         return code
     }
     
     private static func generateCapsuleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
@@ -291,15 +271,12 @@ struct CodeGenerator {
         
         if stroke != Color.clear {
             code += "\n\(nextIndent).stroke(\(colorToString(stroke)), lineWidth: \(lineWidth))"
-        } else {
-            code += "\n\(nextIndent).fill(\(colorToString(fill)))"
         }
         
         return code
     }
     
     private static func generateEllipseCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
@@ -307,8 +284,6 @@ struct CodeGenerator {
         
         if stroke != Color.clear {
             code += "\n\(nextIndent).stroke(\(colorToString(stroke)), lineWidth: \(lineWidth))"
-        } else {
-            code += "\n\(nextIndent).fill(\(colorToString(fill)))"
         }
         
         return code
@@ -350,7 +325,6 @@ struct CodeGenerator {
     
     private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
-        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
         
@@ -373,11 +347,6 @@ struct CodeGenerator {
         
         var code = "\(indent)Image(systemName: \"\(symbolName)\")"
         code += "\n\(nextIndent).font(\(fontString))"
-        
-        // Foreground color
-        if foregroundColor != Color.primary {
-            code += "\n\(nextIndent).foregroundColor(\(colorToString(foregroundColor)))"
-        }
         
         // Background color
         if backgroundColor != Color.clear {

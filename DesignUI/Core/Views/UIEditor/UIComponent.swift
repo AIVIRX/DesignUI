@@ -69,7 +69,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case roundedRectangle = "RoundedRectangle"
     case capsule = "Capsule"
     case ellipse = "Ellipse"
-    case list = "List"
     case scrollView = "ScrollView"
     case sfSymbol = "SF Symbol"
     case statusBar = "Status Bar"
@@ -81,9 +80,9 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .text: return "textformat"
         case .image: return "photo"
         case .button: return "button.programmable"
-        case .vstack: return "rectangle.stack"
-        case .hstack: return "rectangle.stack"
-        case .zstack: return "square.stack.3d.up"
+        case .vstack: return "square.split.1x2.fill"
+        case .hstack: return "square.split.2x1.fill"
+        case .zstack: return "square.2.layers.3d.top.filled"
         case .spacer: return "space"
         case .divider: return "minus"
         case .rectangle: return "rectangle"
@@ -91,7 +90,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .roundedRectangle: return "rectangle.ratio.4.to.3.fill"
         case .capsule: return "capsule"
         case .ellipse: return "oval"
-        case .list: return "list.bullet"
         case .scrollView: return "scroll"
         case .sfSymbol: return "star"
         case .statusBar: return "iphone"
@@ -684,7 +682,6 @@ extension UIComponent {
                 ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Hello World", defaultValue: "Hello World"),
                 ComponentProperty(key: "fontSize", displayName: "Font Size", type: .font, value: "body", defaultValue: "body", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
                 ComponentProperty(key: "fontWeight", displayName: "Font Weight", type: .font, value: "regular", defaultValue: "regular", options: ["regular", "bold", "light", "medium", "semibold", "heavy", "black"]),
-                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: "primary", defaultValue: "primary"),
             ]
         case .image:
             return [
@@ -696,9 +693,7 @@ extension UIComponent {
         case .button:
             return [
                 ComponentProperty(key: "title", displayName: "Title", type: .string, value: "Button", defaultValue: "Button"),
-                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: "blue", defaultValue: "blue"),
-                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: "white", defaultValue: "white"),
-                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
+                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: "blue", defaultValue: "blue")
             ]
         case .vstack:
             return [
@@ -716,8 +711,7 @@ extension UIComponent {
             ]
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
             return [
-                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0),
-                ComponentProperty(key: "fill", displayName: "Fill Color", type: .color, value: "gray", defaultValue: "gray")
+                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
             ]
         case .spacer:
             return []
@@ -726,15 +720,9 @@ extension UIComponent {
                 ComponentProperty(key: "axis", displayName: "Axis", type: .segmentedControl, value: "vertical", defaultValue: "vertical", options: ["vertical", "horizontal"]),
                 ComponentProperty(key: "showsIndicators", displayName: "Shows Indicators", type: .boolean, value: true, defaultValue: true)
             ]
-        case .list:
-            return [
-                ComponentProperty(key: "style", displayName: "Style", type: .dropdown, value: "plain", defaultValue: "plain", options: ["plain", "grouped", "inset", "insetGrouped"]),
-                ComponentProperty(key: "separatorStyle", displayName: "Separator Style", type: .dropdown, value: "automatic", defaultValue: "automatic", options: ["automatic", "none", "singleLine"])
-            ]
         case .sfSymbol:
             return [
                 ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star"),
-                ComponentProperty(key: "foregroundColor", displayName: "Color", type: .color, value: Color.primary, defaultValue: Color.primary),
                 ComponentProperty(key: "fontSize", displayName: "Size", type: .font, value: "largeTitle", defaultValue: "largeTitle", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
                 ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.clear, defaultValue: Color.clear)
             ]

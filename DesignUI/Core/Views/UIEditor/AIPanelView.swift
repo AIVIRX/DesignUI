@@ -150,7 +150,6 @@ struct AIPanelView: View {
                     .padding(.bottom, 8)
             }
         }
-        .background(.thinMaterial)
     }
     
     private var welcomeView: some View {

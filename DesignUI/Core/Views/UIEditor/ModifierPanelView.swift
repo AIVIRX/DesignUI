@@ -220,19 +220,7 @@ struct ModifierItemView: View {
                 return baseName
             }
         case .frame:
-            let widthType = modifier.properties["widthType"] as? String ?? "Default"
-            let heightType = modifier.properties["heightType"] as? String ?? "Default"
-            var parts: [String] = []
-            if widthType == "Custom" {
-                parts.append("W")
-            }
-            if heightType == "Custom" {
-                parts.append("H")
-            }
-            if parts.isEmpty {
-                return "\(baseName) (\(sameTypeCount + 1))"
-            }
-            return "\(baseName) (\(parts.joined(separator: "×")))"
+            return baseName
         case .offset:
             let x = modifier.getCGFloat(key: "x", defaultValue: 0)
             let y = modifier.getCGFloat(key: "y", defaultValue: 0)
@@ -257,15 +245,8 @@ struct ModifierItemView: View {
             let opacity = modifier.getDouble(key: "opacity", defaultValue: 1.0)
             return "\(baseName) (\(Int(opacity * 100))%)"
         case .background:
-            if modifier.properties["color"] is Color {
-                // Try to get a color name (simplified)
-                return "\(baseName) (Color)"
-            }
             return baseName
         case .foregroundColor:
-            if modifier.properties["color"] is Color {
-                return "\(baseName) (Color)"
-            }
             return baseName
         default:
             // For other types, just add a number if there are multiple

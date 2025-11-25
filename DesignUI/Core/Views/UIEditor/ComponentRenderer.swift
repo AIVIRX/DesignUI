@@ -71,7 +71,14 @@ struct ComponentRenderer: View {
         .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponent: selectedComponent)
         .colorScheme(colorScheme ?? .light)
         .contentShape(Rectangle())
-        .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))-\(forceRefresh)")
+        .id({
+            let modifierIds = component.modifiers.map { modifier in
+                // Include modifier properties hash in ID to trigger refresh when properties change
+                let propsHash = modifier.properties.map { "\($0.key):\(String(describing: $0.value))" }.sorted().joined(separator: ",")
+                return "\(modifier.type.rawValue)-\(propsHash.hashValue)"
+            }.joined(separator: "-")
+            return "\(component.id)-\(component.modifiers.count)-\(modifierIds)-\(forceRefresh)"
+        }())
         .onChange(of: component.modifiers) { _, _ in
             print("🎨 ComponentRenderer: Modifiers changed for \(component.type.rawValue)")
         }
@@ -122,7 +129,7 @@ struct ComponentRenderer: View {
     
     private func isContainerComponent(_ type: ComponentType) -> Bool {
         switch type {
-        case .vstack, .hstack, .zstack, .scrollView, .list:
+        case .vstack, .hstack, .zstack, .scrollView:
             return true
         default:
             return false
@@ -134,14 +141,12 @@ struct ComponentRenderer: View {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
         let fontSize = component.getProperty(key: "fontSize") as? String ?? "body"
         let fontWeight = component.getProperty(key: "fontWeight") as? String ?? "regular"
-        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
         
         // Use iOS-specific font sizes to match simulator
         let font = iosFont(for: fontSize, weight: fontWeightFromString(fontWeight))
         
         return Text(text)
             .font(font)
-            .foregroundColor(foregroundColor)
     }
     
     // MARK: - Platform Font Helper
@@ -308,8 +313,6 @@ struct ComponentRenderer: View {
         // No children: Use default SwiftUI button with label-based initializer and apply properties
         let title = component.getProperty(key: "title") as? String ?? "Button"
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.blue
-        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.white
-        let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
         
         // Check if there's a frame modifier with full width
         let hasFullWidthFrame = component.modifiers.contains { modifier in
@@ -330,11 +333,9 @@ struct ComponentRenderer: View {
                 Text(title)
                     .font(.system(size: buttonFontSize, weight: .regular))
                     .padding(8)
-                    .foregroundColor(foregroundColor)
                     .frame(maxWidth: hasFullWidthFrame ? .infinity : nil)
             }
                 .background(backgroundColor)
-                .cornerRadius(cornerRadius)
         )
     }
     
@@ -409,7 +410,6 @@ struct ComponentRenderer: View {
     
     // MARK: - Shape Renderers
     private func renderRectangle() -> some View {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 0.0
@@ -418,13 +418,11 @@ struct ComponentRenderer: View {
             return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(fill))
+            return AnyView(RoundedRectangle(cornerRadius: cornerRadius))
         }
     }
     
     private func renderCircle() -> some View {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
@@ -432,13 +430,11 @@ struct ComponentRenderer: View {
             return AnyView(Circle()
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(Circle()
-                .fill(fill))
+            return AnyView(Circle())
         }
     }
     
     private func renderRoundedRectangle() -> some View {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
@@ -447,13 +443,11 @@ struct ComponentRenderer: View {
             return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(fill))
+            return AnyView(RoundedRectangle(cornerRadius: cornerRadius))
         }
     }
     
     private func renderCapsule() -> some View {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
@@ -461,13 +455,11 @@ struct ComponentRenderer: View {
             return AnyView(Capsule()
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(Capsule()
-                .fill(fill))
+            return AnyView(Capsule())
         }
     }
     
     private func renderEllipse() -> some View {
-        let fill = component.getProperty(key: "fill") as? Color ?? Color.gray
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
@@ -475,8 +467,7 @@ struct ComponentRenderer: View {
             return AnyView(Ellipse()
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(Ellipse()
-                .fill(fill))
+            return AnyView(Ellipse())
         }
     }
     
@@ -522,7 +513,6 @@ struct ComponentRenderer: View {
     // MARK: - SF Symbol Renderer
     private func renderSFSymbol() -> some View {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
-        let foregroundColor = component.getProperty(key: "foregroundColor") as? Color ?? Color.primary
         let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
         let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
         
@@ -532,7 +522,6 @@ struct ComponentRenderer: View {
         return AnyView(
             Image(systemName: symbolName)
                 .font(font)
-                .foregroundColor(foregroundColor)
                 .background(backgroundColor)
                 .symbolRenderingMode(.hierarchical)
         )
@@ -710,6 +699,9 @@ private extension View {
             
         case .foregroundColor:
             let color = modifier.properties["color"] as? Color ?? Color.primary
+            print("🎨 Applying foregroundColor modifier with color: \(color)")
+            print("🎨 Color type: \(Swift.type(of: color))")
+            print("🎨 Modifier properties: \(modifier.properties)")
             return AnyView(view.foregroundColor(color))
             
         case .fill:

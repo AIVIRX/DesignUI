@@ -17,10 +17,6 @@ struct ShadowModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Shadow")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             // Shadow Radius
             VStack(alignment: .leading, spacing: 4) {
                 Text("Radius")

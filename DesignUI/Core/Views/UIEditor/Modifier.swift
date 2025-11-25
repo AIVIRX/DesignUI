@@ -96,7 +96,7 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
         case .clipShape:
             return "scissors"
         case .mask:
-            return "theatermasks"
+            return "theatermasks.fill"
         case .blur:
             return "viewfinder"
         case .overlay:

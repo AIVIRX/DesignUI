@@ -14,10 +14,6 @@ struct BlurModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Blur")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Blur Radius")
                     .font(.caption)
@@ -68,10 +64,6 @@ struct ClipShapeModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Clip Shape")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Shape Type")
                     .font(.caption)
@@ -122,10 +114,6 @@ struct MaskModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Mask")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Mask Type")
                     .font(.caption)
@@ -224,10 +212,6 @@ struct BorderModifierEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Border")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Border Color")
                     .font(.caption)

@@ -74,11 +74,11 @@ struct PropertiesSection: View {
             
             // For status bar, only show isVisible
             if component.type == .statusBar {
-                GroupBox {
+                VStack(alignment: .leading, spacing: 0) {
                     HStack {
                         Text("Is Visible")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.primary)
                         
                         Spacer()
                         
@@ -90,29 +90,58 @@ struct PropertiesSection: View {
                         ))
                         .toggleStyle(SwitchToggleStyle())
                     }
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
                 }
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.1))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                )
             } else {
                 // For all other components, show their properties in a grouped form
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Filter out minLength property for Spacer components
-                        let filteredProperties = component.type == .spacer 
-                            ? component.properties.filter { $0.key != "minLength" }
-                            : component.properties
+                VStack(alignment: .leading, spacing: 0) {
+                    // Filter out minLength property for Spacer components, foregroundColor for all components, cornerRadius for buttons, and fill for shapes (use modifier instead)
+                    let filteredProperties = component.properties.filter { property in
+                        if property.key == "minLength" && component.type == .spacer {
+                            return false
+                        }
+                        if property.key == "foregroundColor" {
+                            return false // Always filter out foregroundColor - use modifier instead
+                        }
+                        if property.key == "cornerRadius" && component.type == .button {
+                            return false // Filter out cornerRadius for buttons - use modifier instead
+                        }
+                        if property.key == "fill" && (component.type == .rectangle || component.type == .roundedRectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse) {
+                            return false // Filter out fill for shapes - use modifier instead
+                        }
+                        return true
+                    }
+                    
+                    ForEach(Array(filteredProperties.enumerated()), id: \.element.id) { index, property in
+                        PropertyEditor(property: property, component: component)
                         
-                        ForEach(Array(filteredProperties.enumerated()), id: \.element.id) { index, property in
-                            PropertyEditor(property: property, component: component)
-                            
-                            // Add divider between properties if there are 2+ and not the last one
-                            if filteredProperties.count >= 2 && index < filteredProperties.count - 1 {
-                                Divider()
-                                    .opacity(0.3)
-                                    .padding(.vertical, 2)
-                            }
+                        // Add divider between properties if there are 2+ and not the last one
+                        if filteredProperties.count >= 2 && index < filteredProperties.count - 1 {
+                            Divider()
+                                .opacity(0.3)
+                                .padding(.vertical, 2)
                         }
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.1))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                )
             }
         }
     }
@@ -127,6 +156,10 @@ struct PropertyEditor: View {
     @State private var showImagePicker: Bool = false
     @State private var isHovered: Bool = false
     @Environment(\.colorScheme) var colorScheme
+    
+    private var menuTextColor: Color {
+        colorScheme == .dark ? .white : .primary
+    }
 
     private let fontStyles = [
         "largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"
@@ -151,7 +184,7 @@ struct PropertyEditor: View {
                     HStack {
                         Text(displayName)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.primary)
                         
                         Spacer()
                         
@@ -199,12 +232,12 @@ struct PropertyEditor: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 6)
                         .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(colorScheme == .dark ? Color.black : Color.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                )
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
                         )
                         .textFieldStyle(.plain)
                         .onAppear {
@@ -228,7 +261,7 @@ struct PropertyEditor: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     HStack {
                         Spacer()
@@ -239,12 +272,12 @@ struct PropertyEditor: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 6)
                             .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(colorScheme == .dark ? Color.black : Color.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                    )
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.secondary.opacity(0.1))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
                             )
                             .frame(maxWidth: 200) // Limit width, align to trailing
                     }
@@ -278,7 +311,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
@@ -311,7 +344,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
@@ -353,25 +386,31 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
-                    Picker("", selection: Binding(
-                        get: { component.getProperty(key: property.key) as? String ?? "center" },
-                        set: { newValue in
-                            DispatchQueue.main.async {
-                                component.setProperty(key: property.key, value: newValue)
+                    Menu {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Button(action: {
+                                DispatchQueue.main.async {
+                                    component.setProperty(key: property.key, value: option)
+                                }
+                            }) {
+                                Text(option.capitalized)
+                                    .foregroundColor(menuTextColor)
                             }
                         }
-                    )) {
-                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
-                            Text(option.capitalized).tag(option)
+                    } label: {
+                        HStack {
+                            Text((component.getProperty(key: property.key) as? String ?? "center").capitalized)
+                                .foregroundColor(.primary)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
                     }
-
-                    .pickerStyle(.menu)
-                    .accentColor(.primary)
+                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -388,24 +427,30 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
-                    Picker("", selection: Binding(
-                        get: { component.getProperty(key: property.key) as? String ?? "center" },
-                        set: { newValue in
-                            DispatchQueue.main.async {
-                                component.setProperty(key: property.key, value: newValue)
+                    Menu {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Button(action: {
+                                DispatchQueue.main.async {
+                                    component.setProperty(key: property.key, value: option)
+                                }
+                            }) {
+                                Text(option.capitalized)
+                                    .foregroundColor(menuTextColor)
                             }
                         }
-                    )) {
-                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
-                            Text(option.capitalized).tag(option)
+                    } label: {
+                        HStack {
+                            Text((component.getProperty(key: property.key) as? String ?? (property.options as? [String])?.first ?? "").capitalized)
+                                .foregroundColor(.primary)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .pickerStyle(.menu)
-                    .accentColor(.primary)
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 12)
@@ -423,7 +468,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
@@ -453,7 +498,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
@@ -483,7 +528,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
@@ -524,7 +569,7 @@ struct PropertyEditor: View {
                 HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
@@ -604,7 +649,7 @@ struct ColorPopover: View {
         HStack {
             Text(displayName)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.secondary)
+                .foregroundColor(.primary)
             
             Spacer()
             
@@ -1031,7 +1076,7 @@ struct ImagePickerEditor: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(property.displayName)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.secondary)
+                .foregroundColor(.primary)
             
             // Image preview or placeholder - tappable to open picker
             let imageDataKey = useImageData ? "imageData" : property.key

@@ -102,7 +102,7 @@ class CanvasManager: ObservableObject {
     
     func canAcceptChildren(_ component: UIComponent) -> Bool {
         switch component.type {
-        case .scrollView, .vstack, .hstack, .zstack, .list, .button:
+        case .scrollView, .vstack, .hstack, .zstack, .button:
             return true
         default:
             return false
@@ -268,18 +268,75 @@ class CanvasManager: ObservableObject {
     }
     
     func duplicateComponent(_ component: UIComponent) {
+        let duplicatedComponent = createDeepCopy(of: component)
+        
+        // Check if this component is a child of another component
+        if let parentId = findParentId(of: component.id), let parentComponent = findComponent(by: parentId) {
+            // Find the index of the original component in its parent
+            if let originalIndex = parentComponent.children.firstIndex(where: { $0.id == component.id }) {
+                // Insert the duplicate right after the original component
+                parentComponent.children.insert(duplicatedComponent, at: originalIndex + 1)
+            } else {
+                // Fallback: add to end if index not found
+                parentComponent.addChild(duplicatedComponent)
+            }
+        } else {
+            // For root components, find the index and insert after
+            if let originalIndex = components.firstIndex(where: { $0.id == component.id }) {
+                // Cancel any pending debounced saves
+                saveStateWorkItem?.cancel()
+                saveStateWorkItem = nil
+                
+                // Save state BEFORE making the change
+                saveState(force: true)
+                
+                components.insert(duplicatedComponent, at: originalIndex + 1)
+                selectedComponent = duplicatedComponent
+            } else {
+                // Fallback: add to end if index not found
+                addComponent(duplicatedComponent)
+            }
+        }
+        
+        // Select the new component if not already set
+        if selectedComponent?.id != duplicatedComponent.id {
+            selectedComponent = duplicatedComponent
+        }
+        
+        // Save state after duplication
+        saveState()
+    }
+    
+    private func createDeepCopy(of component: UIComponent) -> UIComponent {
+        // Copy modifiers with their properties and order
+        let duplicatedModifiers = component.modifiers.map { modifier in
+            ComponentModifier(
+                type: modifier.type,
+                properties: modifier.properties
+            )
+        }
+        
+        // Recursively copy children with their modifiers
+        let duplicatedChildren = component.children.map { child in
+            createDeepCopy(of: child)
+        }
+        
         let duplicatedComponent = UIComponent(
             type: component.type,
             properties: component.properties,
-            children: component.children,
+            children: duplicatedChildren,
             frame: CGRect(
                 x: component.frame.origin.x + 20,
                 y: component.frame.origin.y + 20,
                 width: component.frame.width,
                 height: component.frame.height
-            )
+            ),
+            modifiers: duplicatedModifiers,
+            isOverlay: component.isOverlay,
+            modifierId: component.modifierId,
+            modifierType: component.modifierType
         )
-        addComponent(duplicatedComponent)
+        return duplicatedComponent
     }
     
     // MARK: - Canvas Controls
@@ -553,8 +610,7 @@ class CanvasManager: ObservableObject {
             properties: [
                 ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Badge", defaultValue: "Badge"),
                 ComponentProperty(key: "fontSize", displayName: "Font Size", type: .font, value: "caption", defaultValue: "caption"),
-                ComponentProperty(key: "fontWeight", displayName: "Font Weight", type: .font, value: "bold", defaultValue: "bold"),
-                ComponentProperty(key: "foregroundColor", displayName: "Text Color", type: .color, value: Color.white, defaultValue: Color.white)
+                ComponentProperty(key: "fontWeight", displayName: "Font Weight", type: .font, value: "bold", defaultValue: "bold")
             ],
             frame: CGRect(x: 0, y: 0, width: 50, height: 20),
             isOverlay: true
