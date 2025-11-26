@@ -275,8 +275,13 @@ struct AIPanelView: View {
             return nil
         }
         
-        // Check if it's wrapped in a "component" key
-        if let componentDict = json["component"] as? [String: Any] {
+        // Check if it's wrapped in a "components" array (new format)
+        if let componentsArray = json["components"] as? [[String: Any]], !componentsArray.isEmpty {
+            // Return the first component (for full views, there's typically one root component)
+            return parseComponent(from: componentsArray[0])
+        }
+        // Check if it's wrapped in a "component" key (old format for backward compatibility)
+        else if let componentDict = json["component"] as? [String: Any] {
             return parseComponent(from: componentDict)
         } else {
             // Assume the JSON itself is the component
@@ -292,9 +297,17 @@ struct AIPanelView: View {
             return nil
         }
         
-        // Parse frame
+        // Parse frame - supports both array format [[x, y], [width, height]] and object format {x, y, width, height}
         var frame = CGRect.zero
-        if let frameDict = dict["frame"] as? [String: Any] {
+        if let frameArray = dict["frame"] as? [[Double]], frameArray.count == 2 {
+            // New array format: [[x, y], [width, height]]
+            let position = frameArray[0]
+            let size = frameArray[1]
+            if position.count >= 2 && size.count >= 2 {
+                frame = CGRect(x: position[0], y: position[1], width: size[0], height: size[1])
+            }
+        } else if let frameDict = dict["frame"] as? [String: Any] {
+            // Old object format: {x, y, width, height}
             let x = (frameDict["x"] as? Double) ?? 0
             let y = (frameDict["y"] as? Double) ?? 0
             let width = (frameDict["width"] as? Double) ?? 0

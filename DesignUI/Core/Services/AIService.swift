@@ -203,13 +203,10 @@ class AIService: ObservableObject {
                             "additionalProperties": true,
                             "properties": [
                                 "text": ["type": "string", "description": "Text content for Text components"],
-                                "fontSize": ["type": "number", "description": "Font size (default: 17)"],
-                                "fontWeight": ["type": "string", "enum": ["regular", "medium", "semibold", "bold"], "description": "Font weight"],
                                 "foregroundColor": ["type": "string", "description": "Text color: 'primary', 'secondary', 'blue', 'red', 'green', etc., or 'rgb(r,g,b)' or 'rgba(r,g,b,a)'"],
                                 "alignment": ["type": "string", "enum": ["leading", "center", "trailing"], "description": "Text alignment"],
                                 "spacing": ["type": "number", "description": "Spacing for stacks (default: 8)"],
                                 "imageName": ["type": "string", "description": "SF Symbol name (e.g., 'star.fill', 'heart')"],
-                                "cornerRadius": ["type": "number", "description": "Corner radius for rounded shapes"],
                                 "backgroundColor": ["type": "string", "description": "Background color"],
                                 "width": ["type": "number", "description": "Component width"],
                                 "height": ["type": "number", "description": "Component height"]
@@ -236,7 +233,7 @@ class AIService: ObservableObject {
                             "items": [
                                 "type": "object",
                                 "properties": [
-                                    "type": ["type": "string", "enum": ["background", "foregroundColor", "padding", "cornerRadius", "shadow", "border", "opacity", "rotation", "scale", "offset"], "description": "Modifier type"],
+                                    "type": ["type": "string", "enum": ["background", "foregroundColor", "font", "fontSize", "padding", "cornerRadius", "shadow", "border", "opacity", "rotation", "scale", "offset"], "description": "Modifier type"],
                                     "properties": [
                                         "type": "object",
                                         "additionalProperties": true,
@@ -291,9 +288,11 @@ class AIService: ObservableObject {
     /// Generate a UI component structure from a description
     func generateComponent(description: String) async throws -> [String: Any]? {
         let systemPrompt = """
-        You are a SwiftUI component generator. When users describe a component, generate a complete component structure in JSON format.
-        Use the provided schema to structure your response. Include all necessary properties, frame dimensions, and nested children.
-        Make components practical and well-sized (typical widths: 200-400, heights: 50-200 for most components).
+        You are a SwiftUI FULL VIEW/TEMPLATE generator. When users request views, screens, pages, or templates, generate COMPLETE, FULL-SCREEN view structures.
+        Always return an array of components (use "components" key). For full views, return a single root VStack/HStack/ZStack with all child components nested inside.
+        The root container should have full-screen dimensions (width: 350-400, height: 600-900 for mobile).
+        Include EVERY component mentioned in the user's request. Use proper spacing, padding, and alignment.
+        Generate COMPLETE TEMPLATES, not individual components. Every view should be a full, usable screen.
         """
         
         let messages = [
@@ -371,11 +370,18 @@ class AIService: ObservableObject {
             let decoder = JSONDecoder()
             let edgeResponse = try decoder.decode(EdgeFunctionResponse.self, from: data)
             
-            // Try to parse the JSON output to extract component
+            // Try to parse the JSON output to extract components
             if let jsonData = edgeResponse.output.data(using: .utf8),
-               let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-               let component = json["component"] as? [String: Any] {
-                return component
+               let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                // New format: components array
+                if let componentsArray = json["components"] as? [[String: Any]], !componentsArray.isEmpty {
+                    // Return the first component (for full views, there's typically one root component)
+                    return componentsArray[0]
+                }
+                // Old format: single component (for backward compatibility)
+                else if let component = json["component"] as? [String: Any] {
+                    return component
+                }
             }
             
             return nil

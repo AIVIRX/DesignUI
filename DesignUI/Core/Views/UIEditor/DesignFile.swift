@@ -71,11 +71,47 @@ class DesignFile: ObservableObject, Identifiable {
                 print("💾 Thumbnail size: \(thumbnailSize) bytes")
             }
             
-            // Write file atomically to ensure complete replacement (overwrites old file)
-            try data.write(to: fileURL, options: .atomic)
-            self.lastModified = Date()
-            print("✅ Design saved successfully: \(name)")
-            print("📁 File saved to: \(fileURL.path)")
+            // Use file coordination for iCloud files
+            let isiCloudFile = fileURL.path.contains("Mobile Documents") || fileURL.path.contains("iCloud~")
+            
+            if isiCloudFile {
+                // Use NSFileCoordinator for iCloud files to ensure proper syncing
+                let coordinator = NSFileCoordinator()
+                var coordinationError: NSError?
+                var writeError: Error?
+                
+                coordinator.coordinate(writingItemAt: fileURL, options: .forReplacing, error: &coordinationError) { (writingURL) in
+                    do {
+                        // Write file atomically
+                        try data.write(to: writingURL, options: .atomic)
+                        self.lastModified = Date()
+                        print("✅ Design saved successfully to iCloud: \(name)")
+                        print("📁 File saved to: \(writingURL.path)")
+                        
+                        // Mark file for iCloud upload
+                        try? (writingURL as NSURL).setResourceValue(true, forKey: .isUbiquitousItemKey)
+                        print("☁️ File marked for iCloud sync: \(name)")
+                    } catch {
+                        print("❌ Failed to write iCloud file: \(error)")
+                        writeError = error
+                    }
+                }
+                
+                if let error = coordinationError {
+                    print("❌ File coordination error: \(error)")
+                    throw error
+                }
+                
+                if let error = writeError {
+                    throw error
+                }
+            } else {
+                // Write file atomically for local files
+                try data.write(to: fileURL, options: .atomic)
+                self.lastModified = Date()
+                print("✅ Design saved successfully: \(name)")
+                print("📁 File saved to: \(fileURL.path)")
+            }
             
             // Hide the extension in Finder
             try FileManager.default.setAttributes([.extensionHidden: true], ofItemAtPath: fileURL.path)
@@ -179,16 +215,24 @@ class DesignManager: ObservableObject {
     
     private init() {
         // Try iCloud Documents first, fallback to local Documents
-        let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?
+        // Use the specific container identifier for better reliability
+        let containerIdentifier = "iCloud.com.Maicol.Dockui"
+        let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier)?
             .appendingPathComponent("Documents/DockUI")
         
         let finalDesignsDirectory: URL
         let finalStorageStatus: String
         
         if let ubiquityURL = ubiquityURL {
+            // Ensure directory exists and is marked for iCloud
             try? FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
+            
+            // Mark the directory for iCloud sync
+            // Files in iCloud containers are automatically marked as ubiquitous
+            // No need to manually set isUbiquitousItem - it's automatically true for files in ubiquity containers
+            
             finalDesignsDirectory = ubiquityURL
-            finalStorageStatus = "iCloud Drive"
+            finalStorageStatus = "☁️ iCloud Drive"
             print("☁️ Using iCloud: \(ubiquityURL.path)")
         } else {
             print("⚠️ iCloud not available, falling back to local documents.")
@@ -282,6 +326,41 @@ class DesignManager: ObservableObject {
         
         designFiles.insert(designFile, at: 0)
         return designFile
+    }
+    
+    func createDesignFromTemplate(template: DesignTemplate, name: String) -> DesignFile {
+        // Generate unique file name
+        let uniqueFileName = generateUniqueFileName(baseName: name)
+        let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
+        let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
+        
+        // Deep copy all components from template
+        let copiedComponents = deepCopyComponents(template.components)
+        
+        // Create new design file with copied components
+        let designFile = DesignFile(name: displayName, components: copiedComponents, fileURL: fileURL)
+        designFile.save()
+        
+        designFiles.insert(designFile, at: 0)
+        return designFile
+    }
+    
+    private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {
+        do {
+            // Encode components to JSON
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(components)
+            
+            // Decode back to create deep copies with new IDs
+            let decoder = JSONDecoder()
+            let copiedComponents = try decoder.decode([UIComponent].self, from: data)
+            
+            return copiedComponents
+        } catch {
+            print("⚠️ Failed to deep copy template components: \(error)")
+            // Fallback: return empty array
+            return []
+        }
     }
     
     func deleteDesign(_ designFile: DesignFile) {
@@ -464,10 +543,29 @@ class DesignManager: ObservableObject {
             // Move the file to the new name
             try FileManager.default.moveItem(at: design.fileURL, to: newFileURL)
             
-            // Update the design file properties
-            design.name = displayName
-            // Note: We can't update fileURL directly since it's a let property
-            // The design will need to be reloaded to get the new URL
+            // Reload the design from the new location to get the correct fileURL
+            // Since fileURL is let, we need to replace the object in the array
+            if let index = designFiles.firstIndex(where: { $0.id == design.id }) {
+                if var reloadedDesign = DesignFile.load(from: newFileURL) {
+                    // Update the name on the reloaded design
+                    reloadedDesign.name = displayName
+                    
+                    // Save the file to persist the new name in the JSON
+                    reloadedDesign.save()
+                    
+                    // Replace in array
+                    designFiles[index] = reloadedDesign
+                    
+                    // Update currentDesign if this is the currently open design
+                    if currentDesign?.id == design.id {
+                        currentDesign = reloadedDesign
+                    }
+                    
+                    print("✅ Renamed and reloaded design: \(displayName)")
+                } else {
+                    print("⚠️ Failed to reload design after rename, but file was moved")
+                }
+            }
             
             print("✅ Renamed design to: \(displayName)")
         } catch {

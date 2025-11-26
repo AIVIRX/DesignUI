@@ -219,8 +219,7 @@ private func componentDisplayName(_ component: UIComponent) -> String {
         let title = component.getProperty(key: "title") as? String ?? "Button"
         return title.isEmpty ? "Button" : (title.count > 20 ? String(title.prefix(20)) + "..." : title)
     case .image:
-        let imageName = component.getProperty(key: "imageName") as? String ?? "Image"
-        return imageName.isEmpty ? "Image" : (imageName.count > 20 ? String(imageName.prefix(20)) + "..." : imageName)
+        return "Image"
     default:
         return component.type.rawValue
     }
@@ -428,7 +427,7 @@ private struct OutlineRow: View {
             }
             .onTapGesture {
                 // Select component
-                selectedComponent = component
+                    selectedComponent = component
             }
             .onHover { isHovered = $0 }
             .onDrag { dragAction }

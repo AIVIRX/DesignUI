@@ -13,8 +13,12 @@ struct DesignBrowserView: View {
     @State private var newDesignName = ""
     @State private var showingDeleteAlert = false
     @State private var designToDelete: DesignFile?
+    @State private var showingRenameSheet = false
+    @State private var designToRename: DesignFile?
+    @State private var renameText = ""
     
     var body: some View {
+        NavigationStack {
         VStack(spacing: 0) {
                 // Header
                 HStack {
@@ -36,31 +40,16 @@ struct DesignBrowserView: View {
                 
                 Divider()
                 
-                // Storage Status
-                HStack {
-//                    Image(systemName: designManager.storageStatus.contains("iCloud") ? "icloud.fill" : "folder.fill")
-//                        .foregroundColor(.secondary)
-//                    Text(designManager.storageStatus)
-//                        .font(.caption)
-//                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    #if os(macOS)
-                    Button("Show in Finder") {
-                        designManager.showInFinder()
-                    }
-                    .font(.caption)
-                    .foregroundColor(.blue)
-                    #endif
-                }
+                // Main Content
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 32) {
+                        // User's Designs Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("My Designs")
+                                .font(.title2)
+                                .fontWeight(.bold)
                 .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(Color.secondary.opacity(0.1).opacity(0.5))
                 
-                Divider()
-                
-                // Design Grid
                 if designManager.designFiles.isEmpty {
                     // Empty state
                     VStack(spacing: 20) {
@@ -69,7 +58,7 @@ struct DesignBrowserView: View {
                             .foregroundColor(.secondary)
                         
                         Text("No Designs Yet")
-                            .font(.title2)
+                                        .font(.title3)
                             .fontWeight(.semibold)
                         
                         Text("Create your first design to get started")
@@ -80,12 +69,11 @@ struct DesignBrowserView: View {
                         }
                         .buttonStyle(.borderedProminent)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
                 } else {
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)
-                        ], spacing: 20) {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 16) {
                             ForEach(designManager.designFiles) { designFile in
                                 DesignCardView(
                                     designFile: designFile,
@@ -93,13 +81,44 @@ struct DesignBrowserView: View {
                                     onDelete: { 
                                         designToDelete = designFile
                                         showingDeleteAlert = true
+                                                },
+                                                onRename: {
+                                                    designToRename = designFile
+                                                    renameText = designFile.name
+                                                    showingRenameSheet = true
                                     }
                                 )
+                                            .frame(width: 280)
                             }
                         }
-                        .padding()
+                                    .padding(.horizontal)
                     }
                 }
+                        }
+                        
+                        Divider()
+                            .padding(.horizontal)
+                        
+                        // Templates Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Templates")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .padding(.horizontal)
+                            
+                            TemplatesGridView(
+                                onSelectTemplate: { template in
+                                    let name = template.name
+                                    let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
+                                    designManager.openDesign(newDesign)
+                                }
+                            )
+                        }
+                    }
+                    .padding(.vertical)
+                }
+            }
+            .navigationTitle("Studio")
             }
         .sheet(isPresented: $showingNewDesignSheet) {
             NewDesignSheet(
@@ -125,6 +144,24 @@ struct DesignBrowserView: View {
             }
         } message: {
             Text("Are you sure you want to delete this design? This action cannot be undone.")
+        }
+        .sheet(isPresented: $showingRenameSheet) {
+            RenameDesignSheet(
+                designName: $renameText,
+                onRename: { newName in
+                    if let design = designToRename, !newName.isEmpty {
+                        designManager.renameDesign(design, to: newName)
+                    }
+                    showingRenameSheet = false
+                    designToRename = nil
+                    renameText = ""
+                },
+                onCancel: {
+                    showingRenameSheet = false
+                    designToRename = nil
+                    renameText = ""
+                }
+            )
         }
         #if os(iOS)
         .fullScreenCover(isPresented: Binding(
@@ -154,6 +191,7 @@ struct DesignCardView: View {
     @ObservedObject var designFile: DesignFile
     let onOpen: () -> Void
     let onDelete: () -> Void
+    let onRename: () -> Void
     
     @State private var isHovered = false
     @State private var showingMenu = false
@@ -183,6 +221,10 @@ struct DesignCardView: View {
                 Spacer()
                 
                 Menu {
+                    Button("Rename") {
+                        onRename()
+                    }
+                    
                     #if os(macOS)
                     Button("Show in Finder") {
                         NSWorkspace.shared.activateFileViewerSelecting([designFile.fileURL])
@@ -194,11 +236,13 @@ struct DesignCardView: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 14, weight: .medium))
+                        .frame(width: 28, height: 28)
+                        .background(Color.secondary.opacity(0.1))
+                        .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .foregroundColor(.secondary)
-                .opacity(isHovered ? 1.0 : 0.0)
+                .foregroundColor(.primary)
             }
         }
         .padding()
@@ -241,7 +285,7 @@ struct NewDesignSheet: View {
                         }
                     }
                 
-                Text("This will create a new design file that you can start building with.")
+                Text("This will create a new blank design file that you can start building with.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -257,11 +301,138 @@ struct NewDesignSheet: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Create") {
-                        onCreate(designName)
+                        onCreate(designName.isEmpty ? "Untitled" : designName)
                     }
-                    .disabled(designName.isEmpty)
                 }
             }
+        }
+    }
+}
+
+struct RenameDesignSheet: View {
+    @Binding var designName: String
+    let onRename: (String) -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("Rename Design")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                TextField("Design Name", text: $designName)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit {
+                        if !designName.isEmpty {
+                            onRename(designName)
+                        }
+                    }
+                
+                Text("Enter a new name for this design.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .frame(width: 400)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        onCancel()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Rename") {
+                        if !designName.isEmpty {
+                            onRename(designName)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct TemplatesGridView: View {
+    let onSelectTemplate: (DesignTemplate) -> Void
+    
+    private let templateManager = DesignTemplateManager.shared
+    
+    var body: some View {
+        // Templates Grid
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                ForEach(templateManager.templates) { template in
+                    TemplateCardView(
+                        template: template,
+                        isSelected: false,
+                        onSelect: {
+                            onSelectTemplate(template)
+                        }
+                    )
+                    .frame(width: 200)
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+}
+
+struct TemplateCardView: View {
+    let template: DesignTemplate
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            // Icon
+            Image(systemName: template.thumbnail)
+                .font(.system(size: 50))
+                .foregroundColor(.primary)
+                .frame(height: 120)
+                .frame(maxWidth: .infinity)
+                .background(Color.secondary.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(template.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                
+                Text(template.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+            
+            Spacer()
+            
+            Button("Use Template") {
+                onSelect()
+            }
+            .buttonStyle(.bordered)
+            .frame(maxWidth: .infinity)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.secondary.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isHovered ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
+        )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
+            }
+        }
+        .onTapGesture {
+            onSelect()
         }
     }
 }

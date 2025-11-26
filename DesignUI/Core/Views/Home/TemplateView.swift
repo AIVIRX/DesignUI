@@ -7,27 +7,9 @@
 
 import SwiftUI
 
-enum FilterType: String, CaseIterable {
-    case all = "All"
-    case templates = "Templates"
-    case components = "Components"
-    
-    var icon: String? {
-        switch self {
-        case .all:
-            return nil
-        case .templates:
-            return "rectangle.stack"
-        case .components:
-            return "cube"
-        }
-    }
-}
-
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
     @State private var searchText = ""
-    @State private var selectedFilter: FilterType = .all
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
@@ -141,30 +123,18 @@ struct ExploreView: View {
         #endif
     }
     
-    private func getFilterTypeForDatabase() -> (postType: String?, isAllPosts: Bool) {
-        switch selectedFilter {
-        case .all:
-            return (nil, true) // Fetch all posts - no filter
-        case .templates:
-            return (nil, false) // Fetch templates (exclude components)
-        case .components:
-            return ("component", false) // Fetch only components
-        }
-    }
-    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
                     searchBarView
-                    tagButtonsView
                     postsContentView
                 }
                 .onChange(of: searchText) { oldValue, newValue in
                     Task {
                         try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
                         if newValue == searchText { // Prevent outdated calls
-                            await viewModel.searchPosts(query: newValue)
+                            await viewModel.searchPosts(query: newValue, filterType: nil, isAllPosts: true)
                         }
                     }
                 }
@@ -172,14 +142,12 @@ struct ExploreView: View {
             .frame(maxWidth: 1600)
             .refreshable {
                 Task {
-                    let filter = getFilterTypeForDatabase()
-                    await viewModel.refreshPosts(filterType: filter.postType, isAllPosts: filter.isAllPosts)
+                    await viewModel.refreshPosts(filterType: nil, isAllPosts: true)
                 }
             }
             .task {
                 if viewModel.posts.isEmpty {
-                    let filter = getFilterTypeForDatabase()
-                    await viewModel.fetchPostsByType(postType: filter.postType, isAllPosts: filter.isAllPosts)
+                    await viewModel.fetchPostsByType(postType: nil, isAllPosts: true)
                 }
             }
             .onChange(of: viewModel.posts) { oldPosts, newPosts in
@@ -195,23 +163,6 @@ struct ExploreView: View {
                 } else if newCount > oldCount {
                     // Pagination: generate identifiers for new positions only
                     generateAdIdentifiersForNewPosts(oldCount: oldCount, newPosts: newPosts)
-                }
-            }
-            .onChange(of: selectedFilter) { oldValue, newValue in
-                // Debounce filter changes to prevent rapid database queries
-                // Only process if filter actually changed
-                guard oldValue != newValue else { return }
-                
-                Task {
-                    // If there's a search text, re-run the search with the new filter
-                    // Otherwise, just fetch posts with the new filter
-                    if !searchText.isEmpty {
-                        let filter = getFilterTypeForDatabase()
-                        await viewModel.searchPosts(query: searchText, filterType: filter.postType, isAllPosts: filter.isAllPosts)
-                    } else {
-                        let filter = getFilterTypeForDatabase()
-                        await viewModel.fetchPostsByTypeDebounced(postType: filter.postType, isAllPosts: filter.isAllPosts)
-                    }
                 }
             }
             .onChange(of: subscriptionManager.isSubscribed) { oldValue, newValue in
@@ -278,60 +229,6 @@ extension ExploreView {
 #endif
     }
     
-    private var tagButtonsView: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(FilterType.allCases, id: \.self) { filterType in
-                    filterButton(for: filterType)
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-    
-    private func filterButton(for filterType: FilterType) -> some View {
-        Button {
-            selectedFilter = filterType
-        } label: {
-            HStack(spacing: 6) {
-                if let icon = filterType.icon {
-                    Image(systemName: icon)
-                        .font(.system(size: 14, weight: .medium))
-                }
-                Text(filterType.rawValue)
-                    .font(.system(size: 14, weight: .medium))
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Group {
-                    if selectedFilter == filterType {
-                        Color.primary
-                    } else {
-                        #if os(iOS)
-                        Color(uiColor: .systemGray5)
-                        #else
-                        Color(NSColor.controlBackgroundColor)
-                        #endif
-                    }
-                }
-            )
-            .foregroundColor(
-                selectedFilter == filterType
-                    ? (colorScheme == .dark ? Color.black : Color.white)
-                    : Color.primary
-            )
-            .cornerRadius(20)
-            #if os(macOS)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.primary, lineWidth: 1)
-            )
-            #endif
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
     @ViewBuilder
     private var postsContentView: some View {
         if !viewModel.posts.isEmpty {
@@ -377,7 +274,7 @@ extension ExploreView {
                 ) { item in
                     feedItemCell(for: item)
                 }
-                .id("masonry-\(searchText)") // Reset layout when search changes
+                .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
@@ -407,7 +304,7 @@ extension ExploreView {
                 ) { item in
                     feedItemCell(for: item)
                 }
-                .id("masonry-\(searchText)") // Reset layout when search changes
+                .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
             } else {
@@ -436,7 +333,7 @@ extension ExploreView {
             ) { item in
                 feedItemCell(for: item)
             }
-            .id("masonry-\(searchText)-\(feedItems.count)") // Reset layout when search or items change
+            .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
         } else {

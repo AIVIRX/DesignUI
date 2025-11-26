@@ -44,6 +44,10 @@ struct ModifierEditorView: View {
                     BackgroundModifierEditor(modifier: $modifier, component: component)
                 case .foregroundColor:
                     ColorModifierEditor(modifier: $modifier, component: component, title: "Foreground Color")
+                case .font:
+                    FontModifierEditor(modifier: $modifier)
+                case .fontSize:
+                    FontSizeModifierEditor(modifier: $modifier)
                 case .cornerRadius:
                     CornerRadiusModifierEditor(modifier: $modifier)
                 case .shadow:

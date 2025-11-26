@@ -103,45 +103,65 @@ struct PropertiesSection: View {
                 )
             } else {
                 // For all other components, show their properties in a grouped form
-                VStack(alignment: .leading, spacing: 0) {
-                    // Filter out minLength property for Spacer components, foregroundColor for all components, cornerRadius for buttons, and fill for shapes (use modifier instead)
-                    let filteredProperties = component.properties.filter { property in
-                        if property.key == "minLength" && component.type == .spacer {
-                            return false
-                        }
-                        if property.key == "foregroundColor" {
-                            return false // Always filter out foregroundColor - use modifier instead
-                        }
-                        if property.key == "cornerRadius" && component.type == .button {
+                // Filter out minLength property for Spacer components, foregroundColor for all components, font properties, cornerRadius for buttons/shapes, fill for shapes, backgroundColor for SF Symbols, and imageName for images (use modifiers instead)
+                let filteredProperties = component.properties.filter { property in
+                    if property.key == "minLength" && component.type == .spacer {
+                        return false
+                    }
+                    if property.key == "foregroundColor" {
+                        return false // Always filter out foregroundColor - use modifier instead
+                    }
+                    if property.key == "fontWeight" {
+                        return false // Use Font modifier instead
+                    }
+                    if property.key == "fontSize" {
+                        return false // Use Font Size modifier instead
+                    }
+                    if property.key == "backgroundColor" && component.type == .sfSymbol {
+                        return false // Filter out backgroundColor for SF Symbols - use modifier instead
+                    }
+                    if property.key == "imageName" && component.type == .image {
+                        return false // Filter out imageName for images - we use imageData instead
+                    }
+                    if property.key == "cornerRadius" {
+                        if component.type == .button {
                             return false // Filter out cornerRadius for buttons - use modifier instead
                         }
-                        if property.key == "fill" && (component.type == .rectangle || component.type == .roundedRectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse) {
-                            return false // Filter out fill for shapes - use modifier instead
-                        }
-                        return true
-                    }
-                    
-                    ForEach(Array(filteredProperties.enumerated()), id: \.element.id) { index, property in
-                        PropertyEditor(property: property, component: component)
-                        
-                        // Add divider between properties if there are 2+ and not the last one
-                        if filteredProperties.count >= 2 && index < filteredProperties.count - 1 {
-                            Divider()
-                                .opacity(0.3)
-                                .padding(.vertical, 2)
+                        if component.type == .rectangle || component.type == .roundedRectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse {
+                            return false // Filter out cornerRadius for shapes - use modifier instead
                         }
                     }
+                    if property.key == "fill" && (component.type == .rectangle || component.type == .roundedRectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse) {
+                        return false // Filter out fill for shapes - use modifier instead
+                    }
+                    return true
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.secondary.opacity(0.1))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                )
+                
+                // Only show properties section if there are properties to display
+                if !filteredProperties.isEmpty {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(filteredProperties.enumerated()), id: \.element.id) { index, property in
+                            PropertyEditor(property: property, component: component)
+                            
+                            // Add divider between properties if there are 2+ and not the last one
+                            if filteredProperties.count >= 2 && index < filteredProperties.count - 1 {
+                                Divider()
+                                    .opacity(0.3)
+                                    .padding(.vertical, 2)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                    )
+                }
             }
         }
     }
@@ -176,9 +196,6 @@ struct PropertyEditor: View {
                 if property.key == "imageData" && component.type == .image {
                     // Image picker for custom images (only show this one for image components)
                     ImagePickerEditor(property: property, component: component, useImageData: true)
-                } else if property.key == "imageName" && component.type == .image {
-                    // Hide imageName property - we use imageData instead
-                    EmptyView()
                 } else if property.key == "symbolName" {
                     // Special SF Symbol picker
                     HStack {
@@ -229,16 +246,6 @@ struct PropertyEditor: View {
                 } else {
                     TextField("Hello World", text: $textValue)
                         .font(.system(size: 13, weight: .medium))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                        )
                         .textFieldStyle(.plain)
                         .onAppear {
                             textValue = property.value as? String ?? ""
@@ -258,40 +265,38 @@ struct PropertyEditor: View {
                 }
                 
             case .number:
-                VStack(alignment: .leading, spacing: 6) {
+                HStack {
                     Text(displayName)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.primary)
                     
-                    HStack {
-                        Spacer()
-                        
-                        TextField("", value: $numberValue, format: .number)
-                            .font(.system(size: 13, weight: .medium))
-                            .textFieldStyle(.plain)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.secondary.opacity(0.1))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                            )
-                            .frame(maxWidth: 200) // Limit width, align to trailing
-                    }
+                    Spacer()
+                    
+                    TextField("", value: $numberValue, format: .number)
+                        .font(.system(size: 13, weight: .medium))
+                        .textFieldStyle(.plain)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                        )
+                        .frame(width: 80) // Fixed width for number input
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                        .fill(Color.secondary.opacity(0.1))
                 )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
-                .contentShape(Rectangle())
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                )
                 .onAppear {
                     numberValue = property.value as? Double ?? 0.0
                 }
@@ -472,27 +477,38 @@ struct PropertyEditor: View {
                     
                     Spacer()
                     
-                    Text(component.getProperty(key: property.key) as? String ?? "Default")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.primary)
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
+                    Menu {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Button(action: {
+                                DispatchQueue.main.async {
+                                    component.setProperty(key: property.key, value: option)
+                                }
+                            }) {
+                                Text(option.capitalized)
+                                    .foregroundColor(menuTextColor)
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text((component.getProperty(key: property.key) as? String ?? (property.options as? [String])?.first ?? "Default").capitalized)
+                                .foregroundColor(.primary)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                        .fill(Color.secondary.opacity(0.1))
                 )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    // TODO: Show dropdown menu
-                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                )
                 
             case .spacing:
                 HStack {
@@ -502,26 +518,45 @@ struct PropertyEditor: View {
                     
                     Spacer()
                     
-                    Text(component.getProperty(key: property.key) as? String ?? "Default")
+                    TextField("", value: $numberValue, format: .number)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.primary)
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
+                        .textFieldStyle(.plain)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                        )
+                        .frame(width: 80) // Fixed width for number input
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
+                .onAppear {
+                    if let doubleValue = component.getProperty(key: property.key) as? Double {
+                        numberValue = doubleValue
+                    } else if let stringValue = component.getProperty(key: property.key) as? String,
+                              let doubleValue = Double(stringValue) {
+                        numberValue = doubleValue
+                    }
                 }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    // TODO: Show spacing picker
+                .onReceive(component.objectWillChange) { _ in
+                    if let doubleValue = component.getProperty(key: property.key) as? Double {
+                        numberValue = doubleValue
+                    } else if let stringValue = component.getProperty(key: property.key) as? String,
+                              let doubleValue = Double(stringValue) {
+                        numberValue = doubleValue
+                    }
+                }
+                .onChange(of: numberValue) { _, newValue in
+                    component.setProperty(key: property.key, value: newValue)
+                }
+                .onSubmit {
+                    // Commit the final value when Enter is pressed
+                    component.setProperty(key: property.key, value: numberValue)
                 }
                 
             case .cornerRadius:
@@ -588,7 +623,6 @@ struct PropertyEditor: View {
     }
 }
 
-
 // MARK: - Color Popover
 struct ColorPopover: View {
     let property: ComponentProperty
@@ -598,12 +632,10 @@ struct ColorPopover: View {
     
     private var displayName: String {
         switch property.key {
-        case "fontWeight": return "Weight"
         case "fontSize": return "Size"
         case "foregroundColor": return "Color"
         case "backgroundColor": return "Background"
         case "cornerRadius": return "Corner Radius"
-        case "imageName": return "Image"
         case "title": return "Title"
         case "text": return "Text"
         case "alignment": return "Alignment"
@@ -1074,10 +1106,6 @@ struct ImagePickerEditor: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(property.displayName)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.primary)
-            
             // Image preview or placeholder - tappable to open picker
             let imageDataKey = useImageData ? "imageData" : property.key
             #if os(iOS)
@@ -1262,48 +1290,6 @@ struct ImagePickerEditor: View {
     #endif
 }
 
-#if os(macOS)
-import AppKit
-import UniformTypeIdentifiers
-
-struct ImagePickerMacOS: View {
-    @Binding var selectedImage: Data?
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Select Image")
-                .font(.headline)
-            
-            Button("Choose File") {
-                let panel = NSOpenPanel()
-                panel.allowedContentTypes = [.image, .png, .jpeg, .tiff, .gif]
-                panel.allowsMultipleSelection = false
-                panel.canChooseDirectories = false
-                panel.canChooseFiles = true
-                panel.message = "Choose an image file"
-                panel.prompt = "Choose"
-                
-                if panel.runModal() == .OK {
-                    if let url = panel.url,
-                       let imageData = try? Data(contentsOf: url) {
-                        selectedImage = imageData
-                        dismiss()
-                    }
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            
-            Button("Cancel") {
-                dismiss()
-            }
-            .buttonStyle(.bordered)
-        }
-        .padding()
-        .frame(width: 300, height: 200)
-    }
-}
-#else
 import PhotosUI
 import UniformTypeIdentifiers
 
@@ -1345,7 +1331,6 @@ struct ImagePicker: View {
             }
             .padding()
             .navigationTitle("Select Image")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -1356,5 +1341,4 @@ struct ImagePicker: View {
         }
     }
 }
-#endif
 

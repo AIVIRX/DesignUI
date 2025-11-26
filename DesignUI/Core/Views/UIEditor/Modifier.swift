@@ -16,6 +16,8 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
     case padding = "Padding"
     case background = "Background"
     case foregroundColor = "Foreground Color"
+    case font = "Font Weight"
+    case fontSize = "Font Size"
     case cornerRadius = "Corner Radius"
     case shadow = "Shadow"
     case opacity = "Opacity"
@@ -42,6 +44,10 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "Adds elements behind"
         case .foregroundColor:
             return "Changes text and icon color"
+        case .font:
+            return "Adjusts font weight"
+        case .fontSize:
+            return "Changes text size"
         case .cornerRadius:
             return "Rounds the corners"
         case .shadow:
@@ -81,6 +87,10 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "square.stack.3d.down.right"
         case .foregroundColor:
             return "paintbrush"
+        case .font:
+            return "textformat"
+        case .fontSize:
+            return "textformat.size"
         case .cornerRadius:
             return "rectangle.roundedtop"
         case .shadow:
@@ -180,6 +190,14 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             defaultProperties = [
                 "color": Color.primary
             ]
+        case .font:
+            defaultProperties = [
+                "fontWeight": "regular"
+            ]
+        case .fontSize:
+            defaultProperties = [
+                "fontSize": "body"
+            ]
         case .clipShape:
             defaultProperties = [
                 "shape": "Rectangle"
@@ -195,7 +213,6 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .border:
             defaultProperties = [
-                "color": Color.black,
                 "width": CGFloat(1)
             ]
         case .textAlignment:

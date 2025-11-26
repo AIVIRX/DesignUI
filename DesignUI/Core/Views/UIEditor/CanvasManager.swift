@@ -608,11 +608,13 @@ class CanvasManager: ObservableObject {
         let overlayComponent = UIComponent(
             type: .text,
             properties: [
-                ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Badge", defaultValue: "Badge"),
-                ComponentProperty(key: "fontSize", displayName: "Font Size", type: .font, value: "caption", defaultValue: "caption"),
-                ComponentProperty(key: "fontWeight", displayName: "Font Weight", type: .font, value: "bold", defaultValue: "bold")
+                ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Badge", defaultValue: "Badge")
             ],
             frame: CGRect(x: 0, y: 0, width: 50, height: 20),
+            modifiers: [
+                ComponentModifier(type: .fontSize, properties: ["fontSize": "caption"]),
+                ComponentModifier(type: .font, properties: ["fontWeight": "bold"])
+            ],
             isOverlay: true
         )
         

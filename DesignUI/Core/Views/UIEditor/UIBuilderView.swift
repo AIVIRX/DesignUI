@@ -8,6 +8,8 @@
 import SwiftUI
 #if os(macOS)
 import AppKit
+#else
+import UIKit
 #endif
 
 extension Notification.Name {
@@ -265,6 +267,7 @@ struct UIBuilderView: View {
             }
 #endif
         }
+        .navigationTitle("Studio")
         .toolbar { toolbarButtons }
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
@@ -496,6 +499,10 @@ struct UIBuilderView: View {
                     Button(action: { showCodePreview = true }) {
                         Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
+                    
+                    Button(action: { copyDesignAsJSON() }) {
+                        Label("Copy JSON", systemImage: "doc.on.doc")
+                    }
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 14, weight: .medium))
@@ -527,6 +534,28 @@ struct UIBuilderView: View {
     
     
     // MARK: - Actions
+    
+    private func copyDesignAsJSON() {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        
+        do {
+            let data = try encoder.encode(canvasManager.components)
+            if let jsonString = String(data: data, encoding: .utf8) {
+                #if os(macOS)
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(jsonString, forType: .string)
+                #else
+                UIPasteboard.general.string = jsonString
+                #endif
+                print("✅ JSON copied to clipboard")
+            }
+        } catch {
+            print("❌ Failed to copy JSON: \(error)")
+        }
+    }
     
     private func saveDesign() {
         print("💾 Manual save button pressed")

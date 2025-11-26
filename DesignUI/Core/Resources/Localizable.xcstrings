@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-      "shouldTranslate" : false
+
     },
     "@%@" : {
       "localizations" : {
@@ -2063,9 +2063,6 @@
     "10" : {
 
     },
-    "17" : {
-
-    },
     "100" : {
 
     },
@@ -2867,9 +2864,6 @@
     "Border" : {
 
     },
-    "Border Color" : {
-
-    },
     "Border Width" : {
 
     },
@@ -3394,7 +3388,7 @@
     "Choose color scheme" : {
 
     },
-    "Choose File" : {
+    "Choose from Photos" : {
 
     },
     "Clear" : {
@@ -5167,6 +5161,9 @@
           }
         }
       }
+    },
+    "Copy JSON" : {
+
     },
     "Corner Radius" : {
 
@@ -7460,6 +7457,9 @@
     "Empty Design" : {
 
     },
+    "Enter a new name for this design." : {
+
+    },
     "Error" : {
       "localizations" : {
         "ar" : {
@@ -7962,9 +7962,6 @@
           }
         }
       }
-    },
-    "Font Name" : {
-
     },
     "Font Size" : {
 
@@ -10267,6 +10264,9 @@
         }
       }
     },
+    "My Designs" : {
+
+    },
     "New Design" : {
 
     },
@@ -11295,6 +11295,9 @@
 
     },
     "Open" : {
+
+    },
+    "Open Design File..." : {
 
     },
     "Overlay" : {
@@ -12569,6 +12572,12 @@
 
     },
     "Redo" : {
+
+    },
+    "Rename" : {
+
+    },
+    "Rename Design" : {
 
     },
     "Replace" : {
@@ -16366,6 +16375,9 @@
         }
       }
     },
+    "Studio" : {
+
+    },
     "Subscribe" : {
       "localizations" : {
         "ar" : {
@@ -17873,7 +17885,7 @@
       }
     },
     "Templates" : {
-      "shouldTranslate" : false
+
     },
     "Terms of Service" : {
       "localizations" : {
@@ -18134,7 +18146,7 @@
     "Text Color" : {
 
     },
-    "This will create a new design file that you can start building with." : {
+    "This will create a new blank design file that you can start building with." : {
 
     },
     "Title" : {
@@ -18901,6 +18913,9 @@
           }
         }
       }
+    },
+    "Use Template" : {
+
     },
     "Username" : {
       "localizations" : {

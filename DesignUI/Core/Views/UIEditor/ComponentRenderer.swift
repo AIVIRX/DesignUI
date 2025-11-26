@@ -139,63 +139,16 @@ struct ComponentRenderer: View {
     // MARK: - Text Renderer
     private func renderText() -> some View {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
-        let fontSize = component.getProperty(key: "fontSize") as? String ?? "body"
-        let fontWeight = component.getProperty(key: "fontWeight") as? String ?? "regular"
-        
-        // Use iOS-specific font sizes to match simulator
-        let font = iosFont(for: fontSize, weight: fontWeightFromString(fontWeight))
-        
+        // Don't set a default font - let fontSize modifier handle it
+        // This allows parent stack's fontSize to propagate to text children
         return Text(text)
-            .font(font)
     }
     
     // MARK: - Platform Font Helper
     // Returns platform-specific font sizes per Apple Human Interface Guidelines
     // Reference: https://developer.apple.com/design/human-interface-guidelines/typography
-    private func iosFont(for fontSize: String, weight: Font.Weight) -> Font {
-        // Detect device type from deviceSize
-        let deviceWidth = deviceSize?.width ?? 393 // Default to iPhone
-        let isiPad = deviceWidth >= 700 && deviceWidth < 1200 // iPad range: 834-1024
-        let isMac = deviceWidth >= 1200 // Mac: 1280+
-        
-        let size: CGFloat
-        switch fontSize {
-        case "largeTitle":
-            if isMac { size = 40 } // macOS Large Title: 40pt
-            else if isiPad { size = 40 } // iPad Large Title: 40pt
-            else { size = 34 } // iOS Large Title: 34pt
-        case "title":
-            if isMac { size = 32 } // macOS Title 1: 32pt
-            else if isiPad { size = 34 } // iPad Title 1: 34pt
-            else { size = 28 } // iOS Title 1: 28pt
-        case "title2":
-            if isMac { size = 24 } // macOS Title 2: 24pt
-            else if isiPad { size = 28 } // iPad Title 2: 28pt
-            else { size = 22 } // iOS Title 2: 22pt
-        case "title3":
-            if isMac { size = 20 } // macOS Title 3: 20pt
-            else if isiPad { size = 22 } // iPad Title 3: 22pt
-            else { size = 20 } // iOS Title 3: 20pt
-        case "headline":
-            size = isMac ? 18 : 17 // macOS: 18pt, iOS/iPad: 17pt (always semibold)
-            return .system(size: size, weight: .semibold)
-        case "body":
-            size = isMac ? 15 : 17 // macOS: 15pt, iOS/iPad: 17pt
-        case "callout":
-            size = isMac ? 14 : 16 // macOS: 14pt, iOS/iPad: 16pt
-        case "subheadline":
-            size = isMac ? 13 : 15 // macOS: 13pt, iOS/iPad: 15pt
-        case "footnote":
-            size = isMac ? 12 : 13 // macOS: 12pt, iOS/iPad: 13pt
-        case "caption":
-            size = isMac ? 11 : 12 // macOS: 11pt, iOS/iPad: 12pt
-        case "caption2":
-            size = isMac ? 10 : 11 // macOS: 10pt, iOS/iPad: 11pt
-        default:
-            size = isMac ? 15 : 17 // Default to body
-        }
-        
-        return .system(size: size, weight: weight)
+    private func iosFont(for fontSize: String, weight: Font.Weight, deviceSize: CGSize? = nil) -> Font {
+        return createIOSFont(for: fontSize, weight: weight, deviceSize: deviceSize ?? self.deviceSize)
     }
     
     // MARK: - Image Renderer
@@ -215,20 +168,70 @@ struct ComponentRenderer: View {
                 // Create image from validated data
                 if let image = createImage(from: imageData) {
                     print("✅ Successfully created image from data")
+                    
                     // Use custom image - constrain size to device bounds to prevent canvas expansion
                     let maxWidth = deviceSize?.width ?? 1000
                     let maxHeight = deviceSize?.height ?? 1000
+                    
                     #if os(macOS)
-                    let view: some View = Image(nsImage: image)
-                        .resizableIfNeeded(resizable)
-                        .applyAspectRatio(mode: aspectRatio)
-                        .frame(maxWidth: maxWidth, maxHeight: maxHeight)
+                    let imageSize = getImageSize(image)
+                    let imageAspectRatio = imageSize.width > 0 && imageSize.height > 0 ? imageSize.width / imageSize.height : nil
+                    
+                    var view: AnyView = AnyView(Image(nsImage: image)
+                        .resizableIfNeeded(resizable))
+                    
+                    // Apply aspect ratio based on mode
+                    if aspectRatio != "none", let aspectRatioValue = imageAspectRatio {
+                        switch aspectRatio {
+                        case "fit":
+                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
+                        case "fill":
+                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fill))
+                        default:
+                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
+                        }
+                    } else if aspectRatio != "none" {
+                        // Fallback to contentMode if we don't have image dimensions
+                        switch aspectRatio {
+                        case "fit":
+                            view = AnyView(view.aspectRatio(contentMode: .fit))
+                        case "fill":
+                            view = AnyView(view.aspectRatio(contentMode: .fill))
+                        default:
+                            break
+                        }
+                    }
                     #else
-                    let view: some View = Image(uiImage: image)
-                        .resizableIfNeeded(resizable)
-                        .applyAspectRatio(mode: aspectRatio)
-                        .frame(maxWidth: maxWidth, maxHeight: maxHeight)
+                    let imageSize = getImageSize(image)
+                    let imageAspectRatio = imageSize.width > 0 && imageSize.height > 0 ? imageSize.width / imageSize.height : nil
+                    
+                    var view: AnyView = AnyView(Image(uiImage: image)
+                        .resizableIfNeeded(resizable))
+                    
+                    // Apply aspect ratio based on mode
+                    if aspectRatio != "none", let aspectRatioValue = imageAspectRatio {
+                        switch aspectRatio {
+                        case "fit":
+                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
+                        case "fill":
+                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fill))
+                        default:
+                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
+                        }
+                    } else if aspectRatio != "none" {
+                        // Fallback to contentMode if we don't have image dimensions
+                        switch aspectRatio {
+                        case "fit":
+                            view = AnyView(view.aspectRatio(contentMode: .fit))
+                        case "fill":
+                            view = AnyView(view.aspectRatio(contentMode: .fill))
+                        default:
+                            break
+                        }
+                    }
                     #endif
+                    
+                    view = AnyView(view.frame(maxWidth: maxWidth, maxHeight: maxHeight))
                     return AnyView(view)
                 } else {
                     print("⚠️ Failed to create image from data")
@@ -240,9 +243,8 @@ struct ComponentRenderer: View {
             print("ℹ️ No imageData found, using system image")
         }
         
-        // Fallback to system image
-        let imageName = component.getProperty(key: "imageName") as? String ?? "photo"
-        let view: some View = Image(systemName: imageName)
+        // Fallback to placeholder system image when no imageData
+        let view: some View = Image(systemName: "photo")
             .resizableIfNeeded(resizable)
             .applyAspectRatio(mode: aspectRatio)
         return AnyView(view)
@@ -291,6 +293,16 @@ struct ComponentRenderer: View {
         }
         
         return image
+    }
+    #endif
+    
+    #if os(macOS)
+    private func getImageSize(_ image: NSImage) -> CGSize {
+        return image.size
+    }
+    #else
+    private func getImageSize(_ image: UIImage) -> CGSize {
+        return image.size
     }
     #endif
     
@@ -412,13 +424,12 @@ struct ComponentRenderer: View {
     private func renderRectangle() -> some View {
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
-        let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 0.0
         
         if stroke != Color.clear {
-            return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
+            return AnyView(Rectangle()
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(RoundedRectangle(cornerRadius: cornerRadius))
+            return AnyView(Rectangle())
         }
     }
     
@@ -437,13 +448,13 @@ struct ComponentRenderer: View {
     private func renderRoundedRectangle() -> some View {
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
-        let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 8.0
+        let defaultCornerRadius: CGFloat = 12
         
         if stroke != Color.clear {
-            return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
+            return AnyView(RoundedRectangle(cornerRadius: defaultCornerRadius)
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(RoundedRectangle(cornerRadius: cornerRadius))
+            return AnyView(RoundedRectangle(cornerRadius: defaultCornerRadius))
         }
     }
     
@@ -513,18 +524,20 @@ struct ComponentRenderer: View {
     // MARK: - SF Symbol Renderer
     private func renderSFSymbol() -> some View {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
-        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.clear
-        let fontSize = component.getProperty(key: "fontSize") as? String ?? "largeTitle"
+        // Check if there's a fontSize modifier - if so, don't set default font
+        // The fontSize modifier will handle it
+        let hasFontSizeModifier = component.modifiers.contains { $0.type == .fontSize }
         
-        // Use iOS-specific font sizes to match simulator
-        let font = iosFont(for: fontSize, weight: .regular)
-        
-        return AnyView(
-            Image(systemName: symbolName)
-                .font(font)
-                .background(backgroundColor)
+        let view = Image(systemName: symbolName)
                 .symbolRenderingMode(.hierarchical)
-        )
+        
+        if hasFontSizeModifier {
+            return AnyView(view)
+        } else {
+            // Default to largeTitle if no fontSize modifier
+            let font = iosFont(for: "largeTitle", weight: .regular)
+            return AnyView(view.font(font))
+        }
     }
     
     // MARK: - Placeholder Renderer
@@ -562,9 +575,14 @@ private extension View {
     }
     func applyAspectRatio(mode: String) -> some View {
         switch mode {
-        case "fit": return AnyView(self.aspectRatio(contentMode: .fit))
-        case "fill": return AnyView(self.aspectRatio(contentMode: .fill))
-        default: return AnyView(self)
+        case "fit": 
+            return AnyView(self.aspectRatio(contentMode: .fit))
+        case "fill": 
+            return AnyView(self.aspectRatio(contentMode: .fill))
+        case "none":
+            return AnyView(self)
+        default: 
+            return AnyView(self.aspectRatio(contentMode: .fit))
         }
     }
     
@@ -704,6 +722,14 @@ private extension View {
             print("🎨 Modifier properties: \(modifier.properties)")
             return AnyView(view.foregroundColor(color))
             
+        case .font:
+            let weight = modifier.properties["fontWeight"] as? String ?? "regular"
+            return AnyView(view.fontWeight(fontWeightFromString(weight)))
+        case .fontSize:
+            let size = modifier.properties["fontSize"] as? String ?? "body"
+            let font = createIOSFont(for: size, weight: .regular, deviceSize: deviceSize)
+            return AnyView(view.font(font))
+            
         case .fill:
             let color = modifier.properties["color"] as? Color ?? Color.blue
             return AnyView(view.background(color))
@@ -812,9 +838,9 @@ private extension View {
             return view
             
         case .border:
-            let color = modifier.properties["color"] as? Color ?? Color.black
             let width = modifier.getCGFloat(key: "width", defaultValue: 1)
-            return AnyView(view.border(color, width: width))
+            // Use primary color for border (no color property)
+            return AnyView(view.border(Color.primary, width: width))
             
         case .clipShape:
             // Support both "shape" and "shapeType" for backward compatibility
@@ -941,5 +967,52 @@ fileprivate func verticalAlignmentFromString(_ alignment: String) -> VerticalAli
     case "lastTextBaseline": return .lastTextBaseline
     default: return .center
     }
+}
+
+// MARK: - Font Helper
+fileprivate func createIOSFont(for fontSize: String, weight: Font.Weight, deviceSize: CGSize?) -> Font {
+    // Detect device type from deviceSize
+    let deviceWidth = deviceSize?.width ?? 393 // Default to iPhone
+    let isiPad = deviceWidth >= 700 && deviceWidth < 1200 // iPad range: 834-1024
+    let isMac = deviceWidth >= 1200 // Mac: 1280+
+    
+    let size: CGFloat
+    switch fontSize {
+    case "largeTitle":
+        if isMac { size = 40 } // macOS Large Title: 40pt
+        else if isiPad { size = 40 } // iPad Large Title: 40pt
+        else { size = 34 } // iOS Large Title: 34pt
+    case "title":
+        if isMac { size = 32 } // macOS Title 1: 32pt
+        else if isiPad { size = 34 } // iPad Title 1: 34pt
+        else { size = 28 } // iOS Title 1: 28pt
+    case "title2":
+        if isMac { size = 24 } // macOS Title 2: 24pt
+        else if isiPad { size = 28 } // iPad Title 2: 28pt
+        else { size = 22 } // iOS Title 2: 22pt
+    case "title3":
+        if isMac { size = 20 } // macOS Title 3: 20pt
+        else if isiPad { size = 22 } // iPad Title 3: 22pt
+        else { size = 20 } // iOS Title 3: 20pt
+    case "headline":
+        size = isMac ? 18 : 17 // macOS: 18pt, iOS/iPad: 17pt (always semibold)
+        return .system(size: size, weight: .semibold)
+    case "body":
+        size = isMac ? 15 : 17 // macOS: 15pt, iOS/iPad: 17pt
+    case "callout":
+        size = isMac ? 14 : 16 // macOS: 14pt, iOS/iPad: 16pt
+    case "subheadline":
+        size = isMac ? 13 : 15 // macOS: 13pt, iOS/iPad: 15pt
+    case "footnote":
+        size = isMac ? 12 : 13 // macOS: 12pt, iOS/iPad: 13pt
+    case "caption":
+        size = isMac ? 11 : 12 // macOS: 11pt, iOS/iPad: 12pt
+    case "caption2":
+        size = isMac ? 10 : 11 // macOS: 10pt, iOS/iPad: 11pt
+    default:
+        size = isMac ? 15 : 17 // Default to body
+    }
+    
+    return .system(size: size, weight: weight)
 }
 

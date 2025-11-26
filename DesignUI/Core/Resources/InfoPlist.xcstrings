@@ -516,7 +516,11 @@
             "value" : "Dock UI"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
+    },
+    "DesignUI Design Document" : {
+
     },
     "NSUserTrackingUsageDescription" : {
       "comment" : "Privacy - Tracking Usage Description",

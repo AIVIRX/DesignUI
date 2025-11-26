@@ -101,6 +101,8 @@
 		ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD12B362D8F487D001A73C7 /* Toast.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
+		ECD4825D2ED647B000C5B893 /* FontSizeModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD4825C2ED647B000C5B893 /* FontSizeModifierEditor.swift */; };
+		ECD4825F2ED6792C00C5B893 /* DesignTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD4825E2ED6792C00C5B893 /* DesignTemplate.swift */; };
 		ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */; };
 		ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */; };
 		ECE995512C98881000C60416 /* TemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE995502C98881000C60416 /* TemplateView.swift */; };
@@ -200,6 +202,8 @@
 		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		ECD4825C2ED647B000C5B893 /* FontSizeModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeModifierEditor.swift; sourceTree = "<group>"; };
+		ECD4825E2ED6792C00C5B893 /* DesignTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTemplate.swift; sourceTree = "<group>"; };
 		ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
 		ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSetupView.swift; sourceTree = "<group>"; };
 		ECE995502C98881000C60416 /* TemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateView.swift; sourceTree = "<group>"; };
@@ -247,6 +251,7 @@
 		EC7ECEA62ECD499D00AC657C /* UIEditor */ = {
 			isa = PBXGroup;
 			children = (
+				ECD4825E2ED6792C00C5B893 /* DesignTemplate.swift */,
 				ECCD8EB32ED15F02005C6C4B /* AIPanelView.swift */,
 				EC7ECEAE2ECD667800AC657C /* CanvasControlsOverlay.swift */,
 				EC7ECEAF2ECD667800AC657C /* CanvasManager.swift */,
@@ -276,6 +281,7 @@
 		EC7ECEC42ECD667800AC657C /* ModifierEditors */ = {
 			isa = PBXGroup;
 			children = (
+				ECD4825C2ED647B000C5B893 /* FontSizeModifierEditor.swift */,
 				EC9C05D12ECEDA5900A89C80 /* TextAlignmentModifierEditor.swift */,
 				EC7ECEB92ECD667800AC657C /* BackgroundModifierEditor.swift */,
 				EC7ECEBA2ECD667800AC657C /* ColorModifierEditor.swift */,
@@ -709,6 +715,8 @@
 				EC5E63512EB5B1CD00133C05 /* LazyMasonryView.swift in Sources */,
 				EC5E634D2EB5398100133C05 /* UploadTemplateView.swift in Sources */,
 				ECCD8EB42ED15F02005C6C4B /* AIPanelView.swift in Sources */,
+				ECD4825D2ED647B000C5B893 /* FontSizeModifierEditor.swift in Sources */,
+				ECD4825F2ED6792C00C5B893 /* DesignTemplate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

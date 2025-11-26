@@ -13,13 +13,13 @@ struct ModifierPanelView: View {
     @State private var showingAddModifier = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading) {
             // Header
             HStack {
                 Text("Modifiers")
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.secondary)
                 
                 Spacer()
                 
@@ -248,6 +248,12 @@ struct ModifierItemView: View {
             return baseName
         case .foregroundColor:
             return baseName
+        case .font:
+            let weight = modifier.properties["fontWeight"] as? String ?? "regular"
+            return "\(baseName) (\(weight.capitalized))"
+        case .fontSize:
+            let size = modifier.properties["fontSize"] as? String ?? "body"
+            return "\(baseName) (\(size.capitalized))"
         default:
             // For other types, just add a number if there are multiple
             if totalSameType <= 1 {

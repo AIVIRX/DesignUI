@@ -51,7 +51,6 @@ Used when generating SwiftUI components:
           "additionalProperties": true,
           "properties": {
             "text": { "type": "string" },
-            "fontSize": { "type": "number" },
             "foregroundColor": { "type": "string" },
             ...
           }
@@ -74,7 +73,7 @@ Used when generating SwiftUI components:
           "items": {
             "type": "object",
             "properties": {
-              "type": { "type": "string", "enum": ["background", "padding", ...] },
+              "type": { "type": "string", "enum": ["background", "foregroundColor", "font", "fontSize", "padding", "cornerRadius", "shadow", "border", "opacity", "rotation", "scale", "offset"] },
               "properties": { "type": "object", "additionalProperties": true }
             }
           }
@@ -107,8 +106,6 @@ Used when generating SwiftUI components:
         "type": "Text",
         "properties": {
           "text": "Hello World",
-          "fontSize": 24,
-          "fontWeight": "bold",
           "foregroundColor": "blue"
         },
         "frame": {
@@ -118,7 +115,20 @@ Used when generating SwiftUI components:
           "height": 0
         },
         "children": [],
-        "modifiers": []
+        "modifiers": [
+          {
+            "type": "font",
+            "properties": {
+              "fontWeight": "bold"
+            }
+          },
+          {
+            "type": "fontSize",
+            "properties": {
+              "fontSize": "title"
+            }
+          }
+        ]
       }
     ],
     "modifiers": [
@@ -160,8 +170,6 @@ The AI can generate these component types:
 
 ### Text Properties
 - `text` (string) - The text content
-- `fontSize` (number) - Font size in points
-- `fontWeight` (string) - "regular", "medium", "semibold", or "bold"
 - `foregroundColor` (string) - Color name or RGB/RGBA string
 - `alignment` (string) - "leading", "center", or "trailing"
 
@@ -173,8 +181,9 @@ The AI can generate these component types:
 - `imageName` (string) - SF Symbol name (e.g., "star.fill", "heart")
 
 ### Shape Properties
-- `cornerRadius` (number) - Corner radius for rounded shapes
 - `backgroundColor` (string) - Background color
+
+Use the `cornerRadius` modifier to round shapes instead of a direct property.
 
 ### Frame Properties
 - `x` (number) - X position (default: 0)
@@ -194,6 +203,8 @@ Colors can be specified as:
 Available modifier types:
 - `background` - Background color or view
 - `foregroundColor` - Foreground color
+- `font` - Font weight
+- `fontSize` - Font size preset (Large Title, Title, etc.)
 - `padding` - Padding around component
 - `cornerRadius` - Corner radius
 - `shadow` - Drop shadow

@@ -356,12 +356,10 @@ extension ComponentProperty: Codable {
     static func properDisplayName(for key: String) -> String {
         switch key {
         case "fontSize": return "Font Size"
-        case "fontWeight": return "Font Weight"
         case "foregroundColor": return "Text Color"
         case "backgroundColor": return "Background Color"
         case "text": return "Text"
         case "title": return "Title"
-        case "imageName": return "Image Name"
         case "resizable": return "Resizable"
         case "aspectRatio": return "Aspect Ratio"
         case "cornerRadius": return "Corner Radius"
@@ -585,6 +583,8 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             for child in modifierChildren {
                 removeChild(child)
             }
+            // Trigger UI update after removing children
+            objectWillChange.send()
         }
         
         modifiers.removeAll { $0.id == modifier.id }
@@ -598,9 +598,23 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     func removeModifier(at index: Int) {
         guard index < modifiers.count else { return }
         let removedModifier = modifiers[index]
+        
+        // For overlay, mask, and background modifiers, remove the parent component
+        if removedModifier.type == .overlay || removedModifier.type == .mask || removedModifier.type == .background {
+            let modifierChildren = getChildrenForModifier(removedModifier.id)
+            for child in modifierChildren {
+                removeChild(child)
+            }
+            // Trigger UI update after removing children
+            objectWillChange.send()
+        }
+        
         modifiers.remove(at: index)
         objectWillChange.send()
         print("🔄 Modifier removed at index \(index): \(removedModifier.type.rawValue)")
+        
+        // Post notification to trigger design file saving
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func updateModifier(_ modifier: ComponentModifier) {
@@ -641,7 +655,22 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         self.type = try container.decode(ComponentType.self, forKey: .type)
         self.properties = try container.decode([ComponentProperty].self, forKey: .properties)
         self.children = try container.decode([UIComponent].self, forKey: .children)
+        
+        // Handle frame decoding - support both array format [[x, y], [width, height]] and dictionary format
+        if let frameArray = try? container.decode([[Double]].self, forKey: .frame),
+           frameArray.count == 2,
+           frameArray[0].count == 2,
+           frameArray[1].count == 2 {
+            // Array format: [[x, y], [width, height]]
+            let x = frameArray[0][0]
+            let y = frameArray[0][1]
+            let width = frameArray[1][0]
+            let height = frameArray[1][1]
+            self._frame = CGRect(x: x, y: y, width: width, height: height)
+        } else {
+            // Dictionary format (standard CGRect Codable)
         self._frame = try container.decode(CGRect.self, forKey: .frame)
+        }
         self.isSelected = try container.decodeIfPresent(Bool.self, forKey: .isSelected) ?? false
         self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible) ?? true
         self.zIndex = try container.decodeIfPresent(Int.self, forKey: .zIndex) ?? 0
@@ -679,14 +708,11 @@ extension UIComponent {
         switch type {
         case .text:
             return [
-                ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Hello World", defaultValue: "Hello World"),
-                ComponentProperty(key: "fontSize", displayName: "Font Size", type: .font, value: "body", defaultValue: "body", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
-                ComponentProperty(key: "fontWeight", displayName: "Font Weight", type: .font, value: "regular", defaultValue: "regular", options: ["regular", "bold", "light", "medium", "semibold", "heavy", "black"]),
+                ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Hello World", defaultValue: "Hello World")
             ]
         case .image:
             return [
                 ComponentProperty(key: "imageData", displayName: "Image", type: .string, value: "", defaultValue: ""),
-                ComponentProperty(key: "imageName", displayName: "System Image Name", type: .string, value: "photo", defaultValue: "photo"),
                 ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true),
                 ComponentProperty(key: "aspectRatio", displayName: "Aspect Ratio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
             ]
@@ -710,9 +736,7 @@ extension UIComponent {
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"])
             ]
         case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
-            return [
-                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .cornerRadius, value: 8.0, defaultValue: 8.0)
-            ]
+            return []
         case .spacer:
             return []
         case .scrollView:
@@ -722,9 +746,7 @@ extension UIComponent {
             ]
         case .sfSymbol:
             return [
-                ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star"),
-                ComponentProperty(key: "fontSize", displayName: "Size", type: .font, value: "largeTitle", defaultValue: "largeTitle", options: ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]),
-                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: Color.clear, defaultValue: Color.clear)
+                ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star")
             ]
         case .statusBar:
             return [

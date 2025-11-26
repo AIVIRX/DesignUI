@@ -207,24 +207,10 @@ struct MaskModifierEditor: View {
 // MARK: - Border Modifier Editor
 struct BorderModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var borderColor: Color = .black
     @State private var widthText: String = ""
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Border Color")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                ColorPicker("Border Color", selection: $borderColor)
-                    .labelsHidden()
-                    .onChange(of: borderColor) { _, newValue in
-                        modifier.properties["color"] = newValue
-                        NotificationCenter.default.post(name: .designChanged, object: nil)
-                    }
-            }
-            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Border Width")
                     .font(.caption)
@@ -249,7 +235,6 @@ struct BorderModifierEditor: View {
             }
         }
         .onAppear {
-            borderColor = modifier.properties["color"] as? Color ?? .black
             widthText = String(format: "%.1f", modifier.getCGFloat(key: "width", defaultValue: 1))
         }
         .onChange(of: modifier) { _, _ in
