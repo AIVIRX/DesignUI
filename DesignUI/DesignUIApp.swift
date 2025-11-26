@@ -83,8 +83,7 @@ struct DesignUIApp: App {
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
-    @StateObject private var designManager = DesignManager.shared
-
+    
     
     init() {
         UserDefaults.standard.set(0, forKey: "selectedIndex")
@@ -118,7 +117,6 @@ struct DesignUIApp: App {
             ContentView()
                 .environmentObject(colorSchemeManager)
                 .environmentObject(toastManager)
-                .environmentObject(designManager)
                 .environmentObject(subscriptionManager)
                 .environmentObject(paywallManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
@@ -136,14 +134,6 @@ struct DesignUIApp: App {
                 // This replaces the default undo/redo with our custom handlers
                 // But we'll handle it in the view instead
             }
-            
-            // Add Open File command
-            CommandGroup(after: .newItem) {
-                Button("Open Design File...") {
-                    openDesignFile()
-                }
-                .keyboardShortcut("o", modifiers: .command)
-            }
         }
     }
     
@@ -160,48 +150,6 @@ struct DesignUIApp: App {
             print("❌ File is not a .dockui file: \(url.pathExtension)")
             return
         }
-        
-        // Load the design file
-        if let designFile = DesignFile.load(from: url) {
-            print("✅ Successfully loaded design file: \(designFile.name)")
-            
-            // Check if file is already in the design manager's list
-            if let existingFile = designManager.designFiles.first(where: { $0.fileURL == url }) {
-                // File already exists in list, just open it
-                designManager.openDesign(existingFile)
-            } else {
-                // File is new (opened from outside), add it to the list and open it
-                DispatchQueue.main.async {
-                    designManager.designFiles.append(designFile)
-                    designManager.designFiles.sort { $0.lastModified > $1.lastModified }
-                    designManager.openDesign(designFile)
-                }
-            }
-        } else {
-            print("❌ Failed to load design file from: \(url.path)")
-        }
-    }
-    
-    private func openDesignFile() {
-        #if os(macOS)
-        let panel = NSOpenPanel()
-        // Use the registered UTType or fallback to filename extension
-        if let dockuiType = UTType("com.maicol.dockui.design") {
-            panel.allowedContentTypes = [dockuiType]
-        } else if let dockuiType = UTType(filenameExtension: "dockui") {
-            panel.allowedContentTypes = [dockuiType]
-        }
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        panel.title = "Open Design File"
-        
-        if panel.runModal() == .OK {
-            if let url = panel.url {
-                handleFileOpening(url: url)
-            }
-        }
-        #endif
     }
 }
 #endif

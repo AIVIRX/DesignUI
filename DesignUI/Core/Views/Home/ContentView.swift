@@ -13,7 +13,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons
+    case templates, news, profile, sfIcons, aiAssistant
 }
 
 struct ContentView: View {
@@ -34,6 +34,7 @@ struct ContentView: View {
         case profile
         case templates
         case sfIcons
+        case aiAssistant
         case threads
         case policy
         case contact
@@ -64,6 +65,10 @@ struct ContentView: View {
                         NewsListView()
                     }
                     
+                    Tab(systemImageName: "sparkles") {
+                        SwiftUIAssistantView()
+                    }
+                    
                     Tab(systemImageName: "person.crop.circle") {
                         ProfileContainerView()
                     }
@@ -81,6 +86,9 @@ struct ContentView: View {
                     
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
+                    
+                    // AI Assistant Link
+                    navigationLinkButton(viewType: .aiAssistant, label: "AI Assistant", systemImage: "sparkles", menuItem: .aiAssistant, selectedIndex: $selectedIndex, currentIndex: 4)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -127,6 +135,8 @@ struct ContentView: View {
                         ProfileContainerView()
                     case 3:
                         SFIconsView()
+                    case 4:
+                        SwiftUIAssistantView()
                     default:
                         Text("Select a view")
                     }
@@ -150,6 +160,8 @@ struct ContentView: View {
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
                 
+                // AI Assistant Link
+                navigationLinkButton(viewType: .aiAssistant, label: "AI Assistant", systemImage: "sparkles", menuItem: .aiAssistant, selectedIndex: $selectedIndex, currentIndex: 4)
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
@@ -205,13 +217,15 @@ struct ContentView: View {
             NavigationStack() {
                 switch selectedIndex {
                 case 0:
-                    DesignBrowserView()
+                    ExploreView()
                 case 1:
                     NewsListView()
                 case 2:
                     ProfileContainerView()
                 case 3:
                     SFIconsView()
+                case 4:
+                    SwiftUIAssistantView()
                 default:
                     Text("Select a view")
                 }
@@ -291,6 +305,8 @@ struct ContentView: View {
             return AnyView(ProfileContainerView())
         case .sfIcons:
             return AnyView(SFIconsView())
+        case .aiAssistant:
+            return AnyView(SwiftUIAssistantView())
         }
     }
 }

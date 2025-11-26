@@ -20,8 +20,8 @@ class AIService: ObservableObject {
         messages: [AIMessage],
         model: String = "gpt-4o-mini",
         temperature: Double = 0.7,
-        maxTokens: Int = 1000,
-        schemaType: String = "chat" // "chat" or "component"
+        maxTokens: Int = 4000,
+        schemaType: String = "chat" // Kept for backward compatibility
     ) async throws -> AIResponse {
         isLoading = true
         errorMessage = nil

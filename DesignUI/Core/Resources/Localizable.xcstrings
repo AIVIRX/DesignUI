@@ -254,38 +254,6 @@
         }
       }
     },
-    "%" : {
-
-    },
-    "%@ Size" : {
-
-    },
-    "%@ Widget" : {
-
-    },
-    "%lld × %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld × %2$lld"
-          }
-        }
-      }
-    },
-    "%lld components" : {
-
-    },
-    "%lld/%lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld/%2$lld"
-          }
-        }
-      }
-    },
     "%lld/15" : {
       "localizations" : {
         "ar" : {
@@ -2036,67 +2004,7 @@
         }
       }
     },
-    "👋 Hi! I'm your AI assistant" : {
-
-    },
-    "0" : {
-
-    },
-    "0.3" : {
-
-    },
-    "1.0" : {
-
-    },
-    "2" : {
-
-    },
-    "4" : {
-
-    },
-    "8" : {
-
-    },
-    "9:41" : {
-
-    },
-    "10" : {
-
-    },
-    "100" : {
-
-    },
-    "Actions" : {
-
-    },
-    "Add Another" : {
-
-    },
-    "Add Component" : {
-
-    },
-    "Add components from the library to start!" : {
-
-    },
-    "Add Modifier" : {
-
-    },
-    "Add Overlay Component" : {
-
-    },
     "AI Assistant" : {
-
-    },
-    "AI is thinking..." : {
-
-    },
-    "Alignment" : {
-
-    },
-    "Amount" : {
-
-    },
-    "Angle (degrees)" : {
 
     },
     "Appearance" : {
@@ -2349,9 +2257,6 @@
         }
       }
     },
-    "Are you sure you want to delete this design? This action cannot be undone." : {
-
-    },
     "Are you sure you want to delete your account?" : {
       "localizations" : {
         "ar" : {
@@ -2602,7 +2507,13 @@
         }
       }
     },
-    "Background Color" : {
+    "Ask about SwiftUI or request code..." : {
+
+    },
+    "Ask me anything about SwiftUI or request code templates!" : {
+
+    },
+    "Assistant" : {
 
     },
     "Bio" : {
@@ -2855,24 +2766,6 @@
         }
       }
     },
-    "Blur" : {
-
-    },
-    "Blur Radius" : {
-
-    },
-    "Border" : {
-
-    },
-    "Border Width" : {
-
-    },
-    "Bottom Leading" : {
-
-    },
-    "Bottom Trailing" : {
-
-    },
     "Cancel" : {
       "localizations" : {
         "ar" : {
@@ -3123,9 +3016,6 @@
         }
       }
     },
-    "Center" : {
-
-    },
     "Change Plan" : {
       "localizations" : {
         "ar" : {
@@ -3375,27 +3265,6 @@
           }
         }
       }
-    },
-    "Choose a device preset" : {
-
-    },
-    "Choose Background Color" : {
-
-    },
-    "Choose Color" : {
-
-    },
-    "Choose color scheme" : {
-
-    },
-    "Choose from Photos" : {
-
-    },
-    "Clear" : {
-
-    },
-    "Clip Shape" : {
-
     },
     "Code" : {
       "localizations" : {
@@ -3897,9 +3766,6 @@
         }
       }
     },
-    "Color" : {
-
-    },
     "Color Scheme" : {
       "localizations" : {
         "ar" : {
@@ -4399,18 +4265,6 @@
           }
         }
       }
-    },
-    "Component Background" : {
-
-    },
-    "Component Mask" : {
-
-    },
-    "Component Overlay" : {
-
-    },
-    "Components" : {
-
     },
     "Continue" : {
       "localizations" : {
@@ -5162,18 +5016,6 @@
         }
       }
     },
-    "Copy JSON" : {
-
-    },
-    "Corner Radius" : {
-
-    },
-    "Create" : {
-
-    },
-    "Create New Design" : {
-
-    },
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
       "localizations" : {
         "ar" : {
@@ -5424,16 +5266,7 @@
         }
       }
     },
-    "Create your first design to get started" : {
-
-    },
     "Dark" : {
-
-    },
-    "Default Height" : {
-
-    },
-    "Default Width" : {
 
     },
     "Delete" : {
@@ -5936,12 +5769,6 @@
         }
       }
     },
-    "Delete Component" : {
-
-    },
-    "Delete Design" : {
-
-    },
     "Describe your design..." : {
       "localizations" : {
         "ar" : {
@@ -6441,12 +6268,6 @@
           }
         }
       }
-    },
-    "Design Browser" : {
-
-    },
-    "Design Name" : {
-
     },
     "DesignUI" : {
       "localizations" : {
@@ -7198,12 +7019,6 @@
         }
       }
     },
-    "Done" : {
-
-    },
-    "Duplicate" : {
-
-    },
     "Edit Profile" : {
       "localizations" : {
         "ar" : {
@@ -7453,12 +7268,6 @@
           }
         }
       }
-    },
-    "Empty Design" : {
-
-    },
-    "Enter a new name for this design." : {
-
     },
     "Error" : {
       "localizations" : {
@@ -7710,9 +7519,6 @@
         }
       }
     },
-    "Export" : {
-
-    },
     "Features" : {
       "localizations" : {
         "ar" : {
@@ -7963,33 +7769,6 @@
         }
       }
     },
-    "Font Size" : {
-
-    },
-    "Font Weight" : {
-
-    },
-    "Full Height" : {
-
-    },
-    "Full Width" : {
-
-    },
-    "Generated Code" : {
-
-    },
-    "Height" : {
-
-    },
-    "Height Type" : {
-
-    },
-    "Hello World" : {
-
-    },
-    "I can help you with:" : {
-
-    },
     "Introducing" : {
       "localizations" : {
         "ar" : {
@@ -8239,9 +8018,6 @@
           }
         }
       }
-    },
-    "Is Visible" : {
-
     },
     "John Doe" : {
       "localizations" : {
@@ -8992,9 +8768,6 @@
           }
         }
       }
-    },
-    "Layers" : {
-
     },
     "Legal" : {
       "localizations" : {
@@ -9749,21 +9522,6 @@
         }
       }
     },
-    "Location" : {
-
-    },
-    "Mask" : {
-
-    },
-    "Mask Type" : {
-
-    },
-    "Message" : {
-
-    },
-    "Modifiers" : {
-
-    },
     "More Apps" : {
       "localizations" : {
         "ar" : {
@@ -10264,12 +10022,6 @@
         }
       }
     },
-    "My Designs" : {
-
-    },
-    "New Design" : {
-
-    },
     "News" : {
       "localizations" : {
         "ar" : {
@@ -10519,12 +10271,6 @@
           }
         }
       }
-    },
-    "No Designs Yet" : {
-
-    },
-    "No layers yet" : {
-
     },
     "No liked posts yet" : {
       "localizations" : {
@@ -10776,9 +10522,6 @@
         }
       }
     },
-    "No modifiers applied" : {
-
-    },
     "No posts found" : {
       "localizations" : {
         "ar" : {
@@ -11028,18 +10771,6 @@
           }
         }
       }
-    },
-    "No Selection" : {
-
-    },
-    "Offset" : {
-
-    },
-    "Offset X" : {
-
-    },
-    "Offset Y" : {
-
     },
     "OK" : {
       "localizations" : {
@@ -11291,27 +11022,6 @@
         }
       }
     },
-    "Opacity" : {
-
-    },
-    "Open" : {
-
-    },
-    "Open Design File..." : {
-
-    },
-    "Overlay" : {
-
-    },
-    "Overlay Color" : {
-
-    },
-    "Overlay Text" : {
-
-    },
-    "Padding" : {
-
-    },
     "Paste your SwiftUI code here..." : {
       "localizations" : {
         "ar" : {
@@ -11561,9 +11271,6 @@
           }
         }
       }
-    },
-    "Position" : {
-
     },
     "Premium" : {
       "localizations" : {
@@ -12565,30 +12272,6 @@
         }
       }
     },
-    "Properties" : {
-
-    },
-    "Radius" : {
-
-    },
-    "Redo" : {
-
-    },
-    "Rename" : {
-
-    },
-    "Rename Design" : {
-
-    },
-    "Replace" : {
-
-    },
-    "Reset Zoom" : {
-
-    },
-    "Rotation" : {
-
-    },
     "Save" : {
       "localizations" : {
         "ar" : {
@@ -12838,21 +12521,6 @@
           }
         }
       }
-    },
-    "Scale" : {
-
-    },
-    "Scale X" : {
-
-    },
-    "Scale Y" : {
-
-    },
-    "Search components..." : {
-
-    },
-    "Search modifiers..." : {
-
     },
     "Search posts" : {
       "localizations" : {
@@ -13604,9 +13272,6 @@
         }
       }
     },
-    "Select a component to edit its properties" : {
-
-    },
     "Select a view" : {
       "localizations" : {
         "ar" : {
@@ -13856,12 +13521,6 @@
           }
         }
       }
-    },
-    "Select Image" : {
-
-    },
-    "Select SF Symbol" : {
-
     },
     "Send Feedback" : {
       "localizations" : {
@@ -14863,12 +14522,6 @@
         }
       }
     },
-    "Shadow" : {
-
-    },
-    "Shape Type" : {
-
-    },
     "Share" : {
       "localizations" : {
         "ar" : {
@@ -15118,9 +14771,6 @@
           }
         }
       }
-    },
-    "Show in Finder" : {
-
     },
     "Sign In Required" : {
       "localizations" : {
@@ -16122,9 +15772,6 @@
         }
       }
     },
-    "Spacing" : {
-
-    },
     "Stock Profit Calculator 2025" : {
       "localizations" : {
         "ar" : {
@@ -16374,9 +16021,6 @@
           }
         }
       }
-    },
-    "Studio" : {
-
     },
     "Subscribe" : {
       "localizations" : {
@@ -17378,10 +17022,7 @@
         }
       }
     },
-    "Tap to open" : {
-
-    },
-    "Tap to Select Image" : {
+    "SwiftUI Assistant" : {
 
     },
     "Tell us a bit about yourself" : {
@@ -18140,13 +17781,7 @@
     "Text" : {
 
     },
-    "Text Badge" : {
-
-    },
-    "Text Color" : {
-
-    },
-    "This will create a new blank design file that you can start building with." : {
+    "Thinking..." : {
 
     },
     "Title" : {
@@ -18398,21 +18033,6 @@
           }
         }
       }
-    },
-    "Top Leading" : {
-
-    },
-    "Top Trailing" : {
-
-    },
-    "Type" : {
-
-    },
-    "Undo" : {
-
-    },
-    "Unsupported property type" : {
-
     },
     "Upload" : {
       "localizations" : {
@@ -18913,9 +18533,6 @@
           }
         }
       }
-    },
-    "Use Template" : {
-
     },
     "Username" : {
       "localizations" : {
@@ -19666,24 +19283,6 @@
           }
         }
       }
-    },
-    "View Code" : {
-
-    },
-    "Widget Builder" : {
-
-    },
-    "Widget Preview" : {
-
-    },
-    "Widget Size" : {
-
-    },
-    "Width" : {
-
-    },
-    "Width Type" : {
-
     },
     "You have access to all premium features" : {
       "localizations" : {
