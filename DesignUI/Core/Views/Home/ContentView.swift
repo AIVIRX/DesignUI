@@ -13,7 +13,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, aiAssistant
+    case templates, news, profile, sfIcons
 }
 
 struct ContentView: View {
@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var hoveredItem: MenuItem?
     @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
     @State private var showSidebarSettings = false
+    @StateObject private var authViewModel = AuthViewModel()
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
     
@@ -64,14 +65,6 @@ struct ContentView: View {
                     Tab(systemImageName: "newspaper") {
                         NewsListView()
                     }
-                    
-                    Tab(systemImageName: "sparkles") {
-                        SwiftUIAssistantView()
-                    }
-                    
-                    Tab(systemImageName: "person.crop.circle") {
-                        ProfileContainerView()
-                    }
                 }
             } else {
             NavigationSplitView {
@@ -80,15 +73,10 @@ struct ContentView: View {
                     
                     navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
                     
-                    navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 2)
-                    
                     Divider().padding(.vertical).opacity(0.5)
                     
                     // SF Symbols Link
-                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
-                    
-                    // AI Assistant Link
-                    navigationLinkButton(viewType: .aiAssistant, label: "AI Assistant", systemImage: "sparkles", menuItem: .aiAssistant, selectedIndex: $selectedIndex, currentIndex: 4)
+                    navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -119,6 +107,9 @@ struct ContentView: View {
                         .font(.body)
                     
                     Spacer()
+                    
+                    // Profile Section
+                    SidebarProfileSection(authViewModel: authViewModel)
                 }
                 .padding()
                 .background(Color.clear)
@@ -132,11 +123,7 @@ struct ContentView: View {
                     case 1:
                         NewsListView()
                     case 2:
-                        ProfileContainerView()
-                    case 3:
                         SFIconsView()
-                    case 4:
-                        SwiftUIAssistantView()
                     default:
                         Text("Select a view")
                     }
@@ -152,19 +139,12 @@ struct ContentView: View {
                 
                 navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
                 
-                navigationLinkButton(viewType: .profile, label: "Profile", systemImage: "person.fill", menuItem: .profile, selectedIndex: $selectedIndex, currentIndex: 2)
-                
                 Divider().padding(.vertical).opacity(0.5)
                 
                 
                 // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 3)
-                
-                // AI Assistant Link
-                navigationLinkButton(viewType: .aiAssistant, label: "AI Assistant", systemImage: "sparkles", menuItem: .aiAssistant, selectedIndex: $selectedIndex, currentIndex: 4)
-                
-                Divider().padding(.vertical).opacity(0.5)
-                
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
+                                
                     LinkRow(title: "Threads",
                             urlString: "https://www.threads.com/@dockui",
                             item: ContentView.MenuItem.threads,
@@ -192,6 +172,9 @@ struct ContentView: View {
                         .font(.body)
                     
                     Spacer()
+                    
+                    // Profile Section
+                    SidebarProfileSection(authViewModel: authViewModel)
             }
             .padding()
             .navigationSplitViewColumnWidth(230)
@@ -221,11 +204,7 @@ struct ContentView: View {
                 case 1:
                     NewsListView()
                 case 2:
-                    ProfileContainerView()
-                case 3:
                     SFIconsView()
-                case 4:
-                    SwiftUIAssistantView()
                 default:
                     Text("Select a view")
                 }
@@ -301,12 +280,10 @@ struct ContentView: View {
             return AnyView(ExploreView())
         case .news:
             return AnyView(NewsListView())
-        case .profile:
-            return AnyView(ProfileContainerView())
         case .sfIcons:
             return AnyView(SFIconsView())
-        case .aiAssistant:
-            return AnyView(SwiftUIAssistantView())
+        case .profile:
+            return AnyView(ExploreView()) // Fallback, shouldn't be reached
         }
     }
 }
@@ -345,6 +322,125 @@ private struct LinkRow: View {
         .buttonStyle(PlainButtonStyle())
         .onHover { hovering in
             hoveredItem = hovering ? item : nil
+        }
+    }
+}
+
+// MARK: - Sidebar Profile Section
+struct SidebarProfileSection: View {
+    @ObservedObject var authViewModel: AuthViewModel
+    @Environment(\.colorScheme) var colorScheme
+    @State private var showDeleteAlert = false
+    
+    var body: some View {
+        if authViewModel.isAuthenticated, let profile = authViewModel.userProfile {
+            HStack(spacing: 10) {
+                // Clickable Profile Section
+                NavigationLink(destination: ProfileContainerView()) {
+                    HStack(spacing: 10) {
+                        // Profile Picture - Text Letter Placeholder Only
+                        Circle()
+                            .fill(Color.blue.opacity(0.8))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Text(profile.display_name?.prefix(1).uppercased() ?? profile.username?.prefix(1).uppercased() ?? "?")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                            )
+                        
+                        // Name and Username
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(profile.display_name ?? profile.username ?? "User")
+                                .font(.system(size: 13, weight: .semibold))
+                                .lineLimit(1)
+                            
+                            if let username = profile.username {
+                                Text("@\(username)")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PlainButtonStyle())
+                .accentColor(.clear)
+                
+                // Menu Button (separate from NavigationLink)
+                Menu {
+                    Button {
+                        Task {
+                            await authViewModel.signOut()
+                        }
+                    } label: {
+                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
+                    }
+                    
+                    Button(role: .destructive) {
+                        showDeleteAlert = true
+                    } label: {
+                        Label("Delete Account", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .padding(4)
+                }
+                .menuIndicator(.hidden)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(colorScheme == .dark ? Color.gray.opacity(0.1) : Color.gray.opacity(0.05))
+            .cornerRadius(8)
+            .alert("Are you sure you want to delete your account?",
+                   isPresented: $showDeleteAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await authViewModel.deleteAccount()
+                    }
+                }
+            }
+        } else {
+            // Sign In Section (when logged out)
+            NavigationLink(destination: ProfileContainerView()) {
+                HStack(spacing: 10) {
+                    // Sign In Icon
+                    Circle()
+                        .fill(Color.blue.opacity(0.8))
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Image(systemName: "person.circle")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white)
+                        )
+                    
+                    // Sign In Text
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Sign In")
+                            .font(.system(size: 13, weight: .semibold))
+                            .lineLimit(1)
+                        
+                        Text("Access your profile")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                    
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .accentColor(.clear)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(colorScheme == .dark ? Color.gray.opacity(0.1) : Color.gray.opacity(0.05))
+            .cornerRadius(8)
         }
     }
 }

@@ -2004,7 +2004,7 @@
         }
       }
     },
-    "AI Assistant" : {
+    "Access your profile" : {
 
     },
     "Appearance" : {
@@ -2506,15 +2506,6 @@
           }
         }
       }
-    },
-    "Ask about SwiftUI or request code..." : {
-
-    },
-    "Ask me anything about SwiftUI or request code templates!" : {
-
-    },
-    "Assistant" : {
-
     },
     "Bio" : {
       "localizations" : {
@@ -9272,6 +9263,9 @@
         }
       }
     },
+    "Loading profile..." : {
+
+    },
     "Loading subscription..." : {
       "localizations" : {
         "ar" : {
@@ -14772,6 +14766,9 @@
         }
       }
     },
+    "Sign In" : {
+
+    },
     "Sign In Required" : {
       "localizations" : {
         "ar" : {
@@ -17022,9 +17019,6 @@
         }
       }
     },
-    "SwiftUI Assistant" : {
-
-    },
     "Tell us a bit about yourself" : {
       "localizations" : {
         "ar" : {
@@ -17777,12 +17771,6 @@
           }
         }
       }
-    },
-    "Text" : {
-
-    },
-    "Thinking..." : {
-
     },
     "Title" : {
       "localizations" : {

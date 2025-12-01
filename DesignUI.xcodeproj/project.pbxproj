@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EC04CAC22ED6D127009583B7 /* SwiftUIAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC04CAC12ED6D127009583B7 /* SwiftUIAssistantView.swift */; };
 		EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95BD2EB29F1200AA6A84 /* Constants.swift */; };
 		EC0C95C22EB2A08500AA6A84 /* PaywallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */; };
 		EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */; };
@@ -65,7 +64,6 @@
 		ECC527642E27155900DAA548 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527632E27155900DAA548 /* Auth */; };
 		ECC527662E27155D00DAA548 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527652E27155D00DAA548 /* Functions */; };
 		ECC527682E27156000DAA548 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527672E27156000DAA548 /* PostgREST */; };
-		ECCD8EB72ED16070005C6C4B /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCD8EB52ED16070005C6C4B /* AIService.swift */; };
 		ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD12B362D8F487D001A73C7 /* Toast.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
@@ -82,7 +80,6 @@
 
 /* Begin PBXFileReference section */
 		BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
-		EC04CAC12ED6D127009583B7 /* SwiftUIAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIAssistantView.swift; sourceTree = "<group>"; };
 		EC0C95BD2EB29F1200AA6A84 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallManager.swift; sourceTree = "<group>"; };
 		EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesService.swift; sourceTree = "<group>"; };
@@ -132,7 +129,6 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB1DA632C7C160C002D7E31 /* FormatCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatCount.swift; sourceTree = "<group>"; };
-		ECCD8EB52ED16070005C6C4B /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
@@ -228,18 +224,9 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		ECCD8EB62ED16070005C6C4B /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				ECCD8EB52ED16070005C6C4B /* AIService.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
 		ECD13FD32C18BA7B00105B3E /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				ECCD8EB62ED16070005C6C4B /* Services */,
 				ECD13FF92C18BF8800105B3E /* Components */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
 				ECD13FFE2C18C12400105B3E /* Resources */,
@@ -290,7 +277,6 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				EC04CAC12ED6D127009583B7 /* SwiftUIAssistantView.swift */,
 				EC9F546F2E187F8E00AAE9EC /* Blog */,
 				ECD13FE62C18BDF300105B3E /* Home */,
 				EC0C95C62EB2A18F00AA6A84 /* Paywall */,
@@ -534,12 +520,10 @@
 				EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */,
 				EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */,
 				EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */,
-				EC04CAC22ED6D127009583B7 /* SwiftUIAssistantView.swift in Sources */,
 				EC2D21282CBF183000FA192D /* CommunityPosts.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				EC70F84B2EB6C24C001D39DC /* FeedItem.swift in Sources */,
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
-				ECCD8EB72ED16070005C6C4B /* AIService.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,

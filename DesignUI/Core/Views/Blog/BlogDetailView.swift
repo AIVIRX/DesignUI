@@ -20,8 +20,12 @@ struct NewsDetailView: View {
             VStack{
                 VStack(spacing: 32) {
                     Text(post.title)
+                        #if os(macOS)
+                        .font(.system(size: 34, weight: .bold))
+                        #else
                         .font(.title)
                         .fontWeight(.bold)
+                        #endif
                         .foregroundColor(.primary)
                         .lineLimit(3)
                         .frame(maxWidth: 700, alignment: .leading)

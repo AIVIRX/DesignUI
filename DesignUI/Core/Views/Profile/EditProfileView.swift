@@ -229,7 +229,7 @@ struct EditProfileView: View {
                     .scrollContentBackground(.hidden)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
-                    .frame(minHeight: 120)
+                    .frame(minHeight: 120, maxHeight: 150)
                     .background(backgroundColor)
                     .cornerRadius(12)
                     .overlay(bioFieldBorder)

@@ -156,13 +156,21 @@ struct BlogGridCard: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
             }
             Text(post.title)
+                #if os(macOS)
+                .font(.title2).bold()
+                #else
                 .font(.title3).bold()
+                #endif
                 .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : Color.black)
                 #if os(iOS)
                 .lineLimit(2)
                 #endif
                 .multilineTextAlignment(.leading)
+                #if os(macOS)
+                .frame(height: 56, alignment: .top)
+                #else
                 .frame(height: 48, alignment: .top)
+                #endif
                 .padding(.bottom, 8)
         }
         .cornerRadius(12)
