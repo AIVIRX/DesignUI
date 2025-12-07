@@ -153,14 +153,6 @@ struct DetailView: View {
                                     
                     SimilarPostsView(currentPostId: id)
                         .padding(.vertical)
-                    
-                    // Author Profile Section
-                    AuthorProfileSection(
-                        profile: authorProfile,
-                        isLoading: isLoadingProfile,
-                        username: author
-                    )
-                    .padding(.vertical)
                 }
                 .environment(\.symbolVariants, .none)
                 .accentColor(.none)
@@ -227,14 +219,6 @@ struct DetailView: View {
                     .frame(height: 600)
                     SimilarPostsView(currentPostId: id)
                         .padding(.vertical)
-                    
-                    // Author Profile Section
-                    AuthorProfileSection(
-                        profile: authorProfile,
-                        isLoading: isLoadingProfile,
-                        username: author
-                    )
-                    .padding(.vertical)
                 }
                 .environment(\.symbolVariants, .none)
                 .accentColor(.none)
@@ -304,14 +288,6 @@ struct DetailView: View {
                 
                 SimilarPostsView(currentPostId: id)
                     .padding(.bottom, 20)
-                
-                // Author Profile Section
-                AuthorProfileSection(
-                    profile: authorProfile,
-                    isLoading: isLoadingProfile,
-                    username: author
-                )
-                .padding(.bottom, 20)
             }
             .padding(.vertical)
             .environment(\.symbolVariants, .none)
@@ -382,103 +358,6 @@ struct DetailView: View {
                 self.isLoadingProfile = false
             }
         }
-    }
-}
-
-// MARK: - Author Profile Section
-struct AuthorProfileSection: View {
-    let profile: Profile?
-    let isLoading: Bool
-    let username: String
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            Divider()
-                .padding(.top, 8)
-            
-            if isLoading {
-                HStack(spacing: 12) {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                    Text("Loading profile...")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-            } else {
-                HStack(spacing: 12) {
-                    // Profile Picture
-                    Group {
-                        if let avatarUrl = profile?.avatarUrl, !avatarUrl.isEmpty, let url = URL(string: avatarUrl) {
-                            WebImage(url: url) { phase in
-                                switch phase {
-                                case .empty:
-                                    ProgressView()
-                                        .frame(width: 50, height: 50)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                case .failure:
-                                    Circle()
-                                        .fill(Color.blue.opacity(0.8))
-                                        .overlay(
-                                            Text(profile?.display_name?.prefix(1).uppercased() ?? username.prefix(1).uppercased())
-                                                .font(.system(size: 20, weight: .bold))
-                                                .foregroundColor(.white)
-                                        )
-                                @unknown default:
-                                    Circle()
-                                        .fill(Color.blue.opacity(0.8))
-                                        .overlay(
-                                            Text(profile?.display_name?.prefix(1).uppercased() ?? username.prefix(1).uppercased())
-                                                .font(.system(size: 20, weight: .bold))
-                                                .foregroundColor(.white)
-                                        )
-                                }
-                            }
-                            .frame(width: 50, height: 50)
-                            .clipShape(Circle())
-                        } else {
-                            Circle()
-                                .fill(Color.blue.opacity(0.8))
-                                .frame(width: 50, height: 50)
-                                .overlay(
-                                    Text(profile?.display_name?.prefix(1).uppercased() ?? username.prefix(1).uppercased())
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(.white)
-                                )
-                        }
-                    }
-                    
-                    // Name and Username
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 6) {
-                            Text(profile?.display_name ?? username)
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                            
-                            if profile?.verified == true {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                        
-                        Text("@\(username)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-            }
-        }
-        .frame(maxWidth: .infinity)
     }
 }
 
