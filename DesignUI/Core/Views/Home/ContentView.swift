@@ -13,7 +13,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons
+    case templates, news, profile, sfIcons, settings
 }
 
 struct ContentView: View {
@@ -39,6 +39,7 @@ struct ContentView: View {
         case threads
         case policy
         case contact
+        case settings
     }
     
     // Computed property for effective color scheme
@@ -69,12 +70,14 @@ struct ContentView: View {
             } else {
             NavigationSplitView {
                 VStack(alignment: .leading, spacing: 5) {
+                    SidebarProfileSection(authViewModel: authViewModel, selectedIndex: $selectedIndex, hoveredItem: $hoveredItem, effectiveColorScheme: effectiveColorScheme)
+                    
+                    Divider().padding(.vertical,5).opacity(0.5)
+                    
                     navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                     
                     navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
-                    
-                    Divider().padding(.vertical).opacity(0.5)
-                    
+                                        
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                     
@@ -107,9 +110,9 @@ struct ContentView: View {
                         .font(.body)
                     
                     Spacer()
-                    
-                    // Profile Section
-                    SidebarProfileSection(authViewModel: authViewModel)
+                
+                // SF Symbols Link
+                navigationLinkButton(viewType: .settings, label: "Settings", systemImage: "gear", menuItem: .settings, selectedIndex: $selectedIndex, currentIndex: 4)
                 }
                 .padding()
                 .background(Color.clear)
@@ -124,6 +127,8 @@ struct ContentView: View {
                         NewsListView()
                     case 2:
                         SFIconsView()
+                    case 3:
+                        ProfileContainerView()
                     default:
                         Text("Select a view")
                     }
@@ -135,15 +140,20 @@ struct ContentView: View {
 #if os(macOS)
         NavigationSplitView(columnVisibility: $sidebarVisibility) {
             VStack(alignment: .leading, spacing: 5) {
+                // Profile Section
+                SidebarProfileSection(authViewModel: authViewModel, selectedIndex: $selectedIndex, hoveredItem: $hoveredItem, effectiveColorScheme: effectiveColorScheme)
+                
+                Divider().padding(.vertical,5).opacity(0.5)
+
+                
                 navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
                 
-                Divider().padding(.vertical).opacity(0.5)
-                
-                
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
+                
+                Divider().padding(.vertical).opacity(0.5)
                                 
                     LinkRow(title: "Threads",
                             urlString: "https://www.threads.com/@dockui",
@@ -172,29 +182,13 @@ struct ContentView: View {
                         .font(.body)
                     
                     Spacer()
-                    
-                    // Profile Section
-                    SidebarProfileSection(authViewModel: authViewModel)
+                
+                // SF Symbols Link
+                navigationLinkButton(viewType: .settings, label: "Settings", systemImage: "gear", menuItem: .settings, selectedIndex: $selectedIndex, currentIndex: 4)
+
             }
             .padding()
             .navigationSplitViewColumnWidth(230)
-#if os(macOS)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        showSidebarSettings = true
-                    }) {
-                        Image(systemName: "gearshape.fill")
-                    }
-                }
-            }
-            .sheet(isPresented: $showSidebarSettings) {
-                SettingsView()
-#if os(macOS)
-                    .frame(minWidth: 720, minHeight: 560)
-#endif
-            }
-#endif
         }
         detail: {
             NavigationStack() {
@@ -205,6 +199,8 @@ struct ContentView: View {
                     NewsListView()
                 case 2:
                     SFIconsView()
+                case 3:
+                    ProfileContainerView()
                 default:
                     Text("Select a view")
                 }
@@ -283,12 +279,12 @@ struct ContentView: View {
         case .sfIcons:
             return AnyView(SFIconsView())
         case .profile:
-            return AnyView(ExploreView()) // Fallback, shouldn't be reached
+            return AnyView(ExploreView())
+        case .settings:
+            return AnyView(SettingsView())
         }
     }
 }
-
-//
 
 // MARK: - Reusable LinkRow
 private struct LinkRow: View {
@@ -329,8 +325,41 @@ private struct LinkRow: View {
 // MARK: - Sidebar Profile Section
 struct SidebarProfileSection: View {
     @ObservedObject var authViewModel: AuthViewModel
+    @Binding var selectedIndex: Int
+    @Binding var hoveredItem: ContentView.MenuItem?
+    let effectiveColorScheme: ColorScheme
     @Environment(\.colorScheme) var colorScheme
     @State private var showDeleteAlert = false
+    
+    private let profileIndex = 3
+    
+    private var isSelected: Bool {
+        selectedIndex == profileIndex
+    }
+    
+    private var isHovered: Bool {
+        hoveredItem == .profile
+    }
+    
+    private var backgroundColor: Color {
+        if isSelected {
+            return effectiveColorScheme == .dark ? .white : .black
+        } else if isHovered {
+            return effectiveColorScheme == .dark ? Color.gray.opacity(0.2) : Color.black.opacity(0.2)
+        } else {
+            return .clear
+        }
+    }
+    
+    private var textColor: Color {
+        if isSelected {
+            return effectiveColorScheme == .dark ? .black : .white
+        } else if isHovered {
+            return effectiveColorScheme == .dark ? .white : .black
+        } else {
+            return effectiveColorScheme == .dark ? .white : .black
+        }
+    }
     
     var body: some View {
         if authViewModel.isAuthenticated, let profile = authViewModel.userProfile {
@@ -352,50 +381,62 @@ struct SidebarProfileSection: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(profile.display_name ?? profile.username ?? "User")
                                 .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(textColor)
                                 .lineLimit(1)
                             
                             if let username = profile.username {
                                 Text("@\(username)")
                                     .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(isSelected ? textColor.opacity(0.8) : .secondary)
                                     .lineLimit(1)
                             }
                         }
                         
                         Spacer()
+                        
+                        // Menu Button (separate from NavigationLink)
+                        Menu {
+                            Button {
+                                Task {
+                                    await authViewModel.signOut()
+                                }
+                            } label: {
+                                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
+                            }
+                            
+                            Button(role: .destructive) {
+                                showDeleteAlert = true
+                            } label: {
+                                Label("Delete Account", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .padding(4)
+                        }
+                        .menuIndicator(.hidden)
                     }
                     .contentShape(Rectangle())
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(backgroundColor)
+                    .cornerRadius(12)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .accentColor(.clear)
-                
-                // Menu Button (separate from NavigationLink)
-                Menu {
-                    Button {
-                        Task {
-                            await authViewModel.signOut()
-                        }
-                    } label: {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
+                .onHover { hovering in
+                    if selectedIndex != profileIndex {
+                        hoveredItem = hovering ? .profile : nil
                     }
-                    
-                    Button(role: .destructive) {
-                        showDeleteAlert = true
-                    } label: {
-                        Label("Delete Account", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .padding(4)
                 }
-                .menuIndicator(.hidden)
+                .simultaneousGesture(TapGesture().onEnded {
+                    if selectedIndex != profileIndex {
+                        hoveredItem = nil
+                        selectedIndex = profileIndex
+                    }
+                })
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(colorScheme == .dark ? Color.gray.opacity(0.1) : Color.gray.opacity(0.05))
-            .cornerRadius(8)
             .alert("Are you sure you want to delete your account?",
                    isPresented: $showDeleteAlert) {
                 Button("Cancel", role: .cancel) { }
@@ -414,7 +455,7 @@ struct SidebarProfileSection: View {
                         .fill(Color.blue.opacity(0.8))
                         .frame(width: 32, height: 32)
                         .overlay(
-                            Image(systemName: "person.circle")
+                            Image(systemName: "person.fill")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(.white)
                         )
@@ -423,24 +464,36 @@ struct SidebarProfileSection: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Sign In")
                             .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(textColor)
                             .lineLimit(1)
                         
                         Text("Access your profile")
                             .font(.system(size: 11))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(isSelected ? textColor.opacity(0.8) : .secondary)
                             .lineLimit(1)
                     }
                     
                     Spacer()
                 }
                 .contentShape(Rectangle())
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(backgroundColor)
+                .cornerRadius(8)
             }
             .buttonStyle(PlainButtonStyle())
             .accentColor(.clear)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(colorScheme == .dark ? Color.gray.opacity(0.1) : Color.gray.opacity(0.05))
-            .cornerRadius(8)
+            .onHover { hovering in
+                if selectedIndex != profileIndex {
+                    hoveredItem = hovering ? .profile : nil
+                }
+            }
+            .simultaneousGesture(TapGesture().onEnded {
+                if selectedIndex != profileIndex {
+                    hoveredItem = nil
+                    selectedIndex = profileIndex
+                }
+            })
         }
     }
 }

@@ -1,0 +1,198 @@
+//
+//  UserPostsView.swift
+//  DockUI
+//
+//  Created by Maicol Cabreja on 1/15/25.
+//
+
+import SwiftUI
+
+struct UserPostsView: View {
+    @StateObject private var viewModel = UserPostsViewModel()
+    @State private var showDeleteAlert = false
+    @State private var postToDelete: DesignPost?
+    
+    var body: some View {
+        ScrollView {
+            if viewModel.isLoading && viewModel.userPosts.isEmpty {
+                ProgressView()
+                    .padding()
+            } else if viewModel.userPosts.isEmpty {
+                VStack {
+                    Image(systemName: "square.grid.2x2")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                        .padding()
+                    Text("No posts yet")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                }
+                .padding(.top, 5)
+                .frame(maxWidth: .infinity, minHeight: 300)
+            } else {
+                postsGridView
+            }
+        }
+        .task {
+            await viewModel.fetchUserPosts()
+        }
+        .refreshable {
+            await viewModel.refreshPosts()
+        }
+        .alert("Delete Post", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {
+                postToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let post = postToDelete {
+                    Task {
+                        do {
+                            try await viewModel.deletePost(postId: post.id)
+                        } catch {
+                            print("Error deleting post: \(error)")
+                        }
+                    }
+                }
+                postToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this post? This action cannot be undone.")
+        }
+    }
+    
+    @ViewBuilder
+    private var postsGridView: some View {
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            if #available(iOS 16.0, *) {
+                LazyMasonryView(
+                    items: viewModel.userPosts,
+                    columns: 2,
+                    spacing: 8,
+                    hasMorePosts: viewModel.hasMorePosts,
+                    isLoading: viewModel.isLoading,
+                    loadMoreHandler: { post in
+                        guard let post = post else { return }
+                        Task {
+                            await viewModel.loadMoreUserPostsIfNeeded(currentItem: post)
+                        }
+                    }
+                ) { post in
+                    userPostCell(for: post)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+            } else {
+                gridView(spacing: 8, horizontalPadding: 8)
+            }
+        } else {
+            if #available(iOS 16.0, *) {
+                LazyMasonryView(
+                    items: viewModel.userPosts,
+                    columns: 5,
+                    spacing: 16,
+                    hasMorePosts: viewModel.hasMorePosts,
+                    isLoading: viewModel.isLoading,
+                    loadMoreHandler: { post in
+                        guard let post = post else { return }
+                        Task {
+                            await viewModel.loadMoreUserPostsIfNeeded(currentItem: post)
+                        }
+                    }
+                ) { post in
+                    userPostCell(for: post)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+            } else {
+                gridView(spacing: 16, horizontalPadding: 16)
+            }
+        }
+#else
+        if #available(macOS 13.0, *) {
+            LazyMasonryView(
+                items: viewModel.userPosts,
+                columns: 5,
+                spacing: 16,
+                hasMorePosts: viewModel.hasMorePosts,
+                isLoading: viewModel.isLoading,
+                loadMoreHandler: { post in
+                    guard let post = post else { return }
+                    Task {
+                        await viewModel.loadMoreUserPostsIfNeeded(currentItem: post)
+                    }
+                }
+            ) { post in
+                userPostCell(for: post)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+        } else {
+            gridView(spacing: 16, horizontalPadding: 16)
+        }
+#endif
+    }
+    
+    private func gridView(spacing: CGFloat, horizontalPadding: CGFloat) -> some View {
+        let columns = [
+            GridItem(.adaptive(minimum: 150), spacing: spacing)
+        ]
+        
+        return LazyVGrid(columns: columns, spacing: spacing) {
+            ForEach(viewModel.userPosts) { post in
+                userPostCell(for: post)
+                    .task {
+                        await viewModel.loadMoreUserPostsIfNeeded(currentItem: post)
+                    }
+            }
+        }
+        .padding(.horizontal, horizontalPadding)
+    }
+    
+    @ViewBuilder
+    private func userPostCell(for post: DesignPost) -> some View {
+        let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let isComponent = postType == "component"
+        let isPending = post.status?.lowercased() == "pending"
+        
+        ZStack {
+            DesignCards(
+                id: post.id,
+                media: post.preview_image_url,
+                title: post.title,
+                authorName: post.profiles.username,
+                isVerified: post.profiles.verified,
+                description: post.description,
+                codeSnippet: post.code_snippet,
+                published: post.created_at,
+                isLiked: false,
+                isPremium: post.isPremium == true,
+                isComponent: isComponent,
+                showLikeButton: false,
+                showDeleteButton: true,
+                onDelete: {
+                    postToDelete = post
+                    showDeleteAlert = true
+                }
+            )
+            
+            // Pending Badge - positioned at bottom left
+            if isPending {
+                HStack(spacing: 4) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 10))
+                    Text("Pending")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .foregroundColor(.orange)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.orange.opacity(0.15))
+                .cornerRadius(8)
+                .padding(8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            }
+        }
+    }
+}
+

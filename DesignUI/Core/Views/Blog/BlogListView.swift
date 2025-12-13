@@ -37,10 +37,6 @@ struct NewsListView: View {
                     LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0)
                         .padding(.top, 16)
                     
-                    Text("Latest News")
-                        .font(.largeTitle).bold()
-                        .padding(.top, 16)
-                    Divider()
                     // Grid of remaining blogs
                     let gridPosts = Array(filteredPosts)
                     if !gridPosts.isEmpty {

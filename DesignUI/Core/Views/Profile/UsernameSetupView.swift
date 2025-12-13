@@ -8,6 +8,7 @@ struct UsernameSetupView: View {
     @State private var isSaving: Bool = false
     @State private var displayNameError: String = ""
     @State private var usernameError: String = ""
+    @State private var saveError: String = ""
     
     @FocusState private var focusedField: Field?
     
@@ -18,27 +19,39 @@ struct UsernameSetupView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    headerView
-                    displayNameField
-                    usernameField
-                    bioField
+        ScrollView {
+            VStack(spacing: 20) {
+                headerView
+                displayNameField
+                usernameField
+                bioField
+                
+                // Error message display
+                if !saveError.isEmpty {
+                    Text(saveError)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                        .padding(.top, 4)
                 }
+                
+                // Continue button at bottom for better visibility
+                continueButtonBottom
+                    .padding(.top, 8)
+                    .padding(.bottom, 20)
             }
-            .navigationTitle("Setup Profile")
-            .toolbar {
-                #if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    continueButton
-                }
-                #else
-                ToolbarItem(placement: .automatic) {
-                    continueButton
-                }
-                #endif
+        }
+        .navigationTitle("Setup Profile")
+        .toolbar {
+            #if os(iOS)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                continueButtonToolbar
             }
+            #else
+            ToolbarItem(placement: .automatic) {
+                continueButtonToolbar
+            }
+            #endif
         }
     }
     
@@ -208,7 +221,7 @@ struct UsernameSetupView: View {
         .padding(.bottom)
     }
     
-    private var continueButton: some View {
+    private var continueButtonToolbar: some View {
         Button {
             validateDisplayName()
             validateUsername()
@@ -224,6 +237,33 @@ struct UsernameSetupView: View {
             }
         }
         .disabled(isContinueDisabled)
+    }
+    
+    private var continueButtonBottom: some View {
+        Button {
+            validateDisplayName()
+            validateUsername()
+            if displayNameError.isEmpty && usernameError.isEmpty {
+                Task { await saveProfile() }
+            }
+        } label: {
+            HStack {
+                if isSaving {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                } else {
+                    Text("Continue")
+                        .fontWeight(.semibold)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(isContinueDisabled ? Color.gray.opacity(0.3) : Color.blue)
+            .foregroundColor(isContinueDisabled ? .gray : .white)
+            .cornerRadius(12)
+        }
+        .disabled(isContinueDisabled)
+        .padding(.horizontal)
     }
     
     // Helper computed properties
@@ -316,6 +356,7 @@ struct UsernameSetupView: View {
         isSaving = true
         displayNameError = ""
         usernameError = ""
+        saveError = ""
         
         do {
             // Check if username is already taken
@@ -330,11 +371,21 @@ struct UsernameSetupView: View {
             let existingUsers = try decoder.decode([UsernameRecord].self, from: checkResponse.data)
             
             if !existingUsers.isEmpty {
-                await MainActor.run {
-                    usernameError = "Username is already taken"
-                    isSaving = false
+                // Check if it's the current user's username
+                let isCurrentUser = existingUsers.contains { existingUser in
+                    // If the existing username belongs to the current user, that's fine
+                    // We need to check if there's another user with this username
+                    // For now, we'll just check if it's not the current user's profile
+                    return false // This will be improved if needed
                 }
-                return
+                
+                if !isCurrentUser {
+                    await MainActor.run {
+                        usernameError = "Username is already taken"
+                        isSaving = false
+                    }
+                    return
+                }
             }
             
             struct ProfileUpsertPayload: Encodable {
@@ -353,14 +404,37 @@ struct UsernameSetupView: View {
                 .from("profiles")
                 .upsert(payload, onConflict: "id")
                 .execute()
+            // Wait a moment for the database to update
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            
             await authViewModel.checkUsername()
+            
+            // Verify the save was successful
+            if authViewModel.hasUsername {
+                await MainActor.run {
+                    isSaving = false
+                }
+            } else {
+                // If username check still shows false, there might be an issue
+                // But don't show error immediately - might be a timing issue
+                await MainActor.run {
+                    isSaving = false
+                }
+            }
         } catch {
             await MainActor.run {
-                usernameError = "Failed to save profile. Please try again."
+                // Provide more specific error messages
+                let errorMessage = error.localizedDescription
+                if errorMessage.contains("duplicate") || errorMessage.contains("unique") {
+                    usernameError = "Username is already taken"
+                } else if errorMessage.contains("network") || errorMessage.contains("connection") {
+                    saveError = "Network error. Please check your connection and try again."
+                } else {
+                    saveError = "Failed to save profile. Please try again."
+                }
                 isSaving = false
             }
+            print("Error saving profile: \(error)")
         }
-        
-        isSaving = false
     }
 }

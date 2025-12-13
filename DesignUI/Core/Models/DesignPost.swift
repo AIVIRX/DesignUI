@@ -16,6 +16,7 @@ struct DesignPost: Identifiable, Codable, Equatable {
     let profiles: AuthorProfile
     let isPremium: Bool?
     let post_type: String?
+    let status: String?
     
     struct AuthorProfile: Codable, Equatable {
         let username: String
@@ -33,6 +34,7 @@ struct DesignPost: Identifiable, Codable, Equatable {
         case isPremium
         case is_premium
         case post_type
+        case status
     }
     
     init(from decoder: Decoder) throws {
@@ -51,6 +53,7 @@ struct DesignPost: Identifiable, Codable, Equatable {
             isPremium = try container.decodeIfPresent(Bool.self, forKey: .is_premium)
         }
         post_type = try container.decodeIfPresent(String.self, forKey: .post_type)
+        status = try container.decodeIfPresent(String.self, forKey: .status)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -67,6 +70,9 @@ struct DesignPost: Identifiable, Codable, Equatable {
         }
         if let post_type = post_type {
             try container.encode(post_type, forKey: .post_type)
+        }
+        if let status = status {
+            try container.encode(status, forKey: .status)
         }
     }
 }

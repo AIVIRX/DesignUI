@@ -2257,6 +2257,9 @@
         }
       }
     },
+    "Are you sure you want to delete this post? This action cannot be undone." : {
+
+    },
     "Are you sure you want to delete your account?" : {
       "localizations" : {
         "ar" : {
@@ -5760,6 +5763,9 @@
         }
       }
     },
+    "Delete Post" : {
+
+    },
     "Describe your design..." : {
       "localizations" : {
         "ar" : {
@@ -8511,6 +8517,7 @@
       }
     },
     "Latest News" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10763,6 +10770,9 @@
         }
       }
     },
+    "No posts yet" : {
+
+    },
     "OK" : {
       "localizations" : {
         "ar" : {
@@ -11262,6 +11272,9 @@
           }
         }
       }
+    },
+    "Pending" : {
+
     },
     "Premium" : {
       "localizations" : {

@@ -19,19 +19,26 @@ class LikedPostsViewModel: ObservableObject {
     private let client = SupabaseManager.shared.client
     private let refreshCooldown: TimeInterval = 1
     private var isRefreshing = false
+    private var lastLoadItemId: String?
     
     @MainActor
     func loadMoreLikedPostsIfNeeded(currentItem item: DesignPost?) async {
-        guard !isLoading, !isRefreshing else { return }
+        guard !isLoading, !isRefreshing, hasMorePosts else { return }
         
         guard let item = item else {
             await fetchLikedPosts()
             return
         }
         
-        let thresholdIndex = likedPosts.index(likedPosts.endIndex, offsetBy: -1)
+        // Prevent loading for the same item multiple times
+        guard lastLoadItemId != item.id else { return }
+        
+        // Load more when we're within the last 3 items (same as templates page)
+        let thresholdOffset = min(3, likedPosts.count)
+        let thresholdIndex = likedPosts.index(likedPosts.endIndex, offsetBy: -thresholdOffset, limitedBy: likedPosts.startIndex) ?? likedPosts.startIndex
         if let itemIndex = likedPosts.firstIndex(where: { $0.id == item.id }),
            itemIndex >= thresholdIndex {
+            lastLoadItemId = item.id
             await fetchLikedPosts()
         }
     }
@@ -43,6 +50,7 @@ class LikedPostsViewModel: ObservableObject {
         
         isLoading = true
         error = nil
+        lastLoadItemId = nil // Reset when starting a new fetch
         
         do {
             let response = try await client
@@ -74,6 +82,7 @@ class LikedPostsViewModel: ObservableObject {
             likedPosts.append(contentsOf: newLikedPosts)
             currentPage += 1
             hasMorePosts = newLikedPosts.count == pageSize
+            lastLoadItemId = nil // Reset after successful load
         } catch {
             self.error = error
             // Only log non-cancelled errors
@@ -104,9 +113,9 @@ class LikedPostsViewModel: ObservableObject {
             isLoading = false
         }
         
+        // Only fetch first page on refresh - let pagination handle the rest
         do {
-            // Fetch first page
-            var response = try await client
+            let response = try await client
                 .from("likes")
                 .select("""
                     created_at,
@@ -129,48 +138,12 @@ class LikedPostsViewModel: ObservableObject {
                 let posts: DesignPost
             }
             
-            var likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
-            var allLikedPosts = likeResponses.map { $0.posts }
-            currentPage = 1
-            
-            // Continue fetching until we get fewer posts than pageSize (meaning no more pages)
-            while likeResponses.count == pageSize {
-                response = try await client
-                    .from("likes")
-                    .select("""
-                        created_at,
-                        posts!inner (
-                            *,
-                            profiles!posts_author_id_fkey (
-                              username,
-                              verified
-                            )
-                        )
-                        """)
-                    .eq("user_id", value: userId)
-                    .eq("posts.public", value: true)
-                    .order("created_at", ascending: false)
-                    .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
-                    .execute()
-                
-                likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
+            let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
                 let newLikedPosts = likeResponses.map { $0.posts }
                 
-                if newLikedPosts.isEmpty {
-                    break
-                }
-                
-                allLikedPosts.append(contentsOf: newLikedPosts)
-                currentPage += 1
-                
-                // Limit to prevent excessive fetching
-                if currentPage > 10 {
-                    break
-                }
-            }
-            
-            likedPosts = allLikedPosts
-            hasMorePosts = likeResponses.count == pageSize
+            likedPosts = newLikedPosts
+            currentPage = 1
+            hasMorePosts = newLikedPosts.count == pageSize
         } catch {
             self.error = error
             // Only log non-cancelled errors

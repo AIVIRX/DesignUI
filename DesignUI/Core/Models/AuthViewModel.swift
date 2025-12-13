@@ -71,11 +71,12 @@ class AuthViewModel: ObservableObject {
                 .from("profiles")
                 .select()
                 .eq("id", value: userId.uuidString)
-                .single()
                 .execute()
             
             let decoder = JSONDecoder()
-            if let profile = try? decoder.decode(Profile.self, from: response.data) {
+            let profiles = try decoder.decode([Profile].self, from: response.data)
+            
+            if let profile = profiles.first {
                 let usernameValue = profile.username?.trimmingCharacters(in: .whitespacesAndNewlines)
                 await MainActor.run {
                     self.userProfile = profile
@@ -83,6 +84,7 @@ class AuthViewModel: ObservableObject {
                     self.objectWillChange.send()
                 }
             } else {
+                // Profile doesn't exist yet - this is normal for new users
                 await MainActor.run {
                     self.userProfile = nil
                     self.hasUsername = false
@@ -90,7 +92,17 @@ class AuthViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Error checking username:", error)
+            // If profile doesn't exist, that's fine - user needs to set up username
+            // Only log actual errors, not "not found" cases
+            let errorString = String(describing: error)
+            if !errorString.contains("No rows") && !errorString.contains("not found") && !errorString.contains("PGRST116") {
+                print("Error checking username:", error)
+            }
+            await MainActor.run {
+                self.userProfile = nil
+                self.hasUsername = false
+                self.objectWillChange.send()
+            }
         }
     }
     

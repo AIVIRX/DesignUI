@@ -21,6 +21,9 @@ struct DesignCards: View {
     var published: String
     var isLiked: Bool
     var isComponent: Bool = false // New property to distinguish components
+    var showLikeButton: Bool = true // Whether to show the like button
+    var showDeleteButton: Bool = false // Whether to show the delete button
+    var onDelete: (() -> Void)? = nil // Delete action callback
     
     @State private var isHovered: Bool = false
     @State private var isLikedByUser: Bool = false
@@ -48,7 +51,7 @@ struct DesignCards: View {
         }
     }
     
-    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, isLiked: Bool, isPremium: Bool = false, isComponent: Bool = false) {
+    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, isLiked: Bool, isPremium: Bool = false, isComponent: Bool = false, showLikeButton: Bool = true, showDeleteButton: Bool = false, onDelete: (() -> Void)? = nil) {
         self.id = id
         self.media = media
         self.title = title
@@ -60,6 +63,9 @@ struct DesignCards: View {
         self.isLiked = isLiked
         self.isPremium = isPremium
         self.isComponent = isComponent
+        self.showLikeButton = showLikeButton
+        self.showDeleteButton = showDeleteButton
+        self.onDelete = onDelete
     }
     
     private var aspectRatio: CGFloat {
@@ -90,28 +96,40 @@ struct DesignCards: View {
                 .buttonStyle(PlainButtonStyle())
                 .accentColor(.clear)
                 
-                // Like button outside NavigationLink to prevent tap propagation
-                HStack(spacing: 6) {
-                    if isPremium {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.clear)
-                            .overlay(
-                                LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                    .mask(
-                                        Image(systemName: "sparkles")
-                                            .font(.system(size: 14, weight: .semibold))
-                                    )
-                            )
+                // Like/Delete button outside NavigationLink to prevent tap propagation
+                if showLikeButton || isPremium || showDeleteButton {
+                    HStack(spacing: 6) {
+                        if isPremium {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.clear)
+                                .overlay(
+                                    LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                        .mask(
+                                            Image(systemName: "sparkles")
+                                                .font(.system(size: 14, weight: .semibold))
+                                        )
+                                )
+                        }
+                        if showLikeButton {
+                            LikeButton(postId: id)
+                        }
+                        if showDeleteButton, let onDelete = onDelete {
+                            Button(action: onDelete) {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
-                    LikeButton(postId: id)
+                    .padding(6)
+                    .background(.black.opacity(0.8), in: Capsule())
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                    .contentShape(Capsule())
+                    .allowsHitTesting(true)
+                    .offset(x: -6, y: 6)
                 }
-                .padding(6)
-                .background(.black.opacity(0.8), in: Capsule())
-                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                .contentShape(Capsule())
-                .allowsHitTesting(true)
-                .offset(x: -6, y: 6)
             }
             .overlay(
                 Color.white.opacity(isHovered ? 0.1 : 0)
@@ -180,25 +198,36 @@ struct DesignCards: View {
                     )
                     .overlay(alignment: .topTrailing) {
                         #if os(iOS)
-                        HStack(spacing: 6) {
-                            if isPremium {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.clear)
-                                    .overlay(
-                                        LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
-                                            .mask(
-                                                Image(systemName: "sparkles")
-                                                    .font(.system(size: 14, weight: .semibold))
-                                            )
-                                    )
+                        if showLikeButton || isPremium || showDeleteButton {
+                            HStack(spacing: 6) {
+                                if isPremium {
+                                    Image(systemName: "sparkles")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.clear)
+                                        .overlay(
+                                            LinearGradient(colors: [.purple, .indigo], startPoint: .leading, endPoint: .trailing)
+                                                .mask(
+                                                    Image(systemName: "sparkles")
+                                                        .font(.system(size: 14, weight: .semibold))
+                                                )
+                                        )
+                                }
+                                if showLikeButton {
+                                    LikeButton(postId: id)
+                                }
+                                if showDeleteButton, let onDelete = onDelete {
+                                    Button(action: onDelete) {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
+                                }
                             }
-                            LikeButton(postId: id)
+                            .padding(6)
+                            .background(.black.opacity(0.8), in: Capsule())
+                            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                            .padding(6)
                         }
-                        .padding(6)
-                        .background(.black.opacity(0.8), in: Capsule())
-                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                        .padding(6)
                         #endif
                     }
             case .failure:
