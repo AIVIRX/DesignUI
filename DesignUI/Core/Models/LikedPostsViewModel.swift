@@ -19,7 +19,10 @@ class LikedPostsViewModel: ObservableObject {
     private let client = SupabaseManager.shared.client
     private let refreshCooldown: TimeInterval = 1
     private var isRefreshing = false
-    private var lastLoadItemId: String?
+    
+    // Memory management: Keep max 150 items, remove oldest when limit reached
+    private let maxItemsInMemory: Int = 150
+    private let itemsToRemoveWhenFull: Int = 50
     
     @MainActor
     func loadMoreLikedPostsIfNeeded(currentItem item: DesignPost?) async {
@@ -30,29 +33,29 @@ class LikedPostsViewModel: ObservableObject {
             return
         }
         
-        // Prevent loading for the same item multiple times
-        guard lastLoadItemId != item.id else { return }
-        
-        // Load more when we're within the last 3 items (same as templates page)
+        // Load more when we're within the last 3 items (same as home page)
         let thresholdOffset = min(3, likedPosts.count)
         let thresholdIndex = likedPosts.index(likedPosts.endIndex, offsetBy: -thresholdOffset, limitedBy: likedPosts.startIndex) ?? likedPosts.startIndex
         if let itemIndex = likedPosts.firstIndex(where: { $0.id == item.id }),
            itemIndex >= thresholdIndex {
-            lastLoadItemId = item.id
             await fetchLikedPosts()
         }
     }
     
     @MainActor
     func fetchLikedPosts() async {
-        guard !isLoading && hasMorePosts && !isRefreshing else { return }
+        // Don't block on isRefreshing - allow pagination after refresh completes
+        guard !isLoading && hasMorePosts else { return }
         guard let userId = client.auth.currentUser?.id else { return }
+        
+        // Cancel any existing task
+        currentTask?.cancel()
         
         isLoading = true
         error = nil
-        lastLoadItemId = nil // Reset when starting a new fetch
         
-        do {
+        currentTask = Task {
+            do {
             let response = try await client
                 .from("likes")
                 .select("""
@@ -76,24 +79,31 @@ class LikedPostsViewModel: ObservableObject {
                 let posts: DesignPost
             }
             
-            let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
-            let newLikedPosts = likeResponses.map { $0.posts }
-            
-            likedPosts.append(contentsOf: newLikedPosts)
-            currentPage += 1
-            hasMorePosts = newLikedPosts.count == pageSize
-            lastLoadItemId = nil // Reset after successful load
-        } catch {
-            self.error = error
-            // Only log non-cancelled errors
-            if let urlError = error as? URLError, urlError.code == .cancelled {
-                // Silently handle cancelled requests - these are usually due to view lifecycle changes
-                return
+                let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
+                let newLikedPosts = likeResponses.map { $0.posts }
+                
+                likedPosts.append(contentsOf: newLikedPosts)
+                
+                // Memory management: Remove oldest items if we exceed the limit
+                if likedPosts.count > maxItemsInMemory {
+                    let itemsToRemove = min(itemsToRemoveWhenFull, likedPosts.count - maxItemsInMemory)
+                    likedPosts.removeFirst(itemsToRemove)
+                }
+                
+                currentPage += 1
+                hasMorePosts = newLikedPosts.count == pageSize
+            } catch {
+                self.error = error
+                // Only log non-cancelled errors
+                if let urlError = error as? URLError, urlError.code == .cancelled {
+                    // Silently handle cancelled requests - these are usually due to view lifecycle changes
+                    return
+                }
+                print("Error fetching liked posts: \(error)")
             }
-            print("Error fetching liked posts: \(error)")
+            
+            isLoading = false
         }
-        
-        isLoading = false
     }
     
     @MainActor

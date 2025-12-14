@@ -17,23 +17,7 @@ struct SimilarPostsView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
                         ForEach(similarPosts) { post in
-                            // Determine if it's a component based on post_type
-                            let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                            let isComponent = postType == "component"
-                            
-                            DesignCards(
-                                id: post.id,
-                                media: post.preview_image_url,
-                                title: post.title,
-                                authorName: post.profiles.username,
-                                isVerified: post.profiles.verified,
-                                description: post.description,
-                                codeSnippet: post.code_snippet,
-                                published: post.created_at,
-                                isLiked: false,
-                                isPremium: post.isPremium == true,
-                                isComponent: isComponent
-                            )
+                            DesignCards(post: post)
                             .frame(width: 200) // Constrain width for horizontal scroll
                         }
                     }

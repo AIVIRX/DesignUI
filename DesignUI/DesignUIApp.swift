@@ -8,6 +8,7 @@
 import SwiftUI
 import Supabase
 import RevenueCat
+import SDWebImage
 #if os(iOS)
 import AppTrackingTransparency
 import GoogleMobileAds
@@ -56,6 +57,50 @@ struct DesignUIApp: App {
         ReviewManager.shared.resetForNewSession()
         // Ensure paywall is not shown on launch
         PaywallManager.shared.isPresenting = false
+        
+        // Configure SDWebImage cache limits to prevent memory issues
+        // Limit memory cache to 20MB (aggressive limit)
+        SDImageCache.shared.config.maxMemoryCost = 20 * 1024 * 1024 // 20MB
+        // Limit memory cache to 30 images max (very aggressive)
+        SDImageCache.shared.config.maxMemoryCount = 30
+        // Enable auto-cleanup when memory warning
+        SDImageCache.shared.config.shouldUseWeakMemoryCache = true
+        // Set disk cache limit to 100MB
+        SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 3 // 3 days
+        SDImageCache.shared.config.maxDiskSize = 100 * 1024 * 1024 // 100MB
+        
+        // Configure image decoder to use lower memory footprint
+        SDImageCodersManager.shared.addCoder(SDImageIOCoder.shared)
+        
+        // Set default options for all image loads
+        SDWebImageManager.shared.optionsProcessor = SDWebImageOptionsProcessor { url, options, context in
+            var mutableOptions = options
+            // Decode images on background thread to reduce main thread memory pressure
+            mutableOptions.insert(.decodeFirstFrameOnly)
+            // Scale down large images
+            mutableOptions.insert(.scaleDownLargeImages)
+            return SDWebImageOptionsResult(options: mutableOptions, context: context)
+        }
+        
+        // Listen for memory warnings and clear cache aggressively
+        #if os(iOS)
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            // Clear memory cache immediately on memory warning
+            SDImageCache.shared.clearMemory()
+            // Also clean up expired disk cache
+            SDImageCache.shared.deleteOldFiles { _ in }
+        }
+        
+        // More aggressive periodic cleanup every 30 seconds
+        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
+            // Clear memory cache more frequently to prevent gradual growth
+            SDImageCache.shared.clearMemory()
+        }
+        #endif
     }
     var body: some Scene {
         WindowGroup {
@@ -97,19 +142,25 @@ struct DesignUIApp: App {
         // Ensure paywall is not shown on launch
         PaywallManager.shared.isPresenting = false
         
-        // Register custom document type
-        registerDocumentType()
-    }
-    
-    private func registerDocumentType() {
-        // Verify the document type is registered (it's declared in Info.plist)
-        // The type identifier is: com.maicol.dockui.design
-        if let dockuiType = UTType("com.maicol.dockui.design") {
-            print("✅ Document type registered: \(dockuiType.identifier)")
-        } else {
-            print("⚠️ Document type not found, but Info.plist should handle it")
+        // Configure SDWebImage cache limits to prevent memory issues
+        // Limit memory cache to 30MB (default is unlimited)
+        SDImageCache.shared.config.maxMemoryCost = 30 * 1024 * 1024 // 30MB
+        // Limit memory cache to 50 images max
+        SDImageCache.shared.config.maxMemoryCount = 50
+        // Enable auto-cleanup when memory warning
+        SDImageCache.shared.config.shouldUseWeakMemoryCache = true
+        // Set disk cache limit to 200MB
+        SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 7 // 7 days
+        SDImageCache.shared.config.maxDiskSize = 200 * 1024 * 1024 // 200MB
+        
+        // Note: macOS doesn't have memory warning notifications like iOS
+        // Add more aggressive periodic cleanup to prevent gradual memory growth
+        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
+            // Clear memory cache more frequently to prevent gradual growth
+            SDImageCache.shared.clearMemory()
         }
     }
+
     
     var body: some Scene {
         // Main app window - this opens by default

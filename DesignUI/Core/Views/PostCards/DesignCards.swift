@@ -10,26 +10,42 @@ import SDWebImage
 import SDWebImageSwiftUI
 
 struct DesignCards: View {
-    var id: String
-    var media: String
-    var title: String
-    var authorName: String
-    var isVerified: Bool
-    var isPremium: Bool
-    var description: String
-    var codeSnippet: String
-    var published: String
-    var isLiked: Bool
-    var isComponent: Bool = false // New property to distinguish components
-    var showLikeButton: Bool = true // Whether to show the like button
-    var showDeleteButton: Bool = false // Whether to show the delete button
-    var onDelete: (() -> Void)? = nil // Delete action callback
+    let post: DesignPost
+    var showLikeButton: Bool = true
+    var showDeleteButton: Bool = false
+    var onDelete: (() -> Void)? = nil
+    
+    // Computed properties for cleaner access
+    private var id: String { post.id }
+    private var media: String { post.preview_image_url }
+    private var title: String { post.title }
+    private var authorName: String { post.profiles.username }
+    private var isVerified: Bool { post.profiles.verified }
+    private var isPremium: Bool { post.isPremium == true }
+    private var description: String { post.description }
+    private var codeSnippet: String { post.code_snippet }
+    private var published: String { post.created_at }
+    private var isComponent: Bool {
+        let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return postType == "component"
+    }
     
     @State private var isHovered: Bool = false
     @State private var isLikedByUser: Bool = false
     @State private var userId: String? = nil
-    @StateObject private var viewModel = LatestPostsViewModel()
     let client = SupabaseManager.shared.client
+    
+    init(
+        post: DesignPost,
+        showLikeButton: Bool = true,
+        showDeleteButton: Bool = false,
+        onDelete: (() -> Void)? = nil
+    ) {
+        self.post = post
+        self.showLikeButton = showLikeButton
+        self.showDeleteButton = showDeleteButton
+        self.onDelete = onDelete
+    }
     
     func checkIfUserLikedPost() async {
         guard let userId = userId else { return }
@@ -49,23 +65,6 @@ struct DesignCards: View {
         } catch {
             print("Error checking like status: \(error)")
         }
-    }
-    
-    init(id: String, media: String, title: String, authorName: String, isVerified: Bool, description: String, codeSnippet: String, published: String, isLiked: Bool, isPremium: Bool = false, isComponent: Bool = false, showLikeButton: Bool = true, showDeleteButton: Bool = false, onDelete: (() -> Void)? = nil) {
-        self.id = id
-        self.media = media
-        self.title = title
-        self.authorName = authorName
-        self.isVerified = isVerified
-        self.description = description
-        self.codeSnippet = codeSnippet
-        self.published = published
-        self.isLiked = isLiked
-        self.isPremium = isPremium
-        self.isComponent = isComponent
-        self.showLikeButton = showLikeButton
-        self.showDeleteButton = showDeleteButton
-        self.onDelete = onDelete
     }
     
     private var aspectRatio: CGFloat {
@@ -170,6 +169,13 @@ struct DesignCards: View {
         // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
         // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
         let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
+        // Calculate max size based on screen size to reduce memory usage
+        #if os(iOS)
+        let maxWidth = min(UIScreen.main.bounds.width * 2, 800) // 2x for retina, but cap at 800px
+        #else
+        let maxWidth: CGFloat = 800 // Mac: reasonable max width
+        #endif
+        
         WebImage(url: URL(string: media)) { phase in
             switch phase {
             case .empty:
@@ -177,11 +183,6 @@ struct DesignCards: View {
                     .fill(Color.gray.opacity(0.1))
                     .aspectRatio(aspectRatio, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .overlay(
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .frame(width: 32, height: 32)
-                    )
             case .success(let image):
                 Color.clear
                     .aspectRatio(aspectRatio, contentMode: .fit)
@@ -248,8 +249,6 @@ struct DesignCards: View {
         }
         .indicator(.activity)
         .transition(.fade(duration: 0.3))
-        .onDisappear {
-            SDImageCache.shared.clearMemory()
-        }
+        .id(media)
     }
 }

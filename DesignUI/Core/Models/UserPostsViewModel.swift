@@ -19,7 +19,10 @@ class UserPostsViewModel: ObservableObject {
     private let client = SupabaseManager.shared.client
     private let refreshCooldown: TimeInterval = 1
     private var isRefreshing = false
-    private var lastLoadItemId: String?
+    
+    // Memory management: Keep max 150 items, remove oldest when limit reached
+    private let maxItemsInMemory: Int = 150
+    private let itemsToRemoveWhenFull: Int = 50
     
     @MainActor
     func loadMoreUserPostsIfNeeded(currentItem item: DesignPost?) async {
@@ -30,29 +33,29 @@ class UserPostsViewModel: ObservableObject {
             return
         }
         
-        // Prevent loading for the same item multiple times
-        guard lastLoadItemId != item.id else { return }
-        
-        // Load more when we're within the last 3 items (same as templates page)
+        // Load more when we're within the last 3 items (same as home page)
         let thresholdOffset = min(3, userPosts.count)
         let thresholdIndex = userPosts.index(userPosts.endIndex, offsetBy: -thresholdOffset, limitedBy: userPosts.startIndex) ?? userPosts.startIndex
         if let itemIndex = userPosts.firstIndex(where: { $0.id == item.id }),
            itemIndex >= thresholdIndex {
-            lastLoadItemId = item.id
             await fetchUserPosts()
         }
     }
     
     @MainActor
     func fetchUserPosts() async {
-        guard !isLoading && hasMorePosts && !isRefreshing else { return }
+        // Don't block on isRefreshing - allow pagination after refresh completes
+        guard !isLoading && hasMorePosts else { return }
         guard let userId = client.auth.currentUser?.id else { return }
+        
+        // Cancel any existing task
+        currentTask?.cancel()
         
         isLoading = true
         error = nil
-        lastLoadItemId = nil // Reset when starting a new fetch
         
-        do {
+        currentTask = Task {
+            do {
             let response = try await client
                 .from("posts")
                 .select("""
@@ -67,21 +70,28 @@ class UserPostsViewModel: ObservableObject {
                 .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                 .execute()
             
-            let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
-            
-            userPosts.append(contentsOf: newPosts)
-            currentPage += 1
-            hasMorePosts = newPosts.count == pageSize
-            lastLoadItemId = nil // Reset after successful load
-        } catch {
-            self.error = error
-            if let urlError = error as? URLError, urlError.code == .cancelled {
-                return
+                let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
+                
+                userPosts.append(contentsOf: newPosts)
+                
+                // Memory management: Remove oldest items if we exceed the limit
+                if userPosts.count > maxItemsInMemory {
+                    let itemsToRemove = min(itemsToRemoveWhenFull, userPosts.count - maxItemsInMemory)
+                    userPosts.removeFirst(itemsToRemove)
+                }
+                
+                currentPage += 1
+                hasMorePosts = newPosts.count == pageSize
+            } catch {
+                self.error = error
+                if let urlError = error as? URLError, urlError.code == .cancelled {
+                    return
+                }
+                print("Error fetching user posts: \(error)")
             }
-            print("Error fetching user posts: \(error)")
+            
+            isLoading = false
         }
-        
-        isLoading = false
     }
     
     @MainActor

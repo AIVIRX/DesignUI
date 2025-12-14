@@ -24,6 +24,10 @@ class LatestPostsViewModel: ObservableObject {
     private var filterTask: Task<Void, Never>?
     private var currentSearchQuery: String? = nil // Track current search query for pagination
     
+    // Memory management: Keep max 150 items, remove oldest when limit reached
+    private let maxItemsInMemory: Int = 150
+    private let itemsToRemoveWhenFull: Int = 50
+    
     @MainActor
     func loadMorePostsIfNeeded(currentItem item: DesignPost?) async {
         guard !isLoading, !isRefreshing, hasMorePosts else { return }
@@ -125,6 +129,12 @@ class LatestPostsViewModel: ObservableObject {
                     posts = newPosts
                 } else {
                     posts.append(contentsOf: newPosts)
+                    
+                    // Memory management: Remove oldest items if we exceed the limit
+                    if posts.count > maxItemsInMemory {
+                        let itemsToRemove = min(itemsToRemoveWhenFull, posts.count - maxItemsInMemory)
+                        posts.removeFirst(itemsToRemove)
+                    }
                 }
                 
                 currentPage += 1
@@ -210,6 +220,13 @@ class LatestPostsViewModel: ObservableObject {
                 let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
                 
                 posts.append(contentsOf: newPosts)
+                
+                // Memory management: Remove oldest items if we exceed the limit
+                if posts.count > maxItemsInMemory {
+                    let itemsToRemove = min(itemsToRemoveWhenFull, posts.count - maxItemsInMemory)
+                    posts.removeFirst(itemsToRemove)
+                }
+                
                 currentPage += 1
                 hasMorePosts = newPosts.count == pageSize
             } catch {

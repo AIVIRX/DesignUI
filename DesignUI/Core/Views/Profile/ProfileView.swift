@@ -16,6 +16,8 @@ struct ProfileView: View {
     @StateObject private var userViewModel = UserPostsViewModel()
     @State private var showDeletePostAlert = false
     @State private var postToDelete: DesignPost?
+    @State private var hasLoadedLiked = false
+    @State private var hasLoadedUserPosts = false
     
     private var isLikedFilter: Bool {
         selectedTab == .liked
@@ -103,7 +105,7 @@ struct ProfileView: View {
                                 }
                                 .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                            .buttonStyle(.plain)
                             
                             // My Posts Tab
                             Button {
@@ -145,10 +147,10 @@ struct ProfileView: View {
                         }
                         
                         // Tab Content - posts grid
-                        ScrollView {
                             if isLoading && posts.isEmpty {
                                 ProgressView()
                                     .padding()
+                                    .frame(maxWidth: .infinity, minHeight: 300)
                             } else if posts.isEmpty {
                                 VStack {
                                     Image(systemName: "square.grid.2x2")
@@ -164,62 +166,67 @@ struct ProfileView: View {
                             } else {
                                 postsGridView
                             }
+                    }
+                    
+                    .task(id: selectedTab) {
+                        // Only load once per tab, and only if empty
+                        if selectedTab == .liked && !hasLoadedLiked && likedViewModel.likedPosts.isEmpty {
+                            hasLoadedLiked = true
+                            await likedViewModel.fetchLikedPosts()
+                        } else if selectedTab == .myPosts && !hasLoadedUserPosts && userViewModel.userPosts.isEmpty {
+                            hasLoadedUserPosts = true
+                            await userViewModel.fetchUserPosts()
                         }
-                        .padding(.top, 20)
-                        .task(id: selectedTab) {
-                            // Only load if the current tab's data is empty
-                            if selectedTab == .liked && likedViewModel.likedPosts.isEmpty {
-                                await likedViewModel.fetchLikedPosts()
-                            } else if selectedTab == .myPosts && userViewModel.userPosts.isEmpty {
-                                await userViewModel.fetchUserPosts()
-                            }
-                        }
-                        .onReceive(NotificationCenter.default.publisher(for: .likesChanged)) { notification in
-                            guard isLikedFilter else { return }
-                            guard
-                                let info = notification.userInfo,
-                                let postId = info["postId"] as? String,
-                                let isLiked = info["isLiked"] as? Bool
-                            else { return }
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: .likesChanged)) { notification in
+                        guard isLikedFilter else { return }
+                        guard
+                            let info = notification.userInfo,
+                            let postId = info["postId"] as? String,
+                            let isLiked = info["isLiked"] as? Bool
+                        else { return }
 
-                            if !isLiked {
-                                // Remove unliked post from the grid immediately
-                                if let index = likedViewModel.likedPosts.firstIndex(where: { $0.id == postId }) {
-                                    likedViewModel.likedPosts.remove(at: index)
-                                }
-                            } else {
-                                // Post was liked - fetch and add it to the list
+                        if !isLiked {
+                            // Remove unliked post from the grid immediately
+                            if let index = likedViewModel.likedPosts.firstIndex(where: { $0.id == postId }) {
+                                likedViewModel.likedPosts.remove(at: index)
+                            }
+                        } else {
+                            // Post was liked - fetch and add it to the list
+                            Task {
+                                await likedViewModel.addLikedPost(postId: postId)
+                            }
+                        }
+                    }
+                    .refreshable {
+                        if isLikedFilter {
+                            hasLoadedLiked = false
+                            await likedViewModel.refreshPosts()
+                            hasLoadedLiked = true
+                        } else {
+                            hasLoadedUserPosts = false
+                            await userViewModel.refreshPosts()
+                            hasLoadedUserPosts = true
+                        }
+                    }
+                    .alert("Delete Post", isPresented: $showDeletePostAlert) {
+                        Button("Cancel", role: .cancel) {
+                            postToDelete = nil
+                        }
+                        Button("Delete", role: .destructive) {
+                            if let post = postToDelete {
                                 Task {
-                                    await likedViewModel.addLikedPost(postId: postId)
-                                }
-                            }
-                        }
-                        .refreshable {
-                            if isLikedFilter {
-                                await likedViewModel.refreshPosts()
-                            } else {
-                                await userViewModel.refreshPosts()
-                            }
-                        }
-                        .alert("Delete Post", isPresented: $showDeletePostAlert) {
-                            Button("Cancel", role: .cancel) {
-                                postToDelete = nil
-                            }
-                            Button("Delete", role: .destructive) {
-                                if let post = postToDelete {
-                                    Task {
-                                        do {
-                                            try await userViewModel.deletePost(postId: post.id)
-                                        } catch {
-                                            print("Error deleting post: \(error)")
-                                        }
+                                    do {
+                                        try await userViewModel.deletePost(postId: post.id)
+                                    } catch {
+                                        print("Error deleting post: \(error)")
                                     }
                                 }
-                                postToDelete = nil
                             }
-                        } message: {
-                            Text("Are you sure you want to delete this post? This action cannot be undone.")
+                            postToDelete = nil
                         }
+                    } message: {
+                        Text("Are you sure you want to delete this post? This action cannot be undone.")
                     }
                 }
                 .alert("Are you sure you want to delete your account?",
@@ -409,20 +416,20 @@ struct ProfileView: View {
                 spacing: 16,
                 hasMorePosts: hasMorePosts,
                 isLoading: isLoading,
-                loadMoreHandler: { post in
-                    guard let post = post else { return }
-                    Task {
-                        if isLikedFilter {
-                            await likedViewModel.loadMoreLikedPostsIfNeeded(currentItem: post)
-                        } else {
-                            await userViewModel.loadMoreUserPostsIfNeeded(currentItem: post)
+                    loadMoreHandler: { post in
+                        guard let post = post else { return }
+                        Task {
+                            if isLikedFilter {
+                                await likedViewModel.loadMoreLikedPostsIfNeeded(currentItem: post)
+                            } else {
+                                await userViewModel.loadMoreUserPostsIfNeeded(currentItem: post)
+                            }
                         }
                     }
-                }
             ) { post in
                 postCell(for: post)
             }
-            .id("masonry-\(selectedTab)-\(posts.count)")
+            .id("masonry-\(selectedTab)")
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
         } else {
@@ -453,24 +460,12 @@ struct ProfileView: View {
     
     @ViewBuilder
     private func postCell(for post: DesignPost) -> some View {
-        let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let isComponent = postType == "component"
         let isPending = post.status?.lowercased() == "pending"
         
         ZStack {
             DesignCards(
-                id: post.id,
-                media: post.preview_image_url,
-                title: post.title,
-                authorName: post.profiles.username,
-                isVerified: post.profiles.verified,
-                description: post.description,
-                codeSnippet: post.code_snippet,
-                published: post.created_at,
-                isLiked: false,
-                isPremium: post.isPremium == true,
-                isComponent: isComponent,
-                showLikeButton: !isLikedFilter,
+                post: post,
+                showLikeButton: true,
                 showDeleteButton: !isLikedFilter,
                 onDelete: !isLikedFilter ? {
                     postToDelete = post

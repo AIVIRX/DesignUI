@@ -43,12 +43,8 @@ struct DetailWebImage: View {
         }
         .indicator(.activity)
         .transition(.fade(duration: 0.3))
-        .onDisappear {
-            // Only clear memory cache when view disappears to prevent memory buildup
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                SDImageCache.shared.clearMemory()
-            }
-        }
+        // Note: Memory cache is now limited via SDImageCache config in app init
+        // No need to clear on every disappear - let SDWebImage manage it automatically
     }
 }
 

@@ -151,23 +151,11 @@ struct UserPostsView: View {
     
     @ViewBuilder
     private func userPostCell(for post: DesignPost) -> some View {
-        let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let isComponent = postType == "component"
         let isPending = post.status?.lowercased() == "pending"
         
         ZStack {
             DesignCards(
-                id: post.id,
-                media: post.preview_image_url,
-                title: post.title,
-                authorName: post.profiles.username,
-                isVerified: post.profiles.verified,
-                description: post.description,
-                codeSnippet: post.code_snippet,
-                published: post.created_at,
-                isLiked: false,
-                isPremium: post.isPremium == true,
-                isComponent: isComponent,
+                post: post,
                 showLikeButton: false,
                 showDeleteButton: true,
                 onDelete: {

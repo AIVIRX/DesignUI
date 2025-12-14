@@ -27,6 +27,9 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
     @State private var columnHeights: [CGFloat] = []
     @State private var itemHeights: [Item.ID: CGFloat] = [:]
     
+    // Limit height cache to prevent unbounded memory growth
+    private let maxHeightCacheSize = 200
+    
     init(
         items: [Item],
         columns: Int = 2,
@@ -86,6 +89,13 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                             .onPreferenceChange(HeightPreferenceKey.self) { height in
                                 if height > 0 {
                                     itemHeights[item.id] = height
+                                    
+                                    // Limit height cache size - remove entries for items no longer in array
+                                    if itemHeights.count > maxHeightCacheSize {
+                                        let currentItemIds = Set(items.map { $0.id })
+                                        // Only keep heights for items that are currently visible
+                                        itemHeights = itemHeights.filter { currentItemIds.contains($0.key) }
+                                    }
                                 }
                             }
                     }
