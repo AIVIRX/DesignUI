@@ -32,31 +32,16 @@ struct NewsDetailView: View {
                     // Featured image/card
                     if let imageUrl = post.image_url, let url = URL(string: imageUrl) {
                         ZStack {
-                            WebImage(url: url) { phase in
-                                switch phase {
-                                case .empty:
-                                    ProgressView()
-                                        .frame(maxWidth: 700, maxHeight: 394)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(maxWidth: 700, maxHeight: 394)
-                                        .clipped()
-                                        .cornerRadius(15)
-                                case .failure:
-                                    Image(systemName: "photo")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(maxWidth: 700, maxHeight: 394)
-                                        .foregroundColor(.gray.opacity(0.5))
-                                        .background(Color.gray.opacity(0.2))
-                                        .cornerRadius(15)
-                                @unknown default:
-                                    Color.gray.opacity(0.2)
-                                        .frame(maxWidth: 700, maxHeight: 394)
-                                        .cornerRadius(15)
-                                }
+                            WebImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(maxWidth: 700, maxHeight: 394)
+                                    .clipped()
+                                    .cornerRadius(15)
+                            } placeholder: {
+                                ProgressView()
+                                    .frame(maxWidth: 700, maxHeight: 394)
                             }
                         }
                         .frame(maxWidth: 700, maxHeight: 394)

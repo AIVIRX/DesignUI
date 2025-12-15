@@ -108,42 +108,25 @@ struct BlogGridCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let urlString = post.image_url, let url = URL(string: urlString) {
-                WebImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                            .frame(width: cardWidth, height: cardHeight)
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: cardWidth, height: cardHeight)
-                            .scaleEffect(isHovered ? 1.05 : 1.0)
-                            .clipped()
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                            )
-                            .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
-                    case .failure:
-                        Image(systemName: "photo")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: cardWidth, height: cardHeight)
-                            .scaleEffect(isHovered ? 1.05 : 1.0)
-                            .foregroundColor(.gray.opacity(0.5))
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(12)
-                            .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
-                    @unknown default:
-                        Color.gray.opacity(0.2)
-                            .frame(width: cardWidth, height: cardHeight)
-                            .scaleEffect(isHovered ? 1.05 : 1.0)
-                            .cornerRadius(12)
-                            .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
-                    }
+                WebImage(url: url) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: cardWidth, height: cardHeight)
+                        .scaleEffect(isHovered ? 1.05 : 1.0)
+                        .clipped()
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                        )
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
+                } placeholder: {
+                    ProgressView()
+                        .frame(width: cardWidth, height: cardHeight)
                 }
+                .cornerRadius(12)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
             } else {
                 Color.gray.opacity(0.2)
                     .frame(width: cardWidth, height: cardHeight)

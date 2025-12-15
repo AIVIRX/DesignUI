@@ -209,37 +209,23 @@ struct NewsContentView: View {
                     }
                 case .image:
                     if let urlString = block.url, let url = URL(string: urlString) {
-                        WebImage(url: url) { phase in
-                            switch phase {
-                            case .empty:
-                                #if os(macOS)
-                                Color.clear
-                                    .frame(width: 32, height: 32)
-                                    .overlay(
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle())
-                                    )
-                                #else
-                                ProgressView()
-                                    .frame(maxWidth: .infinity, maxHeight: 300)
-                                #endif
-                            case .success(let image):
-                                image.resizable()
-                                    .scaledToFill()
-                                    .cornerRadius(12)
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(maxWidth: .infinity, maxHeight: 300)
-                                    .foregroundColor(.gray.opacity(0.5))
-                                    .background(Color.gray.opacity(0.2))
-                                    .cornerRadius(12)
-                            @unknown default:
-                                Color.gray.opacity(0.2)
-                                    .frame(maxWidth: .infinity, maxHeight: 300)
-                                    .cornerRadius(12)
-                            }
+                        WebImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .cornerRadius(12)
+                        } placeholder: {
+                            #if os(macOS)
+                            Color.clear
+                                .frame(width: 32, height: 32)
+                                .overlay(
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                )
+                            #else
+                            ProgressView()
+                                .frame(maxWidth: .infinity, maxHeight: 300)
+                            #endif
                         }
                     }
                 case .code:

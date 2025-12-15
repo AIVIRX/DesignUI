@@ -18,28 +18,17 @@ struct DetailWebImage: View {
     }
     
     var body: some View {
-        WebImage(url: URL(string: url)) { phase in
-            switch phase {
-            case .empty:
-                ProgressView()
-                    .frame(width: width, height: height)
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: width, height: height)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .clipped()
-                    .shadow(radius: shadowRadius)
-            case .failure:
-                Image(systemName: "photo")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: width, height: height)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .clipped()
-                    .shadow(radius: shadowRadius)
-            }
+        WebImage(url: URL(string: url)) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: width, height: height)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .clipped()
+                .shadow(radius: shadowRadius)
+        } placeholder: {
+            ProgressView()
+                .frame(width: width, height: height)
         }
         .indicator(.activity)
         .transition(.fade(duration: 0.3))
