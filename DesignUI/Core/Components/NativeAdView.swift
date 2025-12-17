@@ -14,16 +14,31 @@ struct NativeAdView: View {
     @StateObject private var adManager = AdManager.shared
     @State private var nativeAd: NativeAd?
     
+    // Adaptive height based on device type
+    private var adHeight: CGFloat {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            // iPad: Use a more compact height
+            return 380
+        } else {
+            // iPhone: Standard height
+            return 420
+        }
+        #else
+        return 420
+        #endif
+    }
+    
     var body: some View {
         Group {
             if let nativeAd = nativeAd {
                 NativeAdContentView(nativeAd: nativeAd)
-                    .frame(height: 420)
+                    .frame(height: adHeight, alignment: .top)
             } else {
                 // Placeholder while ad loads - same height to prevent layout shifts
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.gray.opacity(0.1))
-                    .frame(height: 420)
+                    .frame(height: adHeight)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
@@ -31,6 +46,7 @@ struct NativeAdView: View {
                     .overlay(
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle())
+                            .fixedSize()
                     )
                     .onAppear {
                         loadAd()
@@ -190,7 +206,10 @@ struct NativeAdContentView: UIViewRepresentable {
         bodyLabel.text = nativeAd.body
         bodyLabel.font = .systemFont(ofSize: 14)
         bodyLabel.textColor = .secondaryLabel
-        bodyLabel.numberOfLines = 0 // Allow unlimited lines to prevent text cutoff
+        bodyLabel.numberOfLines = 3 // Limit to 3 lines to prevent excessive vertical expansion
+        bodyLabel.lineBreakMode = .byTruncatingTail
+        bodyLabel.setContentHuggingPriority(.required, for: .vertical)
+        bodyLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         bodyLabel.translatesAutoresizingMaskIntoConstraints = false
         
         let iconView = UIImageView()
@@ -272,10 +291,12 @@ struct NativeAdContentView: UIViewRepresentable {
             headlineLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
             headlineLabel.trailingAnchor.constraint(equalTo: adView.trailingAnchor, constant: -12),
             
-            // Body below headline
+            // Body below headline - limit height to prevent stretching
             bodyLabel.topAnchor.constraint(equalTo: headlineLabel.bottomAnchor, constant: 8),
             bodyLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
             bodyLabel.trailingAnchor.constraint(equalTo: adView.trailingAnchor, constant: -12),
+            // Maximum height for 3 lines (approximately 14pt font * 1.2 line height * 3 lines)
+            bodyLabel.heightAnchor.constraint(lessThanOrEqualToConstant: 60),
         ]
         
         // AdChoices view in top-right corner (required by AdMob)
@@ -289,12 +310,25 @@ struct NativeAdContentView: UIViewRepresentable {
         #endif
         
         // Media view (main image/video) below body - conditionally add constraints
+        // Adaptive height for iPad to prevent stretching
+        let mediaHeight: CGFloat = {
+            #if os(iOS)
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                return 150 // Smaller on iPad
+            } else {
+                return 180 // Standard on iPhone
+            }
+            #else
+            return 180
+            #endif
+        }()
+        
         #if canImport(GoogleMobileAds)
         constraints.append(contentsOf: [
             mediaView.topAnchor.constraint(equalTo: bodyLabel.bottomAnchor, constant: 12),
             mediaView.leadingAnchor.constraint(equalTo: adView.leadingAnchor, constant: 12),
             mediaView.trailingAnchor.constraint(equalTo: adView.trailingAnchor, constant: -12),
-            mediaView.heightAnchor.constraint(equalToConstant: 180),
+            mediaView.heightAnchor.constraint(equalToConstant: mediaHeight),
             
             // Call to action button at bottom
             callToActionButton.topAnchor.constraint(equalTo: mediaView.bottomAnchor, constant: 12),
@@ -304,7 +338,7 @@ struct NativeAdContentView: UIViewRepresentable {
             imageView.topAnchor.constraint(equalTo: bodyLabel.bottomAnchor, constant: 12),
             imageView.leadingAnchor.constraint(equalTo: adView.leadingAnchor, constant: 12),
             imageView.trailingAnchor.constraint(equalTo: adView.trailingAnchor, constant: -12),
-            imageView.heightAnchor.constraint(equalToConstant: 180),
+            imageView.heightAnchor.constraint(equalToConstant: mediaHeight),
             
             // Call to action button at bottom
             callToActionButton.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 12),

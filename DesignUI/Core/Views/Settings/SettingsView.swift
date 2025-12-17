@@ -55,6 +55,21 @@ struct MailView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: UIViewControllerRepresentableContext<MailView>) {}
 }
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    @Environment(\.presentationMode) var presentationMode
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        controller.completionWithItemsHandler = { _, _, _, _ in
+            presentationMode.wrappedValue.dismiss()
+        }
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
 #endif
 
 struct SettingsView: View {
@@ -63,9 +78,21 @@ struct SettingsView: View {
     @State private var showPaywall = false
 #if os(iOS)
     @State private var result: Result<MFMailComposeResult, Error>? = nil
+    @State private var showShareSheet = false
 #endif
     @State private var isShowingMailView = false
     @AppStorage("appearanceMode") private var appearanceMode: String = "auto"
+    
+    // App Store URL - Update with your actual App Store ID
+    private var appStoreURL: String {
+        // Replace with your actual App Store URL
+        // Format: https://apps.apple.com/app/id[APP_ID]
+        return "https://apps.apple.com/us/app/dock-ui-swiftui-snippets/id6496860953"
+    }
+    
+    private var shareText: String {
+        "Check out DockUI - A great app for SwiftUI templates and components!"
+    }
 
     var body: some View {
 #if os(macOS)
@@ -150,6 +177,74 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                         }
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                // App Actions Card
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("App")
+                        .font(.headline)
+                        .padding(.bottom, 4)
+                    
+                    Button {
+                        if let url = URL(string: appStoreURL) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.yellow.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
+                                    .font(.system(size: 16))
+                            }
+                            Text("Rate App")
+                                .font(.body)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Divider()
+                    
+                    Button {
+                        let picker = NSSharingServicePicker(items: [shareText, appStoreURL])
+                        if let window = NSApplication.shared.keyWindow {
+                            picker.show(relativeTo: .zero, of: window.contentView!, preferredEdge: .minY)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "square.and.arrow.up")
+                                    .foregroundColor(.blue)
+                                    .font(.system(size: 16))
+                            }
+                            Text("Share App")
+                                .font(.body)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .padding(.vertical, 8)
                     }
                     .buttonStyle(.plain)
                 }
@@ -301,6 +396,59 @@ struct SettingsView: View {
                     .foregroundColor(.primary)
                 }
                 
+                // App Section
+                Section("App") {
+                    Button {
+                        if let url = URL(string: appStoreURL) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.yellow.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
+                                    .font(.system(size: 16))
+                            }
+                            Text("Rate App")
+                                .font(.body)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .foregroundColor(.primary)
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Button(action: { showShareSheet = true }) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "square.and.arrow.up")
+                                    .foregroundColor(.blue)
+                                    .font(.system(size: 16))
+                            }
+                            Text("Share App")
+                                .font(.body)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .foregroundColor(.primary)
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
                 // Support Section
                 Section("Support") {
                     Button(action: { isShowingMailView.toggle() }) {
@@ -380,9 +528,13 @@ struct SettingsView: View {
         .onAppear {
             Task { await purchases.loadCustomerInfo() }
         }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: [shareText, appStoreURL])
+        }
 #endif
     }
 }
+
 
 //
 

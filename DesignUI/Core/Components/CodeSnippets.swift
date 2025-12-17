@@ -145,7 +145,7 @@ struct LiveSyntaxHighlightedCode: View {
             let result = try await highlight.attributedText(
                 code,
                 language: "swift",
-                colors: colorScheme == .dark ? .dark(.xcode) : .light(.github)
+                colors: colorScheme == .dark ? .dark(.github) : .light(.github)
             )
             
             // Cache the result

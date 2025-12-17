@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-
+      "shouldTranslate" : false
     },
     "CFBundleDisplayName" : {
       "comment" : "Bundle display name",
@@ -526,14 +526,259 @@
       "comment" : "Privacy - Tracking Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيتم استخدام هذا المعرف لعرض إعلانات مخصصة لك."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquest identificador s'utilitzarà per mostrar-vos anuncis personalitzats."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento identifikátor bude použit k zobrazování personalizovaných reklam."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne identifikator vil blive brugt til at levere personligt tilpassede annoncer til dig."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Kennung wird verwendet, um Ihnen personalisierte Werbung anzuzeigen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτό το αναγνωριστικό θα χρησιμοποιηθεί για την προβολή εξατομικευμένων διαφημίσεων σε εσάς."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "This identifier will be used to deliver personalized ads to you."
           }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This identifier will be used to deliver personalized ads to you."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This identifier will be used to deliver personalized ads to you."
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This identifier will be used to deliver personalized ads to you."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este identificador se utilizará para enviarle anuncios personalizados."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este identificador se utilizará para enviarle anuncios personalizados."
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este identificador se utilizará para enviarle anuncios personalizados."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tätä tunnistetta käytetään personoitujen mainosten näyttämiseen sinulle."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet identifiant sera utilisé pour vous proposer des publicités personnalisées."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet identifiant sera utilisé pour vous proposer des publicités personnalisées."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מזהה זה ישמש כדי לספק לך מודעות מותאמות אישית."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस पहचानकर्ता का उपयोग आपको वैयक्तिकृत विज्ञापन दिखाने के लिए किया जाएगा।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ovaj identifikator će se koristiti za prikazivanje personaliziranih oglasa."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ezt az azonosítót arra használjuk, hogy személyre szabott hirdetéseket jelenítsünk meg Önnek."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengidentifikasi ini akan digunakan untuk menayangkan iklan yang dipersonalisasi kepada Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo identificatore verrà utilizzato per inviarti annunci pubblicitari personalizzati."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この識別子は、パーソナライズされた広告を配信するために使用されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 식별자는 사용자에게 맞춤형 광고를 제공하는 데 사용됩니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengecam ini akan digunakan untuk menyampaikan iklan yang diperibadikan kepada anda."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne identifikatoren vil bli brukt til å levere personlig tilpassede annonser til deg."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze identificatiecode wordt gebruikt om gepersonaliseerde advertenties aan u te tonen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten identyfikator będzie używany w celu dostarczania Ci spersonalizowanych reklam."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este identificador será usado para exibir anúncios personalizados para você."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este identificador será utilizado para exibir anúncios personalizados para si."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acest identificator va fi folosit pentru a vă oferi reclame personalizate."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот идентификатор будет использоваться для показа вам персонализированной рекламы."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento identifikátor sa použije na zobrazovanie prispôsobených reklám."
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta identifikator bo uporabljen za prikazovanje prilagojenih oglasov."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denna identifierare kommer att användas för att leverera personligt anpassade annonser till dig."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตัวระบุนี้จะถูกใช้เพื่อแสดงโฆษณาที่ปรับแต่งให้เหมาะกับคุณ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu tanımlayıcı, size kişiselleştirilmiş reklamlar sunmak için kullanılacaktır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей ідентифікатор буде використано для показу вам персоналізованої реклами."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mã định danh này sẽ được sử dụng để hiển thị quảng cáo cá nhân hóa cho bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此标识符将用于向您投放个性化广告。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此標識符將用於向您投放個人化廣告。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此標識符將用於向您投放個人化廣告。"
+          }
         }
-      },
-      "shouldTranslate" : false
+      }
     }
   },
   "version" : "1.0"

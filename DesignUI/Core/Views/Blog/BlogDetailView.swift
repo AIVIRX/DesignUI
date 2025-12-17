@@ -33,15 +33,15 @@ struct NewsDetailView: View {
                     if let imageUrl = post.image_url, let url = URL(string: imageUrl) {
                         ZStack {
                             WebImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(maxWidth: 700, maxHeight: 394)
-                                    .clipped()
-                                    .cornerRadius(15)
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(maxWidth: 700, maxHeight: 394)
+                                        .clipped()
+                                        .cornerRadius(15)
                             } placeholder: {
                                 ProgressView()
-                                    .frame(maxWidth: 700, maxHeight: 394)
+                                        .frame(maxWidth: 700, maxHeight: 394)
                             }
                         }
                         .frame(maxWidth: 700, maxHeight: 394)

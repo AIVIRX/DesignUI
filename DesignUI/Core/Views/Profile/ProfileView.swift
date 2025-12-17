@@ -85,65 +85,56 @@ struct ProfileView: View {
                     VStack(spacing: 0) {
                         // Tab Headers
                         ZStack(alignment: .top) {
-                            // Tab Buttons
-                        HStack(spacing: 40) {
-                            // Liked Tab
-                            Button {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    selectedTab = .liked
-                                }
-                            } label: {
-                                VStack(spacing: 8) {
-                                    Image(systemName: "heart")
-                                        .foregroundColor(selectedTab == .liked ? .primary : .gray)
-                                        .bold()
+                            // Tab Buttons with Moving Indicator
+                            VStack(spacing: 0) {
+                                HStack(spacing: 40) {
+                                    // Liked Tab
+                                    VStack{
+                                        Button {
+                                            withAnimation(.easeInOut(duration: 0.2)) {
+                                                selectedTab = .liked
+                                            }
+                                        } label: {
+                                            Image(systemName: "heart")
+                                                .foregroundColor(selectedTab == .liked ? .primary : .gray)
+                                                .bold()
+                                                .frame(width: 80)
+                                        }
+                                        .buttonStyle(.plain)
+                                        
+                                        // Indicator
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .frame(width: 80, height: 3)
+                                            .foregroundColor(selectedTab == .liked ? .primary : .clear)
+                                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                                            .padding(.top, 16)
+                                    }
                                     
-                                        // Spacer for indicator
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .frame(width: 80, height: 3)
-                                            .foregroundColor(.clear)
+                                    VStack{
+                                        // My Posts Tab
+                                        Button {
+                                            withAnimation(.easeInOut(duration: 0.2)) {
+                                                selectedTab = .myPosts
+                                            }
+                                        } label: {
+                                            Image(systemName: "square.grid.2x2")
+                                                .foregroundColor(selectedTab == .myPosts ? .primary : .gray)
+                                                .bold()
+                                                .frame(width: 80)
+                                        }
+                                        .buttonStyle(.plain)
+                                        
+                                        // Indicator
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .frame(width: 80, height: 3)
+                                            .foregroundColor(selectedTab == .myPosts ? .primary : .clear)
+                                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                                            .padding(.top, 16)
+                                    }
                                 }
-                                .contentShape(Rectangle())
+                                .padding(.top)
+                                .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(.plain)
-                            
-                            // My Posts Tab
-                            Button {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    selectedTab = .myPosts
-                                }
-                            } label: {
-                                VStack(spacing: 8) {
-                                    Image(systemName: "square.grid.2x2")
-                                        .foregroundColor(selectedTab == .myPosts ? .primary : .gray)
-                                        .bold()
-                                    
-                                        // Spacer for indicator
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .frame(width: 80, height: 3)
-                                            .foregroundColor(.clear)
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .padding(.top)
-                            .frame(maxWidth: .infinity)
-                            
-                            // Moving Indicator - single indicator that slides between positions
-                            HStack(spacing: 40) {
-                                RoundedRectangle(cornerRadius: 20)
-                                    .frame(width: 80, height: 3)
-                                    .foregroundColor(.primary)
-                                    .id("indicator")
-                                
-                                Color.clear
-                                    .frame(width: 80, height: 3)
-                            }
-                            .padding(.top, 32)
-                            .frame(maxWidth: .infinity)
-                            .offset(x: selectedTab == .liked ? 0 : 120)
-                        .animation(.easeInOut(duration: 0.2), value: selectedTab)
                         }
                         
                         // Tab Content - posts grid
@@ -179,7 +170,6 @@ struct ProfileView: View {
                         }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .likesChanged)) { notification in
-                        guard isLikedFilter else { return }
                         guard
                             let info = notification.userInfo,
                             let postId = info["postId"] as? String,
@@ -193,7 +183,8 @@ struct ProfileView: View {
                             }
                         } else {
                             // Post was liked - fetch and add it to the list
-                            Task {
+                            // Always update, even if not on liked tab, so it appears when user switches
+                            Task { @MainActor in
                                 await likedViewModel.addLikedPost(postId: postId)
                             }
                         }
@@ -215,15 +206,18 @@ struct ProfileView: View {
                         }
                         Button("Delete", role: .destructive) {
                             if let post = postToDelete {
-                                Task {
+                                Task { @MainActor in
                                     do {
                                         try await userViewModel.deletePost(postId: post.id)
+                                        postToDelete = nil
                                     } catch {
-                                        print("Error deleting post: \(error)")
+                                        print("Error deleting post: \(error.localizedDescription)")
+                                        postToDelete = nil
                                     }
                                 }
+                            } else {
+                                postToDelete = nil
                             }
-                            postToDelete = nil
                         }
                     } message: {
                         Text("Are you sure you want to delete this post? This action cannot be undone.")
@@ -460,7 +454,9 @@ struct ProfileView: View {
     
     @ViewBuilder
     private func postCell(for post: DesignPost) -> some View {
-        let isPending = post.status?.lowercased() == "pending"
+        let status = post.status?.lowercased()
+        let isPending = status == "pending"
+        let isDenied = status == "denied" || status == "rejected"
         
         ZStack {
             DesignCards(
@@ -473,21 +469,37 @@ struct ProfileView: View {
                 } : nil
             )
             
-            // Pending Badge - positioned at bottom left (only for my posts)
-            if !isLikedFilter && isPending {
-                HStack(spacing: 4) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 10))
-                    Text("Pending")
-                        .font(.system(size: 10, weight: .semibold))
+            // Status Badge - positioned at bottom left (only for my posts)
+            if !isLikedFilter {
+                if isPending {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 10))
+                        Text("Pending")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(.orange)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.orange.opacity(0.15))
+                    .cornerRadius(8)
+                    .padding(8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                } else if isDenied {
+                    HStack(spacing: 4) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                        Text("Denied")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.red.opacity(0.15))
+                    .cornerRadius(8)
+                    .padding(8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
-                .foregroundColor(.orange)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.orange.opacity(0.15))
-                .cornerRadius(8)
-                .padding(8)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
         }
     }

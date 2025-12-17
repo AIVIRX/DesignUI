@@ -35,9 +35,9 @@ struct ExploreView: View {
         let posts = filteredPosts
         var items: [FeedItem] = []
         
-        // Don't show ads on macOS (AdMob SDK not supported) or if user is subscribed
+        // Don't show ads on macOS (AdMob SDK not supported), iPad, or if user is subscribed
         #if os(iOS)
-        let shouldShowAds = !subscriptionManager.isSubscribed
+        let shouldShowAds = !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone
         #else
         let shouldShowAds = false // No ads on macOS
         #endif
@@ -68,9 +68,9 @@ struct ExploreView: View {
     
     // Generate ad identifiers when posts change to avoid modifying state during view update
     private func generateAdIdentifiers(for posts: [DesignPost]) {
-        // Only generate ad identifiers if we should show ads (iOS and not subscribed)
+        // Only generate ad identifiers if we should show ads (iPhone only, not subscribed)
         #if os(iOS)
-        guard !posts.isEmpty && !subscriptionManager.isSubscribed else {
+        guard !posts.isEmpty && !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone else {
             adIdentifiers = [:] // Clear identifiers if we shouldn't show ads
             return
         }
@@ -99,9 +99,9 @@ struct ExploreView: View {
     
     // Generate identifiers only for newly added posts during pagination
     private func generateAdIdentifiersForNewPosts(oldCount: Int, newPosts: [DesignPost]) {
-        // Only generate ad identifiers if we should show ads (iOS and not subscribed)
+        // Only generate ad identifiers if we should show ads (iPhone only, not subscribed)
         #if os(iOS)
-        guard oldCount < newPosts.count && !subscriptionManager.isSubscribed else { return }
+        guard oldCount < newPosts.count && !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone else { return }
         
         let currentInterval = adInterval
         var updatedIdentifiers = adIdentifiers
@@ -282,14 +282,16 @@ extension ExploreView {
                 gridView(spacing: 8, horizontalPadding: 8, verticalPadding: 8)
             }
         } else {
-            // iPad: Use LazyMasonryView with 5 columns like Mac
+            // iPad: Use adaptive columns based on available width
             if #available(iOS 16.0, *) {
-                LazyMasonryView(
+                AdaptiveColumnMasonryView(
                     items: feedItems,
-                    columns: 5,
+                    minColumnWidth: 200,
+                    maxColumns: 6,
                     spacing: 16,
                     hasMorePosts: viewModel.hasMorePosts,
                     isLoading: viewModel.isLoading,
+                    searchText: searchText,
                     loadMoreHandler: { item in
                         guard let feedItem = item else { return }
                         
@@ -304,7 +306,6 @@ extension ExploreView {
                 ) { item in
                     feedItemCell(for: item)
                 }
-                .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
             } else {
@@ -425,6 +426,59 @@ struct iPadSearchableModifier: ViewModifier {
             content.searchable(text: $searchText, prompt: "Search templates")
         } else {
             content
+        }
+    }
+}
+
+// Preference key to read container width
+struct ContainerWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+// Helper view for adaptive column layout on iPad
+@available(iOS 16.0, *)
+struct AdaptiveColumnMasonryView<Content: View, Item: Identifiable>: View {
+    let items: [Item]
+    let minColumnWidth: CGFloat
+    let maxColumns: Int
+    let spacing: CGFloat
+    let hasMorePosts: Bool
+    let isLoading: Bool
+    let searchText: String
+    let loadMoreHandler: ((Item?) -> Void)?
+    let content: (Item) -> Content
+    
+    @State private var containerWidth: CGFloat = 0
+    
+    var calculatedColumns: Int {
+        guard containerWidth > 0 else { return 5 } // Default to 5 columns
+        let calculated = max(2, Int(containerWidth / (minColumnWidth + spacing)))
+        return min(calculated, maxColumns)
+    }
+    
+    var body: some View {
+        LazyMasonryView(
+            items: items,
+            columns: calculatedColumns,
+            spacing: spacing,
+            hasMorePosts: hasMorePosts,
+            isLoading: isLoading,
+            loadMoreHandler: loadMoreHandler
+        ) { item in
+            content(item)
+        }
+        .id("masonry-\(searchText)-\(calculatedColumns)")
+        .background(
+            GeometryReader { geometry in
+                Color.clear
+                    .preference(key: ContainerWidthKey.self, value: geometry.size.width)
+            }
+        )
+        .onPreferenceChange(ContainerWidthKey.self) { width in
+            containerWidth = width
         }
     }
 }

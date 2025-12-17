@@ -120,32 +120,29 @@ struct UploadTemplateView: View {
                     .foregroundColor(description.count > 500 || !descriptionError.isEmpty ? .red : .secondary)
             }
             
-            ZStack(alignment: .topLeading) {
-                if description.isEmpty {
-                    Text("Describe your design...")
-                        .foregroundColor(placeholderColor)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 18)
-                        .allowsHitTesting(false)
-                }
-                
-                TextEditor(text: $description)
-                    .focused($focusedField, equals: .description)
-                    .scrollContentBackground(.hidden)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .frame(minHeight: 120)
-                    .background(backgroundColor)
-                    .cornerRadius(12)
-                    .overlay(descriptionFieldBorder)
-                    .shadow(color: focusedField == .description ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
-                    .onChange(of: description) { _, newValue in
-                        if newValue.count > 500 {
-                            description = String(newValue.prefix(500))
-                        }
-                        validateDescription()
+            TextField("Describe your design...", text: $description)
+                .autocorrectionDisabled()
+                .focused($focusedField, equals: .description)
+                .submitLabel(.next)
+                .onSubmit {
+                    validateDescription()
+                    if descriptionError.isEmpty {
+                        focusedField = .code
                     }
-            }
+                }
+                .textFieldStyle(.plain)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(backgroundColor)
+                .cornerRadius(12)
+                .overlay(descriptionFieldBorder)
+                .shadow(color: focusedField == .description ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
+                .onChange(of: description) { _, newValue in
+                    if newValue.count > 500 {
+                        description = String(newValue.prefix(500))
+                    }
+                    validateDescription()
+                }
             
             if !descriptionError.isEmpty {
                 Text(descriptionError)

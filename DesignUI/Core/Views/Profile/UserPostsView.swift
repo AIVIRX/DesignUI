@@ -45,15 +45,19 @@ struct UserPostsView: View {
             }
             Button("Delete", role: .destructive) {
                 if let post = postToDelete {
-                    Task {
+                    Task { @MainActor in
                         do {
                             try await viewModel.deletePost(postId: post.id)
+                            postToDelete = nil
                         } catch {
-                            print("Error deleting post: \(error)")
+                            print("Error deleting post: \(error.localizedDescription)")
+                            // Show error alert
+                            postToDelete = nil
                         }
                     }
+                } else {
+                    postToDelete = nil
                 }
-                postToDelete = nil
             }
         } message: {
             Text("Are you sure you want to delete this post? This action cannot be undone.")
@@ -151,7 +155,9 @@ struct UserPostsView: View {
     
     @ViewBuilder
     private func userPostCell(for post: DesignPost) -> some View {
-        let isPending = post.status?.lowercased() == "pending"
+        let status = post.status?.lowercased()
+        let isPending = status == "pending"
+        let isDenied = status == "denied" || status == "rejected"
         
         ZStack {
             DesignCards(
@@ -164,7 +170,7 @@ struct UserPostsView: View {
                 }
             )
             
-            // Pending Badge - positioned at bottom left
+            // Status Badge - positioned at bottom left
             if isPending {
                 HStack(spacing: 4) {
                     Image(systemName: "clock.fill")
@@ -176,6 +182,20 @@ struct UserPostsView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color.orange.opacity(0.15))
+                .cornerRadius(8)
+                .padding(8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            } else if isDenied {
+                HStack(spacing: 4) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 10))
+                    Text("Denied")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .foregroundColor(.red)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.red.opacity(0.15))
                 .cornerRadius(8)
                 .padding(8)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)

@@ -109,21 +109,21 @@ struct BlogGridCard: View {
         VStack(alignment: .leading, spacing: 8) {
             if let urlString = post.image_url, let url = URL(string: urlString) {
                 WebImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: cardWidth, height: cardHeight)
-                        .scaleEffect(isHovered ? 1.05 : 1.0)
-                        .clipped()
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                        )
-                        .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: cardWidth, height: cardHeight)
+                            .scaleEffect(isHovered ? 1.05 : 1.0)
+                            .clipped()
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                            )
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)
                 } placeholder: {
                     ProgressView()
-                        .frame(width: cardWidth, height: cardHeight)
+                            .frame(width: cardWidth, height: cardHeight)
                 }
                 .cornerRadius(12)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0), value: isHovered)

@@ -7,22 +7,20 @@ struct SimilarPostsView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading) {
             if !similarPosts.isEmpty {
                 Text("Similar Posts")
                     .font(.title2).bold()
-                    .padding(.top, 5)
-                    .padding(.bottom, 8)
+                    .padding(.leading, 8)
+                    .padding(.top, 8)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 15) {
+                    HStack(spacing: 8) {
                         ForEach(similarPosts) { post in
                             DesignCards(post: post)
                             .frame(width: 200) // Constrain width for horizontal scroll
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16) // Top padding for hover scale
                     .padding(.bottom, 16) // Bottom padding for hover scale
                 }
                 .scrollIndicators(.never)

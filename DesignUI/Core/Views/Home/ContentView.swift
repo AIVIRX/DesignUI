@@ -66,6 +66,11 @@ struct ContentView: View {
                     Tab(systemImageName: "newspaper") {
                         NewsListView()
                     }
+                    
+                    Tab(systemImageName: "person") {
+                        ProfileContainerView()
+                            .environmentObject(authViewModel)
+                    }
                 }
             } else {
             NavigationSplitView {
@@ -330,7 +335,6 @@ struct SidebarProfileSection: View {
     let effectiveColorScheme: ColorScheme
     @Environment(\.colorScheme) var colorScheme
     @State private var showDeleteAlert = false
-    
     private let profileIndex = 3
     
     private var isSelected: Bool {
@@ -412,14 +416,19 @@ struct SidebarProfileSection: View {
                         } label: {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.secondary)
-                                .padding(4)
+                                .foregroundColor(isSelected ? .black : .secondary)
+                                .frame(width: 20, height: 20)
+                                .contentShape(Rectangle())
+                            #if os(macOS)
+                                .pointerStyle(.link)
+                            #endif
                         }
                         .menuIndicator(.hidden)
+                        .buttonStyle(.plain)
+                        .contentShape(Rectangle())
                     }
                     .contentShape(Rectangle())
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
+                    .padding(8)
                     .background(backgroundColor)
                     .cornerRadius(12)
                 }

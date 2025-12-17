@@ -26,6 +26,7 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
     
     @State private var columnHeights: [CGFloat] = []
     @State private var itemHeights: [Item.ID: CGFloat] = [:]
+    @State private var itemColumnAssignments: [Item.ID: Int] = [:]
     
     // Limit height cache to prevent unbounded memory growth
     private let maxHeightCacheSize = 200
@@ -54,20 +55,54 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
         var heights = Array(repeating: CGFloat(0), count: self.columns)
         
         for item in items {
-            // Find the shortest column
-            let shortestColumn = heights.enumerated()
-                .min(by: { $0.element < $1.element })?
-                .offset ?? 0
+            let assignedColumn: Int
             
-            columns[shortestColumn].append(item)
+            // If item already has a column assignment, preserve it
+            if let existingColumn = itemColumnAssignments[item.id] {
+                assignedColumn = existingColumn
+            } else {
+                // New item: find the shortest column
+                assignedColumn = heights.enumerated()
+                    .min(by: { $0.element < $1.element })?
+                    .offset ?? 0
+            }
+            
+            columns[assignedColumn].append(item)
             
             // Use known height if available, otherwise estimate based on typical sizes
             // Components are shorter (landscape), templates are taller (portrait)
             let itemHeight = itemHeights[item.id] ?? 400 // Default estimate
-            heights[shortestColumn] += itemHeight + spacing
+            heights[assignedColumn] += itemHeight + spacing
         }
         
         return columns
+    }
+    
+    private func updateColumnAssignments() {
+        let currentItemIds = Set(items.map { $0.id })
+        
+        // Clean up assignments for items that are no longer in the list
+        itemColumnAssignments = itemColumnAssignments.filter { currentItemIds.contains($0.key) }
+        
+        // Assign columns for new items
+        var heights = Array(repeating: CGFloat(0), count: self.columns)
+        
+        for item in items {
+            if itemColumnAssignments[item.id] == nil {
+                // New item: find the shortest column
+                let shortestColumn = heights.enumerated()
+                    .min(by: { $0.element < $1.element })?
+                    .offset ?? 0
+                
+                itemColumnAssignments[item.id] = shortestColumn
+            }
+            
+            // Update height for next iteration
+            let itemHeight = itemHeights[item.id] ?? 400
+            if let column = itemColumnAssignments[item.id] {
+                heights[column] += itemHeight + spacing
+            }
+        }
     }
     
     var body: some View {
@@ -98,6 +133,12 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                                     }
                                 }
                             }
+                            .onAppear {
+                                // Ensure column assignment exists when item appears
+                                if itemColumnAssignments[item.id] == nil {
+                                    updateColumnAssignments()
+                                }
+                            }
                     }
                     
                     // Bottom sentinel for each column - triggers loading when scrolled into view
@@ -114,12 +155,9 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                         #if os(macOS)
                         HStack {
                             Spacer()
-                            Color.clear
-                                .frame(width: 32, height: 32)
-                                .overlay(
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle())
-                                )
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
                             Spacer()
                         }
                         .padding()
@@ -132,6 +170,13 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                 }
                 .frame(maxWidth: .infinity)
             }
+        }
+        .onAppear {
+            updateColumnAssignments()
+        }
+        .onChange(of: items.count) { oldValue, newValue in
+            // Update assignments when items are added/removed
+            updateColumnAssignments()
         }
     }
 }

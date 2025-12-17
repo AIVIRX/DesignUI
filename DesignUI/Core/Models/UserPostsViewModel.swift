@@ -161,7 +161,12 @@ class UserPostsViewModel: ObservableObject {
         
         let postAuthor = try JSONDecoder().decode(PostAuthor.self, from: postResponse.data)
         
-        guard postAuthor.author_id == userId.uuidString else {
+        // Compare UUIDs - handle both string and UUID formats
+        let userIdString = userId.uuidString.lowercased()
+        let authorIdString = postAuthor.author_id.lowercased()
+        
+        guard authorIdString == userIdString else {
+            print("Delete failed: User ID mismatch. User: \(userIdString), Post author: \(authorIdString)")
             throw NSError(domain: "UserPostsViewModel", code: 403, userInfo: [NSLocalizedDescriptionKey: "You can only delete your own posts"])
         }
         
@@ -172,8 +177,10 @@ class UserPostsViewModel: ObservableObject {
             .eq("id", value: postId)
             .execute()
         
-        // Remove from local array
+        // Remove from local array (already on MainActor)
         userPosts.removeAll { $0.id == postId }
+        
+        print("Post \(postId) deleted successfully")
     }
     
     deinit {

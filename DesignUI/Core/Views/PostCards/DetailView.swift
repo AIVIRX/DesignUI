@@ -19,16 +19,16 @@ struct DetailWebImage: View {
     
     var body: some View {
         WebImage(url: URL(string: url)) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: width, height: height)
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                .clipped()
-                .shadow(radius: shadowRadius)
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: width, height: height)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .clipped()
+                    .shadow(radius: shadowRadius)
         } placeholder: {
             ProgressView()
-                .frame(width: width, height: height)
+                    .frame(width: width, height: height)
         }
         .indicator(.activity)
         .transition(.fade(duration: 0.3))

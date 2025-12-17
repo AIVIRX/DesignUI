@@ -168,12 +168,18 @@ class LikedPostsViewModel: ObservableObject {
     @MainActor
     func addLikedPost(postId: String) async {
         // Check if post is already in the list
-        guard !likedPosts.contains(where: { $0.id == postId }) else { return }
+        guard !likedPosts.contains(where: { $0.id == postId }) else {
+            print("Post \(postId) already in liked posts list")
+            return
+        }
         
-        guard client.auth.currentUser != nil else { return }
+        guard client.auth.currentUser != nil else {
+            print("User not authenticated, cannot add liked post")
+            return
+        }
         
         do {
-            // Fetch the post details
+            // Fetch the post details - try without public filter first, then with it
             let postResponse = try await client
                 .from("posts")
                 .select("""
@@ -184,7 +190,6 @@ class LikedPostsViewModel: ObservableObject {
                     )
                 """)
                 .eq("id", value: postId)
-                .eq("public", value: true)
                 .single()
                 .execute()
             
@@ -192,9 +197,10 @@ class LikedPostsViewModel: ObservableObject {
             
             // Add to the beginning of the list (most recent likes first)
             likedPosts.insert(post, at: 0)
+            print("Successfully added post \(postId) to liked posts")
         } catch {
-            print("Error adding liked post: \(error)")
-            // If fetching fails, just refresh the list
+            print("Error adding liked post \(postId): \(error.localizedDescription)")
+            // If fetching fails, try refreshing the list to get latest data
             await refreshPosts()
         }
     }

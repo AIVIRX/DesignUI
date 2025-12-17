@@ -177,58 +177,58 @@ struct DesignCards: View {
         #endif
         
         WebImage(url: URL(string: media)) { image in
-            Color.clear
-                .aspectRatio(aspectRatio, contentMode: .fit)
-                .overlay(
-                    image
-                        .resizable()
-                        .scaledToFill()
-                )
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                )
-                .overlay(alignment: .topTrailing) {
-                    #if os(iOS)
-                    if showLikeButton || isPremium || showDeleteButton {
-                        HStack(spacing: 6) {
-                            if isPremium {
+                Color.clear
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .overlay(
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    )
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                    .overlay(alignment: .topTrailing) {
+                        #if os(iOS)
+                        if showLikeButton || isPremium || showDeleteButton {
+                            HStack(spacing: 6) {
+                                if isPremium {
                                 Image(systemName: "crown.fill")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.clear)
-                                    .overlay(
-                                        LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
-                                            .mask(
-                                                Image(systemName: "crown.fill")
-                                                    .font(.system(size: 14, weight: .semibold))
-                                            )
-                                    )
-                            }
-                            if showLikeButton {
-                                LikeButton(postId: id)
-                            }
-                            if showDeleteButton, let onDelete = onDelete {
-                                Button(action: onDelete) {
-                                    Image(systemName: "trash")
                                         .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.clear)
+                                        .overlay(
+                                        LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
+                                                .mask(
+                                                Image(systemName: "crown.fill")
+                                                        .font(.system(size: 14, weight: .semibold))
+                                                )
+                                        )
+                                }
+                                if showLikeButton {
+                                    LikeButton(postId: id)
+                                }
+                                if showDeleteButton, let onDelete = onDelete {
+                                    Button(action: onDelete) {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
                                 }
                             }
+                            .padding(6)
+                            .background(.black.opacity(0.8), in: Capsule())
+                            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                            .padding(6)
                         }
-                        .padding(6)
-                        .background(.black.opacity(0.8), in: Capsule())
-                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                        .padding(6)
+                        #endif
                     }
-                    #endif
-                }
         } placeholder: {
-            Rectangle()
-                .fill(Color.gray.opacity(0.1))
-                .aspectRatio(aspectRatio, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                Rectangle()
+                    .fill(Color.gray.opacity(0.1))
+                    .aspectRatio(aspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
         }
         .indicator(.activity)
         .transition(.fade(duration: 0.3))
