@@ -13,7 +13,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, settings
+    case templates, news, profile, sfIcons, settings, editor
 }
 
 struct ContentView: View {
@@ -23,8 +23,6 @@ struct ContentView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
     @State private var hoveredItem: MenuItem?
-    @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
-    @State private var showSidebarSettings = false
     @StateObject private var authViewModel = AuthViewModel()
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
@@ -35,11 +33,12 @@ struct ContentView: View {
         case profile
         case templates
         case sfIcons
-        case aiAssistant
         case threads
         case policy
         case contact
         case settings
+        case twitter
+        case editor
     }
     
     // Computed property for effective color scheme
@@ -86,7 +85,16 @@ struct ContentView: View {
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                     
+                    // Editor Link
+                    navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "wand.and.stars", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
+                    
                     Divider().padding(.vertical).opacity(0.5)
+                    
+                    LinkRow(title: "X",
+                            urlString: "https://www.x.com/@dockui",
+                            item: ContentView.MenuItem.twitter,
+                            hoveredItem: $hoveredItem,
+                            effectiveColorScheme: effectiveColorScheme)
                     
                     LinkRow(title: "Threads",
                             urlString: "https://www.threads.com/@dockui",
@@ -134,6 +142,10 @@ struct ContentView: View {
                         SFIconsView()
                     case 3:
                         ProfileContainerView()
+                    case 4:
+                        SettingsView()
+                    case 5:
+                        EditorView()
                     default:
                         Text("Select a view")
                     }
@@ -143,7 +155,7 @@ struct ContentView: View {
 #endif
         
 #if os(macOS)
-        NavigationSplitView(columnVisibility: $sidebarVisibility) {
+        NavigationSplitView {
             VStack(alignment: .leading, spacing: 5) {
                 // Profile Section
                 SidebarProfileSection(authViewModel: authViewModel, selectedIndex: $selectedIndex, hoveredItem: $hoveredItem, effectiveColorScheme: effectiveColorScheme)
@@ -154,12 +166,21 @@ struct ContentView: View {
                 navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
-                
+                                
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                 
+                // Editor Link
+                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "wand.and.stars", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
+                
                 Divider().padding(.vertical).opacity(0.5)
                                 
+                LinkRow(title: "X",
+                        urlString: "https://www.x.com/@dockui",
+                        item: ContentView.MenuItem.twitter,
+                        hoveredItem: $hoveredItem,
+                        effectiveColorScheme: effectiveColorScheme)
+                
                     LinkRow(title: "Threads",
                             urlString: "https://www.threads.com/@dockui",
                             item: ContentView.MenuItem.threads,
@@ -206,6 +227,10 @@ struct ContentView: View {
                     SFIconsView()
                 case 3:
                     ProfileContainerView()
+                case 4:
+                    SettingsView()
+                case 5:
+                    EditorView()
                 default:
                     Text("Select a view")
                 }
@@ -287,6 +312,8 @@ struct ContentView: View {
             return AnyView(ExploreView())
         case .settings:
             return AnyView(SettingsView())
+        case .editor:
+            return AnyView(EditorView())
         }
     }
 }

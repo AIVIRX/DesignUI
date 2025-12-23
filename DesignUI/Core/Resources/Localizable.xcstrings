@@ -254,6 +254,12 @@
         }
       }
     },
+    "%@" : {
+
+    },
+    "%lld" : {
+
+    },
     "%lld/15" : {
       "localizations" : {
         "ar" : {
@@ -9754,6 +9760,9 @@
         }
       }
     },
+    "Likes" : {
+
+    },
     "Loading posts..." : {
       "localizations" : {
         "ar" : {
@@ -12503,6 +12512,9 @@
           }
         }
       }
+    },
+    "Posts" : {
+
     },
     "Premium" : {
       "localizations" : {
@@ -17754,6 +17766,9 @@
         }
       }
     },
+    "star.fill" : {
+
+    },
     "Stock Profit Calculator 2025" : {
       "localizations" : {
         "ar" : {
@@ -19003,6 +19018,9 @@
           }
         }
       }
+    },
+    "System" : {
+
     },
     "Tell us a bit about yourself" : {
       "localizations" : {

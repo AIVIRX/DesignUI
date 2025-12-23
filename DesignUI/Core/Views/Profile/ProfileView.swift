@@ -95,10 +95,15 @@ struct ProfileView: View {
                                                 selectedTab = .liked
                                             }
                                         } label: {
-                                            Image(systemName: "heart")
-                                                .foregroundColor(selectedTab == .liked ? .primary : .gray)
-                                                .bold()
-                                                .frame(width: 80)
+                                            HStack{
+                                                Image(systemName: "heart")
+                                                    .foregroundColor(selectedTab == .liked ? .primary : .gray)
+                                                    .bold()
+                                             Text("Likes")
+                                                    .font(.caption)
+                                                    .foregroundColor(selectedTab == .liked ? .primary : .gray)
+
+                                            }
                                         }
                                         .buttonStyle(.plain)
                                         
@@ -117,10 +122,16 @@ struct ProfileView: View {
                                                 selectedTab = .myPosts
                                             }
                                         } label: {
-                                            Image(systemName: "square.grid.2x2")
-                                                .foregroundColor(selectedTab == .myPosts ? .primary : .gray)
-                                                .bold()
-                                                .frame(width: 80)
+                                            HStack{
+                                                Image(systemName: "square.grid.2x2")
+                                                    .foregroundColor(selectedTab == .myPosts ? .primary : .gray)
+                                                    .bold()
+                                                
+                                                Text("Posts")
+                                                    .font(.caption)
+                                                    .foregroundColor(selectedTab == .myPosts ? .primary : .gray)
+
+                                            }
                                         }
                                         .buttonStyle(.plain)
                                         

@@ -21,7 +21,8 @@ struct SimilarPostsView: View {
                             .frame(width: 200) // Constrain width for horizontal scroll
                         }
                     }
-                    .padding(.bottom, 16) // Bottom padding for hover scale
+                    .padding(.horizontal, 8) // Horizontal padding for hover scale
+                    .padding(.vertical, 8) // Vertical padding for hover scale (top and bottom)
                 }
                 .scrollIndicators(.never)
 
@@ -58,8 +59,15 @@ struct SimilarPostsView: View {
                     .execute()
                     .value
                 
+                // Filter out components
+                let filteredPosts = response.filter { post in
+                    let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    return postType != "component"
+                }
+                
                 await MainActor.run {
-                    self.similarPosts = response
+                    // Take only the first 5 after filtering
+                    self.similarPosts = Array(filteredPosts.prefix(5))
                 }
             } catch {
                 // Only log non-cancelled errors

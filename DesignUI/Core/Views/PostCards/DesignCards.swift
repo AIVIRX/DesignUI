@@ -87,7 +87,8 @@ struct DesignCards: View {
                     codeSnippet: codeSnippet,
                     creationDate: published,
                     isAuthorVerified: isVerified,
-                    isPremium: isPremium
+                    isPremium: isPremium,
+                    isComponent: isComponent
                 )) {
                     imageView
                         .contentShape(Rectangle())
@@ -152,7 +153,8 @@ struct DesignCards: View {
                 codeSnippet: codeSnippet,
                 creationDate: published,
                 isAuthorVerified: isVerified,
-                isPremium: isPremium
+                isPremium: isPremium,
+                isComponent: isComponent
             )) {
                 imageView
                     .buttonStyle(PlainButtonStyle())
