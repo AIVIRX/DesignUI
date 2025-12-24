@@ -249,85 +249,85 @@ struct ProfileView: View {
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showUploadTemplate = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(action: {
-                            showEditProfile = true
-                        }) {
-                            Label("Edit Profile", systemImage: "slider.vertical.3")
-                        }
-                        
-                        Button {
-                            Task {
-                                await authViewModel.signOut()
-                            }
-                        } label: {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
-                        }
-                        
-                        Button(role: .destructive) {
-                            showDeleteAlert = true
-                        } label: {
-                            Label("Delete Account", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.title2)
-                    }
-                }
-#endif
-                
-#if os(macOS)
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showUploadTemplate = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                    }
-                }
-                
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button(action: {
-                            showEditProfile = true
-                        }) {
-                            Label("Edit Profile", systemImage: "slider.vertical.3")
-                        }
-                        
-                        Button {
-                            Task {
-                                await authViewModel.signOut()
-                            }
-                        } label: {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
-                        }
-                        
-                        Button(role: .destructive) {
-                            showDeleteAlert = true
-                        } label: {
-                            Label("Delete Account", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.title2)
-                    }
-                }
-#endif
-            }
+//            .toolbar {
+//#if os(iOS)
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    Button {
+//                        showUploadTemplate = true
+//                    } label: {
+//                        Image(systemName: "plus")
+//                            .font(.title2)
+//                            .fontWeight(.semibold)
+//                    }
+//                }
+//                
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    Menu {
+//                        Button(action: {
+//                            showEditProfile = true
+//                        }) {
+//                            Label("Edit Profile", systemImage: "slider.vertical.3")
+//                        }
+//                        
+//                        Button {
+//                            Task {
+//                                await authViewModel.signOut()
+//                            }
+//                        } label: {
+//                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
+//                        }
+//                        
+//                        Button(role: .destructive) {
+//                            showDeleteAlert = true
+//                        } label: {
+//                            Label("Delete Account", systemImage: "trash")
+//                        }
+//                    } label: {
+//                        Image(systemName: "ellipsis.circle")
+//                            .font(.title2)
+//                    }
+//                }
+//#endif
+//                
+//#if os(macOS)
+//                ToolbarItem(placement: .primaryAction) {
+//                    Button {
+//                        showUploadTemplate = true
+//                    } label: {
+//                        Image(systemName: "plus")
+//                            .font(.title2)
+//                            .fontWeight(.semibold)
+//                    }
+//                }
+//                
+//                ToolbarItem(placement: .primaryAction) {
+//                    Menu {
+//                        Button(action: {
+//                            showEditProfile = true
+//                        }) {
+//                            Label("Edit Profile", systemImage: "slider.vertical.3")
+//                        }
+//                        
+//                        Button {
+//                            Task {
+//                                await authViewModel.signOut()
+//                            }
+//                        } label: {
+//                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
+//                        }
+//                        
+//                        Button(role: .destructive) {
+//                            showDeleteAlert = true
+//                        } label: {
+//                            Label("Delete Account", systemImage: "trash")
+//                        }
+//                    } label: {
+//                        Image(systemName: "ellipsis.circle")
+//                            .font(.title2)
+//                    }
+//                }
+//#endif
+//            }
             // Replace the sheet presentation with:
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)

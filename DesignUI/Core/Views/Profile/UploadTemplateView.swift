@@ -36,17 +36,16 @@ struct UploadTemplateView: View {
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    uploadButton
-                }
-            }
+//            .toolbar(id: "uploadTemplateToolbar") {
+//                ToolbarItem(id: "cancel", placement: .cancellationAction) {
+//                    Button("Cancel") {
+//                        dismiss()
+//                    }
+//                }
+//                ToolbarItem(id: "upload", placement: .confirmationAction) {
+//                    uploadButton
+//                }
+//            }
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {

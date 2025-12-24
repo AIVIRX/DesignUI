@@ -274,11 +274,11 @@ struct DetailView: View {
             .task {
                 await fetchAuthorProfile()
             }
-            .toolbar {
-                ToolbarItem() {
-                    ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
-                }
-            }
+//            .toolbar(content: {
+//                ToolbarItem {
+//                    ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
+//                }
+//            })
             .frame(maxWidth: 800)
         }
         .frame(maxWidth: .infinity)

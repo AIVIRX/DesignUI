@@ -155,7 +155,7 @@ struct ContentView: View {
 #endif
         
 #if os(macOS)
-        NavigationSplitView {
+        NavigationSplitView{
             VStack(alignment: .leading, spacing: 5) {
                 // Profile Section
                 SidebarProfileSection(authViewModel: authViewModel, selectedIndex: $selectedIndex, hoveredItem: $hoveredItem, effectiveColorScheme: effectiveColorScheme)
@@ -230,7 +230,7 @@ struct ContentView: View {
                 case 4:
                     SettingsView()
                 case 5:
-                    EditorView()
+                    DesignBrowserView()
                 default:
                     Text("Select a view")
                 }
@@ -313,7 +313,7 @@ struct ContentView: View {
         case .settings:
             return AnyView(SettingsView())
         case .editor:
-            return AnyView(EditorView())
+            return AnyView(DesignBrowserView())
         }
     }
 }

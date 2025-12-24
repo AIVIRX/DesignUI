@@ -42,17 +42,17 @@ struct UsernameSetupView: View {
             }
         }
         .navigationTitle("Setup Profile")
-        .toolbar {
-            #if os(iOS)
-            ToolbarItem(placement: .navigationBarTrailing) {
-                continueButtonToolbar
-            }
-            #else
-            ToolbarItem(placement: .automatic) {
-                continueButtonToolbar
-            }
-            #endif
-        }
+//        .toolbar {
+//            #if os(iOS)
+//            ToolbarItem(placement: .navigationBarTrailing) {
+//                continueButtonToolbar
+//            }
+//            #else
+//            ToolbarItem(placement: .automatic) {
+//                continueButtonToolbar
+//            }
+//            #endif
+//        }
     }
     
     private var headerView: some View {

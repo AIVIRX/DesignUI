@@ -97,7 +97,8 @@ struct DesignUIApp: App {
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
-    
+    @StateObject private var designManager = DesignManager.shared
+
     init() {
         UserDefaults.standard.set(0, forKey: "selectedIndex")
                 
@@ -132,12 +133,17 @@ struct DesignUIApp: App {
                 .environmentObject(toastManager)
                 .environmentObject(subscriptionManager)
                 .environmentObject(paywallManager)
+                .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
         }
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)
         .defaultSize(width: 1200, height: 800)
+        .commands {
+            // Standard Edit menu (Cut, Copy, Paste, Select All, etc.)
+            TextEditingCommands()
+        }
     }
 }
 #endif
