@@ -138,6 +138,13 @@ struct SchemaConverter {
             let color = getColorName(from: modifier.properties["color"])
             return ".foregroundColor(\(color))"
             
+        case .backgroundColor:
+            if let _ = modifier.properties["gradient"] {
+                return ".background(LinearGradient(...))"
+            }
+            let color = getColorName(from: modifier.properties["color"])
+            return ".background(\(color))"
+            
         case .background:
             let color = getColorName(from: modifier.properties["color"])
             return ".background(\(color))"
@@ -284,8 +291,9 @@ struct SchemaConverter {
             return ComponentModifier(type: .foregroundColor, properties: ["color": color])
             
         case "background":
+            // Parse as backgroundColor since .background(Color) is for colors
             let color = parseColorArg(args)
-            return ComponentModifier(type: .background, properties: ["color": color])
+            return ComponentModifier(type: .backgroundColor, properties: ["color": color])
             
         case "font":
             // Parse .font(.title) or .font(.system(size: 16))

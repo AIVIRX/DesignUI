@@ -111,12 +111,10 @@ struct UIBuilderView: View {
     @State private var colorScheme: ColorScheme? = .light
     
     // Panel states
-    @State private var layersPanelWidth: CGFloat = 300 // Shared width for both layers and AI panels
+    @State private var layersPanelWidth: CGFloat = 300
     @State private var propertiesPanelWidth: CGFloat = 300
-    @State private var layersPanelHeight: CGFloat = 400 // Height for layers panel
     @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
-    @State private var showAIPanel = true
     
     // iOS half sheet states
     @State private var showLayersSheet = false
@@ -139,7 +137,21 @@ struct UIBuilderView: View {
                 // Floating action buttons for panels
                 VStack {
                     HStack {
+                        // Close button (top-left)
+                        Button(action: { 
+                            designManager.closeCurrentDesign()
+                        }) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(Color.secondary.opacity(0.8))
+                                .clipShape(Circle())
+                                .shadow(radius: 4)
+                        }
+                        
                         Spacer()
+                        
                         VStack(spacing: 12) {
                             Button(action: { showLayersSheet = true }) {
                                 Image(systemName: "list.bullet")
@@ -164,7 +176,7 @@ struct UIBuilderView: View {
                     }
                     Spacer()
                 }
-                .padding(.trailing, 16)
+                .padding(.horizontal, 16)
                 .padding(.top, 16)
             }
 #else
@@ -174,74 +186,20 @@ struct UIBuilderView: View {
                 
                 // Floating panels with proper margins
                 HStack(spacing: 0) {
-                    // Left side: Layers and AI panels stacked vertically with resizable divider
-                    if showLayersPanel || showAIPanel {
-                        VStack(spacing: 0) {
-                            if showLayersPanel {
-                                ResizablePanel(
-                                    width: $layersPanelWidth,
-                                    minWidth: 250,
-                                    maxWidth: 500,
-                                    isVisible: $showLayersPanel,
-                                    handlePosition: .right
-                                ) {
-                                    layersPanel
-                                }
-                                .frame(height: showAIPanel ? layersPanelHeight : nil)
-                                .frame(maxHeight: showAIPanel ? nil : .infinity)
-                                .transition(.move(edge: .leading).combined(with: .opacity))
-                            }
-                            
-                            // Draggable divider between panels (hidden but still interactable)
-                            if showLayersPanel && showAIPanel {
-                                Rectangle()
-                                    .fill(Color.clear)
-                                    .frame(height: 8)
-                                    .frame(width: layersPanelWidth)
-                                    .contentShape(Rectangle())
-                                    .gesture(
-                                        DragGesture()
-                                            .onChanged { value in
-                                                var transaction = Transaction()
-                                                transaction.disablesAnimations = true
-                                                withTransaction(transaction) {
-                                                    let newHeight = layersPanelHeight + value.translation.height
-                                                    // Clamp between reasonable min/max heights
-                                                    let minHeight: CGFloat = 300
-                                                    let maxHeight: CGFloat = 600
-                                                    layersPanelHeight = max(minHeight, min(maxHeight, newHeight))
-                                                }
-                                            }
-                                    )
-                                    .onHover { hovering in
-#if os(macOS)
-                                        if hovering {
-                                            NSCursor.resizeUpDown.push()
-                                        } else {
-                                            NSCursor.pop()
-                                        }
-#endif
-                                    }
-                                    .transition(.opacity.combined(with: .move(edge: .top)))
-                            }
-                            
-                            if showAIPanel {
-                                ResizablePanel(
-                                    width: $layersPanelWidth, // Use same width as layers panel
-                                    minWidth: 250,
-                                    maxWidth: 500,
-                                    isVisible: $showAIPanel,
-                                    handlePosition: .right
-                                ) {
-                                    aiPanel
-                                }
-                                .frame(maxHeight: .infinity) // Takes remaining space
-                                .transition(.move(edge: .leading).combined(with: .opacity))
-                            }
+                    // Left side: Layers panel
+                    if showLayersPanel {
+                        ResizablePanel(
+                            width: $layersPanelWidth,
+                            minWidth: 250,
+                            maxWidth: 500,
+                            isVisible: $showLayersPanel,
+                            handlePosition: .right
+                        ) {
+                            layersPanel
                         }
+                        .transition(.move(edge: .leading).combined(with: .opacity))
                         .padding()
                         .animation(.easeInOut(duration: 0.3), value: showLayersPanel)
-                        .animation(.easeInOut(duration: 0.3), value: showAIPanel)
                     }
                     
                     Spacer()
@@ -315,20 +273,13 @@ struct UIBuilderView: View {
     private var layersPanel: some View {
         LayersPanelView(
             canvasManager: canvasManager,
-            selectedComponent: $canvasManager.selectedComponent,
-            showAIPanel: $showAIPanel
+            selectedComponent: $canvasManager.selectedComponent
         )
     }
     
     private var mainCanvasArea: some View {
         ZStack(alignment: .top) {
             canvasView
-            
-            if canvasManager.selectedComponentIds.count >= 2 {
-                LayoutToolbar(canvasManager: canvasManager)
-                    .padding(.top, 12)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
         }
         .animation(.spring(), value: canvasManager.selectedComponentIds.count)
     }
@@ -454,8 +405,7 @@ struct UIBuilderView: View {
             // Layers content
             LayersPanelView(
                 canvasManager: canvasManager,
-                selectedComponent: $canvasManager.selectedComponent,
-                showAIPanel: $showAIPanel
+                selectedComponent: $canvasManager.selectedComponent
             )
         }
         .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
@@ -548,9 +498,11 @@ struct UIBuilderView: View {
                 .help("Redo")
             }
             
+            #if os(macOS)
             if #available(macOS 26.0, *) {
                 ToolbarSpacer(.flexible, placement: .primaryAction)
             }
+            #endif
             
             ToolbarItemGroup(placement: .primaryAction) {
                 Menu {
@@ -570,14 +522,7 @@ struct UIBuilderView: View {
         }
     }
 
-    
-    private var aiPanel: some View {
-        AIPanelView(
-            canvasManager: canvasManager,
-            selectedComponent: $canvasManager.selectedComponent
-        )
-    }
-    
+        
     private var magnificationGesture: some Gesture {
         MagnificationGesture()
             .onChanged { value in

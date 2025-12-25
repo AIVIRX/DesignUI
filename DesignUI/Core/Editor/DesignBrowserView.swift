@@ -22,9 +22,27 @@ struct DesignBrowserView: View {
         VStack(spacing: 0) {
                 // Header
                 HStack {
-                    Text("Design Browser")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Design Browser")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        
+                        // iCloud status indicator
+                        HStack(spacing: 4) {
+                            Text(designManager.storageStatus)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Button(action: {
+                                designManager.refreshDesignFiles()
+                            }) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.secondary)
+                        }
+                    }
                     
                     Spacer()
                     
@@ -118,7 +136,6 @@ struct DesignBrowserView: View {
                     .padding(.vertical)
                 }
             }
-            .navigationTitle("Studio")
             }
         .sheet(isPresented: $showingNewDesignSheet) {
             NewDesignSheet(

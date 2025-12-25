@@ -40,8 +40,10 @@ struct ModifierEditorView: View {
                     FrameModifierEditor(modifier: $modifier, component: component)
                 case .padding:
                     PaddingModifierEditor(modifier: $modifier, component: component)
+                case .backgroundColor:
+                    BackgroundColorModifierEditor(modifier: $modifier, component: component)
                 case .background:
-                    BackgroundModifierEditor(modifier: $modifier, component: component)
+                    BackgroundElementModifierEditor(modifier: $modifier, component: component)
                 case .foregroundColor:
                     ColorModifierEditor(modifier: $modifier, component: component, title: "Foreground Color")
                 case .font:

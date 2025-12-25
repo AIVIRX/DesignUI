@@ -11,7 +11,6 @@ import UniformTypeIdentifiers
 struct LayersPanelView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
-    @Binding var showAIPanel: Bool
     @State private var showComponentLibrary = false
     @State private var expanded: Set<UUID> = []
     @State private var expandedOverlayFolders: Set<UUID> = [] // Track overlay folder expansion separately
@@ -38,15 +37,6 @@ struct LayersPanelView: View {
                     
                     // Toolbar
                     HStack(spacing: 8) {
-                        Button(action: { showAIPanel.toggle() }) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 12))
-                                .foregroundColor(showAIPanel ? .blue : .primary)
-                        }
-                        .help("AI Assistant")
-                        .buttonStyle(.bordered)
-                        .frame(width: 28, height: 28)
-                        
                         Button(action: { showComponentLibrary = true }) {
                             Image(systemName: "plus")
                                 .font(.system(size: 12))
@@ -239,9 +229,6 @@ private func componentDisplayName(_ component: UIComponent) -> String {
     case .text:
         let text = component.getProperty(key: "text") as? String ?? "Text"
         return text.isEmpty ? "Text" : (text.count > 20 ? String(text.prefix(20)) + "..." : text)
-    case .button:
-        let title = component.getProperty(key: "title") as? String ?? "Button"
-        return title.isEmpty ? "Button" : (title.count > 20 ? String(title.prefix(20)) + "..." : title)
     case .image:
         return "Image"
     default:
@@ -281,7 +268,7 @@ private func indexInParent(of targetId: UUID, in roots: [UIComponent]) -> Int {
 private func canAcceptChildren(_ component: UIComponent) -> Bool {
     // Check if component type can accept children
     switch component.type {
-    case .scrollView, .vstack, .hstack, .zstack, .button:
+    case .scrollView, .vstack, .hstack, .zstack:
         return true
     default:
         break

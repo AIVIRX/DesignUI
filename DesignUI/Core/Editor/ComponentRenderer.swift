@@ -34,8 +34,6 @@ struct ComponentRenderer: View {
                 renderText()
             case .image:
                 renderImage()
-            case .button:
-                renderButton()
             case .vstack:
                 renderVStack()
             case .hstack:
@@ -552,10 +550,9 @@ struct ComponentRenderer: View {
             .padding(4)
     }
     
-    // MARK: - Toggle Renderer
+    // MARK: - Toggle/Switch Renderer
     private func renderToggle() -> some View {
         let isOn = component.getProperty(key: "isOn") as? Bool ?? true
-        let label = component.getProperty(key: "label") as? String ?? "Toggle"
         
         let binding = Binding<Bool>(
             get: { isOn },
@@ -564,8 +561,10 @@ struct ComponentRenderer: View {
             }
         )
         
-        return Toggle(label, isOn: binding)
-            .padding(.horizontal)
+        // iOS-style switch without label (just the toggle control)
+        return Toggle("", isOn: binding)
+            .labelsHidden()
+            .toggleStyle(.switch)
     }
     
     // MARK: - Slider Renderer
@@ -775,8 +774,15 @@ private extension View {
                 return AnyView(view.background(backgroundView))
             }
             
-            // Fallback to color background for backward compatibility
-            let color = modifier.getColor(key: "color", defaultValue: .clear)
+            // No component found, return unchanged view
+            return AnyView(view)
+            
+        case .backgroundColor:
+            // Handle color/gradient backgrounds
+            if let gradient = modifier.getGradient(key: "gradient") {
+                return AnyView(view.background(gradient))
+            }
+            let color = modifier.getColor(key: "color", defaultValue: .blue)
             return AnyView(view.background(color))
             
         case .foregroundColor:

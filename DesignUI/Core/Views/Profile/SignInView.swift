@@ -159,25 +159,25 @@ struct SignInView: View {
                 #endif
             }
         }
-//        .toolbar {
-//#if os(iOS)
-//            ToolbarItem(placement: .navigationBarTrailing) {
-//                NavigationLink(destination: SettingsView()) {
-//                    Image(systemName: "gear")
-//                }
-//                .simultaneousGesture(TapGesture().onEnded {
-//                    HapticManager.shared.triggerImpact(style: .medium)
-//                })
-//            }
-//#endif
-//#if os(macOS)
-//            ToolbarItem(placement: .primaryAction) {
-//                NavigationLink(destination: SettingsView()) {
-//                    Image(systemName: "gear")
-//                }
-//            }
-//#endif
-//        }
+        .toolbar {
+#if os(iOS)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gear")
+                }
+                .simultaneousGesture(TapGesture().onEnded {
+                    HapticManager.shared.triggerImpact(style: .medium)
+                })
+            }
+#endif
+#if os(macOS)
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gear")
+                }
+            }
+#endif
+        }
         .alert("Error", isPresented: $authViewModel.showError) {
             Button("OK", role: .cancel) { }
         } message: {

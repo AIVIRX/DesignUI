@@ -199,6 +199,17 @@ class DesignManager: ObservableObject {
         // Try iCloud Documents first, fallback to local Documents
         // Use the specific container identifier for better reliability
         let containerIdentifier = "iCloud.com.Maicol.Dockui"
+        
+        print("🔍 Checking iCloud availability...")
+        print("🔍 Container identifier: \(containerIdentifier)")
+        
+        // Check if iCloud is available
+        if let ubiquityIdentityToken = FileManager.default.ubiquityIdentityToken {
+            print("☁️ iCloud identity token found: \(ubiquityIdentityToken)")
+        } else {
+            print("⚠️ No iCloud identity token - user may not be signed in to iCloud")
+        }
+        
         let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier)?
             .appendingPathComponent("Documents/DockUI")
         
@@ -206,22 +217,29 @@ class DesignManager: ObservableObject {
         let finalStorageStatus: String
         
         if let ubiquityURL = ubiquityURL {
-            // Ensure directory exists and is marked for iCloud
-            try? FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
-            
-            // Mark the directory for iCloud sync
-            // Files in iCloud containers are automatically marked as ubiquitous
-            // No need to manually set isUbiquitousItem - it's automatically true for files in ubiquity containers
+            // Ensure directory exists
+            do {
+                try FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
+                print("☁️ iCloud directory created/verified: \(ubiquityURL.path)")
+            } catch {
+                print("⚠️ Failed to create iCloud directory: \(error)")
+            }
             
             finalDesignsDirectory = ubiquityURL
             finalStorageStatus = "☁️ iCloud Drive"
-            print("☁️ Using iCloud: \(ubiquityURL.path)")
+            print("☁️ Using iCloud container: \(ubiquityURL.path)")
         } else {
-            print("⚠️ iCloud not available, falling back to local documents.")
+            print("⚠️ iCloud container not available")
+            print("⚠️ This could be because:")
+            print("   - User is not signed in to iCloud")
+            print("   - iCloud Drive is not enabled")
+            print("   - App is not properly provisioned for iCloud")
+            print("   - Running in simulator without iCloud configured")
+            
             let localDocuments = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
             finalDesignsDirectory = localDocuments.appendingPathComponent("DockUI")
-            finalStorageStatus = "📁 Local Documents"
-            print("📁 Using local Documents: \(finalDesignsDirectory.path)")
+            finalStorageStatus = "📁 Local Only"
+            print("📁 Falling back to local Documents: \(finalDesignsDirectory.path)")
         }
         
         // Initialize all stored properties
@@ -229,9 +247,9 @@ class DesignManager: ObservableObject {
         self.storageStatus = finalStorageStatus
         self.documentsDirectory = finalDesignsDirectory.deletingLastPathComponent()
         
-        print("🚀 DesignManager singleton initialized")
+        print("🚀 DesignManager initialized")
         print("📁 Designs Directory: \(designsDirectory.path)")
-        print("📁 Storage Status: \(storageStatus)")
+        print("📊 Storage Status: \(storageStatus)")
         
         createDesignsDirectoryIfNeeded()
         migrateFromUserDocuments()
@@ -532,7 +550,7 @@ class DesignManager: ObservableObject {
             // Reload the design from the new location to get the correct fileURL
             // Since fileURL is let, we need to replace the object in the array
             if let index = designFiles.firstIndex(where: { $0.id == design.id }) {
-                if var reloadedDesign = DesignFile.load(from: newFileURL) {
+                if let reloadedDesign = DesignFile.load(from: newFileURL) {
                     // Update the name on the reloaded design
                     reloadedDesign.name = displayName
                     

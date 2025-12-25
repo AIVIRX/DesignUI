@@ -53,21 +53,15 @@ struct SimilarPostsView: View {
                     )
                 """)
                     .eq("public", value: true)
+                    .eq("post_type", value: "fullscreen")
                     .neq("id", value: currentPostId)
                     .order("created_at", ascending: false)
                     .limit(5)
                     .execute()
                     .value
                 
-                // Filter out components
-                let filteredPosts = response.filter { post in
-                    let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                    return postType != "component"
-                }
-                
                 await MainActor.run {
-                    // Take only the first 5 after filtering
-                    self.similarPosts = Array(filteredPosts.prefix(5))
+                    self.similarPosts = response
                 }
             } catch {
                 // Only log non-cancelled errors

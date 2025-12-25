@@ -58,7 +58,6 @@ struct ComponentAnyCodable: Codable {
 enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case text = "Text"
     case image = "Image"
-    case button = "Button"
     case vstack = "VStack"
     case hstack = "HStack"
     case zstack = "ZStack"
@@ -73,7 +72,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case sfSymbol = "SF Symbol"
     case statusBar = "Status Bar"
     case textField = "Text Field"
-    case toggle = "Toggle"
+    case toggle = "Switch"
     case slider = "Slider"
     case lazyVGrid = "LazyVGrid"
     
@@ -83,7 +82,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .text: return "textformat"
         case .image: return "photo"
-        case .button: return "button.programmable"
         case .vstack: return "square.split.1x2.fill"
         case .hstack: return "square.split.2x1.fill"
         case .zstack: return "square.2.layers.3d.top.filled"
@@ -724,11 +722,6 @@ extension UIComponent {
                 ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true),
                 ComponentProperty(key: "aspectRatio", displayName: "Aspect Ratio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
             ]
-        case .button:
-            return [
-                ComponentProperty(key: "title", displayName: "Title", type: .string, value: "Button", defaultValue: "Button"),
-                ComponentProperty(key: "backgroundColor", displayName: "Background Color", type: .color, value: "blue", defaultValue: "blue")
-            ]
         case .vstack:
             return [
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["leading", "center", "trailing"]),
@@ -767,8 +760,7 @@ extension UIComponent {
             ]
         case .toggle:
             return [
-                ComponentProperty(key: "isOn", displayName: "Is On", type: .boolean, value: true, defaultValue: true),
-                ComponentProperty(key: "label", displayName: "Label", type: .string, value: "Toggle", defaultValue: "Toggle")
+                ComponentProperty(key: "isOn", displayName: "Is On", type: .boolean, value: true, defaultValue: true)
             ]
         case .slider:
             return [

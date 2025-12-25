@@ -22,6 +22,7 @@ class ScreenshotUtility {
     private init() {}
     
     /// Captures a screenshot of a SwiftUI view and returns optimized thumbnail data
+    @MainActor
     func captureThumbnail<Content: View>(
         of view: Content,
         size: CGSize,
@@ -31,48 +32,18 @@ class ScreenshotUtility {
             .frame(width: size.width, height: size.height)
             .colorScheme(colorScheme)
         
+        // Use ImageRenderer for modern iOS/macOS to properly capture blur effects
+        let renderer = ImageRenderer(content: contentView)
+        renderer.scale = 2.0 // Retina quality
+        
         #if os(macOS)
-        return captureThumbnailMacOS(content: contentView, size: size)
-        #else
-        return captureThumbnailiOS(content: contentView, size: size)
-        #endif
-    }
-    
-    #if os(macOS)
-    private func captureThumbnailMacOS<Content: View>(
-        content: Content,
-        size: CGSize
-    ) -> Data? {
-        let hostingView = NSHostingView(rootView: content)
-        hostingView.frame = NSRect(origin: .zero, size: size)
-        
-        // Force layout
-        hostingView.layout()
-        
-        // Create image from view
-        guard let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) else {
-            print("❌ Failed to create bitmap representation")
+        guard let nsImage = renderer.nsImage else {
+            print("❌ Failed to render image with ImageRenderer")
             return nil
         }
         
-        bitmapRep.size = size
-        hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
-        
         // Resize to thumbnail
-        let resizedSize = thumbnailSize
-        let resizedImage = NSImage(size: resizedSize)
-        resizedImage.lockFocus()
-        
-        bitmapRep.draw(
-            in: NSRect(origin: .zero, size: resizedSize),
-            from: NSRect(origin: .zero, size: bitmapRep.size),
-            operation: .sourceOver,
-            fraction: 1.0,
-            respectFlipped: true,
-            hints: nil
-        )
-        
-        resizedImage.unlockFocus()
+        let resizedImage = resizeImage(nsImage, to: thumbnailSize)
         
         // Convert to optimized JPEG
         guard let tiffData = resizedImage.tiffRepresentation,
@@ -84,28 +55,14 @@ class ScreenshotUtility {
         
         print("✅ Screenshot captured: \(jpegData.count) bytes")
         return jpegData
-    }
-    #else
-    private func captureThumbnailiOS<Content: View>(
-        content: Content,
-        size: CGSize
-    ) -> Data? {
-        let hostingController = UIHostingController(rootView: content)
-        hostingController.view.frame = CGRect(origin: .zero, size: size)
-        hostingController.view.backgroundColor = .clear
-        
-        // Force layout
-        hostingController.view.setNeedsLayout()
-        hostingController.view.layoutIfNeeded()
-        
-        // Render to image
-        let renderer = UIGraphicsImageRenderer(size: size)
-        let image = renderer.image { context in
-            hostingController.view.layer.render(in: context.cgContext)
+        #else
+        guard let uiImage = renderer.uiImage else {
+            print("❌ Failed to render image with ImageRenderer")
+            return nil
         }
         
         // Resize to thumbnail
-        let resizedImage = resizeImage(image, to: thumbnailSize)
+        let resizedImage = resizeImage(uiImage, to: thumbnailSize)
         
         // Convert to optimized JPEG
         guard let jpegData = resizedImage.jpegData(compressionQuality: 0.7) else {
@@ -115,8 +72,25 @@ class ScreenshotUtility {
         
         print("✅ Screenshot captured: \(jpegData.count) bytes")
         return jpegData
+        #endif
     }
     
+    #if os(macOS)
+    private func resizeImage(_ image: NSImage, to size: CGSize) -> NSImage {
+        let resizedImage = NSImage(size: size)
+        resizedImage.lockFocus()
+        
+        image.draw(
+            in: NSRect(origin: .zero, size: size),
+            from: NSRect(origin: .zero, size: image.size),
+            operation: .sourceOver,
+            fraction: 1.0
+        )
+        
+        resizedImage.unlockFocus()
+        return resizedImage
+    }
+    #else
     private func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
         return renderer.image { _ in
@@ -125,4 +99,3 @@ class ScreenshotUtility {
     }
     #endif
 }
-

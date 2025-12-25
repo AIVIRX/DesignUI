@@ -136,7 +136,7 @@ class CanvasManager: ObservableObject {
     
     func canAcceptChildren(_ component: UIComponent) -> Bool {
         switch component.type {
-        case .scrollView, .vstack, .hstack, .zstack, .button:
+        case .scrollView, .vstack, .hstack, .zstack:
             return true
         default:
             return false
@@ -935,11 +935,9 @@ class CanvasManager: ObservableObject {
     // MARK: - Export
     func exportCode(size: CGSize? = nil) -> String {
         // Clean the design name to make it a valid Swift identifier
-        let cleanedName = designName
-            .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: "-", with: "")
-            .replacingOccurrences(of: "_", with: "")
-        let viewName = "\(cleanedName)View"
+        // Remove all characters that aren't alphanumeric
+        let cleanedName = designName.filter { $0.isLetter || $0.isNumber }
+        let viewName = "\(cleanedName.isEmpty ? "Generated" : cleanedName)View"
         
         var code = """
         import SwiftUI

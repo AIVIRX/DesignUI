@@ -94,17 +94,16 @@ struct ComponentLibraryForModifierView: View {
     }
 }
 
-// MARK: - Background Modifier Editor
-struct BackgroundModifierEditor: View {
+// MARK: - Background Color Modifier Editor (for colors and gradients)
+struct BackgroundColorModifierEditor: View {
     @Binding var modifier: ComponentModifier
     @ObservedObject var component: UIComponent
     @State private var isPresented = false
     @State private var opacityText: String = ""
-    @State private var showComponentLibrary = false
     @State private var backgroundMode: String = "color"
     
     private var currentColor: Color {
-        modifier.getColor(key: "color", defaultValue: .clear)
+        modifier.getColor(key: "color", defaultValue: .blue)
     }
     
     private let swiftUIColors: [(String, Color)] = [
@@ -151,68 +150,6 @@ struct BackgroundModifierEditor: View {
             } else {
                 GradientEditor(modifier: $modifier)
             }
-            
-            Divider()
-                .padding(.vertical, 8)
-            
-            // Component background section
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Component Background")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                let modifierChildren = component.getChildrenForModifier(modifier.id)
-                
-                if modifierChildren.isEmpty {
-                    Button(action: { showComponentLibrary = true }) {
-                        HStack {
-                            Image(systemName: "plus.circle")
-                            Text("Add Component")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                } else {
-                    // Show existing child
-                    ForEach(modifierChildren) { child in
-                        HStack {
-                            Image(systemName: child.type.icon)
-                                .font(.caption)
-                            Text(child.type.rawValue)
-                                .font(.caption)
-                            Spacer()
-                            Button(action: {
-                                component.removeChild(child)
-                            }) {
-                                Image(systemName: "trash")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    
-                    Button(action: { showComponentLibrary = true }) {
-                        HStack {
-                            Image(systemName: "plus.circle")
-                            Text("Add Another")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                }
-            }
-        }
-        .sheet(isPresented: $showComponentLibrary) {
-            ComponentLibraryForModifierView(
-                modifier: modifier,
-                component: component,
-                onAdd: { newComponent in
-                    component.addModifierChild(newComponent, modifierId: modifier.id)
-                    showComponentLibrary = false
-                }
-            )
         }
     }
     
@@ -368,6 +305,79 @@ struct BackgroundModifierEditor: View {
             if color == baseColor { return baseColor }
         }
         return color
+    }
+}
+
+// MARK: - Background Element Modifier Editor (for component elements)
+struct BackgroundElementModifierEditor: View {
+    @Binding var modifier: ComponentModifier
+    @ObservedObject var component: UIComponent
+    @State private var showComponentLibrary = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Add components to use as background elements.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            let modifierChildren = component.getChildrenForModifier(modifier.id)
+            
+            if modifierChildren.isEmpty {
+                Button(action: { showComponentLibrary = true }) {
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text("Add Component")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            } else {
+                // Show existing children
+                ForEach(modifierChildren) { child in
+                    HStack {
+                        Image(systemName: child.type.icon)
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                        Text(child.type.rawValue)
+                            .font(.caption)
+                        Spacer()
+                        Button(action: {
+                            component.removeChild(child)
+                        }) {
+                            Image(systemName: "trash")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                }
+                
+                Button(action: { showComponentLibrary = true }) {
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text("Add Another")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .sheet(isPresented: $showComponentLibrary) {
+            ComponentLibraryForModifierView(
+                modifier: modifier,
+                component: component,
+                onAdd: { newComponent in
+                    component.addModifierChild(newComponent, modifierId: modifier.id)
+                    showComponentLibrary = false
+                }
+            )
+        }
     }
 }
 

@@ -14,6 +14,7 @@ import AppKit
 enum ModifierType: String, CaseIterable, Identifiable, Codable {
     case frame = "Frame"
     case padding = "Padding"
+    case backgroundColor = "Background Color"
     case background = "Background"
     case foregroundColor = "Foreground Color"
     case font = "Font Weight"
@@ -42,8 +43,10 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "Changes width and height"
         case .padding:
             return "Adds padding to one or more sides"
+        case .backgroundColor:
+            return "Sets background color or gradient"
         case .background:
-            return "Adds elements behind"
+            return "Adds elements behind the view"
         case .foregroundColor:
             return "Changes text and icon color"
         case .font:
@@ -89,6 +92,8 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
             return "rectangle"
         case .padding:
             return "rectangle.inset.filled"
+        case .backgroundColor:
+            return "paintpalette.fill"
         case .background:
             return "square.stack.3d.down.right"
         case .foregroundColor:
@@ -192,14 +197,19 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             defaultProperties = [
                 "radius": CGFloat(0)
             ]
-        case .background:
+        case .backgroundColor:
             defaultProperties = [
-                "color": Color.clear,
+                "color": Color.blue,
                 "gradient": [
                     "colors": ["color:blue", "color:purple"],
                     "startPoint": "top",
                     "endPoint": "bottom"
                 ]
+            ]
+        case .background:
+            defaultProperties = [
+                "alignment": "center"
+                // Component will be added dynamically
             ]
         case .foregroundColor:
             defaultProperties = [

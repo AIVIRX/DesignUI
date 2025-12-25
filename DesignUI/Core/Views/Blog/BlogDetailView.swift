@@ -68,22 +68,22 @@ struct NewsDetailView: View {
         }
         .navigationTitle("")
         
-//        .toolbar {
-//#if os(iOS)
-//            ToolbarItem(placement: .navigationBarTrailing) {
-//                ShareLink(item: URL(string: "https://dockui.com/news/\(post.slug)")!) {
-//                    Label("Share", systemImage: "square.and.arrow.up")
-//                }
-//            }
-//#endif
-//#if os(macOS)
-//            ToolbarItem() {
-//                ShareLink(item: URL(string: "https://dockui.com/news/\(post.slug)")!) {
-//                    Label("Share", systemImage: "square.and.arrow.up")
-//                }
-//            }
-//#endif
-//        }
+        .toolbar {
+#if os(iOS)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                ShareLink(item: URL(string: "https://dockui.com/news/\(post.slug)")!) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+#endif
+#if os(macOS)
+            ToolbarItem() {
+                ShareLink(item: URL(string: "https://dockui.com/news/\(post.slug)")!) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+#endif
+        }
     }
     
     private func downloadResources() {

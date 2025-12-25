@@ -218,14 +218,12 @@ struct DetailView: View {
                     )
                 }
                 
-                HStack {
-                    if !isComponent {
-                        templateImageContainer
-                    }
-                    
-                    iPadContentInfoView
+                if !isComponent {
+                    templateImageContainer
+                        .frame(height: 600)
                 }
-                .frame(height: 600)
+                
+                iPadContentInfoView
                 
                 SimilarPostsView(currentPostId: id)
                     .padding(.vertical)
@@ -257,14 +255,12 @@ struct DetailView: View {
                     )
                 }
                 
-                HStack {
-                    if !isComponent {
-                        templateImageContainer
-                    }
-                    
-                    macOSContentInfoView
+                if !isComponent {
+                    templateImageContainer
+                        .frame(height: 600)
                 }
-                .frame(height: 600)
+                
+                macOSContentInfoView
                 
                 SimilarPostsView(currentPostId: id)
                     .padding(.bottom, 20)
@@ -274,11 +270,11 @@ struct DetailView: View {
             .task {
                 await fetchAuthorProfile()
             }
-//            .toolbar(content: {
-//                ToolbarItem {
-//                    ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
-//                }
-//            })
+            .toolbar(content: {
+                ToolbarItem {
+                    ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
+                }
+            })
             .frame(maxWidth: 800)
         }
         .frame(maxWidth: .infinity)
@@ -332,7 +328,6 @@ struct DetailView: View {
     private var templateImageContainer: some View {
         RoundedRectangle(cornerRadius: 15)
             .frame(maxWidth: .infinity)
-            .frame(width: containerDimensions.width)
             .foregroundStyle(Color.gray.opacity(0.2))
             .overlay {
                 RoundedRectangle(cornerRadius: 20)

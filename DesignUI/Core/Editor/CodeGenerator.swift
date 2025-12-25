@@ -33,8 +33,6 @@ struct CodeGenerator {
             baseCode = generateTextCode(component: component, indent: indent, nextIndent: nextIndent)
         case .image:
             baseCode = generateImageCode(component: component, indent: indent, nextIndent: nextIndent)
-        case .button:
-            baseCode = generateButtonCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .vstack:
             baseCode = generateVStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .hstack:
@@ -308,11 +306,11 @@ struct CodeGenerator {
         return "\(indent)TextField(\"\(placeholder)\", text: .constant(\"\(text)\"))"
     }
     
-    // MARK: - Toggle Code Generation
+    // MARK: - Toggle/Switch Code Generation
     private static func generateToggleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let isOn = component.getProperty(key: "isOn") as? Bool ?? true
-        let label = component.getProperty(key: "label") as? String ?? "Toggle"
-        return "\(indent)Toggle(\"\(label)\", isOn: .constant(\(isOn)))"
+        // Generate iOS-style switch without label
+        return "\(indent)Toggle(\"\", isOn: .constant(\(isOn)))\n\(nextIndent).labelsHidden()\n\(nextIndent).toggleStyle(.switch)"
     }
     
     // MARK: - Slider Code Generation
@@ -369,6 +367,8 @@ struct CodeGenerator {
             return generateFrameModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
         case .padding:
             return generatePaddingModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
+        case .backgroundColor:
+            return generateBackgroundColorModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
         case .background:
             return generateBackgroundModifierCode(modifier: modifier, component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .foregroundColor:
@@ -463,6 +463,17 @@ struct CodeGenerator {
         default:
             return "\(nextIndent).padding(\(formatNumber(Double(amount))))"
         }
+    }
+    
+    private static func generateBackgroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+        // Check for gradient
+        if let gradientCode = generateGradientCode(modifier: modifier) {
+            return "\(nextIndent).background(\(gradientCode))"
+        }
+        
+        // Color background
+        let colorValue = modifier.properties["color"]
+        return "\(nextIndent).background(\(colorToString(colorValue)))"
     }
     
     private static func generateBackgroundModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {

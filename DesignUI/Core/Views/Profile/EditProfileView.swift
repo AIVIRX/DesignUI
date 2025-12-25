@@ -54,16 +54,16 @@ struct EditProfileView: View {
                 }
             }
 #else
-//            .toolbar(id: "editProfileToolbar") {
-//                ToolbarItem(id: "cancel", placement: .cancellationAction) {
-//                    Button("Cancel") {
-//                        dismiss()
-//                    }
-//                }
-//                ToolbarItem(id: "save", placement: .confirmationAction) {
-//                    saveButton
-//                }
-//            }
+            .toolbar(id: "editProfileToolbar") {
+                ToolbarItem(id: "cancel", placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(id: "save", placement: .confirmationAction) {
+                    saveButton
+                }
+            }
 #endif
             .onSubmit {
                 handleSubmit()

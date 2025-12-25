@@ -218,7 +218,6 @@ struct CompactSchemaConverter {
         "VStack": "V",
         "HStack": "H",
         "ZStack": "Z",
-        "Button": "B",
         "Image": "I",
         "SF Symbol": "SF",
         "Rectangle": "Rect",
@@ -227,7 +226,8 @@ struct CompactSchemaConverter {
         "Capsule": "Cap",
         "Spacer": "Sp",
         "Divider": "Div",
-        "ScrollView": "Scroll"
+        "ScrollView": "Scroll",
+        "Switch": "Sw"
     ]
     
     static let typeExpansions: [String: String] = {
@@ -244,8 +244,6 @@ struct CompactSchemaConverter {
             compact.value = component.getProperty(key: "text") as? String
         case .sfSymbol:
             compact.value = component.getProperty(key: "symbolName") as? String
-        case .button:
-            compact.value = component.getProperty(key: "title") as? String
         default:
             break
         }
@@ -328,8 +326,6 @@ struct CompactSchemaConverter {
                 updateProperty(&properties, key: "text", value: value)
             case .sfSymbol:
                 updateProperty(&properties, key: "symbolName", value: value)
-            case .button:
-                updateProperty(&properties, key: "title", value: value)
             default:
                 break
             }

@@ -126,9 +126,6 @@ struct PropertiesSection: View {
                         return false // Filter out imageName for images - we use imageData instead
                     }
                     if property.key == "cornerRadius" {
-                        if component.type == .button {
-                            return false // Filter out cornerRadius for buttons - use modifier instead
-                        }
                         if component.type == .rectangle || component.type == .roundedRectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse {
                             return false // Filter out cornerRadius for shapes - use modifier instead
                         }
@@ -1170,21 +1167,24 @@ struct ImagePickerEditor: View {
             }
             Task {
                 print("🖼️ Loading image data from PhotosPicker...")
-                // Try loading as UIImage first, then convert to Data
-                if let image = try? await item.loadTransferable(type: UIImage.self) {
-                    print("🖼️ Successfully loaded UIImage")
-                    if let imageData = image.jpegData(compressionQuality: 0.8) {
-                        print("🖼️ Converted to JPEG data: \(imageData.count) bytes")
-                        await MainActor.run {
-                            selectedImage = imageData
+                // Load as Data since UIImage doesn't conform to Transferable
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    print("🖼️ Successfully loaded image data: \(data.count) bytes")
+                    // Verify it's a valid image and compress if needed
+                    if let image = UIImage(data: data) {
+                        if let compressedData = image.jpegData(compressionQuality: 0.8) {
+                            print("🖼️ Compressed to JPEG: \(compressedData.count) bytes")
+                            await MainActor.run {
+                                selectedImage = compressedData
+                            }
+                        } else {
+                            // Use original data if compression fails
+                            await MainActor.run {
+                                selectedImage = data
+                            }
                         }
                     } else {
-                        print("⚠️ Failed to convert UIImage to JPEG data")
-                    }
-                } else if let data = try? await item.loadTransferable(type: Data.self) {
-                    print("🖼️ Successfully loaded image data directly: \(data.count) bytes")
-                    await MainActor.run {
-                        selectedImage = data
+                        print("⚠️ Data is not a valid image")
                     }
                 } else {
                     print("⚠️ Failed to load image data from PhotosPicker")

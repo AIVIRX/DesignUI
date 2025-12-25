@@ -62,6 +62,10 @@ struct ContentView: View {
                         ExploreView()
                     }
                     
+                    Tab(systemImageName: "square.stack.3d.up.fill") {
+                        DesignBrowserView()
+                    }
+                    
                     Tab(systemImageName: "newspaper") {
                         NewsListView()
                     }
@@ -145,7 +149,7 @@ struct ContentView: View {
                     case 4:
                         SettingsView()
                     case 5:
-                        EditorView()
+                        DesignBrowserView()
                     default:
                         Text("Select a view")
                     }
@@ -161,17 +165,20 @@ struct ContentView: View {
                 SidebarProfileSection(authViewModel: authViewModel, selectedIndex: $selectedIndex, hoveredItem: $hoveredItem, effectiveColorScheme: effectiveColorScheme)
                 
                 Divider().padding(.vertical,5).opacity(0.5)
-
                 
                 navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
-                                
-                // SF Symbols Link
-                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                 
                 // Editor Link
                 navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "wand.and.stars", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
+                
+                Divider().padding(.vertical).opacity(0.5)
+
+                                
+                // SF Symbols Link
+                navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
+
                 
                 Divider().padding(.vertical).opacity(0.5)
                                 
@@ -443,7 +450,7 @@ struct SidebarProfileSection: View {
                         } label: {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(isSelected ? .black : .secondary)
+                                .foregroundColor(isSelected ? .black : .gray)
                                 .frame(width: 20, height: 20)
                                 .contentShape(Rectangle())
                             #if os(macOS)

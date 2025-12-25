@@ -158,7 +158,8 @@ struct ModifierItemView: View {
                 return NSItemProvider(object: modifier.id.uuidString as NSString)
             }
             .onTapGesture {
-                // Only show editor for modifiers that don't have parent components
+                // Only show editor for modifiers that don't rely on parent components
+                // background, overlay, and mask all use component children instead of property editors
                 if modifier.type != .overlay && modifier.type != .mask && modifier.type != .background {
                     showingEditor = true
                 }

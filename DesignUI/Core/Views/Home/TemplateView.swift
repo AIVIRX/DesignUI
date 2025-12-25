@@ -27,7 +27,7 @@ struct ExploreView: View {
         }
     }
     
-    @State private var adInterval: Int = 7 // Optimized interval: ads every 7 posts (good balance for revenue & UX)
+    @State private var adInterval: Int = 15 // Ads every 15 posts
     @State private var adIdentifiers: [Int: String] = [:] // Cache ad identifiers by position to prevent shifting
     
     // Combine posts with ads, inserting ads every 7 posts

@@ -4,9 +4,6 @@
     "" : {
       "shouldTranslate" : false
     },
-    "\"%@...\"" : {
-
-    },
     "@%@" : {
       "localizations" : {
         "ar" : {
@@ -263,37 +260,11 @@
     "%@" : {
 
     },
-    "%@ Size" : {
-
-    },
-    "%@ Widget" : {
-
-    },
     "%lld" : {
 
     },
-    "%lld × %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld × %2$lld"
-          }
-        }
-      }
-    },
     "%lld components" : {
 
-    },
-    "%lld/%lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld/%2$lld"
-          }
-        }
-      }
     },
     "%lld/15" : {
       "localizations" : {
@@ -2045,9 +2016,6 @@
         }
       }
     },
-    "👋 Hi! I'm your AI assistant" : {
-
-    },
     "0" : {
 
     },
@@ -2340,16 +2308,13 @@
     "Add components from the library to start!" : {
 
     },
+    "Add components to use as background elements." : {
+
+    },
     "Add Modifier" : {
 
     },
     "Add Overlay Component" : {
-
-    },
-    "AI Assistant" : {
-
-    },
-    "AI is thinking..." : {
 
     },
     "Alignment" : {
@@ -5156,9 +5121,6 @@
         }
       }
     },
-    "Component Background" : {
-
-    },
     "Component Overlay" : {
 
     },
@@ -7198,9 +7160,6 @@
         }
       }
     },
-    "Describe what you want..." : {
-
-    },
     "Describe your design..." : {
       "localizations" : {
         "ar" : {
@@ -9003,9 +8962,6 @@
 
     },
     "Hello World" : {
-
-    },
-    "I can help you with:" : {
 
     },
     "Introducing" : {
@@ -11290,6 +11246,9 @@
           }
         }
       }
+    },
+    "No Component Selected" : {
+
     },
     "No Designs Yet" : {
 
@@ -15375,9 +15334,6 @@
     "Select SF Symbol" : {
 
     },
-    "Selected: %@" : {
-
-    },
     "Send Feedback" : {
       "localizations" : {
         "ar" : {
@@ -16385,7 +16341,6 @@
 
     },
     "Share" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19409,6 +19364,9 @@
     "System" : {
 
     },
+    "Tap on a component in the canvas to edit its properties" : {
+
+    },
     "Tap to open" : {
 
     },
@@ -21946,15 +21904,6 @@
       }
     },
     "View Code" : {
-
-    },
-    "Widget Builder" : {
-
-    },
-    "Widget Preview" : {
-
-    },
-    "Widget Size" : {
 
     },
     "Width" : {

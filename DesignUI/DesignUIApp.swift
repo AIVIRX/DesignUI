@@ -51,6 +51,7 @@ struct DesignUIApp: App {
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
+    @StateObject private var designManager = DesignManager.shared
     
     init() {
         // Ensure paywall is not shown on launch
@@ -78,6 +79,7 @@ struct DesignUIApp: App {
                 .environmentObject(toastManager)
                 .environmentObject(subscriptionManager)
                 .environmentObject(paywallManager)
+                .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .onAppear {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
