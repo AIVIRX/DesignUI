@@ -133,8 +133,9 @@ struct UIBuilderView: View {
             // iOS: Full screen canvas with floating panels
             ZStack {
                 mainCanvasArea
+                    .ignoresSafeArea()
                 
-                // Floating action buttons for panels
+                // Floating action buttons for panels (respects safe area)
                 VStack {
                     HStack {
                         // Close button (top-left)
@@ -154,7 +155,7 @@ struct UIBuilderView: View {
                         
                         VStack(spacing: 12) {
                             Button(action: { showLayersSheet = true }) {
-                                Image(systemName: "list.bullet")
+                                Image(systemName: "square.stack.3d.up.fill")
                                     .font(.system(size: 16, weight: .medium))
                                     .foregroundColor(.white)
                                     .frame(width: 44, height: 44)
@@ -383,25 +384,6 @@ struct UIBuilderView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 4)
             
-            // Header
-            HStack {
-                Text("Layers")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Done") {
-                    showLayersSheet = false
-                }
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.accentColor)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            
-            Divider()
-            
             // Layers content
             LayersPanelView(
                 canvasManager: canvasManager,
@@ -409,6 +391,7 @@ struct UIBuilderView: View {
             )
         }
         .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
+        .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.5)))
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(false)
     }
@@ -421,25 +404,6 @@ struct UIBuilderView: View {
                 .frame(width: 36, height: 4)
                 .padding(.top, 8)
                 .padding(.bottom, 4)
-            
-            // Header
-            HStack {
-                Text("Properties")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Done") {
-                    showPropertiesSheet = false
-                }
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.accentColor)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            
-            Divider()
             
             // Properties content
             if canvasManager.selectedComponent != nil {
@@ -467,6 +431,7 @@ struct UIBuilderView: View {
             }
         }
         .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
+        .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.5)))
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(false)
     }

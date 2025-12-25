@@ -22,7 +22,7 @@ struct CanvasView: View {
             ZStack {
                 // Full screen canvas background with tap gesture for deselection
                 Rectangle()
-                    .fill(appColorScheme == .dark ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color(red: 0.9, green: 0.9, blue: 0.9)) // #262626 for dark, #e6e6e6 for light
+                    .fill(appColorScheme == .dark ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color(red: 0.9, green: 0.9, blue: 0.9))
                     .contentShape(Rectangle())
                     .onTapGesture {
                         // Deselect when clicking on canvas background

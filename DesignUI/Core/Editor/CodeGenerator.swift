@@ -137,7 +137,7 @@ struct CodeGenerator {
         
         // No children: Use default SwiftUI button with title
         let title = component.getProperty(key: "title") as? String ?? "Button"
-        let backgroundColor = component.getProperty(key: "backgroundColor") as? String ?? "blue"
+        let _ = component.getProperty(key: "backgroundColor") as? String ?? "blue"
         let escapedTitle = title.replacingOccurrences(of: "\"", with: "\\\"")
         
         var code = "\(indent)Button(\"\(escapedTitle)\") {}"
@@ -326,8 +326,6 @@ struct CodeGenerator {
         let columnsCount = component.getProperty(key: "columns") as? Int ?? 2
         let spacing = component.getProperty(key: "spacing") as? Double ?? 10.0
         
-        let colVarName = "columns" // In real code, this would be defined outside body
-        // For inline simplicity:
         let columnsCode = "Array(repeating: GridItem(.flexible(), spacing: \(spacing)), count: \(columnsCount))"
         
         var code = "\(indent)LazyVGrid(columns: \(columnsCode), spacing: \(spacing)) {"

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DesignBrowserView: View {
     @EnvironmentObject private var designManager: DesignManager
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var showingNewDesignSheet = false
     @State private var newDesignName = ""
     @State private var showingDeleteAlert = false
@@ -16,6 +17,10 @@ struct DesignBrowserView: View {
     @State private var showingRenameSheet = false
     @State private var designToRename: DesignFile?
     @State private var renameText = ""
+    @State private var showingPaywall = false
+    
+    // Free tier limit
+    private let freeDesignLimit = 3
     
     var body: some View {
         NavigationStack {
@@ -46,7 +51,14 @@ struct DesignBrowserView: View {
                     
                     Spacer()
                     
-                    Button(action: { showingNewDesignSheet = true }) {
+                    Button(action: {
+                        // Check if user can create more designs
+                        if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                            showingPaywall = true
+                        } else {
+                            showingNewDesignSheet = true
+                        }
+                    }) {
                         HStack {
                             Image(systemName: "plus")
                             Text("New Design")
@@ -126,9 +138,14 @@ struct DesignBrowserView: View {
                             
                             TemplatesGridView(
                                 onSelectTemplate: { template in
-                                    let name = template.name
-                                    let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
-                                    designManager.openDesign(newDesign)
+                                    // Check if user can create more designs
+                                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                                        showingPaywall = true
+                                    } else {
+                                        let name = template.name
+                                        let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
+                                        designManager.openDesign(newDesign)
+                                    }
                                 }
                             )
                         }
@@ -201,6 +218,15 @@ struct DesignBrowserView: View {
             }
         }
         #endif
+        .onAppear {
+            // Refresh design files when view appears (triggers iCloud check on iOS)
+            designManager.refreshDesignFiles()
+        }
+        .sheet(isPresented: $showingPaywall) {
+            CustomPaywallView()
+                .environmentObject(PaywallManager.shared)
+                .environmentObject(subscriptionManager)
+        }
     }
 }
 

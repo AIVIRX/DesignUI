@@ -228,7 +228,7 @@ private func componentDisplayName(_ component: UIComponent) -> String {
     switch component.type {
     case .text:
         let text = component.getProperty(key: "text") as? String ?? "Text"
-        return text.isEmpty ? "Text" : (text.count > 20 ? String(text.prefix(20)) + "..." : text)
+        return text.isEmpty ? "Text" : text
     case .image:
         return "Image"
     default:
@@ -511,8 +511,6 @@ private struct OutlineRow: View {
             .font(.system(size: 13, weight: (level == 0 || canAcceptChildren(component)) ? .semibold : .medium))
             .foregroundColor(componentNameColor)
             .lineLimit(1)
-            .truncationMode(.tail)
-            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
     
     private var componentNameColor: Color {
