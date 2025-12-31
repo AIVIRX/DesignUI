@@ -535,19 +535,27 @@ struct ComponentRenderer: View {
         let text = component.getProperty(key: "text") as? String ?? ""
         let placeholder = component.getProperty(key: "placeholder") as? String ?? "Placeholder"
         
-        let binding = Binding<String>(
-            get: { text },
-            set: { newValue in
-                // Update component property to reflect typing
-                // This makes the preview interactive
-                self.component.setProperty(key: "text", value: newValue)
-                // Note: We might want to trigger save here, but careful about performance
-            }
-        )
+        // Display the text field as a visual preview (non-editable)
+        // The text value is edited via the properties panel, not by typing directly
+        let displayText = text.isEmpty ? placeholder : text
+        let isPlaceholder = text.isEmpty
         
-        return TextField(placeholder, text: binding)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
+        return Text(displayText)
+            .foregroundColor(isPlaceholder ? .secondary : .primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                    .background(RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.8)))
+            )
             .padding(4)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // Select this component when tapped - shows properties panel
+                onTap?(false)
+            }
     }
     
     // MARK: - Toggle/Switch Renderer

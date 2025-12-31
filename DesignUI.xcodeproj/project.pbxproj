@@ -60,7 +60,7 @@
 		ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */; };
 		ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5F2EFB0C6F000AAF34 /* DesignFile.swift */; };
 		ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C692EFB0C6F000AAF34 /* UIBuilderView.swift */; };
-		ECB94C712EFB0C6F000AAF34 /* CanvasControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C562EFB0C6F000AAF34 /* CanvasControlsOverlay.swift */; };
+
 		ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5D2EFB0C6F000AAF34 /* ComponentRenderer.swift */; };
 		ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C602EFB0C6F000AAF34 /* DesignTemplate.swift */; };
 		ECB94C752EFB0C6F000AAF34 /* LayersPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C622EFB0C6F000AAF34 /* LayersPanelView.swift */; };
@@ -109,6 +109,9 @@
 		ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */; };
 		ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */; };
 		F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */; };
+		AA000001AAAA000100000001 /* AppLoadingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002AAAA000100000001 /* AppLoadingState.swift */; };
+		AA000003AAAA000100000001 /* LoadingScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004AAAA000100000001 /* LoadingScreenView.swift */; };
+		AA000005AAAA000100000001 /* AppLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000006AAAA000100000001 /* AppLoadingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -161,7 +164,7 @@
 		EC9F54742E1889B700AAE9EC /* NewsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsContentView.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
-		ECB94C562EFB0C6F000AAF34 /* CanvasControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasControlsOverlay.swift; sourceTree = "<group>"; };
+
 		ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
 		ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasScreenshotView.swift; sourceTree = "<group>"; };
 		ECB94C592EFB0C6F000AAF34 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
@@ -207,6 +210,9 @@
 		ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileContainerView.swift; sourceTree = "<group>"; };
 		ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+		AA000002AAAA000100000001 /* AppLoadingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingState.swift; sourceTree = "<group>"; };
+		AA000004AAAA000100000001 /* LoadingScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingScreenView.swift; sourceTree = "<group>"; };
+		AA000006AAAA000100000001 /* AppLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -296,7 +302,7 @@
 				ECB94CA72EFB9530000AAF34 /* SchemaConverter.swift */,
 				ECB94CA82EFB9530000AAF34 /* SimpleUIComponent.swift */,
 				ECB94C832EFB0D07000AAF34 /* ModifierEditors */,
-				ECB94C562EFB0C6F000AAF34 /* CanvasControlsOverlay.swift */,
+
 				ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */,
 				ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */,
 				ECB94C592EFB0C6F000AAF34 /* CanvasView.swift */,
@@ -376,6 +382,7 @@
 				EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */,
 				EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */,
 				ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */,
+				AA000002AAAA000100000001 /* AppLoadingState.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -407,6 +414,7 @@
 				ECFF2C772D558CCA006A7FE6 /* Profile */,
 				ECD13FE72C18BE0C00105B3E /* Settings */,
 				ECD13FF42C18BF3500105B3E /* SFIcons */,
+				AA000007AAAA000100000001 /* Loading */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -445,6 +453,15 @@
 				EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */,
 			);
 			path = SFIcons;
+			sourceTree = "<group>";
+		};
+		AA000007AAAA000100000001 /* Loading */ = {
+			isa = PBXGroup;
+			children = (
+				AA000004AAAA000100000001 /* LoadingScreenView.swift */,
+				AA000006AAAA000100000001 /* AppLoadingView.swift */,
+			);
+			path = Loading;
 			sourceTree = "<group>";
 		};
 		ECD13FF92C18BF8800105B3E /* Components */ = {
@@ -633,7 +650,7 @@
 				ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */,
 				ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */,
 				ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */,
-				ECB94C712EFB0C6F000AAF34 /* CanvasControlsOverlay.swift in Sources */,
+
 				ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */,
 				ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */,
 				ECB94C752EFB0C6F000AAF34 /* LayersPanelView.swift in Sources */,
@@ -705,6 +722,9 @@
 				ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */,
 				EC5E63512EB5B1CD00133C05 /* LazyMasonryView.swift in Sources */,
 				EC5E634D2EB5398100133C05 /* UploadTemplateView.swift in Sources */,
+				AA000001AAAA000100000001 /* AppLoadingState.swift in Sources */,
+				AA000003AAAA000100000001 /* LoadingScreenView.swift in Sources */,
+				AA000005AAAA000100000001 /* AppLoadingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

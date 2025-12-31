@@ -42,6 +42,7 @@ class CanvasManager: ObservableObject {
     @Published var selectedComponentIds: Set<UUID> = [] // Multi-selection support
     @Published var zoomLevel: CGFloat = 1.0
     @Published var canvasOffset: CGSize = .zero
+    @Published var centerCanvasTrigger: Bool = false // Triggers canvas centering when toggled
     
     // Special status bar component
     @Published var statusBarComponent: UIComponent?

@@ -90,7 +90,7 @@ struct ContentView: View {
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                     
                     // Editor Link
-                    navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "wand.and.stars", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
+                    navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -171,10 +171,9 @@ struct ContentView: View {
                 navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
                 
                 // Editor Link
-                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "wand.and.stars", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
+                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
                 
                 Divider().padding(.vertical).opacity(0.5)
-
                                 
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
@@ -429,37 +428,6 @@ struct SidebarProfileSection: View {
                                     .lineLimit(1)
                             }
                         }
-                        
-                        Spacer()
-                        
-                        // Menu Button (separate from NavigationLink)
-                        Menu {
-                            Button {
-                                Task {
-                                    await authViewModel.signOut()
-                                }
-                            } label: {
-                                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
-                            }
-                            
-                            Button(role: .destructive) {
-                                showDeleteAlert = true
-                            } label: {
-                                Label("Delete Account", systemImage: "trash")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(isSelected ? .black : .gray)
-                                .frame(width: 20, height: 20)
-                                .contentShape(Rectangle())
-                            #if os(macOS)
-                                .pointerStyle(.link)
-                            #endif
-                        }
-                        .menuIndicator(.hidden)
-                        .buttonStyle(.plain)
-                        .contentShape(Rectangle())
                     }
                     .contentShape(Rectangle())
                     .padding(8)

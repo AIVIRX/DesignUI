@@ -16,6 +16,7 @@ extension Notification.Name {
     static let canvasUndo = Notification.Name("canvas.undo")
     static let canvasRedo = Notification.Name("canvas.redo")
     static let designChanged = Notification.Name("design.changed")
+    static let statusBarVisibilityChanged = Notification.Name("statusBar.visibilityChanged")
 }
 
 enum DevicePreset: String, CaseIterable, Identifiable {
@@ -55,7 +56,55 @@ enum DevicePreset: String, CaseIterable, Identifiable {
     // Mac Canvas
     case mac = "Mac Canvas"
     
+    // iOS Widgets
+    case widgetSmall = "Widget Small"
+    case widgetMedium = "Widget Medium"
+    case widgetLarge = "Widget Large"
+    case widgetExtraLarge = "Widget Extra Large"
+    
     var id: String { rawValue }
+    
+    /// Category for grouping in UI
+    enum Category: String {
+        case iphone = "iPhone"
+        case ipad = "iPad"
+        case mac = "Mac"
+        case widget = "Widgets"
+    }
+    
+    var category: Category {
+        switch self {
+        case .iphone17ProMax, .iphone16, .iphone16Plus, .iphone16Pro, .iphone16ProMax,
+             .iphone15Pro, .iphone15ProMax, .iphone15, .iphone15Plus,
+             .iphone14, .iphone14Pro, .iphone14ProMax,
+             .iphone13Mini, .iphone13, .iphone13Pro, .iphone13ProMax,
+             .iphoneSE3:
+            return .iphone
+        case .ipadPro11, .ipadPro12:
+            return .ipad
+        case .mac:
+            return .mac
+        case .widgetSmall, .widgetMedium, .widgetLarge, .widgetExtraLarge:
+            return .widget
+        }
+    }
+    
+    /// Grouped presets for menu display
+    static var iphones: [DevicePreset] {
+        allCases.filter { $0.category == .iphone }
+    }
+    
+    static var ipads: [DevicePreset] {
+        allCases.filter { $0.category == .ipad }
+    }
+    
+    static var macs: [DevicePreset] {
+        allCases.filter { $0.category == .mac }
+    }
+    
+    static var widgets: [DevicePreset] {
+        allCases.filter { $0.category == .widget }
+    }
     
     var size: CGSize {
         switch self {
@@ -95,9 +144,16 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         
         // Mac Canvas
         case .mac: return CGSize(width: 1280, height: 800)
+        
+        // iOS Widgets - Based on iPhone 14/15 Pro sizes (393pt width)
+        case .widgetSmall: return CGSize(width: 170, height: 170)
+        case .widgetMedium: return CGSize(width: 364, height: 170)
+        case .widgetLarge: return CGSize(width: 364, height: 382)
+        case .widgetExtraLarge: return CGSize(width: 795, height: 382) // iPad only
         }
     }
 }
+
 
 struct UIBuilderView: View {
     @ObservedObject var designFile: DesignFile
@@ -254,8 +310,17 @@ struct UIBuilderView: View {
         .onChange(of: canvasManager.selectedComponent) { _, _ in
             syncSelection()
         }
-        .onChange(of: selectedDevice) { _, _ in
+        .onChange(of: selectedDevice) { _, newDevice in
             saveCanvasSettings()
+            
+            // Auto-hide status bar for widgets, show for others
+            if newDevice.category == .widget {
+                designFile.statusBarVisible = false
+                NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
+            } else {
+                designFile.statusBarVisible = true
+                NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
+            }
         }
         .onChange(of: colorScheme) { _, _ in
             saveCanvasSettings()
@@ -268,6 +333,12 @@ struct UIBuilderView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
             syncDesignChanges()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .statusBarVisibilityChanged)) { notification in
+            if let isVisible = notification.object as? Bool {
+                designFile.statusBarVisible = isVisible
+                designManager.markAsChanged()
+            }
         }
     }
     
@@ -440,6 +511,91 @@ struct UIBuilderView: View {
     private var toolbarButtons: some ToolbarContent {
         Group{
             ToolbarItemGroup(placement: .primaryAction) {
+                // Device Picker
+                Menu {
+                    // iPhones section
+                    Section("iPhone") {
+                        ForEach(DevicePreset.iphones) { preset in
+                            Button(preset.rawValue) {
+                                selectedDevice = preset
+                            }
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    // iPads section
+                    Section("iPad") {
+                        ForEach(DevicePreset.ipads) { preset in
+                            Button(preset.rawValue) {
+                                selectedDevice = preset
+                            }
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    // Mac section
+                    Section("Mac") {
+                        ForEach(DevicePreset.macs) { preset in
+                            Button(preset.rawValue) {
+                                selectedDevice = preset
+                            }
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    // Widgets section
+                    Section("Widgets") {
+                        ForEach(DevicePreset.widgets) { preset in
+                            Button(preset.rawValue) {
+                                selectedDevice = preset
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: deviceIcon)
+                            .font(.system(size: 11))
+                        Text(selectedDevice.rawValue)
+                            .font(.system(size: 11, weight: .medium))
+                            .frame(maxWidth: 100) // Limit width
+                            .lineLimit(1)
+                    }
+                }
+                .help("Choose Device")
+                
+                // Color Scheme Picker
+                Menu {
+                    Button("Light") {
+                        colorScheme = .light
+                    }
+                    Button("Dark") {
+                        colorScheme = .dark
+                    }
+                } label: {
+                    Image(systemName: colorScheme == .light ? "sun.max" : "moon")
+                        .font(.system(size: 12))
+                }
+                .help("Color Scheme")
+                
+                // Center canvas button
+                Button(action: {
+                    // Reset zoom and trigger canvas centering with animation
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: CGSize(width: 800, height: 600))
+                    }
+                    // Update base zoom level after animation starts (no visual impact, just for state)
+                    baseZoomLevel = canvasManager.zoomLevel
+                    canvasManager.centerCanvasTrigger.toggle()
+                }) {
+                    Image(systemName: "scope")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .keyboardShortcut("1", modifiers: .command)
+                .help("Center Canvas")
+                
                 // Undo button
                 Button(action: {
                     canvasManager.undo()
@@ -560,6 +716,9 @@ struct UIBuilderView: View {
                 colorScheme = .dark
             }
         }
+        
+        // Restore status bar visibility
+        canvasManager.statusBarComponent?.isVisible = designFile.statusBarVisible
     }
     
     private func saveCanvasSettings() {
@@ -636,6 +795,8 @@ struct UIBuilderView: View {
         lastScreenshotTime = now
         
         // Capture screenshot asynchronously to avoid blocking UI
+        
+        // Capture screenshot asynchronously to avoid blocking UI
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             let screenshotView = CanvasScreenshotView(
                 components: self.canvasManager.components,
@@ -656,6 +817,20 @@ struct UIBuilderView: View {
             } else {
                 print("⚠️ Failed to capture screenshot")
             }
+        }
+    }
+    
+    /// Returns appropriate icon based on selected device category
+    private var deviceIcon: String {
+        switch selectedDevice.category {
+        case .iphone:
+            return "iphone"
+        case .ipad:
+            return "ipad"
+        case .mac:
+            return "desktopcomputer"
+        case .widget:
+            return "rectangle.grid.1x2"
         }
     }
 }
@@ -785,7 +960,7 @@ struct ResizablePanel<Content: View>: View {
     
     private var panelBackgroundColor: Color {
         if colorScheme == .dark {
-            return Color(red: 17/255, green: 17/255, blue: 17/255) // #111111
+            return Color(red: 28/255, green: 28/255, blue: 30/255) // #1C1C1E
         } else {
             return Color.white
         }

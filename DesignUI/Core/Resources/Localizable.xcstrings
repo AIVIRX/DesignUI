@@ -3853,6 +3853,9 @@
     "Center" : {
 
     },
+    "Center Canvas" : {
+
+    },
     "Change Plan" : {
       "localizations" : {
         "ar" : {
@@ -4103,16 +4106,13 @@
         }
       }
     },
-    "Choose a device preset" : {
-
-    },
     "Choose Background Color" : {
 
     },
     "Choose Color" : {
 
     },
-    "Choose color scheme" : {
+    "Choose Device" : {
 
     },
     "Choose from Photos" : {
@@ -5122,9 +5122,6 @@
       }
     },
     "Component Overlay" : {
-
-    },
-    "Components" : {
 
     },
     "Content Mode" : {
@@ -8166,6 +8163,9 @@
         }
       }
     },
+    "DockUI" : {
+
+    },
     "Done" : {
 
     },
@@ -9213,6 +9213,12 @@
           }
         }
       }
+    },
+    "iPad" : {
+
+    },
+    "iPhone" : {
+
     },
     "Is Visible" : {
 
@@ -10483,6 +10489,9 @@
       }
     },
     "Location" : {
+
+    },
+    "Mac" : {
 
     },
     "Mask Type" : {
@@ -12271,9 +12280,6 @@
     "Opacity" : {
 
     },
-    "Open" : {
-
-    },
     "Overlay" : {
 
     },
@@ -14052,9 +14058,6 @@
 
     },
     "Replace" : {
-
-    },
-    "Reset Zoom" : {
 
     },
     "Resizable" : {
@@ -18105,6 +18108,9 @@
     "Start Point" : {
 
     },
+    "Status Bar" : {
+
+    },
     "Stock Profit Calculator 2025" : {
       "localizations" : {
         "ar" : {
@@ -20373,9 +20379,6 @@
     "Text Badge" : {
 
     },
-    "This will create a new blank design file that you can start building with." : {
-
-    },
     "Title" : {
       "localizations" : {
         "ar" : {
@@ -21901,6 +21904,9 @@
       }
     },
     "View Code" : {
+
+    },
+    "Widgets" : {
 
     },
     "Width" : {

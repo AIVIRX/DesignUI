@@ -362,6 +362,10 @@ struct CodeGenerator {
     private static func generateModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         switch modifier.type {
         case .frame:
+            // Skip frame modifiers for Spacer and Divider - they should expand naturally
+            if component.type == .spacer || component.type == .divider {
+                return ""
+            }
             return generateFrameModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
         case .padding:
             return generatePaddingModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)

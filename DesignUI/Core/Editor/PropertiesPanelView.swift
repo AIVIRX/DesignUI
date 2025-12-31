@@ -88,6 +88,8 @@ struct PropertiesSection: View {
                             get: { component.isVisible },
                             set: { newValue in
                                 component.isVisible = newValue
+                                // Post notification to trigger save
+                                NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: newValue)
                             }
                         ))
                         .toggleStyle(SwitchToggleStyle())

@@ -119,9 +119,14 @@ struct DesignBrowserView: View {
                                     }
                                 )
                                             .frame(width: 280)
+                                            .transition(.asymmetric(
+                                                insertion: .scale.combined(with: .opacity),
+                                                removal: .scale.combined(with: .opacity)
+                                            ))
                             }
                         }
                                     .padding(.horizontal)
+                                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: designManager.designFiles.map { $0.id })
                     }
                 }
                         }
@@ -203,7 +208,7 @@ struct DesignBrowserView: View {
             set: { if !$0 { designManager.closeCurrentDesign() } }
         )) {
             if let currentDesign = designManager.currentDesign {
-                UIBuilderView(designFile: currentDesign)
+                EditorLoadingView(designFile: currentDesign)
                     .environmentObject(designManager)
             }
         }
@@ -213,7 +218,7 @@ struct DesignBrowserView: View {
             set: { if !$0 { designManager.closeCurrentDesign() } }
         )) {
             if let currentDesign = designManager.currentDesign {
-                UIBuilderView(designFile: currentDesign)
+                EditorLoadingView(designFile: currentDesign)
                     .environmentObject(designManager)
             }
         }
@@ -237,29 +242,22 @@ struct DesignCardView: View {
     let onRename: () -> Void
     
     @State private var isHovered = false
-    @State private var showingMenu = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Canvas Preview - taller area for phone display
+        VStack(alignment: .leading, spacing: 8) {
+            // Canvas Preview with rounded corners
             CanvasPreviewView(designFile: designFile)
                 .frame(height: 200)
                 .background(Color.secondary.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
+                .scaleEffect(isHovered ? 1.02 : 1.0)
             
-            VStack(alignment: .leading, spacing: 4) {
+            // Name and menu row
+            HStack {
                 Text(designFile.name)
                     .font(.headline)
                     .lineLimit(1)
-            }
-            
-            Spacer()
-            
-            HStack {
-                Button("Open") {
-                    onOpen()
-                }
-                .buttonStyle(.bordered)
                 
                 Spacer()
                 
@@ -279,26 +277,22 @@ struct DesignCardView: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 14, weight: .medium))
-                        .frame(width: 28, height: 28)
-                        .background(Color.secondary.opacity(0.1))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .frame(width: 32, height: 32)
+                        .background(Color.secondary.opacity(0.15))
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .foregroundColor(.primary)
+                #if os(macOS)
+                .pointerStyle(.link)
+                #endif
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondary.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isHovered ? Color.accentColor : Color.clear, lineWidth: 2)
-                )
-        )
+        .padding(.vertical, 8) // Prevent clipping during scale animation
+        .contentShape(Rectangle())
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.2)) {
+            withAnimation(.easeOut(duration: 0.2)) {
                 isHovered = hovering
             }
         }
@@ -327,11 +321,6 @@ struct NewDesignSheet: View {
                             onCreate(designName)
                         }
                     }
-                
-                Text("This will create a new blank design file that you can start building with.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
             }
             .padding()
             .frame(width: 400)
@@ -492,7 +481,7 @@ struct CanvasPreviewView: View {
             if let thumbnailData = designFile.thumbnail,
                let image = createImage(from: thumbnailData) {
                 // Get device type and aspect ratio from stored device preset
-                let deviceType = getDeviceType(from: designFile.devicePreset, aspectRatio: 0, size: .zero)
+
                 let aspectRatio = getAspectRatio(for: designFile.devicePreset)
                 
                 // Use aspectRatio modifier to fit within the area without stretching
@@ -500,22 +489,12 @@ struct CanvasPreviewView: View {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(aspectRatio, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous)
-                            .stroke(Color.black.opacity(0.15), lineWidth: 1.5)
-                    )
                     .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                     .allowsHitTesting(false)
                 #else
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(aspectRatio, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: deviceType.cornerRadius, style: .continuous)
-                            .stroke(Color.black.opacity(0.15), lineWidth: 1.5)
-                    )
                     .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                     .allowsHitTesting(false)
                 #endif
@@ -546,10 +525,6 @@ struct CanvasPreviewView: View {
                 }
             }
         }
-        .overlay(
-            RoundedRectangle(cornerRadius: 4)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        )
     }
     
     // MARK: - Device Type Detection

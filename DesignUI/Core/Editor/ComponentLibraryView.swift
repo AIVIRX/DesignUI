@@ -26,10 +26,6 @@ struct ComponentLibraryView: View {
         VStack(spacing: 0) {
             // Header
             VStack(spacing: 12) {
-                Text("Components")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -44,7 +40,6 @@ struct ComponentLibraryView: View {
                 .cornerRadius(8)
             }
             .padding(16)
-            .background(Color.secondary.opacity(0.1))
             
             Divider()
             

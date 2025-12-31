@@ -18,6 +18,7 @@ class DesignFile: ObservableObject, Identifiable {
     @Published var devicePreset: String? // Store device preset name for thumbnail styling
     @Published var selectedDevicePreset: String? // Store selected device preset for canvas
     @Published var canvasColorScheme: String? // Store canvas color scheme (light/dark)
+    @Published var statusBarVisible: Bool = true // Store status bar visibility
     let fileURL: URL
     
     // Serial queue for saving operations to prevent race conditions and UI blocking
@@ -58,7 +59,8 @@ class DesignFile: ObservableObject, Identifiable {
                 thumbnail: thumbnail,
                 devicePreset: devicePreset,
                 selectedDevicePreset: selectedDevicePreset,
-                canvasColorScheme: canvasColorScheme
+                canvasColorScheme: canvasColorScheme,
+                statusBarVisible: statusBarVisible
             ))
             
             // Capture immutable values for background block
@@ -141,6 +143,7 @@ class DesignFile: ObservableObject, Identifiable {
             designFile.devicePreset = designData.devicePreset
             designFile.selectedDevicePreset = designData.selectedDevicePreset
             designFile.canvasColorScheme = designData.canvasColorScheme
+            designFile.statusBarVisible = designData.statusBarVisible ?? true
             return designFile
         } catch {
             print("❌ Failed to load design file: \(error)")
@@ -165,8 +168,9 @@ struct DesignFileData: Codable {
     let devicePreset: String?
     let selectedDevicePreset: String?
     let canvasColorScheme: String?
+    let statusBarVisible: Bool?
     
-    init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil) {
+    init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
         self.name = name
         self.components = components
         self.lastModified = lastModified
@@ -174,6 +178,7 @@ struct DesignFileData: Codable {
         self.devicePreset = devicePreset
         self.selectedDevicePreset = selectedDevicePreset
         self.canvasColorScheme = canvasColorScheme
+        self.statusBarVisible = statusBarVisible
     }
 }
 
@@ -510,6 +515,101 @@ class DesignManager: ObservableObject {
             print("❌ Failed to load design files: \(error)")
             // Try to create the directory if it doesn't exist
             createDesignsDirectoryIfNeeded()
+        }
+    }
+    
+    /// Async version of loadDesignFiles with progress callbacks for loading screen
+    /// - Parameter progressHandler: Called with (completedCount, totalCount) as files are loaded
+    func loadDesignFilesAsync(progressHandler: @escaping (Int, Int) -> Void) async {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    print("🔍 [Async] Loading design files from: \(self.designsDirectory.path)")
+                    
+                    // Ensure directory exists
+                    if !FileManager.default.fileExists(atPath: self.designsDirectory.path) {
+                        try FileManager.default.createDirectory(at: self.designsDirectory, withIntermediateDirectories: true)
+                    }
+                    
+                    let fileURLs = try FileManager.default.contentsOfDirectory(
+                        at: self.designsDirectory,
+                        includingPropertiesForKeys: [.contentModificationDateKey]
+                    )
+                    
+                    // Filter to only .dockui files
+                    let designFileURLs = fileURLs.filter { $0.pathExtension == "dockui" }
+                    let backupFileURLs = fileURLs.filter { $0.pathExtension == "dockui.backup" }
+                    let totalFiles = designFileURLs.count + backupFileURLs.count
+                    
+                    print("🔍 [Async] Found \(designFileURLs.count) design files, \(backupFileURLs.count) backup files")
+                    
+                    // Report initial progress
+                    DispatchQueue.main.async {
+                        progressHandler(0, max(1, totalFiles))
+                    }
+                    
+                    var loadedFiles: [DesignFile] = []
+                    var loadedCount = 0
+                    
+                    // Load regular design files
+                    for (index, url) in designFileURLs.enumerated() {
+                        if let designFile = DesignFile.load(from: url) {
+                            loadedFiles.append(designFile)
+                        }
+                        loadedCount = index + 1
+                        
+                        // Report progress
+                        DispatchQueue.main.async {
+                            progressHandler(loadedCount, totalFiles)
+                        }
+                        
+                        // Small delay to make progress visible for fast loads
+                        if totalFiles <= 5 {
+                            Thread.sleep(forTimeInterval: 0.1)
+                        }
+                    }
+                    
+                    // Load backup files
+                    for (index, url) in backupFileURLs.enumerated() {
+                        if let backupFile = DesignFile.load(from: url) {
+                            // Only add if not already loaded
+                            if !loadedFiles.contains(where: { $0.name == backupFile.name }) {
+                                loadedFiles.append(backupFile)
+                                print("🔄 [Async] Recovered design from backup: \(backupFile.name)")
+                            }
+                        }
+                        loadedCount = designFileURLs.count + index + 1
+                        
+                        DispatchQueue.main.async {
+                            progressHandler(loadedCount, totalFiles)
+                        }
+                    }
+                    
+                    // Sort by modification date and update on main thread
+                    let sortedFiles = loadedFiles.sorted { $0.lastModified > $1.lastModified }
+                    
+                    DispatchQueue.main.async {
+                        self.designFiles = sortedFiles
+                        print("📁 [Async] Loaded \(sortedFiles.count) design files total")
+                        progressHandler(totalFiles, totalFiles)
+                        continuation.resume()
+                    }
+                    
+                } catch {
+                    print("❌ [Async] Failed to load design files: \(error)")
+                    self.createDesignsDirectoryIfNeeded()
+                    
+                    DispatchQueue.main.async {
+                        progressHandler(1, 1)
+                        continuation.resume()
+                    }
+                }
+            }
+        }
+        
+        // Start iCloud query after initial load
+        if storageStatus.contains("iCloud") && !isQueryRunning {
+            startICloudQuery()
         }
     }
     

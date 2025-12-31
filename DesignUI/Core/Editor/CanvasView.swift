@@ -17,35 +17,124 @@ struct CanvasView: View {
     @Binding var colorScheme: ColorScheme?
     @Environment(\.colorScheme) private var appColorScheme
     
+    // State for pan gesture
+    @State private var currentOffset: CGSize = .zero
+    @GestureState private var dragOffset: CGSize = .zero
+    
+    // State for zoom gesture  
+    @GestureState private var magnifyScale: CGFloat = 1.0
+    
+    // Track if mouse is hovering over canvas (macOS)
+    @State private var isCanvasHovered: Bool = false
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Full screen canvas background with tap gesture for deselection
+                // Canvas background
                 Rectangle()
                     .fill(appColorScheme == .dark ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color(red: 0.9, green: 0.9, blue: 0.9))
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        // Deselect when clicking on canvas background
+                        // Deselect components and dismiss keyboard
                         canvasManager.deselectAll()
+                        #if os(iOS)
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        #elseif os(macOS)
+                        NSApp.keyWindow?.makeFirstResponder(nil)
+                        #endif
                     }
                 
-                // Zoomable canvas content
+                // Device preview with zoom and pan transforms
                 devicePreview(geometry: geometry)
-                .scaleEffect(canvasManager.zoomLevel)
-                .offset(canvasManager.canvasOffset)
+                    .scaleEffect(canvasManager.zoomLevel * magnifyScale)
+                    .offset(
+                        x: currentOffset.width + dragOffset.width,
+                        y: currentOffset.height + dragOffset.height
+                    )
             }
+            // Simultaneous pan and zoom gestures (like Photos app)
+            .gesture(
+                SimultaneousGesture(
+                    // Drag gesture for panning
+                    DragGesture()
+                        .updating($dragOffset) { value, state, _ in
+                            state = value.translation
+                        }
+                        .onEnded { value in
+                            currentOffset = CGSize(
+                                width: currentOffset.width + value.translation.width,
+                                height: currentOffset.height + value.translation.height
+                            )
+                        },
+                    // Magnification gesture for zooming
+                    MagnificationGesture()
+                        .updating($magnifyScale) { value, state, _ in
+                            state = value
+                        }
+                        .onEnded { value in
+                            let newZoom = canvasManager.zoomLevel * value
+                            canvasManager.zoomLevel = min(max(newZoom, 0.1), 5.0)
+                            baseZoomLevel = canvasManager.zoomLevel
+                        }
+                )
+            )
+            #if os(macOS)
+            // Track hover state
+            .onHover { hovering in
+                isCanvasHovered = hovering
+            }
+            // macOS: Cmd/Option + scroll for zooming, normal scroll for panning
+            .background(
+                CanvasScrollHandler(
+                    isEnabled: isCanvasHovered,
+                    onPan: { deltaX, deltaY in
+                        currentOffset = CGSize(
+                            width: currentOffset.width + deltaX,
+                            height: currentOffset.height + deltaY
+                        )
+                    },
+                    onZoom: { delta, mouseLocation in
+                        let oldZoom = canvasManager.zoomLevel
+                        let newZoom = min(max(oldZoom * (1.0 + delta), 0.1), 5.0)
+                        
+                        // Calculate zoom ratio
+                        let zoomRatio = newZoom / oldZoom
+                        
+                        // Center of the canvas view
+                        let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                        
+                        // Mouse position relative to center
+                        let mouseOffset = CGSize(
+                            width: mouseLocation.x - center.x,
+                            height: mouseLocation.y - center.y
+                        )
+                        
+                        // Calculate new offset to keeping the point under mouse stable
+                        // Formula: O_new = P_mouse - (P_mouse - O_old) * (Zoom_new / Zoom_old)
+                        let newOffsetX = mouseOffset.width - (mouseOffset.width - currentOffset.width) * zoomRatio
+                        let newOffsetY = mouseOffset.height - (mouseOffset.height - currentOffset.height) * zoomRatio
+                        
+                        currentOffset = CGSize(width: newOffsetX, height: newOffsetY)
+                        canvasManager.zoomLevel = newZoom
+                        baseZoomLevel = newZoom
+                    }
+                )
+            )
+            #endif
             .onAppear {
-                // Set optimal zoom when canvas appears with actual geometry
+                // Set optimal zoom when canvas appears
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
                     baseZoomLevel = canvasManager.zoomLevel
                 }
             }
             .onChange(of: selectedDevice) {
-                // Update zoom when device changes with actual geometry
+                // Update zoom when device changes
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
                     baseZoomLevel = canvasManager.zoomLevel
+                    // Reset offset when changing device
+                    currentOffset = .zero
                 }
                 
                 // Update status bar component frame for new device
@@ -60,6 +149,12 @@ struct CanvasView: View {
                     baseZoomLevel = canvasManager.zoomLevel
                 }
             }
+            .onChange(of: canvasManager.centerCanvasTrigger) {
+                // Reset offset to center canvas when triggered from toolbar
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    currentOffset = .zero
+                }
+            }
         }
         .clipped()
     }
@@ -68,6 +163,14 @@ struct CanvasView: View {
         ZStack {
             // Centered device frame
             let deviceSize = selectedDevice.size
+            let isWidget = selectedDevice.category == .widget
+            // Corner radius: ~22pt for widgets, ~40-55pt for modern iPhones, 0 for Mac/older iPhones
+            let cornerRadius: CGFloat = {
+                if isWidget { return 22 }
+                if selectedDevice.category == .iphone && !selectedDevice.rawValue.contains("SE") { return 48 } // Modern iPhones
+                if selectedDevice.category == .ipad && !selectedDevice.rawValue.contains("Air") { return 18 } // iPads
+                 return 0
+            }()
             
             VStack(spacing: 8) {
                 // Screen area
@@ -100,9 +203,10 @@ struct CanvasView: View {
                     }
                     .frame(width: deviceSize.width, height: deviceSize.height)
                 }
-                .clipShape(Rectangle())
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
                 .overlay(alignment: .top) {
-                    if let statusBarComponent = canvasManager.statusBarComponent {
+                    // Only show status bar if it exists AND it's not a widget
+                    if let statusBarComponent = canvasManager.statusBarComponent, !isWidget {
                         StatusBarContainerView(
                             statusBarComponent: statusBarComponent,
                             deviceSize: deviceSize,
@@ -116,20 +220,11 @@ struct CanvasView: View {
                     }
                 }
                 .overlay(
-                    Rectangle()
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                 )
                 .frame(width: deviceSize.width, height: deviceSize.height)
                 .colorScheme(colorScheme ?? .light)
-                
-                // Controls directly under device screen
-                CanvasControlsOverlay(
-                    selectedDevice: $selectedDevice,
-                    canvasManager: canvasManager,
-                    baseZoomLevel: $baseZoomLevel,
-                    statusBarHasBackground: $statusBarHasBackground,
-                    colorScheme: $colorScheme
-                )
             }
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }
@@ -260,6 +355,12 @@ struct ComponentsContainerWithStatusBar: View {
         .onTapGesture {
             // Deselect when clicking empty space
             canvasManager.deselectAll()
+            // Dismiss keyboard/unfocus text fields
+            #if os(iOS)
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            #elseif os(macOS)
+            NSApp.keyWindow?.makeFirstResponder(nil)
+            #endif
         }
     }
     
@@ -326,6 +427,12 @@ struct ComponentsContainerWithoutStatusBar: View {
         .onTapGesture {
             // Deselect when clicking empty space
             canvasManager.deselectAll()
+            // Dismiss keyboard/unfocus text fields
+            #if os(iOS)
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            #elseif os(macOS)
+            NSApp.keyWindow?.makeFirstResponder(nil)
+            #endif
         }
     }
     
@@ -365,3 +472,88 @@ struct StatusBarContainerView: View {
         }
     }
 }
+
+// MARK: - Scroll Handler for macOS
+#if os(macOS)
+/// NSViewRepresentable for trackpad scroll (pan) and Cmd+scroll (zoom)
+struct CanvasScrollHandler: NSViewRepresentable {
+    let isEnabled: Bool
+    let onPan: (CGFloat, CGFloat) -> Void
+    let onZoom: (CGFloat, CGPoint) -> Void
+    
+    func makeNSView(context: Context) -> CanvasScrollNSView {
+        let view = CanvasScrollNSView()
+        view.onPan = onPan
+        view.onZoom = onZoom
+        view.isEnabled = isEnabled
+        return view
+    }
+    
+    func updateNSView(_ nsView: CanvasScrollNSView, context: Context) {
+        nsView.onPan = onPan
+        nsView.onZoom = onZoom
+        nsView.isEnabled = isEnabled
+    }
+}
+
+/// NSView that captures scroll wheel and magnify events when enabled
+class CanvasScrollNSView: NSView {
+    var onPan: ((CGFloat, CGFloat) -> Void)?
+    var onZoom: ((CGFloat, CGPoint) -> Void)?
+    var isEnabled: Bool = false
+    
+    private var scrollMonitor: Any?
+    private var magnifyMonitor: Any?
+    
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        setupEventMonitors()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupEventMonitors()
+    }
+    
+    override var isFlipped: Bool {
+        return true
+    }
+
+    private func setupEventMonitors() {
+        // Monitor scroll wheel events
+        scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+            guard let self = self, self.isEnabled else { return event }
+            
+            if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.option) {
+                // Zoom with Cmd/Option + scroll
+                let delta = event.scrollingDeltaY * 0.01
+                let locationInView = self.convert(event.locationInWindow, from: nil)
+                self.onZoom?(delta, locationInView)
+                return nil // Consume event
+            } else {
+                // Pan with normal two-finger scroll
+                self.onPan?(event.scrollingDeltaX, event.scrollingDeltaY)
+                return nil // Consume event
+            }
+        }
+        
+        // Monitor pinch/magnify gestures
+        magnifyMonitor = NSEvent.addLocalMonitorForEvents(matching: .magnify) { [weak self] event in
+            guard let self = self, self.isEnabled else { return event }
+            
+            let locationInView = self.convert(event.locationInWindow, from: nil)
+            self.onZoom?(event.magnification, locationInView)
+            return nil // Consume event
+        }
+    }
+    
+    deinit {
+        if let monitor = scrollMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+        if let monitor = magnifyMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+    }
+}
+#endif

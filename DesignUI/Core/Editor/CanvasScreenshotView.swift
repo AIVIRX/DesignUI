@@ -64,6 +64,5 @@ struct CanvasScreenshotView: View {
         }
         .frame(width: deviceSize.width, height: deviceSize.height)
         .colorScheme(colorScheme)
-        .clipShape(RoundedRectangle(cornerRadius: deviceSize.width > 800 ? 8 : 50, style: .continuous))
     }
 }
