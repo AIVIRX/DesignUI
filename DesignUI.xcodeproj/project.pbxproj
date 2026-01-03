@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA000001AAAA000100000001 /* AppLoadingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002AAAA000100000001 /* AppLoadingState.swift */; };
+		AA000003AAAA000100000001 /* LoadingScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004AAAA000100000001 /* LoadingScreenView.swift */; };
+		AA000005AAAA000100000001 /* AppLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000006AAAA000100000001 /* AppLoadingView.swift */; };
 		B94BF3488F40454F80B2348EA864EC8D /* UserPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94BF3478F40454F80B2348EA864EC8C /* UserPostsViewModel.swift */; };
 		E5848CC5CC9440AE8630CC9BF787CD37 /* UserPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5848CC4CC9440AE8630CC9BF787CD36 /* UserPostsView.swift */; };
 		EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95BD2EB29F1200AA6A84 /* Constants.swift */; };
@@ -60,7 +63,6 @@
 		ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */; };
 		ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5F2EFB0C6F000AAF34 /* DesignFile.swift */; };
 		ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C692EFB0C6F000AAF34 /* UIBuilderView.swift */; };
-
 		ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5D2EFB0C6F000AAF34 /* ComponentRenderer.swift */; };
 		ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C602EFB0C6F000AAF34 /* DesignTemplate.swift */; };
 		ECB94C752EFB0C6F000AAF34 /* LayersPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C622EFB0C6F000AAF34 /* LayersPanelView.swift */; };
@@ -109,12 +111,12 @@
 		ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */; };
 		ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */; };
 		F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */; };
-		AA000001AAAA000100000001 /* AppLoadingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002AAAA000100000001 /* AppLoadingState.swift */; };
-		AA000003AAAA000100000001 /* LoadingScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004AAAA000100000001 /* LoadingScreenView.swift */; };
-		AA000005AAAA000100000001 /* AppLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000006AAAA000100000001 /* AppLoadingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AA000002AAAA000100000001 /* AppLoadingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingState.swift; sourceTree = "<group>"; };
+		AA000004AAAA000100000001 /* LoadingScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingScreenView.swift; sourceTree = "<group>"; };
+		AA000006AAAA000100000001 /* AppLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingView.swift; sourceTree = "<group>"; };
 		B94BF3478F40454F80B2348EA864EC8C /* UserPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPostsViewModel.swift; sourceTree = "<group>"; };
 		BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
 		E5848CC4CC9440AE8630CC9BF787CD36 /* UserPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPostsView.swift; sourceTree = "<group>"; };
@@ -164,7 +166,6 @@
 		EC9F54742E1889B700AAE9EC /* NewsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsContentView.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
-
 		ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
 		ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasScreenshotView.swift; sourceTree = "<group>"; };
 		ECB94C592EFB0C6F000AAF34 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
@@ -210,9 +211,6 @@
 		ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileContainerView.swift; sourceTree = "<group>"; };
 		ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
-		AA000002AAAA000100000001 /* AppLoadingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingState.swift; sourceTree = "<group>"; };
-		AA000004AAAA000100000001 /* LoadingScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingScreenView.swift; sourceTree = "<group>"; };
-		AA000006AAAA000100000001 /* AppLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -240,6 +238,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA000007AAAA000100000001 /* Loading */ = {
+			isa = PBXGroup;
+			children = (
+				AA000004AAAA000100000001 /* LoadingScreenView.swift */,
+				AA000006AAAA000100000001 /* AppLoadingView.swift */,
+			);
+			path = Loading;
+			sourceTree = "<group>";
+		};
 		EC0C95C62EB2A18F00AA6A84 /* Paywall */ = {
 			isa = PBXGroup;
 			children = (
@@ -302,7 +309,6 @@
 				ECB94CA72EFB9530000AAF34 /* SchemaConverter.swift */,
 				ECB94CA82EFB9530000AAF34 /* SimpleUIComponent.swift */,
 				ECB94C832EFB0D07000AAF34 /* ModifierEditors */,
-
 				ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */,
 				ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */,
 				ECB94C592EFB0C6F000AAF34 /* CanvasView.swift */,
@@ -357,7 +363,6 @@
 			isa = PBXGroup;
 			children = (
 				ECD13FF92C18BF8800105B3E /* Components */,
-				ECB94C542EFB0C19000AAF34 /* Editor */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
 				ECD13FFE2C18C12400105B3E /* Resources */,
 				ECB94C9C2EFB0D75000AAF34 /* Services */,
@@ -415,6 +420,7 @@
 				ECD13FE72C18BE0C00105B3E /* Settings */,
 				ECD13FF42C18BF3500105B3E /* SFIcons */,
 				AA000007AAAA000100000001 /* Loading */,
+				ECB94C542EFB0C19000AAF34 /* Editor */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -453,15 +459,6 @@
 				EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */,
 			);
 			path = SFIcons;
-			sourceTree = "<group>";
-		};
-		AA000007AAAA000100000001 /* Loading */ = {
-			isa = PBXGroup;
-			children = (
-				AA000004AAAA000100000001 /* LoadingScreenView.swift */,
-				AA000006AAAA000100000001 /* AppLoadingView.swift */,
-			);
-			path = Loading;
 			sourceTree = "<group>";
 		};
 		ECD13FF92C18BF8800105B3E /* Components */ = {
@@ -650,7 +647,6 @@
 				ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */,
 				ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */,
 				ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */,
-
 				ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */,
 				ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */,
 				ECB94C752EFB0C6F000AAF34 /* LayersPanelView.swift in Sources */,

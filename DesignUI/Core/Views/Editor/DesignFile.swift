@@ -646,21 +646,9 @@ class DesignManager: ObservableObject {
     }
     
     private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {
-        do {
-            // Encode components to JSON
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(components)
-            
-            // Decode back to create deep copies with new IDs
-            let decoder = JSONDecoder()
-            let copiedComponents = try decoder.decode([UIComponent].self, from: data)
-            
-            return copiedComponents
-        } catch {
-            print("⚠️ Failed to deep copy template components: \(error)")
-            // Fallback: return empty array
-            return []
-        }
+        // Use native clone method for efficient deep copying
+        // This avoids the overhead of JSON encoding/decoding
+        return components.map { $0.clone() }
     }
     
     func deleteDesign(_ designFile: DesignFile) {

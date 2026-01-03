@@ -645,6 +645,27 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
+    // MARK: - Cloning
+    func clone() -> UIComponent {
+        // Deep copy children recursively
+        let clonedChildren = children.map { $0.clone() }
+        
+        // Properties and modifiers are structs, so they are value types and copied automatically
+        // However, we need to ensure any reference types inside them (if any) are handled
+        // Currently Property and Modifier only contain value types or immutable standard types
+        
+        return UIComponent(
+            type: type,
+            properties: properties,
+            children: clonedChildren,
+            frame: frame,
+            modifiers: modifiers,
+            isOverlay: isOverlay,
+            modifierId: modifierId,
+            modifierType: modifierType
+        )
+    }
+    
     // MARK: - Code Generation
     func generateSwiftCode() -> String {
         return CodeGenerator.generateCode(for: self)

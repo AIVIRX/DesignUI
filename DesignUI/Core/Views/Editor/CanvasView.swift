@@ -316,7 +316,7 @@ struct ComponentsContainerWithStatusBar: View {
             }
             
             ForEach(components, id: \.id) { component in
-                let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                // let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                 ComponentView(
                     component: component,
                     isSelected: canvasManager.selectedComponentIds.contains(component.id),
@@ -342,7 +342,7 @@ struct ComponentsContainerWithStatusBar: View {
                     print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                     // Force a refresh after a short delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        print("🎨 ComponentView force refresh for \(component.type.rawValue)")
+                        // print("🎨 ComponentView force refresh for \(component.type.rawValue)")
                     }
                 }
             }
@@ -389,7 +389,7 @@ struct ComponentsContainerWithoutStatusBar: View {
     var body: some View {
         VStack(spacing: 0) {
             ForEach(components, id: \.id) { component in
-                let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
+                // let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                 ComponentView(
                     component: component,
                     isSelected: canvasManager.selectedComponentIds.contains(component.id),
@@ -415,7 +415,7 @@ struct ComponentsContainerWithoutStatusBar: View {
                     print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                     // Force a refresh after a short delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        print("🎨 ComponentView force refresh for \(component.type.rawValue)")
+                        // print("🎨 ComponentView force refresh for \(component.type.rawValue)")
                     }
                 }
             }

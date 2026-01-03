@@ -292,12 +292,12 @@ struct PropertyEditor: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.secondary.opacity(0.1))
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+                .contentShape(Rectangle())
                 .onAppear {
                     numberValue = property.value as? Double ?? 0.0
                 }
@@ -504,12 +504,12 @@ struct PropertyEditor: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.secondary.opacity(0.1))
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+                .contentShape(Rectangle())
                 
             case .spacing:
                 HStack {
@@ -524,18 +524,19 @@ struct PropertyEditor: View {
                         .textFieldStyle(.plain)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                        )
+                        
                         .frame(width: 80) // Fixed width for number input
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+                .contentShape(Rectangle())
                 .onAppear {
                     if let doubleValue = component.getProperty(key: property.key) as? Double {
                         numberValue = doubleValue

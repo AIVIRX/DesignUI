@@ -103,7 +103,7 @@ struct DesignBrowserView: View {
                                 .padding(.vertical, 40)
                 } else {
                                 ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 16) {
+                                    LazyHStack(spacing: 16) {
                             ForEach(designManager.designFiles) { designFile in
                                 DesignCardView(
                                     designFile: designFile,
@@ -395,7 +395,7 @@ struct TemplatesGridView: View {
     var body: some View {
         // Templates Grid
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
+            LazyHStack(spacing: 16) {
                 ForEach(templateManager.templates) { template in
                     TemplateCardView(
                         template: template,
