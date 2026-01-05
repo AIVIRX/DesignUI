@@ -15,8 +15,8 @@ struct DesignCards: View {
     var showDeleteButton: Bool = false
     var onDelete: (() -> Void)? = nil
     
-    // Computed properties for cleaner access
     private var id: String { post.id }
+    private var slug: String { post.slug }
     private var media: String { post.preview_image_url }
     private var title: String { post.title }
     private var authorName: String { post.profiles.username }
@@ -80,6 +80,7 @@ struct DesignCards: View {
             ZStack(alignment: .topTrailing) {
                 NavigationLink(destination: DetailView(
                     id: id,
+                    slug: slug,
                     mediaURL: media,
                     title: title,
                     description: description,
@@ -146,6 +147,7 @@ struct DesignCards: View {
 #else
             NavigationLink(destination: DetailView(
                 id: id,
+                slug: slug,
                 mediaURL: media,
                 title: title,
                 description: description,

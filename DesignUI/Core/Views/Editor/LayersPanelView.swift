@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 struct LayersPanelView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
+    var onLayerTapped: ((UIComponent) -> Void)? = nil // Callback for iOS navigation
     @State private var showComponentLibrary = false
     @State private var expanded: Set<UUID> = []
     @State private var expandedOverlayFolders: Set<UUID> = [] // Track overlay folder expansion separately
@@ -64,6 +65,7 @@ struct LayersPanelView: View {
                                 onSelect: {
                                     isUserInitiatedSelection = true
                                     selectedComponent = statusBar
+                                    onLayerTapped?(statusBar)
                                 }
                             )
                             .id(statusBar.id)
@@ -102,6 +104,7 @@ struct LayersPanelView: View {
                                     onSelect: {
                                         isUserInitiatedSelection = true
                                         selectedComponent = $0
+                                        onLayerTapped?($0)
                                     }
                                 )
                             }
@@ -135,6 +138,7 @@ struct LayersPanelView: View {
                                 onSelect: {
                                     isUserInitiatedSelection = true
                                     selectedComponent = $0
+                                    onLayerTapped?($0)
                                 }
                             )
                             .id(component.id)
@@ -212,10 +216,18 @@ struct LayersPanelView: View {
                 }
             }
         }
+#if os(iOS)
+        .navigationDestination(isPresented: $showComponentLibrary) {
+            ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                .navigationTitle("Components")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+#else
         .popover(isPresented: $showComponentLibrary) {
             ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
                 .frame(width: 500, height: 400)
         }
+#endif
     }
     
     private func expandAllParents() {

@@ -934,7 +934,7 @@ class CanvasManager: ObservableObject {
     }
     
     // MARK: - Export
-    func exportCode(size: CGSize? = nil) -> String {
+    func exportCode() -> String {
         // Clean the design name to make it a valid Swift identifier
         // Remove all characters that aren't alphanumeric
         let cleanedName = designName.filter { $0.isLetter || $0.isNumber }
@@ -959,10 +959,7 @@ class CanvasManager: ObservableObject {
         
         code += "\n" + bodyContent
         
-        // Apply frame if size is provided
-        if let size = size {
-            code += "\n            .frame(width: \(Int(size.width)), height: \(Int(size.height)))"
-        }
+
         
         code += "\n    }\n}\n\n#Preview {\n    \(viewName)()\n}"
         

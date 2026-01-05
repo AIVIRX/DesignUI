@@ -101,12 +101,6 @@ struct ComponentLibraryItem: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
             
-            // Category
-//            Text(componentType.category.rawValue)
-//                .font(.system(size: 9))
-//                .foregroundColor(.secondary)
-//                .multilineTextAlignment(.center)
-//                .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
         .padding(10)

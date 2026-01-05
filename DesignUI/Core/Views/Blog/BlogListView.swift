@@ -14,9 +14,8 @@ struct NewsListView: View {
     @State private var selectedPost: NewsPost?
     @State private var searchText: String = ""
     
-    // Responsive columns - iPad now matches Mac
     var columns: [GridItem] {
-        return [GridItem(.adaptive(minimum: 280, maximum: 280))]
+        return [GridItem(.adaptive(minimum: 300, maximum: 300))]
     }
     
     var filteredPosts: [NewsPost] {
@@ -33,11 +32,9 @@ struct NewsListView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    
                     LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0)
                         .padding(.top, 16)
                     
-                    // Grid of remaining blogs
                     let gridPosts = Array(filteredPosts)
                     if !gridPosts.isEmpty {
                         LazyVGrid(columns: columns) {
@@ -50,7 +47,6 @@ struct NewsListView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        .frame(maxWidth: 1400)
                     }
                 }
                 .padding(.horizontal)
@@ -88,7 +84,7 @@ struct BlogGridCard: View {
             return 280
         }
 #else
-        return 280
+        return 300
 #endif
     }
     
@@ -101,7 +97,7 @@ struct BlogGridCard: View {
             return 150
         }
 #else
-        return 150
+        return 169
 #endif
     }
     

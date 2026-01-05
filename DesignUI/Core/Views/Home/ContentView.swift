@@ -13,7 +13,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, settings, editor
+    case templates, news, profile, sfIcons, settings, studio
 }
 
 struct ContentView: View {
@@ -38,7 +38,7 @@ struct ContentView: View {
         case contact
         case settings
         case twitter
-        case editor
+        case studio
     }
     
     // Computed property for effective color scheme
@@ -89,8 +89,8 @@ struct ContentView: View {
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                     
-                    // Editor Link
-                    navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
+                    // Studio Link
+                    navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "slider.horizontal.below.rectangle", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -164,14 +164,14 @@ struct ContentView: View {
                 // Profile Section
                 SidebarProfileSection(authViewModel: authViewModel, selectedIndex: $selectedIndex, hoveredItem: $hoveredItem, effectiveColorScheme: effectiveColorScheme)
                 
-                Divider().padding(.vertical,5).opacity(0.5)
+                Divider().padding(.vertical).opacity(0.5)
                 
                 navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
                 
-                // Editor Link
-                navigationLinkButton(viewType: .editor, label: "Editor", systemImage: "slider.horizontal.below.rectangle", menuItem: .editor, selectedIndex: $selectedIndex, currentIndex: 5)
+                // Studio Link
+                navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "slider.horizontal.below.rectangle", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
                 
                 Divider().padding(.vertical).opacity(0.5)
                                 
@@ -318,7 +318,7 @@ struct ContentView: View {
             return AnyView(ExploreView())
         case .settings:
             return AnyView(SettingsView())
-        case .editor:
+        case .studio:
             return AnyView(DesignBrowserView())
         }
     }
@@ -428,9 +428,12 @@ struct SidebarProfileSection: View {
                                     .lineLimit(1)
                             }
                         }
+                        
+                        Spacer() 
                     }
                     .contentShape(Rectangle())
                     .padding(8)
+                    .frame(maxWidth: .infinity)
                     .background(backgroundColor)
                     .cornerRadius(12)
                 }
@@ -489,6 +492,7 @@ struct SidebarProfileSection: View {
                 .contentShape(Rectangle())
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
                 .background(backgroundColor)
                 .cornerRadius(8)
             }

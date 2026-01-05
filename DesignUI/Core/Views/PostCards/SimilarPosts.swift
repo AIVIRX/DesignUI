@@ -56,7 +56,7 @@ struct SimilarPostsView: View {
                     .eq("post_type", value: "fullscreen")
                     .neq("id", value: currentPostId)
                     .order("created_at", ascending: false)
-                    .limit(5)
+                    .limit(4)
                     .execute()
                     .value
                 

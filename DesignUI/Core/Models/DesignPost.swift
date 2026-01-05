@@ -8,6 +8,7 @@
 
 struct DesignPost: Identifiable, Codable, Equatable {
     let id: String
+    let slug: String
     let preview_image_url: String
     let title: String
     let description: String
@@ -25,6 +26,7 @@ struct DesignPost: Identifiable, Codable, Equatable {
     
     enum CodingKeys: String, CodingKey {
         case id
+        case slug
         case preview_image_url
         case title
         case description
@@ -40,6 +42,7 @@ struct DesignPost: Identifiable, Codable, Equatable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
+        slug = try container.decode(String.self, forKey: .slug)
         preview_image_url = try container.decode(String.self, forKey: .preview_image_url)
         title = try container.decode(String.self, forKey: .title)
         description = try container.decode(String.self, forKey: .description)
@@ -59,6 +62,7 @@ struct DesignPost: Identifiable, Codable, Equatable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(slug, forKey: .slug)
         try container.encode(preview_image_url, forKey: .preview_image_url)
         try container.encode(title, forKey: .title)
         try container.encode(description, forKey: .description)

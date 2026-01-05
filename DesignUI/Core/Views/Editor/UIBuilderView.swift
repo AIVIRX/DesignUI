@@ -174,7 +174,7 @@ struct UIBuilderView: View {
     
     // iOS half sheet states
     @State private var showLayersSheet = false
-    @State private var showPropertiesSheet = false
+    @State private var showPropertiesInPanel = false // For NavigationStack inside panel
     @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
     
@@ -187,55 +187,9 @@ struct UIBuilderView: View {
         NavigationStack {
 #if os(iOS)
             // iOS: Full screen canvas with floating panels
-            ZStack {
-                mainCanvasArea
-                    .ignoresSafeArea()
-                
-                // Floating action buttons for panels (respects safe area)
-                VStack {
-                    HStack {
-                        // Close button (top-left)
-                        Button(action: { 
-                            designManager.closeCurrentDesign()
-                        }) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
-                                .frame(width: 44, height: 44)
-                                .background(Color.secondary.opacity(0.8))
-                                .clipShape(Circle())
-                                .shadow(radius: 4)
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(spacing: 12) {
-                            Button(action: { showLayersSheet = true }) {
-                                Image(systemName: "square.stack.3d.up.fill")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(Color.accentColor)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 4)
-                            }
-                            
-                            Button(action: { showPropertiesSheet = true }) {
-                                Image(systemName: "slider.horizontal.3")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(Color.accentColor)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 4)
-                            }
-                        }
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-            }
+            iOSCanvasContent
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { iOSToolbarContent }
 #else
             // macOS: Resizable panels layout
             ZStack {
@@ -285,24 +239,19 @@ struct UIBuilderView: View {
         .navigationTitle("Studio")
         .toolbar { toolbarButtons }
         .sheet(isPresented: $showCodePreview) {
-            CodePreviewView(canvasManager: canvasManager, targetSize: selectedDevice.size)
+            CodePreviewView(canvasManager: canvasManager)
         }
 #if os(iOS)
         .sheet(isPresented: $showLayersSheet) {
-            layersHalfSheet
-        }
-        .sheet(isPresented: $showPropertiesSheet) {
-            propertiesHalfSheet
+            editorPanelSheet
         }
 #endif
         .onAppear {
             setupCanvas()
             // Restore saved device preset and color scheme
             restoreCanvasSettings()
-            // Capture initial screenshot if design has components
-            if !canvasManager.components.isEmpty {
-                captureScreenshot()
-            }
+            // Capture initial screenshot
+            captureScreenshot()
         }
         .onChange(of: canvasManager.components) { _, _ in
             syncComponents()
@@ -341,6 +290,93 @@ struct UIBuilderView: View {
             }
         }
     }
+    
+#if os(iOS)
+    private var iOSCanvasContent: some View {
+        ZStack {
+            mainCanvasArea
+                .ignoresSafeArea()
+            
+            // Floating action button for panel (bottom-right)
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: { showLayersSheet = true }) {
+                        Image(systemName: "square.stack.3d.up.fill")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                            .frame(width: 50, height: 50)
+                            .background(Color.accentColor)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 32)
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var iOSToolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(action: {
+                designManager.closeCurrentDesign()
+            }) {
+                Image(systemName: "chevron.left")
+            }
+        }
+        
+        ToolbarItemGroup(placement: .primaryAction) {
+            // Device picker
+            Menu {
+                Section("iPhone") {
+                    ForEach(DevicePreset.iphones.filter { $0 != .iphoneSE3 }) { preset in
+                        Button(preset.rawValue) {
+                            selectedDevice = preset
+                        }
+                    }
+                }
+                Section("iPad") {
+                    ForEach(DevicePreset.ipads) { preset in
+                        Button(preset.rawValue) {
+                            selectedDevice = preset
+                        }
+                    }
+                }
+            } label: {
+                Image(systemName: selectedDevice.category == .ipad ? "ipad" : "iphone")
+            }
+            
+            // Color scheme toggle
+            Button(action: {
+                colorScheme = colorScheme == .light ? .dark : .light
+            }) {
+                Image(systemName: colorScheme == .light ? "sun.max.fill" : "moon.fill")
+            }
+            
+            // Recenter button
+            Button(action: {
+                canvasManager.canvasOffset = .zero
+                canvasManager.zoomLevel = 1.0
+                canvasManager.centerCanvasTrigger.toggle()
+            }) {
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+            }
+            
+            Button(action: { canvasManager.undo() }) {
+                Image(systemName: "arrow.uturn.backward")
+            }
+            .disabled(!canvasManager.canUndo)
+            
+            Button(action: { canvasManager.redo() }) {
+                Image(systemName: "arrow.uturn.forward")
+            }
+            .disabled(!canvasManager.canRedo)
+        }
+    }
+#endif
     
     private var layersPanel: some View {
         LayersPanelView(
@@ -446,37 +482,31 @@ struct UIBuilderView: View {
     }
     
 #if os(iOS)
-    private var layersHalfSheet: some View {
-        VStack(spacing: 0) {
-            // Handle for dragging
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.secondary)
-                .frame(width: 36, height: 4)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
-            
-            // Layers content
+    private var editorPanelSheet: some View {
+        NavigationStack {
             LayersPanelView(
                 canvasManager: canvasManager,
-                selectedComponent: $canvasManager.selectedComponent
+                selectedComponent: $canvasManager.selectedComponent,
+                onLayerTapped: { _ in
+                    showPropertiesInPanel = true
+                }
             )
+            .navigationTitle("Layers")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $showPropertiesInPanel) {
+                propertiesPanelContent
+                    .navigationTitle("Properties")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbarBackground(.hidden, for: .navigationBar)
+            }
         }
-        .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
-        .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.5)))
+        .presentationDetents([.fraction(0.5), .fraction(0.75), .large])
+        .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.75)))
         .presentationDragIndicator(.visible)
-        .interactiveDismissDisabled(false)
     }
     
-    private var propertiesHalfSheet: some View {
-        VStack(spacing: 0) {
-            // Handle for dragging
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.secondary)
-                .frame(width: 36, height: 4)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
-            
-            // Properties content
+    private var propertiesPanelContent: some View {
+        Group {
             if canvasManager.selectedComponent != nil {
                 PropertiesPanelView(
                     selectedComponent: $canvasManager.selectedComponent,
@@ -501,10 +531,6 @@ struct UIBuilderView: View {
                 .padding()
             }
         }
-        .presentationDetents([.fraction(0.3), .fraction(0.5), .fraction(0.7)])
-        .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.5)))
-        .presentationDragIndicator(.visible)
-        .interactiveDismissDisabled(false)
     }
 #endif
     

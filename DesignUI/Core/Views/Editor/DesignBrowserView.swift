@@ -25,51 +25,6 @@ struct DesignBrowserView: View {
     var body: some View {
         NavigationStack {
         VStack(spacing: 0) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Design Browser")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        
-                        // iCloud status indicator
-                        HStack(spacing: 4) {
-                            Text(designManager.storageStatus)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Button(action: {
-                                designManager.refreshDesignFiles()
-                            }) {
-                                Image(systemName: "arrow.clockwise")
-                                    .font(.caption)
-                            }
-                            .buttonStyle(.plain)
-                            .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        // Check if user can create more designs
-                        if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                            showingPaywall = true
-                        } else {
-                            showingNewDesignSheet = true
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("New Design")
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-                .padding()
-                
-                Divider()
-                
                 // Main Content
                 ScrollView {
                     VStack(alignment: .leading, spacing: 32) {
@@ -119,14 +74,9 @@ struct DesignBrowserView: View {
                                     }
                                 )
                                             .frame(width: 280)
-                                            .transition(.asymmetric(
-                                                insertion: .scale.combined(with: .opacity),
-                                                removal: .scale.combined(with: .opacity)
-                                            ))
                             }
                         }
                                     .padding(.horizontal)
-                                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: designManager.designFiles.map { $0.id })
                     }
                 }
                         }
@@ -158,6 +108,21 @@ struct DesignBrowserView: View {
                     .padding(.vertical)
                 }
             }
+        .navigationTitle("Design Browser")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    // Check if user can create more designs
+                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                        showingPaywall = true
+                    } else {
+                        showingNewDesignSheet = true
+                    }
+                }) {
+                    Label("New Design", systemImage: "plus")
+                }
+            }
+        }
             }
         .sheet(isPresented: $showingNewDesignSheet) {
             NewDesignSheet(

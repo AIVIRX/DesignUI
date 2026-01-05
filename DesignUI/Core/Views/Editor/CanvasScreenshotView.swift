@@ -7,9 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Canvas Screenshot View
-/// A view specifically designed for capturing screenshots of the canvas
-/// This renders only the device preview without UI controls, zoom, or offset
 struct CanvasScreenshotView: View {
     let components: [UIComponent]
     let deviceSize: CGSize

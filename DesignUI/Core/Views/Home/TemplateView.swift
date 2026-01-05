@@ -127,7 +127,6 @@ struct ExploreView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
-                    searchBarView
                     postsContentView
                 }
                 .onChange(of: searchText) { oldValue, newValue in
@@ -138,8 +137,9 @@ struct ExploreView: View {
                         }
                     }
                 }
+                .frame(maxWidth: 1600)
+                .navigationTitle("Templates")
             }
-            .frame(maxWidth: 1600)
             .refreshable {
                 Task {
                     await viewModel.refreshPosts(filterType: nil, isAllPosts: true)
@@ -179,16 +179,10 @@ struct ExploreView: View {
                     #endif
                 }
             }
-            .navigationTitle("Templates")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            #if os(iOS)
-            .modifier(iPadSearchableModifier(searchText: $searchText))
-            #endif
-            #if os(macOS)
             .searchable(text: $searchText, prompt: "Search templates")
-            #endif
             .toolbar {
 #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -200,7 +194,6 @@ struct ExploreView: View {
 #endif
             }
         }
-        .navigationViewStyle(DefaultNavigationViewStyle())
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
 #endif
@@ -208,27 +201,7 @@ struct ExploreView: View {
 }
 
 // MARK: - Helpers
-extension ExploreView {
-    @ViewBuilder
-    private var searchBarView: some View {
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Search templates", text: $searchText)
-                    .textFieldStyle(.plain)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .padding(.horizontal, 8)
-            .padding(.top, 8)
-        }
-#endif
-    }
-    
+extension ExploreView {    
     @ViewBuilder
     private var postsContentView: some View {
         if !viewModel.posts.isEmpty {

@@ -93,7 +93,7 @@ struct SettingsView: View {
     private var shareText: String {
         "Check out DockUI - A great app for SwiftUI templates and components!"
     }
-
+    
     var body: some View {
 #if os(macOS)
         // macOS: Modern card-style layout
@@ -157,68 +157,18 @@ struct SettingsView: View {
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
-                // More Apps Card
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("More Apps")
-                        .font(.headline)
-                    Button {
-                        if let url = URL(string: "https://apps.apple.com/us/app/stock-profit-calculator-2025/id6479931561") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        HStack {
-                            Image("stockscalc")
-                                .resizable()
-                                .frame(width: 30, height:30)
-                                .cornerRadius(5)
-                            Text("Stock Profit Calculator 2025")
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.regularMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
                 // App Actions Card
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("App")
+                HStack{
+                    Text("Support Us")
                         .font(.headline)
-                        .padding(.bottom, 4)
+                    
+                    Spacer()
                     
                     Button {
-                        if let url = URL(string: appStoreURL) {
-                            NSWorkspace.shared.open(url)
-                        }
+                        if let url = URL(string: appStoreURL) { NSWorkspace.shared.open(url) }
                     } label: {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.yellow.opacity(0.15))
-                                    .frame(width: 36, height: 36)
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
-                                    .font(.system(size: 16))
-                            }
-                            Text("Rate App")
-                                .font(.body)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                        .padding(.vertical, 8)
+                        Text("Rate us")
                     }
-                    .buttonStyle(.plain)
-                    
-                    Divider()
                     
                     Button {
                         let picker = NSSharingServicePicker(items: [shareText, appStoreURL])
@@ -226,27 +176,8 @@ struct SettingsView: View {
                             picker.show(relativeTo: .zero, of: window.contentView!, preferredEdge: .minY)
                         }
                     } label: {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.15))
-                                    .frame(width: 36, height: 36)
-                                Image(systemName: "square.and.arrow.up")
-                                    .foregroundColor(.blue)
-                                    .font(.system(size: 16))
-                            }
-                            Text("Share App")
-                                .font(.body)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                        .padding(.vertical, 8)
+                        Text("Share App")
                     }
-                    .buttonStyle(.plain)
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -254,21 +185,22 @@ struct SettingsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
                 // Legal Card (macOS): Removed Send Feedback per platform constraints
-                VStack(alignment: .leading, spacing: 8) {
+                HStack{
                     Text("Legal")
                         .font(.headline)
-                    HStack(spacing: 12) {
-                        Button {
-                            if let url = URL(string: "https://dockui.com/privacy") { NSWorkspace.shared.open(url) }
-                        } label: {
-                            Text("Privacy Policy")
-                        }
-                        Button {
-                            if let url = URL(string: "https://dockui.com/terms") { NSWorkspace.shared.open(url) }
-                        } label: {
-                            Text("Terms of Service")
-                        }
-                        Spacer()
+                    
+                    Spacer()
+                    
+                    Button {
+                        if let url = URL(string: "https://dockui.com/privacy") { NSWorkspace.shared.open(url) }
+                    } label: {
+                        Text("Privacy Policy")
+                    }
+                    
+                    Button {
+                        if let url = URL(string: "https://dockui.com/terms") { NSWorkspace.shared.open(url) }
+                    } label: {
+                        Text("Terms of Service")
                     }
                 }
                 .padding(16)
@@ -287,16 +219,16 @@ struct SettingsView: View {
             }
             .padding(24)
         }
-        #if os(iOS)
+#if os(iOS)
         .fullScreenCover(isPresented: $showPaywall) {
             CustomPaywallView()
         }
-        #elseif os(macOS)
+#elseif os(macOS)
         .sheet(isPresented: $showPaywall) {
             CustomPaywallView()
                 .frame(minWidth: 760, minHeight: 560)
         }
-        #endif
+#endif
         .onAppear {
             Task { await purchases.loadCustomerInfo() }
         }
@@ -316,22 +248,22 @@ struct SettingsView: View {
                         }
                         Spacer()
                         if !purchases.hasPremium {
-                            Button("Subscribe") { 
+                            Button("Subscribe") {
                                 showPaywall = true
                             }
-                                .buttonStyle(.bordered)
+                            .buttonStyle(.bordered)
                         }
                     }
                     
                     if purchases.hasPremium {
                         Button {
-                            #if os(iOS)
+#if os(iOS)
                             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                                 Task {
                                     try? await AppStore.showManageSubscriptions(in: windowScene)
                                 }
                             }
-                            #endif
+#endif
                         } label: {
                             HStack {
                                 Image(systemName: "creditcard.fill")
@@ -520,11 +452,11 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
         }
-        #if os(iOS)
+#if os(iOS)
         .fullScreenCover(isPresented: $showPaywall) {
             CustomPaywallView()
         }
-        #endif
+#endif
         .onAppear {
             Task { await purchases.loadCustomerInfo() }
         }
@@ -534,8 +466,3 @@ struct SettingsView: View {
 #endif
     }
 }
-
-
-//
-
-// (No manageSubscriptionsSheet; Manage opens paywall instead on all platforms)

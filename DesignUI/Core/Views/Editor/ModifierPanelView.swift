@@ -54,9 +54,17 @@ struct ModifierPanelView: View {
                 ModifierReorderableList(component: component)
             }
         }
+#if os(iOS)
+        .navigationDestination(isPresented: $showingAddModifier) {
+            AddModifierView(component: component)
+                .navigationTitle("Add Modifier")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+#else
         .sheet(isPresented: $showingAddModifier) {
             AddModifierView(component: component)
         }
+#endif
     }
 }
 
@@ -186,6 +194,18 @@ struct ModifierItemView: View {
                 dragOverPosition: $dragOverPosition,
                 onMove: onMove
             ))
+#if os(iOS)
+            .navigationDestination(isPresented: $showingEditor) {
+                ModifierEditorView(component: component, modifier: Binding(
+                    get: { modifier },
+                    set: { newModifier in
+                        component.updateModifier(newModifier)
+                    }
+                ))
+                .navigationTitle(modifier.type.rawValue)
+                .navigationBarTitleDisplayMode(.inline)
+            }
+#else
             .popover(isPresented: $showingEditor) {
                 ModifierEditorView(component: component, modifier: Binding(
                     get: { modifier },
@@ -194,6 +214,7 @@ struct ModifierItemView: View {
                     }
                 ))
             }
+#endif
         }
     }
     
@@ -448,7 +469,9 @@ struct AddModifierView: View {
                 }
             }
         }
+#if os(macOS)
         .frame(width: 400, height: 500)
+#endif
     }
 }
 

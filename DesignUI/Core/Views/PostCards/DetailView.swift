@@ -33,13 +33,11 @@ struct DetailWebImage: View {
                 image
                     .resizable()
                     .scaledToFill()
-                    .frame(maxWidth: 800, maxHeight: 450)
+                    .frame(maxWidth: .infinity)
                     .clipped()
                     .cornerRadius(15)
                     .shadow(radius: shadowRadius)
-                
             }
-            
         } placeholder: {
             ProgressView()
                 .frame(width: width, height: height)
@@ -51,6 +49,7 @@ struct DetailWebImage: View {
 
 struct DetailView: View {
     let id: String
+    let slug: String
     let mediaURL: String
     let title: String
     let description: String
@@ -60,16 +59,13 @@ struct DetailView: View {
     let isAuthorVerified: Bool
     let isPremium: Bool
     let isComponent: Bool
-    
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var toastManager: ToastManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
-    
     @State private var authorProfile: Profile?
     @State private var isLoadingProfile = false
     private let supabase = SupabaseManager.shared.client
-
     private var imageDimensions: (width: CGFloat, height: CGFloat, cornerRadius: CGFloat) {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -78,7 +74,7 @@ struct DetailView: View {
             return (width: 257, height: 557, cornerRadius: 20)
         }
 #else
-        return (width: 257, height: 557, cornerRadius: 20)
+        return (width: 180, height: 390, cornerRadius: 20)
 #endif
     }
     
@@ -95,29 +91,83 @@ struct DetailView: View {
     }
     
     var body: some View {
-        ScrollView{
+        ScrollView {
+            VStack{
+                VStack{
+                    if isComponent {
+                        DetailWebImage(
+                            url: mediaURL,
+                            width: imageDimensions.width,
+                            height: imageDimensions.height,
+                            cornerRadius: imageDimensions.cornerRadius,
+                            shadowRadius: 10,
+                            isComponent: isComponent
+                        )
+                    } else {
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(maxWidth: .infinity)
 #if os(iOS)
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                phoneView
-            }
-            
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                iPadView
-            }
+                            .frame(height: 350)
+#else
+                            .frame(height: 450)
 #endif
-            
-#if os(macOS)
-            macOSView
+                            .overlay(
+                                DetailWebImage(
+                                    url: mediaURL,
+                                    width: imageDimensions.width,
+                                    height: imageDimensions.height,
+                                    cornerRadius: imageDimensions.cornerRadius,
+                                    shadowRadius: 10,
+                                    isComponent: isComponent
+                                )
+                            )
+                    }
+                    
+                    Text(description)
+#if os(iOS)
+                        .font(.body)
+#else
+                        .font(.title2)
 #endif
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Divider()
+                    
+                    LiveSyntaxHighlightedCode(
+                        code: codeSnippet,
+                        fontSize: 20,
+                        maxHeight: 300
+                    )
+                    
+                    SimilarPostsView(currentPostId: id)
+                        .padding(.vertical)
+                }
+                .frame(maxWidth: 900, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.vertical, 40)
+                .task {
+                    await fetchAuthorProfile()
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .navigationTitle(title)
         }
-        .navigationTitle("")
 #if os(iOS)
         .toolbar {
-            ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
+            ShareLink(item: URL(string: "https://dockui.com/templates/\(slug)")!)
         }
-        .navigationBarTitle(title)
+#else
+        .toolbar {
+            ToolbarItem {
+                ShareLink(item: URL(string: "https://dockui.com/templates/\(slug)")!) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
 #endif
-        .padding(.horizontal, 7)
         .overlay(
             Group {
                 if isPremium && !subscriptionManager.isSubscribed {
@@ -140,285 +190,6 @@ struct DetailView: View {
                 }
             }
         )
-    }
-    
-    // MARK: - Platform Views
-#if os(iOS)
-    @ViewBuilder
-    private var phoneView: some View {
-        VStack(alignment: .leading) {
-            if isComponent {
-                DetailWebImage(
-                    url: mediaURL,
-                    width: imageDimensions.width,
-                    height: imageDimensions.height,
-                    cornerRadius: imageDimensions.cornerRadius,
-                    shadowRadius: 8,
-                    isComponent: isComponent
-                )
-            } else {
-                templateImageCard
-            }
-            
-            // Title
-            Text(title)
-                .font(.title2)
-                .bold()
-                .padding(.top)
-            
-            // Author (for components, templates have it in the overlay)
-            if isComponent {
-                HStack {
-                    Text(author)
-                        .font(.subheadline)
-                        .bold()
-                        .foregroundColor(.secondary)
-                        .textSelection(.disabled)
-                    
-                    if isAuthorVerified {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 10))
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-            
-            Text(description)
-                .padding(.top)
-                .font(.body)
-            
-            LiveSyntaxHighlightedCode(
-                code: codeSnippet,
-                fontSize: 20,
-                maxHeight: 300
-            )
-            
-            SimilarPostsView(currentPostId: id)
-                .padding(.vertical)
-        }
-        .environment(\.symbolVariants, .none)
-        .accentColor(.none)
-        .task {
-            await fetchAuthorProfile()
-        }
-    }
-    
-    @ViewBuilder
-    private var iPadView: some View {
-        VStack {
-            VStack(alignment: .leading) {
-                if isComponent {
-                    DetailWebImage(
-                        url: mediaURL,
-                        width: imageDimensions.width,
-                        height: imageDimensions.height,
-                        cornerRadius: imageDimensions.cornerRadius,
-                        shadowRadius: 8,
-                        isComponent: isComponent
-                    )
-                }
-                
-                if !isComponent {
-                    templateImageContainer
-                        .frame(height: 600)
-                }
-                
-                iPadContentInfoView
-                
-                SimilarPostsView(currentPostId: id)
-                    .padding(.vertical)
-            }
-            .frame(maxWidth: 800)
-        }
-        .environment(\.symbolVariants, .none)
-        .accentColor(.none)
-        .task {
-            await fetchAuthorProfile()
-        }
-        .frame(maxWidth: .infinity)
-    }
-#endif
-    
-#if os(macOS)
-    @ViewBuilder
-    private var macOSView: some View {
-        VStack {
-            VStack(alignment: .leading) {
-                if isComponent {
-                    DetailWebImage(
-                        url: mediaURL,
-                        width: imageDimensions.width,
-                        height: imageDimensions.height,
-                        cornerRadius: imageDimensions.cornerRadius,
-                        shadowRadius: 8,
-                        isComponent: isComponent
-                    )
-                }
-                
-                if !isComponent {
-                    templateImageContainer
-                        .frame(height: 600)
-                }
-                
-                macOSContentInfoView
-                
-                SimilarPostsView(currentPostId: id)
-                    .padding(.bottom, 20)
-            }
-            .padding(.vertical)
-            .environment(\.symbolVariants, .none)
-            .task {
-                await fetchAuthorProfile()
-            }
-            .toolbar(content: {
-                ToolbarItem {
-                    ShareLink(item: URL(string: "https://dockui.com/templates/\(id)")!)
-                }
-            })
-            .frame(maxWidth: 800)
-        }
-        .frame(maxWidth: .infinity)
-    }
-#endif
-    
-    // MARK: - Shared Components
-    @ViewBuilder
-    private var templateImageCard: some View {
-        RoundedRectangle(cornerRadius: 15)
-            .frame(maxWidth: containerDimensions.width)
-            .frame(height: containerDimensions.height)
-            .foregroundStyle(.thinMaterial)
-            .overlay {
-                RoundedRectangle(cornerRadius: 20)
-                    .frame(width: imageDimensions.width, height: imageDimensions.height)
-                    .overlay {
-                        DetailWebImage(
-                            url: mediaURL,
-                            width: imageDimensions.width,
-                            height: imageDimensions.height,
-                            cornerRadius: imageDimensions.cornerRadius,
-                            shadowRadius: 6,
-                            isComponent: isComponent
-                        )
-                    }
-            }
-            .overlay {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Text(author)
-                            .font(.subheadline).bold()
-                            .foregroundColor(.secondary)
-                            .padding(.top, 3)
-                            .textSelection(.disabled)
-                        
-                        if isAuthorVerified {
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .padding()
-                }
-            }
-    }
-    
-    @ViewBuilder
-    private var templateImageContainer: some View {
-        RoundedRectangle(cornerRadius: 15)
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(Color.gray.opacity(0.2))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20)
-                    .frame(width: imageDimensions.width, height: imageDimensions.height)
-                    .overlay {
-                        DetailWebImage(
-                            url: mediaURL,
-                            width: imageDimensions.width,
-                            height: imageDimensions.height,
-                            cornerRadius: imageDimensions.cornerRadius,
-                            shadowRadius: 8,
-                            isComponent: isComponent
-                        )
-                    }
-            }
-    }
-    
-    @ViewBuilder
-    private var iPadContentInfoView: some View {
-        VStack {
-            VStack(alignment: .leading) {
-                HStack {
-                    Text(title)
-                        .font(.system(size: 30))
-                        .bold()
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                
-                HStack {
-                    Text(author)
-                        .font(.system(size: 15)).bold()
-                        .foregroundColor(.secondary)
-                        .textSelection(.disabled)
-                    
-                    if isAuthorVerified {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 13))
-                            .foregroundColor(.blue)
-                    }
-                }
-                
-                Text(description)
-                    .font(.system(size: 18))
-                    .frame(maxHeight: 100, alignment: .top)
-            }
-            
-            LiveSyntaxHighlightedCode(
-                code: codeSnippet,
-                fontSize: 20,
-                maxHeight: 600
-            )
-        }
-    }
-    
-    @ViewBuilder
-    private var macOSContentInfoView: some View {
-        VStack {
-            VStack(alignment: .leading) {
-                HStack {
-                    Text(title)
-                        .font(.system(size: 30))
-                        .bold()
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                
-                HStack {
-                    Text(author)
-                        .font(.headline).bold()
-                        .foregroundColor(.secondary)
-                        .textSelection(.disabled)
-                    
-                    if isAuthorVerified {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 13))
-                            .foregroundColor(.blue)
-                    }
-                }
-                
-                Text(description)
-                    .font(.title2)
-                    .frame(maxHeight: 100)
-                    .foregroundStyle(.secondary)
-            }
-            
-            LiveSyntaxHighlightedCode(
-                code: codeSnippet,
-                maxHeight: 600
-            )
-        }
     }
     
     private func fetchAuthorProfile() async {

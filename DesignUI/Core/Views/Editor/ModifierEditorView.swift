@@ -100,6 +100,8 @@ struct ModifierEditorView: View {
             .padding(.top, 8)
         }
         .padding(16)
+#if os(macOS)
         .frame(width: 320)
+#endif
     }
 }

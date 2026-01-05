@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import HighlightSwift
 import SDWebImage
 import SDWebImageSwiftUI
 
@@ -232,7 +231,7 @@ struct NewsContentView: View {
                                 code: code
                             )
                         }
-                        .frame(maxWidth: 700, maxHeight: 300)
+                        .frame(maxHeight: 300)
                         .clipped()
                     }
                 case .link:

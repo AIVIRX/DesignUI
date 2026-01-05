@@ -137,7 +137,6 @@ struct CodeGenerator {
         
         // No children: Use default SwiftUI button with title
         let title = component.getProperty(key: "title") as? String ?? "Button"
-        let _ = component.getProperty(key: "backgroundColor") as? String ?? "blue"
         let escapedTitle = title.replacingOccurrences(of: "\"", with: "\\\"")
         
         var code = "\(indent)Button(\"\(escapedTitle)\") {}"

@@ -42,8 +42,8 @@ struct SignInView: View {
                             .resizable()
                             .frame(width: 50, height: 50)
                             .padding()
-                        Text("Dock UI Accounts")
-                            .font(.system(size: 28, weight: .bold))
+                        Text("Dock UI Account")
+                            .font(.system(size: 30, weight: .bold))
                         Text("Sign in to sync favorites and access exclusive features.")
                             .foregroundStyle(.secondary)
                     }

@@ -14,37 +14,34 @@ import SDWebImageSwiftUI
 struct NewsDetailView: View {
     let post: NewsPost
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
-
+    
     var body: some View {
         ScrollView {
             VStack{
                 VStack(spacing: 32) {
                     Text(post.title)
-                        #if os(macOS)
+#if os(macOS)
                         .font(.system(size: 34, weight: .bold))
-                        #else
+#else
                         .font(.title)
                         .fontWeight(.bold)
-                        #endif
+#endif
                         .foregroundColor(.primary)
                         .lineLimit(3)
-                        .frame(maxWidth: 700, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     // Featured image/card
                     if let imageUrl = post.image_url, let url = URL(string: imageUrl) {
                         ZStack {
                             WebImage(url: url) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(maxWidth: 700, maxHeight: 394)
-                                        .clipped()
-                                        .cornerRadius(15)
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .clipped()
+                                    .cornerRadius(15)
                             } placeholder: {
                                 ProgressView()
-                                        .frame(maxWidth: 700, maxHeight: 394)
                             }
                         }
-                        .frame(maxWidth: 700, maxHeight: 394)
                     }
                     
                     // Main content card
@@ -55,19 +52,19 @@ struct NewsDetailView: View {
                                 .foregroundColor(.secondary)
                                 .padding(.top)
                         }
+                        
                         Divider().padding(.vertical)
                         
                         NewsContentView(blocks: post.blocks)
                     }
                 }
-                .frame(maxWidth: 700, alignment: .center)
+                .frame(maxWidth: 800, alignment: .center)
                 .padding(.horizontal)
                 .padding(.vertical, 40)
             }
             .frame(maxWidth: .infinity)
+            .navigationTitle("")
         }
-        .navigationTitle("")
-        
         .toolbar {
 #if os(iOS)
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -84,11 +81,5 @@ struct NewsDetailView: View {
             }
 #endif
         }
-    }
-    
-    private func downloadResources() {
-        // Implement download logic here
-        print("Downloading resources for: \(post.title)")
-        // You can add actual download functionality here
     }
 }

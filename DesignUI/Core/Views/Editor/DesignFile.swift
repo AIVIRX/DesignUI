@@ -19,6 +19,7 @@ class DesignFile: ObservableObject, Identifiable {
     @Published var selectedDevicePreset: String? // Store selected device preset for canvas
     @Published var canvasColorScheme: String? // Store canvas color scheme (light/dark)
     @Published var statusBarVisible: Bool = true // Store status bar visibility
+    @Published var isDeleted: Bool = false // Flag to prevent saving after deletion
     let fileURL: URL
     
     // Serial queue for saving operations to prevent race conditions and UI blocking
@@ -41,8 +42,64 @@ class DesignFile: ObservableObject, Identifiable {
         self.devicePreset = devicePreset
     }
     
+    // MARK: - Deletion
+    func delete() {
+        // Mark as deleted immediately on main thread to block future saves
+        self.isDeleted = true
+        
+        let fileURL = self.fileURL
+        let name = self.name
+        
+        // Perform deletion on the save queue to ensure it runs AFTER any pending saves
+        DesignFile.saveQueue.async {
+            do {
+                print("🗑️ [Background] Deleting file: \(name)")
+                
+                // Use file coordination for iCloud files
+                let isiCloudFile = fileURL.path.contains("Mobile Documents") || fileURL.path.contains("iCloud~")
+                
+                if isiCloudFile {
+                     let coordinator = NSFileCoordinator()
+                     var coordinationError: NSError?
+                     var deleteError: Error?
+                     
+                     coordinator.coordinate(writingItemAt: fileURL, options: .forDeleting, error: &coordinationError) { (writingURL) in
+                         do {
+                             if FileManager.default.fileExists(atPath: writingURL.path) {
+                                 try FileManager.default.removeItem(at: writingURL)
+                                 print("✅ [Background] Deleted from iCloud: \(name)")
+                             } else {
+                                 print("⚠️ [Background] File already gone from iCloud: \(name)")
+                             }
+                         } catch {
+                             print("❌ [Background] Failed to delete iCloud file: \(error)")
+                             deleteError = error
+                         }
+                     }
+                     
+                     if let error = coordinationError { print("❌ [Background] Coordination error during delete: \(error)") }
+                     if let error = deleteError { print("❌ [Background] Delete error: \(error)") }
+                } else {
+                    // Local deletion
+                    if FileManager.default.fileExists(atPath: fileURL.path) {
+                        try FileManager.default.removeItem(at: fileURL)
+                        print("✅ [Background] Deleted locally: \(name)")
+                    }
+                }
+            } catch {
+                print("❌ [Background] Failed to delete file: \(error)")
+            }
+        }
+    }
+    
     // MARK: - Auto-save functionality
     func save() {
+        // Don't save if marked for deletion
+        if isDeleted {
+            print("🛑 Skipping save for deleted file: \(name)")
+            return
+        }
+        
         // Update modification date immediately on main thread
         self.lastModified = Date()
         
@@ -69,6 +126,12 @@ class DesignFile: ObservableObject, Identifiable {
             
             // Perform file writing on background serial queue
             DesignFile.saveQueue.async {
+                // Check deletion flag again in background (though order should handle it)
+                // We can't access self.isDeleted safely here if we don't capture it or trust the queue order.
+                // Since we rely on queue order (save queued -> delete queued), the deletion will happen last.
+                // However, checking a flag if we could would be nice, but accessing self across threads is tricky.
+                // We'll rely on the main thread check above and the queue ordering.
+                
                 do {
                     print("💾 [Background] Starting write for: \(name) (\(data.count) bytes)")
                     
@@ -146,14 +209,33 @@ class DesignFile: ObservableObject, Identifiable {
             designFile.statusBarVisible = designData.statusBarVisible ?? true
             return designFile
         } catch {
-            print("❌ Failed to load design file: \(error)")
-            print("📄 File path: \(url.path)")
-            let fileSize = (try? Data(contentsOf: url).count) ?? 0
-            print("📄 File size: \(fileSize) bytes")
+            // Catch decoding errors specific to data corruption or schema mismatch
+            print("❌ Failed to decode design file '\(url.lastPathComponent)': \(error)")
             
-            // Try to create a basic design file with the filename
+            // Log file attributes for debugging
+            if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) {
+                print("📄 File size: \(attributes[.size] ?? 0) bytes")
+                print("📄 Permissions: \(attributes[.posixPermissions] ?? "unknown")")
+            }
+
+            // Check if file actually exists before creating fallback
+            // If file doesn't exist, it was likely deleted, so don't resurrect it
+            if !FileManager.default.fileExists(atPath: url.path) {
+                print("🗑️ File does not exist (likely deleted), skipping recovery: \(url.path)")
+                return nil
+            }
+            
+            // Only create fallback if file is empty (0 bytes), otherwise it might be a valid file with decoding issues
+            // Creating a fallback for a non-empty file risks data loss if the user overwrites it
+            let fileSize = (try? Data(contentsOf: url).count) ?? 0
+            if fileSize > 0 {
+                print("⚠️ File is not empty (\(fileSize) bytes) but failed to decode. Skipping fallback to prevent data loss.")
+                return nil
+            }
+            
+            // Try to create a basic design file with the filename ONLY if file is 0 bytes
             let filename = url.deletingPathExtension().lastPathComponent
-            print("🔄 Creating fallback design file: \(filename)")
+            print("🔄 Creating fallback for empty (0 byte) file: \(filename)")
             return DesignFile(name: filename, components: [], fileURL: url)
         }
     }
@@ -183,6 +265,7 @@ struct DesignFileData: Codable {
 }
 
 // MARK: - Design Manager
+@MainActor
 class DesignManager: ObservableObject {
     static let shared = DesignManager()
     
@@ -522,17 +605,19 @@ class DesignManager: ObservableObject {
     /// - Parameter progressHandler: Called with (completedCount, totalCount) as files are loaded
     func loadDesignFilesAsync(progressHandler: @escaping (Int, Int) -> Void) async {
         await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
+            let designsDir = self.designsDirectory
+            
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 do {
-                    print("🔍 [Async] Loading design files from: \(self.designsDirectory.path)")
+                    print("🔍 [Async] Loading design files from: \(designsDir.path)")
                     
                     // Ensure directory exists
-                    if !FileManager.default.fileExists(atPath: self.designsDirectory.path) {
-                        try FileManager.default.createDirectory(at: self.designsDirectory, withIntermediateDirectories: true)
+                    if !FileManager.default.fileExists(atPath: designsDir.path) {
+                        try FileManager.default.createDirectory(at: designsDir, withIntermediateDirectories: true)
                     }
                     
                     let fileURLs = try FileManager.default.contentsOfDirectory(
-                        at: self.designsDirectory,
+                        at: designsDir,
                         includingPropertiesForKeys: [.contentModificationDateKey]
                     )
                     
@@ -589,6 +674,7 @@ class DesignManager: ObservableObject {
                     let sortedFiles = loadedFiles.sorted { $0.lastModified > $1.lastModified }
                     
                     DispatchQueue.main.async {
+                        guard let self = self else { return }
                         self.designFiles = sortedFiles
                         print("📁 [Async] Loaded \(sortedFiles.count) design files total")
                         progressHandler(totalFiles, totalFiles)
@@ -597,7 +683,9 @@ class DesignManager: ObservableObject {
                     
                 } catch {
                     print("❌ [Async] Failed to load design files: \(error)")
-                    self.createDesignsDirectoryIfNeeded()
+                    
+                    // Try to create directory if needed (using local var)
+                    try? FileManager.default.createDirectory(at: designsDir, withIntermediateDirectories: true)
                     
                     DispatchQueue.main.async {
                         progressHandler(1, 1)
@@ -652,7 +740,9 @@ class DesignManager: ObservableObject {
     }
     
     func deleteDesign(_ designFile: DesignFile) {
-        try? FileManager.default.removeItem(at: designFile.fileURL)
+        // Use the thread-safe delete method which coordinates with the save queue
+        designFile.delete()
+        
         designFiles.removeAll { $0.id == designFile.id }
         
         if currentDesign?.id == designFile.id {

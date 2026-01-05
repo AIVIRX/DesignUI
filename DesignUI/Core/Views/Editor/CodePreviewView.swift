@@ -6,11 +6,10 @@
 //
 
 import SwiftUI
-import HighlightSwift
+
 
 struct CodePreviewView: View {
     @ObservedObject var canvasManager: CanvasManager
-    var targetSize: CGSize? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     
@@ -59,9 +58,9 @@ struct CodePreviewView: View {
                 // Code content with syntax highlighting
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        CompleteFileCode(canvasManager: canvasManager, targetSize: targetSize)
+                        CompleteFileCode(canvasManager: canvasManager)
                     }
-                    .padding(20)
+                    .padding(0) // Removed padding as requested
                 }
                 .background(Color.gray.opacity(0.1))
             }
@@ -81,7 +80,7 @@ struct CodePreviewView: View {
     }
     
     private var completeFileCode: String {
-        let viewCode = canvasManager.exportCode(size: targetSize)
+        let viewCode = canvasManager.exportCode()
         return """
         //
         //
@@ -96,15 +95,12 @@ struct CodePreviewView: View {
 
 struct CompleteFileCode: View {
     @ObservedObject var canvasManager: CanvasManager
-    var targetSize: CGSize? = nil
     @Environment(\.colorScheme) private var colorScheme
     @State private var highlightedText: AttributedString = AttributedString()
     @State private var isHighlighting = false
-    
-    private let highlight = Highlight()
-    
+        
     private var completeFileCode: String {
-        let viewCode = canvasManager.exportCode(size: targetSize)
+        let viewCode = canvasManager.exportCode()
         return """
         //
         //
@@ -124,7 +120,7 @@ struct CompleteFileCode: View {
                     .font(.system(size: 14, design: .monospaced))
                     .textSelection(.enabled)
                     .fixedSize(horizontal: true, vertical: false)
-                    .padding()
+                    .padding(20) // Added inline padding
             }
             .frame(maxWidth: .infinity)
             .overlay(loadingOverlay)
@@ -160,10 +156,7 @@ struct CompleteFileCode: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.gray.opacity(0.2))
-                    )
+                    
                     Spacer()
                 }
             }
@@ -171,29 +164,11 @@ struct CompleteFileCode: View {
     }
     
     private func performHighlight(_ code: String) async {
-        do {
-            // Use appropriate theme based on color scheme
-            let result = try await highlight.attributedText(
-                code,
-                language: "swift",
-                colors: colorScheme == .dark ? .dark(.xcode) : .light(.github)
-            )
-            
-            await MainActor.run {
-                self.highlightedText = result
-                self.isHighlighting = false
-            }
-        } catch {
-            // Fallback to plain text with proper color
-            await MainActor.run {
-                var fallbackText = AttributedString(code)
-                fallbackText.font = .system(size: 14, design: .monospaced)
-                fallbackText.foregroundColor = colorScheme == .dark 
-                    ? Color(red: 0.9, green: 0.9, blue: 0.9)
-                    : Color(red: 0.1, green: 0.1, blue: 0.1)
-                self.highlightedText = fallbackText
-                self.isHighlighting = false
-            }
+        let result = await SyntaxHighlighter.shared.highlight(code, colorScheme: colorScheme)
+        
+        await MainActor.run {
+            self.highlightedText = result
+            self.isHighlighting = false
         }
     }
     

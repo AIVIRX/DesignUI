@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import HighlightSwift
 
 struct LiveSyntaxHighlightedCode: View {
     let code: String
@@ -18,9 +17,7 @@ struct LiveSyntaxHighlightedCode: View {
     @State private var highlightCache: [String: AttributedString] = [:]
     @EnvironmentObject private var toastManager: ToastManager
     @Environment(\.colorScheme) private var colorScheme
-    
-    private let highlight = Highlight()
-    
+        
     init(code: String, fontSize: CGFloat = 16, maxHeight: CGFloat = 500) {
         self.code = code
         self.fontSize = fontSize
@@ -140,36 +137,20 @@ struct LiveSyntaxHighlightedCode: View {
             return
         }
         
-        do {
-            // Use appropriate theme based on color scheme
-            let result = try await highlight.attributedText(
-                code,
-                language: "swift",
-                colors: colorScheme == .dark ? .dark(.github) : .light(.github)
-            )
-            
-            // Cache the result
-            highlightCache[code] = result
-            
-            // Limit cache size
-            if highlightCache.count > 50 {
-                let firstKey = highlightCache.keys.first!
-                highlightCache.removeValue(forKey: firstKey)
-            }
-            
-            await MainActor.run {
-                self.highlightedText = result
-                self.isHighlighting = false
-            }
-        } catch {
-            // Fallback to plain text
-            await MainActor.run {
-                var fallbackText = AttributedString(code)
-                fallbackText.font = .system(size: fontSize, design: .monospaced)
-                fallbackText.foregroundColor = Color(red: 0.9, green: 0.9, blue: 0.9)
-                self.highlightedText = fallbackText
-                self.isHighlighting = false
-            }
+        let result = await SyntaxHighlighter.shared.highlight(code, colorScheme: colorScheme)
+        
+        // Cache the result
+        highlightCache[code] = result
+        
+        // Limit cache size
+        if highlightCache.count > 50 {
+            let firstKey = highlightCache.keys.first!
+            highlightCache.removeValue(forKey: firstKey)
+        }
+        
+        await MainActor.run {
+            self.highlightedText = result
+            self.isHighlighting = false
         }
     }
     
