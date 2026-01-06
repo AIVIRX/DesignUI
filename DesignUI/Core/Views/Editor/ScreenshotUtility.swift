@@ -16,12 +16,9 @@ import UIKit
 class ScreenshotUtility {
     static let shared = ScreenshotUtility()
     
-    // Thumbnail size for preview (optimized for performance)
-    private let thumbnailSize = CGSize(width: 400, height: 300)
-    
     private init() {}
     
-    /// Captures a screenshot of a SwiftUI view and returns optimized thumbnail data
+    /// Captures a screenshot of a SwiftUI view at true size, only compresses as JPEG
     @MainActor
     func captureThumbnail<Content: View>(
         of view: Content,
@@ -42,18 +39,15 @@ class ScreenshotUtility {
             return nil
         }
         
-        // Resize to thumbnail
-        let resizedImage = resizeImage(nsImage, to: thumbnailSize)
-        
-        // Convert to optimized JPEG
-        guard let tiffData = resizedImage.tiffRepresentation,
+        // Convert to JPEG (no resizing - true size)
+        guard let tiffData = nsImage.tiffRepresentation,
               let bitmapImage = NSBitmapImageRep(data: tiffData),
               let jpegData = bitmapImage.representation(using: .jpeg, properties: [.compressionFactor: 0.7]) else {
             print("❌ Failed to convert screenshot to JPEG")
             return nil
         }
         
-        print("✅ Screenshot captured: \(jpegData.count) bytes")
+        print("✅ Screenshot captured: \(jpegData.count) bytes, size: \(nsImage.size)")
         return jpegData
         #else
         guard let uiImage = renderer.uiImage else {
@@ -61,41 +55,15 @@ class ScreenshotUtility {
             return nil
         }
         
-        // Resize to thumbnail
-        let resizedImage = resizeImage(uiImage, to: thumbnailSize)
-        
-        // Convert to optimized JPEG
-        guard let jpegData = resizedImage.jpegData(compressionQuality: 0.7) else {
+        // Convert to JPEG (no resizing - true size)
+        guard let jpegData = uiImage.jpegData(compressionQuality: 0.7) else {
             print("❌ Failed to convert screenshot to JPEG")
             return nil
         }
         
-        print("✅ Screenshot captured: \(jpegData.count) bytes")
+        print("✅ Screenshot captured: \(jpegData.count) bytes, size: \(uiImage.size)")
         return jpegData
         #endif
     }
-    
-    #if os(macOS)
-    private func resizeImage(_ image: NSImage, to size: CGSize) -> NSImage {
-        let resizedImage = NSImage(size: size)
-        resizedImage.lockFocus()
-        
-        image.draw(
-            in: NSRect(origin: .zero, size: size),
-            from: NSRect(origin: .zero, size: image.size),
-            operation: .sourceOver,
-            fraction: 1.0
-        )
-        
-        resizedImage.unlockFocus()
-        return resizedImage
-    }
-    #else
-    private func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: size))
-        }
-    }
-    #endif
 }
+

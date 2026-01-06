@@ -3332,6 +3332,9 @@
     "Background Color" : {
 
     },
+    "Be the first to share!" : {
+
+    },
     "Bio" : {
       "localizations" : {
         "ar" : {
@@ -3598,6 +3601,9 @@
 
     },
     "Bottom Trailing" : {
+
+    },
+    "by %@" : {
 
     },
     "Cancel" : {
@@ -4871,6 +4877,9 @@
         }
       }
     },
+    "Community" : {
+
+    },
     "Complete Your Profile" : {
       "localizations" : {
         "ar" : {
@@ -5879,6 +5888,9 @@
           }
         }
       }
+    },
+    "Copy Design" : {
+
     },
     "Copy JSON" : {
 
@@ -8693,6 +8705,9 @@
     "Export" : {
 
     },
+    "Failed to load" : {
+
+    },
     "Features" : {
       "localizations" : {
         "ar" : {
@@ -10497,9 +10512,6 @@
     "Location" : {
 
     },
-    "Mac" : {
-
-    },
     "Mask Type" : {
 
     },
@@ -10507,6 +10519,7 @@
 
     },
     "More Apps" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11261,6 +11274,9 @@
           }
         }
       }
+    },
+    "No community designs yet" : {
+
     },
     "No Component Selected" : {
 
@@ -13301,6 +13317,9 @@
         }
       }
     },
+    "Preview" : {
+
+    },
     "Privacy Policy" : {
       "localizations" : {
         "ar" : {
@@ -14073,6 +14092,9 @@
 
     },
     "Resizable" : {
+
+    },
+    "Retry" : {
 
     },
     "Save" : {
@@ -16852,6 +16874,9 @@
         }
       }
     },
+    "Share to Community" : {
+
+    },
     "Show in Finder" : {
 
     },
@@ -18124,6 +18149,7 @@
 
     },
     "Stock Profit Calculator 2025" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -22182,6 +22208,9 @@
           }
         }
       }
+    },
+    "You must be signed in to share designs to the community." : {
+
     },
     "You need to be signed in to like a design." : {
       "localizations" : {

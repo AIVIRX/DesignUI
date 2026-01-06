@@ -58,19 +58,19 @@ struct ContentView: View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
                 StatefulTabView(selectedIndex: $selectedIndex){
-                    Tab(systemImageName: "magnifyingglass") {
+                    Tab(title: "Explore", systemImageName: "house.fill") {
                         ExploreView()
                     }
                     
-                    Tab(systemImageName: "slider.horizontal.below.rectangle") {
+                    Tab(title: "Studio", systemImageName: "folder.fill.badge.plus") {
                         DesignBrowserView()
                     }
                     
-                    Tab(systemImageName: "newspaper") {
+                    Tab(title: "News", systemImageName: "newspaper.fill") {
                         NewsListView()
                     }
                     
-                    Tab(systemImageName: "person.crop.circle") {
+                    Tab(title: "Profile", systemImageName: "person.fill") {
                         ProfileContainerView()
                             .environmentObject(authViewModel)
                     }

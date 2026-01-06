@@ -306,28 +306,6 @@ struct SettingsView: View {
                     .foregroundColor(.primary)
                 }
                 
-                // Other Apps Section
-                Section("More Apps") {
-                    Button {
-                        if let url = URL(string: "https://apps.apple.com/us/app/stock-profit-calculator-2025/id6479931561") {
-                            UIApplication.shared.open(url)
-                        }
-                    } label: {
-                        HStack {
-                            Image("stockscalc")
-                                .resizable()
-                                .frame(width: 30, height:30)
-                                .cornerRadius(5)
-                            Text("Stock Profit Calculator 2025")
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                    .foregroundColor(.primary)
-                }
-                
                 // App Section
                 Section("App") {
                     Button {
@@ -337,19 +315,15 @@ struct SettingsView: View {
                     } label: {
                         HStack(spacing: 12) {
                             ZStack {
-                                Circle()
-                                    .fill(Color.yellow.opacity(0.15))
-                                    .frame(width: 36, height: 36)
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.indigo)
+                                    .frame(width: 30, height: 30)
                                 Image(systemName: "star.fill")
                                     .foregroundColor(.yellow)
                                     .font(.system(size: 16))
                             }
                             Text("Rate App")
                                 .font(.body)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
@@ -360,19 +334,15 @@ struct SettingsView: View {
                     Button(action: { showShareSheet = true }) {
                         HStack(spacing: 12) {
                             ZStack {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.15))
-                                    .frame(width: 36, height: 36)
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.blue)
+                                    .frame(width: 30, height: 30)
                                 Image(systemName: "square.and.arrow.up")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.white)
                                     .font(.system(size: 16))
                             }
                             Text("Share App")
                                 .font(.body)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())

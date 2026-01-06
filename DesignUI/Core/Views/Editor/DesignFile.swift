@@ -733,6 +733,42 @@ class DesignManager: ObservableObject {
         return designFile
     }
     
+    /// Create a new design from a community design JSON
+    func createDesignFromCommunity(name: String, jsonString: String, devicePreset: String?, colorScheme: String?) -> DesignFile? {
+        // Decode components from JSON
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            print("❌ Failed to convert JSON string to data")
+            return nil
+        }
+        
+        let decoder = JSONDecoder()
+        guard let components = try? decoder.decode([UIComponent].self, from: jsonData) else {
+            print("❌ Failed to decode community design components")
+            return nil
+        }
+        
+        // Generate unique file name
+        let uniqueFileName = generateUniqueFileName(baseName: name)
+        let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
+        let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
+        
+        // Deep copy all components
+        let copiedComponents = deepCopyComponents(components)
+        
+        // Create new design file with copied components
+        let designFile = DesignFile(name: displayName, components: copiedComponents, fileURL: fileURL)
+        
+        // Set device preset and color scheme from community design
+        designFile.selectedDevicePreset = devicePreset
+        designFile.canvasColorScheme = colorScheme
+        
+        designFile.save()
+        designFiles.insert(designFile, at: 0)
+        
+        print("✅ Created design from community: \(displayName)")
+        return designFile
+    }
+    
     private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {
         // Use native clone method for efficient deep copying
         // This avoids the overhead of JSON encoding/decoding
@@ -758,6 +794,24 @@ class DesignManager: ObservableObject {
         // Store the initial state for change detection
         lastSavedComponents = designFile.components
         hasUnsavedChanges = false
+    }
+    
+    /// Opens a design file from a URL (for document-based file opening)
+    func openDesignFromURL(_ url: URL) {
+        // Check if already loaded
+        if let existing = designFiles.first(where: { $0.fileURL == url }) {
+            openDesign(existing)
+            return
+        }
+        
+        // Load and open
+        if let designFile = DesignFile.load(from: url) {
+            designFiles.append(designFile)
+            openDesign(designFile)
+            print("📂 Opened design from URL: \(url.lastPathComponent)")
+        } else {
+            print("❌ Failed to load design from URL: \(url)")
+        }
     }
     
     func closeCurrentDesign() {

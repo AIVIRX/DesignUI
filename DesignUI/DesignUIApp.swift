@@ -84,6 +84,11 @@ struct DesignUIApp: App {
                 .onAppear {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
                 }
+                .onOpenURL { url in
+                    if url.pathExtension == "dockui" {
+                        designManager.openDesignFromURL(url)
+                    }
+                }
         }
     }
 }
@@ -138,6 +143,11 @@ struct DesignUIApp: App {
                 .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
+                .onOpenURL { url in
+                    if url.pathExtension == "dockui" {
+                        designManager.openDesignFromURL(url)
+                    }
+                }
         }
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)

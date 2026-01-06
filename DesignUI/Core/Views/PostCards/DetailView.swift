@@ -4,18 +4,10 @@ import SDWebImageSwiftUI
 
 struct DetailWebImage: View {
     let url: String
-    let width: CGFloat
-    let height: CGFloat
-    let cornerRadius: CGFloat
-    let shadowRadius: CGFloat
     let isComponent: Bool
     
-    init(url: String, width: CGFloat, height: CGFloat, cornerRadius: CGFloat = 10, shadowRadius: CGFloat = 4, isComponent: Bool) {
+    init(url: String, isComponent: Bool) {
         self.url = url
-        self.width = width
-        self.height = height
-        self.cornerRadius = cornerRadius
-        self.shadowRadius = shadowRadius
         self.isComponent = isComponent
     }
     
@@ -23,12 +15,13 @@ struct DetailWebImage: View {
         WebImage(url: URL(string: url)) { image in
             if !isComponent{
                 image
+                    .renderingMode(.original)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: width, height: height)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .aspectRatio(contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
-                    .shadow(radius: shadowRadius)
+                    .padding()
             } else {
                 image
                     .resizable()
@@ -36,11 +29,11 @@ struct DetailWebImage: View {
                     .frame(maxWidth: .infinity)
                     .clipped()
                     .cornerRadius(15)
-                    .shadow(radius: shadowRadius)
+                    .shadow(radius: 4)
             }
         } placeholder: {
             ProgressView()
-                .frame(width: width, height: height)
+                .frame(width: 30, height: 30)
         }
         .indicator(.activity)
         .transition(.fade(duration: 0.3))
@@ -66,29 +59,6 @@ struct DetailView: View {
     @State private var authorProfile: Profile?
     @State private var isLoadingProfile = false
     private let supabase = SupabaseManager.shared.client
-    private var imageDimensions: (width: CGFloat, height: CGFloat, cornerRadius: CGFloat) {
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return (width: 115, height: 250, cornerRadius: 20)
-        } else {
-            return (width: 257, height: 557, cornerRadius: 20)
-        }
-#else
-        return (width: 180, height: 390, cornerRadius: 20)
-#endif
-    }
-    
-    private var containerDimensions: (width: CGFloat, height: CGFloat) {
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return (width: .infinity, height: 280)
-        } else {
-            return (width: 300, height: 600)
-        }
-#else
-        return (width: 300, height: 600)
-#endif
-    }
     
     var body: some View {
         ScrollView {
@@ -97,10 +67,6 @@ struct DetailView: View {
                     if isComponent {
                         DetailWebImage(
                             url: mediaURL,
-                            width: imageDimensions.width,
-                            height: imageDimensions.height,
-                            cornerRadius: imageDimensions.cornerRadius,
-                            shadowRadius: 10,
                             isComponent: isComponent
                         )
                     } else {
@@ -108,17 +74,13 @@ struct DetailView: View {
                             .fill(Color.gray.opacity(0.2))
                             .frame(maxWidth: .infinity)
 #if os(iOS)
-                            .frame(height: 350)
+                            .frame(height: 300)
 #else
                             .frame(height: 450)
 #endif
                             .overlay(
                                 DetailWebImage(
                                     url: mediaURL,
-                                    width: imageDimensions.width,
-                                    height: imageDimensions.height,
-                                    cornerRadius: imageDimensions.cornerRadius,
-                                    shadowRadius: 10,
                                     isComponent: isComponent
                                 )
                             )
@@ -219,4 +181,3 @@ struct DetailView: View {
         }
     }
 }
-

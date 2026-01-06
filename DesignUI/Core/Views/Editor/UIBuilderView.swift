@@ -46,15 +46,9 @@ enum DevicePreset: String, CaseIterable, Identifiable {
     case iphone13Pro = "iPhone 13 Pro"
     case iphone13ProMax = "iPhone 13 Pro Max"
     
-    // iPhone SE
-    case iphoneSE3 = "iPhone SE (3rd gen)"
-    
     // iPad Series
     case ipadPro11 = "iPad Pro 11" 
     case ipadPro12 = "iPad Pro 12.9"
-    
-    // Mac Canvas
-    case mac = "Mac Canvas"
     
     // iOS Widgets
     case widgetSmall = "Widget Small"
@@ -68,7 +62,6 @@ enum DevicePreset: String, CaseIterable, Identifiable {
     enum Category: String {
         case iphone = "iPhone"
         case ipad = "iPad"
-        case mac = "Mac"
         case widget = "Widgets"
     }
     
@@ -77,13 +70,10 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         case .iphone17ProMax, .iphone16, .iphone16Plus, .iphone16Pro, .iphone16ProMax,
              .iphone15Pro, .iphone15ProMax, .iphone15, .iphone15Plus,
              .iphone14, .iphone14Pro, .iphone14ProMax,
-             .iphone13Mini, .iphone13, .iphone13Pro, .iphone13ProMax,
-             .iphoneSE3:
+             .iphone13Mini, .iphone13, .iphone13Pro, .iphone13ProMax:
             return .iphone
         case .ipadPro11, .ipadPro12:
             return .ipad
-        case .mac:
-            return .mac
         case .widgetSmall, .widgetMedium, .widgetLarge, .widgetExtraLarge:
             return .widget
         }
@@ -96,10 +86,6 @@ enum DevicePreset: String, CaseIterable, Identifiable {
     
     static var ipads: [DevicePreset] {
         allCases.filter { $0.category == .ipad }
-    }
-    
-    static var macs: [DevicePreset] {
-        allCases.filter { $0.category == .mac }
     }
     
     static var widgets: [DevicePreset] {
@@ -135,15 +121,9 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         case .iphone13Pro: return CGSize(width: 390, height: 844) // 6.1" display
         case .iphone13ProMax: return CGSize(width: 428, height: 926) // 6.7" display
         
-        // iPhone SE (3rd gen) - Based on actual viewport dimensions
-        case .iphoneSE3: return CGSize(width: 320, height: 568) // 4.7" display
-        
-        // iPad Series - Based on actual viewport dimensions
-        case .ipadPro11: return CGSize(width: 834, height: 1194) // 11" display
-        case .ipadPro12: return CGSize(width: 1024, height: 1366) // 12.9" display
-        
-        // Mac Canvas
-        case .mac: return CGSize(width: 1280, height: 800)
+        // iPad Series - Landscape orientation
+        case .ipadPro11: return CGSize(width: 1194, height: 834) // 11" display
+        case .ipadPro12: return CGSize(width: 1366, height: 1024) // 12.9" display
         
         // iOS Widgets - Based on iPhone 14/15 Pro sizes (393pt width)
         case .widgetSmall: return CGSize(width: 170, height: 170)
@@ -153,7 +133,6 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         }
     }
 }
-
 
 struct UIBuilderView: View {
     @ObservedObject var designFile: DesignFile
@@ -177,11 +156,11 @@ struct UIBuilderView: View {
     @State private var showPropertiesInPanel = false // For NavigationStack inside panel
     @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
+    @State private var showShareSheet = false
     
     // Screenshot capture debouncing
     @State private var lastScreenshotTime: Date = Date.distantPast
     private let screenshotDebounceInterval: TimeInterval = 0.5 // Minimum 0.5 seconds between screenshots
-    
     
     var body: some View {
         NavigationStack {
@@ -241,6 +220,14 @@ struct UIBuilderView: View {
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
+        .sheet(isPresented: $showShareSheet) {
+            ShareDesignView(
+                designFile: designFile,
+                canvasManager: canvasManager,
+                selectedDevice: selectedDevice,
+                colorScheme: colorScheme
+            )
+        }
 #if os(iOS)
         .sheet(isPresented: $showLayersSheet) {
             editorPanelSheet
@@ -265,9 +252,11 @@ struct UIBuilderView: View {
             // Auto-hide status bar for widgets, show for others
             if newDevice.category == .widget {
                 designFile.statusBarVisible = false
+                canvasManager.statusBarComponent?.isVisible = false
                 NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
             } else {
                 designFile.statusBarVisible = true
+                canvasManager.statusBarComponent?.isVisible = true
                 NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
             }
         }
@@ -332,7 +321,7 @@ struct UIBuilderView: View {
             // Device picker
             Menu {
                 Section("iPhone") {
-                    ForEach(DevicePreset.iphones.filter { $0 != .iphoneSE3 }) { preset in
+                    ForEach(DevicePreset.iphones) { preset in
                         Button(preset.rawValue) {
                             selectedDevice = preset
                         }
@@ -345,8 +334,15 @@ struct UIBuilderView: View {
                         }
                     }
                 }
+                Section("Widgets") {
+                    ForEach(DevicePreset.widgets) { preset in
+                        Button(preset.rawValue) {
+                            selectedDevice = preset
+                        }
+                    }
+                }
             } label: {
-                Image(systemName: selectedDevice.category == .ipad ? "ipad" : "iphone")
+                Image(systemName: deviceIcon)
             }
             
             // Color scheme toggle
@@ -503,6 +499,10 @@ struct UIBuilderView: View {
         .presentationDetents([.fraction(0.5), .fraction(0.75), .large])
         .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.75)))
         .presentationDragIndicator(.visible)
+        .presentationBackground {
+            // Match macOS panel background
+            Color(uiColor: UIColor.systemBackground)
+        }
     }
     
     private var propertiesPanelContent: some View {
@@ -553,17 +553,6 @@ struct UIBuilderView: View {
                     // iPads section
                     Section("iPad") {
                         ForEach(DevicePreset.ipads) { preset in
-                            Button(preset.rawValue) {
-                                selectedDevice = preset
-                            }
-                        }
-                    }
-                    
-                    Divider()
-                    
-                    // Mac section
-                    Section("Mac") {
-                        ForEach(DevicePreset.macs) { preset in
                             Button(preset.rawValue) {
                                 selectedDevice = preset
                             }
@@ -659,6 +648,12 @@ struct UIBuilderView: View {
                     
                     Button(action: { copyDesignAsJSON() }) {
                         Label("Copy JSON", systemImage: "doc.on.doc")
+                    }
+                    
+                    Divider()
+                    
+                    Button(action: { showShareSheet = true }) {
+                        Label("Share to Community", systemImage: "person.3.fill")
                     }
                 } label: {
                     Image(systemName: "square.and.arrow.up")
@@ -853,8 +848,6 @@ struct UIBuilderView: View {
             return "iphone"
         case .ipad:
             return "ipad"
-        case .mac:
-            return "desktopcomputer"
         case .widget:
             return "rectangle.grid.1x2"
         }

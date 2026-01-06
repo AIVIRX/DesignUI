@@ -581,7 +581,7 @@ private struct OutlineRow: View {
                 .frame(width: 24, height: 24)
                 .contentShape(Rectangle())
             } else {
-                Spacer().frame(width: 24)
+                Spacer().frame(width: 24, height: 24)
             }
         }
     }
@@ -613,7 +613,7 @@ private struct OutlineRow: View {
     
     private var componentName: some View {
         Text(componentDisplayName(component))
-            .font(.system(size: 13, weight: (level == 0 || canAcceptChildren(component)) ? .semibold : .medium))
+            .font(.system(size: 13, weight: .semibold))
             .foregroundColor(componentNameColor)
             .lineLimit(1)
     }
@@ -903,7 +903,7 @@ private struct OverlayFolderRow: View {
                 }
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.vertical, 5)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.orange.opacity(0.1))
@@ -912,8 +912,8 @@ private struct OverlayFolderRow: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.orange.opacity(0.3), lineWidth: 1)
             )
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
             .onHover { isHovered = $0 }
             
             // Overlay children
