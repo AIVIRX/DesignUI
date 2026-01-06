@@ -22,6 +22,7 @@ struct ContentView: View {
     @EnvironmentObject private var toastManager: ToastManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
+    @EnvironmentObject private var designManager: DesignManager
     @State private var hoveredItem: MenuItem?
     @StateObject private var authViewModel = AuthViewModel()
     let client = SupabaseManager.shared.client
@@ -84,13 +85,16 @@ struct ContentView: View {
                     
                     navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                     
+                    // Studio Link
+                    navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "folder.fill.badge.plus", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
+                    
                     navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
+                    
+                    Divider().padding(.vertical).opacity(0.5)
                                         
                     // SF Symbols Link
                     navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
                     
-                    // Studio Link
-                    navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "slider.horizontal.below.rectangle", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
                     
                     Divider().padding(.vertical).opacity(0.5)
                     
@@ -168,10 +172,10 @@ struct ContentView: View {
                 
                 navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
                 
-                navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
-                
                 // Studio Link
-                navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "slider.horizontal.below.rectangle", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
+                navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "folder.fill.badge.plus", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
+                
+                navigationLinkButton(viewType: .news, label: "News", systemImage: "newspaper", menuItem: .news, selectedIndex: $selectedIndex, currentIndex: 1)
                 
                 Divider().padding(.vertical).opacity(0.5)
                                 
@@ -254,6 +258,20 @@ struct ContentView: View {
                     subscriptionManager.checkSubscriptionStatus()
                 }
         }
+#if os(macOS)
+        // Handle file opens from Finder - show editor directly when currentDesign is set
+        // Only show when NOT in Studio tab (selectedIndex != 5), as DesignBrowserView handles its own navigation
+        .sheet(isPresented: Binding(
+            get: { designManager.currentDesign != nil && selectedIndex != 5 },
+            set: { if !$0 { designManager.closeCurrentDesign() } }
+        )) {
+            if let currentDesign = designManager.currentDesign {
+                EditorLoadingView(designFile: currentDesign)
+                    .environmentObject(designManager)
+                    .frame(minWidth: 1000, minHeight: 600)
+            }
+        }
+#endif
     }
     
     private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, menuItem: MenuItem, selectedIndex: Binding<Int>, currentIndex: Int) -> some View {

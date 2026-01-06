@@ -149,6 +149,8 @@ struct DesignUIApp: App {
                     }
                 }
         }
+        // Prevent creating new windows when opening files - route to existing window
+        .handlesExternalEvents(matching: Set(arrayLiteral: "*"))
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)
         .defaultSize(width: 1200, height: 800)
