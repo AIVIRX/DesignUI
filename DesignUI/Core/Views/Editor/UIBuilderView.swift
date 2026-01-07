@@ -386,6 +386,19 @@ struct UIBuilderView: View {
             canvasView
         }
         .animation(.spring(), value: canvasManager.selectedComponentIds.count)
+        .onReceive(NotificationCenter.default.publisher(for: .imageDownloadsCompleted)) { notification in
+            // When images are downloaded, refresh the thumbnail
+            if let design = notification.object as? DesignFile,
+               design === designFile { // Check it's the current design
+                print("🖼️ Images downloaded, refreshing thumbnail for \(design.name)")
+                // Capture screenshot to update thumbnail with actual images
+                captureScreenshot()
+                // Save to persist the thumbnail (wait shortly for capture)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    designManager.saveCurrentDesign()
+                }
+            }
+        }
     }
     
     private var canvasView: some View {
@@ -814,9 +827,7 @@ struct UIBuilderView: View {
         
         // Update last capture time
         lastScreenshotTime = now
-        
-        // Capture screenshot asynchronously to avoid blocking UI
-        
+                
         // Capture screenshot asynchronously to avoid blocking UI
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             let screenshotView = CanvasScreenshotView(
@@ -862,9 +873,10 @@ struct ComponentView: View {
     let colorScheme: ColorScheme?
     let selectedComponentIds: Set<UUID>
     let onSelectChild: ((UIComponent, Bool) -> Void)?
+    let canvasManager: CanvasManager
     @State private var isHovered: Bool = false
     
-    init(component: UIComponent, isSelected: Bool, onSelect: @escaping (Bool) -> Void, selectedDevice: DevicePreset, colorScheme: ColorScheme?, selectedComponentIds: Set<UUID>, onSelectChild: ((UIComponent, Bool) -> Void)? = nil) {
+    init(component: UIComponent, isSelected: Bool, onSelect: @escaping (Bool) -> Void, selectedDevice: DevicePreset, colorScheme: ColorScheme?, selectedComponentIds: Set<UUID>, onSelectChild: ((UIComponent, Bool) -> Void)? = nil, canvasManager: CanvasManager) {
         self.component = component
         self.isSelected = isSelected
         self.onSelect = onSelect
@@ -872,10 +884,11 @@ struct ComponentView: View {
         self.colorScheme = colorScheme
         self.selectedComponentIds = selectedComponentIds
         self.onSelectChild = onSelectChild
+        self.canvasManager = canvasManager
     }
     
     var body: some View {
-        ComponentRenderer(component: component, deviceSize: selectedDevice.size, colorScheme: colorScheme, onTap: onSelect, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+        ComponentRenderer(component: component, deviceSize: selectedDevice.size, colorScheme: colorScheme, onTap: onSelect, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
             .overlay(
                 // Selection and hover overlays
                 Group {

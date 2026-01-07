@@ -11,20 +11,24 @@ struct ComponentRenderer: View {
     @ObservedObject var component: UIComponent
     let deviceSize: CGSize?
     let colorScheme: ColorScheme?
-    let onTap: ((Bool) -> Void)?  // Bool indicates if Cmd/additive selection
-    let onSelectChild: ((UIComponent, Bool) -> Void)?  // Bool indicates if Cmd/additive selection
+    let onTap: ((Bool) -> Void)?
+    let onSelectChild: ((UIComponent, Bool) -> Void)?
     let selectedComponentIds: Set<UUID>
+    // Optional CanvasManager for scroll frame reporting
+    var canvasManager: CanvasManager? = nil
+    
     @State private var isHovered: Bool = false
     @State private var forceRefresh: Int = 0
     @State private var hasAppliedModifiers: Bool = false
     
-    init(component: UIComponent, deviceSize: CGSize? = nil, colorScheme: ColorScheme? = nil, onTap: ((Bool) -> Void)? = nil, onSelectChild: ((UIComponent, Bool) -> Void)? = nil, selectedComponentIds: Set<UUID> = []) {
+    init(component: UIComponent, deviceSize: CGSize? = nil, colorScheme: ColorScheme? = nil, onTap: ((Bool) -> Void)? = nil, onSelectChild: ((UIComponent, Bool) -> Void)? = nil, selectedComponentIds: Set<UUID> = [], canvasManager: CanvasManager? = nil) {
         self.component = component
         self.deviceSize = deviceSize
         self.colorScheme = colorScheme
         self.onTap = onTap
         self.onSelectChild = onSelectChild
         self.selectedComponentIds = selectedComponentIds
+        self.canvasManager = canvasManager
     }
     
     var body: some View {
@@ -64,8 +68,6 @@ struct ComponentRenderer: View {
                 renderToggle()
             case .slider:
                 renderSlider()
-            case .lazyVGrid:
-                renderLazyVGrid()
             default:
                 renderPlaceholder()
             }
@@ -141,19 +143,42 @@ struct ComponentRenderer: View {
         let resizable = component.getProperty(key: "resizable") as? Bool ?? true
         let aspectRatio = component.getProperty(key: "aspectRatio") as? String ?? "fit"
         
-        // Check if custom image data exists
+        // Check for image name (could be URL or local filename)
+        var imageName = component.getProperty(key: "imageName") as? String ?? ""
+        
+        // Fallback: check if imageData contains a filename (for old components without imageName property)
+        if imageName.isEmpty {
+            let imageData = component.getProperty(key: "imageData") as? String ?? ""
+            // If imageData looks like a filename (has file extension), use it
+            if !imageData.isEmpty && (imageData.hasSuffix(".jpg") || imageData.hasSuffix(".jpeg") || imageData.hasSuffix(".png") || imageData.hasSuffix(".gif") || imageData.hasSuffix(".heic")) {
+                imageName = imageData
+                print("🔄 Using imageData as filename: '\(imageName)'")
+            }
+        }
+        
+        print("🖼️ ComponentRenderer.renderImage() called")
+        print("🖼️ imageName: '\(imageName)'")
+        print("🖼️ resizable: \(resizable), aspectRatio: \(aspectRatio)")
+        
+        // Priority 0: Check Local Gallery first
+        if !imageName.isEmpty {
+             print("🖼️ Creating ImageComponentView for: '\(imageName)'")
+             return AnyView(ImageComponentView(
+                imageName: imageName,
+                resizable: resizable,
+                aspectRatio: aspectRatio,
+                deviceSize: deviceSize
+             ))
+        }
+        
+        // Priority 1: Check if base64 image data exists (local images legacy / pasted)
         if let imageDataString = component.getProperty(key: "imageData") as? String,
            !imageDataString.isEmpty {
-            print("🖼️ Found imageData string, length: \(imageDataString.count)")
             // Try to decode base64 image data with options to handle invalid data gracefully
             if let imageData = Data(base64Encoded: imageDataString, options: .ignoreUnknownCharacters),
                !imageData.isEmpty {
-                print("🖼️ Decoded image data, size: \(imageData.count) bytes")
-                
                 // Create image from validated data
                 if let image = createImage(from: imageData) {
-                    print("✅ Successfully created image from data")
-                    
                     // Use custom image - constrain size to device bounds to prevent canvas expansion
                     let maxWidth = deviceSize?.width ?? 1000
                     let maxHeight = deviceSize?.height ?? 1000
@@ -176,7 +201,6 @@ struct ComponentRenderer: View {
                             view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
                         }
                     } else if aspectRatio != "none" {
-                        // Fallback to contentMode if we don't have image dimensions
                         switch aspectRatio {
                         case "fit":
                             view = AnyView(view.aspectRatio(contentMode: .fit))
@@ -204,7 +228,6 @@ struct ComponentRenderer: View {
                             view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
                         }
                     } else if aspectRatio != "none" {
-                        // Fallback to contentMode if we don't have image dimensions
                         switch aspectRatio {
                         case "fit":
                             view = AnyView(view.aspectRatio(contentMode: .fit))
@@ -217,26 +240,28 @@ struct ComponentRenderer: View {
                     #endif
                     
                     view = AnyView(view.frame(maxWidth: maxWidth, maxHeight: maxHeight))
-                    return AnyView(view)
-                } else {
-                    print("⚠️ Failed to create image from data")
                 }
-            } else {
-                print("⚠️ Failed to decode base64 string to Data")
             }
-        } else {
-            print("ℹ️ No imageData found, using system image")
         }
         
-        // Fallback to placeholder system image when no imageData
-        // Use a reasonable default size to prevent filling the entire container
+        // Fallback to placeholder
         let defaultSize: CGFloat = 100
-        let view: some View = Image(systemName: "photo")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: defaultSize, height: defaultSize)
-            .foregroundColor(.secondary)
-        return AnyView(view)
+        
+        let placeholderView = ZStack {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.15))
+            VStack(spacing: 4) {
+                Image(systemName: "photo.badge.plus")
+                    .font(.system(size: 24))
+                    .foregroundColor(.secondary)
+                Text("Select Image")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(width: defaultSize, height: defaultSize)
+        
+        return AnyView(placeholderView)
     }
     
     #if os(macOS)
@@ -304,7 +329,7 @@ struct ComponentRenderer: View {
                     ForEach(component.children, id: \.id) { child in
                         ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                             onSelectChild?(child, additive)
-                        }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+                        }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                     }
                 }
                     .buttonStyle(PlainButtonStyle())
@@ -352,7 +377,7 @@ struct ComponentRenderer: View {
                 ForEach(component.children, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
-                    }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+                    }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                 }
             }
         }
@@ -371,7 +396,7 @@ struct ComponentRenderer: View {
                 ForEach(component.children, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
-                    }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+                    }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                 }
             }
         }
@@ -391,7 +416,7 @@ struct ComponentRenderer: View {
                 ForEach(component.children, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
-                    }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+                    }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                 }
             }
         }
@@ -438,13 +463,13 @@ struct ComponentRenderer: View {
     private func renderRoundedRectangle() -> some View {
         let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
-        let defaultCornerRadius: CGFloat = 12
+        let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
         
         if stroke != Color.clear {
-            return AnyView(RoundedRectangle(cornerRadius: defaultCornerRadius)
+            return AnyView(RoundedRectangle(cornerRadius: cornerRadius)
                 .stroke(stroke, lineWidth: lineWidth))
         } else {
-            return AnyView(RoundedRectangle(cornerRadius: defaultCornerRadius))
+            return AnyView(RoundedRectangle(cornerRadius: cornerRadius))
         }
     }
     
@@ -490,7 +515,7 @@ struct ComponentRenderer: View {
                             ForEach(children, id: \.id) { child in
                                 ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                                     onSelectChild?(child, additive)
-                                }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+                                }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                             }
                         }
                     }
@@ -502,12 +527,31 @@ struct ComponentRenderer: View {
                             ForEach(children, id: \.id) { child in
                                 ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                                     onSelectChild?(child, additive)
-                                }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+                                }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                             }
                         }
                     }
                 }
             }
+            #if os(macOS)
+            .background(GeometryReader { geo -> Color in
+                DispatchQueue.main.async {
+                    if let manager = self.canvasManager {
+                        let frame = geo.frame(in: .global)
+                        // Update only if changed to avoid loop
+                        if manager.activeScrollableRects[component.id] != frame {
+                            manager.activeScrollableRects[component.id] = frame
+                        }
+                    }
+                }
+                return Color.clear
+            })
+            .onDisappear {
+                DispatchQueue.main.async {
+                    self.canvasManager?.activeScrollableRects.removeValue(forKey: component.id)
+                }
+            }
+            #endif
         )
     }
     
@@ -570,9 +614,9 @@ struct ComponentRenderer: View {
         )
         
         // iOS-style switch without label (just the toggle control)
-        return Toggle("", isOn: binding)
-            .labelsHidden()
-            .toggleStyle(.switch)
+        // Use pure SwiftUI custom switch for consistent appearance and screenshot support
+        return CustomSwitchView(isOn: binding)
+            .padding(4)
     }
     
     // MARK: - Slider Renderer
@@ -588,35 +632,10 @@ struct ComponentRenderer: View {
             }
         )
         
-        return Slider(value: binding, in: min...max)
+        return CustomSliderView(value: binding, range: min...max)
             .padding(.horizontal)
     }
-    
-    // MARK: - LazyVGrid Renderer
-    private func renderLazyVGrid() -> some View {
-        let columnsCount = component.getProperty(key: "columns") as? Int ?? 2
-        let spacing = component.getProperty(key: "spacing") as? Double ?? 10.0
-        
-        let columns = Array(repeating: GridItem(.flexible(), spacing: spacing), count: max(1, columnsCount))
-        
-        return LazyVGrid(columns: columns, spacing: spacing) {
-            if component.children.isEmpty {
-                // Show empty state so user can see the grid exists
-                ForEach(0..<4) { _ in
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.gray.opacity(0.1))
-                        .frame(height: 100)
-                        .overlay(Text("Item").font(.caption).foregroundColor(.secondary))
-                }
-            } else {
-                ForEach(component.children, id: \.id) { child in
-                    ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                        onSelectChild?(child, additive)
-                    }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
-                }
-            }
-        }
-    }
+
     
     // MARK: - Placeholder Renderer
     private func renderPlaceholder() -> some View {
@@ -1113,4 +1132,132 @@ fileprivate func createIOSFont(for fontSize: String, weight: Font.Weight, device
     
     return .system(size: size, weight: weight)
 }
+
+// MARK: - Image Component View
+// Encapsulates AsyncImage to provide stable identity and avoid AnyView overhead
+struct ImageComponentView: View {
+    let imageName: String
+    let resizable: Bool
+    let aspectRatio: String
+    let deviceSize: CGSize?
+    
+    var body: some View {
+        if !imageName.isEmpty, let fileURL = ImageGalleryManager.shared.getImageUrl(filename: imageName) {
+            // Load image synchronously since it's a local file
+            #if os(macOS)
+            if let nsImage = NSImage(contentsOf: fileURL) {
+                let imageView = Image(nsImage: nsImage)
+                let modifiedImage = resizable ? imageView.resizable() : imageView
+                
+                if aspectRatio == "fit" {
+                    modifiedImage.aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                } else if aspectRatio == "fill" {
+                    modifiedImage.aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                } else {
+                    modifiedImage
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                }
+            } else {
+                ZStack {
+                    Color.gray.opacity(0.1)
+                    Image(systemName: "photo").foregroundColor(.secondary)
+                }
+            }
+            #else
+            if let uiImage = UIImage(contentsOfFile: fileURL.path) {
+                let imageView = Image(uiImage: uiImage)
+                let modifiedImage = resizable ? imageView.resizable() : imageView
+                
+                if aspectRatio == "fit" {
+                    modifiedImage.aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                } else if aspectRatio == "fill" {
+                    modifiedImage.aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                } else {
+                    modifiedImage
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                }
+            } else {
+                ZStack {
+                    Color.gray.opacity(0.1)
+                    Image(systemName: "photo").foregroundColor(.secondary)
+                }
+            }
+            #endif
+        } else {
+            EmptyView()
+        }
+    }
+}
+
+// MARK: - Custom Views for Consistent Rendering
+fileprivate struct CustomSwitchView: View {
+    @Binding var isOn: Bool
+    
+    var body: some View {
+        Capsule()
+            .fill(isOn ? Color.green : Color.gray.opacity(0.5))
+            .frame(width: 51, height: 31)
+            .overlay(
+                Circle()
+                    .fill(Color.white)
+                    .padding(2)
+                    .offset(x: isOn ? 10 : -10)
+            )
+            .animation(.spring(response: 0.3), value: isOn)
+            .onTapGesture {
+                withAnimation {
+                    isOn.toggle()
+                }
+            }
+    }
+}
+
+fileprivate struct CustomSliderView: View {
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            // Avoid division by zero
+            let denominator = range.upperBound - range.lowerBound
+            let percentage = denominator == 0 ? 0 : (value - range.lowerBound) / denominator
+            let thumbX = width * CGFloat(percentage)
+            
+            ZStack(alignment: .leading) {
+                // Track Background
+                Capsule()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 4)
+                
+                // Active Track
+                Capsule()
+                    .fill(Color.blue)
+                    .frame(width: thumbX, height: 4)
+                
+                // Thumb
+                Circle()
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
+                    .frame(width: 20, height: 20)
+                    .offset(x: thumbX - 10)
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { gestureValue in
+                                let x = gestureValue.location.x
+                                let newPercentage = min(max(x / width, 0), 1)
+                                self.value = range.lowerBound + (newPercentage * (range.upperBound - range.lowerBound))
+                            }
+                    )
+            }
+            .frame(height: 30, alignment: .center)
+        }
+        .frame(height: 30)
+    }
+}
+
 

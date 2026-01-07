@@ -43,10 +43,24 @@ struct SimilarPostsView: View {
         
         Task {
             do {
+                // Generate a random offset (0-20) to vary which posts we pull from
+                // This gives variety while still being fast (single query, no complex logic)
+                let randomOffset = Int.random(in: 0...20)
+                
+                // Fetch more posts than we need, then randomly sample
+                // This is fast because we're just shifting the window into recent posts
                 let response: [DesignPost] = try await client
                     .from("posts")
                     .select("""
-                    *,
+                    id,
+                    slug,
+                    preview_image_url,
+                    title,
+                    created_at,
+                    isPremium,
+                    post_type,
+                    status,
+                    public,
                     profiles!posts_author_id_fkey (
                       username,
                       verified
@@ -56,12 +70,13 @@ struct SimilarPostsView: View {
                     .eq("post_type", value: "fullscreen")
                     .neq("id", value: currentPostId)
                     .order("created_at", ascending: false)
-                    .limit(4)
+                    .range(from: randomOffset, to: randomOffset + 11) // Fetch 12 posts from random offset
                     .execute()
                     .value
                 
                 await MainActor.run {
-                    self.similarPosts = response
+                    // Shuffle and take first 4 for randomness
+                    self.similarPosts = Array(response.shuffled().prefix(4))
                 }
             } catch {
                 // Only log non-cancelled errors

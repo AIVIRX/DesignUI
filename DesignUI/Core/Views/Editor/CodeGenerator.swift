@@ -20,6 +20,8 @@ struct CodeGenerator {
     }
     
     static func generateCode(for component: UIComponent) -> String {
+        // Reset counters at the start of each new code generation
+        imageCounter = 0
         return generateCode(for: component, indentLevel: 0)
     }
     
@@ -63,8 +65,7 @@ struct CodeGenerator {
             baseCode = generateToggleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .slider:
             baseCode = generateSliderCode(component: component, indent: indent, nextIndent: nextIndent)
-        case .lazyVGrid:
-            baseCode = generateLazyVGridCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
+
         default:
             return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
         }
@@ -82,6 +83,14 @@ struct CodeGenerator {
     }
     
     // MARK: - Image Code Generation
+    /// Static counter for generating unique image placeholder names
+    private static var imageCounter = 0
+    
+    /// Reset the image counter (call at start of code generation)
+    static func resetImageCounter() {
+        imageCounter = 0
+    }
+    
     private static func generateImageCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let imageDataString = component.getProperty(key: "imageData") as? String ?? ""
         let imageName = component.getProperty(key: "imageName") as? String ?? ""
@@ -89,18 +98,16 @@ struct CodeGenerator {
         let aspectRatio = component.getProperty(key: "aspectRatio") as? String ?? "fit"
         
         var code: String
-        if !imageName.isEmpty {
-            // Use filename if available
-            code = "\(indent)Image(\"\(imageName)\")"
-        } else if !imageDataString.isEmpty {
-            // Generate code to load image from base64 data
-            #if os(macOS)
-            code = "\(indent)(Data(base64Encoded: \"\(imageDataString)\")).flatMap { NSImage(data: $0) }.map { Image(nsImage: $0) } ?? Image(systemName: \"photo\")"
-            #else
-            code = "\(indent)(Data(base64Encoded: \"\(imageDataString)\")).flatMap { UIImage(data: $0) }.map { Image(uiImage: $0) } ?? Image(systemName: \"photo\")"
-            #endif
+        
+        // Generate a clean placeholder name for generated code
+        imageCounter += 1
+        let placeholderName = "image\(imageCounter)"
+        
+        if !imageDataString.isEmpty || !imageName.isEmpty {
+            // Has an image - generate code with clean placeholder name
+            code = "\(indent)Image(\"\(placeholderName)\")"
         } else {
-            // Fallback to placeholder
+            // Fallback to system placeholder
             code = "\(indent)Image(systemName: \"photo\")"
         }
         
@@ -253,7 +260,8 @@ struct CodeGenerator {
     }
     
     private static func generateRoundedRectangleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        return "\(indent)RoundedRectangle(cornerRadius: 12)"
+        let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
+        return "\(indent)RoundedRectangle(cornerRadius: \(formatNumber(cornerRadius)))"
     }
     
     private static func generateCapsuleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
@@ -320,29 +328,7 @@ struct CodeGenerator {
         return "\(indent)Slider(value: .constant(\(value)), in: \(min)...\(max))"
     }
     
-    // MARK: - LazyVGrid Code Generation
-    private static func generateLazyVGridCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
-        let columnsCount = component.getProperty(key: "columns") as? Int ?? 2
-        let spacing = component.getProperty(key: "spacing") as? Double ?? 10.0
-        
-        let columnsCode = "Array(repeating: GridItem(.flexible(), spacing: \(spacing)), count: \(columnsCount))"
-        
-        var code = "\(indent)LazyVGrid(columns: \(columnsCode), spacing: \(spacing)) {"
-        
-        if component.children.isEmpty {
-            code += "\n\(nextIndent)// Add components here"
-        } else {
-            for (index, child) in component.children.enumerated() {
-                code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
-                if index < component.children.count - 1 {
-                    code += "\n"
-                }
-            }
-        }
-        
-        code += "\n\(indent)}"
-        return code
-    }
+
     
     // MARK: - Modifier Code Generation
     private static func applyModifiersToCode(baseCode: String, modifiers: [ComponentModifier], component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {

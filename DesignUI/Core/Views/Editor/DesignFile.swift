@@ -7,6 +7,18 @@
 
 import SwiftUI
 import Foundation
+#if os(macOS)
+import AppKit
+public typealias PlatformImage = NSImage
+#else
+import UIKit
+public typealias PlatformImage = UIImage
+#endif
+
+// MARK: - Notifications
+extension Notification.Name {
+    static let imageDownloadsCompleted = Notification.Name("imageDownloadsCompleted")
+}
 
 // MARK: - Design File Model
 class DesignFile: ObservableObject, Identifiable {
@@ -766,7 +778,73 @@ class DesignManager: ObservableObject {
         designFiles.insert(designFile, at: 0)
         
         print("✅ Created design from community: \(displayName)")
+        
+        // Download URL images asynchronously and convert to base64 imageData
+        Task {
+            await downloadImagesForComponents(copiedComponents, designFile: designFile)
+        }
+        
         return designFile
+    }
+    
+    /// Download images from URLs and store as base64 imageData for local rendering
+    private func downloadImagesForComponents(_ components: [UIComponent], designFile: DesignFile) async {
+        print("⬇️ Starting image downloads for \(designFile.name)...")
+        
+        await withTaskGroup(of: Void.self) { group in
+            // Flatten component tree to find all image components
+            var imageComponents: [UIComponent] = []
+            
+            func collectImageComponents(_ comps: [UIComponent]) {
+                for comp in comps {
+                    if comp.type == .image {
+                        imageComponents.append(comp)
+                    }
+                    collectImageComponents(comp.children)
+                }
+            }
+            collectImageComponents(components)
+            
+            print("⬇️ Found \(imageComponents.count) image components to check")
+            
+            for component in imageComponents {
+                group.addTask {
+                    if let imageName = component.getProperty(key: "imageName") as? String,
+                       !imageName.isEmpty,
+                       imageName.hasPrefix("http"),
+                       let imageURL = URL(string: imageName) {
+                        
+                        // Check if we already have a local copy logic?
+                        // For now, if it's a URL, we download it.
+                        
+                        do {
+                            let (data, _) = try await URLSession.shared.data(from: imageURL)
+                            
+                            // Save to Local Gallery
+                            if let filename = ImageGalleryManager.shared.saveImage(data: data, originalFilename: imageURL.lastPathComponent) {
+                                await MainActor.run {
+                                    // Update component to point to local file
+                                    component.setProperty(key: "imageName", value: filename)
+                                    // Clear legacy imageData if present to save space
+                                    component.setProperty(key: "imageData", value: "")
+                                    print("✅ Saved to gallery: \(filename)")
+                                }
+                            }
+                        } catch {
+                            print("⚠️ Failed to download image from URL: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Save once after all downloads complete
+        await MainActor.run {
+            designFile.save()
+            print("✅ All image downloads complete for \(designFile.name)")
+            // Notify observers (like UIBuilderView) to refresh thumbnails
+            NotificationCenter.default.post(name: .imageDownloadsCompleted, object: designFile)
+        }
     }
     
     private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {
@@ -1087,4 +1165,136 @@ class DesignManager: ObservableObject {
         }
     }
     
+}
+
+// MARK: - Local Image Gallery Manager
+
+class ImageGalleryManager: ObservableObject {
+    static let shared = ImageGalleryManager()
+    
+    private let fileManager = FileManager.default
+    private let galleryFolderName = "DesignImages"
+    
+    private var imagesDirectory: URL? {
+        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+        return documentsURL.appendingPathComponent(galleryFolderName)
+    }
+    
+    init() {
+        createGalleryDirectoryIfNeeded()
+    }
+    
+    private func createGalleryDirectoryIfNeeded() {
+        guard let imagesDirectory = imagesDirectory else { return }
+        
+        if !fileManager.fileExists(atPath: imagesDirectory.path) {
+            do {
+                try fileManager.createDirectory(at: imagesDirectory, withIntermediateDirectories: true, attributes: nil)
+                print("✅ ImageGalleryManager: Created gallery directory at \(imagesDirectory.path)")
+            } catch {
+                print("❌ ImageGalleryManager: Failed to create gallery directory: \(error)")
+            }
+        }
+    }
+    
+    // MARK: - Save
+    
+    /// Save image data to gallery and return the filename
+    /// - Parameters:
+    ///   - data: Image data
+    ///   - originalFilename: Optional original filename to preserve extension or name (if clean)
+    /// - Returns: The filename stored in the gallery
+    func saveImage(data: Data, originalFilename: String? = nil) -> String? {
+        guard let imagesDirectory = imagesDirectory else { return nil }
+        
+        // Generate filename
+        let ext = (originalFilename as NSString?)?.pathExtension ?? "jpg"
+        let fileExtension = ext.isEmpty ? "jpg" : ext
+        
+        // Use UUID to prevent collisions
+        let filename = "\(UUID().uuidString).\(fileExtension)"
+        let fileURL = imagesDirectory.appendingPathComponent(filename)
+        
+        do {
+            try data.write(to: fileURL)
+            print("✅ ImageGalleryManager: Saved image \(filename)")
+            return filename
+        } catch {
+            print("❌ ImageGalleryManager: Failed to save image: \(error)")
+            return nil
+        }
+    }
+    
+    // MARK: - Load
+    
+    func loadImage(filename: String) -> PlatformImage? {
+        guard let imagesDirectory = imagesDirectory else { return nil }
+        let fileURL = imagesDirectory.appendingPathComponent(filename)
+        
+        // Ensure file exists
+        guard fileManager.fileExists(atPath: fileURL.path) else { return nil }
+        
+        if let data = try? Data(contentsOf: fileURL) {
+            #if os(macOS)
+            return NSImage(data: data)
+            #else
+            return UIImage(data: data)
+            #endif
+        }
+        return nil
+    }
+    
+    func getImageUrl(filename: String) -> URL? {
+        guard let imagesDirectory = imagesDirectory else { return nil }
+        return imagesDirectory.appendingPathComponent(filename)
+    }
+    
+    func imageExists(filename: String) -> Bool {
+        guard let imagesDirectory = imagesDirectory else { return false }
+        let fileURL = imagesDirectory.appendingPathComponent(filename)
+        return fileManager.fileExists(atPath: fileURL.path)
+    }
+    
+    // MARK: - List
+    
+    /// Get all image filenames in the gallery, sorted by creation date (newest first)
+    func getAllImageFilenames() -> [String] {
+        guard let imagesDirectory = imagesDirectory else { return [] }
+        
+        do {
+            let fileURLs = try fileManager.contentsOfDirectory(at: imagesDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)
+            
+            // Filter only images (basic extension check)
+            let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
+            let imageFiles = fileURLs.filter { url in
+                imageExtensions.contains(url.pathExtension.lowercased())
+            }
+            
+            // Sort by creation date descending
+            let sortedFiles = imageFiles.sorted { url1, url2 in
+                let date1 = (try? url1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                let date2 = (try? url2.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                return date1 > date2
+            }
+            
+            return sortedFiles.map { $0.lastPathComponent }
+        } catch {
+            print("❌ ImageGalleryManager: Failed to list images: \(error)")
+            return []
+        }
+    }
+    
+    // MARK: - Delete
+    
+    func deleteImage(filename: String) {
+        guard let imagesDirectory = imagesDirectory else { return }
+        let fileURL = imagesDirectory.appendingPathComponent(filename)
+        
+        if fileManager.fileExists(atPath: fileURL.path) {
+            try? fileManager.removeItem(at: fileURL)
+            print("🗑️ ImageGalleryManager: Deleted \(filename)")
+        }
+    }
 }

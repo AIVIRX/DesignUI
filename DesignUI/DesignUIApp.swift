@@ -9,6 +9,7 @@ import SwiftUI
 import Supabase
 import RevenueCat
 import SDWebImage
+
 #if os(iOS)
 import AppTrackingTransparency
 import GoogleMobileAds
@@ -58,19 +59,15 @@ struct DesignUIApp: App {
         PaywallManager.shared.isPresenting = false
         
         // Configure SDWebImage cache limits to prevent memory issues
-        // Limit memory cache to 30MB (default is unlimited)
-        SDImageCache.shared.config.maxMemoryCost = 30 * 1024 * 1024 // 30MB
-        // Limit memory cache to 50 images max
-        SDImageCache.shared.config.maxMemoryCount = 50
+        // Limit memory cache to 15MB for lower memory footprint
+        SDImageCache.shared.config.maxMemoryCost = 15 * 1024 * 1024 // 15MB
+        // Limit memory cache to 30 images max (keeps recent images, evicts old ones)
+        SDImageCache.shared.config.maxMemoryCount = 30
         // Enable auto-cleanup when memory warning
         SDImageCache.shared.config.shouldUseWeakMemoryCache = true
         // Set disk cache limit to 200MB
         SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 7 // 7 days
         SDImageCache.shared.config.maxDiskSize = 200 * 1024 * 1024 // 200MB
-        
-        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
-            SDImageCache.shared.clearMemory()
-        }
     }
     var body: some Scene {
         WindowGroup {
@@ -116,19 +113,15 @@ struct DesignUIApp: App {
         PaywallManager.shared.isPresenting = false
         
         // Configure SDWebImage cache limits to prevent memory issues
-        // Limit memory cache to 30MB (default is unlimited)
-        SDImageCache.shared.config.maxMemoryCost = 30 * 1024 * 1024 // 30MB
-        // Limit memory cache to 50 images max
-        SDImageCache.shared.config.maxMemoryCount = 50
+        // Limit memory cache to 15MB for lower memory footprint
+        SDImageCache.shared.config.maxMemoryCost = 15 * 1024 * 1024 // 15MB
+        // Limit memory cache to 30 images max (keeps recent images, evicts old ones)
+        SDImageCache.shared.config.maxMemoryCount = 30
         // Enable auto-cleanup when memory warning
         SDImageCache.shared.config.shouldUseWeakMemoryCache = true
         // Set disk cache limit to 200MB
         SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 7 // 7 days
         SDImageCache.shared.config.maxDiskSize = 200 * 1024 * 1024 // 200MB
-        
-        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
-            SDImageCache.shared.clearMemory()
-        }
     }
 
     

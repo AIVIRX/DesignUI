@@ -26,6 +26,7 @@ struct CanvasView: View {
     
     // Track if mouse is hovering over canvas (macOS)
     @State private var isCanvasHovered: Bool = false
+    @State private var isHoveringScrollable: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -83,10 +84,20 @@ struct CanvasView: View {
             .onHover { hovering in
                 isCanvasHovered = hovering
             }
+            .onPreferenceChange(ScrollableHoverPreferenceKey.self) { isHovering in
+                isHoveringScrollable = isHovering
+            }
             // macOS: Cmd/Option + scroll for zooming, normal scroll for panning
             .background(
                 CanvasScrollHandler(
                     isEnabled: isCanvasHovered,
+                    shouldPan: { screenPoint in
+                        // Check if the point is inside any active scrollable rect
+                        // If it IS inside, we should NOT pan (return false)
+                        return !canvasManager.activeScrollableRects.values.contains { rect in
+                            rect.contains(screenPoint)
+                        }
+                    },
                     onPan: { deltaX, deltaY in
                         currentOffset = CGSize(
                             width: currentOffset.width + deltaX,
@@ -331,7 +342,8 @@ struct ComponentsContainerWithStatusBar: View {
                         if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
                             canvasManager.selectComponent(foundComponent, additive: additive)
                         }
-                    }
+                    },
+                    canvasManager: canvasManager
                 )
                 .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
                 .transition(.asymmetric(
@@ -404,7 +416,8 @@ struct ComponentsContainerWithoutStatusBar: View {
                         if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
                             canvasManager.selectComponent(foundComponent, additive: additive)
                         }
-                    }
+                    },
+                    canvasManager: canvasManager
                 )
                 .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
                 .transition(.asymmetric(
@@ -478,6 +491,7 @@ struct StatusBarContainerView: View {
 /// NSViewRepresentable for trackpad scroll (pan) and Cmd+scroll (zoom)
 struct CanvasScrollHandler: NSViewRepresentable {
     let isEnabled: Bool
+    var shouldPan: ((CGPoint) -> Bool)? = nil
     let onPan: (CGFloat, CGFloat) -> Void
     let onZoom: (CGFloat, CGPoint) -> Void
     
@@ -485,6 +499,7 @@ struct CanvasScrollHandler: NSViewRepresentable {
         let view = CanvasScrollNSView()
         view.onPan = onPan
         view.onZoom = onZoom
+        view.shouldPan = shouldPan
         view.isEnabled = isEnabled
         return view
     }
@@ -492,6 +507,7 @@ struct CanvasScrollHandler: NSViewRepresentable {
     func updateNSView(_ nsView: CanvasScrollNSView, context: Context) {
         nsView.onPan = onPan
         nsView.onZoom = onZoom
+        nsView.shouldPan = shouldPan
         nsView.isEnabled = isEnabled
     }
 }
@@ -500,6 +516,7 @@ struct CanvasScrollHandler: NSViewRepresentable {
 class CanvasScrollNSView: NSView {
     var onPan: ((CGFloat, CGFloat) -> Void)?
     var onZoom: ((CGFloat, CGPoint) -> Void)?
+    var shouldPan: ((CGPoint) -> Bool)?
     var isEnabled: Bool = false
     
     private var scrollMonitor: Any?
@@ -531,6 +548,14 @@ class CanvasScrollNSView: NSView {
                 self.onZoom?(delta, locationInView)
                 return nil // Consume event
             } else {
+                // Check if we should pan at this location
+                if let shouldPan = self.shouldPan, let window = self.window {
+                    let screenRect = window.convertToScreen(NSRect(origin: event.locationInWindow, size: .zero))
+                    if !shouldPan(screenRect.origin) {
+                        return event // Don't consume, let view handle it
+                    }
+                }
+                
                 // Pan with normal two-finger scroll
                 self.onPan?(event.scrollingDeltaX, event.scrollingDeltaY)
                 return nil // Consume event
@@ -554,6 +579,13 @@ class CanvasScrollNSView: NSView {
         if let monitor = magnifyMonitor {
             NSEvent.removeMonitor(monitor)
         }
+    }
+}
+
+struct ScrollableHoverPreferenceKey: PreferenceKey {
+    static var defaultValue: Bool = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
     }
 }
 #endif

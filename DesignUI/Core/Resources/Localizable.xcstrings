@@ -266,6 +266,9 @@
     "%lld components" : {
 
     },
+    "%lld Selected" : {
+
+    },
     "%lld/15" : {
       "localizations" : {
         "ar" : {
@@ -8964,10 +8967,16 @@
     "Font Weight" : {
 
     },
+    "From Photos" : {
+
+    },
     "Full Height" : {
 
     },
     "Full Width" : {
+
+    },
+    "Gallery" : {
 
     },
     "Generated Code" : {
@@ -9242,9 +9251,6 @@
 
     },
     "Is Visible" : {
-
-    },
-    "Item" : {
 
     },
     "John Doe" : {
@@ -10007,6 +10013,9 @@
 
     },
     "Likes" : {
+
+    },
+    "Loading code..." : {
 
     },
     "Loading posts..." : {
@@ -15362,7 +15371,13 @@
         }
       }
     },
+    "Select File" : {
+
+    },
     "Select Image" : {
+
+    },
+    "Select Items" : {
 
     },
     "Select SF Symbol" : {
@@ -19412,6 +19427,9 @@
 
     },
     "Tap to open" : {
+
+    },
+    "Tap to select image" : {
 
     },
     "Tap to Select Image" : {

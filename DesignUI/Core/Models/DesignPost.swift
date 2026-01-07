@@ -11,8 +11,8 @@ struct DesignPost: Identifiable, Codable, Equatable {
     let slug: String
     let preview_image_url: String
     let title: String
-    let description: String
-    let code_snippet: String
+    var description: String = ""  // Optional - not loaded in feed, fetched in DetailView
+    var code_snippet: String = "" // Optional - not loaded in feed, fetched in DetailView
     let created_at: String
     let profiles: AuthorProfile
     let isPremium: Bool?
@@ -45,8 +45,9 @@ struct DesignPost: Identifiable, Codable, Equatable {
         slug = try container.decode(String.self, forKey: .slug)
         preview_image_url = try container.decode(String.self, forKey: .preview_image_url)
         title = try container.decode(String.self, forKey: .title)
-        description = try container.decode(String.self, forKey: .description)
-        code_snippet = try container.decode(String.self, forKey: .code_snippet)
+        // These are optional - not loaded in feed queries, fetched separately in DetailView
+        description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
+        code_snippet = try container.decodeIfPresent(String.self, forKey: .code_snippet) ?? ""
         created_at = try container.decode(String.self, forKey: .created_at)
         profiles = try container.decode(AuthorProfile.self, forKey: .profiles)
         // Support either camelCase (isPremium) or snake_case (is_premium)

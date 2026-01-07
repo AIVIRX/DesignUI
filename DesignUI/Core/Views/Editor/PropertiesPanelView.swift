@@ -25,6 +25,11 @@ struct PropertiesPanelView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
     
+    // Gallery Sheet State
+    @State private var showImageGallery = false
+    @State private var galleryImageName = ""
+    @State private var activeImagePropertyKey: String?
+    
     var body: some View {
         VStack(alignment: .leading) {
             // Properties content
@@ -32,7 +37,11 @@ struct PropertiesPanelView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         // Properties
-                        PropertiesSection(component: component)
+                        PropertiesSection(
+                            component: component,
+                            showGallery: $showImageGallery,
+                            activePropertyKey: $activeImagePropertyKey
+                        )
                                                 
                         // Modifiers and Actions - hide for status bar
                         if component.type != .statusBar {
@@ -42,6 +51,20 @@ struct PropertiesPanelView: View {
                             ComponentActionsSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
                         }
                     }.padding()
+                }
+                .sheet(isPresented: $showImageGallery, onDismiss: {
+                    // Update image property when gallery closes
+                    if !galleryImageName.isEmpty {
+                        updateImageProperty(with: galleryImageName)
+                    }
+                }) {
+                    ImageGalleryView(selectedImageName: $galleryImageName)
+                        .presentationDetents([.medium, .large])
+                }
+                .onChange(of: galleryImageName) { _, newName in
+                    if !newName.isEmpty {
+                        updateImageProperty(with: newName)
+                    }
                 }
             } else {
                 // No selection state
@@ -62,11 +85,36 @@ struct PropertiesPanelView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .frame(width: 300)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func updateImageProperty(with name: String) {
+        guard let component = selectedComponent else { return }
+        
+        if let key = activeImagePropertyKey {
+            // Update specific key
+            component.setProperty(key: key, value: name)
+            
+            // If main image, clear legacy data
+            if key == "imageName" {
+                component.setProperty(key: "imageData", value: "")
+            }
+        } else {
+            // Fallback to standard properties
+            component.setProperty(key: "imageName", value: name)
+            component.setProperty(key: "imageData", value: "")
+        }
+        
+        component.objectWillChange.send()
     }
 }
 
 struct PropertiesSection: View {
     @ObservedObject var component: UIComponent
+    @Binding var showGallery: Bool
+    @Binding var activePropertyKey: String?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -142,7 +190,7 @@ struct PropertiesSection: View {
                 if !filteredProperties.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(Array(filteredProperties.enumerated()), id: \.element.id) { index, property in
-                            PropertyEditor(property: property, component: component)
+                            PropertyEditor(property: property, component: component, showGallery: $showGallery, activePropertyKey: $activePropertyKey)
                             
                             // Add divider between properties if there are 2+ and not the last one
                             if filteredProperties.count >= 2 && index < filteredProperties.count - 1 {
@@ -171,6 +219,8 @@ struct PropertiesSection: View {
 struct PropertyEditor: View {
     var property: ComponentProperty
     @ObservedObject var component: UIComponent
+    @Binding var showGallery: Bool
+    @Binding var activePropertyKey: String?
     @State private var textValue: String = ""
     @State private var numberValue: Double = 0.0
     @State private var showSFSymbolPicker: Bool = false
@@ -196,7 +246,7 @@ struct PropertyEditor: View {
             case .string:
                 if property.key == "imageData" && component.type == .image {
                     // Image picker for custom images (only show this one for image components)
-                    ImagePickerEditor(property: property, component: component, useImageData: true)
+                    ImagePickerEditor(property: property, component: component, useImageData: true, showGallery: $showGallery, activePropertyKey: $activePropertyKey)
                 } else if property.key == "symbolName" {
                     // Special SF Symbol picker
                     HStack {
@@ -1131,7 +1181,12 @@ struct SFSymbolPickerView: View {
 struct ImagePickerEditor: View {
     var property: ComponentProperty
     @ObservedObject var component: UIComponent
-    var useImageData: Bool = false // If true, sets imageData property instead of the current property
+    var useImageData: Bool = false
+    
+    // Bindings to parent view state for gallery sheet
+    @Binding var showGallery: Bool
+    @Binding var activePropertyKey: String?
+    
     @State private var selectedImage: Data?
     #if os(iOS)
     @State private var selectedItem: PhotosPickerItem?
@@ -1151,11 +1206,12 @@ struct ImagePickerEditor: View {
                 imagePreviewView(imageDataKey: imageDataKey)
             }
             #else
-            // macOS: Use tappable view that opens NSOpenPanel
+            // macOS: Tappable view that opens gallery
             imagePreviewView(imageDataKey: imageDataKey)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    openImagePicker()
+                    activePropertyKey = property.key
+                    showGallery = true
                 }
             #endif
         }
@@ -1217,9 +1273,112 @@ struct ImagePickerEditor: View {
     @ViewBuilder
     private func imagePreviewView(imageDataKey: String) -> some View {
         let imageDataString = component.getProperty(key: imageDataKey) as? String ?? ""
+        let baseImageName = component.getProperty(key: "imageName") as? String ?? ""
         
         ZStack {
-            if !imageDataString.isEmpty,
+            // Priority 1: Gallery filename from imageName property
+            if !baseImageName.isEmpty,
+               let fileURL = ImageGalleryManager.shared.getImageUrl(filename: baseImageName),
+               FileManager.default.fileExists(atPath: fileURL.path) {
+                AsyncImage(url: fileURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: .infinity, maxHeight: 150)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    case .empty:
+                        ProgressView()
+                    case .failure:
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(maxWidth: .infinity, maxHeight: 150)
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.secondary)
+                                Text("Tap to select image")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    @unknown default:
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(maxWidth: .infinity, maxHeight: 150)
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.secondary)
+                                Text("Tap to select image")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                .id(baseImageName)
+            }
+            // Priority 2: Gallery filename from imageData property (old components)
+            else if baseImageName.isEmpty && !imageDataString.isEmpty,
+                    (imageDataString.hasSuffix(".jpg") || imageDataString.hasSuffix(".jpeg") || imageDataString.hasSuffix(".png") || imageDataString.hasSuffix(".gif") || imageDataString.hasSuffix(".heic")),
+                    let fileURL = ImageGalleryManager.shared.getImageUrl(filename: imageDataString),
+                    FileManager.default.fileExists(atPath: fileURL.path) {
+                AsyncImage(url: fileURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: .infinity, maxHeight: 150)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    case .empty:
+                        ProgressView()
+                    case .failure:
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(maxWidth: .infinity, maxHeight: 150)
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.secondary)
+                                Text("Tap to select image")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    @unknown default:
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(maxWidth: .infinity, maxHeight: 150)
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.secondary)
+                                Text("Tap to select image")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                .id(imageDataString)
+            }
+            // Priority 3: Base64 image data
+            else if !imageDataString.isEmpty,
                let imageData = Data(base64Encoded: imageDataString),
                let image = createImage(from: imageData) {
                 // Show preview of selected image

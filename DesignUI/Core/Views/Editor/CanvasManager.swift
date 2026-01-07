@@ -18,6 +18,9 @@ enum LayoutDistribution {
 
 class CanvasManager: ObservableObject {
     @Published var components: [UIComponent] = []
+    // Track frames of scrollable components to prevent canvas panning
+    @Published var activeScrollableRects: [UUID: CGRect] = [:]
+    
     @Published var selectedComponent: UIComponent? {
         didSet {
             // Ensure consistency with selectedComponentIds for external binding updates

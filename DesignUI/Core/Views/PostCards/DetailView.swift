@@ -45,9 +45,9 @@ struct DetailView: View {
     let slug: String
     let mediaURL: String
     let title: String
-    let description: String
+    var description: String = ""  // Optional - will be fetched if empty
     let author: String
-    let codeSnippet: String
+    var codeSnippet: String = "" // Optional - will be fetched if empty
     let creationDate: String
     let isAuthorVerified: Bool
     let isPremium: Bool
@@ -58,6 +58,9 @@ struct DetailView: View {
     @EnvironmentObject private var paywallManager: PaywallManager
     @State private var authorProfile: Profile?
     @State private var isLoadingProfile = false
+    @State private var loadedDescription: String?
+    @State private var loadedCodeSnippet: String?
+    @State private var isLoadingDetails = false
     private let supabase = SupabaseManager.shared.client
     
     var body: some View {
@@ -86,7 +89,7 @@ struct DetailView: View {
                             )
                     }
                     
-                    Text(description)
+                    Text(loadedDescription ?? description)
 #if os(iOS)
                         .font(.body)
 #else
@@ -98,11 +101,21 @@ struct DetailView: View {
                     
                     Divider()
                     
-                    LiveSyntaxHighlightedCode(
-                        code: codeSnippet,
-                        fontSize: 20,
-                        maxHeight: 300
-                    )
+                    // Show loading indicator or code snippet
+                    if isLoadingDetails {
+                        HStack {
+                            ProgressView()
+                            Text("Loading code...")
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 100)
+                    } else {
+                        LiveSyntaxHighlightedCode(
+                            code: loadedCodeSnippet ?? codeSnippet,
+                            fontSize: 20,
+                            maxHeight: 300
+                        )
+                    }
                     
                     SimilarPostsView(currentPostId: id)
                         .padding(.vertical)
@@ -112,6 +125,7 @@ struct DetailView: View {
                 .padding(.vertical, 40)
                 .task {
                     await fetchAuthorProfile()
+                    await fetchPostDetailsIfNeeded()
                 }
             }
             .frame(maxWidth: .infinity)
@@ -177,6 +191,30 @@ struct DetailView: View {
             print("Error fetching author profile: \(error.localizedDescription)")
             await MainActor.run {
                 self.isLoadingProfile = false
+            }
+        }
+    }
+    
+    private func fetchPostDetailsIfNeeded() async {
+        // Only fetch if code snippet is empty (not loaded in feed)
+        guard codeSnippet.isEmpty && loadedCodeSnippet == nil else { return }
+        
+        await MainActor.run {
+            isLoadingDetails = true
+        }
+        
+        do {
+            let fullPost = try await PostFetcher.fetchPostDetails(id: id)
+            
+            await MainActor.run {
+                loadedDescription = fullPost.description
+                loadedCodeSnippet = fullPost.code_snippet
+                isLoadingDetails = false
+            }
+        } catch {
+            print("Error fetching post details: \(error.localizedDescription)")
+            await MainActor.run {
+                isLoadingDetails = false
             }
         }
     }

@@ -58,6 +58,7 @@ struct ComponentAnyCodable: Codable {
 enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case text = "Text"
     case image = "Image"
+    case sfSymbol = "SF Symbol"
     case vstack = "VStack"
     case hstack = "HStack"
     case zstack = "ZStack"
@@ -69,12 +70,11 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case capsule = "Capsule"
     case ellipse = "Ellipse"
     case scrollView = "ScrollView"
-    case sfSymbol = "SF Symbol"
+
     case statusBar = "Status Bar"
     case textField = "Text Field"
     case toggle = "Switch"
     case slider = "Slider"
-    case lazyVGrid = "LazyVGrid"
     
     var id: String { rawValue }
     
@@ -98,7 +98,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .textField: return "text.cursor"
         case .toggle: return "switch.2"
         case .slider: return "slider.horizontal.3"
-        case .lazyVGrid: return "square.grid.2x2"
         }
     }
 }
@@ -417,8 +416,16 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     // MARK: - Property Management
     func setProperty(key: String, value: Any) {
+        print("🔑 setProperty called - key: '\(key)', value: '\(value)'")
+        
+        // Ensure UI updates happen on main thread
+        let updateUI = {
+            self.objectWillChange.send()
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+        
         if let index = properties.firstIndex(where: { $0.key == key }) {
-            let oldValue = properties[index].value
+            print("🔑 Found existing property at index \(index)")
             let property = properties[index]
             
             // For color properties, convert Color objects to strings to preserve semantic colors
@@ -426,19 +433,19 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             if property.type == .color, let color = value as? Color {
                 let colorString = ComponentProperty.colorToColorString(color)
                 finalValue = colorString
-                print("🎨 Converting color to string: \(colorString)")
             }
             
             properties[index].value = finalValue
-            objectWillChange.send()
+            print("🔑 Updated property '\(key)' to '\(finalValue)'")
             
-            print("🔄 Property changed: \(key) from '\(oldValue)' to '\(finalValue)'")
-            
-            // Post notification to trigger design file saving
-            NotificationCenter.default.post(name: .designChanged, object: nil)
+            if Thread.isMainThread {
+                updateUI()
+            } else {
+                DispatchQueue.main.async { updateUI() }
+            }
         } else {
+            print("🔑 Property '\(key)' doesn't exist, adding it")
             // Property doesn't exist, add it
-            print("⚠️ Property not found: \(key), adding it")
             
             // Determine property type - check if it's a color property by key name
             let propertyType: PropertyType = {
@@ -453,7 +460,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             if propertyType == .color, let color = value as? Color {
                 let colorString = ComponentProperty.colorToColorString(color)
                 finalValue = colorString
-                print("🎨 Converting color to string for new property: \(colorString)")
             }
             
             let newProperty = ComponentProperty(
@@ -464,12 +470,12 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                 defaultValue: finalValue
             )
             properties.append(newProperty)
-            objectWillChange.send()
             
-            print("✅ Property added: \(key) with value: \(finalValue)")
-            
-            // Post notification to trigger design file saving
-            NotificationCenter.default.post(name: .designChanged, object: nil)
+            if Thread.isMainThread {
+                updateUI()
+            } else {
+                DispatchQueue.main.async { updateUI() }
+            }
         }
     }
     
@@ -739,7 +745,8 @@ extension UIComponent {
             ]
         case .image:
             return [
-                ComponentProperty(key: "imageData", displayName: "Image", type: .string, value: "", defaultValue: ""),
+                ComponentProperty(key: "imageName", displayName: "Image Name", type: .string, value: "", defaultValue: ""),
+                ComponentProperty(key: "imageData", displayName: "Image Data", type: .string, value: "", defaultValue: ""),
                 ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true),
                 ComponentProperty(key: "aspectRatio", displayName: "Aspect Ratio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
             ]
@@ -757,8 +764,12 @@ extension UIComponent {
             return [
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"])
             ]
-        case .rectangle, .roundedRectangle, .circle, .capsule, .ellipse:
+        case .rectangle, .circle, .capsule, .ellipse:
             return []
+        case .roundedRectangle:
+            return [
+                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .number, value: 12.0, defaultValue: 12.0)
+            ]
         case .spacer:
             return []
         case .scrollView:
@@ -788,11 +799,6 @@ extension UIComponent {
                 ComponentProperty(key: "value", displayName: "Value", type: .number, value: 0.5, defaultValue: 0.5),
                 ComponentProperty(key: "min", displayName: "Minimum", type: .number, value: 0.0, defaultValue: 0.0),
                 ComponentProperty(key: "max", displayName: "Maximum", type: .number, value: 1.0, defaultValue: 1.0)
-            ]
-        case .lazyVGrid:
-            return [
-                ComponentProperty(key: "columns", displayName: "Columns", type: .number, value: 2, defaultValue: 2),
-                ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 10.0, defaultValue: 10.0)
             ]
         default:
             return []

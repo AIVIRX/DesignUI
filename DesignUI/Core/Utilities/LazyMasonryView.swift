@@ -29,7 +29,7 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
     @State private var itemColumnAssignments: [Item.ID: Int] = [:]
     
     // Limit height cache to prevent unbounded memory growth
-    private let maxHeightCacheSize = 200
+    private let maxHeightCacheSize = 50
     
     init(
         items: [Item],
@@ -138,6 +138,11 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                                 if itemColumnAssignments[item.id] == nil {
                                     updateColumnAssignments()
                                 }
+                            }
+                            .onDisappear {
+                                // Clear height cache when item scrolls off screen
+                                // This allows LazyVStack to properly release the view's memory
+                                itemHeights.removeValue(forKey: item.id)
                             }
                     }
                     

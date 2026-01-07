@@ -28,6 +28,23 @@ class LatestPostsViewModel: ObservableObject {
     private let maxItemsInMemory: Int = 150
     private let itemsToRemoveWhenFull: Int = 50
     
+    // Lightweight query for feed - excludes code_snippet and description to save memory
+    private let feedSelectQuery = """
+        id,
+        slug,
+        preview_image_url,
+        title,
+        created_at,
+        isPremium,
+        post_type,
+        status,
+        public,
+        profiles!posts_author_id_fkey (
+          username,
+          verified
+        )
+    """
+    
     @MainActor
     func loadMorePostsIfNeeded(currentItem item: DesignPost?) async {
         guard !isLoading, !isRefreshing, hasMorePosts else { return }
@@ -83,9 +100,11 @@ class LatestPostsViewModel: ObservableObject {
     
     @MainActor
     private func loadSearchResults(query: String, isInitialLoad: Bool) async {
-        guard !isLoading && (isInitialLoad || hasMorePosts) else { return }
+        // For initial search, allow interrupting current load
+        // For pagination, respect isLoading to prevent duplicate requests
+        guard isInitialLoad || (!isLoading && hasMorePosts) else { return }
         
-        // Cancel any existing task
+        // Cancel any existing task - search takes priority
         currentTask?.cancel()
         
         isLoading = true
@@ -95,13 +114,7 @@ class LatestPostsViewModel: ObservableObject {
             do {
                 var queryBuilder = client
                     .from("posts")
-                    .select("""
-                        *,
-                        profiles!posts_author_id_fkey (
-                          username,
-                          verified
-                        )
-                    """)
+                    .select(feedSelectQuery)
                     .eq("public", value: true)
                 
                 // Apply current filter if not in "all posts" mode
@@ -192,13 +205,7 @@ class LatestPostsViewModel: ObservableObject {
             do {
                 var query = client
                     .from("posts")
-                    .select("""
-                        *,
-                        profiles!posts_author_id_fkey (
-                          username,
-                          verified
-                        )
-                    """)
+                    .select(feedSelectQuery)
                     .eq("public", value: true)
                 
                 // Apply filter based on current mode
@@ -319,13 +326,7 @@ class LatestPostsViewModel: ObservableObject {
         do {
             var query = client
                 .from("posts")
-                .select("""
-                    *,
-                    profiles!posts_author_id_fkey (
-                      username,
-                      verified
-                    )
-                """)
+                .select(feedSelectQuery)
                 .eq("public", value: true)
             
             if isAllPosts {
@@ -420,5 +421,38 @@ class LatestPostsViewModel: ObservableObject {
         if hasMorePosts && !isLoading {
             await fetchPosts(postType: filterType ?? currentFilterType)
         }
+    }
+}
+
+// MARK: - Fetch Full Post Details
+/// Fetches complete post data including code_snippet and description
+/// Used by DetailView to lazy-load heavy content
+enum PostFetcher {
+    private static let client = SupabaseManager.shared.client
+    
+    static func fetchPostDetails(id: String) async throws -> DesignPost {
+        let response = try await client
+            .from("posts")
+            .select("""
+                id,
+                slug,
+                preview_image_url,
+                title,
+                description,
+                code_snippet,
+                created_at,
+                isPremium,
+                post_type,
+                status,
+                profiles!posts_author_id_fkey (
+                  username,
+                  verified
+                )
+            """)
+            .eq("id", value: id)
+            .single()
+            .execute()
+        
+        return try JSONDecoder().decode(DesignPost.self, from: response.data)
     }
 }

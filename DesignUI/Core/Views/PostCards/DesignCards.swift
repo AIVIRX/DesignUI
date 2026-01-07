@@ -63,6 +63,10 @@ struct DesignCards: View {
                 isLikedByUser = !result.isEmpty
             }
         } catch {
+            // Silently ignore cancelled requests (happens when card scrolls off screen)
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                return
+            }
             print("Error checking like status: \(error)")
         }
     }
@@ -83,9 +87,7 @@ struct DesignCards: View {
                     slug: slug,
                     mediaURL: media,
                     title: title,
-                    description: description,
                     author: authorName,
-                    codeSnippet: codeSnippet,
                     creationDate: published,
                     isAuthorVerified: isVerified,
                     isPremium: isPremium,
@@ -150,9 +152,7 @@ struct DesignCards: View {
                 slug: slug,
                 mediaURL: media,
                 title: title,
-                description: description,
                 author: authorName,
-                codeSnippet: codeSnippet,
                 creationDate: published,
                 isAuthorVerified: isVerified,
                 isPremium: isPremium,
