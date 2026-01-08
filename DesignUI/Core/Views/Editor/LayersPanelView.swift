@@ -179,6 +179,8 @@ struct LayersPanelView: View {
                         // Small delay to allow view hierarchy to settle, then smooth spring animation
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                             if !isUserInitiatedSelection {
+                                // Auto-expand parents so selected component is visible
+                                expandParentsOf(id)
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                     scrollProxy.scrollTo(id, anchor: .center)
                                 }
@@ -535,6 +537,87 @@ private struct OutlineRow: View {
                     Label("Duplicate", systemImage: "doc.on.doc")
                 }
                 
+                // Convert to submenu for containers
+                if component.type == .vstack || component.type == .hstack || component.type == .zstack || component.type == .scrollView {
+                    Menu {
+                        if component.type != .vstack {
+                            Button(action: {
+                                convertComponent(to: .vstack)
+                            }) {
+                                Label("VStack", systemImage: "square.split.1x2.fill")
+                            }
+                        }
+                        if component.type != .hstack {
+                            Button(action: {
+                                convertComponent(to: .hstack)
+                            }) {
+                                Label("HStack", systemImage: "square.split.2x1.fill")
+                            }
+                        }
+                        if component.type != .zstack {
+                            Button(action: {
+                                convertComponent(to: .zstack)
+                            }) {
+                                Label("ZStack", systemImage: "square.2.layers.3d.top.filled")
+                            }
+                        }
+                        if component.type != .scrollView {
+                            Button(action: {
+                                convertComponent(to: .scrollView)
+                            }) {
+                                Label("ScrollView", systemImage: "scroll")
+                            }
+                        }
+                    } label: {
+                        Label("Convert to", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                }
+                
+                // Convert to submenu for shapes
+                if component.type == .rectangle || component.type == .circle || component.type == .roundedRectangle || component.type == .capsule || component.type == .ellipse {
+                    Menu {
+                        if component.type != .rectangle {
+                            Button(action: {
+                                convertComponent(to: .rectangle)
+                            }) {
+                                Label("Rectangle", systemImage: "rectangle")
+                            }
+                        }
+                        if component.type != .circle {
+                            Button(action: {
+                                convertComponent(to: .circle)
+                            }) {
+                                Label("Circle", systemImage: "circle")
+                            }
+                        }
+                        if component.type != .roundedRectangle {
+                            Button(action: {
+                                convertComponent(to: .roundedRectangle)
+                            }) {
+                                Label("Rounded Rectangle", systemImage: "rectangle.ratio.4.to.3.fill")
+                            }
+                        }
+                        if component.type != .capsule {
+                            Button(action: {
+                                convertComponent(to: .capsule)
+                            }) {
+                                Label("Capsule", systemImage: "capsule")
+                            }
+                        }
+                        if component.type != .ellipse {
+                            Button(action: {
+                                convertComponent(to: .ellipse)
+                            }) {
+                                Label("Ellipse", systemImage: "oval")
+                            }
+                        }
+                    } label: {
+                        Label("Convert to", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                }
+                
+                Divider()
+                
                 Button(role: .destructive, action: {
                     onDelete()
                 }) {
@@ -715,6 +798,15 @@ private struct OutlineRow: View {
                 expanded.insert(component.id)
             }
         }
+    }
+    
+    private func convertComponent(to newType: ComponentType) {
+        // Create a new component with the new type but preserve children, modifiers, frame, etc.
+        // We need to use a method on UIComponent to change its type
+        component.convertType(to: newType)
+        
+        // Post notification to trigger design file saving
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
 }
 

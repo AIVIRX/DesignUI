@@ -6,6 +6,11 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct DesignBrowserView: View {
     @EnvironmentObject private var designManager: DesignManager
@@ -33,51 +38,50 @@ struct DesignBrowserView: View {
                             Text("My Designs")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                .padding(.horizontal)
-                
-                if designManager.designFiles.isEmpty {
-                    // Empty state
-                    VStack(spacing: 20) {
-                        Image(systemName: "doc.text")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        
-                        Text("No Designs Yet")
+                                .padding(.horizontal)
+                            
+                            if designManager.designFiles.isEmpty {
+                                // Empty state
+                                VStack(spacing: 20) {
+                                    Image(systemName: "doc.text")
+                                        .font(.system(size: 60))
+                                        .foregroundColor(.secondary)
+                                    
+                                    Text("No Designs Yet")
                                         .font(.title3)
-                            .fontWeight(.semibold)
-                        
-                        Text("Create your first design to get started")
-                            .foregroundColor(.secondary)
-                        
-                        Button("Create New Design") {
-                            showingNewDesignSheet = true
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
+                                        .fontWeight(.semibold)
+                                    
+                                    Text("Create your first design to get started")
+                                        .foregroundColor(.secondary)
+                                    
+                                    Button("Create New Design") {
+                                        showingNewDesignSheet = true
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                }
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 40)
-                } else {
+                            } else {
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     LazyHStack(spacing: 16) {
-                            ForEach(designManager.designFiles) { designFile in
-                                DesignCardView(
-                                    designFile: designFile,
-                                    onOpen: { designManager.openDesign(designFile) },
-                                    onDelete: { 
-                                        designToDelete = designFile
-                                        showingDeleteAlert = true
+                                        ForEach(designManager.designFiles) { designFile in
+                                            DesignCardView(
+                                                designFile: designFile,
+                                                onOpen: { designManager.openDesign(designFile) },
+                                                onDelete: {
+                                                    designToDelete = designFile
+                                                    showingDeleteAlert = true
                                                 },
                                                 onRename: {
                                                     designToRename = designFile
                                                     renameText = designFile.name
                                                     showingRenameSheet = true
+                                                }
+                                            )
+                                        }
                                     }
-                                )
-                            }
-                        }
                                     .padding(.horizontal)
-                    }
-                }
+                                }
+                            }
                         }
                         
                         Divider()
@@ -99,39 +103,6 @@ struct DesignBrowserView: View {
                                         let name = template.name
                                         let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
                                         designManager.openDesign(newDesign)
-                                    }
-                                }
-                            )
-                        }
-                        
-                        Divider()
-                            .padding(.horizontal)
-                        
-                        // Community Designs Section
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Community")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-                            
-                            CommunityDesignsGridView(
-                                onSelectDesign: { communityDesign in
-                                    // Check if user can create more designs
-                                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                                        showingPaywall = true
-                                    } else {
-                                        // Create local design from community design JSON
-                                        if let designJSON = communityDesign.design_json {
-                                            let newDesign = designManager.createDesignFromCommunity(
-                                                name: communityDesign.title,
-                                                jsonString: designJSON,
-                                                devicePreset: communityDesign.design_device_preset,
-                                                colorScheme: communityDesign.design_color_scheme
-                                            )
-                                            if let design = newDesign {
-                                                designManager.openDesign(design)
-                                            }
-                                        }
                                     }
                                 }
                             )
@@ -400,7 +371,6 @@ struct TemplatesGridView: View {
                             onSelectTemplate(template)
                         }
                     )
-                    .frame(width: 200)
                 }
             }
             .padding(.horizontal)
@@ -416,52 +386,57 @@ struct TemplateCardView: View {
     @State private var isHovered = false
     
     var body: some View {
-        VStack(spacing: 12) {
-            // Icon
-            Image(systemName: template.thumbnail)
-                .font(.system(size: 50))
-                .foregroundColor(.primary)
-                .frame(height: 120)
-                .frame(maxWidth: .infinity)
-                .background(Color.secondary.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(template.name)
-                    .font(.headline)
-                    .lineLimit(1)
-                
-                Text(template.description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-            }
-            
-            Spacer()
-            
-            Button("Use Template") {
-                onSelect()
-            }
-            .buttonStyle(.bordered)
-            .frame(maxWidth: .infinity)
-        }
-        .padding()
-        .background(
+        VStack(alignment: .leading, spacing: 8) {
+            // Template Preview
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondary.opacity(0.1))
+                .fill(Color.gray.opacity(0.2))
+                .frame(width: 300, height: 200)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isHovered ? Color.accentColor : Color.clear, lineWidth: 2)
+                    renderThumbnail()
                 )
-        )
+                .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
+                .scaleEffect(isHovered ? 1.02 : 1.0)
+            
+            // Name
+            Text(template.name)
+                .font(.headline)
+                .lineLimit(1)
+        }
+        .contentShape(Rectangle())
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.2)) {
+            withAnimation(.easeOut(duration: 0.2)) {
                 isHovered = hovering
             }
         }
         .onTapGesture {
             onSelect()
         }
+    }
+    
+    @ViewBuilder
+    private func renderThumbnail() -> some View {
+        if assetImageExists(named: template.thumbnail) {
+            Image(template.thumbnail)
+                .renderingMode(.original)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+                .padding()
+        } else {
+            Image(systemName: template.thumbnail)
+                .font(.system(size: 50))
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private func assetImageExists(named name: String) -> Bool {
+        #if os(macOS)
+        return NSImage(named: name) != nil
+        #else
+        return UIImage(named: name) != nil
+        #endif
     }
 }
 

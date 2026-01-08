@@ -81,11 +81,6 @@ struct DesignUIApp: App {
                 .onAppear {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
                 }
-                .onOpenURL { url in
-                    if url.pathExtension == "dockui" {
-                        designManager.openDesignFromURL(url)
-                    }
-                }
         }
     }
 }
@@ -126,7 +121,7 @@ struct DesignUIApp: App {
 
     
     var body: some Scene {
-        // Main app window - this opens by default
+        // Main app window
         WindowGroup {
             ContentView()
                 .environmentObject(colorSchemeManager)
@@ -136,19 +131,11 @@ struct DesignUIApp: App {
                 .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
-                .onOpenURL { url in
-                    if url.pathExtension == "dockui" {
-                        designManager.openDesignFromURL(url)
-                    }
-                }
         }
-        // Prevent creating new windows when opening files - route to existing window
-        .handlesExternalEvents(matching: Set(arrayLiteral: "*"))
         .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)
         .defaultSize(width: 1200, height: 800)
         .commands {
-            // Standard Edit menu (Cut, Copy, Paste, Select All, etc.)
             TextEditingCommands()
         }
     }

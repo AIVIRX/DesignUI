@@ -18,8 +18,8 @@ enum LayoutDistribution {
 
 class CanvasManager: ObservableObject {
     @Published var components: [UIComponent] = []
-    // Track frames of scrollable components to prevent canvas panning
-    @Published var activeScrollableRects: [UUID: CGRect] = [:]
+    // Simple flag to track if mouse is hovering over any scrollable component
+    @Published var isHoveringScrollable: Bool = false
     
     @Published var selectedComponent: UIComponent? {
         didSet {
@@ -938,6 +938,9 @@ class CanvasManager: ObservableObject {
     
     // MARK: - Export
     func exportCode() -> String {
+        // Reset image counter to ensure deterministic variable naming
+        CodeGenerator.resetImageCounter()
+        
         // Clean the design name to make it a valid Swift identifier
         // Remove all characters that aren't alphanumeric
         let cleanedName = designName.filter { $0.isLetter || $0.isNumber }

@@ -65,6 +65,8 @@ struct CodeGenerator {
             baseCode = generateToggleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .slider:
             baseCode = generateSliderCode(component: component, indent: indent, nextIndent: nextIndent)
+        case .linearGradient:
+            baseCode = generateLinearGradientCode(component: component, indent: indent, nextIndent: nextIndent)
 
         default:
             return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
@@ -302,7 +304,16 @@ struct CodeGenerator {
     // MARK: - SF Symbol Code Generation
     private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
-        return "\(indent)Image(systemName: \"\(symbolName)\")"
+        let isResizable = component.getProperty(key: "resizable") as? Bool ?? false
+        
+        var code = "\(indent)Image(systemName: \"\(symbolName)\")"
+        
+        if isResizable {
+            code += "\n\(nextIndent).resizable()"
+            code += "\n\(nextIndent).aspectRatio(contentMode: .fit)"
+        }
+        
+        return code
     }
 
     // MARK: - Text Field Code Generation
@@ -326,6 +337,20 @@ struct CodeGenerator {
         let min = component.getProperty(key: "min") as? Double ?? 0.0
         let max = component.getProperty(key: "max") as? Double ?? 1.0
         return "\(indent)Slider(value: .constant(\(value)), in: \(min)...\(max))"
+    }
+    
+    // MARK: - Linear Gradient Code Generation
+    private static func generateLinearGradientCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+        let colors = component.getProperty(key: "colors") as? [String] ?? ["blue", "green"]
+        let startPoint = component.getProperty(key: "startPoint") as? String ?? "top"
+        let endPoint = component.getProperty(key: "endPoint") as? String ?? "bottom"
+
+        let colorStrings = colors.map { colorString -> String in
+             return colorToString(colorString)
+        }
+        let colorsList = colorStrings.joined(separator: ", ")
+
+        return "\(indent)LinearGradient(gradient: Gradient(colors: [\(colorsList)]), startPoint: .\(startPoint), endPoint: .\(endPoint))"
     }
     
 

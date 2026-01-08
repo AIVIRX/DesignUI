@@ -156,7 +156,7 @@ struct UIBuilderView: View {
     @State private var showPropertiesInPanel = false // For NavigationStack inside panel
     @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
-    @State private var showShareSheet = false
+
     
     // Screenshot capture debouncing
     @State private var lastScreenshotTime: Date = Date.distantPast
@@ -220,14 +220,7 @@ struct UIBuilderView: View {
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
-        .sheet(isPresented: $showShareSheet) {
-            ShareDesignView(
-                designFile: designFile,
-                canvasManager: canvasManager,
-                selectedDevice: selectedDevice,
-                colorScheme: colorScheme
-            )
-        }
+
 #if os(iOS)
         .sheet(isPresented: $showLayersSheet) {
             editorPanelSheet
@@ -665,9 +658,11 @@ struct UIBuilderView: View {
                     
                     Divider()
                     
-                    Button(action: { showShareSheet = true }) {
-                        Label("Share to Community", systemImage: "person.3.fill")
+                    Button(action: { saveAsScreenshot() }) {
+                        Label("Save as Screenshot", systemImage: "photo")
                     }
+                    
+
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 14, weight: .medium))
@@ -713,6 +708,53 @@ struct UIBuilderView: View {
         } catch {
             print("❌ Failed to copy JSON: \(error)")
         }
+    }
+    
+    private func saveAsScreenshot() {
+        let screenshotView = CanvasScreenshotView(
+            components: canvasManager.components,
+            deviceSize: selectedDevice.size,
+            colorScheme: colorScheme ?? .light,
+            statusBarComponent: canvasManager.statusBarComponent,
+            statusBarHasBackground: statusBarHasBackground
+        )
+        
+        guard let imageData = ScreenshotUtility.shared.captureThumbnail(
+            of: screenshotView,
+            size: selectedDevice.size,
+            colorScheme: colorScheme ?? .light
+        ) else {
+            print("❌ Failed to capture screenshot for saving")
+            return
+        }
+        
+        #if os(macOS)
+        // macOS: Show save panel
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.jpeg]
+        savePanel.nameFieldStringValue = "\(designFile.name).jpg"
+        savePanel.title = "Save Screenshot"
+        savePanel.message = "Choose where to save the screenshot"
+        
+        savePanel.begin { response in
+            if response == .OK, let url = savePanel.url {
+                do {
+                    try imageData.write(to: url)
+                    print("✅ Screenshot saved to: \(url.path)")
+                    // Open in Finder
+                    NSWorkspace.shared.activateFileViewerSelecting([url])
+                } catch {
+                    print("❌ Failed to save screenshot: \(error)")
+                }
+            }
+        }
+        #else
+        // iOS: Save to Photos
+        if let uiImage = UIImage(data: imageData) {
+            UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+            print("✅ Screenshot saved to Photos")
+        }
+        #endif
     }
     
     private func saveDesign() {

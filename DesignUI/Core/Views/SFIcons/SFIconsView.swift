@@ -77,7 +77,7 @@ struct SymbolButton: View {
                 Image(systemName: symbol)
                     .resizable()
                     .scaledToFit()
-                    .symbolRenderingMode(.hierarchical)
+                    .symbolRenderingMode(.monochrome)
                     .frame(width: 40, height: 40)
                     .contentShape(Rectangle())
                 

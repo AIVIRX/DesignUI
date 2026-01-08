@@ -13,7 +13,7 @@ import StatefulTabView
 #endif
 
 enum ViewType: Hashable {
-    case templates, news, profile, sfIcons, settings, studio
+    case explore, news, profile, sfIcons, settings, studio
 }
 
 struct ContentView: View {
@@ -34,11 +34,7 @@ struct ContentView: View {
         case profile
         case templates
         case sfIcons
-        case threads
-        case policy
-        case contact
         case settings
-        case twitter
         case studio
     }
     
@@ -83,7 +79,7 @@ struct ContentView: View {
                     
                     Divider().padding(.vertical,5).opacity(0.5)
                     
-                    navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
+                    navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "house.fill", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                     
                     // Studio Link
                     navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "folder.fill.badge.plus", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
@@ -97,38 +93,6 @@ struct ContentView: View {
                     
                     
                     Divider().padding(.vertical).opacity(0.5)
-                    
-                    LinkRow(title: "X",
-                            urlString: "https://www.x.com/@dockui",
-                            item: ContentView.MenuItem.twitter,
-                            hoveredItem: $hoveredItem,
-                            effectiveColorScheme: effectiveColorScheme)
-                    
-                    LinkRow(title: "Threads",
-                            urlString: "https://www.threads.com/@dockui",
-                            item: ContentView.MenuItem.threads,
-                            hoveredItem: $hoveredItem,
-                            effectiveColorScheme: effectiveColorScheme)
-                    
-                    // Privacy Policy Link
-                    LinkRow(title: "Privacy Policy",
-                            urlString: "https://dockui.com/privacy",
-                            item: ContentView.MenuItem.policy,
-                            hoveredItem: $hoveredItem,
-                            effectiveColorScheme: effectiveColorScheme)
-                    
-                    // Contact Us Link
-                    LinkRow(title: "Contact Us",
-                            urlString: "https://dockui.com/contact",
-                            item: ContentView.MenuItem.contact,
-                            hoveredItem: $hoveredItem,
-                            effectiveColorScheme: effectiveColorScheme)
-                    
-                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundStyle(Color.gray)
-                        .font(.body)
                     
                     Spacer()
                 
@@ -170,7 +134,7 @@ struct ContentView: View {
                 
                 Divider().padding(.vertical).opacity(0.5)
                 
-                navigationLinkButton(viewType: .templates, label: "Templates", systemImage: "iphone.gen3", menuItem: .templates, selectedIndex: $selectedIndex, currentIndex: 0)
+                navigationLinkButton(viewType: .explore, label: "Explore", systemImage: "house.fill", menuItem: .explore, selectedIndex: $selectedIndex, currentIndex: 0)
                 
                 // Studio Link
                 navigationLinkButton(viewType: .studio, label: "Studio", systemImage: "folder.fill.badge.plus", menuItem: .studio, selectedIndex: $selectedIndex, currentIndex: 5)
@@ -181,42 +145,7 @@ struct ContentView: View {
                                 
                 // SF Symbols Link
                 navigationLinkButton(viewType: .sfIcons, label: "SF Symbols", systemImage: "plus.square.dashed", menuItem: .sfIcons, selectedIndex: $selectedIndex, currentIndex: 2)
-
-                
-                Divider().padding(.vertical).opacity(0.5)
-                                
-                LinkRow(title: "X",
-                        urlString: "https://www.x.com/@dockui",
-                        item: ContentView.MenuItem.twitter,
-                        hoveredItem: $hoveredItem,
-                        effectiveColorScheme: effectiveColorScheme)
-                
-                    LinkRow(title: "Threads",
-                            urlString: "https://www.threads.com/@dockui",
-                            item: ContentView.MenuItem.threads,
-                            hoveredItem: $hoveredItem,
-                            effectiveColorScheme: effectiveColorScheme)
-                    
-                    // Privacy Policy Link
-                    LinkRow(title: "Privacy Policy",
-                            urlString: "https://dockui.com/privacy",
-                            item: ContentView.MenuItem.policy,
-                            hoveredItem: $hoveredItem,
-                            effectiveColorScheme: effectiveColorScheme)
-                    
-                    // Contact Us Link
-                    LinkRow(title: "Contact Us",
-                            urlString: "https://dockui.com/contact",
-                            item: ContentView.MenuItem.contact,
-                            hoveredItem: $hoveredItem,
-                            effectiveColorScheme: effectiveColorScheme)
-                    
-                    Text("v\(Bundle.main.releaseVersionNumber ?? "")")
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .foregroundStyle(Color.gray)
-                        .font(.body)
-                    
+                                    
                     Spacer()
                 
                 // SF Symbols Link
@@ -258,20 +187,6 @@ struct ContentView: View {
                     subscriptionManager.checkSubscriptionStatus()
                 }
         }
-#if os(macOS)
-        // Handle file opens from Finder - show editor directly when currentDesign is set
-        // Only show when NOT in Studio tab (selectedIndex != 5), as DesignBrowserView handles its own navigation
-        .sheet(isPresented: Binding(
-            get: { designManager.currentDesign != nil && selectedIndex != 5 },
-            set: { if !$0 { designManager.closeCurrentDesign() } }
-        )) {
-            if let currentDesign = designManager.currentDesign {
-                EditorLoadingView(designFile: currentDesign)
-                    .environmentObject(designManager)
-                    .frame(minWidth: 1000, minHeight: 600)
-            }
-        }
-#endif
     }
     
     private func navigationLinkButton(viewType: ViewType, label: String, systemImage: String, menuItem: MenuItem, selectedIndex: Binding<Int>, currentIndex: Int) -> some View {
@@ -326,7 +241,7 @@ struct ContentView: View {
     
     private func getDestinationView(for viewType: ViewType) -> some View {
         switch viewType {
-        case .templates:
+        case .explore:
             return AnyView(ExploreView())
         case .news:
             return AnyView(NewsListView())
@@ -338,42 +253,6 @@ struct ContentView: View {
             return AnyView(SettingsView())
         case .studio:
             return AnyView(DesignBrowserView())
-        }
-    }
-}
-
-// MARK: - Reusable LinkRow
-private struct LinkRow: View {
-    let title: String
-    let urlString: String
-    let item: ContentView.MenuItem
-    @Binding var hoveredItem: ContentView.MenuItem?
-    let effectiveColorScheme: ColorScheme
-    
-    var body: some View {
-        Button(action: {
-            if let url = URL(string: urlString) {
-                #if os(iOS)
-                UIApplication.shared.open(url)
-                #elseif os(macOS)
-                NSWorkspace.shared.open(url)
-                #endif
-            }
-        }) {
-            HStack {
-                Text(title)
-                    .bold()
-                    .foregroundColor(hoveredItem == item ? (effectiveColorScheme == .dark ? .white : .black) : .gray)
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 10)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(PlainButtonStyle())
-        .onHover { hovering in
-            hoveredItem = hovering ? item : nil
         }
     }
 }
@@ -447,7 +326,7 @@ struct SidebarProfileSection: View {
                             }
                         }
                         
-                        Spacer() 
+                        Spacer()
                     }
                     .contentShape(Rectangle())
                     .padding(8)
@@ -528,12 +407,5 @@ struct SidebarProfileSection: View {
                 }
             })
         }
-    }
-}
-
-// MARK: - Bundle Extension
-extension Bundle {
-    var releaseVersionNumber: String? {
-        return infoDictionary?["CFBundleShortVersionString"] as? String
     }
 }

@@ -69,6 +69,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case roundedRectangle = "RoundedRectangle"
     case capsule = "Capsule"
     case ellipse = "Ellipse"
+    case linearGradient = "Linear Gradient"
     case scrollView = "ScrollView"
 
     case statusBar = "Status Bar"
@@ -92,6 +93,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .roundedRectangle: return "rectangle.ratio.4.to.3.fill"
         case .capsule: return "capsule"
         case .ellipse: return "oval"
+        case .linearGradient: return "square.fill.text.grid.1x2"
         case .scrollView: return "scroll"
         case .sfSymbol: return "star"
         case .statusBar: return "iphone"
@@ -124,6 +126,8 @@ enum PropertyType: Codable {
     case animation
     case segmentedControl
     case dropdown
+    case colorArray
+    case unitPoint
 }
 
 // MARK: - Component Property
@@ -229,6 +233,23 @@ extension ComponentProperty: Codable {
             } else {
                 try container.encode("\(value)", forKey: key)
             }
+        case .colorArray:
+             // Encode array of color strings
+             if let colorStrings = value as? [String] {
+                 try container.encode(colorStrings, forKey: key)
+             } else if let colors = value as? [Color] {
+                 let colorStrings = colors.map { colorToColorString($0) }
+                 try container.encode(colorStrings, forKey: key)
+             } else {
+                 try container.encode([String](), forKey: key)
+             }
+         case .unitPoint:
+             // Encode as string representation (e.g. "top", "bottomLeading")
+             if let unitPointString = value as? String {
+                 try container.encode(unitPointString, forKey: key)
+             } else {
+                 try container.encode("center", forKey: key) // Fallback
+             }
         }
     }
     
@@ -253,6 +274,10 @@ extension ComponentProperty: Codable {
             } else {
                 return try container.decode(String.self, forKey: key)
             }
+        case .colorArray:
+            return try container.decode([String].self, forKey: key)
+        case .unitPoint:
+            return try container.decode(String.self, forKey: key)
         }
     }
     
@@ -381,7 +406,7 @@ extension ComponentProperty: Codable {
 // MARK: - UI Component Model
 class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     let id: UUID
-    let type: ComponentType
+    @Published private(set) var type: ComponentType
     @Published var properties: [ComponentProperty]
     @Published var children: [UIComponent]
     private var _frame: CGRect = .zero
@@ -672,6 +697,87 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         )
     }
     
+    // MARK: - Type Conversion
+    func convertType(to newType: ComponentType) {
+        // Only allow conversion between similar component categories
+        let containers: Set<ComponentType> = [.vstack, .hstack, .zstack, .scrollView]
+        let shapes: Set<ComponentType> = [.rectangle, .circle, .roundedRectangle, .capsule, .ellipse]
+        
+        let currentCategory: String
+        if containers.contains(type) {
+            currentCategory = "container"
+        } else if shapes.contains(type) {
+            currentCategory = "shape"
+        } else {
+            currentCategory = "other"
+        }
+        
+        let newCategory: String
+        if containers.contains(newType) {
+            newCategory = "container"
+        } else if shapes.contains(newType) {
+            newCategory = "shape"
+        } else {
+            newCategory = "other"
+        }
+        
+        // Only convert within same category
+        guard currentCategory == newCategory else {
+            print("⚠️ Cannot convert between different component categories")
+            return
+        }
+        
+        // Update the type
+        self.type = newType
+        
+        // Update properties to match new type defaults where applicable
+        let newDefaultProperties = UIComponent.defaultProperties(for: newType)
+        
+        // For containers, update alignment options if needed
+        if containers.contains(newType) {
+            // Update alignment property based on new container type
+            if newType == .vstack {
+                // VStack uses horizontal alignment: leading, center, trailing
+                if let alignmentIndex = properties.firstIndex(where: { $0.key == "alignment" }) {
+                    let currentAlignment = properties[alignmentIndex].value as? String ?? "center"
+                    // Map alignment if needed
+                    let mapped: String
+                    switch currentAlignment {
+                    case "top", "bottom", "firstTextBaseline", "lastTextBaseline":
+                        mapped = "center"
+                    default:
+                        mapped = currentAlignment
+                    }
+                    properties[alignmentIndex].value = mapped
+                }
+            } else if newType == .hstack {
+                // HStack uses vertical alignment: top, center, bottom, firstTextBaseline, lastTextBaseline
+                if let alignmentIndex = properties.firstIndex(where: { $0.key == "alignment" }) {
+                    let currentAlignment = properties[alignmentIndex].value as? String ?? "center"
+                    // Map alignment if needed
+                    let mapped: String
+                    switch currentAlignment {
+                    case "leading", "trailing":
+                        mapped = "center"
+                    default:
+                        mapped = currentAlignment
+                    }
+                    properties[alignmentIndex].value = mapped
+                }
+            }
+        }
+        
+        // Add any missing properties from the new type
+        for newProp in newDefaultProperties {
+            if !properties.contains(where: { $0.key == newProp.key }) {
+                properties.append(newProp)
+            }
+        }
+        
+        objectWillChange.send()
+        print("🔄 Component converted to \(newType.rawValue)")
+    }
+    
     // MARK: - Code Generation
     func generateSwiftCode() -> String {
         return CodeGenerator.generateCode(for: self)
@@ -764,6 +870,12 @@ extension UIComponent {
             return [
                 ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"])
             ]
+        case .linearGradient:
+            return [
+                ComponentProperty(key: "colors", displayName: "Colors", type: .colorArray, value: ["blue", "green"], defaultValue: ["blue", "green"]),
+                ComponentProperty(key: "startPoint", displayName: "Start Point", type: .unitPoint, value: "top", defaultValue: "top", options: ["top", "bottom", "leading", "trailing", "center", "topLeading", "topTrailing", "bottomLeading", "bottomTrailing"]),
+                ComponentProperty(key: "endPoint", displayName: "End Point", type: .unitPoint, value: "bottom", defaultValue: "bottom", options: ["top", "bottom", "leading", "trailing", "center", "topLeading", "topTrailing", "bottomLeading", "bottomTrailing"])
+            ]
         case .rectangle, .circle, .capsule, .ellipse:
             return []
         case .roundedRectangle:
@@ -779,7 +891,8 @@ extension UIComponent {
             ]
         case .sfSymbol:
             return [
-                ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star")
+                ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star"),
+                ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: false, defaultValue: false)
             ]
         case .statusBar:
             return [

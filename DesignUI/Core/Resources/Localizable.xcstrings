@@ -3335,9 +3335,6 @@
     "Background Color" : {
 
     },
-    "Be the first to share!" : {
-
-    },
     "Bio" : {
       "localizations" : {
         "ar" : {
@@ -3606,9 +3603,6 @@
     "Bottom Trailing" : {
 
     },
-    "by %@" : {
-
-    },
     "Cancel" : {
       "localizations" : {
         "ar" : {
@@ -3858,6 +3852,9 @@
           }
         }
       }
+    },
+    "Capsule" : {
+
     },
     "Center" : {
 
@@ -4125,6 +4122,9 @@
 
     },
     "Choose from Photos" : {
+
+    },
+    "Circle" : {
 
     },
     "Code" : {
@@ -4880,9 +4880,6 @@
         }
       }
     },
-    "Community" : {
-
-    },
     "Complete Your Profile" : {
       "localizations" : {
         "ar" : {
@@ -5392,6 +5389,9 @@
         }
       }
     },
+    "Convert to" : {
+
+    },
     "Copy \"%@\"" : {
       "localizations" : {
         "ar" : {
@@ -5891,9 +5891,6 @@
           }
         }
       }
-    },
-    "Copy Design" : {
-
     },
     "Copy JSON" : {
 
@@ -8443,10 +8440,10 @@
         }
       }
     },
-    "Empty Design" : {
+    "Ellipse" : {
 
     },
-    "End Color" : {
+    "Empty Design" : {
 
     },
     "End Point" : {
@@ -8706,9 +8703,6 @@
       }
     },
     "Export" : {
-
-    },
-    "Failed to load" : {
 
     },
     "Features" : {
@@ -8992,6 +8986,9 @@
 
     },
     "Hello World" : {
+
+    },
+    "HStack" : {
 
     },
     "Introducing" : {
@@ -10016,6 +10013,9 @@
 
     },
     "Loading code..." : {
+
+    },
+    "Loading design..." : {
 
     },
     "Loading posts..." : {
@@ -11283,9 +11283,6 @@
           }
         }
       }
-    },
-    "No community designs yet" : {
-
     },
     "No Component Selected" : {
 
@@ -13326,9 +13323,6 @@
         }
       }
     },
-    "Preview" : {
-
-    },
     "Privacy Policy" : {
       "localizations" : {
         "ar" : {
@@ -14088,6 +14082,9 @@
     "Rate us" : {
 
     },
+    "Rectangle" : {
+
+    },
     "Redo" : {
 
     },
@@ -14103,7 +14100,7 @@
     "Resizable" : {
 
     },
-    "Retry" : {
+    "Rounded Rectangle" : {
 
     },
     "Save" : {
@@ -14356,10 +14353,16 @@
         }
       }
     },
+    "Save as Screenshot" : {
+
+    },
     "Scale X" : {
 
     },
     "Scale Y" : {
+
+    },
+    "ScrollView" : {
 
     },
     "Search components..." : {
@@ -15118,6 +15121,9 @@
         }
       }
     },
+    "Select" : {
+
+    },
     "Select a component to edit its properties" : {
 
     },
@@ -15375,9 +15381,6 @@
 
     },
     "Select Image" : {
-
-    },
-    "Select Items" : {
 
     },
     "Select SF Symbol" : {
@@ -16889,9 +16892,6 @@
         }
       }
     },
-    "Share to Community" : {
-
-    },
     "Show in Finder" : {
 
     },
@@ -18152,9 +18152,6 @@
 
     },
     "star.fill" : {
-
-    },
-    "Start Color" : {
 
     },
     "Start Point" : {
@@ -21209,9 +21206,6 @@
         }
       }
     },
-    "Use Template" : {
-
-    },
     "Username" : {
       "localizations" : {
         "ar" : {
@@ -21463,6 +21457,7 @@
       }
     },
     "v%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21968,6 +21963,9 @@
     "View Code" : {
 
     },
+    "VStack" : {
+
+    },
     "Widgets" : {
 
     },
@@ -22227,9 +22225,6 @@
         }
       }
     },
-    "You must be signed in to share designs to the community." : {
-
-    },
     "You need to be signed in to like a design." : {
       "localizations" : {
         "ar" : {
@@ -22481,6 +22476,9 @@
       }
     },
     "Z Index" : {
+
+    },
+    "ZStack" : {
 
     }
   },

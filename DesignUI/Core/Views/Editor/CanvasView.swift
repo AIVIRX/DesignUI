@@ -91,12 +91,9 @@ struct CanvasView: View {
             .background(
                 CanvasScrollHandler(
                     isEnabled: isCanvasHovered,
-                    shouldPan: { screenPoint in
-                        // Check if the point is inside any active scrollable rect
-                        // If it IS inside, we should NOT pan (return false)
-                        return !canvasManager.activeScrollableRects.values.contains { rect in
-                            rect.contains(screenPoint)
-                        }
+                    shouldPan: {
+                        // Simply check if we're hovering over a scrollable component
+                        !canvasManager.isHoveringScrollable
                     },
                     onPan: { deltaX, deltaY in
                         currentOffset = CGSize(
@@ -235,6 +232,7 @@ struct CanvasView: View {
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                 )
                 .frame(width: deviceSize.width, height: deviceSize.height)
+                .background(Color.clear) // Placeholder/Clear background
                 .colorScheme(colorScheme ?? .light)
             }
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
@@ -487,11 +485,12 @@ struct StatusBarContainerView: View {
 }
 
 // MARK: - Scroll Handler for macOS
+// MARK: - Scroll Handler for macOS
 #if os(macOS)
 /// NSViewRepresentable for trackpad scroll (pan) and Cmd+scroll (zoom)
 struct CanvasScrollHandler: NSViewRepresentable {
     let isEnabled: Bool
-    var shouldPan: ((CGPoint) -> Bool)? = nil
+    var shouldPan: (() -> Bool)? = nil
     let onPan: (CGFloat, CGFloat) -> Void
     let onZoom: (CGFloat, CGPoint) -> Void
     
@@ -516,7 +515,7 @@ struct CanvasScrollHandler: NSViewRepresentable {
 class CanvasScrollNSView: NSView {
     var onPan: ((CGFloat, CGFloat) -> Void)?
     var onZoom: ((CGFloat, CGPoint) -> Void)?
-    var shouldPan: ((CGPoint) -> Bool)?
+    var shouldPan: (() -> Bool)?
     var isEnabled: Bool = false
     
     private var scrollMonitor: Any?
@@ -548,11 +547,10 @@ class CanvasScrollNSView: NSView {
                 self.onZoom?(delta, locationInView)
                 return nil // Consume event
             } else {
-                // Check if we should pan at this location
-                if let shouldPan = self.shouldPan, let window = self.window {
-                    let screenRect = window.convertToScreen(NSRect(origin: event.locationInWindow, size: .zero))
-                    if !shouldPan(screenRect.origin) {
-                        return event // Don't consume, let view handle it
+                // Check if we should pan
+                if let shouldPan = self.shouldPan {
+                    if !shouldPan() {
+                        return event // Don't consume, let view handle it (e.g. ScrollView)
                     }
                 }
                 

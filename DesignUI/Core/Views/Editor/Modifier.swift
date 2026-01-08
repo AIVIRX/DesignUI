@@ -199,12 +199,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .backgroundColor:
             defaultProperties = [
-                "color": Color.blue,
-                "gradient": [
-                    "colors": ["color:blue", "color:purple"],
-                    "startPoint": "top",
-                    "endPoint": "bottom"
-                ]
+                "color": Color.blue
             ]
         case .background:
             defaultProperties = [
@@ -246,12 +241,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .fill:
             defaultProperties = [
-                "color": Color.blue,
-                "gradient": [
-                    "colors": ["color:blue", "color:purple"],
-                    "startPoint": "top",
-                    "endPoint": "bottom"
-                ]
+                "color": Color.blue
             ]
         case .aspectRatio:
             defaultProperties = [

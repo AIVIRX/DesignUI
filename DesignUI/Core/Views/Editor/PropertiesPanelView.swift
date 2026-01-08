@@ -652,6 +652,106 @@ struct PropertyEditor: View {
                 }
                 .contentShape(Rectangle())
                 
+            case .colorArray:
+                VStack(spacing: 8) {
+                    HStack {
+                        Text(displayName)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Button(action: {
+                            var colors = (component.getProperty(key: property.key) as? [String]) ?? []
+                            colors.append("blue")
+                            component.setProperty(key: property.key, value: colors)
+                        }) {
+                            Image(systemName: "plus.circle")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    
+                    let colors = (component.getProperty(key: property.key) as? [String]) ?? []
+                    ForEach(Array(colors.enumerated()), id: \.offset) { index, colorStr in
+                        HStack {
+                            SimpleColorPicker(colorString: Binding(
+                                get: { 
+                                    let currentColors = (component.getProperty(key: property.key) as? [String]) ?? []
+                                    return index < currentColors.count ? currentColors[index] : "blue"
+                                },
+                                set: { newVal in
+                                    var currentColors = (component.getProperty(key: property.key) as? [String]) ?? []
+                                    if index < currentColors.count {
+                                        currentColors[index] = newVal
+                                        component.setProperty(key: property.key, value: currentColors)
+                                    }
+                                }
+                            ))
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                var currentColors = (component.getProperty(key: property.key) as? [String]) ?? []
+                                if index < currentColors.count {
+                                    currentColors.remove(at: index)
+                                    component.setProperty(key: property.key, value: currentColors)
+                                }
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+
+            case .unitPoint:
+                HStack {
+                    Text(displayName)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    Menu {
+                        ForEach(property.options as? [String] ?? [], id: \.self) { option in
+                            Button(action: {
+                                DispatchQueue.main.async {
+                                    component.setProperty(key: property.key, value: option)
+                                }
+                            }) {
+                                Text(option.capitalized) // Format for display: "topLeading" -> "Top Leading"? Keeping simple for now.
+                                    .foregroundColor(menuTextColor)
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text((component.getProperty(key: property.key) as? String ?? "top").capitalized)
+                                .foregroundColor(.primary)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                )
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+                
             default:
                 HStack {
                     Text(displayName)
@@ -1253,10 +1353,23 @@ struct ImagePickerEditor: View {
         #endif
         .onChange(of: selectedImage) { _, newImageData in
             if let imageData = newImageData {
-                print("🖼️ Image selected, size: \(imageData.count) bytes")
+                print("🖼️ Image selected, original size: \(imageData.count) bytes")
+                
+                // Aggressively compress and resize BEFORE base64 encoding to prevent lag
+                // This converts 4K images to tiny 512px thumbnails
+                let finalData: Data
+                if let compressed = ImageGalleryManager.compressAndResizeImage(data: imageData) {
+                    finalData = compressed
+                    print("🖼️ Compressed to: \(finalData.count) bytes")
+                } else {
+                    finalData = imageData
+                    print("⚠️ Compression failed, using original data")
+                }
+                
                 // Convert to base64 and store
-                let base64String = imageData.base64EncodedString()
+                let base64String = finalData.base64EncodedString()
                 print("🖼️ Base64 string length: \(base64String.count)")
+                
                 if useImageData {
                     // Store in imageData property
                     component.setProperty(key: "imageData", value: base64String)
@@ -1543,3 +1656,96 @@ struct ImagePicker: View {
     }
 }
 
+
+// MARK: - Simple Color Picker (For Arrays)
+struct SimpleColorPicker: View {
+    @Binding var colorString: String
+    @State private var isPresented = false
+    @State private var isHovered = false
+    
+    private let swiftUIColors: [(String, Color)] = [
+        ("Primary", .primary),
+        ("Secondary", .secondary),
+        ("Black", .black),
+        ("White", .white),
+        ("Red", .red),
+        ("Orange", .orange),
+        ("Yellow", .yellow),
+        ("Green", .green),
+        ("Mint", .mint),
+        ("Teal", .teal),
+        ("Cyan", .cyan),
+        ("Blue", .blue),
+        ("Indigo", .indigo),
+        ("Purple", .purple),
+        ("Pink", .pink),
+        ("Brown", .brown),
+        ("Gray", .gray),
+        ("Clear", .clear)
+    ]
+    
+    private var currentColor: Color {
+        ComponentProperty.colorStringToColor(colorString)
+    }
+    
+    private func colorName(for color: Color) -> String {
+        // Simple check against basic colors
+        return swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+    }
+
+    var body: some View {
+        Button(action: { isPresented = true }) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(currentColor)
+                    .frame(width: 16, height: 16)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                
+                Text(colorString.capitalized)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Image(systemName: "chevron.down")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .popover(isPresented: $isPresented) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Choose Color")
+                    .font(.headline)
+                    .padding(.bottom, 4)
+                
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                    ForEach(swiftUIColors, id: \.0) { colorName, color in
+                         Button(action: {
+                            colorString = colorName.lowercased()
+                            isPresented = false
+                        }) {
+                            VStack(spacing: 4) {
+                                Circle()
+                                    .fill(color)
+                                    .frame(width: 32, height: 32)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                                
+                                Text(colorName)
+                                    .font(.caption2)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
+            .padding()
+            .frame(width: 220)
+        }
+    }
+}

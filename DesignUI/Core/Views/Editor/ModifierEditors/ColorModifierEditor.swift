@@ -16,7 +16,7 @@ struct ColorModifierEditor: View {
     @State private var isHovered = false
     
     private var currentColor: Color {
-        modifier.properties["color"] as? Color ?? Color.primary
+        modifier.getColor(key: "color", defaultValue: Color.primary)
     }
     
     private let swiftUIColors: [(String, Color)] = [
@@ -78,7 +78,7 @@ struct ColorModifierEditor: View {
                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                     )
                 
-                Text(colorName(for: currentColor))
+                Text(selectedColorName)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -119,7 +119,7 @@ struct ColorModifierEditor: View {
                 colorCircle(colorName: colorName, color: color)
                     .overlay(selectionCheckmark(for: color))
                 
-                Text(colorName)
+                Text(colorName) 
                     .font(.caption2)
                     .foregroundColor(.primary)
             }
@@ -210,19 +210,32 @@ struct ColorModifierEditor: View {
         isPresented = false
     }
     
-    private func colorName(for color: Color) -> String {
-        return swiftUIColors.first { $0.1 == color }?.0 ?? "Primary"
+    private var selectedColorName: String {
+        if let colorString = modifier.properties["color"] as? String {
+            if colorString.hasPrefix("color:") {
+                return String(colorString.dropFirst(6)).capitalized
+            }
+            return colorString.capitalized
+        }
+        return swiftUIColors.first { $0.1 == currentColor }?.0 ?? "Custom"
     }
     
     private func isSelected(_ color: Color) -> Bool {
-        guard let storedColor = modifier.properties["color"] as? Color else { return false }
-        
-        if storedColor == color {
-            return true
+        // 1. Try to match by name if stored as string (Most reliable for named colors)
+        if let targetName = swiftUIColors.first(where: { $0.1 == color })?.0,
+           let storedString = modifier.properties["color"] as? String {
+            let normalizedStored = storedString.replacingOccurrences(of: "color:", with: "")
+            if normalizedStored.lowercased() == targetName.lowercased() {
+                return true
+            }
         }
         
-        let currentColorName = colorName(for: storedColor)
-        let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
-        return currentColorName == targetColorName && currentColorName != "Custom"
+        // 2. Fallback to Color equality (For custom colors)
+        // Use the computed currentColor which already handles the resolution
+        let resolvedColor = currentColor
+        if resolvedColor == color {
+            return true
+        }
+        return false
     }
 }

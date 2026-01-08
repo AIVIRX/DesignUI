@@ -72,6 +72,18 @@ struct ImageGalleryView: View {
                     .buttonStyle(.plain)
                     .disabled(selectionToDelete.isEmpty)
                 } else {
+                    // Select button to enter multi-selection mode
+                    Button(action: {
+                        isEditing = true
+                    }) {
+                        Text("Select")
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    
                     Menu {
                         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                             Label("From Photos", systemImage: "photo")
@@ -81,12 +93,6 @@ struct ImageGalleryView: View {
                             showFileImporter = true
                         } label: {
                             Label("Select File", systemImage: "folder")
-                        }
-                        
-                        Button {
-                            isEditing = true
-                        } label: {
-                            Label("Select Items", systemImage: "checkmark.circle")
                         }
                     } label: {
                         Image(systemName: "plus")

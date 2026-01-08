@@ -199,18 +199,6 @@ class DesignFile: ObservableObject, Identifiable {
             let designData = try decoder.decode(DesignFileData.self, from: data)
             
             print("📂 Loading design: \(designData.name)")
-            print("📂 Components count: \(designData.components.count)")
-            
-            // Debug: Print loaded component properties and modifiers
-            for (index, component) in designData.components.enumerated() {
-                print("📂 Component \(index): \(component.type.rawValue) with \(component.properties.count) properties and \(component.modifiers.count) modifiers")
-                for property in component.properties {
-                    print("📂   - Property \(property.key): \(property.value) (type: \(property.type))")
-                }
-                for (modIndex, modifier) in component.modifiers.enumerated() {
-                    print("📂   - Modifier \(modIndex): \(modifier.type.rawValue) with properties: \(modifier.properties)")
-                }
-            }
             
             let designFile = DesignFile(name: designData.name, components: designData.components, fileURL: url)
             designFile.lastModified = designData.lastModified
@@ -739,112 +727,16 @@ class DesignManager: ObservableObject {
         
         // Create new design file with copied components
         let designFile = DesignFile(name: displayName, components: copiedComponents, fileURL: fileURL)
+        
+        // Apply template device preset if available
+        if let preset = template.devicePreset {
+            designFile.selectedDevicePreset = preset
+        }
+        
         designFile.save()
         
         designFiles.insert(designFile, at: 0)
         return designFile
-    }
-    
-    /// Create a new design from a community design JSON
-    func createDesignFromCommunity(name: String, jsonString: String, devicePreset: String?, colorScheme: String?) -> DesignFile? {
-        // Decode components from JSON
-        guard let jsonData = jsonString.data(using: .utf8) else {
-            print("❌ Failed to convert JSON string to data")
-            return nil
-        }
-        
-        let decoder = JSONDecoder()
-        guard let components = try? decoder.decode([UIComponent].self, from: jsonData) else {
-            print("❌ Failed to decode community design components")
-            return nil
-        }
-        
-        // Generate unique file name
-        let uniqueFileName = generateUniqueFileName(baseName: name)
-        let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
-        let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
-        
-        // Deep copy all components
-        let copiedComponents = deepCopyComponents(components)
-        
-        // Create new design file with copied components
-        let designFile = DesignFile(name: displayName, components: copiedComponents, fileURL: fileURL)
-        
-        // Set device preset and color scheme from community design
-        designFile.selectedDevicePreset = devicePreset
-        designFile.canvasColorScheme = colorScheme
-        
-        designFile.save()
-        designFiles.insert(designFile, at: 0)
-        
-        print("✅ Created design from community: \(displayName)")
-        
-        // Download URL images asynchronously and convert to base64 imageData
-        Task {
-            await downloadImagesForComponents(copiedComponents, designFile: designFile)
-        }
-        
-        return designFile
-    }
-    
-    /// Download images from URLs and store as base64 imageData for local rendering
-    private func downloadImagesForComponents(_ components: [UIComponent], designFile: DesignFile) async {
-        print("⬇️ Starting image downloads for \(designFile.name)...")
-        
-        await withTaskGroup(of: Void.self) { group in
-            // Flatten component tree to find all image components
-            var imageComponents: [UIComponent] = []
-            
-            func collectImageComponents(_ comps: [UIComponent]) {
-                for comp in comps {
-                    if comp.type == .image {
-                        imageComponents.append(comp)
-                    }
-                    collectImageComponents(comp.children)
-                }
-            }
-            collectImageComponents(components)
-            
-            print("⬇️ Found \(imageComponents.count) image components to check")
-            
-            for component in imageComponents {
-                group.addTask {
-                    if let imageName = component.getProperty(key: "imageName") as? String,
-                       !imageName.isEmpty,
-                       imageName.hasPrefix("http"),
-                       let imageURL = URL(string: imageName) {
-                        
-                        // Check if we already have a local copy logic?
-                        // For now, if it's a URL, we download it.
-                        
-                        do {
-                            let (data, _) = try await URLSession.shared.data(from: imageURL)
-                            
-                            // Save to Local Gallery
-                            if let filename = ImageGalleryManager.shared.saveImage(data: data, originalFilename: imageURL.lastPathComponent) {
-                                await MainActor.run {
-                                    // Update component to point to local file
-                                    component.setProperty(key: "imageName", value: filename)
-                                    // Clear legacy imageData if present to save space
-                                    component.setProperty(key: "imageData", value: "")
-                                    print("✅ Saved to gallery: \(filename)")
-                                }
-                            }
-                        } catch {
-                            print("⚠️ Failed to download image from URL: \(error.localizedDescription)")
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Save once after all downloads complete
-        await MainActor.run {
-            designFile.save()
-            print("✅ All image downloads complete for \(designFile.name)")
-            // Notify observers (like UIBuilderView) to refresh thumbnails
-            NotificationCenter.default.post(name: .imageDownloadsCompleted, object: designFile)
-        }
     }
     
     private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {
@@ -872,24 +764,6 @@ class DesignManager: ObservableObject {
         // Store the initial state for change detection
         lastSavedComponents = designFile.components
         hasUnsavedChanges = false
-    }
-    
-    /// Opens a design file from a URL (for document-based file opening)
-    func openDesignFromURL(_ url: URL) {
-        // Check if already loaded
-        if let existing = designFiles.first(where: { $0.fileURL == url }) {
-            openDesign(existing)
-            return
-        }
-        
-        // Load and open
-        if let designFile = DesignFile.load(from: url) {
-            designFiles.append(designFile)
-            openDesign(designFile)
-            print("📂 Opened design from URL: \(url.lastPathComponent)")
-        } else {
-            print("❌ Failed to load design from URL: \(url)")
-        }
     }
     
     func closeCurrentDesign() {
@@ -1209,23 +1083,107 @@ class ImageGalleryManager: ObservableObject {
     func saveImage(data: Data, originalFilename: String? = nil) -> String? {
         guard let imagesDirectory = imagesDirectory else { return nil }
         
-        // Generate filename
+        // Optimize the image data (Resize + Compress)
+        guard let optimizedData = ImageGalleryManager.compressAndResizeImage(data: data) else {
+            print("❌ ImageGalleryManager: Failed to optimize image, falling back to original data")
+            return saveRawData(data: data, originalFilename: originalFilename)
+        }
+        
+        // Force JPG extension since we are converting to JPEG
+        let filename = "\(UUID().uuidString).jpg"
+        let fileURL = imagesDirectory.appendingPathComponent(filename)
+        
+        do {
+            try optimizedData.write(to: fileURL)
+            print("✅ ImageGalleryManager: Saved optimized image \(filename) (Size: \(ByteCountFormatter.string(fromByteCount: Int64(optimizedData.count), countStyle: .file)))")
+            return filename
+        } catch {
+            print("❌ ImageGalleryManager: Failed to save image: \(error)")
+            // Fallback to raw if optimized write fails (unlikely, but safe)
+            return saveRawData(data: data, originalFilename: originalFilename)
+        }
+    }
+    
+    private func saveRawData(data: Data, originalFilename: String?) -> String? {
+        guard let imagesDirectory = imagesDirectory else { return nil }
         let ext = (originalFilename as NSString?)?.pathExtension ?? "jpg"
         let fileExtension = ext.isEmpty ? "jpg" : ext
-        
-        // Use UUID to prevent collisions
         let filename = "\(UUID().uuidString).\(fileExtension)"
         let fileURL = imagesDirectory.appendingPathComponent(filename)
         
         do {
             try data.write(to: fileURL)
-            print("✅ ImageGalleryManager: Saved image \(filename)")
             return filename
         } catch {
-            print("❌ ImageGalleryManager: Failed to save image: \(error)")
             return nil
         }
     }
+    
+    // MARK: - Compression Helpers
+    
+    static func compressAndResizeImage(data: Data) -> Data? {
+        #if os(macOS)
+            guard let image = NSImage(data: data) else { return nil }
+            return optimizeImageMacOS(image)
+        #else
+            guard let image = UIImage(data: data) else { return nil }
+            return optimizeImageiOS(image)
+        #endif
+    }
+    
+    #if os(macOS)
+    private static func optimizeImageMacOS(_ image: NSImage) -> Data? {
+        var newSize = image.size
+        let maxDimension: CGFloat = 512
+        
+        // Resize if needed
+        if newSize.width > maxDimension || newSize.height > maxDimension {
+            let aspectRatio = newSize.width / newSize.height
+            if newSize.width > newSize.height {
+                newSize = CGSize(width: maxDimension, height: maxDimension / aspectRatio)
+            } else {
+                newSize = CGSize(width: maxDimension * aspectRatio, height: maxDimension)
+            }
+        }
+        
+        // Create new image with target size
+        let newImage = NSImage(size: newSize)
+        
+        newImage.lockFocus()
+        // Draw ensuring high quality interpolation downscaling if possible, but default is usually fine
+        image.draw(in: NSRect(origin: .zero, size: newSize), from: NSRect(origin: .zero, size: image.size), operation: .copy, fraction: 1.0)
+        newImage.unlockFocus()
+        
+        guard let tiffRepresentation = newImage.tiffRepresentation,
+              let bitmapImage = NSBitmapImageRep(data: tiffRepresentation) else { return nil }
+        
+        // Compress to JPEG 0.3 (Aggressive)
+        return bitmapImage.representation(using: .jpeg, properties: [.compressionFactor: 0.3])
+    }
+    #else
+    private static func optimizeImageiOS(_ image: UIImage) -> Data? {
+        var newSize = image.size
+        let maxDimension: CGFloat = 512
+        
+        // Resize if needed
+        if newSize.width > maxDimension || newSize.height > maxDimension {
+            let aspectRatio = newSize.width / newSize.height
+            if newSize.width > newSize.height {
+                newSize = CGSize(width: maxDimension, height: maxDimension / aspectRatio)
+            } else {
+                newSize = CGSize(width: maxDimension * aspectRatio, height: maxDimension)
+            }
+        }
+        
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        let resizedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+        
+        // Compress to JPEG 0.3 (Aggressive)
+        return resizedImage.jpegData(compressionQuality: 0.3)
+    }
+    #endif
     
     // MARK: - Load
     

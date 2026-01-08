@@ -522,9 +522,6 @@
       },
       "shouldTranslate" : false
     },
-    "DockUI Design File" : {
-
-    },
     "NSUserTrackingUsageDescription" : {
       "comment" : "Privacy - Tracking Usage Description",
       "extractionState" : "extracted_with_value",

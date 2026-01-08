@@ -68,6 +68,8 @@ struct ComponentRenderer: View {
                 renderToggle()
             case .slider:
                 renderSlider()
+            case .linearGradient:
+                renderLinearGradient()
             default:
                 renderPlaceholder()
             }
@@ -497,6 +499,22 @@ struct ComponentRenderer: View {
         }
     }
     
+    // MARK: - Linear Gradient Renderer
+    private func renderLinearGradient() -> some View {
+        let colors = component.getProperty(key: "colors") as? [String] ?? ["blue", "green"]
+        let startPointStr = component.getProperty(key: "startPoint") as? String ?? "top"
+        let endPointStr = component.getProperty(key: "endPoint") as? String ?? "bottom"
+        
+        // Convert strings to Color objects
+        let gradientColors = colors.map { ComponentProperty.colorStringToColor($0) }
+        
+        // Convert strings to UnitPoints
+        let startPoint = unitPointFromString(startPointStr)
+        let endPoint = unitPointFromString(endPointStr)
+        
+        return LinearGradient(gradient: Gradient(colors: gradientColors), startPoint: startPoint, endPoint: endPoint)
+    }
+    
     // MARK: - ScrollView Renderer
     private func renderScrollView() -> some View {
         let children = component.children
@@ -534,43 +552,73 @@ struct ComponentRenderer: View {
                 }
             }
             #if os(macOS)
-            .background(GeometryReader { geo -> Color in
-                DispatchQueue.main.async {
-                    if let manager = self.canvasManager {
-                        let frame = geo.frame(in: .global)
-                        // Update only if changed to avoid loop
-                        if manager.activeScrollableRects[component.id] != frame {
-                            manager.activeScrollableRects[component.id] = frame
-                        }
-                    }
-                }
-                return Color.clear
-            })
-            .onDisappear {
-                DispatchQueue.main.async {
-                    self.canvasManager?.activeScrollableRects.removeValue(forKey: component.id)
-                }
+            .onHover { isHovering in
+                // Simply track if we're hovering over this scrollable component
+                canvasManager?.isHoveringScrollable = isHovering
             }
             #endif
         )
     }
     
+
+    // MARK: - SF Symbol Renderer
     // MARK: - SF Symbol Renderer
     private func renderSFSymbol() -> some View {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
+        let isResizable = component.getProperty(key: "resizable") as? Bool ?? false
         // Check if there's a fontSize modifier - if so, don't set default font
-        // The fontSize modifier will handle it
         let hasFontSizeModifier = component.modifiers.contains { $0.type == .fontSize }
+        // Check if there's a foregroundColor modifier
+        let hasForegroundColorModifier = component.modifiers.contains { $0.type == .foregroundColor }
         
-        let view = Image(systemName: symbolName)
-                .symbolRenderingMode(.hierarchical)
+        // Determine fallback color (primary can be translucent on macOS, so use explicit black/white)
+        let fallbackColor = (colorScheme ?? .light) == .dark ? Color.white : Color.black
         
-        if hasFontSizeModifier {
-            return AnyView(view)
+        if isResizable {
+            // Resizable SF Symbol - can be sized with frame modifier
+            let baseView = Image(systemName: symbolName)
+                .resizable()
+                .symbolRenderingMode(.monochrome) // Ensure solid color
+            
+            if !hasForegroundColorModifier {
+                // Apply explicit black/white if no specific color set
+                let coloredView = baseView.foregroundStyle(fallbackColor)
+                if hasFontSizeModifier {
+                    return AnyView(coloredView)
+                } else {
+                    return AnyView(coloredView.aspectRatio(contentMode: .fit))
+                }
+            } else {
+                // Use base view (color handled by modifiers)
+                if hasFontSizeModifier {
+                    return AnyView(baseView)
+                } else {
+                    return AnyView(baseView.aspectRatio(contentMode: .fit))
+                }
+            }
         } else {
-            // Default to largeTitle if no fontSize modifier
-            let font = iosFont(for: "largeTitle", weight: .regular)
-            return AnyView(view.font(font))
+            // Non-resizable SF Symbol - sized by font
+            let baseView = Image(systemName: symbolName)
+                .symbolRenderingMode(.monochrome) // Ensure solid color
+            
+            if !hasForegroundColorModifier {
+                // Apply explicit black/white if no specific color set
+                let coloredView = baseView.foregroundStyle(fallbackColor)
+                if hasFontSizeModifier {
+                    return AnyView(coloredView)
+                } else {
+                    let font = iosFont(for: "largeTitle", weight: .regular)
+                    return AnyView(coloredView.font(font))
+                }
+            } else {
+                // Use base view (color handled by modifiers)
+                if hasFontSizeModifier {
+                    return AnyView(baseView)
+                } else {
+                    let font = iosFont(for: "largeTitle", weight: .regular)
+                    return AnyView(baseView.font(font))
+                }
+            }
         }
     }
     
@@ -654,6 +702,20 @@ struct ComponentRenderer: View {
     }
     
     // MARK: - Helper Functions
+    private func unitPointFromString(_ string: String) -> UnitPoint {
+        switch string {
+        case "top": return .top
+        case "bottom": return .bottom
+        case "leading": return .leading
+        case "trailing": return .trailing
+        case "center": return .center
+        case "topLeading": return .topLeading
+        case "topTrailing": return .topTrailing
+        case "bottomLeading": return .bottomLeading
+        case "bottomTrailing": return .bottomTrailing
+        default: return .top
+        }
+    }
 }
 
 private extension Image {
@@ -1142,53 +1204,74 @@ struct ImageComponentView: View {
     let deviceSize: CGSize?
     
     var body: some View {
-        if !imageName.isEmpty, let fileURL = ImageGalleryManager.shared.getImageUrl(filename: imageName) {
-            // Load image synchronously since it's a local file
-            #if os(macOS)
-            if let nsImage = NSImage(contentsOf: fileURL) {
-                let imageView = Image(nsImage: nsImage)
-                let modifiedImage = resizable ? imageView.resizable() : imageView
-                
-                if aspectRatio == "fit" {
-                    modifiedImage.aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                } else if aspectRatio == "fill" {
-                    modifiedImage.aspectRatio(contentMode: .fill)
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+        if !imageName.isEmpty {
+            // Priority 1: Check Local Gallery first
+            if let fileURL = ImageGalleryManager.shared.getImageUrl(filename: imageName) {
+                // Load image synchronously since it's a local file
+                #if os(macOS)
+                if let nsImage = NSImage(contentsOf: fileURL) {
+                    let imageView = Image(nsImage: nsImage)
+                    let modifiedImage = resizable ? imageView.resizable() : imageView
+                    
+                    if aspectRatio == "fit" {
+                        modifiedImage.aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    } else if aspectRatio == "fill" {
+                        modifiedImage.aspectRatio(contentMode: .fill)
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    } else {
+                        modifiedImage
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    }
                 } else {
-                    modifiedImage
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    // Start of Asset Catalog Fallback (macOS)
+                    renderAssetImage()
                 }
-            } else {
-                ZStack {
-                    Color.gray.opacity(0.1)
-                    Image(systemName: "photo").foregroundColor(.secondary)
-                }
-            }
-            #else
-            if let uiImage = UIImage(contentsOfFile: fileURL.path) {
-                let imageView = Image(uiImage: uiImage)
-                let modifiedImage = resizable ? imageView.resizable() : imageView
-                
-                if aspectRatio == "fit" {
-                    modifiedImage.aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                } else if aspectRatio == "fill" {
-                    modifiedImage.aspectRatio(contentMode: .fill)
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                #else
+                if let uiImage = UIImage(contentsOfFile: fileURL.path) {
+                    let imageView = Image(uiImage: uiImage)
+                    let modifiedImage = resizable ? imageView.resizable() : imageView
+                    
+                    if aspectRatio == "fit" {
+                        modifiedImage.aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    } else if aspectRatio == "fill" {
+                        modifiedImage.aspectRatio(contentMode: .fill)
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    } else {
+                        modifiedImage
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    }
                 } else {
-                    modifiedImage
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    // Start of Asset Catalog Fallback (iOS)
+                    renderAssetImage()
                 }
+                #endif
             } else {
-                ZStack {
-                    Color.gray.opacity(0.1)
-                    Image(systemName: "photo").foregroundColor(.secondary)
-                }
+                // Priority 2: Try Asset Catalog
+                renderAssetImage()
             }
-            #endif
         } else {
             EmptyView()
+        }
+    }
+    
+    // Helper to render from Asset Catalog
+    private func renderAssetImage() -> some View {
+        let imageView = Image(imageName)
+        let modifiedImage = resizable ? imageView.resizable() : imageView
+        
+        return Group {
+            if aspectRatio == "fit" {
+                modifiedImage.aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+            } else if aspectRatio == "fill" {
+                modifiedImage.aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+            } else {
+                modifiedImage
+                    .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+            }
         }
     }
 }

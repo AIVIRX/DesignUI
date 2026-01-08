@@ -100,7 +100,6 @@ struct BackgroundColorModifierEditor: View {
     @ObservedObject var component: UIComponent
     @State private var isPresented = false
     @State private var opacityText: String = ""
-    @State private var backgroundMode: String = "color"
     
     private var currentColor: Color {
         modifier.getColor(key: "color", defaultValue: .blue)
@@ -130,27 +129,7 @@ struct BackgroundColorModifierEditor: View {
     ]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            
-            // Mode Picker
-            Picker("", selection: $backgroundMode) {
-                Text("Color").tag("color")
-                Text("Gradient").tag("gradient")
-            }
-            .pickerStyle(.segmented)
-            .padding(.bottom, 4)
-            .onAppear {
-                if modifier.properties["gradient"] != nil {
-                    backgroundMode = "gradient"
-                }
-            }
-            
-            if backgroundMode == "color" {
-                colorSection
-            } else {
-                GradientEditor(modifier: $modifier)
-            }
-        }
+        colorSection
     }
     
     private var colorSection: some View {
@@ -169,9 +148,9 @@ struct BackgroundColorModifierEditor: View {
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                         )
                     
-                    Text(colorName(for: currentColor))
-                        .font(.caption)
-                        .foregroundColor(.primary)
+                Text(selectedColorName)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                     
                     Image(systemName: "chevron.down")
                         .font(.caption2)
@@ -233,13 +212,19 @@ struct BackgroundColorModifierEditor: View {
                                 let opacityValue = Double(opacityText) ?? 100.0
                                 let opacity = max(0, min(100, opacityValue)) / 100.0
                                 
+                                var updatedModifier = modifier
                                 if opacity >= 0.99 && colorName != "Custom" && colorName != "Primary" {
-                                    modifier.properties["color"] = "color:\(colorName.lowercased())"
+                                    updatedModifier.properties["color"] = "color:\(colorName.lowercased())"
                                 } else {
-                                    modifier.properties["color"] = color.opacity(opacity)
+                                    updatedModifier.properties["color"] = color.opacity(opacity)
                                 }
                                 // Disable gradient when picking color
-                                modifier.properties["gradient"] = nil
+                                updatedModifier.properties["gradient"] = nil
+                                
+                                // Explicitly update component to trigger UI refresh
+                                component.updateModifier(updatedModifier)
+                                modifier = updatedModifier
+                                
                                 NotificationCenter.default.post(name: .designChanged, object: nil)
                             }
                             isPresented = false
@@ -280,24 +265,46 @@ struct BackgroundColorModifierEditor: View {
         }
     }
     
-    private func colorName(for color: Color) -> String {
-        return swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+    private var selectedColorName: String {
+        if let colorString = modifier.properties["color"] as? String {
+            if colorString.hasPrefix("color:") {
+                return String(colorString.dropFirst(6)).capitalized
+            }
+            return colorString.capitalized
+        }
+        return swiftUIColors.first { $0.1 == currentColor }?.0 ?? "Custom"
     }
     
     private func isSelected(_ color: Color) -> Bool {
-        guard let currentColor = modifier.properties["color"] as? Color else { return false }
-        if currentColor == color { return true }
-        let currentColorName = colorName(for: currentColor)
-        let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
-        return currentColorName == targetColorName && currentColorName != "Custom"
+        // 1. Try to match by name if stored as string (Most reliable for named colors)
+        if let targetName = swiftUIColors.first(where: { $0.1 == color })?.0,
+           let storedString = modifier.properties["color"] as? String {
+            let normalizedStored = storedString.replacingOccurrences(of: "color:", with: "")
+            if normalizedStored.lowercased() == targetName.lowercased() {
+                return true
+            }
+        }
+        
+        // 2. Fallback to Color equality (For custom colors or when string match fails)
+        return currentColor == color
     }
     
+    // Helper needed for grid? No, grid uses logic inside body or calls this.
+    // We removed colorName(for: Color) usage in favor of selectedColorName for the label.
+    // Wait, the grid loop might use colorName(for:) if we didn't check.
+    // The grid loop uses `name` from swiftUIColors.
+    
     private func updateColorWithOpacity(_ newOpacity: Double) {
-        if let currentColor = modifier.properties["color"] as? Color {
-            let baseColor = findBaseColor(for: currentColor)
-            modifier.properties["color"] = baseColor.opacity(newOpacity)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
+        // Use currentColor instead of casting directly
+        let baseColor = findBaseColor(for: currentColor)
+        var updatedModifier = modifier
+        updatedModifier.properties["color"] = baseColor.opacity(newOpacity)
+        
+        // Explicitly update component
+        component.updateModifier(updatedModifier)
+        modifier = updatedModifier
+        
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     private func findBaseColor(for color: Color) -> Color {
@@ -381,165 +388,4 @@ struct BackgroundElementModifierEditor: View {
     }
 }
 
-// MARK: - Gradient Editor View
-struct GradientEditor: View {
-    @Binding var modifier: ComponentModifier
-    @State private var isColor1PickerPresented = false
-    @State private var isColor2PickerPresented = false
-    
-    private let swiftUIColors: [(String, Color)] = [
-        ("White", .white), ("Black", .black), ("Red", .red), ("Orange", .orange),
-        ("Yellow", .yellow), ("Green", .green), ("Blue", .blue), ("Purple", .purple),
-        ("Pink", .pink), ("Cyan", .cyan), ("Mint", .mint), ("Gray", .gray)
-    ]
-    
-    private let unitPoints = ["top", "bottom", "leading", "trailing", "topLeading", "topTrailing", "bottomLeading", "bottomTrailing"]
-    
-    private var gradientDict: [String: Any] {
-        modifier.properties["gradient"] as? [String: Any] ?? [
-            "colors": ["color:blue", "color:purple"],
-            "startPoint": "top",
-            "endPoint": "bottom"
-        ]
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Color 1
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Start Color")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                colorButton(index: 0, isPresented: $isColor1PickerPresented)
-            }
-            
-            // Color 2
-            VStack(alignment: .leading, spacing: 4) {
-                Text("End Color")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                colorButton(index: 1, isPresented: $isColor2PickerPresented)
-            }
-            
-            // Start Point
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Start Point")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Picker("", selection: Binding(
-                    get: { gradientDict["startPoint"] as? String ?? "top" },
-                    set: { updateGradientProperty(key: "startPoint", value: $0) }
-                )) {
-                    ForEach(unitPoints, id: \.self) { point in
-                        Text(point).tag(point)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-            
-            // End Point
-            VStack(alignment: .leading, spacing: 4) {
-                Text("End Point")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Picker("", selection: Binding(
-                    get: { gradientDict["endPoint"] as? String ?? "bottom" },
-                    set: { updateGradientProperty(key: "endPoint", value: $0) }
-                )) {
-                    ForEach(unitPoints, id: \.self) { point in
-                        Text(point).tag(point)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-        }
-        .onAppear {
-            // Initialize gradient if it doesn't exist
-            if modifier.properties["gradient"] == nil {
-                updateGradientProperty(key: "colors", value: ["color:blue", "color:purple"])
-            }
-        }
-    }
-    
-    private func colorButton(index: Int, isPresented: Binding<Bool>) -> some View {
-        let colors = gradientDict["colors"] as? [Any] ?? ["color:blue", "color:purple"]
-        let colorVal = colors.count > index ? colors[index] : "color:blue"
-        let color = colorValueToColor(colorVal)
-        
-        return Button(action: { isPresented.wrappedValue = true }) {
-            HStack {
-                Circle().fill(color).frame(width: 16, height: 16)
-                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                Text(colorLabel(for: colorVal))
-                    .font(.caption)
-                    .foregroundColor(.primary)
-                Spacer()
-                Image(systemName: "chevron.down").font(.caption2).foregroundColor(.secondary)
-            }
-            .padding(.horizontal, 8).padding(.vertical, 6)
-            .background(Color.gray.opacity(0.1)).cornerRadius(6)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .popover(isPresented: isPresented) {
-            colorGrid(index: index, isPresented: isPresented)
-        }
-    }
-    
-    private func colorGrid(index: Int, isPresented: Binding<Bool>) -> some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
-            ForEach(swiftUIColors, id: \.0) { name, color in
-                Button(action: {
-                    updateGradientColor(index: index, colorName: name.lowercased())
-                    isPresented.wrappedValue = false
-                }) {
-                    Circle().fill(color).frame(width: 24, height: 24)
-                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-        }
-        .padding().frame(width: 160)
-    }
-    
-    private func updateGradientProperty(key: String, value: Any) {
-        var dict = gradientDict
-        dict[key] = value
-        var updatedModifier = modifier
-        updatedModifier.properties["gradient"] = dict
-        modifier = updatedModifier
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
-    
-    private func updateGradientColor(index: Int, colorName: String) {
-        var dict = gradientDict
-        var colors = dict["colors"] as? [Any] ?? ["color:blue", "color:purple"]
-        if colors.count > index {
-            colors[index] = "color:\(colorName)"
-        } else {
-            colors.append("color:\(colorName)")
-        }
-        dict["colors"] = colors
-        var updatedModifier = modifier
-        updatedModifier.properties["gradient"] = dict
-        modifier = updatedModifier
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
-    
-    private func colorValueToColor(_ val: Any) -> Color {
-        if let str = val as? String {
-            return ComponentProperty.colorStringToColor(str.hasPrefix("color:") ? String(str.dropFirst(6)) : str)
-        }
-        return val as? Color ?? .blue
-    }
-    
-    private func colorLabel(for val: Any) -> String {
-        if let str = val as? String, str.hasPrefix("color:") {
-            return String(str.dropFirst(6)).capitalized
-        }
-        return "Custom"
-    }
-}
+
