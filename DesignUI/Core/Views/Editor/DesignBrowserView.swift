@@ -80,7 +80,9 @@ struct DesignBrowserView: View {
                                         }
                                     }
                                     .padding(.horizontal)
+                                    .padding(.vertical, 12)
                                 }
+                                .scrollClipDisabled()
                             }
                         }
                         
@@ -257,6 +259,7 @@ struct DesignCardView: View {
 #endif
             }
         }
+        .zIndex(isHovered ? 1 : 0)
         .contentShape(Rectangle())
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.2)) {
@@ -374,7 +377,9 @@ struct TemplatesGridView: View {
                 }
             }
             .padding(.horizontal)
+            .padding(.vertical, 12)
         }
+        .scrollClipDisabled()
     }
 }
 
@@ -402,6 +407,7 @@ struct TemplateCardView: View {
                 .font(.headline)
                 .lineLimit(1)
         }
+        .zIndex(isHovered ? 1 : 0)
         .contentShape(Rectangle())
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.2)) {

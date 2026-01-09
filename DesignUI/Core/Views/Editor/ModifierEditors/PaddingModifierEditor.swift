@@ -11,93 +11,174 @@ import SwiftUI
 struct PaddingModifierEditor: View {
     @Binding var modifier: ComponentModifier
     @ObservedObject var component: UIComponent
-    @State private var amountText: String = ""
+    @State private var paddingAmount: CGFloat = 10
+    @State private var selectedLocation: String = "all"
     
-    // Computed properties to sync with modifier
-    private var currentAmount: CGFloat {
-        modifier.getCGFloat(key: "amount", defaultValue: 10)
-    }
-    
-    private var currentLocation: String {
-        modifier.properties["location"] as? String ?? "all"
-    }
-    
-    private let paddingLocations = [
-        ("all", "All Sides"),
-        ("leading", "Leading"),
-        ("trailing", "Trailing"),
-        ("top", "Top"),
-        ("bottom", "Bottom"),
-        ("horizontal", "Horizontal"),
-        ("vertical", "Vertical")
+    private let paddingLocations: [(key: String, displayName: String, icon: String)] = [
+        ("all", "All Sides", "square.dashed"),
+        ("horizontal", "Horizontal", "arrow.left.and.right"),
+        ("vertical", "Vertical", "arrow.up.and.down"),
+        ("leading", "Leading", "arrow.left"),
+        ("trailing", "Trailing", "arrow.right"),
+        ("top", "Top", "arrow.up"),
+        ("bottom", "Bottom", "arrow.down")
     ]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(spacing: 12) {
-                // Padding Location
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Preview Header
                 HStack {
-                    Text("Location")
+                    Text("Padding")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Picker("", selection: Binding(
-                        get: { currentLocation },
-                        set: { newValue in
-                            print("📏 Padding location changed to: \(newValue)")
-                            var updatedModifier = modifier
-                            updatedModifier.properties["location"] = newValue
-                            component.updateModifier(updatedModifier)
-                        }
-                    )) {
-                        ForEach(paddingLocations, id: \.0) { location in
-                            Text(location.1).tag(location.0)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
+                    // Preview showing current padding
+                    Text("\(Int(paddingAmount))pt \(locationDisplayName)")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
                 }
                 
-                // Padding Amount
-                HStack {
-                    Text("Amount")
-                    
-                    Spacer()
-                    
-                    TextField("10", text: $amountText)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 50)
-                        .onChange(of: amountText) { _, newValue in
-                            // Allow empty string while typing
-                            if newValue.isEmpty {
-                                return
+                // Amount Slider
+                VStack(spacing: 0) {
+                    HStack(spacing: 12) {
+                        // Icon
+                        Image(systemName: "ruler")
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+                            .frame(width: 24, height: 24)
+                        
+                        // Slider
+                        Slider(value: $paddingAmount, in: 0...100)
+                            .onChange(of: paddingAmount) { _, _ in
+                                savePadding()
                             }
-                            // Try to parse the value
-                            if let value = Double(newValue) {
-                                print("📏 Padding amount changed to: \(value)")
-                                var updatedModifier = modifier
-                                updatedModifier.properties["amount"] = CGFloat(value)
-                                modifier = updatedModifier
-                                component.updateModifier(updatedModifier)
+                        
+                        // Value label
+                        Text("\(Int(paddingAmount))")
+                            .font(.system(size: 14))
+                            .foregroundColor(.primary)
+                            .monospacedDigit()
+                            .frame(width: 36, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.secondary.opacity(0.1))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                
+                // Location List
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Location")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 0) {
+                        ForEach(paddingLocations, id: \.key) { location in
+                            PaddingLocationRow(
+                                key: location.key,
+                                displayName: location.displayName,
+                                icon: location.icon,
+                                isSelected: selectedLocation == location.key,
+                                onSelect: {
+                                    selectedLocation = location.key
+                                    savePadding()
+                                }
+                            )
+                            
+                            if location.key != paddingLocations.last?.key {
+                                Divider()
+                                    .padding(.leading, 44)
                             }
                         }
-                        .onSubmit {
-                            // When user finishes editing, ensure we have a valid value
-                            if amountText.isEmpty || Double(amountText) == nil {
-                                amountText = String(format: "%.0f", currentAmount)
-                            }
-                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
+            .padding()
         }
+        .frame(maxHeight: 400)
         .onAppear {
-            // Initialize the text field with current value
-            amountText = String(format: "%.0f", currentAmount)
+            loadPadding()
         }
-        .onChange(of: currentAmount) { _, newValue in
-            // Update text field if amount changes externally
-            if Double(amountText) != Double(newValue) {
-                amountText = String(format: "%.0f", newValue)
+        .onChange(of: modifier) { _, _ in
+            loadPadding()
+        }
+    }
+    
+    private var locationDisplayName: String {
+        paddingLocations.first { $0.key == selectedLocation }?.displayName ?? "All Sides"
+    }
+    
+    private func loadPadding() {
+        paddingAmount = modifier.getCGFloat(key: "amount", defaultValue: 10)
+        selectedLocation = modifier.properties["location"] as? String ?? "all"
+    }
+    
+    private func savePadding() {
+        var updatedModifier = modifier
+        updatedModifier.properties["amount"] = paddingAmount
+        updatedModifier.properties["location"] = selectedLocation
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifier(updatedModifier)
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+}
+
+// MARK: - Padding Location Row
+struct PaddingLocationRow: View {
+    let key: String
+    let displayName: String
+    let icon: String
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // Icon
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .frame(width: 24, height: 24)
+                
+                // Label
+                Text(displayName)
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // Checkmark for selected
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.blue)
+                }
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
 }

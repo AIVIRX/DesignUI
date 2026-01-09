@@ -23,19 +23,26 @@ struct ModifierPanelView: View {
                 
                 Spacer()
                 
-                HStack(spacing: 4) {
-                    Text("Add Modifier")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                    
-                    Image(systemName: "plus")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
+                Button {
                     showingAddModifier = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 10, weight: .medium))
+                        
+                        Text("Add")
+                            .font(.system(size: 10, weight: .medium))
+                    }
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.blue.opacity(0.12))
+                    )
+                    .contentShape(Capsule())
                 }
+                .buttonStyle(.plain)
             }
             
             // Applied Modifiers
@@ -120,12 +127,12 @@ struct ModifierItemView: View {
                 // Modifier icon and name
                 HStack(spacing: 8) {
                     Image(systemName: modifier.type.icon)
-                        .font(.caption)
+                        .font(.system(size: 14))
                         .foregroundColor(.blue)
-                        .frame(width: 16, height: 16)
+                        .frame(width: 20, height: 24)
                     
                     Text(modifierDisplayName(modifier, index: index))
-                        .font(.caption)
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.primary)
                 }
                 
@@ -143,15 +150,17 @@ struct ModifierItemView: View {
                     if draggingId != nil && dragOverTarget == modifier.id && dragOverPosition != .none {
                         VStack(spacing: 0) {
                             if dragOverPosition == .above {
-                                Divider()
-                                    .overlay(Color.accentColor)
-                                    .frame(height: 2)
+                                Capsule()
+                                    .fill(Color.accentColor)
+                                    .frame(height: 4)
+                                    .padding(.horizontal, 4)
                             }
                             Spacer()
                             if dragOverPosition == .below {
-                                Divider()
-                                    .overlay(Color.accentColor)
-                                    .frame(height: 2)
+                                Capsule()
+                                    .fill(Color.accentColor)
+                                    .frame(height: 4)
+                                    .padding(.horizontal, 4)
                             }
                         }
                     }
@@ -199,7 +208,9 @@ struct ModifierItemView: View {
                 ModifierEditorView(component: component, modifier: Binding(
                     get: { modifier },
                     set: { newModifier in
-                        component.updateModifier(newModifier)
+                        DispatchQueue.main.async {
+                            component.updateModifier(newModifier)
+                        }
                     }
                 ))
                 .navigationTitle(modifier.type.rawValue)
@@ -210,7 +221,9 @@ struct ModifierItemView: View {
                 ModifierEditorView(component: component, modifier: Binding(
                     get: { modifier },
                     set: { newModifier in
-                        component.updateModifier(newModifier)
+                        DispatchQueue.main.async {
+                            component.updateModifier(newModifier)
+                        }
                     }
                 ))
             }
@@ -225,7 +238,6 @@ struct ModifierItemView: View {
         
         // Count how many modifiers of this type exist before this one
         let sameTypeCount = component.modifiers.prefix(index).filter { $0.type == modifier.type }.count
-        let totalSameType = component.modifiers.filter { $0.type == modifier.type }.count
         
         // Add distinguishing information based on modifier type
         switch modifier.type {
@@ -242,7 +254,21 @@ struct ModifierItemView: View {
                 return baseName
             }
         case .frame:
-            return baseName
+            let widthType = (modifier.properties["widthType"] as? String) ?? "Default"
+            let heightType = (modifier.properties["heightType"] as? String) ?? "Default"
+            
+            // Only show preview if both dimensions are set (not Default)
+            if widthType == "Default" || heightType == "Default" {
+                return baseName
+            }
+            
+            let width = modifier.getCGFloat(key: "width", defaultValue: 100)
+            let height = modifier.getCGFloat(key: "height", defaultValue: 100)
+            
+            let wDisplay = widthType == "Custom" ? "\(Int(width))" : widthType
+            let hDisplay = heightType == "Custom" ? "\(Int(height))" : heightType
+            
+            return "\(baseName) (\(wDisplay) × \(hDisplay))"
         case .offset:
             let x = modifier.getCGFloat(key: "x", defaultValue: 0)
             let y = modifier.getCGFloat(key: "y", defaultValue: 0)
@@ -266,25 +292,34 @@ struct ModifierItemView: View {
         case .opacity:
             let opacity = modifier.getDouble(key: "opacity", defaultValue: 1.0)
             return "\(baseName) (\(Int(opacity * 100))%)"
-        case .background:
+        case .fill, .foregroundColor, .backgroundColor:
             return baseName
-        case .foregroundColor:
+        case .border:
+            let width = modifier.getCGFloat(key: "width", defaultValue: 1)
+            return "\(baseName) (\(Int(width))px)"
+        case .clipShape:
+            let shape = modifier.properties["shape"] as? String ?? "Rectangle"
+            return "\(baseName) (\(shape))"
+        case .aspectRatio:
+            if let ratio = modifier.properties["ratio"] as? Double {
+                if abs(ratio - 1.0) < 0.01 { return "\(baseName) (Square)" }
+                if abs(ratio - 1.777) < 0.01 { return "\(baseName) (16:9)" }
+                return "\(baseName) (\(String(format: "%.2f", ratio)))"
+            }
+            let contentMode = modifier.properties["aspectRatio"] as? String ?? "fit"
+            return "\(baseName) (\(contentMode.capitalized))"
+        case .zIndex:
+            let index = modifier.getDouble(key: "index", defaultValue: 0)
+            return "\(baseName) (\(Int(index)))"
+        case .mask, .overlay, .background:
             return baseName
         case .font:
-            let weight = modifier.properties["fontWeight"] as? String ?? "regular"
-            return "\(baseName) (\(weight.capitalized))"
-        case .fontSize:
             let size = modifier.properties["fontSize"] as? String ?? "body"
-            return "\(baseName) (\(size.capitalized))"
-        default:
-            // For other types, just add a number if there are multiple
-            if totalSameType <= 1 {
-                return baseName
+            let weight = modifier.properties["fontWeight"] as? String ?? "regular"
+            if weight == "regular" {
+                return "\(baseName) (\(size.capitalized))"
             }
-            if sameTypeCount > 0 {
-                return "\(baseName) (\(sameTypeCount + 1))"
-            }
-            return baseName
+            return "\(baseName) (\(size.capitalized), \(weight.capitalized))"
         }
     }
     
@@ -417,12 +452,42 @@ struct AddModifierView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
     
-    private var filteredModifiers: [ModifierType] {
-        // Allow all modifier types - users can add multiple modifiers of the same type
+    // Define categories
+    private struct ModifierCategory: Identifiable {
+        let id = UUID()
+        let name: String
+        let modifiers: [ModifierType]
+    }
+    
+    private var categories: [ModifierCategory] {
+        [
+            ModifierCategory(name: "Layout", modifiers: [
+                .frame, .padding, .aspectRatio
+            ]),
+            ModifierCategory(name: "Style", modifiers: [
+                .fill, .foregroundColor, .backgroundColor, .opacity, .shadow, .border, .blur
+            ]),
+            ModifierCategory(name: "Text", modifiers: [
+                .font, .textAlignment
+            ]),
+            ModifierCategory(name: "Transform", modifiers: [
+                .scale, .rotation, .offset
+            ]),
+            ModifierCategory(name: "Layers & Effects", modifiers: [
+                .background, .overlay, .zIndex, .mask, .clipShape, .cornerRadius
+            ])
+        ]
+    }
+    
+    private var filteredCategories: [ModifierCategory] {
         if searchText.isEmpty {
-            return ModifierType.allCases
+            return categories
         } else {
-            return ModifierType.allCases.filter { $0.rawValue.localizedCaseInsensitiveContains(searchText) }
+            // When searching, we can either filter within categories or flatten.
+            // Let's flatten for easier search results, or filter categories to distinct ones.
+            // Flattening is usually better for search.
+            let filtered = ModifierType.allCases.filter { $0.rawValue.localizedCaseInsensitiveContains(searchText) }
+            return [ModifierCategory(name: "Search Results", modifiers: filtered)]
         }
     }
     
@@ -445,22 +510,38 @@ struct AddModifierView: View {
                 
                 // Modifiers list
                 ScrollView {
-                    LazyVStack(spacing: 8) {
-                        ForEach(filteredModifiers) { modifierType in
-                            ModifierTypeItemView(
-                                modifierType: modifierType,
-                                onAdd: {
-                                    let modifier = ComponentModifier.createWithDefaults(type: modifierType)
-                                    component.addModifier(modifier)
-                                    dismiss()
+                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        ForEach(filteredCategories) { category in
+                            if !category.modifiers.isEmpty {
+                                Section(header:
+                                            HStack {
+                                    Text(category.name)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                    Spacer()
                                 }
-                            )
+                                    .background(.regularMaterial)
+                                ) {
+                                    ForEach(category.modifiers) { modifierType in
+                                        ModifierTypeItemView(
+                                            modifierType: modifierType,
+                                            onAdd: {
+                                                let modifier = ComponentModifier.createWithDefaults(type: modifierType)
+                                                component.addModifier(modifier)
+                                                dismiss()
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
-                    .padding(16)
+                    .padding(.bottom, 16)
                 }
             }
-            .navigationTitle("Add Modifier")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -470,7 +551,7 @@ struct AddModifierView: View {
             }
         }
 #if os(macOS)
-        .frame(width: 400, height: 500)
+        .frame(width: 400, height: 600)
 #endif
     }
 }
@@ -478,40 +559,42 @@ struct AddModifierView: View {
 struct ModifierTypeItemView: View {
     let modifierType: ModifierType
     let onAdd: () -> Void
+    @State private var isHovered = false
+    
     var body: some View {
-        HStack(spacing: 12) {
-            // Modifier icon
-            Image(systemName: modifierType.icon)
-                .font(.title2)
-                .foregroundColor(.blue)
-                .frame(width: 32, height: 32)
-            
-            // Modifier info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(modifierType.rawValue)
-                    .font(.headline)
-                    .foregroundColor(.primary)
+        Button(action: onAdd) {
+            HStack(spacing: 12) {
+                // Modifier icon
+                Image(systemName: modifierType.icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(.blue)
+                    .frame(width: 24, height: 24)
                 
-                Text(modifierType.description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                // Modifier info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(modifierType.rawValue)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    Text(modifierType.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                Spacer()
+                
+                // Plus icon
+                Image(systemName: "plus.circle")
+                    .font(.system(size: 14))
+                    .foregroundColor(isHovered ? .blue : .gray.opacity(0.3))
             }
-            
-            Spacer()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(isHovered ? Color.primary.opacity(0.05) : Color.clear)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondary.opacity(0.1))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-        )
-        .contentShape(Rectangle())
-        .onTapGesture {
-            onAdd()
-        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
     }
 }

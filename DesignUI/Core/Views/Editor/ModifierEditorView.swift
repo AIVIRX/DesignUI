@@ -41,45 +41,43 @@ struct ModifierEditorView: View {
                 case .padding:
                     PaddingModifierEditor(modifier: $modifier, component: component)
                 case .backgroundColor:
-                    BackgroundColorModifierEditor(modifier: $modifier, component: component)
+                    ColorModifierEditor(modifier: $modifier, component: component, title: "Background Color")
                 case .background:
                     BackgroundElementModifierEditor(modifier: $modifier, component: component)
                 case .foregroundColor:
                     ColorModifierEditor(modifier: $modifier, component: component, title: "Foreground Color")
                 case .font:
-                    FontModifierEditor(modifier: $modifier)
-                case .fontSize:
-                    FontSizeModifierEditor(modifier: $modifier)
+                    FontModifierEditor(modifier: $modifier, component: component)
                 case .cornerRadius:
-                    CornerRadiusModifierEditor(modifier: $modifier)
+                    CornerRadiusModifierEditor(modifier: $modifier, component: component)
                 case .shadow:
-                    ShadowModifierEditor(modifier: $modifier)
+                    ShadowModifierEditor(modifier: $modifier, component: component)
                 case .opacity:
                     OpacityModifierEditor(modifier: $modifier)
                 case .rotation:
-                    RotationModifierEditor(modifier: $modifier)
+                    RotationModifierEditor(modifier: $modifier, component: component)
                 case .scale:
-                    ScaleModifierEditor(modifier: $modifier)
+                    ScaleModifierEditor(modifier: $modifier, component: component)
                 case .offset:
-                    OffsetModifierEditor(modifier: $modifier)
+                    OffsetModifierEditor(modifier: $modifier, component: component)
                 case .blur:
-                    BlurModifierEditor(modifier: $modifier)
+                    BlurModifierEditor(modifier: $modifier, component: component)
                 case .clipShape:
-                    ClipShapeModifierEditor(modifier: $modifier)
+                    ClipShapeModifierEditor(modifier: $modifier, component: component)
                 case .mask:
                     MaskModifierEditor(modifier: $modifier, component: component)
                 case .overlay:
                     OverlayModifierEditor(modifier: $modifier, component: component)
                 case .border:
-                    BorderModifierEditor(modifier: $modifier)
+                    BorderModifierEditor(modifier: $modifier, component: component)
                 case .textAlignment:
                     TextAlignmentModifierEditor(modifier: $modifier, component: component)
                 case .fill:
                     ColorModifierEditor(modifier: $modifier, component: component, title: "Fill Color")
                 case .aspectRatio:
-                    AspectRatioModifierEditor(modifier: $modifier)
+                    AspectRatioModifierEditor(modifier: $modifier, component: component)
                 case .zIndex:
-                    ZIndexModifierEditor(modifier: $modifier)
+                    ZIndexModifierEditor(modifier: $modifier, component: component)
                 }
             }
             

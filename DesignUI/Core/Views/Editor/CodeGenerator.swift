@@ -387,8 +387,6 @@ struct CodeGenerator {
             return generateForegroundColorModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
         case .font:
             return generateFontModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
-        case .fontSize:
-            return generateFontSizeModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
         case .cornerRadius:
             return generateCornerRadiusModifierCode(modifier: modifier, indent: indent, nextIndent: nextIndent)
         case .opacity:
@@ -483,9 +481,10 @@ struct CodeGenerator {
             return "\(nextIndent).background(\(gradientCode))"
         }
         
-        // Color background
+        // Color background with opacity support
         let colorValue = modifier.properties["color"]
-        return "\(nextIndent).background(\(colorToString(colorValue)))"
+        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+        return "\(nextIndent).background(\(colorWithOpacityToString(colorValue, opacity: opacity)))"
     }
     
     private static func generateBackgroundModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
@@ -500,9 +499,10 @@ struct CodeGenerator {
             return "\(nextIndent).background(\(gradientCode))"
         }
         
-        // Fallback to color background
+        // Fallback to color background with opacity support
         let colorValue = modifier.properties["color"]
-        return "\(nextIndent).background(\(colorToString(colorValue)))"
+        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+        return "\(nextIndent).background(\(colorWithOpacityToString(colorValue, opacity: opacity)))"
     }
     
     private static func generateFillModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
@@ -512,23 +512,48 @@ struct CodeGenerator {
         }
         
         let colorValue = modifier.properties["color"]
-        return "\(nextIndent).fill(\(colorToString(colorValue)))"
+        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+        return "\(nextIndent).fill(\(colorWithOpacityToString(colorValue, opacity: opacity)))"
     }
     
     private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let color = modifier.properties["color"]
-        return "\(nextIndent).foregroundColor(\(colorToString(color)))"
+        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+        return "\(nextIndent).foregroundStyle(\(colorWithOpacityToString(color, opacity: opacity)))"
+    }
+    
+    /// Converts color value and opacity to a SwiftUI code string like `.red.opacity(0.73)` or just `.red`
+    private static func colorWithOpacityToString(_ value: Any?, opacity: Double) -> String {
+        let baseColor = colorToString(value)
+        
+        // If opacity is 1.0 (or very close), don't add opacity modifier
+        if opacity >= 0.99 {
+            return baseColor
+        }
+        
+        // Format opacity with 2 decimal places, removing trailing zeros
+        let opacityString = String(format: "%.2f", opacity)
+            .replacingOccurrences(of: "\\.?0+$", with: "", options: .regularExpression)
+        
+        return "\(baseColor).opacity(\(opacityString))"
     }
     
     private static func generateFontModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
-        let weight = modifier.properties["fontWeight"] as? String ?? "regular"
-        return "\(nextIndent).fontWeight(.\(weight))"
-    }
-    
-    private static func generateFontSizeModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let size = modifier.properties["fontSize"] as? String ?? "body"
-        let fontStyle = fontStyleString(for: size)
-        return "\(nextIndent).font(\(fontStyle))"
+        let weight = modifier.properties["fontWeight"] as? String ?? "regular"
+        
+        // Don't generate code if both are defaults (body + regular)
+        if size == "body" && weight == "regular" {
+            return ""
+        }
+        
+        // If weight is regular, just output .font(.size)
+        if weight == "regular" {
+            return "\(nextIndent).font(.\(size))"
+        }
+        
+        // Otherwise output .font(.system(.size, weight: .weight))
+        return "\(nextIndent).font(.system(.\(size), weight: .\(weight)))"
     }
     
     private static func generateCornerRadiusModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {

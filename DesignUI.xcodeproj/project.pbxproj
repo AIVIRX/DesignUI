@@ -78,7 +78,6 @@
 		ECB94C802EFB0C6F000AAF34 /* ScreenshotUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C672EFB0C6F000AAF34 /* ScreenshotUtility.swift */; };
 		ECB94C812EFB0C6F000AAF34 /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5B2EFB0C6F000AAF34 /* CodePreviewView.swift */; };
 		ECB94C902EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C8E2EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift */; };
-		ECB94C912EFB0D21000AAF34 /* FontSizeModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C882EFB0D21000AAF34 /* FontSizeModifierEditor.swift */; };
 		ECB94C922EFB0D21000AAF34 /* FontModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C872EFB0D21000AAF34 /* FontModifierEditor.swift */; };
 		ECB94C932EFB0D21000AAF34 /* BackgroundModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C842EFB0D21000AAF34 /* BackgroundModifierEditor.swift */; };
 		ECB94C942EFB0D21000AAF34 /* TransformModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C8F2EFB0D21000AAF34 /* TransformModifierEditors.swift */; };
@@ -673,7 +672,6 @@
 				EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				ECB94C902EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift in Sources */,
-				ECB94C912EFB0D21000AAF34 /* FontSizeModifierEditor.swift in Sources */,
 				ECB94C922EFB0D21000AAF34 /* FontModifierEditor.swift in Sources */,
 				ECB94C932EFB0D21000AAF34 /* BackgroundModifierEditor.swift in Sources */,
 				ECB94C942EFB0D21000AAF34 /* TransformModifierEditors.swift in Sources */,

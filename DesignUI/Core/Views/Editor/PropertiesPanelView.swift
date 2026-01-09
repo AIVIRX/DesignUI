@@ -50,7 +50,8 @@ struct PropertiesPanelView: View {
                             // Component Actions
                             ComponentActionsSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
                         }
-                    }.padding()
+                    }
+                    .padding()
                 }
                 .sheet(isPresented: $showImageGallery, onDismiss: {
                     // Update image property when gallery closes
@@ -85,7 +86,6 @@ struct PropertiesPanelView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .frame(width: 300)
     }
     
     // MARK: - Helper Methods
@@ -1084,8 +1084,11 @@ struct ComponentActionsSection: View {
     }
     
     private func deleteComponent() {
+        // Use selectedComponent binding to ensure we delete the CURRENTLY selected component
+        guard let componentToDelete = selectedComponent else { return }
+        
         // Remove the component from the canvas
-        canvasManager.removeComponent(component)
+        canvasManager.removeComponent(componentToDelete)
         
         // Clear the selection
         selectedComponent = nil

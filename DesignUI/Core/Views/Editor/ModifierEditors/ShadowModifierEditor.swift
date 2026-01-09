@@ -10,243 +10,315 @@ import SwiftUI
 // MARK: - Shadow Modifier Editor
 struct ShadowModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var radiusText: String = ""
-    @State private var offsetXText: String = ""
-    @State private var offsetYText: String = ""
-    @State private var opacityText: String = ""
-    @State private var isColorPickerPresented = false
+    @ObservedObject var component: UIComponent
     
-    private var currentColor: Color {
-        modifier.getColor(key: "color", defaultValue: .black)
-    }
+    @State private var radius: CGFloat = 4
+    @State private var offsetX: CGFloat = 0
+    @State private var offsetY: CGFloat = 2
+    @State private var opacity: Double = 0.3
+    @State private var selectedColorName: String = "Black"
+    @State private var isColorExpanded: Bool = false
     
-    private let swiftUIColors: [(String, Color)] = [
+    // Using consistent color list from ColorModifierEditor
+    private let colors: [(name: String, color: Color)] = [
         ("Black", .black),
+        ("White", .white),
         ("Gray", .gray),
         ("Red", .red),
         ("Orange", .orange),
         ("Yellow", .yellow),
         ("Green", .green),
+        ("Mint", .mint),
+        ("Teal", .teal),
+        ("Cyan", .cyan),
         ("Blue", .blue),
+        ("Indigo", .indigo),
         ("Purple", .purple),
         ("Pink", .pink),
+        ("Brown", .brown),
         ("Primary", .primary),
         ("Secondary", .secondary)
     ]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            colorPickerSection
-            
-            // Shadow Radius
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Radius")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                TextField("4", text: $radiusText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: radiusText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["radius"] = CGFloat(value)
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        }
-                    }
-                    .onSubmit {
-                        if radiusText.isEmpty || Double(radiusText) == nil {
-                            radiusText = String(format: "%.0f", modifier.getCGFloat(key: "radius", defaultValue: 4))
-                        }
-                    }
-            }
-            
-            // Shadow Offset X
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Offset X")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                TextField("0", text: $offsetXText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: offsetXText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["x"] = CGFloat(value)
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        }
-                    }
-                    .onSubmit {
-                        if offsetXText.isEmpty || Double(offsetXText) == nil {
-                            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "x", defaultValue: 0))
-                        }
-                    }
-            }
-            
-            // Shadow Offset Y
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Offset Y")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                TextField("2", text: $offsetYText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: offsetYText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["y"] = CGFloat(value)
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        }
-                    }
-                    .onSubmit {
-                        if offsetYText.isEmpty || Double(offsetYText) == nil {
-                            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "y", defaultValue: 2))
-                        }
-                    }
-            }
-            
-            // Shadow Opacity
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Opacity")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                TextField("0.3", text: $opacityText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: opacityText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["opacity"] = value
-                            
-                            // Update the color with the new opacity
-                            let baseValue = modifier.properties["color"] ?? "color:black"
-                            let baseColor: Color
-                            if let str = baseValue as? String {
-                                baseColor = ComponentProperty.colorStringToColor(str.hasPrefix("color:") ? String(str.dropFirst(6)) : str)
-                            } else {
-                                baseColor = baseValue as? Color ?? .black
-                            }
-                            
-                            updatedModifier.properties["color"] = baseColor.opacity(value)
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        }
-                    }
-                    .onSubmit {
-                        if opacityText.isEmpty || Double(opacityText) == nil {
-                            opacityText = String(format: "%.1f", modifier.getDouble(key: "opacity", defaultValue: 0.3))
-                        }
-                    }
-            }
-        }
-        .onAppear {
-            initializeFields()
-        }
-        .onChange(of: modifier) { _, _ in
-            initializeFields()
-        }
-    }
-    
-    private var colorPickerSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Color")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Button(action: { isColorPickerPresented = true }) {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(currentColor)
-                        .frame(width: 16, height: 16)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
-                    
-                    Text(colorName(for: currentColor))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Preview Header
+                HStack {
+                    Text("Shadow")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Image(systemName: "chevron.down")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(6)
-            }
-            .buttonStyle(PlainButtonStyle())
-            .popover(isPresented: $isColorPickerPresented) {
-                colorGrid
-            }
-        }
-    }
-    
-    private var colorGrid: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
-            ForEach(swiftUIColors, id: \.0) { colorName, color in
-                Button(action: {
-                    var updatedModifier = modifier
-                    let opacity = modifier.getDouble(key: "opacity", defaultValue: 0.3)
+                    Circle()
+                        .fill(currentColor)
+                        .frame(width: 12, height: 12)
+                        .overlay(Circle().stroke(Color.primary.opacity(0.1)))
                     
-                    if opacity >= 0.99 && colorName != "Primary" && colorName != "Secondary" {
-                        updatedModifier.properties["color"] = "color:\(colorName.lowercased())"
-                    } else {
-                        updatedModifier.properties["color"] = color.opacity(opacity)
+                    Text("\(Int(radius))pt")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                }
+                
+                // Color Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Button(action: { withAnimation { isColorExpanded.toggle() } }) {
+                        HStack {
+                            Text("Color")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                            
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(currentColor)
+                                    .frame(width: 16, height: 16)
+                                    .overlay(Circle().stroke(Color.primary.opacity(0.1)))
+                                
+                                Text(selectedColorName)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.primary)
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .rotationEffect(.degrees(isColorExpanded ? 90 : 0))
+                            }
+                        }
+                        .padding(8)
+                        .background(Color.secondary.opacity(0.05))
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    if isColorExpanded {
+                        VStack(spacing: 0) {
+                            ForEach(colors, id: \.name) { colorOption in
+                                ShadowColorRow(
+                                    name: colorOption.name,
+                                    color: colorOption.color,
+                                    isSelected: selectedColorName == colorOption.name,
+                                    onSelect: {
+                                        selectedColorName = colorOption.name
+                                        saveShadow()
+                                    }
+                                )
+                                
+                                if colorOption.name != colors.last?.name {
+                                    Divider()
+                                        .padding(.leading, 44)
+                                }
+                            }
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+                
+                // Opacity Slider
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("Opacity")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(opacity * 100))%")
+                            .font(.caption)
+                            .monospacedDigit()
                     }
                     
-                    modifier = updatedModifier
-                    NotificationCenter.default.post(name: .designChanged, object: nil)
-                    isColorPickerPresented = false
-                }) {
-                    Circle()
-                        .fill(color)
-                        .frame(width: 24, height: 24)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
+                    HStack(spacing: 12) {
+                        Image(systemName: "sun.min")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                        
+                        Slider(value: $opacity, in: 0...1)
+                            .onChange(of: opacity) { _, _ in
+                                saveShadow()
+                            }
+                        
+                        Image(systemName: "sun.max")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .buttonStyle(PlainButtonStyle())
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.05)))
+                
+                // Radius Slider
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("Radius")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(radius))")
+                            .font(.caption)
+                            .monospacedDigit()
+                    }
+                    
+                    HStack(spacing: 12) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                        
+                        Slider(value: $radius, in: 0...50)
+                            .onChange(of: radius) { _, _ in
+                                saveShadow()
+                            }
+                    }
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.05)))
+                
+                // Offset Sliders
+                VStack(spacing: 16) {
+                    // X Offset
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Offset X")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(offsetX))")
+                                .font(.caption)
+                                .monospacedDigit()
+                        }
+                        
+                        Slider(value: $offsetX, in: -50...50)
+                            .onChange(of: offsetX) { _, _ in
+                                saveShadow()
+                            }
+                    }
+                    
+                    // Y Offset
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Offset Y")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(offsetY))")
+                                .font(.caption)
+                                .monospacedDigit()
+                        }
+                        
+                        Slider(value: $offsetY, in: -50...50)
+                            .onChange(of: offsetY) { _, _ in
+                                saveShadow()
+                            }
+                    }
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.05)))
             }
+            .padding()
         }
-        .padding()
-        .frame(width: 160)
+        .frame(maxHeight: 500)
+        .onAppear {
+            loadShadow()
+        }
+        .onChange(of: modifier) { _, _ in
+            loadShadow()
+        }
     }
     
-    private func colorName(for color: Color) -> String {
-        return swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
+    private var currentColor: Color {
+        colors.first(where: { $0.name == selectedColorName })?.color ?? .black
     }
+    
+    private func loadShadow() {
+        radius = modifier.getCGFloat(key: "radius", defaultValue: 4)
+        opacity = modifier.getDouble(key: "opacity", defaultValue: 0.3)
+        
+        // Load offset
+        if let x = modifier.properties["x"] as? CGFloat { offsetX = x }
+        else if let x = modifier.properties["offsetX"] as? CGFloat { offsetX = x }
+        
+        if let y = modifier.properties["y"] as? CGFloat { offsetY = y }
+        else if let y = modifier.properties["offsetY"] as? CGFloat { offsetY = y }
+        
+        // Load color
+        if let colorString = modifier.properties["colorString"] as? String {
+             selectedColorName = colorString
+        } else if let colorObj = modifier.properties["color"] as? Color {
+             selectedColorName = colors.first(where: { $0.color == colorObj })?.name ?? "Black"
+        } else {
+             selectedColorName = "Black" // Default
+        }
+    }
+    
+    private func saveShadow() {
+        var updatedModifier = modifier
+        updatedModifier.properties["radius"] = radius
+        updatedModifier.properties["opacity"] = opacity
+        updatedModifier.properties["x"] = offsetX
+        updatedModifier.properties["y"] = offsetY
+        
+        // Save the color name as string for better consistency
+        updatedModifier.properties["colorString"] = selectedColorName
+        
+        // Also save the actual Color object with opacity applied for rendering
+        let baseColor = colors.first(where: { $0.name == selectedColorName })?.color ?? .black
+        updatedModifier.properties["color"] = baseColor.opacity(opacity)
+        
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifier(updatedModifier)
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+}
 
-    private func initializeFields() {
-        radiusText = String(format: "%.0f", modifier.getCGFloat(key: "radius", defaultValue: 4))
-        // Support both "x"/"y" and "offsetX"/"offsetY" for backward compatibility
-        if let x = modifier.properties["x"] as? CGFloat {
-            offsetXText = String(format: "%.0f", x)
-        } else if let offsetX = modifier.properties["offsetX"] as? CGFloat {
-            offsetXText = String(format: "%.0f", offsetX)
-        } else {
-            offsetXText = "0"
+// MARK: - Shadow Color Row
+struct ShadowColorRow: View {
+    let name: String
+    let color: Color
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // Color Circle
+                Circle()
+                    .fill(color)
+                    .frame(width: 24, height: 24)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                    )
+                
+                // Color Name
+                Text(name)
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // Checkmark for selected
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+            .contentShape(Rectangle())
         }
-        
-        if let y = modifier.properties["y"] as? CGFloat {
-            offsetYText = String(format: "%.0f", y)
-        } else if let offsetY = modifier.properties["offsetY"] as? CGFloat {
-            offsetYText = String(format: "%.0f", offsetY)
-        } else {
-            offsetYText = "2"
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
         }
-        
-        // Initialize opacity text
-        opacityText = String(format: "%.1f", modifier.getDouble(key: "opacity", defaultValue: 0.3))
     }
 }

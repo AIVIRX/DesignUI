@@ -601,8 +601,46 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             )
             // Store parent component ID in modifier
             newModifier.properties["parentComponentId"] = parentComponent.id.uuidString
-            // Add parent component as child
+            
+            // Create a default child based on modifier type
+            let defaultChild: UIComponent
+            if modifier.type == .mask {
+                defaultChild = UIComponent(type: .circle, properties: [], modifiers: [])
+            } else if modifier.type == .overlay {
+                defaultChild = UIComponent(
+                    type: .text, 
+                    properties: [
+                        ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Text", defaultValue: "Text")
+                    ],
+                    modifiers: []
+                )
+            } else {
+                // Default handling (background) - Rounded Rectangle
+                defaultChild = UIComponent(
+                    type: .roundedRectangle,
+                    properties: [
+                        ComponentProperty(
+                            key: "cornerRadius",
+                            displayName: "Corner Radius",
+                            type: .cornerRadius,
+                            value: 8.0,
+                            defaultValue: 0.0
+                        )
+                    ],
+                    modifiers: []
+                )
+            }
+            
+            // Add the default child to the container
+            parentComponent.addChild(defaultChild)
+            
+            // Add parent component as child to the main component
             addModifierChild(parentComponent, modifierId: modifier.id)
+            
+            // Auto-select the new default child so user can immediately edit it
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .selectComponent, object: defaultChild.id)
+            }
         }
         
         modifiers.append(newModifier)
@@ -657,11 +695,14 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     func updateModifier(_ modifier: ComponentModifier) {
         if let index = modifiers.firstIndex(where: { $0.id == modifier.id }) {
             modifiers[index] = modifier
-            objectWillChange.send()
             print("🔄 Modifier updated: \(modifier.type.rawValue) with properties: \(modifier.properties)")
             
-            // Post notification to trigger design file saving
-            NotificationCenter.default.post(name: .designChanged, object: nil)
+            // Defer state changes to avoid publishing during view updates
+            DispatchQueue.main.async { [weak self] in
+                self?.objectWillChange.send()
+                // Post notification to trigger design file saving
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
         } else {
             print("⚠️ Modifier not found for update: \(modifier.id)")
         }

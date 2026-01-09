@@ -17,6 +17,7 @@ extension Notification.Name {
     static let canvasRedo = Notification.Name("canvas.redo")
     static let designChanged = Notification.Name("design.changed")
     static let statusBarVisibilityChanged = Notification.Name("statusBar.visibilityChanged")
+    static let selectComponent = Notification.Name("selectComponent")
 }
 
 enum DevicePreset: String, CaseIterable, Identifiable {

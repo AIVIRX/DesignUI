@@ -105,6 +105,9 @@ struct LayersPanelView: View {
                                         isUserInitiatedSelection = true
                                         selectedComponent = $0
                                         onLayerTapped?($0)
+                                    },
+                                    onWrap: { component, type in
+                                        canvasManager.wrapComponent(component, in: type)
                                     }
                                 )
                             }
@@ -139,6 +142,9 @@ struct LayersPanelView: View {
                                     isUserInitiatedSelection = true
                                     selectedComponent = $0
                                     onLayerTapped?($0)
+                                },
+                                onWrap: { component, type in
+                                    canvasManager.wrapComponent(component, in: type)
                                 }
                             )
                             .id(component.id)
@@ -158,9 +164,10 @@ struct LayersPanelView: View {
                             .overlay(
                                 VStack {
                                     if isDragOverBottom {
-                                        Divider()
-                                            .overlay(Color.accentColor)
-                                            .frame(height: 2)
+                                        Capsule()
+                                            .fill(Color.accentColor)
+                                            .frame(height: 4)
+                                            .padding(.horizontal, 8)
                                     }
                                     Spacer()
                                 }
@@ -421,10 +428,11 @@ private struct OutlineRow: View {
     let getParentOf: (UUID) -> UUID?
     let getIndexInParent: (UUID) -> Int
     let onSelect: (UIComponent) -> Void
+    let onWrap: (UIComponent, ComponentType) -> Void
     @State private var isHovered = false
     @Environment(\.colorScheme) var colorScheme
     
-    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int, onSelect: @escaping (UIComponent) -> Void) {
+    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int, onSelect: @escaping (UIComponent) -> Void, onWrap: @escaping (UIComponent, ComponentType) -> Void) {
         self.component = component
         self.level = level
         self._expanded = expanded
@@ -438,6 +446,7 @@ private struct OutlineRow: View {
         self.getParentOf = getParentOf
         self.getIndexInParent = getIndexInParent
         self.onSelect = onSelect
+        self.onWrap = onWrap
     }
     
     var body: some View {
@@ -503,7 +512,8 @@ private struct OutlineRow: View {
                         onMove: onMove,
                         getParentOf: getParentOf,
                         getIndexInParent: getIndexInParent,
-                        onSelect: onSelect
+                        onSelect: onSelect,
+                        onWrap: onWrap
                     )
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .move(edge: .top)),
@@ -537,8 +547,20 @@ private struct OutlineRow: View {
                     Label("Duplicate", systemImage: "doc.on.doc")
                 }
                 
+                // Wrap in...
+                if component.modifierType == nil && !component.isOverlay {
+                    Menu {
+                        Button("VStack") { onWrap(component, .vstack) }
+                        Button("HStack") { onWrap(component, .hstack) }
+                        Button("ZStack") { onWrap(component, .zstack) }
+                        Button("ScrollView") { onWrap(component, .scrollView) }
+                    } label: {
+                        Label("Wrap in...", systemImage: "square.dashed")
+                    }
+                }
+                
                 // Convert to submenu for containers
-                if component.type == .vstack || component.type == .hstack || component.type == .zstack || component.type == .scrollView {
+                if (component.type == .vstack || component.type == .hstack || component.type == .zstack || component.type == .scrollView) && component.modifierType == nil && !component.isOverlay {
                     Menu {
                         if component.type != .vstack {
                             Button(action: {
@@ -574,7 +596,7 @@ private struct OutlineRow: View {
                 }
                 
                 // Convert to submenu for shapes
-                if component.type == .rectangle || component.type == .circle || component.type == .roundedRectangle || component.type == .capsule || component.type == .ellipse {
+                if (component.type == .rectangle || component.type == .circle || component.type == .roundedRectangle || component.type == .capsule || component.type == .ellipse) && component.modifierType == nil && !component.isOverlay {
                     Menu {
                         if component.type != .rectangle {
                             Button(action: {
@@ -718,10 +740,17 @@ private struct OutlineRow: View {
     private var backgroundFillColor: Color {
         let componentColor = Color.blue // Use primary for all components
         
+        // Check if this is a modifier container
+        let isModifierContainer = component.modifierType == .mask ||
+                                  component.modifierType == .overlay ||
+                                  component.modifierType == .background
+        
         if selectedComponent?.id == component.id {
             return componentColor
         } else if isHovered {
             return componentColor.opacity(0.08)
+        } else if isModifierContainer {
+            return Color.gray.opacity(0.15)
         } else {
             return Color.clear
         }
@@ -733,15 +762,17 @@ private struct OutlineRow: View {
             if draggingId != nil && dragOverTarget == component.id && dragOverPosition != .none {
                 VStack(spacing: 0) {
                     if dragOverPosition == .above {
-                        Divider()
-                            .overlay(Color.accentColor)
-                            .frame(height: 2)
+                        Capsule()
+                            .fill(Color.accentColor)
+                            .frame(height: 4)
+                            .padding(.horizontal, 4)
                     }
                     Spacer()
                     if dragOverPosition == .below {
-                        Divider()
-                            .overlay(Color.accentColor)
-                            .frame(height: 2)
+                        Capsule()
+                            .fill(Color.accentColor)
+                            .frame(height: 4)
+                            .padding(.horizontal, 4)
                     }
                 }
             }
@@ -945,6 +976,7 @@ private struct OverlayFolderRow: View {
     let onAddOverlay: () -> Void
     @Binding var expandedOverlayFolders: Set<UUID>
     let onSelect: (UIComponent) -> Void
+    let onWrap: (UIComponent, ComponentType) -> Void
     
     @State private var isHovered = false
     @Environment(\.colorScheme) var colorScheme
@@ -1058,7 +1090,8 @@ private struct OverlayFolderRow: View {
                         onMove: onMove,
                         getParentOf: getParentOf,
                         getIndexInParent: getIndexInParent,
-                        onSelect: onSelect
+                        onSelect: onSelect,
+                        onWrap: onWrap
                     )
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .move(edge: .top)),

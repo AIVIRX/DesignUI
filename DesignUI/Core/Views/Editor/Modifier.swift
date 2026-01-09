@@ -17,8 +17,7 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
     case backgroundColor = "Background Color"
     case background = "Background"
     case foregroundColor = "Foreground Color"
-    case font = "Font Weight"
-    case fontSize = "Font Size"
+    case font = "Font"
     case cornerRadius = "Corner Radius"
     case shadow = "Shadow"
     case opacity = "Opacity"
@@ -50,9 +49,7 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
         case .foregroundColor:
             return "Changes text and icon color"
         case .font:
-            return "Adjusts font weight"
-        case .fontSize:
-            return "Changes text size"
+            return "Sets font size and weight"
         case .cornerRadius:
             return "Rounds the corners"
         case .shadow:
@@ -99,8 +96,6 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
         case .foregroundColor:
             return "paintbrush"
         case .font:
-            return "textformat"
-        case .fontSize:
             return "textformat.size"
         case .cornerRadius:
             return "rectangle.roundedtop"
@@ -199,7 +194,8 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .backgroundColor:
             defaultProperties = [
-                "color": Color.blue
+                "color": "color:primary",
+                "colorOpacity": Double(1.0)
             ]
         case .background:
             defaultProperties = [
@@ -208,15 +204,13 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .foregroundColor:
             defaultProperties = [
-                "color": Color.primary
+                "color": "color:primary",
+                "colorOpacity": Double(1.0)
             ]
         case .font:
             defaultProperties = [
+                "fontSize": "body",
                 "fontWeight": "regular"
-            ]
-        case .fontSize:
-            defaultProperties = [
-                "fontSize": "body"
             ]
         case .clipShape:
             defaultProperties = [
@@ -241,7 +235,8 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .fill:
             defaultProperties = [
-                "color": Color.blue
+                "color": "color:blue",
+                "colorOpacity": Double(1.0)
             ]
         case .aspectRatio:
             defaultProperties = [

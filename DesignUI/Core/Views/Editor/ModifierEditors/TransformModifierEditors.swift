@@ -10,183 +10,500 @@ import SwiftUI
 // MARK: - Rotation Modifier Editor
 struct RotationModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var angleText: String = ""
+    @ObservedObject var component: UIComponent
+    @State private var angle: Double = 0
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Angle (degrees)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Preview Header
+                HStack {
+                    Text("Rotation")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    // Preview showing current angle
+                    Text("\(Int(angle))°")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
+                }
                 
-                TextField("0", text: $angleText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: angleText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["angle"] = value
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
+                // Rotation Slider
+                VStack(spacing: 0) {
+                    HStack(spacing: 12) {
+                        // Icon
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+                            .frame(width: 24, height: 24)
+                            .rotationEffect(.degrees(angle))
+                        
+                        // Slider
+                        Slider(value: $angle, in: 0...360)
+                            .onChange(of: angle) { _, _ in
+                                saveAngle()
+                            }
+                        
+                        // Value label
+                        Text("\(Int(angle))°")
+                            .font(.system(size: 14))
+                            .foregroundColor(.primary)
+                            .monospacedDigit()
+                            .frame(width: 44, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.secondary.opacity(0.1))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                
+                // Quick presets list
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Presets")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 0) {
+                        ForEach([0, 45, 90, 135, 180, 225, 270, 315], id: \.self) { preset in
+                            PresetRotationRow(
+                                value: Double(preset),
+                                isSelected: Int(angle) == preset,
+                                onSelect: {
+                                    angle = Double(preset)
+                                    saveAngle()
+                                }
+                            )
+                            
+                            if preset != 315 {
+                                Divider()
+                                    .padding(.leading, 44)
+                            }
                         }
                     }
-                    .onSubmit {
-                        if angleText.isEmpty || Double(angleText) == nil {
-                            angleText = String(format: "%.0f", modifier.getDouble(key: "angle", defaultValue: 0))
-                        }
-                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
             }
+            .padding()
         }
+        .frame(maxHeight: 400)
         .onAppear {
-            angleText = String(format: "%.0f", modifier.getDouble(key: "angle", defaultValue: 0))
+            loadAngle()
         }
         .onChange(of: modifier) { _, _ in
-            let currentAngle = modifier.getDouble(key: "angle", defaultValue: 0)
-            if Double(angleText) != currentAngle {
-                angleText = String(format: "%.0f", currentAngle)
-            }
+            loadAngle()
+        }
+    }
+    
+    private func loadAngle() {
+        angle = modifier.getDouble(key: "angle", defaultValue: 0)
+    }
+    
+    private func saveAngle() {
+        var updatedModifier = modifier
+        updatedModifier.properties["angle"] = angle
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifier(updatedModifier)
+            NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     }
 }
 
+// MARK: - Preset Rotation Row
+struct PresetRotationRow: View {
+    let value: Double
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // Icon (visual representation of angle)
+                Image(systemName: "arrow.up")
+                    .rotationEffect(.degrees(value))
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(isSelected ? .blue : .primary)
+                
+                // Label
+                Text("\(Int(value))°")
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // Checkmark for selected
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+
+// MARK: - Scale Modifier Editor
+// MARK: - Scale Modifier Editor
 // MARK: - Scale Modifier Editor
 struct ScaleModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var scaleXText: String = ""
-    @State private var scaleYText: String = ""
+    @ObservedObject var component: UIComponent
+    
+    @State private var scale: Double = 1.0
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Scale X")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Preview Header
+                HStack {
+                    Text("Scale")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    // Preview showing current scale
+                    Text("\(String(format: "%.1fx", scale))")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
+                }
                 
-                TextField("1.0", text: $scaleXText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: scaleXText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["x"] = value
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        }
+                // Slider
+                VStack(spacing: 4) {
+                    HStack {
+                        Text("Factor")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
                     }
-                    .onSubmit {
-                        if scaleXText.isEmpty || Double(scaleXText) == nil {
-                            scaleXText = String(format: "%.1f", modifier.getDouble(key: "x", defaultValue: 1.0))
-                        }
+                    
+                    HStack(spacing: 12) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                        
+                        Slider(value: $scale, in: 0.5...5.0, step: 0.5)
+                            .onChange(of: scale) { _, newValue in
+                                saveScale()
+                            }
+                        
+                        Text("\(String(format: "%.1f", scale))")
+                            .font(.system(size: 14))
+                            .foregroundColor(.primary)
+                            .monospacedDigit()
+                            .frame(width: 36, alignment: .trailing)
                     }
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Scale Y")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.05)))
                 
-                TextField("1.0", text: $scaleYText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: scaleYText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["y"] = value
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
+                // Quick presets list
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Presets")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 0) {
+                        ForEach([0.5, 1.0, 1.5, 2.0, 3.0], id: \.self) { preset in
+                            PresetScaleRow(
+                                value: preset,
+                                isSelected: abs(scale - preset) < 0.1,
+                                onSelect: {
+                                    scale = preset
+                                    saveScale()
+                                }
+                            )
+                            
+                            if preset != 3.0 {
+                                Divider()
+                                    .padding(.leading, 44)
+                            }
                         }
                     }
-                    .onSubmit {
-                        if scaleYText.isEmpty || Double(scaleYText) == nil {
-                            scaleYText = String(format: "%.1f", modifier.getDouble(key: "y", defaultValue: 1.0))
-                        }
-                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
             }
+            .padding()
         }
+        .frame(maxHeight: 400)
         .onAppear {
-            scaleXText = String(format: "%.1f", modifier.getDouble(key: "x", defaultValue: 1.0))
-            scaleYText = String(format: "%.1f", modifier.getDouble(key: "y", defaultValue: 1.0))
+            loadScale()
         }
         .onChange(of: modifier) { _, _ in
-            let currentScaleX = modifier.getDouble(key: "x", defaultValue: 1.0)
-            if Double(scaleXText) != currentScaleX {
-                scaleXText = String(format: "%.1f", currentScaleX)
+            loadScale()
+        }
+    }
+    
+    private func loadScale() {
+        // Since we are enforcing uniform scale, just read X
+        scale = modifier.getDouble(key: "x", defaultValue: 1.0)
+    }
+    
+    private func saveScale() {
+        var updatedModifier = modifier
+        updatedModifier.properties["x"] = scale
+        updatedModifier.properties["y"] = scale
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifier(updatedModifier)
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+}
+
+// MARK: - Preset Scale Row
+struct PresetScaleRow: View {
+    let value: Double
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // Icon (visual representation)
+                Image(systemName: "square.dashed")
+                    .resizable()
+                    .frame(width: 16, height: 16)
+                    .scaleEffect(CGFloat(min(max(value, 0.5), 1.2))) // Clamp visual scale
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(isSelected ? .blue : .primary)
+                
+                // Label
+                Text("\(String(format: "%.2fx", value))")
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // Checkmark for selected
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.blue)
+                }
             }
-            let currentScaleY = modifier.getDouble(key: "y", defaultValue: 1.0)
-            if Double(scaleYText) != currentScaleY {
-                scaleYText = String(format: "%.1f", currentScaleY)
-            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
 }
 
 // MARK: - Offset Modifier Editor
+// MARK: - Offset Modifier Editor
 struct OffsetModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var offsetXText: String = ""
-    @State private var offsetYText: String = ""
+    @ObservedObject var component: UIComponent
+    
+    @State private var offsetX: Double = 0
+    @State private var offsetY: Double = 0
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Offset X")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Preview Header
+                HStack {
+                    Text("Offset")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    // Preview showing current offset
+                    Text("x: \(Int(offsetX)), y: \(Int(offsetY))")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
+                }
                 
-                TextField("0", text: $offsetXText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: offsetXText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["x"] = CGFloat(value)
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        }
+                // Fields
+                VStack(spacing: 12) {
+                    // X Offset
+                    HStack {
+                        Text("X")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(width: 20, alignment: .leading)
+                        
+                        TextField("", value: $offsetX, format: .number)
+                            .textFieldStyle(.roundedBorder)
+                            .multilineTextAlignment(.trailing)
+                            .onChange(of: offsetX) { _, _ in saveOffset() }
+                            .onSubmit { saveOffset() }
                     }
-                    .onSubmit {
-                        if offsetXText.isEmpty || Double(offsetXText) == nil {
-                            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "x", defaultValue: 0))
-                        }
+                    
+                    // Y Offset
+                    HStack {
+                        Text("Y")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(width: 20, alignment: .leading)
+                        
+                        TextField("", value: $offsetY, format: .number)
+                            .textFieldStyle(.roundedBorder)
+                            .multilineTextAlignment(.trailing)
+                            .onChange(of: offsetY) { _, _ in saveOffset() }
+                            .onSubmit { saveOffset() }
                     }
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Offset Y")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.05)))
                 
-                TextField("0", text: $offsetYText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: offsetYText) { _, newValue in
-                        if newValue.isEmpty { return }
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["y"] = CGFloat(value)
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
+                // Quick presets list
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Presets")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 0) {
+                        ForEach(presets, id: \.name) { preset in
+                            PresetOffsetRow(
+                                name: preset.name,
+                                icon: preset.icon,
+                                value: preset.value,
+                                isSelected: abs(offsetX - preset.value.x) < 0.1 && abs(offsetY - preset.value.y) < 0.1,
+                                onSelect: {
+                                    offsetX = preset.value.x
+                                    offsetY = preset.value.y
+                                    saveOffset()
+                                }
+                            )
+                            
+                            if preset.name != "Shadow" {
+                                Divider()
+                                    .padding(.leading, 44)
+                            }
                         }
                     }
-                    .onSubmit {
-                        if offsetYText.isEmpty || Double(offsetYText) == nil {
-                            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "y", defaultValue: 0))
-                        }
-                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
             }
+            .padding()
         }
+        .frame(maxHeight: 450)
         .onAppear {
-            offsetXText = String(format: "%.0f", modifier.getCGFloat(key: "x", defaultValue: 0))
-            offsetYText = String(format: "%.0f", modifier.getCGFloat(key: "y", defaultValue: 0))
+            loadOffset()
         }
         .onChange(of: modifier) { _, _ in
-            let currentOffsetX = modifier.getCGFloat(key: "x", defaultValue: 0)
-            if Double(offsetXText) != Double(currentOffsetX) {
-                offsetXText = String(format: "%.0f", currentOffsetX)
+            loadOffset()
+        }
+    }
+    
+    private let presets: [(name: String, icon: String, value: (x: Double, y: Double))] = [
+        ("Reset", "circle.slash", (0, 0)),
+        ("Right", "arrow.right", (10, 0)),
+        ("Left", "arrow.left", (-10, 0)),
+        ("Down", "arrow.down", (0, 10)),
+        ("Up", "arrow.up", (0, -10)),
+        ("Shadow", "square.on.square", (4, 4))
+    ]
+    
+    private func loadOffset() {
+        offsetX = modifier.getDouble(key: "x", defaultValue: 0)
+        offsetY = modifier.getDouble(key: "y", defaultValue: 0)
+    }
+    
+    private func saveOffset() {
+        var updatedModifier = modifier
+        updatedModifier.properties["x"] = offsetX
+        updatedModifier.properties["y"] = offsetY
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifier(updatedModifier)
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+}
+
+// MARK: - Preset Offset Row
+struct PresetOffsetRow: View {
+    let name: String
+    let icon: String
+    let value: (x: Double, y: Double)
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // Icon
+                Image(systemName: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16)
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(isSelected ? .blue : .primary)
+                
+                // Label
+                Text(name)
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // Values
+                Text("(\(Int(value.x)), \(Int(value.y)))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .monospacedDigit()
+                
+                // Checkmark for selected
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.blue)
+                }
             }
-            let currentOffsetY = modifier.getCGFloat(key: "y", defaultValue: 0)
-            if Double(offsetYText) != Double(currentOffsetY) {
-                offsetYText = String(format: "%.0f", currentOffsetY)
-            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
 }

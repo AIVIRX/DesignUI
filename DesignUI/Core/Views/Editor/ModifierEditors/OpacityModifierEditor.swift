@@ -10,46 +10,39 @@ import SwiftUI
 // MARK: - Opacity Modifier Editor
 struct OpacityModifierEditor: View {
     @Binding var modifier: ComponentModifier
-    @State private var opacityText: String = ""
+    @State private var opacityValue: Double = 1.0
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Opacity")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Opacity")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(opacityValue * 100))%")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
+                }
                 
-                TextField("1.0", text: $opacityText)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: opacityText) { _, newValue in
-                        // Allow empty string while typing
-                        if newValue.isEmpty {
-                            return
-                        }
-                        // Try to parse the value
-                        if let value = Double(newValue) {
-                            var updatedModifier = modifier
-                            updatedModifier.properties["opacity"] = value
-                            modifier = updatedModifier
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        }
-                    }
-                    .onSubmit {
-                        // When user finishes editing, ensure we have a valid value
-                        if opacityText.isEmpty || Double(opacityText) == nil {
-                            opacityText = String(format: "%.1f", modifier.getDouble(key: "opacity", defaultValue: 1.0))
-                        }
+                Slider(value: $opacityValue, in: 0...1)
+                    .onChange(of: opacityValue) { _, newValue in
+                        modifier.properties["opacity"] = newValue
+                        NotificationCenter.default.post(name: .designChanged, object: nil)
                     }
             }
         }
         .onAppear {
-            opacityText = String(format: "%.1f", modifier.getDouble(key: "opacity", defaultValue: 1.0))
+            opacityValue = modifier.getDouble(key: "opacity", defaultValue: 1.0)
         }
-        .onChange(of: modifier) { _, _ in
-            // Update text field if modifier changes externally
-            let currentOpacity = modifier.getDouble(key: "opacity", defaultValue: 1.0)
-            if Double(opacityText) != currentOpacity {
-                opacityText = String(format: "%.1f", currentOpacity)
+        .onChange(of: modifier) { _, newModifier in
+            // Update slider if modifier changes externally
+            let currentOpacity = newModifier.getDouble(key: "opacity", defaultValue: 1.0)
+            if opacityValue != currentOpacity {
+                opacityValue = currentOpacity
             }
         }
     }

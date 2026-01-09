@@ -11,162 +11,205 @@ import SwiftUI
 struct FrameModifierEditor: View {
     @Binding var modifier: ComponentModifier
     @ObservedObject var component: UIComponent
-    @State private var widthType: FrameSizeType = .full
-    @State private var heightType: FrameSizeType = .full
-    @State private var widthText: String = ""
-    @State private var heightText: String = ""
+    @State private var widthType: FrameSizeType = .default
+    @State private var heightType: FrameSizeType = .default
+    @State private var widthValue: CGFloat = 100
+    @State private var heightValue: CGFloat = 100
     
     enum FrameSizeType: String, CaseIterable {
         case `default` = "Default"
         case full = "Full"
         case custom = "Custom"
+        
+        var displayName: String { rawValue }
+        var icon: String {
+            switch self {
+            case .default: return "arrow.up.left.and.arrow.down.right"
+            case .full: return "arrow.left.and.right"
+            case .custom: return "ruler"
+            }
+        }
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Width Section
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Width")
-                    .font(.caption)
-                    .fontWeight(.medium)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Width Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Width")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 0) {
+                        ForEach(FrameSizeType.allCases, id: \.self) { type in
+                            FrameOptionRow(
+                                type: type,
+                                isSelected: widthType == type,
+                                value: widthType == .custom && type == .custom ? widthValue : nil,
+                                onSelect: {
+                                    widthType = type
+                                    saveFrame()
+                                },
+                                onValueChange: { newValue in
+                                    widthValue = newValue
+                                    saveFrame()
+                                }
+                            )
+                            
+                            if type != FrameSizeType.allCases.last {
+                                Divider()
+                                    .padding(.leading, 44)
+                            }
+                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
                 
-                HStack {
-                    Picker("Width Type", selection: $widthType) {
+                // Height Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Height")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 0) {
                         ForEach(FrameSizeType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
+                            FrameOptionRow(
+                                type: type,
+                                isSelected: heightType == type,
+                                value: heightType == .custom && type == .custom ? heightValue : nil,
+                                onSelect: {
+                                    heightType = type
+                                    saveFrame()
+                                },
+                                onValueChange: { newValue in
+                                    heightValue = newValue
+                                    saveFrame()
+                                }
+                            )
+                            
+                            if type != FrameSizeType.allCases.last {
+                                Divider()
+                                    .padding(.leading, 44)
+                            }
                         }
                     }
-                    .pickerStyle(.menu)
-                    
-                    if widthType == .custom {
-                        TextField("Width", text: $widthText)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                            .onChange(of: widthText) { _, newValue in
-                                // Allow empty string while typing
-                                if newValue.isEmpty {
-                                    return
-                                }
-                                // Try to parse the value
-                                if let value = Double(newValue) {
-                                    print("📏 FrameModifierEditor: Setting width to \(value)")
-                                    var updatedModifier = modifier
-                                    updatedModifier.properties["width"] = CGFloat(value)
-                                    modifier = updatedModifier
-                                    component.updateModifier(updatedModifier)
-                                }
-                            }
-                            .onSubmit {
-                                // When user finishes editing, ensure we have a valid value
-                                if widthText.isEmpty || Double(widthText) == nil {
-                                    widthText = String(format: "%.0f", modifier.getCGFloat(key: "width", defaultValue: 100))
-                                }
-                            }
-                    } else if widthType == .full {
-                        Text("Full Width")
-                            .foregroundColor(.secondary)
-                            .frame(width: 80, alignment: .leading)
-                    } else {
-                        Text("Default Width")
-                            .foregroundColor(.secondary)
-                            .frame(width: 80, alignment: .leading)
-                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.secondary.opacity(0.1))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
-            
-            // Height Section
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Picker("Height Type", selection: $heightType) {
-                        ForEach(FrameSizeType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    
-                    if heightType == .custom {
-                        TextField("Height", text: $heightText)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                            .onChange(of: heightText) { _, newValue in
-                                // Allow empty string while typing
-                                if newValue.isEmpty {
-                                    return
-                                }
-                                // Try to parse the value
-                                if let value = Double(newValue) {
-                                    print("📏 FrameModifierEditor: Setting height to \(value)")
-                                    var updatedModifier = modifier
-                                    updatedModifier.properties["height"] = CGFloat(value)
-                                    modifier = updatedModifier
-                                    component.updateModifier(updatedModifier)
-                                }
-                            }
-                            .onSubmit {
-                                // When user finishes editing, ensure we have a valid value
-                                if heightText.isEmpty || Double(heightText) == nil {
-                                    heightText = String(format: "%.0f", modifier.getCGFloat(key: "height", defaultValue: 100))
-                                }
-                            }
-                    } else if heightType == .full {
-                        Text("Full Height")
-                            .foregroundColor(.secondary)
-                            .frame(width: 80, alignment: .leading)
-                    } else {
-                        Text("Default Height")
-                            .foregroundColor(.secondary)
-                            .frame(width: 80, alignment: .leading)
-                    }
-                }
-            }
+            .padding()
         }
         .onAppear {
-            // Load existing values
-            widthType = (modifier.properties["widthType"] as? String).flatMap(FrameSizeType.init) ?? .default
-            heightType = (modifier.properties["heightType"] as? String).flatMap(FrameSizeType.init) ?? .default
-            widthText = String(format: "%.0f", modifier.getCGFloat(key: "width", defaultValue: 100))
-            heightText = String(format: "%.0f", modifier.getCGFloat(key: "height", defaultValue: 100))
+            loadFrame()
         }
         .onChange(of: modifier) { _, _ in
-            // Update text fields if modifier changes externally
-            if widthType == .custom {
-                let currentWidth = modifier.getCGFloat(key: "width", defaultValue: 100)
-                if Double(widthText) != Double(currentWidth) {
-                    widthText = String(format: "%.0f", currentWidth)
+            loadFrame()
+        }
+    }
+    
+    private var previewText: String {
+        let w = widthType == .custom ? "\(Int(widthValue))" : widthType.rawValue
+        let h = heightType == .custom ? "\(Int(heightValue))" : heightType.rawValue
+        return "\(w) × \(h)"
+    }
+    
+    private func loadFrame() {
+        widthType = (modifier.properties["widthType"] as? String).flatMap(FrameSizeType.init) ?? .default
+        heightType = (modifier.properties["heightType"] as? String).flatMap(FrameSizeType.init) ?? .default
+        widthValue = modifier.getCGFloat(key: "width", defaultValue: 100)
+        heightValue = modifier.getCGFloat(key: "height", defaultValue: 100)
+    }
+    
+    private func saveFrame() {
+        var updatedModifier = modifier
+        updatedModifier.properties["widthType"] = widthType.rawValue
+        updatedModifier.properties["heightType"] = heightType.rawValue
+        updatedModifier.properties["width"] = widthValue
+        updatedModifier.properties["height"] = heightValue
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifier(updatedModifier)
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+}
+
+// MARK: - Frame Option Row
+struct FrameOptionRow: View {
+    let type: FrameModifierEditor.FrameSizeType
+    let isSelected: Bool
+    let value: CGFloat?
+    let onSelect: () -> Void
+    let onValueChange: (CGFloat) -> Void
+    
+    @State private var isHovered = false
+    @State private var textValue: String = ""
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // Icon
+                Image(systemName: type.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .frame(width: 24, height: 24)
+                
+                // Label
+                Text(type.displayName)
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // Value input for custom
+                if let val = value, isSelected && type == .custom {
+                    TextField("", text: $textValue)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 14))
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
+                        .frame(width: 60)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.secondary.opacity(0.15))
+                        )
+                        .onAppear {
+                            textValue = String(format: "%.0f", val)
+                        }
+                        .onChange(of: textValue) { _, newValue in
+                            if let parsed = Double(newValue) {
+                                onValueChange(CGFloat(parsed))
+                            }
+                        }
+                        .onSubmit {
+                            if textValue.isEmpty || Double(textValue) == nil {
+                                textValue = String(format: "%.0f", value ?? 100)
+                            }
+                        }
+                } else if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.blue)
                 }
             }
-            if heightType == .custom {
-                let currentHeight = modifier.getCGFloat(key: "height", defaultValue: 100)
-                if Double(heightText) != Double(currentHeight) {
-                    heightText = String(format: "%.0f", currentHeight)
-                }
-            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+            .contentShape(Rectangle())
         }
-        .onChange(of: widthType) { _, newValue in
-            // Create updated modifier
-            var updatedModifier = modifier
-            updatedModifier.properties["widthType"] = newValue.rawValue
-            // Ensure width value exists when switching to Custom
-            if newValue == .custom && updatedModifier.properties["width"] == nil {
-                updatedModifier.properties["width"] = CGFloat(100)
-            }
-            // Update the binding
-            modifier = updatedModifier
-            // Update the component to trigger save
-            component.updateModifier(updatedModifier)
-        }
-        .onChange(of: heightType) { _, newValue in
-            // Create updated modifier
-            var updatedModifier = modifier
-            updatedModifier.properties["heightType"] = newValue.rawValue
-            // Ensure height value exists when switching to Custom
-            if newValue == .custom && updatedModifier.properties["height"] == nil {
-                updatedModifier.properties["height"] = CGFloat(100)
-            }
-            // Update the binding
-            modifier = updatedModifier
-            // Update the component to trigger save
-            component.updateModifier(updatedModifier)
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
 }

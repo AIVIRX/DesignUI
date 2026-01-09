@@ -87,6 +87,16 @@ class CanvasManager: ObservableObject {
         ) { [weak self] _ in
             self?.saveStateDebounced()
         }
+        
+        // Listen for selection requests
+        NotificationCenter.default.addObserver(
+            forName: .selectComponent,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self, let componentId = notification.object as? UUID else { return }
+            self.selectComponent(withId: componentId)
+        }
     }
     
     deinit {
@@ -437,7 +447,8 @@ class CanvasManager: ObservableObject {
             components.insert(moved, at: safeIndex)
         }
 
-        saveState()
+        // Force save to track layer reorders (same components, different order)
+        saveState(force: true)
     }
 
     /// Find parent id for a node anywhere in the tree
@@ -466,6 +477,13 @@ class CanvasManager: ObservableObject {
             if let found = findComponentRecursively(in: root, id: id) { return found }
         }
         return nil
+    }
+
+    /// Find a component by id anywhere in the hierarchy
+    func selectComponent(withId id: UUID) {
+        if let component = findComponent(by: id) {
+            self.selectedComponent = component
+        }
     }
 
     private func findComponentRecursively(in node: UIComponent, id: UUID) -> UIComponent? {
@@ -538,6 +556,49 @@ class CanvasManager: ObservableObject {
         
         // Save state after duplication
         saveState()
+    }
+    
+    /// Wraps a component in a container (VStack, HStack, ZStack, ScrollView)
+    func wrapComponent(_ component: UIComponent, in type: ComponentType) {
+        // Only allow valid container types
+        guard type == .vstack || type == .hstack || type == .zstack || type == .scrollView else { return }
+        
+        let container = UIComponent(type: type, children: [])
+        
+        // Find parent and index
+        if let parentId = findParentId(of: component.id), let parentComponent = findComponent(by: parentId) {
+            if let index = parentComponent.children.firstIndex(where: { $0.id == component.id }) {
+                // Cancel any pending debounced saves
+                saveStateWorkItem?.cancel()
+                saveStateWorkItem = nil
+                saveState(force: true)
+                
+                // Remove original from parent
+                parentComponent.children.remove(at: index)
+                
+                // Add original to new container
+                container.addChild(component)
+                
+                // Insert container at original index
+                parentComponent.children.insert(container, at: index)
+                
+                // Select container
+                selectedComponent = container
+                saveState()
+            }
+        } else if let index = components.firstIndex(where: { $0.id == component.id }) {
+            // Root component
+            saveStateWorkItem?.cancel()
+            saveStateWorkItem = nil
+            saveState(force: true)
+            
+            components.remove(at: index)
+            container.addChild(component)
+            components.insert(container, at: index)
+            
+            selectedComponent = container
+            saveState()
+        }
     }
     
     private func createDeepCopy(of component: UIComponent) -> UIComponent {
@@ -739,9 +800,13 @@ class CanvasManager: ObservableObject {
     /// Save the initial state when loading a design file
     /// This creates the base state that undo can return to
     func saveInitialState() {
+        // Cancel any pending debounced saves that might have been triggered by component loading
+        saveStateWorkItem?.cancel()
+        saveStateWorkItem = nil
+        justSavedImmediately = false
+        
         let state = CanvasState(
-            components: deepCopyComponents(components),
-            selectedComponentId: selectedComponent?.id
+            components: deepCopyComponents(components)
         )
         
         // Clear any existing stack and set this as the only state
@@ -754,29 +819,19 @@ class CanvasManager: ObservableObject {
     
     func saveState(force: Bool = false) {
         let state = CanvasState(
-            components: deepCopyComponents(components),
-            selectedComponentId: selectedComponent?.id
+            components: deepCopyComponents(components)
         )
         
-        // Prevent saving duplicate states (same component count and selection)
+        // Prevent saving duplicate states
         // But allow forcing a save for structural changes (add/remove components)
         if !force {
-            if let lastState = lastSavedState {
-                if lastState.components.count == state.components.count &&
-                   lastState.selectedComponentId == state.selectedComponentId {
-                    // Check if components are actually different by comparing IDs
-                    let lastIds = Set(lastState.components.map { $0.id })
-                    let currentIds = Set(state.components.map { $0.id })
-                    if lastIds == currentIds {
-                        // Same state, don't save
-                        print("🔄 saveState: Skipping duplicate state (same components)")
-                        return
-                    }
-                }
-            }
+            // We removed the ID-based duplicate check because it prevented saving 
+            // property/modifier changes where the component structure remained the same.
+            // valid changes were being ignored.
+            // We now rely on the debounce mechanism and explicit calls to ensure minimal duplicates.
         }
         
-        print("💾 saveState: Saving state with \(state.components.count) components, selected: \(state.selectedComponentId?.uuidString.prefix(8) ?? "nil"), force=\(force)")
+        print("💾 saveState: Saving state with \(state.components.count) components, force=\(force)")
         print("💾 saveState: Stack size before: \(undoStack.count)")
         
         undoStack.append(state)
@@ -866,8 +921,7 @@ class CanvasManager: ObservableObject {
         }
         
         let currentState = CanvasState(
-            components: deepCopyComponents(components),
-            selectedComponentId: selectedComponent?.id
+            components: deepCopyComponents(components)
         )
         redoStack.append(currentState)
         
@@ -879,8 +933,7 @@ class CanvasManager: ObservableObject {
         guard !redoStack.isEmpty else { return }
         
         let currentState = CanvasState(
-            components: deepCopyComponents(components),
-            selectedComponentId: selectedComponent?.id
+            components: deepCopyComponents(components)
         )
         undoStack.append(currentState)
         
@@ -895,18 +948,28 @@ class CanvasManager: ObservableObject {
         saveStateWorkItem?.cancel()
         saveStateWorkItem = nil
         
+        // Restore components only - preserve current selection
         components = deepCopyComponents(state.components)
-        // Find selected component in the restored hierarchy
-        if let selectedId = state.selectedComponentId {
-            selectedComponent = findComponent(by: selectedId)
-        } else {
-            selectedComponent = nil
+        
+        // If selected component no longer exists, clear selection
+        // Update selectedComponent to point to the new instance in the restored components
+        if let selectedId = selectedComponent?.id {
+            if let restoredComponent = findComponent(by: selectedId) {
+                selectedComponent = restoredComponent
+                // Ensure IDs set is consistent
+                if !selectedComponentIds.contains(selectedId) {
+                    selectedComponentIds = [selectedId]
+                }
+            } else {
+                // Component removed in this state
+                selectedComponent = nil
+                selectedComponentIds.removeAll()
+            }
         }
         
         // Update lastSavedState to match restored state to prevent duplicate saves
         lastSavedState = CanvasState(
-            components: deepCopyComponents(state.components),
-            selectedComponentId: state.selectedComponentId
+            components: deepCopyComponents(state.components)
         )
     }
     
@@ -920,8 +983,7 @@ class CanvasManager: ObservableObject {
             ],
             frame: CGRect(x: 0, y: 0, width: 50, height: 20),
             modifiers: [
-                ComponentModifier(type: .fontSize, properties: ["fontSize": "caption"]),
-                ComponentModifier(type: .font, properties: ["fontWeight": "bold"])
+                ComponentModifier(type: .font, properties: ["fontSize": "caption", "fontWeight": "bold"])
             ],
             isOverlay: true
         )
@@ -976,5 +1038,4 @@ class CanvasManager: ObservableObject {
 // MARK: - Canvas State
 struct CanvasState {
     let components: [UIComponent]
-    let selectedComponentId: UUID?
 }

@@ -53,8 +53,7 @@ class DesignTemplateManager {
                                 ],
                                 frame: CGRect(x: 0, y: 0, width: 0, height: 0),
                                 modifiers: [
-                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "largeTitle"]),
-                                    ComponentModifier(type: .font, properties: ["fontWeight": "bold"]),
+                                    ComponentModifier(type: .font, properties: ["fontSize": "largeTitle", "fontWeight": "bold"]),
                                     ComponentModifier(type: .frame, properties: ["widthType": "Custom", "heightType": "Default", "width": CGFloat(240)]),
                                     ComponentModifier(type: .textAlignment, properties: ["alignment": "center"]),
                                     ComponentModifier(type: .padding, properties: ["amount": CGFloat(80), "location": "vertical"])
@@ -97,7 +96,7 @@ class DesignTemplateManager {
                                     ComponentModifier(type: .foregroundColor, properties: ["color": Color.white]),
                                     ComponentModifier(type: .backgroundColor, properties: ["color": Color.blue]),
                                     ComponentModifier(type: .cornerRadius, properties: ["radius": CGFloat(12)]),
-                                    ComponentModifier(type: .font, properties: ["fontWeight": "bold"])
+                                    ComponentModifier(type: .font, properties: ["fontSize": "body", "fontWeight": "bold"])
                                 ]
                             ),
                             
@@ -114,7 +113,7 @@ class DesignTemplateManager {
             
             // Flight Status Template
             DesignTemplate(
-                name: "Flight Status ",
+                name: "Flight Status Widget",
                 description: "Flight details with status and gate info",
                 thumbnail: "flightInfoWidget",
                 devicePreset: "Widget Medium",
@@ -148,7 +147,7 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Gate G12", defaultValue: "Gate G12")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "caption"]),
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "caption", "fontWeight": "regular"]),
                                                     ComponentModifier(type: .foregroundColor, properties: ["color": Color.gray])
                                                 ]
                                             ),
@@ -158,8 +157,7 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "LAX", defaultValue: "LAX")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "largeTitle"]),
-                                                    ComponentModifier(type: .font, properties: ["fontWeight": "bold"])
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "largeTitle", "fontWeight": "bold"])
                                                 ]
                                             )
                                         ]
@@ -184,9 +182,8 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "On Time", defaultValue: "On Time")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "subheadline"]),
-                                                    ComponentModifier(type: .foregroundColor, properties: ["color": Color.green]),
-                                                    ComponentModifier(type: .font, properties: ["fontWeight": "semibold"])
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "subheadline", "fontWeight": "semibold"]),
+                                                    ComponentModifier(type: .foregroundColor, properties: ["color": Color.green])
                                                 ]
                                             ),
                                             // ZStack containing line and plane
@@ -210,8 +207,8 @@ class DesignTemplateManager {
                                                     UIComponent(
                                                         type: .sfSymbol,
                                                         properties: [
-                                                             ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "airplane", defaultValue: "star"),
-                                                             ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: false)
+                                                            ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "airplane", defaultValue: "star"),
+                                                            ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: false)
                                                         ],
                                                         modifiers: [
                                                             ComponentModifier(type: .frame, properties: ["widthType": "Custom", "heightType": "Custom", "width": CGFloat(30), "height": CGFloat(30)])
@@ -242,7 +239,7 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Gate B5", defaultValue: "Gate B5")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "caption"]),
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "caption", "fontWeight": "regular"]),
                                                     ComponentModifier(type: .foregroundColor, properties: ["color": Color.gray])
                                                 ]
                                             ),
@@ -252,8 +249,7 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "JFK", defaultValue: "JFK")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "largeTitle"]),
-                                                    ComponentModifier(type: .font, properties: ["fontWeight": "bold"])
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "largeTitle", "fontWeight": "bold"])
                                                 ]
                                             )
                                         ]
@@ -283,9 +279,8 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Boarding", defaultValue: "Boarding")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "caption"]),
-                                                    ComponentModifier(type: .foregroundColor, properties: ["color": Color.gray]),
-                                                    ComponentModifier(type: .font, properties: ["fontWeight": "semibold"])
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "caption", "fontWeight": "semibold"]),
+                                                    ComponentModifier(type: .foregroundColor, properties: ["color": Color.gray])
                                                 ]
                                             ),
                                             UIComponent(
@@ -294,7 +289,7 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "10:45 AM", defaultValue: "10:45 AM")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "subheadline"])
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "subheadline", "fontWeight": "regular"])
                                                 ]
                                             )
                                         ]
@@ -316,9 +311,8 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Arrival", defaultValue: "Arrival")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "caption"]),
-                                                    ComponentModifier(type: .foregroundColor, properties: ["color": Color.gray]),
-                                                    ComponentModifier(type: .font, properties: ["fontWeight": "semibold"])
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "caption", "fontWeight": "semibold"]),
+                                                    ComponentModifier(type: .foregroundColor, properties: ["color": Color.gray])
                                                 ]
                                             ),
                                             UIComponent(
@@ -327,7 +321,7 @@ class DesignTemplateManager {
                                                     ComponentProperty(key: "text", displayName: "Text", type: .string, value: "6:30 PM", defaultValue: "6:30 PM")
                                                 ],
                                                 modifiers: [
-                                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "subheadline"])
+                                                    ComponentModifier(type: .font, properties: ["fontSize": "subheadline", "fontWeight": "regular"])
                                                 ]
                                             )
                                         ]
@@ -341,205 +335,6 @@ class DesignTemplateManager {
                     )
                 ]
             ),
-            
-            // Create Account Template
-            DesignTemplate(
-                name: "Create Account",
-                description: "Account creation screen with sign-in options",
-                thumbnail: "createAccount",
-                devicePreset: nil,
-                components: [
-                    UIComponent(
-                        type: .vstack,
-                        properties: [
-                            ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["leading", "center", "trailing"]),
-                            ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 8.0, defaultValue: 8.0)
-                        ],
-                        children: [
-                            // Top Spacer
-                            UIComponent(
-                                type: .spacer,
-                                properties: [],
-                                frame: CGRect(x: 0, y: 0, width: 40, height: 40)
-                            ),
-                            
-                            // Person Circle Icon
-                            UIComponent(
-                                type: .sfSymbol,
-                                properties: [
-                                    ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "person.circle", defaultValue: "star"),
-                                    ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: false)
-                                ],
-                                frame: CGRect(x: 0, y: 0, width: 100, height: 100),
-                                modifiers: [
-                                    ComponentModifier(type: .frame, properties: ["widthType": "Custom", "heightType": "Custom", "width": CGFloat(100), "height": CGFloat(100)])
-                                ]
-                            ),
-                            
-                            // Create Account Title
-                            UIComponent(
-                                type: .text,
-                                properties: [
-                                    ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Create Account", defaultValue: "Hello World")
-                                ],
-                                frame: CGRect(x: 0, y: 0, width: 100, height: 100),
-                                modifiers: [
-                                    ComponentModifier(type: .fontSize, properties: ["fontSize": "largeTitle"]),
-                                    ComponentModifier(type: .font, properties: ["fontWeight": "bold"])
-                                ]
-                            ),
-                            
-                            // Spacer between title and buttons
-                            UIComponent(
-                                type: .spacer,
-                                properties: [],
-                                frame: CGRect(x: 0, y: 0, width: 20, height: 20)
-                            ),
-                            
-                            // Continue with Apple Button
-                            UIComponent(
-                                type: .hstack,
-                                properties: [
-                                    ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
-                                    ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 8.0, defaultValue: 8.0)
-                                ],
-                                children: [
-                                    // Apple Logo
-                                    UIComponent(
-                                        type: .sfSymbol,
-                                        properties: [
-                                            ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "apple.logo", defaultValue: "star"),
-                                            ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: false)
-                                        ],
-                                        modifiers: [
-                                            ComponentModifier(type: .frame, properties: ["widthType": "Custom", "heightType": "Custom", "width": CGFloat(20), "height": CGFloat(20)]),
-                                            ComponentModifier(type: .foregroundColor, properties: ["color": Color.white])
-                                        ]
-                                    ),
-                                    // Apple Button Text
-                                    UIComponent(
-                                        type: .text,
-                                        properties: [
-                                            ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Continue with Apple", defaultValue: "Hello World")
-                                        ],
-                                        modifiers: [
-                                            ComponentModifier(type: .font, properties: ["fontWeight": "medium"]),
-                                            ComponentModifier(type: .fontSize, properties: ["fontSize": "body"]),
-                                            ComponentModifier(type: .foregroundColor, properties: ["color": Color.white])
-                                        ]
-                                    )
-                                ],
-                                frame: CGRect(x: 0, y: 0, width: 100, height: 100),
-                                modifiers: [
-                                    ComponentModifier(type: .frame, properties: ["widthType": "Full", "heightType": "Default"]),
-                                    ComponentModifier(type: .padding, properties: ["amount": CGFloat(15), "location": "vertical"]),
-                                    ComponentModifier(type: .backgroundColor, properties: ["color": Color.black]),
-                                    ComponentModifier(type: .cornerRadius, properties: ["radius": CGFloat(12)])
-                                ]
-                            ),
-                            
-                            // Continue with Email Button
-                            UIComponent(
-                                type: .hstack,
-                                properties: [
-                                    ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
-                                    ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 8.0, defaultValue: 8.0)
-                                ],
-                                children: [
-                                    // Email Icon
-                                    UIComponent(
-                                        type: .sfSymbol,
-                                        properties: [
-                                            ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "envelope.fill", defaultValue: "star"),
-                                            ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: false)
-                                        ],
-                                        modifiers: [
-                                            ComponentModifier(type: .frame, properties: ["widthType": "Custom", "heightType": "Custom", "width": CGFloat(20), "height": CGFloat(20)])
-                                        ]
-                                    ),
-                                    // Email Button Text
-                                    UIComponent(
-                                        type: .text,
-                                        properties: [
-                                            ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Continue with Email", defaultValue: "Hello World")
-                                        ],
-                                        modifiers: [
-                                            ComponentModifier(type: .font, properties: ["fontWeight": "medium"]),
-                                            ComponentModifier(type: .fontSize, properties: ["fontSize": "body"])
-                                        ]
-                                    )
-                                ],
-                                frame: CGRect(x: 0, y: 0, width: 120, height: 120),
-                                modifiers: [
-                                    ComponentModifier(type: .frame, properties: ["widthType": "Full", "heightType": "Default"]),
-                                    ComponentModifier(type: .padding, properties: ["amount": CGFloat(15), "location": "vertical"]),
-                                    ComponentModifier(type: .backgroundColor, properties: ["color": Color.gray]),
-                                    ComponentModifier(type: .cornerRadius, properties: ["radius": CGFloat(12)])
-                                ]
-                            ),
-                            
-                            // Continue as Guest Button
-                            UIComponent(
-                                type: .hstack,
-                                properties: [
-                                    ComponentProperty(key: "alignment", displayName: "Alignment", type: .segmentedControl, value: "center", defaultValue: "center", options: ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
-                                    ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 8.0, defaultValue: 8.0)
-                                ],
-                                children: [
-                                    // Person Icon
-                                    UIComponent(
-                                        type: .sfSymbol,
-                                        properties: [
-                                            ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "person.fill", defaultValue: "star"),
-                                            ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: false)
-                                        ],
-                                        modifiers: [
-                                            ComponentModifier(type: .frame, properties: ["widthType": "Custom", "heightType": "Custom", "width": CGFloat(20), "height": CGFloat(20)])
-                                        ]
-                                    ),
-                                    // Guest Button Text
-                                    UIComponent(
-                                        type: .text,
-                                        properties: [
-                                            ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Continue as a Guest", defaultValue: "Hello World")
-                                        ],
-                                        modifiers: [
-                                            ComponentModifier(type: .font, properties: ["fontWeight": "medium"]),
-                                            ComponentModifier(type: .fontSize, properties: ["fontSize": "body"])
-                                        ]
-                                    )
-                                ],
-                                frame: CGRect(x: 0, y: 0, width: 140, height: 140),
-                                modifiers: [
-                                    ComponentModifier(type: .frame, properties: ["widthType": "Full", "heightType": "Default"]),
-                                    ComponentModifier(type: .padding, properties: ["amount": CGFloat(15), "location": "vertical"]),
-                                    ComponentModifier(type: .backgroundColor, properties: ["color": Color.gray]),
-                                    ComponentModifier(type: .cornerRadius, properties: ["radius": CGFloat(12)])
-                                ]
-                            ),
-                            
-                            // Forgot Password Text
-                            UIComponent(
-                                type: .text,
-                                properties: [
-                                    ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Forgot password?", defaultValue: "Hello World")
-                                ],
-                                frame: CGRect(x: 0, y: 0, width: 160, height: 160),
-                                modifiers: [
-                                    ComponentModifier(type: .foregroundColor, properties: ["color": Color.secondary])
-                                ]
-                            ),
-                            
-                            // Bottom Spacer
-                            UIComponent(type: .spacer, properties: [])
-                        ],
-                        frame: CGRect(x: 0, y: 0, width: 100, height: 100),
-                        modifiers: [
-                            ComponentModifier(type: .padding, properties: ["amount": CGFloat(10), "location": "all"])
-                        ]
-                    )
-                ]
-            )
         ]
     }
     
@@ -563,19 +358,17 @@ class DesignTemplateManager {
                         ComponentProperty(key: "spacing", displayName: "Spacing", type: .number, value: 8.0, defaultValue: 8.0)
                     ],
                     children: [
-                        // Icon (Image Placeholder)
+                        // Icon (SF Symbol)
                         UIComponent(
-                            type: .image,
+                            type: .sfSymbol,
                             properties: [
-                                ComponentProperty(key: "imageName", displayName: "Image Name", type: .string, value: "", defaultValue: ""),
-                                ComponentProperty(key: "imageData", displayName: "Image Data", type: .string, value: "", defaultValue: ""),
-                                ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true),
-                                ComponentProperty(key: "aspectRatio", displayName: "Aspect Ratio", type: .segmentedControl, value: "fill", defaultValue: "fill", options: ["none", "fit", "fill"])
+                                ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: icon, defaultValue: icon),
+                                ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true)
                             ],
                             frame: CGRect(x: 0, y: 0, width: 0, height: 0),
                             modifiers: [
                                 ComponentModifier(type: .frame, properties: ["widthType": "Custom", "heightType": "Custom", "width": CGFloat(50), "height": CGFloat(50)]),
-                                ComponentModifier(type: .cornerRadius, properties: ["radius": CGFloat(8)])
+                                ComponentModifier(type: .foregroundColor, properties: ["color": Color.blue])
                             ]
                         ),
                         // Text VStack
@@ -593,8 +386,7 @@ class DesignTemplateManager {
                                     ],
                                     frame: CGRect(x: 0, y: 0, width: 0, height: 0),
                                     modifiers: [
-                                        ComponentModifier(type: .fontSize, properties: ["fontSize": "footnote"]),
-                                        ComponentModifier(type: .font, properties: ["fontWeight": "semibold"])
+                                        ComponentModifier(type: .font, properties: ["fontSize": "footnote", "fontWeight": "semibold"])
                                     ]
                                 ),
                                 UIComponent(
@@ -604,7 +396,7 @@ class DesignTemplateManager {
                                     ],
                                     frame: CGRect(x: 0, y: 0, width: 0, height: 0),
                                     modifiers: [
-                                        ComponentModifier(type: .fontSize, properties: ["fontSize": "footnote"]),
+                                        ComponentModifier(type: .font, properties: ["fontSize": "footnote", "fontWeight": "regular"]),
                                         ComponentModifier(type: .foregroundColor, properties: ["color": Color.secondary])
                                     ]
                                 )
@@ -619,7 +411,3 @@ class DesignTemplateManager {
         )
     }
 }
-
-
-
-

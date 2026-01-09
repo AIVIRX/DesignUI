@@ -154,17 +154,11 @@ struct ComponentRenderer: View {
             // If imageData looks like a filename (has file extension), use it
             if !imageData.isEmpty && (imageData.hasSuffix(".jpg") || imageData.hasSuffix(".jpeg") || imageData.hasSuffix(".png") || imageData.hasSuffix(".gif") || imageData.hasSuffix(".heic")) {
                 imageName = imageData
-                print("🔄 Using imageData as filename: '\(imageName)'")
             }
         }
         
-        print("🖼️ ComponentRenderer.renderImage() called")
-        print("🖼️ imageName: '\(imageName)'")
-        print("🖼️ resizable: \(resizable), aspectRatio: \(aspectRatio)")
-        
         // Priority 0: Check Local Gallery first
         if !imageName.isEmpty {
-             print("🖼️ Creating ImageComponentView for: '\(imageName)'")
              return AnyView(ImageComponentView(
                 imageName: imageName,
                 resizable: resizable,
@@ -325,10 +319,14 @@ struct ComponentRenderer: View {
     // MARK: - Button Renderer
     private func renderButton() -> some View {
         // If button has children, render them inside the button (container approach)
-        if !component.children.isEmpty {
+        // If button has children, render them inside the button (container approach)
+        // Filter out modifier children (masks, overlays, backgrounds)
+        let contentChildren = component.children.filter { $0.modifierId == nil }
+        
+        if !contentChildren.isEmpty {
             return AnyView(
                 Button(action: {}) {
-                    ForEach(component.children, id: \.id) { child in
+                    ForEach(contentChildren, id: \.id) { child in
                         ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                             onSelectChild?(child, additive)
                         }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
@@ -372,11 +370,15 @@ struct ComponentRenderer: View {
     private func renderVStack() -> some View {
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
         let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
+        
+        // Filter out modifier children (masks, overlays, backgrounds)
+        let contentChildren = component.children.filter { $0.modifierId == nil }
+        
         let base = VStack(alignment: horizontalAlignmentFromString(alignment), spacing: spacing) {
-            if component.children.isEmpty {
+            if contentChildren.isEmpty {
                 EmptyView()
             } else {
-                ForEach(component.children, id: \.id) { child in
+                ForEach(contentChildren, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
                     }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
@@ -391,11 +393,15 @@ struct ComponentRenderer: View {
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
         let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
+        
+        // Filter out modifier children (masks, overlays, backgrounds)
+        let contentChildren = component.children.filter { $0.modifierId == nil }
+        
         let base = HStack(alignment: verticalAlignmentFromString(alignment), spacing: spacing) {
-            if component.children.isEmpty {
+            if contentChildren.isEmpty {
                 EmptyView()
             } else {
-                ForEach(component.children, id: \.id) { child in
+                ForEach(contentChildren, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
                     }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
@@ -411,11 +417,15 @@ struct ComponentRenderer: View {
     private func renderZStack() -> some View {
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
         let alignment = component.getProperty(key: "alignment") as? String ?? "center"
+        
+        // Filter out modifier children (masks, overlays, backgrounds)
+        let contentChildren = component.children.filter { $0.modifierId == nil }
+        
         let base = ZStack(alignment: alignmentFromString(alignment)) {
-            if component.children.isEmpty {
+            if contentChildren.isEmpty {
                 EmptyView()
             } else {
-                ForEach(component.children, id: \.id) { child in
+                ForEach(contentChildren, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
                     }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
@@ -517,36 +527,30 @@ struct ComponentRenderer: View {
     
     // MARK: - ScrollView Renderer
     private func renderScrollView() -> some View {
-        let children = component.children
-        let axis = component.getProperty(key: "axis") as? String ?? "vertical"
+        let axesString = component.getProperty(key: "axes") as? String ?? "vertical"
         let showsIndicators = component.getProperty(key: "showsIndicators") as? Bool ?? true
         
-        let scrollAxis: Axis.Set = axis == "horizontal" ? .horizontal : .vertical
+        let axes: Axis.Set = axesString == "horizontal" ? .horizontal : .vertical
+        
+        // Filter out modifier children (masks, overlays, backgrounds)
+        let contentChildren = component.children.filter { $0.modifierId == nil }
         
         return AnyView(
-            ScrollView(scrollAxis, showsIndicators: showsIndicators) {
-                if scrollAxis == .horizontal {
+            ScrollView(axes, showsIndicators: showsIndicators) {
+                if axes == .horizontal {
                     HStack(spacing: 8) {
-                        if children.isEmpty {
-                            EmptyView()
-                        } else {
-                            ForEach(children, id: \.id) { child in
-                                ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                                    onSelectChild?(child, additive)
-                                }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
-                            }
+                        ForEach(contentChildren, id: \.id) { child in
+                            ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
+                                onSelectChild?(child, additive)
+                            }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                         }
                     }
                 } else {
                     VStack(spacing: 8) {
-                        if children.isEmpty {
-                            EmptyView()
-                        } else {
-                            ForEach(children, id: \.id) { child in
-                                ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                                    onSelectChild?(child, additive)
-                                }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
-                            }
+                        ForEach(contentChildren, id: \.id) { child in
+                            ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
+                                onSelectChild?(child, additive)
+                            }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                         }
                     }
                 }
@@ -566,8 +570,8 @@ struct ComponentRenderer: View {
     private func renderSFSymbol() -> some View {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
         let isResizable = component.getProperty(key: "resizable") as? Bool ?? false
-        // Check if there's a fontSize modifier - if so, don't set default font
-        let hasFontSizeModifier = component.modifiers.contains { $0.type == .fontSize }
+        // Check if there's a font modifier - if so, don't set default font
+        let hasFontModifier = component.modifiers.contains { $0.type == .font }
         // Check if there's a foregroundColor modifier
         let hasForegroundColorModifier = component.modifiers.contains { $0.type == .foregroundColor }
         
@@ -583,14 +587,14 @@ struct ComponentRenderer: View {
             if !hasForegroundColorModifier {
                 // Apply explicit black/white if no specific color set
                 let coloredView = baseView.foregroundStyle(fallbackColor)
-                if hasFontSizeModifier {
+                if hasFontModifier {
                     return AnyView(coloredView)
                 } else {
                     return AnyView(coloredView.aspectRatio(contentMode: .fit))
                 }
             } else {
                 // Use base view (color handled by modifiers)
-                if hasFontSizeModifier {
+                if hasFontModifier {
                     return AnyView(baseView)
                 } else {
                     return AnyView(baseView.aspectRatio(contentMode: .fit))
@@ -604,7 +608,7 @@ struct ComponentRenderer: View {
             if !hasForegroundColorModifier {
                 // Apply explicit black/white if no specific color set
                 let coloredView = baseView.foregroundStyle(fallbackColor)
-                if hasFontSizeModifier {
+                if hasFontModifier {
                     return AnyView(coloredView)
                 } else {
                     let font = iosFont(for: "largeTitle", weight: .regular)
@@ -612,7 +616,7 @@ struct ComponentRenderer: View {
                 }
             } else {
                 // Use base view (color handled by modifiers)
-                if hasFontSizeModifier {
+                if hasFontModifier {
                     return AnyView(baseView)
                 } else {
                     let font = iosFont(for: "largeTitle", weight: .regular)
@@ -872,18 +876,19 @@ private extension View {
                 return AnyView(view.background(gradient))
             }
             let color = modifier.getColor(key: "color", defaultValue: .blue)
-            return AnyView(view.background(color))
+            let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+            return AnyView(view.background(color.opacity(opacity)))
             
         case .foregroundColor:
             let color = modifier.getColor(key: "color", defaultValue: .primary)
-            return AnyView(view.foregroundColor(color))
+            let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+            return AnyView(view.foregroundStyle(color.opacity(opacity)))
             
         case .font:
-            let weight = modifier.properties["fontWeight"] as? String ?? "regular"
-            return AnyView(view.fontWeight(fontWeightFromString(weight)))
-        case .fontSize:
             let size = modifier.properties["fontSize"] as? String ?? "body"
-            let font = createIOSFont(for: size, weight: .regular, deviceSize: deviceSize)
+            let weight = modifier.properties["fontWeight"] as? String ?? "regular"
+            let fontWeight = fontWeightFromString(weight)
+            let font = createIOSFont(for: size, weight: fontWeight, deviceSize: deviceSize)
             return AnyView(view.font(font))
             
         case .fill:
@@ -891,7 +896,8 @@ private extension View {
                 return AnyView(view.background(gradient))
             }
             let color = modifier.getColor(key: "color", defaultValue: .blue)
-            return AnyView(view.background(color))
+            let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+            return AnyView(view.background(color.opacity(opacity)))
             
         case .cornerRadius:
             let radius = modifier.getCGFloat(key: "radius", defaultValue: 0)
@@ -1072,8 +1078,13 @@ private extension View {
             return AnyView(view.multilineTextAlignment(textAlignment))
             
         case .aspectRatio:
+            // Check for explicit numerical ratio
+            if let ratio = modifier.properties["ratio"] as? Double {
+                return AnyView(view.aspectRatio(CGFloat(ratio), contentMode: .fit))
+            }
+            
+            // Fallback to legacy string-based mode
             let mode = modifier.properties["aspectRatio"] as? String ?? "fit"
-            // Reuse the helper function logic, but adapted
             switch mode {
             case "fit":
                 return AnyView(view.aspectRatio(contentMode: .fit))

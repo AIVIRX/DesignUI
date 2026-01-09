@@ -8,54 +8,87 @@
 import SwiftUI
 
 // MARK: - Text Alignment Modifier Editor
+// MARK: - Text Alignment Modifier Editor
 struct TextAlignmentModifierEditor: View {
     @Binding var modifier: ComponentModifier
     @ObservedObject var component: UIComponent
     @State private var alignment: String = "leading"
     
-    private let alignments: [(String, String)] = [
-        ("leading", "text.alignleft"),
-        ("center", "text.aligncenter"),
-        ("trailing", "text.alignright")
+    private let alignments: [(name: String, value: String, icon: String)] = [
+        ("Leading", "leading", "text.alignleft"),
+        ("Center", "center", "text.aligncenter"),
+        ("Trailing", "trailing", "text.alignright")
     ]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Alignment")
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.secondary)
-            
-            HStack(spacing: 12) {
-                ForEach(alignments, id: \.0) { alignValue, iconName in
-                    Button(action: {
-                        alignment = alignValue
-                        var updatedModifier = modifier
-                        updatedModifier.properties["alignment"] = alignValue
-                        modifier = updatedModifier
-                        component.updateModifier(updatedModifier)
-                    }) {
-                        Image(systemName: iconName)
-                            .font(.system(size: 20))
-                            .foregroundColor(alignment == alignValue ? .white : .primary)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(alignment == alignValue ? Color.blue : Color.gray.opacity(0.2))
-                            )
-                    }
-                    .buttonStyle(.plain)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Preview Header
+                HStack {
+                    Text("Text Alignment")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text(alignment.capitalized)
+                        .font(.caption)
+                        .foregroundColor(.primary)
                 }
+                
+                // Alignment Picker
+                HStack(spacing: 0) {
+                    ForEach(alignments, id: \.value) { item in
+                        Button(action: {
+                            alignment = item.value
+                            saveAlignment()
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: item.icon)
+                                    .font(.system(size: 16))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 36)
+                            .background(alignment == item.value ? Color.blue.opacity(0.1) : Color.clear)
+                            .foregroundColor(alignment == item.value ? .blue : .primary)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        if item.value != alignments.last?.value {
+                            Divider()
+                                .frame(height: 20)
+                        }
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
+            .padding()
         }
+        .frame(maxHeight: 150)
         .onAppear {
-            alignment = modifier.properties["alignment"] as? String ?? "leading"
+            loadAlignment()
         }
-        .onReceive(component.objectWillChange) { _ in
-            // Sync alignment when component updates
-            if let currentAlignment = modifier.properties["alignment"] as? String, currentAlignment != alignment {
-                alignment = currentAlignment
-            }
+        .onChange(of: modifier) { _, _ in
+            loadAlignment()
+        }
+    }
+    
+    private func loadAlignment() {
+        alignment = modifier.properties["alignment"] as? String ?? "leading"
+    }
+    
+    private func saveAlignment() {
+        var updatedModifier = modifier
+        updatedModifier.properties["alignment"] = alignment
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifier(updatedModifier)
+            NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     }
 }
