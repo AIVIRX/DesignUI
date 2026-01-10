@@ -11,7 +11,7 @@ import SwiftUI
 struct PaddingModifierEditor: View {
     @Binding var modifier: ComponentModifier
     @ObservedObject var component: UIComponent
-    @State private var paddingAmount: CGFloat = 10
+    @State private var paddingAmount: Double = 10
     @State private var selectedLocation: String = "all"
     
     private let paddingLocations: [(key: String, displayName: String, icon: String)] = [
@@ -51,11 +51,19 @@ struct PaddingModifierEditor: View {
                             .foregroundColor(.primary)
                             .frame(width: 24, height: 24)
                         
-                        // Slider
-                        Slider(value: $paddingAmount, in: 0...100)
-                            .onChange(of: paddingAmount) { _, _ in
+                        // Slider with proper undo handling
+                        UndoableSlider(
+                            value: $paddingAmount,
+                            range: 0...100,
+                            onValueChanged: { _ in
+                                // Continuous update during drag - no undo save
+                                savePaddingContinuous()
+                            },
+                            onEditingEnded: { _ in
+                                // Final save when drag ends
                                 savePadding()
                             }
+                        )
                         
                         // Value label
                         Text("\(Int(paddingAmount))")
@@ -134,6 +142,18 @@ struct PaddingModifierEditor: View {
         DispatchQueue.main.async {
             component.updateModifier(updatedModifier)
             NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    /// Continuous save during slider drag - no undo state save
+    private func savePaddingContinuous() {
+        var updatedModifier = modifier
+        updatedModifier.properties["amount"] = paddingAmount
+        updatedModifier.properties["location"] = selectedLocation
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }

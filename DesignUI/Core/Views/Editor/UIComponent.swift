@@ -443,6 +443,9 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     func setProperty(key: String, value: Any) {
         print("🔑 setProperty called - key: '\(key)', value: '\(value)'")
         
+        // Save state for undo BEFORE making changes
+        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        
         // Ensure UI updates happen on main thread
         let updateUI = {
             self.objectWillChange.send()
@@ -504,6 +507,34 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
     }
     
+    /// Set property during continuous editing (sliders) - does NOT save undo state
+    /// Call `setProperty` when editing ends to properly save the final state
+    func setPropertyContinuous(key: String, value: Any) {
+        // Ensure UI updates happen on main thread
+        let updateUI = {
+            self.objectWillChange.send()
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+        
+        if let index = properties.firstIndex(where: { $0.key == key }) {
+            let property = properties[index]
+            
+            // For color properties, convert Color objects to strings
+            var finalValue = value
+            if property.type == .color, let color = value as? Color {
+                let colorString = ComponentProperty.colorToColorString(color)
+                finalValue = colorString
+            }
+            
+            properties[index].value = finalValue
+            
+            if Thread.isMainThread {
+                updateUI()
+            } else {
+                DispatchQueue.main.async { updateUI() }
+            }
+        }
+    }
     // MARK: - Frame Management
     func updateFrame(_ newFrame: CGRect) {
         // The frame setter automatically handles objectWillChange and save notification
@@ -585,6 +616,9 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     // MARK: - Modifier Management
     func addModifier(_ modifier: ComponentModifier) {
+        // Save state for undo BEFORE making changes
+        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        
         var newModifier = modifier
         
         // For overlay, mask, and background modifiers, create a parent component
@@ -652,6 +686,9 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     }
     
     func removeModifier(_ modifier: ComponentModifier) {
+        // Save state for undo BEFORE making changes
+        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        
         // For overlay, mask, and background modifiers, remove the parent component
         if modifier.type == .overlay || modifier.type == .mask || modifier.type == .background {
             let modifierChildren = getChildrenForModifier(modifier.id)
@@ -672,6 +709,10 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     func removeModifier(at index: Int) {
         guard index < modifiers.count else { return }
+        
+        // Save state for undo BEFORE making changes
+        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        
         let removedModifier = modifiers[index]
         
         // For overlay, mask, and background modifiers, remove the parent component
@@ -692,8 +733,12 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
+    /// Update modifier and save undo state - use for discrete changes or when editing ends
     func updateModifier(_ modifier: ComponentModifier) {
         if let index = modifiers.firstIndex(where: { $0.id == modifier.id }) {
+            // Save state for undo BEFORE making changes
+            NotificationCenter.default.post(name: .designWillChange, object: nil)
+            
             modifiers[index] = modifier
             print("🔄 Modifier updated: \(modifier.type.rawValue) with properties: \(modifier.properties)")
             
@@ -708,7 +753,25 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
     }
     
+    /// Update modifier during continuous editing (sliders) - does NOT save undo state
+    /// Call `updateModifier` when editing ends to properly save the final state
+    func updateModifierContinuous(_ modifier: ComponentModifier) {
+        if let index = modifiers.firstIndex(where: { $0.id == modifier.id }) {
+            // NO undo state save - this is for continuous slider updates
+            modifiers[index] = modifier
+            
+            // Still update UI and persist to file
+            DispatchQueue.main.async { [weak self] in
+                self?.objectWillChange.send()
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+            }
+        }
+    }
+    
     func moveModifier(from source: IndexSet, to destination: Int) {
+        // Save state for undo BEFORE making changes
+        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        
         modifiers.move(fromOffsets: source, toOffset: destination)
         objectWillChange.send()
         print("🔄 Modifiers reordered")

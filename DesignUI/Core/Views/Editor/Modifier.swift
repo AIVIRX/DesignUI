@@ -253,12 +253,13 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
     
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case type, properties
+        case id, type, properties
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = UUID() // Generate new ID for decoded instances
+        // Preserve the original ID to maintain link to modifier children (overlay/mask/background)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.type = try container.decode(ModifierType.self, forKey: .type)
         
         // Decode properties as [String: Any]
@@ -268,6 +269,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
         try container.encode(type, forKey: .type)
         
         // Encode properties as [String: AnyCodable]

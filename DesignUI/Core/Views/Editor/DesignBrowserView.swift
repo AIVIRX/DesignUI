@@ -23,6 +23,7 @@ struct DesignBrowserView: View {
     @State private var designToRename: DesignFile?
     @State private var renameText = ""
     @State private var showingPaywall = false
+    @State private var showingLimitAlert = false
     
     // Free tier limit
     private let freeDesignLimit = 3
@@ -100,7 +101,7 @@ struct DesignBrowserView: View {
                                 onSelectTemplate: { template in
                                     // Check if user can create more designs
                                     if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                                        showingPaywall = true
+                                        showingLimitAlert = true
                                     } else {
                                         let name = template.name
                                         let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
@@ -119,7 +120,7 @@ struct DesignBrowserView: View {
                 Button(action: {
                     // Check if user can create more designs
                     if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                        showingPaywall = true
+                        showingLimitAlert = true
                     } else {
                         showingNewDesignSheet = true
                     }
@@ -201,6 +202,14 @@ struct DesignBrowserView: View {
             CustomPaywallView()
                 .environmentObject(PaywallManager.shared)
                 .environmentObject(subscriptionManager)
+        }
+        .alert("Free Limit Reached", isPresented: $showingLimitAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Subscribe") {
+                showingPaywall = true
+            }
+        } message: {
+            Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
         }
     }
 }
@@ -446,7 +455,6 @@ struct TemplateCardView: View {
     }
 }
 
-// MARK: - Canvas Preview
 struct CanvasPreviewView: View {
     @ObservedObject var designFile: DesignFile
     

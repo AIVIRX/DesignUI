@@ -15,9 +15,61 @@ import UIKit
 extension Notification.Name {
     static let canvasUndo = Notification.Name("canvas.undo")
     static let canvasRedo = Notification.Name("canvas.redo")
+    static let designWillChange = Notification.Name("design.willChange") // Posted BEFORE a change for undo state capture
     static let designChanged = Notification.Name("design.changed")
     static let statusBarVisibilityChanged = Notification.Name("statusBar.visibilityChanged")
     static let selectComponent = Notification.Name("selectComponent")
+}
+
+// MARK: - Undoable Slider
+/// A slider that properly handles undo state by only saving when editing starts,
+/// not on every intermediate value during dragging.
+struct UndoableSlider: View {
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    var step: Double? = nil
+    
+    /// Called during continuous dragging - use for live preview updates
+    var onValueChanged: ((Double) -> Void)?
+    
+    /// Called when editing ends (finger lifted) - use for final save with undo state
+    var onEditingEnded: ((Double) -> Void)?
+    
+    @State private var isEditing = false
+    @State private var hasStartedEditing = false
+    
+    var body: some View {
+        Group {
+            if let step = step {
+                Slider(value: $value, in: range, step: step, onEditingChanged: handleEditingChanged)
+            } else {
+                Slider(value: $value, in: range, onEditingChanged: handleEditingChanged)
+            }
+        }
+        .onChange(of: value) { _, newValue in
+            if isEditing {
+                // During continuous editing, call the continuous handler
+                onValueChanged?(newValue)
+            }
+        }
+    }
+    
+    private func handleEditingChanged(_ editing: Bool) {
+        isEditing = editing
+        
+        if editing {
+            // Editing started - save undo state NOW (before any changes)
+            if !hasStartedEditing {
+                hasStartedEditing = true
+                // Post undo save notification once at start
+                NotificationCenter.default.post(name: .designWillChange, object: nil)
+            }
+        } else {
+            // Editing ended - call the final handler
+            hasStartedEditing = false
+            onEditingEnded?(value)
+        }
+    }
 }
 
 enum DevicePreset: String, CaseIterable, Identifiable {
@@ -237,8 +289,15 @@ struct UIBuilderView: View {
         .onChange(of: canvasManager.components) { _, _ in
             syncComponents()
         }
-        .onChange(of: canvasManager.selectedComponent) { _, _ in
+        .onChange(of: canvasManager.selectedComponent) { _, newSelection in
             syncSelection()
+            #if os(iOS)
+            if newSelection != nil {
+                showLayersSheet = true
+            } else {
+                showLayersSheet = false
+            }
+            #endif
         }
         .onChange(of: selectedDevice) { _, newDevice in
             saveCanvasSettings()
@@ -279,25 +338,6 @@ struct UIBuilderView: View {
         ZStack {
             mainCanvasArea
                 .ignoresSafeArea()
-            
-            // Floating action button for panel (bottom-right)
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button(action: { showLayersSheet = true }) {
-                        Image(systemName: "square.stack.3d.up.fill")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.white)
-                            .frame(width: 50, height: 50)
-                            .background(Color.accentColor)
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 32)
         }
     }
     
@@ -312,6 +352,12 @@ struct UIBuilderView: View {
         }
         
         ToolbarItemGroup(placement: .primaryAction) {
+            // Layers Toggle
+            Button(action: { showLayersSheet.toggle() }) {
+                Image(systemName: "square.stack.3d.up")
+            }
+            .help("Layers")
+            
             // Device picker
             Menu {
                 Section("iPhone") {
@@ -354,16 +400,22 @@ struct UIBuilderView: View {
             }) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
             }
-            
-            Button(action: { canvasManager.undo() }) {
-                Image(systemName: "arrow.uturn.backward")
+        }
+        
+        ToolbarItem(placement: .primaryAction) {
+            HStack(spacing: 8) {
+                
+                // Grouped Undo/Redo
+                Button(action: { canvasManager.undo() }) {
+                    Image(systemName: "arrow.uturn.backward")
+                }
+                .disabled(!canvasManager.canUndo)
+                
+                Button(action: { canvasManager.redo() }) {
+                    Image(systemName: "arrow.uturn.forward")
+                }
+                .disabled(!canvasManager.canRedo)
             }
-            .disabled(!canvasManager.canUndo)
-            
-            Button(action: { canvasManager.redo() }) {
-                Image(systemName: "arrow.uturn.forward")
-            }
-            .disabled(!canvasManager.canRedo)
         }
     }
 #endif
@@ -494,8 +546,6 @@ struct UIBuilderView: View {
                     showPropertiesInPanel = true
                 }
             )
-            .navigationTitle("Layers")
-            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $showPropertiesInPanel) {
                 propertiesPanelContent
                     .navigationTitle("Properties")

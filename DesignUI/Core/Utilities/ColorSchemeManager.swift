@@ -8,14 +8,14 @@
 import SwiftUI
 
 enum AppColorScheme: String, CaseIterable {
-    case system = "system"
+    case system = "Auto"
     case light = "light"
     case dark = "dark"
     
     var displayName: String {
         switch self {
         case .system:
-            return "System"
+            return "Auto"
         case .light:
             return "Light"
         case .dark:

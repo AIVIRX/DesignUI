@@ -58,9 +58,7 @@ class CanvasManager: ObservableObject {
     private var redoStack: [CanvasState] = []
     private let maxUndoSteps = 50
     private var saveStateWorkItem: DispatchWorkItem?
-    private let saveStateDebounceInterval: TimeInterval = 0.3 // Debounce property/modifier changes
     private var lastSavedState: CanvasState? // Track last saved state to prevent duplicates
-    private var justSavedImmediately: Bool = false // Flag to prevent debounced save right after immediate save
     
     // Clipboard for copy/paste
     private var clipboard: UIComponent?
@@ -79,13 +77,24 @@ class CanvasManager: ObservableObject {
         statusBarComponent = createStatusBarComponent()
         // Don't save state in init - wait until design is loaded
         
-        // Listen for property and modifier changes
+        // Listen for BEFORE changes - save state synchronously for undo support
+        NotificationCenter.default.addObserver(
+            forName: .designWillChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            // Save state immediately BEFORE the change happens
+            self?.saveStateForUndo()
+        }
+        
+        // Listen for AFTER changes - persist to file (debounced)
         NotificationCenter.default.addObserver(
             forName: .designChanged,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.saveStateDebounced()
+            // Debounced persistence - don't save undo state here anymore
+            self?.markDesignDirty()
         }
         
         // Listen for selection requests
@@ -171,6 +180,28 @@ class CanvasManager: ObservableObject {
         guard let actualComponent = findComponent(by: component.id) else {
             print("⚠️ removeComponent: Component not found in hierarchy")
             return
+        }
+        
+        // Check if this is a modifier-child (mask/background/overlay parent component)
+        // If so, we need to also remove the modifier from the parent component
+        if let modifierId = actualComponent.modifierId {
+            print("🔗 removeComponent: Component is a modifier child (modifierId: \(modifierId.uuidString.prefix(8)))")
+            
+            // Find the parent component that owns this modifier
+            if let parent = findParentComponent(of: actualComponent.id) {
+                // Remove the modifier from the parent
+                if let modifierIndex = parent.modifiers.firstIndex(where: { $0.id == modifierId }) {
+                    print("🔗 removeComponent: Removing modifier at index \(modifierIndex) from parent")
+                    parent.modifiers.remove(at: modifierIndex)
+                    
+                    // Force parent to notify observers and trigger UI refresh
+                    DispatchQueue.main.async {
+                        parent.objectWillChange.send()
+                        // Post notification to ensure all views refresh
+                        NotificationCenter.default.post(name: .designChanged, object: nil)
+                    }
+                }
+            }
         }
         
         // Collect all descendant IDs (including the component itself and all its children recursively)
@@ -468,6 +499,12 @@ class CanvasManager: ObservableObject {
             if let id = findParentIdRec(in: child, targetId: targetId) { return id }
         }
         return nil
+    }
+    
+    /// Find the parent component of a given component ID
+    func findParentComponent(of targetId: UUID) -> UIComponent? {
+        guard let parentId = findParentId(of: targetId) else { return nil }
+        return findComponent(by: parentId)
     }
 
     /// Find a component by id anywhere in the hierarchy
@@ -800,10 +837,10 @@ class CanvasManager: ObservableObject {
     /// Save the initial state when loading a design file
     /// This creates the base state that undo can return to
     func saveInitialState() {
-        // Cancel any pending debounced saves that might have been triggered by component loading
+        // Cancel any pending work
         saveStateWorkItem?.cancel()
         saveStateWorkItem = nil
-        justSavedImmediately = false
+        isRestoringState = false
         
         let state = CanvasState(
             components: deepCopyComponents(components)
@@ -817,29 +854,34 @@ class CanvasManager: ObservableObject {
         print("💾 saveInitialState: Saved initial state with \(state.components.count) components")
     }
     
-    func saveState(force: Bool = false) {
+    /// Called BEFORE a mutation happens (via .designWillChange notification)
+    /// This saves the current state so undo can restore it
+    private func saveStateForUndo() {
+        // Don't save state while we're restoring (undo/redo in progress)
+        guard !isRestoringState else {
+            print("🔄 saveStateForUndo: Skipping - currently restoring state")
+            return
+        }
+        
+        // Coalesce rapid changes - if we just saved, skip
+        // This prevents multiple saves for a single user action
+        let now = Date()
+        if let lastSave = lastUndoSaveTime, now.timeIntervalSince(lastSave) < 0.1 {
+            print("🔄 saveStateForUndo: Skipping - coalescing rapid changes")
+            return
+        }
+        lastUndoSaveTime = now
+        
         let state = CanvasState(
             components: deepCopyComponents(components)
         )
         
-        // Prevent saving duplicate states
-        // But allow forcing a save for structural changes (add/remove components)
-        if !force {
-            // We removed the ID-based duplicate check because it prevented saving 
-            // property/modifier changes where the component structure remained the same.
-            // valid changes were being ignored.
-            // We now rely on the debounce mechanism and explicit calls to ensure minimal duplicates.
-        }
-        
-        print("💾 saveState: Saving state with \(state.components.count) components, force=\(force)")
-        print("💾 saveState: Stack size before: \(undoStack.count)")
+        print("💾 saveStateForUndo: Stack size before: \(undoStack.count)")
         
         undoStack.append(state)
         if undoStack.count > maxUndoSteps {
             undoStack.removeFirst()
         }
-        
-        print("💾 saveState: Stack size after: \(undoStack.count)")
         
         // Clear redo stack when new action is performed
         redoStack.removeAll()
@@ -847,43 +889,19 @@ class CanvasManager: ObservableObject {
         // Update last saved state
         lastSavedState = state
         
-        // Set flag to prevent debounced save for a short time
-        // Use a longer window to ensure debounced saves are blocked
-        justSavedImmediately = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + saveStateDebounceInterval + 0.2) { [weak self] in
-            self?.justSavedImmediately = false
-            print("🔄 saveState: justSavedImmediately flag cleared")
-        }
-        print("🔄 saveState: Set justSavedImmediately=true, will clear in \(saveStateDebounceInterval + 0.2)s")
-        
-        // Notify of design change to trigger persistence
-        // This ensures that deep structural changes (handled by this method) get persisted
-        // even if they didn't trigger the @Published components property wrapper.
-        NotificationCenter.default.post(name: .designChanged, object: nil)
+        print("💾 saveStateForUndo: Stack size after: \(undoStack.count)")
     }
     
-    /// Debounced version of saveState for property/modifier changes
-    private func saveStateDebounced() {
-        print("🔄 saveStateDebounced: Called, justSavedImmediately=\(justSavedImmediately)")
-        
-        // Skip if we just saved immediately (prevents duplicate saves from component add/remove)
-        if justSavedImmediately {
-            print("🔄 saveStateDebounced: Skipping because justSavedImmediately=true")
-            return
-        }
-        
-        // Cancel any pending save
-        saveStateWorkItem?.cancel()
-        
-        // Create new work item
-        let workItem = DispatchWorkItem { [weak self] in
-            print("🔄 saveStateDebounced: Executing debounced save")
-            self?.saveState()
-        }
-        saveStateWorkItem = workItem
-        
-        // Schedule after debounce interval
-        DispatchQueue.main.asyncAfter(deadline: .now() + saveStateDebounceInterval, execute: workItem)
+    /// This is kept for backward compatibility with explicit saveState calls in CanvasManager
+    func saveState(force: Bool = false) {
+        saveStateForUndo()
+    }
+    
+    /// Mark design as needing to be persisted (but don't save undo state)
+    /// Called via .designChanged notification
+    private func markDesignDirty() {
+        // This is just for file persistence, not undo tracking
+        // The actual persistence is handled by DesignManager listening to .designChanged
     }
     
     /// Create deep copies of components to ensure undo/redo works correctly
@@ -906,55 +924,72 @@ class CanvasManager: ObservableObject {
         }
     }
     
+    // Track if we're currently restoring state (to avoid saving during undo/redo)
+    private var isRestoringState: Bool = false
+    private var lastUndoSaveTime: Date?
+    
     func undo() {
-        guard !undoStack.isEmpty else { return }
-        
-        // Don't allow undoing to an empty state if we currently have components
-        // This prevents accidentally clearing all components
-        if undoStack.count == 1 && !components.isEmpty {
-            // Check if the only state in undo stack is empty
-            let lastState = undoStack.last!
-            if lastState.components.isEmpty {
-                // Don't undo to empty state if we have components
-                return
-            }
+        // Need at least 2 states: the current state and a previous state to go back to
+        guard undoStack.count >= 1 else { 
+            print("↩️ undo: Cannot undo - stack empty")
+            return 
         }
         
+        print("↩️ undo: Stack has \(undoStack.count) states, redo has \(redoStack.count)")
+        
+        // Save current state to redo stack BEFORE restoring
         let currentState = CanvasState(
             components: deepCopyComponents(components)
         )
         redoStack.append(currentState)
         
+        // Pop and restore the previous state
         let previousState = undoStack.removeLast()
+        
+        print("↩️ undo: Restoring state with \(previousState.components.count) components")
         restoreState(previousState)
     }
     
     func redo() {
-        guard !redoStack.isEmpty else { return }
+        guard !redoStack.isEmpty else { 
+            print("↪️ redo: Cannot redo - stack empty")
+            return 
+        }
         
+        print("↪️ redo: Redo stack has \(redoStack.count) states")
+        
+        // Save current state to undo stack BEFORE restoring
         let currentState = CanvasState(
             components: deepCopyComponents(components)
         )
         undoStack.append(currentState)
         
+        // Pop and restore the next state
         let nextState = redoStack.removeLast()
+        
+        print("↪️ redo: Restoring state with \(nextState.components.count) components")
         restoreState(nextState)
     }
     
     private func restoreState(_ state: CanvasState) {
         print("↩️ restoreState: Restoring state with \(state.components.count) components")
         
-        // Cancel any pending debounced saves
+        // Set flag to prevent undo state saving during restore
+        isRestoringState = true
+        
+        // Cancel any pending work
         saveStateWorkItem?.cancel()
         saveStateWorkItem = nil
         
-        // Restore components only - preserve current selection
+        // Restore components
         components = deepCopyComponents(state.components)
         
         // If selected component no longer exists, clear selection
         // Update selectedComponent to point to the new instance in the restored components
         if let selectedId = selectedComponent?.id {
             if let restoredComponent = findComponent(by: selectedId) {
+                // Force the new component to notify observers
+                restoredComponent.objectWillChange.send()
                 selectedComponent = restoredComponent
                 // Ensure IDs set is consistent
                 if !selectedComponentIds.contains(selectedId) {
@@ -967,10 +1002,17 @@ class CanvasManager: ObservableObject {
             }
         }
         
-        // Update lastSavedState to match restored state to prevent duplicate saves
-        lastSavedState = CanvasState(
-            components: deepCopyComponents(state.components)
-        )
+        // Update lastSavedState to match restored state
+        lastSavedState = state
+        
+        // Clear restore flag BEFORE posting notifications
+        isRestoringState = false
+        
+        // Force CanvasManager to notify all observers (triggers UI refresh)
+        objectWillChange.send()
+        
+        // Trigger file persistence
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     // MARK: - Overlay Management

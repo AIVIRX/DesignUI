@@ -46,6 +46,9 @@ struct PropertiesPanelView: View {
                         // Modifiers and Actions - hide for status bar
                         if component.type != .statusBar {
                             ModifierPanelView(component: component)
+                                // Force view recreation when component INSTANCE or modifiers change
+                                // Using ObjectIdentifier ensures view recreates after undo (new instance, same ID)
+                                .id("\(ObjectIdentifier(component))-\(component.modifiers.count)")
                             
                             // Component Actions
                             ComponentActionsSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
@@ -53,6 +56,8 @@ struct PropertiesPanelView: View {
                     }
                     .padding()
                 }
+                // Force entire view to update when component INSTANCE changes (not just ID)
+                .id(ObjectIdentifier(component))
                 .sheet(isPresented: $showImageGallery, onDismiss: {
                     // Update image property when gallery closes
                     if !galleryImageName.isEmpty {

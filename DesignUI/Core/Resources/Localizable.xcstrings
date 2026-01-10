@@ -2073,9 +2073,6 @@
     "100" : {
 
     },
-    "Aa" : {
-
-    },
     "Access your profile" : {
       "localizations" : {
         "ar" : {
@@ -2327,6 +2324,9 @@
       }
     },
     "Actions" : {
+
+    },
+    "Active" : {
 
     },
     "Add" : {
@@ -2852,6 +2852,9 @@
           }
         }
       }
+    },
+    "APPEARANCE" : {
+
     },
     "Are you sure you want to delete this design? This action cannot be undone." : {
 
@@ -4906,6 +4909,12 @@
           }
         }
       }
+    },
+    "Community" : {
+
+    },
+    "COMMUNITY" : {
+
     },
     "Complete Your Profile" : {
       "localizations" : {
@@ -8985,6 +8994,12 @@
     "Frame" : {
 
     },
+    "Free Limit Reached" : {
+
+    },
+    "Free users are limited to %lld designs. Subscribe to create unlimited designs." : {
+
+    },
     "From Photos" : {
 
     },
@@ -10020,6 +10035,9 @@
           }
         }
       }
+    },
+    "LEGAL" : {
+
     },
     "Light" : {
 
@@ -13852,7 +13870,7 @@
         }
       }
     },
-    "Rate us" : {
+    "Rate Us" : {
 
     },
     "Rectangle" : {
@@ -18689,6 +18707,9 @@
         }
       }
     },
+    "SUBSCRIPTION" : {
+
+    },
     "Support" : {
       "localizations" : {
         "ar" : {
@@ -18939,10 +18960,7 @@
         }
       }
     },
-    "Support Us" : {
-
-    },
-    "System" : {
+    "SUPPORT" : {
 
     },
     "Tap on a component in the canvas to edit its properties" : {
@@ -19963,6 +19981,12 @@
     "Text Badge" : {
 
     },
+    "Theme" : {
+
+    },
+    "Threads" : {
+
+    },
     "Title" : {
       "localizations" : {
         "ar" : {
@@ -20223,6 +20247,9 @@
 
     },
     "Trailing" : {
+
+    },
+    "Twitter" : {
 
     },
     "Type" : {
@@ -21243,6 +21270,9 @@
     "VStack" : {
 
     },
+    "Website" : {
+
+    },
     "Weight" : {
 
     },
@@ -21275,6 +21305,7 @@
 
     },
     "You have access to all premium features" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

@@ -67,7 +67,7 @@ struct CustomPaywallView: View {
             }
         }
         .alert("Error", isPresented: $showingError) {
-            Button("OK") { }
+            Button("OK") {}
         } message: {
             Text(errorMessage)
         }

@@ -24,6 +24,7 @@ struct ContentView: View {
     @EnvironmentObject private var paywallManager: PaywallManager
     @EnvironmentObject private var designManager: DesignManager
     @State private var hoveredItem: MenuItem?
+    @State private var showSettingsSheet = false
     @StateObject private var authViewModel = AuthViewModel()
     let client = SupabaseManager.shared.client
     @AppStorage("selectedIndex") var selectedIndex: Int = 0
@@ -148,12 +149,18 @@ struct ContentView: View {
                                     
                     Spacer()
                 
-                // SF Symbols Link
-                navigationLinkButton(viewType: .settings, label: "Settings", systemImage: "gear", menuItem: .settings, selectedIndex: $selectedIndex, currentIndex: 4)
-
             }
             .padding()
             .navigationSplitViewColumnWidth(230)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        showSettingsSheet = true
+                    }) {
+                        Image(systemName: "gear")
+                    }
+                }
+            }
         }
         detail: {
             NavigationStack() {
@@ -186,6 +193,12 @@ struct ContentView: View {
                 .onDisappear {
                     subscriptionManager.checkSubscriptionStatus()
                 }
+        }
+        .sheet(isPresented: $showSettingsSheet) {
+            NavigationStack {
+                SettingsView()
+            }
+            .frame(minWidth: 500, minHeight: 400)
         }
     }
     

@@ -43,21 +43,6 @@ struct FontModifierEditor: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Preview Header
-                HStack {
-                    Text("Font")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    // Preview text with current font
-                    Text("Aa")
-                        .font(previewFont)
-                        .fontWeight(previewWeight)
-                        .foregroundColor(.primary)
-                }
-                
                 // Size List
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Size")
@@ -70,6 +55,8 @@ struct FontModifierEditor: View {
                                 name: sizeInfo.name,
                                 displayName: sizeInfo.displayName,
                                 isSelected: fontSize == sizeInfo.name,
+                                font: getFont(for: sizeInfo.name),
+                                weight: .regular,
                                 onSelect: {
                                     fontSize = sizeInfo.name
                                     saveFont()
@@ -101,6 +88,8 @@ struct FontModifierEditor: View {
                                 name: weightInfo.name,
                                 displayName: weightInfo.displayName,
                                 isSelected: fontWeight == weightInfo.name,
+                                font: .body,
+                                weight: getWeight(for: weightInfo.name),
                                 onSelect: {
                                     fontWeight = weightInfo.name
                                     saveFont()
@@ -121,6 +110,7 @@ struct FontModifierEditor: View {
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity)
         }
         .frame(maxHeight: 400)
         .onAppear {
@@ -132,7 +122,15 @@ struct FontModifierEditor: View {
     }
     
     private var previewFont: Font {
-        switch fontSize {
+        getFont(for: fontSize)
+    }
+    
+    private var previewWeight: Font.Weight {
+        getWeight(for: fontWeight)
+    }
+    
+    private func getFont(for name: String) -> Font {
+        switch name {
         case "largeTitle": return .largeTitle
         case "title": return .title
         case "title2": return .title2
@@ -146,9 +144,9 @@ struct FontModifierEditor: View {
         default: return .body
         }
     }
-    
-    private var previewWeight: Font.Weight {
-        switch fontWeight {
+
+    private func getWeight(for name: String) -> Font.Weight {
+        switch name {
         case "ultraLight": return .ultraLight
         case "thin": return .thin
         case "light": return .light
@@ -184,6 +182,8 @@ struct FontOptionRow: View {
     let name: String
     let displayName: String
     let isSelected: Bool
+    var font: Font = .body
+    var weight: Font.Weight = .regular
     let onSelect: () -> Void
     
     @State private var isHovered = false
@@ -192,7 +192,8 @@ struct FontOptionRow: View {
         Button(action: onSelect) {
             HStack(spacing: 12) {
                 Text(displayName)
-                    .font(.system(size: 14))
+                    .font(font)
+                    .fontWeight(weight)
                     .foregroundColor(.primary)
                 
                 Spacer()
