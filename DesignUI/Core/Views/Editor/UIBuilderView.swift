@@ -19,6 +19,7 @@ extension Notification.Name {
     static let designChanged = Notification.Name("design.changed")
     static let statusBarVisibilityChanged = Notification.Name("statusBar.visibilityChanged")
     static let selectComponent = Notification.Name("selectComponent")
+    static let minimizeSheet = Notification.Name("minimizeSheet") // Minimize iOS sheet to height 80
 }
 
 // MARK: - Undoable Slider
@@ -205,7 +206,7 @@ struct UIBuilderView: View {
     @State private var showPropertiesPanel = true
     
     // iOS half sheet states
-    @State private var showLayersSheet = false
+    @State private var showLayersSheet = true
     @State private var showPropertiesInPanel = false // For NavigationStack inside panel
     @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
@@ -215,6 +216,10 @@ struct UIBuilderView: View {
     @State private var lastScreenshotTime: Date = Date.distantPast
     private let screenshotDebounceInterval: TimeInterval = 0.5 // Minimum 0.5 seconds between screenshots
     
+    @State private var selection: PresentationDetent = .height(80)
+    @State private var activeTab: AppTab = .layers
+    
+
     var body: some View {
         NavigationStack {
 #if os(iOS)
@@ -242,7 +247,6 @@ struct UIBuilderView: View {
                         }
                         .transition(.move(edge: .leading).combined(with: .opacity))
                         .padding()
-                        .animation(.easeInOut(duration: 0.3), value: showLayersPanel)
                     }
                     
                     Spacer()
@@ -277,7 +281,11 @@ struct UIBuilderView: View {
 #if os(iOS)
         .sheet(isPresented: $showLayersSheet) {
             editorPanelSheet
+                .presentationDetents([.height(80), .medium], selection: $selection)
+                .presentationBackgroundInteraction(.enabled)
+                .interactiveDismissDisabled()
         }
+        
 #endif
         .onAppear {
             setupCanvas()
@@ -294,8 +302,8 @@ struct UIBuilderView: View {
             #if os(iOS)
             if newSelection != nil {
                 showLayersSheet = true
-            } else {
-                showLayersSheet = false
+                // Auto-switch to properties tab when component is selected
+                activeTab = .properties
             }
             #endif
         }
@@ -331,6 +339,12 @@ struct UIBuilderView: View {
                 designManager.markAsChanged()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .minimizeSheet)) { _ in
+            #if os(iOS)
+            // Minimize sheet to height 80 when canvas background is tapped
+            selection = .height(80)
+            #endif
+        }
     }
     
 #if os(iOS)
@@ -352,39 +366,6 @@ struct UIBuilderView: View {
         }
         
         ToolbarItemGroup(placement: .primaryAction) {
-            // Layers Toggle
-            Button(action: { showLayersSheet.toggle() }) {
-                Image(systemName: "square.stack.3d.up")
-            }
-            .help("Layers")
-            
-            // Device picker
-            Menu {
-                Section("iPhone") {
-                    ForEach(DevicePreset.iphones) { preset in
-                        Button(preset.rawValue) {
-                            selectedDevice = preset
-                        }
-                    }
-                }
-                Section("iPad") {
-                    ForEach(DevicePreset.ipads) { preset in
-                        Button(preset.rawValue) {
-                            selectedDevice = preset
-                        }
-                    }
-                }
-                Section("Widgets") {
-                    ForEach(DevicePreset.widgets) { preset in
-                        Button(preset.rawValue) {
-                            selectedDevice = preset
-                        }
-                    }
-                }
-            } label: {
-                Image(systemName: deviceIcon)
-            }
-            
             // Color scheme toggle
             Button(action: {
                 colorScheme = colorScheme == .light ? .dark : .light
@@ -402,24 +383,21 @@ struct UIBuilderView: View {
             }
         }
         
-        ToolbarItem(placement: .primaryAction) {
-            HStack(spacing: 8) {
-                
-                // Grouped Undo/Redo
-                Button(action: { canvasManager.undo() }) {
-                    Image(systemName: "arrow.uturn.backward")
-                }
-                .disabled(!canvasManager.canUndo)
-                
-                Button(action: { canvasManager.redo() }) {
-                    Image(systemName: "arrow.uturn.forward")
-                }
-                .disabled(!canvasManager.canRedo)
+        ToolbarItemGroup(placement: .primaryAction){
+            // Grouped Undo/Redo
+            Button(action: { canvasManager.undo() }) {
+                Image(systemName: "arrow.uturn.backward")
             }
+            .disabled(!canvasManager.canUndo)
+            
+            Button(action: { canvasManager.redo() }) {
+                Image(systemName: "arrow.uturn.forward")
+            }
+            .disabled(!canvasManager.canRedo)
         }
     }
 #endif
-    
+
     private var layersPanel: some View {
         LayersPanelView(
             canvasManager: canvasManager,
@@ -538,29 +516,165 @@ struct UIBuilderView: View {
     
 #if os(iOS)
     private var editorPanelSheet: some View {
-        NavigationStack {
-            LayersPanelView(
-                canvasManager: canvasManager,
-                selectedComponent: $canvasManager.selectedComponent,
-                onLayerTapped: { _ in
-                    showPropertiesInPanel = true
+        VStack{
+            NavigationStack {
+                Group {
+                    // Show different content based on active tab
+                    switch activeTab {
+                    case .layers:
+                        LayersPanelView(
+                            canvasManager: canvasManager,
+                            selectedComponent: $canvasManager.selectedComponent,
+                            onLayerTapped: { _ in
+                                // Switch to properties tab when layer is tapped
+                                activeTab = .properties
+                            }
+                        )
+                        .background(Color(uiColor: .systemBackground))
+                    case .properties:
+                        VStack(spacing: 0) {
+                            // Back button at the top
+                            HStack {
+                                Button(action: {
+                                    activeTab = .layers
+                                }) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "chevron.left")
+                                        Text("Layers")
+                                    }
+                                    .font(.body)
+                                }
+                                .padding(.horizontal)
+                                .padding(.vertical, 12)
+                                
+                                Spacer()
+                            }
+                            .background(Color(uiColor: .systemBackground))
+                            
+                            Divider()
+                            
+                            // Properties content
+                            propertiesPanelContent
+                        }
+                        .background(Color(uiColor: .systemBackground))
+                    case .canvas:
+                        devicePresetsList
+                            .scrollContentBackground(.hidden)
+                            .background(Color(uiColor: .systemBackground))
+                    }
                 }
-            )
-            .navigationDestination(isPresented: $showPropertiesInPanel) {
-                propertiesPanelContent
-                    .navigationTitle("Properties")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbarBackground(.hidden, for: .navigationBar)
+            }
+            
+            customTabBar()
+                .background(Color(uiColor: .systemBackground))
+        }
+        .background(Color(uiColor: .systemBackground))
+        .ignoresSafeArea(.all, edges: .bottom)
+    }
+    
+    enum AppTab: String, CaseIterable{
+        case layers = "Layers"
+        case properties = "Properties"
+        case canvas = "Canvas"
+        
+        var symbolImage: String{
+            switch self {
+            case .layers:
+                return "square.3.layers.3d.top.filled"
+            case .properties:
+                return "slider.horizontal.3"
+            case .canvas:
+                return "iphone"
             }
         }
-        .presentationDetents([.fraction(0.5), .fraction(0.75), .large])
-        .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.75)))
-        .presentationDragIndicator(.visible)
-        .presentationBackground {
-            // Match macOS panel background
-            Color(uiColor: UIColor.systemBackground)
-        }
     }
+    
+    @ViewBuilder
+    func customTabBar() -> some View {
+        HStack {
+            ForEach(AppTab.allCases, id: \.rawValue) { tab in
+                VStack(spacing: 6){
+                    Image(systemName: tab.symbolImage)
+                        .font(.title3)
+                        .symbolVariant(.fill)
+                    
+                    Text(tab.rawValue)
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                }
+                .foregroundStyle(activeTab == tab ? .blue : .gray)
+                .frame(maxWidth: .infinity)
+                .contentShape(.rect)
+                .onTapGesture {
+                    activeTab = tab
+                    // Auto-expand sheet when tab is tapped
+                    selection = .medium
+                }
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 10)
+    }
+    
+    private var devicePresetsList: some View {
+        List {
+            Section("iPhone") {
+                ForEach(DevicePreset.iphones) { preset in
+                    Button(action: {
+                        selectedDevice = preset
+                    }) {
+                        HStack {
+                            Text(preset.rawValue)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if selectedDevice == preset {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Section("iPad") {
+                ForEach(DevicePreset.ipads) { preset in
+                    Button(action: {
+                        selectedDevice = preset
+                    }) {
+                        HStack {
+                            Text(preset.rawValue)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if selectedDevice == preset {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Section("Widgets") {
+                ForEach(DevicePreset.widgets) { preset in
+                    Button(action: {
+                        selectedDevice = preset
+                    }) {
+                        HStack {
+                            Text(preset.rawValue)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if selectedDevice == preset {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+    }
+
     
     private var propertiesPanelContent: some View {
         Group {
@@ -1022,8 +1136,6 @@ struct ComponentView: View {
     }
 }
 
-
-// MARK: - Resizable Panel Component
 struct ResizablePanel<Content: View>: View {
     @Binding var width: CGFloat
     let minWidth: CGFloat

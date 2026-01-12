@@ -52,7 +52,7 @@ class ScreenshotUtility {
             samplesPerPixel: 3, // RGB, no alpha
             hasAlpha: false,
             isPlanar: false,
-            colorSpaceName: .sRGB,
+            colorSpaceName: NSColorSpaceName.sRGB,
             bytesPerRow: 0,
             bitsPerPixel: 0
         ) else {
@@ -78,7 +78,7 @@ class ScreenshotUtility {
         NSGraphicsContext.restoreGraphicsState()
         
         // Convert to JPEG
-        guard let jpegData = bitmapRep.representation(using: .jpeg, properties: [.compressionFactor: 0.7]) else {
+        guard let jpegData = bitmapRep.representation(using: .jpeg, properties: [NSBitmapImageRep.PropertyKey.compressionFactor: 0.7]) else {
             print("❌ Failed to convert screenshot to JPEG")
             return nil
         }

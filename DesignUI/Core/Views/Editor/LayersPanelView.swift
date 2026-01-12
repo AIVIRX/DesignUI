@@ -20,61 +20,121 @@ struct LayersPanelView: View {
     @State private var draggingId: UUID?
     @State private var isDragOverBottom = false
     @State private var isUserInitiatedSelection = false
-    
+    @Environment(\.horizontalSizeClass) var hSizeClass
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header with toolbar
-            VStack(spacing: 0) {
-                HStack {
-                    HStack(spacing: 6) {
-                        Image(systemName: "square.3.layers.3d.top.filled")
-                            .font(.system(size: 14))
-                            .foregroundColor(.primary)
-                        Text("Layers")
-                            .font(.headline).fontWeight(.semibold)
-                            
-                    }
-                    
-                    Spacer()
-                    
-                    // Toolbar
-                    HStack(spacing: 8) {
+        if hSizeClass == .regular {
+            regularSizeView
+        } else {
+            regularSizeView
+                .navigationTitle("Layers")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar{
+                    ToolbarItem {
                         Button(action: { showComponentLibrary = true }) {
                             Image(systemName: "plus")
                                 .font(.system(size: 12))
                         }
                         .help("Add Component")
-                        .buttonStyle(.bordered)
-                        .frame(width: 28, height: 28)
                     }
                 }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color.clear)
-                        
-            // Layers outline with scroll-to-selection
-            ScrollViewReader { scrollProxy in
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Status Bar (always shown so it can be toggled even when hidden)
-                        if let statusBar = canvasManager.statusBarComponent {
-                            StatusBarRowView(
-                                statusBar: statusBar,
-                                isSelected: selectedComponent?.id == statusBar.id,
-                                onSelect: {
-                                    isUserInitiatedSelection = true
-                                    selectedComponent = statusBar
-                                    onLayerTapped?(statusBar)
-                                }
-                            )
-                            .id(statusBar.id)
+        }
+    }
+    
+    @ViewBuilder
+    private var regularSizeView: some View {
+        if hSizeClass == .regular {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header with toolbar
+                VStack(spacing: 0) {
+                    HStack {
+                        HStack(spacing: 6) {
+                            Image(systemName: "square.3.layers.3d.top.filled")
+                                .font(.system(size: 14))
+                                .foregroundColor(.primary)
+                            Text("Layers")
+                                .font(.headline).fontWeight(.semibold)
                         }
                         
-                        ForEach(canvasManager.components) { component in
-                            // Render overlay folder above component if it has overlay children
-                            if !component.getOverlayChildren().isEmpty {
-                                OverlayFolderRow(
+                        Spacer()
+                        
+                        // Toolbar
+                        HStack(spacing: 8) {
+                            Button(action: { showComponentLibrary = true }) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 12))
+                            }
+                            .help("Add Component")
+                            .buttonStyle(.bordered)
+                            .frame(width: 28, height: 28)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.clear)
+            }
+        }
+                // Layers outline with scroll-to-selection
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            // Status Bar (always shown so it can be toggled even when hidden)
+                            if let statusBar = canvasManager.statusBarComponent {
+                                StatusBarRowView(
+                                    statusBar: statusBar,
+                                    isSelected: selectedComponent?.id == statusBar.id,
+                                    onSelect: {
+                                        isUserInitiatedSelection = true
+                                        selectedComponent = statusBar
+                                        onLayerTapped?(statusBar)
+                                    }
+                                )
+                                .id(statusBar.id)
+                            }
+                            
+                            ForEach(canvasManager.components) { component in
+                                // Render overlay folder above component if it has overlay children
+                                if !component.getOverlayChildren().isEmpty {
+                                    OverlayFolderRow(
+                                        component: component,
+                                        level: 0,
+                                        expanded: $expanded,
+                                        selectedComponent: $selectedComponent,
+                                        dragOverTarget: $dragOverTarget,
+                                        dragOverPosition: $dragOverPosition,
+                                        draggingId: $draggingId,
+                                        onDelete: {
+                                            canvasManager.removeComponent(component)
+                                            if selectedComponent?.id == component.id {
+                                                selectedComponent = nil
+                                            }
+                                        },
+                                        onMove: { sourceId, parentId, index in
+                                            canvasManager.moveComponentInHierarchy(componentId: sourceId, newParentId: parentId, toIndex: index)
+                                        },
+                                        getParentOf: { id in
+                                            findParentId(of: id, in: canvasManager.components)
+                                        },
+                                        getIndexInParent: { id in
+                                            indexInParent(of: id, in: canvasManager.components)
+                                        },
+                                        onAddOverlay: {
+                                            canvasManager.createOverlayFolder(for: component)
+                                        },
+                                        expandedOverlayFolders: $expandedOverlayFolders,
+                                        onSelect: {
+                                            isUserInitiatedSelection = true
+                                            selectedComponent = $0
+                                            onLayerTapped?($0)
+                                        },
+                                        onWrap: { component, type in
+                                            canvasManager.wrapComponent(component, in: type)
+                                        }
+                                    )
+                                }
+                                
+                                OutlineRow(
                                     component: component,
                                     level: 0,
                                     expanded: $expanded,
@@ -82,11 +142,14 @@ struct LayersPanelView: View {
                                     dragOverTarget: $dragOverTarget,
                                     dragOverPosition: $dragOverPosition,
                                     draggingId: $draggingId,
-                                    onDelete: { 
+                                    onDelete: {
                                         canvasManager.removeComponent(component)
                                         if selectedComponent?.id == component.id {
                                             selectedComponent = nil
                                         }
+                                    },
+                                    onDuplicate: {
+                                        canvasManager.duplicateComponent(component)
                                     },
                                     onMove: { sourceId, parentId, index in
                                         canvasManager.moveComponentInHierarchy(componentId: sourceId, newParentId: parentId, toIndex: index)
@@ -97,10 +160,6 @@ struct LayersPanelView: View {
                                     getIndexInParent: { id in
                                         indexInParent(of: id, in: canvasManager.components)
                                     },
-                                    onAddOverlay: {
-                                        canvasManager.createOverlayFolder(for: component)
-                                    },
-                                    expandedOverlayFolders: $expandedOverlayFolders,
                                     onSelect: {
                                         isUserInitiatedSelection = true
                                         selectedComponent = $0
@@ -110,134 +169,284 @@ struct LayersPanelView: View {
                                         canvasManager.wrapComponent(component, in: type)
                                     }
                                 )
+                                .id(component.id)
+                            }
+                            if canvasManager.components.isEmpty && canvasManager.statusBarComponent == nil {
+                                EmptyLayersState()
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 8)
+                        
+                        // Drop zone for moving to end of list (root level)
+                        if !canvasManager.components.isEmpty {
+                            Rectangle()
+                                .fill(Color.clear)
+                                .frame(height: 40)
+                                .overlay(
+                                    VStack {
+                                        if isDragOverBottom {
+                                            Capsule()
+                                                .fill(Color.accentColor)
+                                                .frame(height: 4)
+                                                .padding(.horizontal, 8)
+                                        }
+                                        Spacer()
+                                    }
+                                )
+                                .contentShape(Rectangle())
+                                .onDrop(of: [UTType.plainText], delegate: BottomDropDelegate(
+                                    canvasManager: canvasManager,
+                                    draggingId: $draggingId,
+                                    isDragOverBottom: $isDragOverBottom
+                                ))
+                        }
+                    }
+                    // Auto-scroll to selected component when selection changes
+                    .onChange(of: selectedComponent?.id) { _, newId in
+                        if let id = newId {
+                            // Small delay to allow view hierarchy to settle, then smooth spring animation
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                if !isUserInitiatedSelection {
+                                    // Auto-expand parents so selected component is visible
+                                    expandParentsOf(id)
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        scrollProxy.scrollTo(id, anchor: .center)
+                                    }
+                                }
+                                isUserInitiatedSelection = false
+                            }
+                        }
+                    }
+                }
+                // When drag ends (draggingId becomes nil), immediately clear drop indicators
+                .onChange(of: draggingId) { _, newValue in
+                    if newValue == nil {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            dragOverTarget = nil
+                            dragOverPosition = .none
+                        }
+                    }
+                }
+                .onAppear {
+                    // Auto-expand all parent components only on first appear
+                    expandAllParents()
+                }
+                .onChange(of: canvasManager.components) { _, _ in
+                    // Don't auto-expand everything - preserve user's collapse state
+                    // Only ensure parents of selected component are expanded
+                    if let selected = selectedComponent {
+                        expandParentsOf(selected.id)
+                    }
+                    // Auto-expand overlay folders for components that have overlay children
+                    for component in canvasManager.components {
+                        if !component.getOverlayChildren().isEmpty {
+                            expandedOverlayFolders.insert(component.id)
+                        }
+                    }
+                }
+        #if os(iOS)
+                .navigationDestination(isPresented: $showComponentLibrary) {
+                    ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                        .navigationTitle("Components")
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+        #else
+                .popover(isPresented: $showComponentLibrary) {
+                    ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                        .frame(width: 500, height: 400)
+                }
+        #endif
+            }
+    
+    private var PhoneSizeView: some View {
+                // Layers outline with scroll-to-selection
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            // Status Bar (always shown so it can be toggled even when hidden)
+                            if let statusBar = canvasManager.statusBarComponent {
+                                StatusBarRowView(
+                                    statusBar: statusBar,
+                                    isSelected: selectedComponent?.id == statusBar.id,
+                                    onSelect: {
+                                        isUserInitiatedSelection = true
+                                        selectedComponent = statusBar
+                                        onLayerTapped?(statusBar)
+                                    }
+                                )
+                                .id(statusBar.id)
                             }
                             
-                            OutlineRow(
-                                component: component,
-                                level: 0,
-                                expanded: $expanded,
-                                selectedComponent: $selectedComponent,
-                                dragOverTarget: $dragOverTarget,
-                                dragOverPosition: $dragOverPosition,
-                                draggingId: $draggingId,
-                                onDelete: { 
-                                    canvasManager.removeComponent(component)
-                                    if selectedComponent?.id == component.id {
-                                        selectedComponent = nil
+                            ForEach(canvasManager.components) { component in
+                                // Render overlay folder above component if it has overlay children
+                                if !component.getOverlayChildren().isEmpty {
+                                    OverlayFolderRow(
+                                        component: component,
+                                        level: 0,
+                                        expanded: $expanded,
+                                        selectedComponent: $selectedComponent,
+                                        dragOverTarget: $dragOverTarget,
+                                        dragOverPosition: $dragOverPosition,
+                                        draggingId: $draggingId,
+                                        onDelete: {
+                                            canvasManager.removeComponent(component)
+                                            if selectedComponent?.id == component.id {
+                                                selectedComponent = nil
+                                            }
+                                        },
+                                        onMove: { sourceId, parentId, index in
+                                            canvasManager.moveComponentInHierarchy(componentId: sourceId, newParentId: parentId, toIndex: index)
+                                        },
+                                        getParentOf: { id in
+                                            findParentId(of: id, in: canvasManager.components)
+                                        },
+                                        getIndexInParent: { id in
+                                            indexInParent(of: id, in: canvasManager.components)
+                                        },
+                                        onAddOverlay: {
+                                            canvasManager.createOverlayFolder(for: component)
+                                        },
+                                        expandedOverlayFolders: $expandedOverlayFolders,
+                                        onSelect: {
+                                            isUserInitiatedSelection = true
+                                            selectedComponent = $0
+                                            onLayerTapped?($0)
+                                        },
+                                        onWrap: { component, type in
+                                            canvasManager.wrapComponent(component, in: type)
+                                        }
+                                    )
+                                }
+                                
+                                OutlineRow(
+                                    component: component,
+                                    level: 0,
+                                    expanded: $expanded,
+                                    selectedComponent: $selectedComponent,
+                                    dragOverTarget: $dragOverTarget,
+                                    dragOverPosition: $dragOverPosition,
+                                    draggingId: $draggingId,
+                                    onDelete: {
+                                        canvasManager.removeComponent(component)
+                                        if selectedComponent?.id == component.id {
+                                            selectedComponent = nil
+                                        }
+                                    },
+                                    onDuplicate: {
+                                        canvasManager.duplicateComponent(component)
+                                    },
+                                    onMove: { sourceId, parentId, index in
+                                        canvasManager.moveComponentInHierarchy(componentId: sourceId, newParentId: parentId, toIndex: index)
+                                    },
+                                    getParentOf: { id in
+                                        findParentId(of: id, in: canvasManager.components)
+                                    },
+                                    getIndexInParent: { id in
+                                        indexInParent(of: id, in: canvasManager.components)
+                                    },
+                                    onSelect: {
+                                        isUserInitiatedSelection = true
+                                        selectedComponent = $0
+                                        onLayerTapped?($0)
+                                    },
+                                    onWrap: { component, type in
+                                        canvasManager.wrapComponent(component, in: type)
                                     }
-                                },
-                                onDuplicate: {
-                                    canvasManager.duplicateComponent(component)
-                                },
-                                onMove: { sourceId, parentId, index in
-                                    canvasManager.moveComponentInHierarchy(componentId: sourceId, newParentId: parentId, toIndex: index)
-                                },
-                                getParentOf: { id in
-                                    findParentId(of: id, in: canvasManager.components)
-                                },
-                                getIndexInParent: { id in
-                                    indexInParent(of: id, in: canvasManager.components)
-                                },
-                                onSelect: {
-                                    isUserInitiatedSelection = true
-                                    selectedComponent = $0
-                                    onLayerTapped?($0)
-                                },
-                                onWrap: { component, type in
-                                    canvasManager.wrapComponent(component, in: type)
-                                }
-                            )
-                            .id(component.id)
-                        }
-                        if canvasManager.components.isEmpty && canvasManager.statusBarComponent == nil {
-                            EmptyLayersState()
-                        }
-                    }
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 8)
-                    
-                    // Drop zone for moving to end of list (root level)
-                    if !canvasManager.components.isEmpty {
-                        Rectangle()
-                            .fill(Color.clear)
-                            .frame(height: 40)
-                            .overlay(
-                                VStack {
-                                    if isDragOverBottom {
-                                        Capsule()
-                                            .fill(Color.accentColor)
-                                            .frame(height: 4)
-                                            .padding(.horizontal, 8)
-                                    }
-                                    Spacer()
-                                }
-                            )
-                            .contentShape(Rectangle())
-                            .onDrop(of: [UTType.plainText], delegate: BottomDropDelegate(
-                                canvasManager: canvasManager,
-                                draggingId: $draggingId,
-                                isDragOverBottom: $isDragOverBottom
-                            ))
-                    }
-                }
-                // Auto-scroll to selected component when selection changes
-                .onChange(of: selectedComponent?.id) { _, newId in
-                    if let id = newId {
-                        // Small delay to allow view hierarchy to settle, then smooth spring animation
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            if !isUserInitiatedSelection {
-                                // Auto-expand parents so selected component is visible
-                                expandParentsOf(id)
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    scrollProxy.scrollTo(id, anchor: .center)
-                                }
+                                )
+                                .id(component.id)
                             }
-                            isUserInitiatedSelection = false
+                            if canvasManager.components.isEmpty && canvasManager.statusBarComponent == nil {
+                                EmptyLayersState()
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 8)
+                        
+                        // Drop zone for moving to end of list (root level)
+                        if !canvasManager.components.isEmpty {
+                            Rectangle()
+                                .fill(Color.clear)
+                                .frame(height: 40)
+                                .overlay(
+                                    VStack {
+                                        if isDragOverBottom {
+                                            Capsule()
+                                                .fill(Color.accentColor)
+                                                .frame(height: 4)
+                                                .padding(.horizontal, 8)
+                                        }
+                                        Spacer()
+                                    }
+                                )
+                                .contentShape(Rectangle())
+                                .onDrop(of: [UTType.plainText], delegate: BottomDropDelegate(
+                                    canvasManager: canvasManager,
+                                    draggingId: $draggingId,
+                                    isDragOverBottom: $isDragOverBottom
+                                ))
+                        }
+                    }
+                    // Auto-scroll to selected component when selection changes
+                    .onChange(of: selectedComponent?.id) { _, newId in
+                        if let id = newId {
+                            // Small delay to allow view hierarchy to settle, then smooth spring animation
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                if !isUserInitiatedSelection {
+                                    // Auto-expand parents so selected component is visible
+                                    expandParentsOf(id)
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        scrollProxy.scrollTo(id, anchor: .center)
+                                    }
+                                }
+                                isUserInitiatedSelection = false
+                            }
                         }
                     }
                 }
-            }
-            .background(Color.clear)
-            // When drag ends (draggingId becomes nil), immediately clear drop indicators
-            .onChange(of: draggingId) { _, newValue in
-                if newValue == nil {
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        dragOverTarget = nil
-                        dragOverPosition = .none
+                .navigationTitle("Layers")
+                .navigationBarTitleDisplayMode(.inline)
+                .background(Color.clear)
+                // When drag ends (draggingId becomes nil), immediately clear drop indicators
+                .onChange(of: draggingId) { _, newValue in
+                    if newValue == nil {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            dragOverTarget = nil
+                            dragOverPosition = .none
+                        }
                     }
                 }
-            }
-        }
-        .onAppear {
-            // Auto-expand all parent components only on first appear
-            expandAllParents()
-        }
-        .onChange(of: canvasManager.components) { _, _ in
-            // Don't auto-expand everything - preserve user's collapse state
-            // Only ensure parents of selected component are expanded
-            if let selected = selectedComponent {
-                expandParentsOf(selected.id)
-            }
-            // Auto-expand overlay folders for components that have overlay children
-            for component in canvasManager.components {
-                if !component.getOverlayChildren().isEmpty {
-                    expandedOverlayFolders.insert(component.id)
+                .onAppear {
+                    // Auto-expand all parent components only on first appear
+                    expandAllParents()
                 }
+                .onChange(of: canvasManager.components) { _, _ in
+                    // Don't auto-expand everything - preserve user's collapse state
+                    // Only ensure parents of selected component are expanded
+                    if let selected = selectedComponent {
+                        expandParentsOf(selected.id)
+                    }
+                    // Auto-expand overlay folders for components that have overlay children
+                    for component in canvasManager.components {
+                        if !component.getOverlayChildren().isEmpty {
+                            expandedOverlayFolders.insert(component.id)
+                        }
+                    }
+                }
+        #if os(iOS)
+                .navigationDestination(isPresented: $showComponentLibrary) {
+                    ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                        .navigationTitle("Components")
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+        #else
+                .popover(isPresented: $showComponentLibrary) {
+                    ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                        .frame(width: 500, height: 400)
+                }
+        #endif
             }
-        }
-#if os(iOS)
-        .navigationDestination(isPresented: $showComponentLibrary) {
-            ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                .navigationTitle("Components")
-                .navigationBarTitleDisplayMode(.inline)
-        }
-#else
-        .popover(isPresented: $showComponentLibrary) {
-            ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                .frame(width: 500, height: 400)
-        }
-#endif
-    }
+            
     
     private func expandAllParents() {
         var allParentIds: Set<UUID> = []
@@ -275,10 +484,8 @@ struct LayersPanelView: View {
         
         _ = findAndExpandParents(of: componentId, in: canvasManager.components)
     }
-    
 }
 
-// MARK: - Helper Functions
 private func componentDisplayName(_ component: UIComponent) -> String {
     // If this is a modifier parent component, show the modifier type name
     if let modifierType = component.modifierType {
@@ -296,7 +503,6 @@ private func componentDisplayName(_ component: UIComponent) -> String {
     }
 }
 
-// MARK: - Hierarchy helpers
 private func findParentId(of targetId: UUID, in roots: [UIComponent]) -> UUID? {
     for root in roots {
         if root.children.contains(where: { $0.id == targetId }) {
@@ -347,23 +553,22 @@ private enum DropPosition { case none, above, inside, below }
 
 private struct EmptyLayersState: View {
     var body: some View {
-                        VStack(spacing: 8) {
-                            Image(systemName: "square.stack")
-                                .font(.system(size: 24))
-                                .foregroundColor(.secondary)
-                            Text("No layers yet")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text("Add components from the library to start!")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(20)
-                    }
-                }
+        VStack(spacing: 8) {
+            Image(systemName: "square.stack")
+                .font(.system(size: 24))
+                .foregroundColor(.secondary)
+            Text("No layers yet")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Text("Add components from the library to start!")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(20)
+    }
+}
 
-// MARK: - Status Bar Row
 private struct StatusBarRowView: View {
     @ObservedObject var statusBar: UIComponent
     let isSelected: Bool

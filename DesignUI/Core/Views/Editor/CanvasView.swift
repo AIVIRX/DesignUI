@@ -40,6 +40,10 @@ struct CanvasView: View {
                         canvasManager.deselectAll()
                         #if os(iOS)
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        // On iPhone, minimize the sheet
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            NotificationCenter.default.post(name: .minimizeSheet, object: nil)
+                        }
                         #elseif os(macOS)
                         NSApp.keyWindow?.makeFirstResponder(nil)
                         #endif
@@ -368,6 +372,10 @@ struct ComponentsContainerWithStatusBar: View {
             // Dismiss keyboard/unfocus text fields
             #if os(iOS)
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            // On iPhone, minimize the sheet
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                NotificationCenter.default.post(name: .minimizeSheet, object: nil)
+            }
             #elseif os(macOS)
             NSApp.keyWindow?.makeFirstResponder(nil)
             #endif
@@ -391,7 +399,7 @@ struct ComponentsContainerWithStatusBar: View {
 struct ComponentsContainerWithoutStatusBar: View {
     let components: [UIComponent]
     @Binding var selectedComponent: UIComponent?
-    let selectedDevice: DevicePreset
+    let selectedDevice: DevicePreset 
     let colorScheme: ColorScheme?
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
@@ -441,6 +449,10 @@ struct ComponentsContainerWithoutStatusBar: View {
             // Dismiss keyboard/unfocus text fields
             #if os(iOS)
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            // On iPhone, minimize the sheet
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                NotificationCenter.default.post(name: .minimizeSheet, object: nil)
+            }
             #elseif os(macOS)
             NSApp.keyWindow?.makeFirstResponder(nil)
             #endif

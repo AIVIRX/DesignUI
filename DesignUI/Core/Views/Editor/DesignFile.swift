@@ -1175,8 +1175,18 @@ class ImageGalleryManager: ObservableObject {
             }
         }
         
-        let renderer = UIGraphicsImageRenderer(size: newSize)
-        let resizedImage = renderer.image { _ in
+        // Create an opaque renderer format to avoid "opaque image with alpha" warnings
+        // This prevents unnecessary memory usage (double memory when decoding!)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = UIScreen.main.scale
+        format.opaque = true  // ← KEY FIX: Explicitly set opaque to true for images without transparency
+        
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        let resizedImage = renderer.image { context in
+            // Fill with white background to ensure opacity
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: newSize))
+            // Draw the image on top
             image.draw(in: CGRect(origin: .zero, size: newSize))
         }
         
