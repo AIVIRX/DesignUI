@@ -252,16 +252,6 @@ struct ProfileView: View {
             .toolbar {
 #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showUploadTemplate = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {
                             showEditProfile = true
@@ -290,16 +280,6 @@ struct ProfileView: View {
 #endif
                 
 #if os(macOS)
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showUploadTemplate = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                    }
-                }
-                
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(action: {
@@ -333,11 +313,6 @@ struct ProfileView: View {
                 EditProfileView(viewModel: viewModel)
                     .environmentObject(authViewModel)
                     .presentationDetents([.medium, .large])
-            }
-            .sheet(isPresented: $showUploadTemplate) {
-                UploadTemplateView()
-                    .environmentObject(authViewModel)
-                    .presentationDetents([.large])
             }
             .refreshable {
                 await viewModel.fetchProfile()

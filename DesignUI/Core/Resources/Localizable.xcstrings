@@ -803,6 +803,7 @@
       }
     },
     "%lld/100" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1303,6 +1304,7 @@
       }
     },
     "%lld/500" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1553,6 +1555,7 @@
       }
     },
     "%lld/10000" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3889,6 +3892,9 @@
           }
         }
       }
+    },
+    "Canvas" : {
+
     },
     "Capsule" : {
 
@@ -7210,6 +7216,7 @@
       }
     },
     "Describe your design..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7460,6 +7467,7 @@
       }
     },
     "Description" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10571,6 +10579,7 @@
 
     },
     "My Awesome Design" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12116,6 +12125,7 @@
 
     },
     "Paste your SwiftUI code here..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20272,6 +20282,7 @@
 
     },
     "Upload" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20522,6 +20533,7 @@
       }
     },
     "Upload Template" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

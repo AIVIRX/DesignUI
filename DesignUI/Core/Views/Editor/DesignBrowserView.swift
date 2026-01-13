@@ -226,7 +226,7 @@ struct DesignCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Canvas Preview with rounded corners
             CanvasPreviewView(designFile: designFile)
-                .frame(width: 300, height: 200)
+                .frame(width: 250, height: 200)
                 .background(Color.secondary.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
@@ -404,7 +404,7 @@ struct TemplateCardView: View {
             // Template Preview
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.gray.opacity(0.2))
-                .frame(width: 300, height: 200)
+                .frame(width: 250, height: 200)
                 .overlay(
                     renderThumbnail()
                 )

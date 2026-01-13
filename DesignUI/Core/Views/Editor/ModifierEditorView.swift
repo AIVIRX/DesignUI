@@ -14,7 +14,6 @@ struct ModifierEditorView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Modifier-specific controls
             Group {
                 switch modifier.type {
                 case .frame:
@@ -61,9 +60,11 @@ struct ModifierEditorView: View {
                     ZIndexModifierEditor(modifier: $modifier, component: component)
                 }
             }
-            .padding()
         }
         .frame(maxWidth: .infinity)
+#if os(iOS)
+        .background(Color(uiColor: .systemBackground))
+#endif
 #if os(macOS)
         .frame(width: 320)
 #endif

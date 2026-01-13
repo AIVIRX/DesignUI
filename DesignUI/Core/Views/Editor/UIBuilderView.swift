@@ -302,8 +302,6 @@ struct UIBuilderView: View {
             #if os(iOS)
             if newSelection != nil {
                 showLayersSheet = true
-                // Auto-switch to properties tab when component is selected
-                activeTab = .properties
             }
             #endif
         }
@@ -532,34 +530,81 @@ struct UIBuilderView: View {
                         )
                         .background(Color(uiColor: .systemBackground))
                     case .properties:
-                        VStack(spacing: 0) {
-                            // Back button at the top
-                            HStack {
-                                Button(action: {
-                                    activeTab = .layers
-                                }) {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "chevron.left")
-                                        Text("Layers")
+                        propertiesPanelContent
+                            .navigationTitle("Properties")
+                            .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarLeading) {
+                                    Button(action: {
+                                        activeTab = .layers
+                                    }) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "chevron.left")
+                                            Text("Layers")
+                                        }
                                     }
-                                    .font(.body)
                                 }
-                                .padding(.horizontal)
-                                .padding(.vertical, 12)
-                                
-                                Spacer()
                             }
                             .background(Color(uiColor: .systemBackground))
-                            
-                            Divider()
-                            
-                            // Properties content
-                            propertiesPanelContent
-                        }
-                        .background(Color(uiColor: .systemBackground))
                     case .canvas:
-                        devicePresetsList
-                            .scrollContentBackground(.hidden)
+                        List {
+                            // Color Scheme Section
+                            Section("Appearance") {
+                                HStack(spacing: 12) {
+                                    Button {
+                                        colorScheme = .light
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: "sun.max.fill")
+                                                .font(.system(size: 16))
+                                            Text("Light")
+                                            Spacer()
+                                            if colorScheme == .light {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundColor(.blue)
+                                            }
+                                        }
+                                        .foregroundColor(.primary)
+                                        .padding(.vertical, 4)
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    
+                                    Divider()
+                                    
+                                    Button {
+                                        colorScheme = .dark
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: "moon.fill")
+                                                .font(.system(size: 16))
+                                            Text("Dark")
+                                            Spacer()
+                                            if colorScheme == .dark {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundColor(.blue)
+                                            }
+                                        }
+                                        .foregroundColor(.primary)
+                                        .padding(.vertical, 4)
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            
+                            // Device Presets
+                            devicePresetsListSections
+                        }
+                        .listStyle(.insetGrouped)
+                        .navigationTitle("Canvas")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .scrollContentBackground(.hidden)
+                        .background(Color(uiColor: .systemBackground))
+                    case .code:
+                        codeTabContent
+                            .navigationTitle("Code")
+                            .navigationBarTitleDisplayMode(.inline)
                             .background(Color(uiColor: .systemBackground))
                     }
                 }
@@ -576,6 +621,7 @@ struct UIBuilderView: View {
         case layers = "Layers"
         case properties = "Properties"
         case canvas = "Canvas"
+        case code = "Code"
         
         var symbolImage: String{
             switch self {
@@ -585,6 +631,8 @@ struct UIBuilderView: View {
                 return "slider.horizontal.3"
             case .canvas:
                 return "iphone"
+            case .code:
+                return "chevron.left.forwardslash.chevron.right"
             }
         }
     }
@@ -674,6 +722,63 @@ struct UIBuilderView: View {
         }
         .listStyle(.insetGrouped)
     }
+    
+    @ViewBuilder
+    private var devicePresetsListSections: some View {
+        Section("iPhone") {
+            ForEach(DevicePreset.iphones) { preset in
+                Button(action: {
+                    selectedDevice = preset
+                }) {
+                    HStack {
+                        Text(preset.rawValue)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if selectedDevice == preset {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+        }
+        
+        Section("iPad") {
+            ForEach(DevicePreset.ipads) { preset in
+                Button(action: {
+                    selectedDevice = preset
+                }) {
+                    HStack {
+                        Text(preset.rawValue)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if selectedDevice == preset {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+        }
+        
+        Section("Widgets") {
+            ForEach(DevicePreset.widgets) { preset in
+                Button(action: {
+                    selectedDevice = preset
+                }) {
+                    HStack {
+                        Text(preset.rawValue)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if selectedDevice == preset {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     
     private var propertiesPanelContent: some View {
@@ -702,6 +807,10 @@ struct UIBuilderView: View {
                 .padding()
             }
         }
+    }
+    
+    private var codeTabContent: some View {
+        CodeTabView(canvasManager: canvasManager)
     }
 #endif
     
@@ -1247,3 +1356,52 @@ struct ResizablePanel<Content: View>: View {
             )
     }
 }
+
+#if os(iOS)
+struct CodeTabView: View {
+    @ObservedObject var canvasManager: CanvasManager
+    @State private var highlightedText: AttributedString = AttributedString()
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        ScrollView([.horizontal, .vertical]) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(highlightedText)
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(12)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    UIPasteboard.general.string = canvasManager.exportCode()
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                }
+            }
+        }
+        .onAppear {
+            highlightCode()
+        }
+        .onChange(of: canvasManager.components) { _, _ in
+            highlightCode()
+        }
+        .onChange(of: colorScheme) { _, _ in
+            highlightCode()
+        }
+    }
+    
+    private func highlightCode() {
+        let code = canvasManager.exportCode()
+        Task {
+            let result = await SyntaxHighlighter.shared.highlight(code, colorScheme: colorScheme)
+            await MainActor.run {
+                highlightedText = result
+            }
+        }
+    }
+}
+#endif

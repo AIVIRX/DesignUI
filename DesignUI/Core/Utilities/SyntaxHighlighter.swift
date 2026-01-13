@@ -10,8 +10,6 @@ import SwiftUI
 class SyntaxHighlighter {
     static let shared = SyntaxHighlighter()
     
-
-    
     func highlight(_ code: String, colorScheme: ColorScheme) async -> AttributedString {
         // Run on detached task with lower priority to allow UI/Network to finish first
         return await Task.detached(priority: .utility) {

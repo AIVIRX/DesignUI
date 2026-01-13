@@ -23,29 +23,28 @@ struct ComponentLibraryView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            VStack(spacing: 12) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    
-                    TextField("Search components...", text: $searchText)
-                        .textFieldStyle(PlainTextFieldStyle())
+        ScrollView {
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 12) {
+                    // Search bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        
+                        TextField("Search components...", text: $searchText)
+                            .textFieldStyle(PlainTextFieldStyle())
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(8)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(8)
-            }
-            .padding(16)
-            
-            Divider()
-            
-            // Components grid
-            ScrollView {
-                // Compact, adaptive grid
+                .padding(16)
+                
+                Divider()
+                
+                // Components grid
                 LazyVGrid(columns: [
                     GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 8)
                 ], spacing: 8) {
@@ -56,7 +55,7 @@ struct ComponentLibraryView: View {
                             onAdd: { component in
                                 // Check if there's a selected container component
                                 if let selected = selectedComponent,
-                                    canvasManager.canAcceptChildren(selected) {
+                                   canvasManager.canAcceptChildren(selected) {
                                     // Reset frame to be relative to container
                                     component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
                                     
@@ -75,6 +74,7 @@ struct ComponentLibraryView: View {
                 .padding(12)
             }
         }
+        .background(Color(uiColor: .systemBackground))
     }
 }
 
@@ -125,16 +125,6 @@ struct ComponentLibraryItem: View {
             )
             onAdd(component)
         }
-        .gesture(
-            DragGesture()
-                .onChanged { _ in
-                    isPressed = true
-                }
-                .onEnded { _ in
-                    isPressed = false
-                    // Note: Component creation is handled by onTapGesture to avoid duplicates
-                }
-        )
     }
 }
 

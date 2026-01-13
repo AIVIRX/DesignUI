@@ -483,9 +483,6 @@ struct AddModifierView: View {
         if searchText.isEmpty {
             return categories
         } else {
-            // When searching, we can either filter within categories or flatten.
-            // Let's flatten for easier search results, or filter categories to distinct ones.
-            // Flattening is usually better for search.
             let filtered = ModifierType.allCases.filter { $0.rawValue.localizedCaseInsensitiveContains(searchText) }
             return [ModifierCategory(name: "Search Results", modifiers: filtered)]
         }
@@ -542,14 +539,19 @@ struct AddModifierView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+        }
+#if os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    dismiss()
                 }
             }
         }
+#endif
+#if os(iOS)
+        .background(Color(uiColor: .systemBackground))
+#endif
 #if os(macOS)
         .frame(width: 400, height: 600)
 #endif
@@ -581,13 +583,6 @@ struct ModifierTypeItemView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
-                
-                Spacer()
-                
-                // Plus icon
-                Image(systemName: "plus.circle")
-                    .font(.system(size: 14))
-                    .foregroundColor(isHovered ? .blue : .gray.opacity(0.3))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)

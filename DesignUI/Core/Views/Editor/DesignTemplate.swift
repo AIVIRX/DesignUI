@@ -23,7 +23,7 @@ class DesignTemplateManager {
         return [
             
             // Blank Template
-            DesignTemplate(
+            DesignTemplate( 
                 name: "Blank",
                 description: "Start with an empty canvas",
                 thumbnail: "blank",
@@ -363,7 +363,7 @@ class DesignTemplateManager {
                             type: .sfSymbol,
                             properties: [
                                 ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: icon, defaultValue: icon),
-                                ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true)
+                                ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: false, defaultValue: false)
                             ],
                             frame: CGRect(x: 0, y: 0, width: 0, height: 0),
                             modifiers: [
@@ -401,13 +401,10 @@ class DesignTemplateManager {
                                     ]
                                 )
                             ],
-                            frame: CGRect(x: 0, y: 0, width: 0, height: 0)
                         )
                     ],
-                    frame: CGRect(x: 0, y: 0, width: 0, height: 0)
                 )
             ],
-            frame: CGRect(x: 0, y: 0, width: 0, height: 0)
         )
     }
 }
