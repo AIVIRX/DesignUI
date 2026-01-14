@@ -2087,6 +2087,7 @@
 
     },
     "Access your profile" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2335,6 +2336,9 @@
           }
         }
       }
+    },
+    "Account" : {
+
     },
     "Actions" : {
 
@@ -3373,6 +3377,12 @@
       }
     },
     "Aspect Ratio" : {
+
+    },
+    "Back" : {
+
+    },
+    "Back to Designs" : {
 
     },
     "Background Color" : {
@@ -7723,6 +7733,9 @@
     "Design Name" : {
 
     },
+    "Design your next App\nwith DockUI Studio" : {
+
+    },
     "Display Name" : {
       "localizations" : {
         "ar" : {
@@ -9034,6 +9047,9 @@
 
     },
     "Hello World" : {
+
+    },
+    "Home" : {
 
     },
     "HStack" : {
@@ -14683,6 +14699,7 @@
       }
     },
     "Search templates" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14939,6 +14956,7 @@
 
     },
     "Select a view" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16710,6 +16728,7 @@
 
     },
     "Sign In" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

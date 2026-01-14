@@ -1,1597 +1,678 @@
-[
-  {
-    "children" : [
-      {
-        "children" : [
-
+{
+  "name": "Introducing Features",
+  "description": "Feature highlights with icons and descriptions",
+  "thumbnail": "introducingFeatures",
+  "devicePreset": null,
+  "components": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "type": "VStack",
+      "isSelected": false,
+      "isVisible": true,
+      "isOverlay": false,
+      "zIndex": 0,
+      "frame": [
+        [
+          0,
+          0
         ],
-        "frame" : [
-          [
-            20,
-            20
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "id" : "30541529-F384-4473-B65E-A94065EF257E",
-        "isOverlay" : false,
-        "isSelected" : false,
-        "isVisible" : true,
-        "modifiers" : [
-          {
-            "properties" : {
-              "fontSize" : "largeTitle"
-            },
-            "type" : "Font Size"
-          },
-          {
-            "properties" : {
-              "fontWeight" : "bold"
-            },
-            "type" : "Font Weight"
-          },
-          {
-            "properties" : {
-              "height" : 100,
-              "heightType" : "Default",
-              "width" : 240,
-              "widthType" : "Custom"
-            },
-            "type" : "Frame"
-          },
-          {
-            "properties" : {
-              "alignment" : "center"
-            },
-            "type" : "Text Alignment"
-          },
-          {
-            "properties" : {
-              "amount" : 80,
-              "location" : "vertical"
-            },
-            "type" : "Padding"
-          }
-        ],
-        "properties" : [
-          {
-            "defaultValue" : "Hello World",
-            "id" : "39B3A160-256E-4960-86B3-421DB14DD696",
-            "isRequired" : false,
-            "key" : "text",
-            "type" : {
-              "string" : {
-
-              }
-            },
-            "value" : "Introducing New Features"
-          }
-        ],
-        "type" : "Text",
-        "zIndex" : 0
-      },
-      {
-        "children" : [
-          {
-            "children" : [
-              {
-                "children" : [
-                  {
-                    "children" : [
-
-                    ],
-                    "frame" : [
-                      [
-                        40,
-                        40
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "1738E273-C5B1-484C-ABA2-5B390C01B6F4",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-                      {
-                        "properties" : {
-                          "color" : "color:rgb(0.000,0.569,1.000)"
-                        },
-                        "type" : "Foreground Color"
-                      },
-                      {
-                        "properties" : {
-                          "fontSize" : "title"
-                        },
-                        "type" : "Font Size"
-                      },
-                      {
-                        "properties" : {
-                          "height" : 50,
-                          "heightType" : "Custom",
-                          "width" : 50,
-                          "widthType" : "Custom"
-                        },
-                        "type" : "Frame"
-                      }
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "star",
-                        "id" : "90DA2384-97D5-49BC-9FE8-8DD8ABE9ED68",
-                        "isRequired" : false,
-                        "key" : "symbolName",
-                        "type" : {
-                          "string" : {
-
-                          }
-                        },
-                        "value" : "star.fill"
-                      }
-                    ],
-                    "type" : "SF Symbol",
-                    "zIndex" : 0
-                  },
-                  {
-                    "children" : [
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            40,
-                            40
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "7623D29D-55BD-4D3B-8BDD-1108FAACF01B",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "fontWeight" : "semibold"
-                            },
-                            "type" : "Font Weight"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "2F661F68-B5AD-45A6-96B7-C275E2A60D61",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Ratings"
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      },
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            140,
-                            140
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "160C713D-60B1-4A40-96CF-805E3086D8FB",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "color" : "color:secondary"
-                            },
-                            "type" : "Foreground Color"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "F85BDA56-71C0-48FA-81F6-3B2741334B55",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Lorem dolor scing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      }
-                    ],
-                    "frame" : [
-                      [
-                        40,
-                        40
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "3DE5650F-C3B2-4615-9052-EF4BA1FB5BDB",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "center",
-                        "id" : "4DA4018D-DE85-4ECF-9F31-36F1011BEA77",
-                        "isRequired" : false,
-                        "key" : "alignment",
-                        "options" : [
-                          "leading",
-                          "center",
-                          "trailing"
-                        ],
-                        "type" : {
-                          "segmentedControl" : {
-
-                          }
-                        },
-                        "value" : "leading"
-                      },
-                      {
-                        "defaultValue" : 8,
-                        "id" : "A780E4E2-6494-4D4D-9369-185A80E1180F",
-                        "isRequired" : false,
-                        "key" : "spacing",
-                        "type" : {
-                          "number" : {
-
-                          }
-                        },
-                        "value" : 8
-                      }
-                    ],
-                    "type" : "VStack",
-                    "zIndex" : 0
-                  }
-                ],
-                "frame" : [
-                  [
-                    40,
-                    40
-                  ],
-                  [
-                    0,
-                    0
-                  ]
-                ],
-                "id" : "884B44FD-1ECE-4075-BCB8-3FF63CFBCE76",
-                "isOverlay" : false,
-                "isSelected" : false,
-                "isVisible" : true,
-                "modifiers" : [
-
-                ],
-                "properties" : [
-                  {
-                    "defaultValue" : "center",
-                    "id" : "7A2C6EA1-F870-4913-BF42-2AF297DC2865",
-                    "isRequired" : false,
-                    "key" : "alignment",
-                    "options" : [
-                      "top",
-                      "center",
-                      "bottom",
-                      "firstTextBaseline",
-                      "lastTextBaseline"
-                    ],
-                    "type" : {
-                      "segmentedControl" : {
-
-                      }
-                    },
-                    "value" : "center"
-                  },
-                  {
-                    "defaultValue" : 8,
-                    "id" : "1419432A-5CE3-4953-B5B6-92F51165130A",
-                    "isRequired" : false,
-                    "key" : "spacing",
-                    "type" : {
-                      "number" : {
-
-                      }
-                    },
-                    "value" : 8
-                  }
-                ],
-                "type" : "HStack",
-                "zIndex" : 0
-              }
-            ],
-            "frame" : [
-              [
-                140,
-                140
-              ],
-              [
-                0,
-                0
-              ]
-            ],
-            "id" : "523FD881-C799-4909-8BA7-037248B3CDA9",
-            "isOverlay" : false,
-            "isSelected" : false,
-            "isVisible" : true,
-            "modifiers" : [
-
-            ],
-            "properties" : [
-              {
-                "defaultValue" : "center",
-                "id" : "B5CC7C0F-339E-431B-9921-2BF96097AA5E",
-                "isRequired" : false,
-                "key" : "alignment",
-                "options" : [
-                  "leading",
-                  "center",
-                  "trailing"
-                ],
-                "type" : {
-                  "segmentedControl" : {
-
-                  }
-                },
-                "value" : "center"
-              },
-              {
-                "defaultValue" : 8,
-                "id" : "AAE8ED9D-A772-4FF9-8D37-684EDDDECDB7",
-                "isRequired" : false,
-                "key" : "spacing",
-                "type" : {
-                  "number" : {
-
-                  }
-                },
-                "value" : 28
-              }
-            ],
-            "type" : "VStack",
-            "zIndex" : 0
-          },
-          {
-            "children" : [
-              {
-                "children" : [
-                  {
-                    "children" : [
-
-                    ],
-                    "frame" : [
-                      [
-                        60,
-                        60
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "89AA2068-5D76-4449-A76D-7286A71BD4F6",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-                      {
-                        "properties" : {
-                          "color" : "color:rgb(0.000,0.569,1.000)"
-                        },
-                        "type" : "Foreground Color"
-                      },
-                      {
-                        "properties" : {
-                          "fontSize" : "title"
-                        },
-                        "type" : "Font Size"
-                      },
-                      {
-                        "properties" : {
-                          "height" : 50,
-                          "heightType" : "Custom",
-                          "width" : 50,
-                          "widthType" : "Custom"
-                        },
-                        "type" : "Frame"
-                      }
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "star",
-                        "id" : "90DA2384-97D5-49BC-9FE8-8DD8ABE9ED68",
-                        "isRequired" : false,
-                        "key" : "symbolName",
-                        "type" : {
-                          "string" : {
-
-                          }
-                        },
-                        "value" : "airplane.path.dotted"
-                      }
-                    ],
-                    "type" : "SF Symbol",
-                    "zIndex" : 0
-                  },
-                  {
-                    "children" : [
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            60,
-                            60
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "7A16A6FB-350C-4DE5-B3D7-5A606D4CD422",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "fontWeight" : "semibold"
-                            },
-                            "type" : "Font Weight"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "2F661F68-B5AD-45A6-96B7-C275E2A60D61",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Flight Tracker"
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      },
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            160,
-                            160
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "6A7193CB-4B79-447C-A48B-073A9F5C5220",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "color" : "color:secondary"
-                            },
-                            "type" : "Foreground Color"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "F85BDA56-71C0-48FA-81F6-3B2741334B55",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt "
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      }
-                    ],
-                    "frame" : [
-                      [
-                        60,
-                        60
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "BFE5208C-595C-44C2-9267-8017B302630F",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "center",
-                        "id" : "4DA4018D-DE85-4ECF-9F31-36F1011BEA77",
-                        "isRequired" : false,
-                        "key" : "alignment",
-                        "options" : [
-                          "leading",
-                          "center",
-                          "trailing"
-                        ],
-                        "type" : {
-                          "segmentedControl" : {
-
-                          }
-                        },
-                        "value" : "leading"
-                      },
-                      {
-                        "defaultValue" : 8,
-                        "id" : "A780E4E2-6494-4D4D-9369-185A80E1180F",
-                        "isRequired" : false,
-                        "key" : "spacing",
-                        "type" : {
-                          "number" : {
-
-                          }
-                        },
-                        "value" : 8
-                      }
-                    ],
-                    "type" : "VStack",
-                    "zIndex" : 0
-                  }
-                ],
-                "frame" : [
-                  [
-                    60,
-                    60
-                  ],
-                  [
-                    0,
-                    0
-                  ]
-                ],
-                "id" : "BBF45898-44E6-4B14-A9CA-53321567C8F0",
-                "isOverlay" : false,
-                "isSelected" : false,
-                "isVisible" : true,
-                "modifiers" : [
-
-                ],
-                "properties" : [
-                  {
-                    "defaultValue" : "center",
-                    "id" : "7A2C6EA1-F870-4913-BF42-2AF297DC2865",
-                    "isRequired" : false,
-                    "key" : "alignment",
-                    "options" : [
-                      "top",
-                      "center",
-                      "bottom",
-                      "firstTextBaseline",
-                      "lastTextBaseline"
-                    ],
-                    "type" : {
-                      "segmentedControl" : {
-
-                      }
-                    },
-                    "value" : "center"
-                  },
-                  {
-                    "defaultValue" : 8,
-                    "id" : "1419432A-5CE3-4953-B5B6-92F51165130A",
-                    "isRequired" : false,
-                    "key" : "spacing",
-                    "type" : {
-                      "number" : {
-
-                      }
-                    },
-                    "value" : 8
-                  }
-                ],
-                "type" : "HStack",
-                "zIndex" : 0
-              }
-            ],
-            "frame" : [
-              [
-                160,
-                160
-              ],
-              [
-                0,
-                0
-              ]
-            ],
-            "id" : "583F6239-D608-4FFC-9482-3ACC3A8DAEBF",
-            "isOverlay" : false,
-            "isSelected" : false,
-            "isVisible" : true,
-            "modifiers" : [
-
-            ],
-            "properties" : [
-              {
-                "defaultValue" : "center",
-                "id" : "B5CC7C0F-339E-431B-9921-2BF96097AA5E",
-                "isRequired" : false,
-                "key" : "alignment",
-                "options" : [
-                  "leading",
-                  "center",
-                  "trailing"
-                ],
-                "type" : {
-                  "segmentedControl" : {
-
-                  }
-                },
-                "value" : "center"
-              },
-              {
-                "defaultValue" : 8,
-                "id" : "AAE8ED9D-A772-4FF9-8D37-684EDDDECDB7",
-                "isRequired" : false,
-                "key" : "spacing",
-                "type" : {
-                  "number" : {
-
-                  }
-                },
-                "value" : 28
-              }
-            ],
-            "type" : "VStack",
-            "zIndex" : 0
-          },
-          {
-            "children" : [
-              {
-                "children" : [
-                  {
-                    "children" : [
-
-                    ],
-                    "frame" : [
-                      [
-                        80,
-                        80
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "A78BBFD7-D035-4AEA-9D1C-7E263ED60389",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-                      {
-                        "properties" : {
-                          "color" : "color:rgb(0.000,0.569,1.000)"
-                        },
-                        "type" : "Foreground Color"
-                      },
-                      {
-                        "properties" : {
-                          "fontSize" : "title"
-                        },
-                        "type" : "Font Size"
-                      },
-                      {
-                        "properties" : {
-                          "height" : 50,
-                          "heightType" : "Custom",
-                          "width" : 50,
-                          "widthType" : "Custom"
-                        },
-                        "type" : "Frame"
-                      }
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "star",
-                        "id" : "90DA2384-97D5-49BC-9FE8-8DD8ABE9ED68",
-                        "isRequired" : false,
-                        "key" : "symbolName",
-                        "type" : {
-                          "string" : {
-
-                          }
-                        },
-                        "value" : "fork.knife"
-                      }
-                    ],
-                    "type" : "SF Symbol",
-                    "zIndex" : 0
-                  },
-                  {
-                    "children" : [
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            80,
-                            80
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "9AB9F228-CB2C-4794-890B-493560D93FBF",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "fontWeight" : "semibold"
-                            },
-                            "type" : "Font Weight"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "2F661F68-B5AD-45A6-96B7-C275E2A60D61",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Meal Reservation"
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      },
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            180,
-                            180
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "215B25A4-089C-429B-AB52-A77C463FB142",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "color" : "color:secondary"
-                            },
-                            "type" : "Foreground Color"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "F85BDA56-71C0-48FA-81F6-3B2741334B55",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt "
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      }
-                    ],
-                    "frame" : [
-                      [
-                        80,
-                        80
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "914D0903-7A60-4A2E-88A2-A69D4D9C8F4A",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "center",
-                        "id" : "4DA4018D-DE85-4ECF-9F31-36F1011BEA77",
-                        "isRequired" : false,
-                        "key" : "alignment",
-                        "options" : [
-                          "leading",
-                          "center",
-                          "trailing"
-                        ],
-                        "type" : {
-                          "segmentedControl" : {
-
-                          }
-                        },
-                        "value" : "leading"
-                      },
-                      {
-                        "defaultValue" : 8,
-                        "id" : "A780E4E2-6494-4D4D-9369-185A80E1180F",
-                        "isRequired" : false,
-                        "key" : "spacing",
-                        "type" : {
-                          "number" : {
-
-                          }
-                        },
-                        "value" : 8
-                      }
-                    ],
-                    "type" : "VStack",
-                    "zIndex" : 0
-                  }
-                ],
-                "frame" : [
-                  [
-                    80,
-                    80
-                  ],
-                  [
-                    0,
-                    0
-                  ]
-                ],
-                "id" : "CAE5D310-A788-473D-9818-40359C125C29",
-                "isOverlay" : false,
-                "isSelected" : false,
-                "isVisible" : true,
-                "modifiers" : [
-
-                ],
-                "properties" : [
-                  {
-                    "defaultValue" : "center",
-                    "id" : "7A2C6EA1-F870-4913-BF42-2AF297DC2865",
-                    "isRequired" : false,
-                    "key" : "alignment",
-                    "options" : [
-                      "top",
-                      "center",
-                      "bottom",
-                      "firstTextBaseline",
-                      "lastTextBaseline"
-                    ],
-                    "type" : {
-                      "segmentedControl" : {
-
-                      }
-                    },
-                    "value" : "center"
-                  },
-                  {
-                    "defaultValue" : 8,
-                    "id" : "1419432A-5CE3-4953-B5B6-92F51165130A",
-                    "isRequired" : false,
-                    "key" : "spacing",
-                    "type" : {
-                      "number" : {
-
-                      }
-                    },
-                    "value" : 8
-                  }
-                ],
-                "type" : "HStack",
-                "zIndex" : 0
-              }
-            ],
-            "frame" : [
-              [
-                180,
-                180
-              ],
-              [
-                0,
-                0
-              ]
-            ],
-            "id" : "A6CDB879-62BD-41BA-A13C-0521479550A3",
-            "isOverlay" : false,
-            "isSelected" : false,
-            "isVisible" : true,
-            "modifiers" : [
-
-            ],
-            "properties" : [
-              {
-                "defaultValue" : "center",
-                "id" : "B5CC7C0F-339E-431B-9921-2BF96097AA5E",
-                "isRequired" : false,
-                "key" : "alignment",
-                "options" : [
-                  "leading",
-                  "center",
-                  "trailing"
-                ],
-                "type" : {
-                  "segmentedControl" : {
-
-                  }
-                },
-                "value" : "center"
-              },
-              {
-                "defaultValue" : 8,
-                "id" : "AAE8ED9D-A772-4FF9-8D37-684EDDDECDB7",
-                "isRequired" : false,
-                "key" : "spacing",
-                "type" : {
-                  "number" : {
-
-                  }
-                },
-                "value" : 28
-              }
-            ],
-            "type" : "VStack",
-            "zIndex" : 0
-          },
-          {
-            "children" : [
-              {
-                "children" : [
-                  {
-                    "children" : [
-
-                    ],
-                    "frame" : [
-                      [
-                        80,
-                        80
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "C42CD8A4-DD36-40E9-BA5E-ADFCF1386A9C",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-                      {
-                        "properties" : {
-                          "color" : "color:rgb(0.000,0.569,1.000)"
-                        },
-                        "type" : "Foreground Color"
-                      },
-                      {
-                        "properties" : {
-                          "fontSize" : "title"
-                        },
-                        "type" : "Font Size"
-                      },
-                      {
-                        "properties" : {
-                          "height" : 50,
-                          "heightType" : "Custom",
-                          "width" : 50,
-                          "widthType" : "Custom"
-                        },
-                        "type" : "Frame"
-                      }
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "star",
-                        "id" : "90DA2384-97D5-49BC-9FE8-8DD8ABE9ED68",
-                        "isRequired" : false,
-                        "key" : "symbolName",
-                        "type" : {
-                          "string" : {
-
-                          }
-                        },
-                        "value" : "duffle.bag.fill"
-                      }
-                    ],
-                    "type" : "SF Symbol",
-                    "zIndex" : 0
-                  },
-                  {
-                    "children" : [
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            80,
-                            80
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "F93528A3-5410-4B0F-BC9E-26AF348D1A06",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "fontWeight" : "semibold"
-                            },
-                            "type" : "Font Weight"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "2F661F68-B5AD-45A6-96B7-C275E2A60D61",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Bag Locator"
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      },
-                      {
-                        "children" : [
-
-                        ],
-                        "frame" : [
-                          [
-                            180,
-                            180
-                          ],
-                          [
-                            0,
-                            0
-                          ]
-                        ],
-                        "id" : "3AD86C56-D406-45AF-AC84-156DC24032EF",
-                        "isOverlay" : false,
-                        "isSelected" : false,
-                        "isVisible" : true,
-                        "modifiers" : [
-                          {
-                            "properties" : {
-                              "fontSize" : "footnote"
-                            },
-                            "type" : "Font Size"
-                          },
-                          {
-                            "properties" : {
-                              "color" : "color:secondary"
-                            },
-                            "type" : "Foreground Color"
-                          }
-                        ],
-                        "properties" : [
-                          {
-                            "defaultValue" : "Hello World",
-                            "id" : "F85BDA56-71C0-48FA-81F6-3B2741334B55",
-                            "isRequired" : false,
-                            "key" : "text",
-                            "type" : {
-                              "string" : {
-
-                              }
-                            },
-                            "value" : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt "
-                          }
-                        ],
-                        "type" : "Text",
-                        "zIndex" : 0
-                      }
-                    ],
-                    "frame" : [
-                      [
-                        80,
-                        80
-                      ],
-                      [
-                        0,
-                        0
-                      ]
-                    ],
-                    "id" : "7E098704-49C3-4490-84FB-F4E4C3510919",
-                    "isOverlay" : false,
-                    "isSelected" : false,
-                    "isVisible" : true,
-                    "modifiers" : [
-
-                    ],
-                    "properties" : [
-                      {
-                        "defaultValue" : "center",
-                        "id" : "4DA4018D-DE85-4ECF-9F31-36F1011BEA77",
-                        "isRequired" : false,
-                        "key" : "alignment",
-                        "options" : [
-                          "leading",
-                          "center",
-                          "trailing"
-                        ],
-                        "type" : {
-                          "segmentedControl" : {
-
-                          }
-                        },
-                        "value" : "leading"
-                      },
-                      {
-                        "defaultValue" : 8,
-                        "id" : "A780E4E2-6494-4D4D-9369-185A80E1180F",
-                        "isRequired" : false,
-                        "key" : "spacing",
-                        "type" : {
-                          "number" : {
-
-                          }
-                        },
-                        "value" : 8
-                      }
-                    ],
-                    "type" : "VStack",
-                    "zIndex" : 0
-                  }
-                ],
-                "frame" : [
-                  [
-                    80,
-                    80
-                  ],
-                  [
-                    0,
-                    0
-                  ]
-                ],
-                "id" : "3C497DC2-48E4-45D8-BF30-985ACA2AEE6F",
-                "isOverlay" : false,
-                "isSelected" : false,
-                "isVisible" : true,
-                "modifiers" : [
-
-                ],
-                "properties" : [
-                  {
-                    "defaultValue" : "center",
-                    "id" : "7A2C6EA1-F870-4913-BF42-2AF297DC2865",
-                    "isRequired" : false,
-                    "key" : "alignment",
-                    "options" : [
-                      "top",
-                      "center",
-                      "bottom",
-                      "firstTextBaseline",
-                      "lastTextBaseline"
-                    ],
-                    "type" : {
-                      "segmentedControl" : {
-
-                      }
-                    },
-                    "value" : "center"
-                  },
-                  {
-                    "defaultValue" : 8,
-                    "id" : "1419432A-5CE3-4953-B5B6-92F51165130A",
-                    "isRequired" : false,
-                    "key" : "spacing",
-                    "type" : {
-                      "number" : {
-
-                      }
-                    },
-                    "value" : 8
-                  }
-                ],
-                "type" : "HStack",
-                "zIndex" : 0
-              }
-            ],
-            "frame" : [
-              [
-                200,
-                200
-              ],
-              [
-                0,
-                0
-              ]
-            ],
-            "id" : "E9A5E00E-C2E8-4B2F-8739-41F52F20C616",
-            "isOverlay" : false,
-            "isSelected" : false,
-            "isVisible" : true,
-            "modifiers" : [
-
-            ],
-            "properties" : [
-              {
-                "defaultValue" : "center",
-                "id" : "B5CC7C0F-339E-431B-9921-2BF96097AA5E",
-                "isRequired" : false,
-                "key" : "alignment",
-                "options" : [
-                  "leading",
-                  "center",
-                  "trailing"
-                ],
-                "type" : {
-                  "segmentedControl" : {
-
-                  }
-                },
-                "value" : "center"
-              },
-              {
-                "defaultValue" : 8,
-                "id" : "AAE8ED9D-A772-4FF9-8D37-684EDDDECDB7",
-                "isRequired" : false,
-                "key" : "spacing",
-                "type" : {
-                  "number" : {
-
-                  }
-                },
-                "value" : 28
-              }
-            ],
-            "type" : "VStack",
-            "zIndex" : 0
-          }
-        ],
-        "frame" : [
-          [
-            0,
-            0
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "id" : "C429BD7D-281C-463C-9D58-A4AAFBA9046F",
-        "isOverlay" : false,
-        "isSelected" : false,
-        "isVisible" : true,
-        "modifiers" : [
-
-        ],
-        "properties" : [
-          {
-            "defaultValue" : "center",
-            "id" : "5EBA535B-61CA-468C-85D6-3610F6FC3562",
-            "isRequired" : false,
-            "key" : "alignment",
-            "options" : [
-              "leading",
-              "center",
-              "trailing"
-            ],
-            "type" : {
-              "segmentedControl" : {
-
-              }
-            },
-            "value" : "leading"
-          },
-          {
-            "defaultValue" : 8,
-            "id" : "F08555B1-A3A9-4E2F-9BA7-734E5D71B35B",
-            "isRequired" : false,
-            "key" : "spacing",
-            "type" : {
-              "number" : {
-
-              }
-            },
-            "value" : 20
-          }
-        ],
-        "type" : "VStack",
-        "zIndex" : 0
-      },
-      {
-        "children" : [
-
-        ],
-        "frame" : [
-          [
-            20,
-            20
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "id" : "FA3E37CD-CDA6-44CB-AD47-1BE42FC1E087",
-        "isOverlay" : false,
-        "isSelected" : false,
-        "isVisible" : true,
-        "modifiers" : [
-
-        ],
-        "properties" : [
-
-        ],
-        "type" : "Spacer",
-        "zIndex" : 0
-      },
-      {
-        "children" : [
-
-        ],
-        "frame" : [
-          [
-            120,
-            120
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "id" : "CDF043FB-F718-409F-942B-4799AF565ABA",
-        "isOverlay" : false,
-        "isSelected" : false,
-        "isVisible" : true,
-        "modifiers" : [
-          {
-            "properties" : {
-              "height" : 100,
-              "heightType" : "Default",
-              "width" : 100,
-              "widthType" : "Full"
-            },
-            "type" : "Frame"
-          },
-          {
-            "properties" : {
-              "color" : "color:rgba(1.000,1.000,1.000,0.847)"
-            },
-            "type" : "Foreground Color"
-          },
-          {
-            "properties" : {
-              "radius" : 12
-            },
-            "type" : "Corner Radius"
-          },
-          {
-            "properties" : {
-              "fontWeight" : "bold"
-            },
-            "type" : "Font Weight"
-          }
-        ],
-        "properties" : [
-          {
-            "defaultValue" : "Button",
-            "id" : "161A5728-17CA-4BDB-82B7-80BA814B70AE",
-            "isRequired" : false,
-            "key" : "title",
-            "type" : {
-              "string" : {
-
-              }
-            },
-            "value" : "Continue"
-          },
-          {
-            "defaultValue" : "blue",
-            "id" : "5AD97092-BD7C-48B9-8458-B6E9AD594EA0",
-            "isRequired" : false,
-            "key" : "backgroundColor",
-            "type" : {
-              "color" : {
-
-              }
-            },
-            "value" : "blue"
-          }
-        ],
-        "type" : "Button",
-        "zIndex" : 0
-      },
-      {
-        "children" : [
-
-        ],
-        "frame" : [
-          [
-            40,
-            40
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "id" : "C5CF0212-B1F7-49F7-B0A6-DED16B3ADD4B",
-        "isOverlay" : false,
-        "isSelected" : false,
-        "isVisible" : true,
-        "modifiers" : [
-
-        ],
-        "properties" : [
-
-        ],
-        "type" : "Spacer",
-        "zIndex" : 0
-      }
-    ],
-    "frame" : [
-      [
-        20,
-        20
+        [
+          0,
+          0
+        ]
       ],
-      [
-        0,
-        0
+      "properties": [
+        {
+          "key": "alignment",
+          "displayName": "Alignment",
+          "type": {
+            "segmentedControl": {}
+          },
+          "value": "center",
+          "defaultValue": "center",
+          "options": [
+            "leading",
+            "center",
+            "trailing"
+          ],
+          "isRequired": false
+        },
+        {
+          "key": "spacing",
+          "displayName": "Spacing",
+          "type": {
+            "number": {}
+          },
+          "value": 24,
+          "defaultValue": 8,
+          "isRequired": false
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 20,
+            "location": "all"
+          }
+        }
+      ],
+      "children": [
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "type": "Text",
+          "isSelected": false,
+          "isVisible": true,
+          "isOverlay": false,
+          "zIndex": 0,
+          "frame": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "properties": [
+            {
+              "key": "text",
+              "displayName": "Text",
+              "type": {
+                "string": {}
+              },
+              "value": "What's New",
+              "defaultValue": "Text",
+              "isRequired": false
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "largeTitle",
+                "fontWeight": "bold"
+              }
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "type": "Text",
+          "isSelected": false,
+          "isVisible": true,
+          "isOverlay": false,
+          "zIndex": 0,
+          "frame": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "properties": [
+            {
+              "key": "text",
+              "displayName": "Text",
+              "type": {
+                "string": {}
+              },
+              "value": "Discover the latest features and improvements",
+              "defaultValue": "Text",
+              "isRequired": false
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "body",
+                "fontWeight": "regular"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "color:secondary"
+              }
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000010",
+          "type": "VStack",
+          "isSelected": false,
+          "isVisible": true,
+          "isOverlay": false,
+          "zIndex": 0,
+          "frame": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "properties": [
+            {
+              "key": "alignment",
+              "displayName": "Alignment",
+              "type": {
+                "segmentedControl": {}
+              },
+              "value": "leading",
+              "defaultValue": "center",
+              "options": [
+                "leading",
+                "center",
+                "trailing"
+              ],
+              "isRequired": false
+            },
+            {
+              "key": "spacing",
+              "displayName": "Spacing",
+              "type": {
+                "number": {}
+              },
+              "value": 16,
+              "defaultValue": 8,
+              "isRequired": false
+            }
+          ],
+          "modifiers": [],
+          "children": [
+            {
+              "id": "00000000-0000-0000-0000-000000000011",
+              "type": "HStack",
+              "isSelected": false,
+              "isVisible": true,
+              "isOverlay": false,
+              "zIndex": 0,
+              "frame": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              "properties": [
+                {
+                  "key": "alignment",
+                  "displayName": "Alignment",
+                  "type": {
+                    "segmentedControl": {}
+                  },
+                  "value": "top",
+                  "defaultValue": "center",
+                  "options": [
+                    "top",
+                    "center",
+                    "bottom"
+                  ],
+                  "isRequired": false
+                },
+                {
+                  "key": "spacing",
+                  "displayName": "Spacing",
+                  "type": {
+                    "number": {}
+                  },
+                  "value": 12,
+                  "defaultValue": 8,
+                  "isRequired": false
+                }
+              ],
+              "modifiers": [],
+              "children": [
+                {
+                  "id": "00000000-0000-0000-0000-000000000012",
+                  "type": "SF Symbol",
+                  "isSelected": false,
+                  "isVisible": true,
+                  "isOverlay": false,
+                  "zIndex": 0,
+                  "frame": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "properties": [
+                    {
+                      "key": "symbolName",
+                      "displayName": "Symbol Name",
+                      "type": {
+                        "string": {}
+                      },
+                      "value": "sparkles",
+                      "defaultValue": "star",
+                      "isRequired": false
+                    },
+                    {
+                      "key": "resizable",
+                      "displayName": "Resizable",
+                      "type": {
+                        "boolean": {}
+                      },
+                      "value": true,
+                      "defaultValue": false,
+                      "isRequired": false
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "color:blue"
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Custom",
+                        "heightType": "Custom",
+                        "width": 32,
+                        "height": 32
+                      }
+                    }
+                  ],
+                  "children": []
+                },
+                {
+                  "id": "00000000-0000-0000-0000-000000000013",
+                  "type": "VStack",
+                  "isSelected": false,
+                  "isVisible": true,
+                  "isOverlay": false,
+                  "zIndex": 0,
+                  "frame": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "properties": [
+                    {
+                      "key": "alignment",
+                      "displayName": "Alignment",
+                      "type": {
+                        "segmentedControl": {}
+                      },
+                      "value": "leading",
+                      "defaultValue": "center",
+                      "options": [
+                        "leading",
+                        "center",
+                        "trailing"
+                      ],
+                      "isRequired": false
+                    },
+                    {
+                      "key": "spacing",
+                      "displayName": "Spacing",
+                      "type": {
+                        "number": {}
+                      },
+                      "value": 4,
+                      "defaultValue": 8,
+                      "isRequired": false
+                    }
+                  ],
+                  "modifiers": [],
+                  "children": [
+                    {
+                      "id": "00000000-0000-0000-0000-000000000014",
+                      "type": "Text",
+                      "isSelected": false,
+                      "isVisible": true,
+                      "isOverlay": false,
+                      "zIndex": 0,
+                      "frame": [
+                        [
+                          0,
+                          0
+                        ],
+                        [
+                          0,
+                          0
+                        ]
+                      ],
+                      "properties": [
+                        {
+                          "key": "text",
+                          "displayName": "Text",
+                          "type": {
+                            "string": {}
+                          },
+                          "value": "Smart Suggestions",
+                          "defaultValue": "Text",
+                          "isRequired": false
+                        }
+                      ],
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        }
+                      ],
+                      "children": []
+                    },
+                    {
+                      "id": "00000000-0000-0000-0000-000000000015",
+                      "type": "Text",
+                      "isSelected": false,
+                      "isVisible": true,
+                      "isOverlay": false,
+                      "zIndex": 0,
+                      "frame": [
+                        [
+                          0,
+                          0
+                        ],
+                        [
+                          0,
+                          0
+                        ]
+                      ],
+                      "properties": [
+                        {
+                          "key": "text",
+                          "displayName": "Text",
+                          "type": {
+                            "string": {}
+                          },
+                          "value": "Get personalized recommendations based on your design style",
+                          "defaultValue": "Text",
+                          "isRequired": false
+                        }
+                      ],
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "color:secondary"
+                          }
+                        }
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-0000-0000-000000000021",
+              "type": "HStack",
+              "isSelected": false,
+              "isVisible": true,
+              "isOverlay": false,
+              "zIndex": 0,
+              "frame": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              "properties": [
+                {
+                  "key": "alignment",
+                  "displayName": "Alignment",
+                  "type": {
+                    "segmentedControl": {}
+                  },
+                  "value": "top",
+                  "defaultValue": "center",
+                  "options": [
+                    "top",
+                    "center",
+                    "bottom"
+                  ],
+                  "isRequired": false
+                },
+                {
+                  "key": "spacing",
+                  "displayName": "Spacing",
+                  "type": {
+                    "number": {}
+                  },
+                  "value": 12,
+                  "defaultValue": 8,
+                  "isRequired": false
+                }
+              ],
+              "modifiers": [],
+              "children": [
+                {
+                  "id": "00000000-0000-0000-0000-000000000022",
+                  "type": "SF Symbol",
+                  "isSelected": false,
+                  "isVisible": true,
+                  "isOverlay": false,
+                  "zIndex": 0,
+                  "frame": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "properties": [
+                    {
+                      "key": "symbolName",
+                      "displayName": "Symbol Name",
+                      "type": {
+                        "string": {}
+                      },
+                      "value": "bolt.fill",
+                      "defaultValue": "star",
+                      "isRequired": false
+                    },
+                    {
+                      "key": "resizable",
+                      "displayName": "Resizable",
+                      "type": {
+                        "boolean": {}
+                      },
+                      "value": true,
+                      "defaultValue": false,
+                      "isRequired": false
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "color:orange"
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Custom",
+                        "heightType": "Custom",
+                        "width": 32,
+                        "height": 32
+                      }
+                    }
+                  ],
+                  "children": []
+                },
+                {
+                  "id": "00000000-0000-0000-0000-000000000023",
+                  "type": "VStack",
+                  "isSelected": false,
+                  "isVisible": true,
+                  "isOverlay": false,
+                  "zIndex": 0,
+                  "frame": [
+                    [
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      0
+                    ]
+                  ],
+                  "properties": [
+                    {
+                      "key": "alignment",
+                      "displayName": "Alignment",
+                      "type": {
+                        "segmentedControl": {}
+                      },
+                      "value": "leading",
+                      "defaultValue": "center",
+                      "options": [
+                        "leading",
+                        "center",
+                        "trailing"
+                      ],
+                      "isRequired": false
+                    },
+                    {
+                      "key": "spacing",
+                      "displayName": "Spacing",
+                      "type": {
+                        "number": {}
+                      },
+                      "value": 4,
+                      "defaultValue": 8,
+                      "isRequired": false
+                    }
+                  ],
+                  "modifiers": [],
+                  "children": [
+                    {
+                      "id": "00000000-0000-0000-0000-000000000024",
+                      "type": "Text",
+                      "isSelected": false,
+                      "isVisible": true,
+                      "isOverlay": false,
+                      "zIndex": 0,
+                      "frame": [
+                        [
+                          0,
+                          0
+                        ],
+                        [
+                          0,
+                          0
+                        ]
+                      ],
+                      "properties": [
+                        {
+                          "key": "text",
+                          "displayName": "Text",
+                          "type": {
+                            "string": {}
+                          },
+                          "value": "Faster Performance",
+                          "defaultValue": "Text",
+                          "isRequired": false
+                        }
+                      ],
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        }
+                      ],
+                      "children": []
+                    },
+                    {
+                      "id": "00000000-0000-0000-0000-000000000025",
+                      "type": "Text",
+                      "isSelected": false,
+                      "isVisible": true,
+                      "isOverlay": false,
+                      "zIndex": 0,
+                      "frame": [
+                        [
+                          0,
+                          0
+                        ],
+                        [
+                          0,
+                          0
+                        ]
+                      ],
+                      "properties": [
+                        {
+                          "key": "text",
+                          "displayName": "Text",
+                          "type": {
+                            "string": {}
+                          },
+                          "value": "Optimized rendering for smoother design experience",
+                          "defaultValue": "Text",
+                          "isRequired": false
+                        }
+                      ],
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "color:secondary"
+                          }
+                        }
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       ]
-    ],
-    "id" : "09EDE147-FDDC-4A97-BB0E-F04B27CCBB04",
-    "isOverlay" : false,
-    "isSelected" : false,
-    "isVisible" : true,
-    "modifiers" : [
-      {
-        "properties" : {
-          "amount" : 30,
-          "location" : "horizontal"
-        },
-        "type" : "Padding"
-      }
-    ],
-    "properties" : [
-      {
-        "defaultValue" : "center",
-        "id" : "580F2F9F-3CCF-4B22-9E96-90E8700F71F1",
-        "isRequired" : false,
-        "key" : "alignment",
-        "options" : [
-          "leading",
-          "center",
-          "trailing"
-        ],
-        "type" : {
-          "segmentedControl" : {
-
-          }
-        },
-        "value" : "center"
-      },
-      {
-        "defaultValue" : 8,
-        "id" : "9DC95E71-3B62-4EA1-80C2-7FC8949105A6",
-        "isRequired" : false,
-        "key" : "spacing",
-        "type" : {
-          "number" : {
-
-          }
-        },
-        "value" : 12
-      }
-    ],
-    "type" : "VStack",
-    "zIndex" : 0
-  }
-]
+    }
+  ]
+}

@@ -94,6 +94,9 @@
 		ECC527642E27155900DAA548 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527632E27155900DAA548 /* Auth */; };
 		ECC527662E27155D00DAA548 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527652E27155D00DAA548 /* Functions */; };
 		ECC527682E27156000DAA548 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527672E27156000DAA548 /* PostgREST */; };
+		ECC93A3A2F16D4C800D9F11E /* blank.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A362F16D4C800D9F11E /* blank.json */; };
+		ECC93A3B2F16D4C800D9F11E /* flight_status_widget.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A372F16D4C800D9F11E /* flight_status_widget.json */; };
+		ECC93A3C2F16D4C800D9F11E /* introducing_features.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A382F16D4C800D9F11E /* introducing_features.json */; };
 		ECCCBBE22F0DDC24001817C3 /* ImageGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCCBBE12F0DDC24001817C3 /* ImageGalleryView.swift */; };
 		ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD12B362D8F487D001A73C7 /* Toast.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
@@ -194,6 +197,9 @@
 		ECB94C8E2EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextAlignmentModifierEditor.swift; sourceTree = "<group>"; };
 		ECB94C8F2EFB0D21000AAF34 /* TransformModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformModifierEditors.swift; sourceTree = "<group>"; };
 		ECB94CA12EFB1041000AAF34 /* MissingModifierEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissingModifierEditors.swift; sourceTree = "<group>"; };
+		ECC93A362F16D4C800D9F11E /* blank.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = blank.json; sourceTree = "<group>"; };
+		ECC93A372F16D4C800D9F11E /* flight_status_widget.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = flight_status_widget.json; sourceTree = "<group>"; };
+		ECC93A382F16D4C800D9F11E /* introducing_features.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = introducing_features.json; sourceTree = "<group>"; };
 		ECCCBBE12F0DDC24001817C3 /* ImageGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGalleryView.swift; sourceTree = "<group>"; };
 		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -346,6 +352,16 @@
 			path = ModifierEditors;
 			sourceTree = "<group>";
 		};
+		ECC93A392F16D4C800D9F11E /* Templates */ = {
+			isa = PBXGroup;
+			children = (
+				ECC93A362F16D4C800D9F11E /* blank.json */,
+				ECC93A372F16D4C800D9F11E /* flight_status_widget.json */,
+				ECC93A382F16D4C800D9F11E /* introducing_features.json */,
+			);
+			path = Templates;
+			sourceTree = "<group>";
+		};
 		ECD13FD32C18BA7B00105B3E /* Core */ = {
 			isa = PBXGroup;
 			children = (
@@ -462,6 +478,7 @@
 		ECD13FFE2C18C12400105B3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				ECC93A392F16D4C800D9F11E /* Templates */,
 				ECFC6AC52EA9C48400177480 /* AppIcon.icon */,
 				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
 				ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */,
@@ -607,6 +624,9 @@
 			files = (
 				ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */,
 				ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */,
+				ECC93A3A2F16D4C800D9F11E /* blank.json in Resources */,
+				ECC93A3B2F16D4C800D9F11E /* flight_status_widget.json in Resources */,
+				ECC93A3C2F16D4C800D9F11E /* introducing_features.json in Resources */,
 				ECFC6AC62EA9C48400177480 /* AppIcon.icon in Resources */,
 				EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */,
 			);

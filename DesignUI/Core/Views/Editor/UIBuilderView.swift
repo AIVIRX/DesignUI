@@ -216,8 +216,10 @@ struct UIBuilderView: View {
     @State private var lastScreenshotTime: Date = Date.distantPast
     private let screenshotDebounceInterval: TimeInterval = 0.5 // Minimum 0.5 seconds between screenshots
     
+    #if os(iOS)
     @State private var selection: PresentationDetent = .height(80)
     @State private var activeTab: AppTab = .layers
+    #endif
     
 
     var body: some View {
@@ -816,6 +818,20 @@ struct UIBuilderView: View {
     
     private var toolbarButtons: some ToolbarContent {
         Group{
+            #if os(macOS)
+            ToolbarItem(placement: .navigation) {
+                Button(action: {
+                    designManager.closeCurrentDesign()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                }
+                .help("Back to Designs")
+            }
+            #endif
+            
             ToolbarItemGroup(placement: .primaryAction) {
                 // Device Picker
                 Menu {
@@ -913,12 +929,6 @@ struct UIBuilderView: View {
                 .disabled(!canvasManager.canRedo)
                 .help("Redo")
             }
-            
-            #if os(macOS)
-            if #available(macOS 26.0, *) {
-                ToolbarSpacer(.flexible, placement: .primaryAction)
-            }
-            #endif
             
             ToolbarItemGroup(placement: .primaryAction) {
                 Menu {

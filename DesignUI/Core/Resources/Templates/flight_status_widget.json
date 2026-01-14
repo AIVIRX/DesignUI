@@ -1,0 +1,830 @@
+{
+    "name": "Flight Status Widget",
+    "description": "Flight details with status and gate info",
+    "thumbnail": "flightInfoWidget",
+    "devicePreset": "Widget Medium",
+    "components": [
+        {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "type": "VStack",
+            "isSelected": false,
+            "isVisible": true,
+            "isOverlay": false,
+            "zIndex": 0,
+            "frame": [
+                [
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0
+                ]
+            ],
+            "properties": [
+                {
+                    "key": "alignment",
+                    "displayName": "Alignment",
+                    "type": {
+                        "segmentedControl": {}
+                    },
+                    "value": "center",
+                    "defaultValue": "center",
+                    "options": [
+                        "leading",
+                        "center",
+                        "trailing"
+                    ],
+                    "isRequired": false
+                },
+                {
+                    "key": "spacing",
+                    "displayName": "Spacing",
+                    "type": {
+                        "number": {}
+                    },
+                    "value": 16,
+                    "defaultValue": 8,
+                    "isRequired": false
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "Padding",
+                    "properties": {
+                        "amount": 16,
+                        "location": "all"
+                    }
+                }
+            ],
+            "children": [
+                {
+                    "id": "00000000-0000-0000-0000-000000000010",
+                    "type": "HStack",
+                    "isSelected": false,
+                    "isVisible": true,
+                    "isOverlay": false,
+                    "zIndex": 0,
+                    "frame": [
+                        [
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0
+                        ]
+                    ],
+                    "properties": [
+                        {
+                            "key": "alignment",
+                            "displayName": "Alignment",
+                            "type": {
+                                "segmentedControl": {}
+                            },
+                            "value": "center",
+                            "defaultValue": "center",
+                            "options": [
+                                "top",
+                                "center",
+                                "bottom"
+                            ],
+                            "isRequired": false
+                        },
+                        {
+                            "key": "spacing",
+                            "displayName": "Spacing",
+                            "type": {
+                                "number": {}
+                            },
+                            "value": 8,
+                            "defaultValue": 8,
+                            "isRequired": false
+                        }
+                    ],
+                    "modifiers": [],
+                    "children": [
+                        {
+                            "id": "00000000-0000-0000-0000-000000000020",
+                            "type": "VStack",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [
+                                {
+                                    "key": "alignment",
+                                    "displayName": "Alignment",
+                                    "type": {
+                                        "segmentedControl": {}
+                                    },
+                                    "value": "center",
+                                    "defaultValue": "center",
+                                    "options": [
+                                        "leading",
+                                        "center",
+                                        "trailing"
+                                    ],
+                                    "isRequired": false
+                                },
+                                {
+                                    "key": "spacing",
+                                    "displayName": "Spacing",
+                                    "type": {
+                                        "number": {}
+                                    },
+                                    "value": 4,
+                                    "defaultValue": 8,
+                                    "isRequired": false
+                                }
+                            ],
+                            "modifiers": [],
+                            "children": [
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000021",
+                                    "type": "Text",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [
+                                        {
+                                            "key": "text",
+                                            "displayName": "Text",
+                                            "type": {
+                                                "string": {}
+                                            },
+                                            "value": "Gate G12",
+                                            "defaultValue": "Text",
+                                            "isRequired": false
+                                        }
+                                    ],
+                                    "modifiers": [
+                                        {
+                                            "type": "Font",
+                                            "properties": {
+                                                "fontSize": "caption",
+                                                "fontWeight": "regular"
+                                            }
+                                        },
+                                        {
+                                            "type": "Foreground Color",
+                                            "properties": {
+                                                "color": "color:gray"
+                                            }
+                                        }
+                                    ],
+                                    "children": []
+                                },
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000022",
+                                    "type": "Text",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [
+                                        {
+                                            "key": "text",
+                                            "displayName": "Text",
+                                            "type": {
+                                                "string": {}
+                                            },
+                                            "value": "LAX",
+                                            "defaultValue": "Text",
+                                            "isRequired": false
+                                        }
+                                    ],
+                                    "modifiers": [
+                                        {
+                                            "type": "Font",
+                                            "properties": {
+                                                "fontSize": "largeTitle",
+                                                "fontWeight": "bold"
+                                            }
+                                        }
+                                    ],
+                                    "children": []
+                                }
+                            ]
+                        },
+                        {
+                            "id": "00000000-0000-0000-0000-000000000030",
+                            "type": "Spacer",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [],
+                            "modifiers": [],
+                            "children": []
+                        },
+                        {
+                            "id": "00000000-0000-0000-0000-000000000040",
+                            "type": "VStack",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [
+                                {
+                                    "key": "alignment",
+                                    "displayName": "Alignment",
+                                    "type": {
+                                        "segmentedControl": {}
+                                    },
+                                    "value": "center",
+                                    "defaultValue": "center",
+                                    "options": [
+                                        "leading",
+                                        "center",
+                                        "trailing"
+                                    ],
+                                    "isRequired": false
+                                },
+                                {
+                                    "key": "spacing",
+                                    "displayName": "Spacing",
+                                    "type": {
+                                        "number": {}
+                                    },
+                                    "value": 8,
+                                    "defaultValue": 8,
+                                    "isRequired": false
+                                }
+                            ],
+                            "modifiers": [
+                                {
+                                    "type": "Frame",
+                                    "properties": {
+                                        "widthType": "Custom",
+                                        "heightType": "Default",
+                                        "width": 80,
+                                        "height": 100
+                                    }
+                                }
+                            ],
+                            "children": [
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000041",
+                                    "type": "Spacer",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [],
+                                    "modifiers": [],
+                                    "children": []
+                                },
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000042",
+                                    "type": "Text",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [
+                                        {
+                                            "key": "text",
+                                            "displayName": "Text",
+                                            "type": {
+                                                "string": {}
+                                            },
+                                            "value": "On Time",
+                                            "defaultValue": "Text",
+                                            "isRequired": false
+                                        }
+                                    ],
+                                    "modifiers": [
+                                        {
+                                            "type": "Font",
+                                            "properties": {
+                                                "fontSize": "subheadline",
+                                                "fontWeight": "semibold"
+                                            }
+                                        },
+                                        {
+                                            "type": "Foreground Color",
+                                            "properties": {
+                                                "color": "color:green"
+                                            }
+                                        }
+                                    ],
+                                    "children": []
+                                },
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000043",
+                                    "type": "SF Symbol",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [
+                                        {
+                                            "key": "symbolName",
+                                            "displayName": "Symbol Name",
+                                            "type": {
+                                                "string": {}
+                                            },
+                                            "value": "airplane",
+                                            "defaultValue": "star",
+                                            "isRequired": false
+                                        },
+                                        {
+                                            "key": "resizable",
+                                            "displayName": "Resizable",
+                                            "type": {
+                                                "boolean": {}
+                                            },
+                                            "value": true,
+                                            "defaultValue": false,
+                                            "isRequired": false
+                                        }
+                                    ],
+                                    "modifiers": [
+                                        {
+                                            "type": "Frame",
+                                            "properties": {
+                                                "widthType": "Custom",
+                                                "heightType": "Custom",
+                                                "width": 24,
+                                                "height": 24
+                                            }
+                                        }
+                                    ],
+                                    "children": []
+                                },
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000044",
+                                    "type": "Spacer",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [],
+                                    "modifiers": [],
+                                    "children": []
+                                }
+                            ]
+                        },
+                        {
+                            "id": "00000000-0000-0000-0000-000000000050",
+                            "type": "Spacer",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [],
+                            "modifiers": [],
+                            "children": []
+                        },
+                        {
+                            "id": "00000000-0000-0000-0000-000000000060",
+                            "type": "VStack",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [
+                                {
+                                    "key": "alignment",
+                                    "displayName": "Alignment",
+                                    "type": {
+                                        "segmentedControl": {}
+                                    },
+                                    "value": "center",
+                                    "defaultValue": "center",
+                                    "options": [
+                                        "leading",
+                                        "center",
+                                        "trailing"
+                                    ],
+                                    "isRequired": false
+                                },
+                                {
+                                    "key": "spacing",
+                                    "displayName": "Spacing",
+                                    "type": {
+                                        "number": {}
+                                    },
+                                    "value": 4,
+                                    "defaultValue": 8,
+                                    "isRequired": false
+                                }
+                            ],
+                            "modifiers": [],
+                            "children": [
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000061",
+                                    "type": "Text",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [
+                                        {
+                                            "key": "text",
+                                            "displayName": "Text",
+                                            "type": {
+                                                "string": {}
+                                            },
+                                            "value": "Gate B5",
+                                            "defaultValue": "Text",
+                                            "isRequired": false
+                                        }
+                                    ],
+                                    "modifiers": [
+                                        {
+                                            "type": "Font",
+                                            "properties": {
+                                                "fontSize": "caption",
+                                                "fontWeight": "regular"
+                                            }
+                                        },
+                                        {
+                                            "type": "Foreground Color",
+                                            "properties": {
+                                                "color": "color:gray"
+                                            }
+                                        }
+                                    ],
+                                    "children": []
+                                },
+                                {
+                                    "id": "00000000-0000-0000-0000-000000000062",
+                                    "type": "Text",
+                                    "isSelected": false,
+                                    "isVisible": true,
+                                    "isOverlay": false,
+                                    "zIndex": 0,
+                                    "frame": [
+                                        [
+                                            0,
+                                            0
+                                        ],
+                                        [
+                                            0,
+                                            0
+                                        ]
+                                    ],
+                                    "properties": [
+                                        {
+                                            "key": "text",
+                                            "displayName": "Text",
+                                            "type": {
+                                                "string": {}
+                                            },
+                                            "value": "JFK",
+                                            "defaultValue": "Text",
+                                            "isRequired": false
+                                        }
+                                    ],
+                                    "modifiers": [
+                                        {
+                                            "type": "Font",
+                                            "properties": {
+                                                "fontSize": "largeTitle",
+                                                "fontWeight": "bold"
+                                            }
+                                        }
+                                    ],
+                                    "children": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "00000000-0000-0000-0000-000000000100",
+                    "type": "HStack",
+                    "isSelected": false,
+                    "isVisible": true,
+                    "isOverlay": false,
+                    "zIndex": 0,
+                    "frame": [
+                        [
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            0
+                        ]
+                    ],
+                    "properties": [
+                        {
+                            "key": "alignment",
+                            "displayName": "Alignment",
+                            "type": {
+                                "segmentedControl": {}
+                            },
+                            "value": "center",
+                            "defaultValue": "center",
+                            "options": [
+                                "top",
+                                "center",
+                                "bottom"
+                            ],
+                            "isRequired": false
+                        },
+                        {
+                            "key": "spacing",
+                            "displayName": "Spacing",
+                            "type": {
+                                "number": {}
+                            },
+                            "value": 8,
+                            "defaultValue": 8,
+                            "isRequired": false
+                        }
+                    ],
+                    "modifiers": [],
+                    "children": [
+                        {
+                            "id": "00000000-0000-0000-0000-000000000101",
+                            "type": "SF Symbol",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [
+                                {
+                                    "key": "symbolName",
+                                    "displayName": "Symbol Name",
+                                    "type": {
+                                        "string": {}
+                                    },
+                                    "value": "clock",
+                                    "defaultValue": "star",
+                                    "isRequired": false
+                                },
+                                {
+                                    "key": "resizable",
+                                    "displayName": "Resizable",
+                                    "type": {
+                                        "boolean": {}
+                                    },
+                                    "value": false,
+                                    "defaultValue": false,
+                                    "isRequired": false
+                                }
+                            ],
+                            "modifiers": [
+                                {
+                                    "type": "Foreground Color",
+                                    "properties": {
+                                        "color": "color:gray"
+                                    }
+                                }
+                            ],
+                            "children": []
+                        },
+                        {
+                            "id": "00000000-0000-0000-0000-000000000102",
+                            "type": "Text",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [
+                                {
+                                    "key": "text",
+                                    "displayName": "Text",
+                                    "type": {
+                                        "string": {}
+                                    },
+                                    "value": "Departs 2:45 PM",
+                                    "defaultValue": "Text",
+                                    "isRequired": false
+                                }
+                            ],
+                            "modifiers": [
+                                {
+                                    "type": "Font",
+                                    "properties": {
+                                        "fontSize": "footnote",
+                                        "fontWeight": "regular"
+                                    }
+                                },
+                                {
+                                    "type": "Foreground Color",
+                                    "properties": {
+                                        "color": "color:gray"
+                                    }
+                                }
+                            ],
+                            "children": []
+                        },
+                        {
+                            "id": "00000000-0000-0000-0000-000000000103",
+                            "type": "Spacer",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [],
+                            "modifiers": [],
+                            "children": []
+                        },
+                        {
+                            "id": "00000000-0000-0000-0000-000000000104",
+                            "type": "Text",
+                            "isSelected": false,
+                            "isVisible": true,
+                            "isOverlay": false,
+                            "zIndex": 0,
+                            "frame": [
+                                [
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "properties": [
+                                {
+                                    "key": "text",
+                                    "displayName": "Text",
+                                    "type": {
+                                        "string": {}
+                                    },
+                                    "value": "5h 30m",
+                                    "defaultValue": "Text",
+                                    "isRequired": false
+                                }
+                            ],
+                            "modifiers": [
+                                {
+                                    "type": "Font",
+                                    "properties": {
+                                        "fontSize": "footnote",
+                                        "fontWeight": "medium"
+                                    }
+                                },
+                                {
+                                    "type": "Foreground Color",
+                                    "properties": {
+                                        "color": "color:gray"
+                                    }
+                                }
+                            ],
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

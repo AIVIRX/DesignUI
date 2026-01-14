@@ -52,7 +52,7 @@ class ScreenshotUtility {
             samplesPerPixel: 3, // RGB, no alpha
             hasAlpha: false,
             isPlanar: false,
-            colorSpaceName: NSColorSpaceName.sRGB,
+            colorSpaceName: .deviceRGB,
             bytesPerRow: 0,
             bitsPerPixel: 0
         ) else {
@@ -62,15 +62,22 @@ class ScreenshotUtility {
         
         // Draw the rendered image into the opaque bitmap
         NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmapRep)
+        guard let context = NSGraphicsContext(bitmapImageRep: bitmapRep) else {
+            NSGraphicsContext.restoreGraphicsState()
+            print("❌ Failed to create graphics context")
+            return nil
+        }
+        NSGraphicsContext.current = context
+        
         // Clear with white (or matching background) first to ensure opacity
         NSColor.white.set()
-        NSRect(x: 0, y: 0, width: width, height: height).fill()
+        let rect = NSRect(x: 0, y: 0, width: width, height: height)
+        NSBezierPath.fill(rect)
         
         // Draw the image
         // Note: nsImage.draw respects the context. Since the context is built from a bitmap of size (width, height),
         // we draw into that rect.
-        nsImage.draw(in: NSRect(x: 0, y: 0, width: width, height: height),
+        nsImage.draw(in: rect,
                      from: .zero,
                      operation: .sourceOver,
                      fraction: 1.0)
@@ -78,7 +85,7 @@ class ScreenshotUtility {
         NSGraphicsContext.restoreGraphicsState()
         
         // Convert to JPEG
-        guard let jpegData = bitmapRep.representation(using: .jpeg, properties: [NSBitmapImageRep.PropertyKey.compressionFactor: 0.7]) else {
+        guard let jpegData = bitmapRep.representation(using: .jpeg, properties: [.compressionFactor: 0.7]) else {
             print("❌ Failed to convert screenshot to JPEG")
             return nil
         }

@@ -28,7 +28,9 @@ struct LayersPanelView: View {
         } else {
             regularSizeView
                 .navigationTitle("Layers")
+                #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .toolbar{
                     ToolbarItem {
                         Button(action: { showComponentLibrary = true }) {
@@ -73,8 +75,7 @@ struct LayersPanelView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(Color.clear)
-            }
-        }
+                
                 // Layers outline with scroll-to-selection
                 ScrollViewReader { scrollProxy in
                     ScrollView {
@@ -258,6 +259,8 @@ struct LayersPanelView: View {
                 }
         #endif
             }
+        }
+    }
     
     private var PhoneSizeView: some View {
                 // Layers outline with scroll-to-selection
@@ -405,7 +408,9 @@ struct LayersPanelView: View {
                     }
                 }
                 .navigationTitle("Layers")
+                #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .background(Color.clear)
                 // When drag ends (draggingId becomes nil), immediately clear drop indicators
                 .onChange(of: draggingId) { _, newValue in
@@ -446,7 +451,6 @@ struct LayersPanelView: View {
                 }
         #endif
             }
-            
     
     private func expandAllParents() {
         var allParentIds: Set<UUID> = []

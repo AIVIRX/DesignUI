@@ -28,7 +28,23 @@ struct DesignBrowserView: View {
     // Free tier limit
     private let freeDesignLimit = 3
     
+    
     var body: some View {
+        #if os(macOS)
+        // macOS: Conditionally show browser or editor as full view
+        if let currentDesign = designManager.currentDesign {
+            EditorLoadingView(designFile: currentDesign)
+                .environmentObject(designManager)
+        } else {
+            browserContent
+        }
+        #else
+        // iOS: Use fullScreenCover for editor
+        browserContent
+        #endif
+    }
+    
+    private var browserContent: some View {
         NavigationStack {
         VStack(spacing: 0) {
                 // Main Content
@@ -175,16 +191,6 @@ struct DesignBrowserView: View {
         }
         #if os(iOS)
         .fullScreenCover(isPresented: Binding(
-            get: { designManager.currentDesign != nil },
-            set: { if !$0 { designManager.closeCurrentDesign() } }
-        )) {
-            if let currentDesign = designManager.currentDesign {
-                EditorLoadingView(designFile: currentDesign)
-                    .environmentObject(designManager)
-            }
-        }
-        #else
-        .navigationDestination(isPresented: Binding(
             get: { designManager.currentDesign != nil },
             set: { if !$0 { designManager.closeCurrentDesign() } }
         )) {

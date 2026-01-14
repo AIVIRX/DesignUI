@@ -9,10 +9,13 @@ import SwiftUI
 
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
-    @State private var searchText = ""
-    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
+    
+    @State private var searchText = ""
+    @State private var adInterval: Int = 20 // Ads every 20 posts
+    @State private var adIdentifiers: [Int: String] = [:] // Cache ad identifiers by position to prevent shifting
+    @State private var showSettings = false
     
     var filteredPosts: [DesignPost] {
         // Filter by search text only (type filtering is done at database level)
@@ -27,20 +30,17 @@ struct ExploreView: View {
         }
     }
     
-    @State private var adInterval: Int = 15 // Ads every 15 posts
-    @State private var adIdentifiers: [Int: String] = [:] // Cache ad identifiers by position to prevent shifting
-    
     // Combine posts with ads, inserting ads every 7 posts
     var feedItems: [FeedItem] {
         let posts = filteredPosts
         var items: [FeedItem] = []
         
         // Don't show ads on macOS (AdMob SDK not supported), iPad, or if user is subscribed
-        #if os(iOS)
+#if os(iOS)
         let shouldShowAds = !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone
-        #else
+#else
         let shouldShowAds = false // No ads on macOS
-        #endif
+#endif
         
         // Use the current adInterval
         let currentInterval = adInterval
@@ -69,7 +69,7 @@ struct ExploreView: View {
     // Generate ad identifiers when posts change to avoid modifying state during view update
     private func generateAdIdentifiers(for posts: [DesignPost]) {
         // Only generate ad identifiers if we should show ads (iPhone only, not subscribed)
-        #if os(iOS)
+#if os(iOS)
         guard !posts.isEmpty && !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone else {
             adIdentifiers = [:] // Clear identifiers if we shouldn't show ads
             return
@@ -91,16 +91,16 @@ struct ExploreView: View {
         }
         
         adIdentifiers = newIdentifiers
-        #else
+#else
         // No ads on macOS
         adIdentifiers = [:]
-        #endif
+#endif
     }
     
     // Generate identifiers only for newly added posts during pagination
     private func generateAdIdentifiersForNewPosts(oldCount: Int, newPosts: [DesignPost]) {
         // Only generate ad identifiers if we should show ads (iPhone only, not subscribed)
-        #if os(iOS)
+#if os(iOS)
         guard oldCount < newPosts.count && !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone else { return }
         
         let currentInterval = adInterval
@@ -118,17 +118,25 @@ struct ExploreView: View {
         }
         
         adIdentifiers = updatedIdentifiers
-        #else
+#else
         // No ads on macOS - do nothing
-        #endif
+#endif
     }
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 12) {
-                    postsContentView
+                VStack(spacing: 0) {
+                    // Hero image with gradient and text overlay
+                    heroImageView
+                    
+                    VStack(spacing: 12) {
+                        postsContentView
+                            .frame(maxWidth: 1600)
+                    }
+                    .padding(.top, 16)
                 }
+                .frame(maxWidth: .infinity)
                 .onChange(of: searchText) { oldValue, newValue in
                     Task {
                         try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
@@ -137,8 +145,26 @@ struct ExploreView: View {
                         }
                     }
                 }
-                .frame(maxWidth: 1600)
-                .navigationTitle("Templates")
+            }
+            .ignoresSafeArea(edges: .top)
+            .navigationTitle("Templates")
+            .toolbarBackground(.hidden, for: .windowToolbar) // Hide the background
+            .toolbar {
+                ToolbarItem {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                    }
+                }
+            }
+            .sheet(isPresented: $showSettings) {
+                NavigationStack {
+                    SettingsView()
+                }
+                #if os(macOS)
+                .frame(minWidth: 500, minHeight: 400)
+                #endif
             }
             .refreshable {
                 Task {
@@ -174,25 +200,14 @@ struct ExploreView: View {
                     adIdentifiers = [:]
                 } else {
                     // User unsubscribed - regenerate ad identifiers if on iOS
-                    #if os(iOS)
-                    generateAdIdentifiers(for: viewModel.posts)
-                    #endif
-                }
-            }
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .searchable(text: $searchText, prompt: "Search templates")
-            .toolbar {
 #if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gearshape")
-                            .font(.title3)
-                    }
-                }
+                    generateAdIdentifiers(for: viewModel.posts)
 #endif
+                }
             }
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+#endif
         }
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
@@ -201,7 +216,48 @@ struct ExploreView: View {
 }
 
 // MARK: - Helpers
-extension ExploreView {    
+extension ExploreView {
+    
+    private var backgroundColor: Color {
+        #if os(iOS)
+        Color(uiColor: .systemBackground)
+        #else
+        Color(nsColor: .windowBackgroundColor)
+        #endif
+    }
+    
+    @ViewBuilder
+    private var heroImageView: some View {
+        Image("hero_banner")
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(height: 600)
+            .frame(maxWidth: .infinity)
+            .clipped()
+            // Bottom gradient for seamless transition
+            .overlay(alignment: .bottom) {
+                LinearGradient(
+                    colors: [
+                        backgroundColor.opacity(0),
+                        backgroundColor
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 200)
+            }
+            // Text overlay on bottom left
+            .overlay(alignment: .bottomLeading) {
+                Text("Design your next App\nwith DockUI Studio")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 40)
+            }
+            .ignoresSafeArea(edges: .top)
+    }
+    
     @ViewBuilder
     private var postsContentView: some View {
         if !viewModel.posts.isEmpty {
@@ -378,6 +434,7 @@ extension ExploreView {
             #endif
         }
     }
+    
     @ViewBuilder
     private func postCell(for post: DesignPost) -> some View {
         // DesignCards contains NavigationLink - DetailView will handle premium paywall
@@ -391,17 +448,6 @@ extension ExploreView {
 }
 
 #if os(iOS)
-struct iPadSearchableModifier: ViewModifier {
-    @Binding var searchText: String
-    
-    func body(content: Content) -> some View {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            content.searchable(text: $searchText, prompt: "Search templates")
-        } else {
-            content
-        }
-    }
-}
 
 // Preference key to read container width
 struct ContainerWidthKey: PreferenceKey {
