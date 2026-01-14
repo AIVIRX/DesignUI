@@ -34,4 +34,3 @@ enum FeedItem: Identifiable {
         return nil
     }
 }
-

@@ -8,7 +8,6 @@
 import SwiftUI
 
 // MARK: - Blur Modifier Editor
-// MARK: - Blur Modifier Editor
 struct BlurModifierEditor: View {
     @Binding var modifier: ComponentModifier
     @ObservedObject var component: UIComponent

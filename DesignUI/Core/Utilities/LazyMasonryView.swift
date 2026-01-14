@@ -122,14 +122,11 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                                 }
                             )
                             .onPreferenceChange(HeightPreferenceKey.self) { height in
+                                // Only update if height changed significantly to prevent layout thrashing
                                 if height > 0 {
-                                    itemHeights[item.id] = height
-                                    
-                                    // Limit height cache size - remove entries for items no longer in array
-                                    if itemHeights.count > maxHeightCacheSize {
-                                        let currentItemIds = Set(items.map { $0.id })
-                                        // Only keep heights for items that are currently visible
-                                        itemHeights = itemHeights.filter { currentItemIds.contains($0.key) }
+                                    let currentHeight = itemHeights[item.id] ?? 0
+                                    if abs(currentHeight - height) > 1 {
+                                        itemHeights[item.id] = height
                                     }
                                 }
                             }
@@ -138,11 +135,6 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
                                 if itemColumnAssignments[item.id] == nil {
                                     updateColumnAssignments()
                                 }
-                            }
-                            .onDisappear {
-                                // Clear height cache when item scrolls off screen
-                                // This allows LazyVStack to properly release the view's memory
-                                itemHeights.removeValue(forKey: item.id)
                             }
                     }
                     

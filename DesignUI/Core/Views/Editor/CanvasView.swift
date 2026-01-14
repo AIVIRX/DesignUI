@@ -395,7 +395,6 @@ struct ComponentsContainerWithStatusBar: View {
     }
 }
 
-// MARK: - Components Container Without Status Bar
 struct ComponentsContainerWithoutStatusBar: View {
     let components: [UIComponent]
     @Binding var selectedComponent: UIComponent?

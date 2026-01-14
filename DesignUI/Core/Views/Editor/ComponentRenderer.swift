@@ -1353,5 +1353,3 @@ fileprivate struct CustomSliderView: View {
         .frame(height: 30)
     }
 }
-
-

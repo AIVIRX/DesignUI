@@ -15,5 +15,3 @@ class PaywallManager: ObservableObject {
         isPresenting = false
     }
 }
-
-

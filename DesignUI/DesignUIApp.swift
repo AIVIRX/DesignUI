@@ -33,11 +33,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                         MobileAds.shared.start(completionHandler: nil)
                     }
                 })
-        
-        UserDefaults.standard.set(0, forKey: "selectedIndex")
-        
+                
         // Configure RevenueCat
-        Purchases.logLevel = .debug
+//        Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
         
         return true
@@ -99,8 +97,6 @@ struct DesignUIApp: App {
     @StateObject private var designManager = DesignManager.shared
 
     init() {
-        UserDefaults.standard.set(0, forKey: "selectedIndex")
-                
         // Configure RevenueCat for macOS
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
@@ -131,8 +127,11 @@ struct DesignUIApp: App {
                 .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
+                .toolbarBackground(
+                    .yellow, for: .windowToolbar, .windowToolbar)
+                            .toolbarColorScheme(
+                                .dark, for: .windowToolbar, .windowToolbar)
         }
-        .windowStyle(DefaultWindowStyle())
         .windowResizability(.automatic)
         .defaultSize(width: 1200, height: 800)
         .commands {

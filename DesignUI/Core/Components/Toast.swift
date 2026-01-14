@@ -147,5 +147,3 @@ extension View {
         modifier(ToastModifier(toast: toast))
     }
 }
-
-

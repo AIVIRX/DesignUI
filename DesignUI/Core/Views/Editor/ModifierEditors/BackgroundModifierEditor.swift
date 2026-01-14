@@ -387,5 +387,3 @@ struct BackgroundElementModifierEditor: View {
         }
     }
 }
-
-

@@ -28,7 +28,6 @@ struct DesignBrowserView: View {
     // Free tier limit
     private let freeDesignLimit = 3
     
-    
     var body: some View {
         #if os(macOS)
         // macOS: Conditionally show browser or editor as full view
@@ -46,90 +45,89 @@ struct DesignBrowserView: View {
     
     private var browserContent: some View {
         NavigationStack {
-        VStack(spacing: 0) {
+            VStack(spacing: 0) {
                 // Main Content
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 32) {
-                        // User's Designs Section
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("My Designs")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-                            
-                            if designManager.designFiles.isEmpty {
-                                // Empty state
-                                VStack(spacing: 20) {
-                                    Image(systemName: "doc.text")
-                                        .font(.system(size: 60))
-                                        .foregroundColor(.secondary)
-                                    
-                                    Text("No Designs Yet")
-                                        .font(.title3)
-                                        .fontWeight(.semibold)
-                                    
-                                    Text("Create your first design to get started")
-                                        .foregroundColor(.secondary)
-                                    
-                                    Button("Create New Design") {
-                                        showingNewDesignSheet = true
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                }
-                                .frame(maxWidth: .infinity)
-                            } else {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    LazyHStack(spacing: 16) {
-                                        ForEach(designManager.designFiles) { designFile in
-                                            DesignCardView(
-                                                designFile: designFile,
-                                                onOpen: { designManager.openDesign(designFile) },
-                                                onDelete: {
-                                                    designToDelete = designFile
-                                                    showingDeleteAlert = true
-                                                },
-                                                onRename: {
-                                                    designToRename = designFile
-                                                    renameText = designFile.name
-                                                    showingRenameSheet = true
-                                                }
-                                            )
-                                        }
-                                    }
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 12)
-                                }
-                                .scrollClipDisabled()
-                            }
-                        }
-                        
-                        Divider()
+                    // User's Designs Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("My Designs")
+                            .font(.title2)
+                            .fontWeight(.bold)
                             .padding(.horizontal)
                         
-                        // Templates Section
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Templates")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-                            
-                            TemplatesGridView(
-                                onSelectTemplate: { template in
-                                    // Check if user can create more designs
-                                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                                        showingLimitAlert = true
-                                    } else {
-                                        let name = template.name
-                                        let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
-                                        designManager.openDesign(newDesign)
+                        if designManager.designFiles.isEmpty {
+                            // Empty state
+                            VStack(spacing: 20) {
+                                Image(systemName: "doc.text")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.secondary)
+                                
+                                Text("No Designs Yet")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                
+                                Text("Create your first design to get started")
+                                    .foregroundColor(.secondary)
+                                
+                                Button("Create New Design") {
+                                    showingNewDesignSheet = true
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                            .frame(maxWidth: .infinity)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                LazyHStack(spacing: 16) {
+                                    ForEach(designManager.designFiles) { designFile in
+                                        DesignCardView(
+                                            designFile: designFile,
+                                            onOpen: { designManager.openDesign(designFile) },
+                                            onDelete: {
+                                                designToDelete = designFile
+                                                showingDeleteAlert = true
+                                            },
+                                            onRename: {
+                                                designToRename = designFile
+                                                renameText = designFile.name
+                                                showingRenameSheet = true
+                                            }
+                                        )
                                     }
                                 }
-                            )
+                                .padding(.horizontal)
+                                .padding(.vertical, 12)
+                            }
+                            .scrollClipDisabled()
                         }
                     }
-                    .padding(.vertical)
+                    
+                    Divider()
+                        .padding(.horizontal)
+                    
+                    // Templates Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Templates")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
+                        
+                        TemplatesGridView(
+                            onSelectTemplate: { template in
+                                // Check if user can create more designs
+                                if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                                    showingLimitAlert = true
+                                } else {
+                                    let name = template.name
+                                    let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
+                                    designManager.openDesign(newDesign)
+                                }
+                            }
+                        )
+                    }
                 }
+                .padding(.vertical)
             }
+        }
         .navigationTitle("Design Browser")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -145,7 +143,11 @@ struct DesignBrowserView: View {
                 }
             }
         }
-            }
+        #if os(macOS)
+        .toolbarBackground(.hidden, for: .windowToolbar)
+        #else
+        .toolbarBackground(.hidden, for: .navigationBar)
+        #endif
         .sheet(isPresented: $showingNewDesignSheet) {
             NewDesignSheet(
                 designName: $newDesignName,

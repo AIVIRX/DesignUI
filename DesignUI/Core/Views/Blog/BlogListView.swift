@@ -12,30 +12,18 @@ import SDWebImageSwiftUI
 struct NewsListView: View {
     @StateObject var viewModel = NewsViewModel()
     @State private var selectedPost: NewsPost?
-    @State private var searchText: String = ""
     
     var columns: [GridItem] {
         return [GridItem(.adaptive(minimum: 300, maximum: 300))]
     }
     
-    var filteredPosts: [NewsPost] {
-        if searchText.isEmpty {
-            return viewModel.posts
-        } else {
-            return viewModel.posts.filter {
-                $0.title.localizedCaseInsensitiveContains(searchText) ||
-                ($0.description ?? "").localizedCaseInsensitiveContains(searchText)
-            }
-        }
-    }
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    LargeHero(name: "Hello Developer", description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.", height: 200, padding: 0)
-                        .padding(.top, 16)
+                    heroView
                     
-                    let gridPosts = Array(filteredPosts)
+                    let gridPosts = Array(viewModel.posts)
                     if !gridPosts.isEmpty {
                         LazyVGrid(columns: columns) {
                             ForEach(gridPosts) { post in
@@ -49,17 +37,18 @@ struct NewsListView: View {
                         }
                     }
                 }
-                .padding(.horizontal)
                 .frame(maxWidth: .infinity)
                 .navigationTitle("News")
 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
 #endif
             }
+            .scrollClipDisabled()
+            .contentMargins(.top, -100, for: .scrollContent)
+            .ignoresSafeArea(edges: .top)
             .refreshable {
                 await viewModel.fetchNews()
             }
-            .searchable(text: $searchText, prompt: "Search posts")
 #if os(iOS)
             .sheet(item: $selectedPost) { post in
                 NewsDetailView(post: post)
@@ -67,6 +56,15 @@ struct NewsListView: View {
 #endif
             .task { await viewModel.fetchNews() }
         }
+    }
+    
+    private var heroView: some View {
+        LargeHero(
+            name: "Latest News & Updates",
+            description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.",
+            height: 300,
+            cornerRadius: 0
+        )
     }
 }
 

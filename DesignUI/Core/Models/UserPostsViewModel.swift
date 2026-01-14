@@ -187,4 +187,3 @@ class UserPostsViewModel: ObservableObject {
         currentTask?.cancel()
     }
 }
-

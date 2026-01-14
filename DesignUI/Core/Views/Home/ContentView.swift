@@ -28,7 +28,7 @@ struct ContentView: View {
         VStack{
             TabView(selection: $selectedTab) {
                 Tab("Home", systemImage: "house", value: .home) {
-                    ExploreView()
+                    ExploreView(selectedTab: $selectedTab)
                 }
                 
                 Tab("Studio", systemImage: "folder.badge.plus", value: .studio) {

@@ -7733,9 +7733,6 @@
     "Design Name" : {
 
     },
-    "Design your next App\nwith DockUI Studio" : {
-
-    },
     "Display Name" : {
       "localizations" : {
         "ar" : {
@@ -10086,6 +10083,7 @@
 
     },
     "Loading posts..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14199,6 +14197,7 @@
 
     },
     "Search posts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

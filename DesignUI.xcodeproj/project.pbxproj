@@ -103,6 +103,9 @@
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
 		ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */; };
 		ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */; };
+		ECDF3CDC2F18380B00C68936 /* MasonryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */; };
+		ECDF3CE02F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF3CDF2F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift */; };
+		ECDF3CE22F184A0900C68936 /* FullScreenToolbarModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF3CE12F184A0900C68936 /* FullScreenToolbarModifier.swift */; };
 		ECE995512C98881000C60416 /* TemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE995502C98881000C60416 /* TemplateView.swift */; };
 		ECFC6AC62EA9C48400177480 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ECFC6AC52EA9C48400177480 /* AppIcon.icon */; };
 		ECFDEA122F0F805C00540DD3 /* LatestPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */; };
@@ -188,7 +191,6 @@
 		ECB94C852EFB0D21000AAF34 /* ColorModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorModifierEditor.swift; sourceTree = "<group>"; };
 		ECB94C862EFB0D21000AAF34 /* CornerRadiusModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerRadiusModifierEditor.swift; sourceTree = "<group>"; };
 		ECB94C872EFB0D21000AAF34 /* FontModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontModifierEditor.swift; sourceTree = "<group>"; };
-		ECB94C882EFB0D21000AAF34 /* FontSizeModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeModifierEditor.swift; sourceTree = "<group>"; };
 		ECB94C892EFB0D21000AAF34 /* FrameModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameModifierEditor.swift; sourceTree = "<group>"; };
 		ECB94C8A2EFB0D21000AAF34 /* OpacityModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpacityModifierEditor.swift; sourceTree = "<group>"; };
 		ECB94C8B2EFB0D21000AAF34 /* OverlayModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayModifierEditor.swift; sourceTree = "<group>"; };
@@ -206,6 +208,9 @@
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
 		ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSetupView.swift; sourceTree = "<group>"; };
+		ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasonryGrid.swift; sourceTree = "<group>"; };
+		ECDF3CDF2F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollEdgeEffectHiddenModifier.swift; sourceTree = "<group>"; };
+		ECDF3CE12F184A0900C68936 /* FullScreenToolbarModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenToolbarModifier.swift; sourceTree = "<group>"; };
 		ECE995502C98881000C60416 /* TemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateView.swift; sourceTree = "<group>"; };
 		ECFC6AC52EA9C48400177480 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatestPostsViewModel.swift; sourceTree = "<group>"; };
@@ -242,8 +247,8 @@
 		AA000007AAAA000100000001 /* Loading */ = {
 			isa = PBXGroup;
 			children = (
-				AA000004AAAA000100000001 /* LoadingScreenView.swift */,
 				AA000006AAAA000100000001 /* AppLoadingView.swift */,
+				AA000004AAAA000100000001 /* LoadingScreenView.swift */,
 			);
 			path = Loading;
 			sourceTree = "<group>";
@@ -259,8 +264,8 @@
 		EC9F546F2E187F8E00AAE9EC /* Blog */ = {
 			isa = PBXGroup;
 			children = (
-				EC9F54702E187FA700AAE9EC /* BlogListView.swift */,
 				EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */,
+				EC9F54702E187FA700AAE9EC /* BlogListView.swift */,
 				EC9F54742E1889B700AAE9EC /* NewsContentView.swift */,
 			);
 			path = Blog;
@@ -340,7 +345,6 @@
 				ECB94C852EFB0D21000AAF34 /* ColorModifierEditor.swift */,
 				ECB94C862EFB0D21000AAF34 /* CornerRadiusModifierEditor.swift */,
 				ECB94C872EFB0D21000AAF34 /* FontModifierEditor.swift */,
-				ECB94C882EFB0D21000AAF34 /* FontSizeModifierEditor.swift */,
 				ECB94C892EFB0D21000AAF34 /* FrameModifierEditor.swift */,
 				ECB94C8A2EFB0D21000AAF34 /* OpacityModifierEditor.swift */,
 				ECB94C8B2EFB0D21000AAF34 /* OverlayModifierEditor.swift */,
@@ -377,20 +381,23 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */,
+				ECDF3CE12F184A0900C68936 /* FullScreenToolbarModifier.swift */,
+				ECDF3CDF2F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift */,
 				EC70F84C2EB6C280001D39DC /* AdManager.swift */,
+				AA000002AAAA000100000001 /* AppLoadingState.swift */,
 				BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */,
 				EC0C95BD2EB29F1200AA6A84 /* Constants.swift */,
 				EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */,
 				EC5982A32D57F54000633392 /* GridColumns.swift */,
 				EC53EB7F2D91CD6300E175DB /* HapticManager.swift */,
 				EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */,
+				ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */,
 				EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */,
 				EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */,
 				EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */,
 				EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */,
+				EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */,
 				ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */,
-				AA000002AAAA000100000001 /* AppLoadingState.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -402,12 +409,12 @@
 				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
 				EC70F84A2EB6C24C001D39DC /* FeedItem.swift */,
+				ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */,
 				EC59829B2D56836B00633392 /* Like.swift */,
 				EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */,
-				B94BF3478F40454F80B2348EA864EC8C /* UserPostsViewModel.swift */,
 				EC9F54692E187D7D00AAE9EC /* NewsPost.swift */,
 				EC50CFB52D1393B9006586DA /* Profile.swift */,
-				ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */,
+				B94BF3478F40454F80B2348EA864EC8C /* UserPostsViewModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -467,10 +474,10 @@
 		ECD13FF92C18BF8800105B3E /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */,
 				EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */,
-				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 				EC3D132D2E1DABCE00F659DB /* LargeHero.swift */,
+				EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */,
+				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -478,12 +485,12 @@
 		ECD13FFE2C18C12400105B3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				ECC93A392F16D4C800D9F11E /* Templates */,
 				ECFC6AC52EA9C48400177480 /* AppIcon.icon */,
-				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
-				ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */,
-				ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */,
 				EC7D7BD82C19E426003134B1 /* Assets.xcassets */,
+				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
+				ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */,
+				ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */,
+				ECC93A392F16D4C800D9F11E /* Templates */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -491,15 +498,15 @@
 		ECFF2C772D558CCA006A7FE6 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
-				ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */,
-				ECFF2C782D55936B006A7FE6 /* ProfileView.swift */,
 				EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */,
-				EC5982A12D57F4A600633392 /* LikedPostsView.swift */,
-				E5848CC4CC9440AE8630CC9BF787CD36 /* UserPostsView.swift */,
-				ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */,
-				ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */,
-				EC9B43382D639B5500B5DBCB /* SignInView.swift */,
 				EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */,
+				EC5982A12D57F4A600633392 /* LikedPostsView.swift */,
+				ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */,
+				ECFF2C782D55936B006A7FE6 /* ProfileView.swift */,
+				ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */,
+				EC9B43382D639B5500B5DBCB /* SignInView.swift */,
+				ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */,
+				E5848CC4CC9440AE8630CC9BF787CD36 /* UserPostsView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -648,6 +655,7 @@
 				E5848CC5CC9440AE8630CC9BF787CD37 /* UserPostsView.swift in Sources */,
 				EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */,
 				ECB94C6C2EFB0C6F000AAF34 /* ComponentLibraryView.swift in Sources */,
+				ECDF3CDC2F18380B00C68936 /* MasonryGrid.swift in Sources */,
 				ECB94C6D2EFB0C6F000AAF34 /* CanvasView.swift in Sources */,
 				ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */,
 				ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */,
@@ -681,11 +689,13 @@
 				EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */,
 				EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */,
 				EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */,
+				ECDF3CE02F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift in Sources */,
 				EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				ECB94C902EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift in Sources */,
 				ECB94C922EFB0D21000AAF34 /* FontModifierEditor.swift in Sources */,
 				ECB94C932EFB0D21000AAF34 /* BackgroundModifierEditor.swift in Sources */,
+				ECDF3CE22F184A0900C68936 /* FullScreenToolbarModifier.swift in Sources */,
 				ECB94C942EFB0D21000AAF34 /* TransformModifierEditors.swift in Sources */,
 				ECB94C952EFB0D21000AAF34 /* PaddingModifierEditor.swift in Sources */,
 				ECB94C962EFB0D21000AAF34 /* ShadowModifierEditor.swift in Sources */,
@@ -879,6 +889,7 @@
 				CURRENT_PROJECT_VERSION = 900;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 5C778DVBP3;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
@@ -893,7 +904,6 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
-				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
@@ -916,7 +926,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
@@ -971,7 +981,6 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
-				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
@@ -994,7 +1003,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
