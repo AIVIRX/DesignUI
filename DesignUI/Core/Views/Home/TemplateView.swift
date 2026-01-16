@@ -124,9 +124,6 @@ struct ExploreView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .ignoresSafeArea(edges: .top)
-                    #if os(macOS)
-                    .modifier(ScrollEdgeEffectHiddenModifier())
-                    #endif
                     .refreshable {
                         await viewModel.fetchPosts()
                     }
@@ -151,11 +148,6 @@ struct ExploreView: View {
 
                 }
             }
-            #if os(macOS)
-            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-            .modifier(FullScreenToolbarModifier())
-//            .transparentToolbar()
-            #endif
             .task {
                 if viewModel.posts.isEmpty {
                     await viewModel.fetchPostsByType(postType: nil, isAllPosts: true)
@@ -190,6 +182,7 @@ struct ExploreView: View {
 #endif
                 }
             }
+            .navigationTitle("Home")
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
@@ -403,4 +396,3 @@ struct AdaptiveColumnMasonryView<Content: View, Item: Identifiable>: View {
     }
 }
 #endif
-

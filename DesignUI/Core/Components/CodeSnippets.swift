@@ -37,6 +37,8 @@ struct LiveSyntaxHighlightedCode: View {
                 Button(action: {
                     copyToClipboard(code)
                     toastManager.showCopyToast()
+            HapticManager.shared.triggerImpact(style: .light)
+
                 }) {
                     HStack(spacing: 4) {
                         Image(systemName: "doc.on.doc")

@@ -45,7 +45,7 @@ struct PropertiesPanelView: View {
                                                 
                         // Modifiers and Actions - hide for status bar
                         if component.type != .statusBar {
-                            ModifierPanelView(component: component)
+                            ModifierPanelView(component: component, canvasManager: canvasManager)
                                 // Force view recreation when component INSTANCE or modifiers change
                                 // Using ObjectIdentifier ensures view recreates after undo (new instance, same ID)
                                 .id("\(ObjectIdentifier(component))-\(component.modifiers.count)")

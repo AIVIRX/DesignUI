@@ -18,24 +18,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
-                    if #available(iOS 14, *) {
-                        ATTrackingManager.requestTrackingAuthorization { status in
-                            switch status {
-                            case .authorized:
-                                MobileAds.shared.start(completionHandler: nil)
-                            case .denied:
-                                MobileAds.shared.start(completionHandler: nil)
-                            default:
-                                MobileAds.shared.start(completionHandler: nil)
-                            }
-                        }
-                    } else {
+            if #available(iOS 14, *) {
+                ATTrackingManager.requestTrackingAuthorization { status in
+                    switch status {
+                    case .authorized:
+                        MobileAds.shared.start(completionHandler: nil)
+                    case .denied:
+                        MobileAds.shared.start(completionHandler: nil)
+                    default:
                         MobileAds.shared.start(completionHandler: nil)
                     }
-                })
-                
-        // Configure RevenueCat
-//        Purchases.logLevel = .debug
+                }
+            } else {
+                MobileAds.shared.start(completionHandler: nil)
+            }
+        })
+        
+        //        Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
         
         return true
@@ -55,8 +54,6 @@ struct DesignUIApp: App {
     init() {
         // Ensure paywall is not shown on launch
         PaywallManager.shared.isPresenting = false
-        
-        // Configure SDWebImage cache limits to prevent memory issues
         // Limit memory cache to 15MB for lower memory footprint
         SDImageCache.shared.config.maxMemoryCost = 15 * 1024 * 1024 // 15MB
         // Limit memory cache to 30 images max (keeps recent images, evicts old ones)
@@ -86,7 +83,6 @@ struct DesignUIApp: App {
 
 #if os(macOS)
 import UniformTypeIdentifiers
-import AppKit
 
 @main
 struct DesignUIApp: App {
@@ -95,7 +91,7 @@ struct DesignUIApp: App {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
     @StateObject private var designManager = DesignManager.shared
-
+    
     init() {
         // Configure RevenueCat for macOS
         Purchases.logLevel = .debug
@@ -114,7 +110,6 @@ struct DesignUIApp: App {
         SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 7 // 7 days
         SDImageCache.shared.config.maxDiskSize = 200 * 1024 * 1024 // 200MB
     }
-
     
     var body: some Scene {
         // Main app window
@@ -127,10 +122,6 @@ struct DesignUIApp: App {
                 .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
                 .frame(minWidth: 1000, minHeight: 600)
-                .toolbarBackground(
-                    .yellow, for: .windowToolbar, .windowToolbar)
-                            .toolbarColorScheme(
-                                .dark, for: .windowToolbar, .windowToolbar)
         }
         .windowResizability(.automatic)
         .defaultSize(width: 1200, height: 800)

@@ -26,7 +26,7 @@ struct DesignBrowserView: View {
     @State private var showingLimitAlert = false
     
     // Free tier limit
-    private let freeDesignLimit = 3
+    private let freeDesignLimit = 5
     
     var body: some View {
         #if os(macOS)
@@ -74,6 +74,7 @@ struct DesignBrowserView: View {
                                 }
                                 .buttonStyle(.borderedProminent)
                             }
+                            .padding()
                             .frame(maxWidth: .infinity)
                         } else {
                             ScrollView(.horizontal, showsIndicators: false) {
@@ -127,27 +128,25 @@ struct DesignBrowserView: View {
                 }
                 .padding(.vertical)
             }
-        }
-        .navigationTitle("Design Browser")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: {
-                    // Check if user can create more designs
-                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                        showingLimitAlert = true
-                    } else {
-                        showingNewDesignSheet = true
+            .navigationTitle("Design Browser")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        // Check if user can create more designs
+                        if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                            showingLimitAlert = true
+                        } else {
+                            showingNewDesignSheet = true
+                        }
+                    }) {
+                        Label("New Design", systemImage: "plus")
                     }
-                }) {
-                    Label("New Design", systemImage: "plus")
                 }
             }
         }
-        #if os(macOS)
-        .toolbarBackground(.hidden, for: .windowToolbar)
-        #else
-        .toolbarBackground(.hidden, for: .navigationBar)
-        #endif
         .sheet(isPresented: $showingNewDesignSheet) {
             NewDesignSheet(
                 designName: $newDesignName,
@@ -162,6 +161,9 @@ struct DesignBrowserView: View {
                     newDesignName = ""
                 }
             )
+            #if os(iOS)
+            .presentationDetents([.height(250)])
+            #endif
         }
         .alert("Delete Design", isPresented: $showingDeleteAlert) {
             Button("Cancel", role: .cancel) { }
@@ -190,6 +192,9 @@ struct DesignBrowserView: View {
                     renameText = ""
                 }
             )
+            #if os(iOS)
+            .presentationDetents([.height(250)])
+            #endif
         }
         #if os(iOS)
         .fullScreenCover(isPresented: Binding(
@@ -293,6 +298,7 @@ struct NewDesignSheet: View {
     @Binding var designName: String
     let onCreate: (String) -> Void
     let onCancel: () -> Void
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         NavigationStack {
@@ -303,6 +309,7 @@ struct NewDesignSheet: View {
                 
                 TextField("Design Name", text: $designName)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isFocused)
                     .onSubmit {
                         if !designName.isEmpty {
                             onCreate(designName)
@@ -324,6 +331,9 @@ struct NewDesignSheet: View {
                     }
                 }
             }
+            .onAppear {
+                isFocused = true
+            }
         }
     }
 }
@@ -332,6 +342,7 @@ struct RenameDesignSheet: View {
     @Binding var designName: String
     let onRename: (String) -> Void
     let onCancel: () -> Void
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         NavigationStack {
@@ -342,6 +353,7 @@ struct RenameDesignSheet: View {
                 
                 TextField("Design Name", text: $designName)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isFocused)
                     .onSubmit {
                         if !designName.isEmpty {
                             onRename(designName)
@@ -369,6 +381,9 @@ struct RenameDesignSheet: View {
                         }
                     }
                 }
+            }
+            .onAppear {
+                isFocused = true
             }
         }
     }

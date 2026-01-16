@@ -831,10 +831,13 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             return
         }
         
+        // Save state for undo BEFORE making changes
+        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        
         // Update the type
         self.type = newType
         
-        // Update properties to match new type defaults where applicable
+        // Get new default properties for the target type
         let newDefaultProperties = UIComponent.defaultProperties(for: newType)
         
         // For containers, update alignment options if needed
@@ -880,6 +883,9 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         objectWillChange.send()
         print("🔄 Component converted to \(newType.rawValue)")
+        
+        // Post notification to trigger design file saving
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     // MARK: - Code Generation

@@ -26,11 +26,7 @@ struct LayersPanelView: View {
         if hSizeClass == .regular {
             regularSizeView
         } else {
-            regularSizeView
-                .navigationTitle("Layers")
-                #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                #endif
+            PhoneSizeView
                 .toolbar{
                     ToolbarItem {
                         Button(action: { showComponentLibrary = true }) {
@@ -131,7 +127,8 @@ struct LayersPanelView: View {
                                         },
                                         onWrap: { component, type in
                                             canvasManager.wrapComponent(component, in: type)
-                                        }
+                                        },
+                                        canvasManager: canvasManager
                                     )
                                 }
                                 
@@ -168,7 +165,8 @@ struct LayersPanelView: View {
                                     },
                                     onWrap: { component, type in
                                         canvasManager.wrapComponent(component, in: type)
-                                    }
+                                    },
+                                    canvasManager: canvasManager
                                 )
                                 .id(component.id)
                             }
@@ -247,10 +245,18 @@ struct LayersPanelView: View {
                     }
                 }
         #if os(iOS)
-                .navigationDestination(isPresented: $showComponentLibrary) {
-                    ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                        .navigationTitle("Components")
-                        .navigationBarTitleDisplayMode(.inline)
+                .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
+                    view.navigationDestination(isPresented: $showComponentLibrary) {
+                        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                            .navigationTitle("Components")
+                            .navigationBarTitleDisplayMode(.inline)
+                    }
+                }
+                .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
+                    view.popover(isPresented: $showComponentLibrary) {
+                        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                            .frame(width: 320, height: 480)
+                    }
                 }
         #else
                 .popover(isPresented: $showComponentLibrary) {
@@ -318,7 +324,8 @@ struct LayersPanelView: View {
                                         },
                                         onWrap: { component, type in
                                             canvasManager.wrapComponent(component, in: type)
-                                        }
+                                        },
+                                        canvasManager: canvasManager
                                     )
                                 }
                                 
@@ -355,7 +362,8 @@ struct LayersPanelView: View {
                                     },
                                     onWrap: { component, type in
                                         canvasManager.wrapComponent(component, in: type)
-                                    }
+                                    },
+                                    canvasManager: canvasManager
                                 )
                                 .id(component.id)
                             }
@@ -439,10 +447,18 @@ struct LayersPanelView: View {
                     }
                 }
         #if os(iOS)
-                .navigationDestination(isPresented: $showComponentLibrary) {
-                    ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                        .navigationTitle("Components")
-                        .navigationBarTitleDisplayMode(.inline)
+                .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
+                    view.navigationDestination(isPresented: $showComponentLibrary) {
+                        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                            .navigationTitle("Components")
+                            .navigationBarTitleDisplayMode(.inline)
+                    }
+                }
+                .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
+                    view.popover(isPresented: $showComponentLibrary) {
+                        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+                            .frame(width: 320, height: 480)
+                    }
                 }
         #else
                 .popover(isPresented: $showComponentLibrary) {
@@ -638,10 +654,11 @@ private struct OutlineRow: View {
     let getIndexInParent: (UUID) -> Int
     let onSelect: (UIComponent) -> Void
     let onWrap: (UIComponent, ComponentType) -> Void
+    let canvasManager: CanvasManager
     @State private var isHovered = false
     @Environment(\.colorScheme) var colorScheme
     
-    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int, onSelect: @escaping (UIComponent) -> Void, onWrap: @escaping (UIComponent, ComponentType) -> Void) {
+    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int, onSelect: @escaping (UIComponent) -> Void, onWrap: @escaping (UIComponent, ComponentType) -> Void, canvasManager: CanvasManager) {
         self.component = component
         self.level = level
         self._expanded = expanded
@@ -656,6 +673,7 @@ private struct OutlineRow: View {
         self.getIndexInParent = getIndexInParent
         self.onSelect = onSelect
         self.onWrap = onWrap
+        self.canvasManager = canvasManager
     }
     
     var body: some View {
@@ -672,14 +690,10 @@ private struct OutlineRow: View {
                         dragOverTarget: $dragOverTarget,
                         dragOverPosition: $dragOverPosition,
                         draggingId: $draggingId,
-                        onDelete: { 
-                            // If it's a modifier parent, also remove the modifier
-                            if let modifierId = child.modifierId,
-                               let modifier = component.modifiers.first(where: { $0.id == modifierId }) {
-                                component.removeModifier(modifier)
-                            } else {
-                                component.removeChild(child)
-                            }
+                        onDelete: {
+                            // Use CanvasManager to remove component so undo is supported
+                            canvasManager.removeComponent(child)
+                            
                             if selectedComponent?.id == child.id {
                                 selectedComponent = nil
                             }
@@ -722,7 +736,8 @@ private struct OutlineRow: View {
                         getParentOf: getParentOf,
                         getIndexInParent: getIndexInParent,
                         onSelect: onSelect,
-                        onWrap: onWrap
+                        onWrap: onWrap,
+                        canvasManager: canvasManager
                     )
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .move(edge: .top)),
@@ -878,7 +893,7 @@ private struct OutlineRow: View {
     private var indentationSpacers: some View {
         HStack(spacing: 0) {
             ForEach(0..<level, id: \.self) { _ in
-                Spacer().frame(width: 24)
+                Spacer().frame(width: 16)
             }
         }
     }
@@ -1186,6 +1201,7 @@ private struct OverlayFolderRow: View {
     @Binding var expandedOverlayFolders: Set<UUID>
     let onSelect: (UIComponent) -> Void
     let onWrap: (UIComponent, ComponentType) -> Void
+    let canvasManager: CanvasManager
     
     @State private var isHovered = false
     @Environment(\.colorScheme) var colorScheme
@@ -1197,7 +1213,7 @@ private struct OverlayFolderRow: View {
                 // Indentation
                 HStack(spacing: 0) {
                     ForEach(0..<level, id: \.self) { _ in
-                        Spacer().frame(width: 24)
+                        Spacer().frame(width: 16)
                     }
                 }
                 
@@ -1260,8 +1276,10 @@ private struct OverlayFolderRow: View {
                         dragOverTarget: $dragOverTarget,
                         dragOverPosition: $dragOverPosition,
                         draggingId: $draggingId,
-                        onDelete: { 
-                            component.removeChild(child)
+                        onDelete: {
+                            // Use CanvasManager for undo support
+                            canvasManager.removeComponent(child)
+                            
                             if selectedComponent?.id == child.id {
                                 selectedComponent = nil
                             }
@@ -1300,7 +1318,8 @@ private struct OverlayFolderRow: View {
                         getParentOf: getParentOf,
                         getIndexInParent: getIndexInParent,
                         onSelect: onSelect,
-                        onWrap: onWrap
+                        onWrap: onWrap,
+                        canvasManager: canvasManager
                     )
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .move(edge: .top)),

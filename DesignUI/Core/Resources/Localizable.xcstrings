@@ -5951,9 +5951,6 @@
         }
       }
     },
-    "Copy JSON" : {
-
-    },
     "Corner Radius" : {
 
     },
@@ -12638,6 +12635,9 @@
           }
         }
       }
+    },
+    "Placeholder" : {
+
     },
     "Position" : {
 

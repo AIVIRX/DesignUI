@@ -18,7 +18,7 @@ class ScreenshotUtility {
     
     private init() {}
     
-    /// Captures a screenshot of a SwiftUI view at true size, only compresses as JPEG
+    /// Captures a screenshot of a SwiftUI view at true size, saves as PNG
     @MainActor
     func captureThumbnail<Content: View>(
         of view: Content,
@@ -34,78 +34,46 @@ class ScreenshotUtility {
         renderer.scale = 2.0 // Retina quality
         
         #if os(macOS)
+        // Use cgImage directly if available (macOS 13+)
+        if let cgImage = renderer.cgImage {
+            let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
+            guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
+                print("❌ Failed to convert CGImage to PNG")
+                return nil
+            }
+            print("✅ Screenshot captured (CGImage): \(pngData.count) bytes, size: \(cgImage.width)x\(cgImage.height)")
+            return pngData
+        }
+        
+        // Fallback to nsImage if cgImage fails (unlikely on modern macOS with ImageRenderer)
         guard let nsImage = renderer.nsImage else {
             print("❌ Failed to render image with ImageRenderer")
             return nil
         }
         
-        // Create an opaque bitmap representation explicitly to avoid "opaque image with alpha" warnings
-        // and save memory/disk space
-        let width = Int(nsImage.size.width * renderer.scale)
-        let height = Int(nsImage.size.height * renderer.scale)
-        
-        guard let bitmapRep = NSBitmapImageRep(
-            bitmapDataPlanes: nil,
-            pixelsWide: width,
-            pixelsHigh: height,
-            bitsPerSample: 8,
-            samplesPerPixel: 3, // RGB, no alpha
-            hasAlpha: false,
-            isPlanar: false,
-            colorSpaceName: .deviceRGB,
-            bytesPerRow: 0,
-            bitsPerPixel: 0
-        ) else {
-            print("❌ Failed to create opaque bitmap representation")
+        guard let tiffData = nsImage.tiffRepresentation,
+              let bitmapRep = NSBitmapImageRep(data: tiffData),
+              let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
+            print("❌ Failed to convert NSImage to PNG")
             return nil
         }
         
-        // Draw the rendered image into the opaque bitmap
-        NSGraphicsContext.saveGraphicsState()
-        guard let context = NSGraphicsContext(bitmapImageRep: bitmapRep) else {
-            NSGraphicsContext.restoreGraphicsState()
-            print("❌ Failed to create graphics context")
-            return nil
-        }
-        NSGraphicsContext.current = context
-        
-        // Clear with white (or matching background) first to ensure opacity
-        NSColor.white.set()
-        let rect = NSRect(x: 0, y: 0, width: width, height: height)
-        NSBezierPath.fill(rect)
-        
-        // Draw the image
-        // Note: nsImage.draw respects the context. Since the context is built from a bitmap of size (width, height),
-        // we draw into that rect.
-        nsImage.draw(in: rect,
-                     from: .zero,
-                     operation: .sourceOver,
-                     fraction: 1.0)
-        
-        NSGraphicsContext.restoreGraphicsState()
-        
-        // Convert to JPEG
-        guard let jpegData = bitmapRep.representation(using: .jpeg, properties: [.compressionFactor: 0.7]) else {
-            print("❌ Failed to convert screenshot to JPEG")
-            return nil
-        }
-        
-        print("✅ Screenshot captured: \(jpegData.count) bytes, size: \(width)x\(height)")
-        return jpegData
+        print("✅ Screenshot captured (NSImage): \(pngData.count) bytes")
+        return pngData
         #else
         guard let uiImage = renderer.uiImage else {
             print("❌ Failed to render image with ImageRenderer")
             return nil
         }
         
-        // Convert to JPEG (no resizing - true size)
-        guard let jpegData = uiImage.jpegData(compressionQuality: 0.7) else {
-            print("❌ Failed to convert screenshot to JPEG")
+        // Convert to PNG (no resizing - true size)
+        guard let pngData = uiImage.pngData() else {
+            print("❌ Failed to convert screenshot to PNG")
             return nil
         }
         
-        print("✅ Screenshot captured: \(jpegData.count) bytes, size: \(uiImage.size)")
-        return jpegData
+        print("✅ Screenshot captured: \(pngData.count) bytes, size: \(uiImage.size)")
+        return pngData
         #endif
     }
 }

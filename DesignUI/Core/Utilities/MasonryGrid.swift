@@ -66,13 +66,16 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View where Item.ID: Hasha
     
     /// Distributes items into columns by placing each in the shortest column
     private func distributeItems() -> [[Item]] {
+        guard columns > 0 else { return [] }
+        
         var columnArrays: [[Item]] = Array(repeating: [], count: columns)
         var columnHeights: [CGFloat] = Array(repeating: 0, count: columns)
         
         for item in items {
-            // Check if item already has assignment
+            // Check if item already has a valid assignment
             let assignedColumn: Int
-            if let existingColumn = heightCache.getColumn(for: item.id) {
+            if let existingColumn = heightCache.getColumn(for: item.id), existingColumn < columns {
+                // Use cached assignment only if it's still valid for current column count
                 assignedColumn = existingColumn
             } else {
                 // Find shortest column
@@ -102,7 +105,7 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View where Item.ID: Hasha
                                 .background(
                                     GeometryReader { geo in
                                         Color.clear
-                                            .preference(key: ItemHeightPreferenceKey.self, value: [item.id.hashValue: geo.size.height])
+                                            .preference(key: ItemHeightPreferenceKey.self, value: [String(describing: item.id): geo.size.height])
                                     }
                                 )
                         }
@@ -130,9 +133,9 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View where Item.ID: Hasha
         .onPreferenceChange(ItemHeightPreferenceKey.self) { heights in
             // Update heights after render cycle completes
             DispatchQueue.main.async {
-                for (hashValue, height) in heights {
-                    // Find item with matching hash
-                    if let item = items.first(where: { $0.id.hashValue == hashValue }) {
+                for (idString, height) in heights {
+                    // Find item with matching string ID
+                    if let item = items.first(where: { String(describing: $0.id) == idString }) {
                         heightCache.setHeight(height, for: item.id)
                     }
                 }
@@ -149,9 +152,9 @@ struct MasonryGrid<Item: Identifiable, Content: View>: View where Item.ID: Hasha
 
 /// Preference key for collecting item heights
 private struct ItemHeightPreferenceKey: PreferenceKey {
-    static var defaultValue: [Int: CGFloat] = [:]
+    static var defaultValue: [String: CGFloat] = [:]
     
-    static func reduce(value: inout [Int: CGFloat], nextValue: () -> [Int: CGFloat]) {
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
         value.merge(nextValue()) { _, new in new }
     }
 }

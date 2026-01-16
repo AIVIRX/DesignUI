@@ -205,16 +205,17 @@ struct UIBuilderView: View {
     @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
     
-    // iOS half sheet states
-    @State private var showLayersSheet = true
+    // iOS half sheet states (iPhone only, iPad uses floating panels)
+    @State private var showLayersSheet = false
     @State private var showPropertiesInPanel = false // For NavigationStack inside panel
     @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
 
     
     // Screenshot capture debouncing
-    @State private var lastScreenshotTime: Date = Date.distantPast
-    private let screenshotDebounceInterval: TimeInterval = 0.5 // Minimum 0.5 seconds between screenshots
+    // Screenshot capture debouncing
+    @State private var lastScreenshotRequestTime: Date = Date()
+    private let screenshotDebounceInterval: TimeInterval = 0.5
     
     #if os(iOS)
     @State private var selection: PresentationDetent = .height(80)
@@ -225,10 +226,57 @@ struct UIBuilderView: View {
     var body: some View {
         NavigationStack {
 #if os(iOS)
-            // iOS: Full screen canvas with floating panels
-            iOSCanvasContent
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { iOSToolbarContent }
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                // iPhone: Full screen canvas with bottom sheet
+                iOSCanvasContent
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { iOSToolbarContent }
+            } else {
+                // iPad: macOS-style floating panels
+                ZStack {
+                    mainCanvasArea
+                    
+                    // Floating panels with proper margins
+                    HStack(spacing: 0) {
+                        // Left side: Layers panel
+                        if showLayersPanel {
+                            ResizablePanel(
+                                width: $layersPanelWidth,
+                                minWidth: 250,
+                                maxWidth: 500,
+                                isVisible: $showLayersPanel,
+                                handlePosition: .right
+                            ) {
+                                layersPanel
+                            }
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                            .padding()
+                        }
+                        
+                        Spacer()
+                        
+                        if showPropertiesPanel && canvasManager.selectedComponent != nil {
+                            ResizablePanel(
+                                width: $propertiesPanelWidth,
+                                minWidth: 250,
+                                maxWidth: 500,
+                                isVisible: $showPropertiesPanel,
+                                handlePosition: .left
+                            ) {
+                                propertiesPanel
+                            }
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .trailing).combined(with: .opacity)
+                            ))
+                            .padding()
+                            .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
+                        }
+                    }
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { iPadToolbarContent }
+            }
 #else
             // macOS: Resizable panels layout
             ZStack {
@@ -279,13 +327,25 @@ struct UIBuilderView: View {
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
+        // Undo/Redo Toast Overlay
+        .overlay(alignment: .top) {
+            if let message = canvasManager.undoMessage {
+                UndoToastView(message: message)
+                    .padding(.top, 60)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: canvasManager.undoMessage)
+            }
+        }
 
 #if os(iOS)
+        // Only show sheet on iPhone (iPad uses floating panels)
         .sheet(isPresented: $showLayersSheet) {
-            editorPanelSheet
-                .presentationDetents([.height(80), .medium], selection: $selection)
-                .presentationBackgroundInteraction(.enabled)
-                .interactiveDismissDisabled()
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                editorPanelSheet
+                    .presentationDetents([.height(80), .medium], selection: $selection)
+                    .presentationBackgroundInteraction(.enabled)
+                    .interactiveDismissDisabled()
+                    .presentationContentInteraction(.scrolls)
+            }
         }
         
 #endif
@@ -295,6 +355,13 @@ struct UIBuilderView: View {
             restoreCanvasSettings()
             // Capture initial screenshot
             captureScreenshot()
+            
+            #if os(iOS)
+            // Show sheet on iPhone only
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                showLayersSheet = true
+            }
+            #endif
         }
         .onChange(of: canvasManager.components) { _, _ in
             syncComponents()
@@ -302,7 +369,8 @@ struct UIBuilderView: View {
         .onChange(of: canvasManager.selectedComponent) { _, newSelection in
             syncSelection()
             #if os(iOS)
-            if newSelection != nil {
+            // Only auto-show sheet on iPhone
+            if UIDevice.current.userInterfaceIdiom == .phone && newSelection != nil {
                 showLayersSheet = true
             }
             #endif
@@ -379,7 +447,7 @@ struct UIBuilderView: View {
                 canvasManager.zoomLevel = 1.0
                 canvasManager.centerCanvasTrigger.toggle()
             }) {
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                Image(systemName: "arrow.down.right.and.arrow.up.left")
             }
         }
         
@@ -395,6 +463,126 @@ struct UIBuilderView: View {
             }
             .disabled(!canvasManager.canRedo)
         }
+        
+        ToolbarItemGroup(placement: .primaryAction) {
+            Menu {
+                Button(action: { showCodePreview = true }) {
+                    Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                }
+                
+                Divider()
+                
+                Button(action: { saveAsScreenshot() }) {
+                    Label("Save as Screenshot", systemImage: "photo")
+                }
+            } label: {
+                 Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .help("Export")
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var iPadToolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(action: {
+                designManager.closeCurrentDesign()
+            }) {
+                Image(systemName: "chevron.left")
+            }
+        }
+        
+        ToolbarItemGroup(placement: .primaryAction) {
+            // Device Picker
+            Menu {
+                // iPhones section
+                Section("iPhone") {
+                    ForEach(DevicePreset.iphones) { preset in
+                        Button(preset.rawValue) {
+                            selectedDevice = preset
+                        }
+                    }
+                }
+                
+                Divider()
+                
+                // iPads section
+                Section("iPad") {
+                    ForEach(DevicePreset.ipads) { preset in
+                        Button(preset.rawValue) {
+                            selectedDevice = preset
+                        }
+                    }
+                }
+                                
+                // Widgets section
+                Section("Widgets") {
+                    ForEach(DevicePreset.widgets) { preset in
+                        Button(preset.rawValue) {
+                            selectedDevice = preset
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: deviceIcon)
+                        .font(.system(size: 11))
+                    Text(selectedDevice.rawValue)
+                        .font(.system(size: 11, weight: .medium))
+                        .frame(maxWidth: 100) // Limit width
+                        .lineLimit(1)
+                }
+            }
+            .help("Choose Device")
+                        
+            // Color scheme toggle
+            Button(action: {
+                colorScheme = colorScheme == .light ? .dark : .light
+            }) {
+                Image(systemName: colorScheme == .light ? "sun.max.fill" : "moon.fill")
+            }
+            
+            // Recenter button
+            Button(action: {
+                canvasManager.canvasOffset = .zero
+                canvasManager.zoomLevel = 1.0
+                canvasManager.centerCanvasTrigger.toggle()
+            }) {
+                Image(systemName: "arrow.down.right.and.arrow.up.left")
+            }
+            
+            // Undo/Redo
+            Button(action: { canvasManager.undo() }) {
+                Image(systemName: "arrow.uturn.backward")
+            }
+            .disabled(!canvasManager.canUndo)
+            
+            Button(action: { canvasManager.redo() }) {
+                Image(systemName: "arrow.uturn.forward")
+            }
+            .disabled(!canvasManager.canRedo)
+        }
+        
+        ToolbarItemGroup(placement: .primaryAction) {
+            Menu {
+                Button(action: { showCodePreview = true }) {
+                    Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                }
+                
+                Divider()
+                
+                Button(action: { saveAsScreenshot() }) {
+                    Label("Save as Screenshot", systemImage: "photo")
+                }
+                
+
+            } label: {
+                 Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .help("Export")
+        }
     }
 #endif
 
@@ -409,6 +597,7 @@ struct UIBuilderView: View {
         ZStack(alignment: .top) {
             canvasView
         }
+        .ignoresSafeArea()
         .animation(.spring(), value: canvasManager.selectedComponentIds.count)
         .onReceive(NotificationCenter.default.publisher(for: .imageDownloadsCompleted)) { notification in
             // When images are downloaded, refresh the thumbnail
@@ -516,7 +705,7 @@ struct UIBuilderView: View {
     
 #if os(iOS)
     private var editorPanelSheet: some View {
-        VStack{
+        VStack(spacing: 0) {
             NavigationStack {
                 Group {
                     // Show different content based on active tab
@@ -524,11 +713,7 @@ struct UIBuilderView: View {
                     case .layers:
                         LayersPanelView(
                             canvasManager: canvasManager,
-                            selectedComponent: $canvasManager.selectedComponent,
-                            onLayerTapped: { _ in
-                                // Switch to properties tab when layer is tapped
-                                activeTab = .properties
-                            }
+                            selectedComponent: $canvasManager.selectedComponent
                         )
                         .background(Color(uiColor: .systemBackground))
                     case .properties:
@@ -611,10 +796,12 @@ struct UIBuilderView: View {
                     }
                 }
             }
+            .frame(maxHeight: .infinity)
             
             customTabBar()
                 .background(Color(uiColor: .systemBackground))
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground))
         .ignoresSafeArea(.all, edges: .bottom)
     }
@@ -782,7 +969,6 @@ struct UIBuilderView: View {
         }
     }
 
-    
     private var propertiesPanelContent: some View {
         Group {
             if canvasManager.selectedComponent != nil {
@@ -901,7 +1087,7 @@ struct UIBuilderView: View {
                     baseZoomLevel = canvasManager.zoomLevel
                     canvasManager.centerCanvasTrigger.toggle()
                 }) {
-                    Image(systemName: "scope")
+                    Image(systemName: "arrow.down.right.and.arrow.up.left")
                         .font(.system(size: 14, weight: .medium))
                 }
                 .keyboardShortcut("1", modifiers: .command)
@@ -936,10 +1122,6 @@ struct UIBuilderView: View {
                         Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                     
-                    Button(action: { copyDesignAsJSON() }) {
-                        Label("Copy JSON", systemImage: "doc.on.doc")
-                    }
-                    
                     Divider()
                     
                     Button(action: { saveAsScreenshot() }) {
@@ -972,28 +1154,6 @@ struct UIBuilderView: View {
     
     // MARK: - Actions
     
-    private func copyDesignAsJSON() {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .iso8601
-        
-        do {
-            let data = try encoder.encode(canvasManager.components)
-            if let jsonString = String(data: data, encoding: .utf8) {
-                #if os(macOS)
-                let pasteboard = NSPasteboard.general
-                pasteboard.clearContents()
-                pasteboard.setString(jsonString, forType: .string)
-                #else
-                UIPasteboard.general.string = jsonString
-                #endif
-                print("✅ JSON copied to clipboard")
-            }
-        } catch {
-            print("❌ Failed to copy JSON: \(error)")
-        }
-    }
-    
     private func saveAsScreenshot() {
         let screenshotView = CanvasScreenshotView(
             components: canvasManager.components,
@@ -1015,8 +1175,8 @@ struct UIBuilderView: View {
         #if os(macOS)
         // macOS: Show save panel
         let savePanel = NSSavePanel()
-        savePanel.allowedContentTypes = [.jpeg]
-        savePanel.nameFieldStringValue = "\(designFile.name).jpg"
+        savePanel.allowedContentTypes = [.png]
+        savePanel.nameFieldStringValue = "\(designFile.name).png"
         savePanel.title = "Save Screenshot"
         savePanel.message = "Choose where to save the screenshot"
         
@@ -1144,37 +1304,57 @@ struct UIBuilderView: View {
     
     // MARK: - Screenshot Capture
     private func captureScreenshot() {
-        // Debounce: Only capture if enough time has passed since last capture
-        let now = Date()
-        guard now.timeIntervalSince(lastScreenshotTime) >= screenshotDebounceInterval else {
-            print("⏭️ Skipping screenshot capture (too soon since last capture)")
-            return
-        }
+        // Update request time to now
+        lastScreenshotRequestTime = Date()
         
-        // Update last capture time
-        lastScreenshotTime = now
-                
-        // Capture screenshot asynchronously to avoid blocking UI
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            let screenshotView = CanvasScreenshotView(
-                components: self.canvasManager.components,
-                deviceSize: self.selectedDevice.size,
-                colorScheme: self.colorScheme ?? .light,
-                statusBarComponent: self.canvasManager.statusBarComponent,
-                statusBarHasBackground: self.statusBarHasBackground
-            )
+        // Schedule capture check
+        DispatchQueue.main.asyncAfter(deadline: .now() + screenshotDebounceInterval) {
+            // Check if this request is still the latest one (or close enough)
+            // If a newer request came in significantly later, we skip this one
+
             
-            if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
-                of: screenshotView,
-                size: self.selectedDevice.size,
-                colorScheme: self.colorScheme ?? .light
-            ) {
-                // This will overwrite the previous thumbnail and store device preset
-                self.designFile.setThumbnail(thumbnailData, devicePreset: self.selectedDevice.rawValue)
-                print("✅ Screenshot captured and set on design file (overwrites previous)")
-            } else {
-                print("⚠️ Failed to capture screenshot")
+            // If the time since the last request is less than the interval (meaning a new request 
+            // happened recently and reset the timer), we assume the new request's scheduled block 
+            // will handle it. 
+            // Wait... actually, we want to run ONLY if we are the last one.
+            // But checking timeSinceLastRequest is tricky because it grows.
+            
+            // Better logic: The async block runs after N seconds.
+            // When it runs, we verify if (Now - LastRequestTime) >= N.
+            // If I request at t=0, LastReq=0. Block runs at t=0.5.
+            // If I request at t=0.2, LastReq=0.2. 
+            // At t=0.5 (first block), Now=0.5. diff = 0.3. 0.3 < 0.5. Skip.
+            // At t=0.7 (second block), Now=0.7. diff = 0.5. Run.
+            
+            guard Date().timeIntervalSince(self.lastScreenshotRequestTime) >= self.screenshotDebounceInterval - 0.1 else {
+                return
             }
+            
+            self.performScreenshotCapture()
+        }
+    }
+    
+    private func performScreenshotCapture() {
+        print("📸 capturing screenshot...")
+            
+        let screenshotView = CanvasScreenshotView(
+            components: self.canvasManager.components,
+            deviceSize: self.selectedDevice.size,
+            colorScheme: self.colorScheme ?? .light,
+            statusBarComponent: self.canvasManager.statusBarComponent,
+            statusBarHasBackground: self.statusBarHasBackground
+        )
+        
+        if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
+            of: screenshotView,
+            size: self.selectedDevice.size,
+            colorScheme: self.colorScheme ?? .light
+        ) {
+            // This will overwrite the previous thumbnail and store device preset
+            self.designFile.setThumbnail(thumbnailData, devicePreset: self.selectedDevice.rawValue)
+            print("✅ Screenshot captured and set on design file")
+        } else {
+            print("⚠️ Failed to capture screenshot")
         }
     }
     

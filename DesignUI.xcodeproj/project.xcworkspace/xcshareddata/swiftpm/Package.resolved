@@ -1,5 +1,5 @@
 {
-  "originHash" : "31a3d272c2de52fd0dc39605f7b505bb1220c1b4ce40892bfb546a0b5acbbe28",
+  "originHash" : "355e25d4aeeeb4c26ddaa58c32bdd2995dd6c683389bc87988c24aa2fda5d5f4",
   "pins" : [
     {
       "identity" : "purchases-ios-spm",
@@ -26,15 +26,6 @@
       "state" : {
         "revision" : "451c6dfd5ecec2cf626d1d9ca81c2d4a60355172",
         "version" : "3.1.3"
-      }
-    },
-    {
-      "identity" : "statefultabview",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/NicholasBellucci/StatefulTabView",
-      "state" : {
-        "revision" : "9faa432592874b6e20065f2aa63f20f72c5df71c",
-        "version" : "0.1.10"
       }
     },
     {

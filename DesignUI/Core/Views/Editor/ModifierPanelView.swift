@@ -8,8 +8,21 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+// MARK: - Conditional View Modifier Extension
+extension View {
+    /// Applies a transform if condition is true
+    @ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}
+
 struct ModifierPanelView: View {
     @ObservedObject var component: UIComponent
+    @ObservedObject var canvasManager: CanvasManager
     @State private var showingAddModifier = false
     
     var body: some View {
@@ -58,18 +71,26 @@ struct ModifierPanelView: View {
                             .fill(Color.secondary.opacity(0.1))
                     )
             } else {
-                ModifierReorderableList(component: component)
+                ModifierReorderableList(component: component, canvasManager: canvasManager)
             }
         }
 #if os(iOS)
-        .navigationDestination(isPresented: $showingAddModifier) {
-            AddModifierView(component: component)
-                .navigationTitle("Add Modifier")
-                .navigationBarTitleDisplayMode(.inline)
+        .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
+            view.navigationDestination(isPresented: $showingAddModifier) {
+                AddModifierView(component: component, canvasManager: canvasManager)
+                    .navigationTitle("Add Modifier")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
+            view.popover(isPresented: $showingAddModifier) {
+                AddModifierView(component: component, canvasManager: canvasManager)
+                    .frame(width: 350, height: 500)
+            }
         }
 #else
-        .sheet(isPresented: $showingAddModifier) {
-            AddModifierView(component: component)
+        .popover(isPresented: $showingAddModifier) {
+            AddModifierView(component: component, canvasManager: canvasManager)
         }
 #endif
     }
@@ -77,6 +98,7 @@ struct ModifierPanelView: View {
 
 struct ModifierReorderableList: View {
     @ObservedObject var component: UIComponent
+    @ObservedObject var canvasManager: CanvasManager
     @State private var dragOverTarget: UUID? 
     @State private var dragOverPosition: ModifierDropPosition = .none
     @State private var draggingId: UUID?
@@ -95,7 +117,8 @@ struct ModifierReorderableList: View {
                     draggingId: $draggingId,
                     onMove: { sourceIndex, targetIndex in
                         component.moveModifier(from: IndexSet(integer: sourceIndex), to: targetIndex)
-                    }
+                    },
+                    canvasManager: canvasManager
                 )
             }
         }
@@ -119,6 +142,7 @@ struct ModifierItemView: View {
     @Binding var dragOverPosition: ModifierReorderableList.ModifierDropPosition
     @Binding var draggingId: UUID?
     let onMove: (Int, Int) -> Void
+    @ObservedObject var canvasManager: CanvasManager
     @State private var showingEditor = false
     
     var body: some View {
@@ -183,13 +207,13 @@ struct ModifierItemView: View {
             }
             .contextMenu {
                 Button(action: {
-                    duplicateModifier()
+                    canvasManager.duplicateModifier(for: component, modifier: modifier)
                 }) {
                     Label("Duplicate", systemImage: "doc.on.doc")
                 }
                 
                 Button(role: .destructive, action: {
-                    component.removeModifier(modifier)
+                    canvasManager.removeModifier(from: component, modifier: modifier)
                 }) {
                     Label("Delete", systemImage: "trash")
                 }
@@ -204,17 +228,32 @@ struct ModifierItemView: View {
                 onMove: onMove
             ))
 #if os(iOS)
-            .navigationDestination(isPresented: $showingEditor) {
-                ModifierEditorView(component: component, modifier: Binding(
-                    get: { modifier },
-                    set: { newModifier in
-                        DispatchQueue.main.async {
-                            component.updateModifier(newModifier)
+            .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
+                view.navigationDestination(isPresented: $showingEditor) {
+                    ModifierEditorView(component: component, modifier: Binding(
+                        get: { modifier },
+                        set: { newModifier in
+                            DispatchQueue.main.async {
+                                canvasManager.updateModifier(for: component, modifier: newModifier)
+                            }
                         }
-                    }
-                ))
-                .navigationTitle(modifier.type.rawValue)
-                .navigationBarTitleDisplayMode(.inline)
+                    ))
+                    .navigationTitle(modifier.type.rawValue)
+                    .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+            .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
+                view.popover(isPresented: $showingEditor) {
+                    ModifierEditorView(component: component, modifier: Binding(
+                        get: { modifier },
+                        set: { newModifier in
+                            DispatchQueue.main.async {
+                                canvasManager.updateModifier(for: component, modifier: newModifier)
+                            }
+                        }
+                    ))
+                    .frame(width: 320, height: 400)
+                }
             }
 #else
             .popover(isPresented: $showingEditor) {
@@ -222,7 +261,7 @@ struct ModifierItemView: View {
                     get: { modifier },
                     set: { newModifier in
                         DispatchQueue.main.async {
-                            component.updateModifier(newModifier)
+                            canvasManager.updateModifier(for: component, modifier: newModifier)
                         }
                     }
                 ))
@@ -323,23 +362,8 @@ struct ModifierItemView: View {
         }
     }
     
-    /// Duplicates the current modifier and inserts it right after the current one
-    private func duplicateModifier() {
-        // Create a new modifier with the same type and properties
-        let duplicatedModifier = ComponentModifier(
-            type: modifier.type,
-            properties: modifier.properties
-        )
-        
-        // Insert the duplicate right after the current modifier
-        let insertIndex = index + 1
-        component.modifiers.insert(duplicatedModifier, at: insertIndex)
-        component.objectWillChange.send()
-        
-        // Post notification to trigger design file saving
-        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
-}
+
 
 struct ModifierDropDelegate: DropDelegate {
     let target: ComponentModifier
@@ -449,6 +473,7 @@ struct ModifierDropDelegate: DropDelegate {
 
 struct AddModifierView: View {
     @ObservedObject var component: UIComponent
+    @ObservedObject var canvasManager: CanvasManager
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
     
@@ -527,7 +552,8 @@ struct AddModifierView: View {
                                             modifierType: modifierType,
                                             onAdd: {
                                                 let modifier = ComponentModifier.createWithDefaults(type: modifierType)
-                                                component.addModifier(modifier)
+                                                // Use CanvasManager to add modifier so undo/redo works
+                                                canvasManager.addModifier(to: component, modifier: modifier)
                                                 dismiss()
                                             }
                                         )
@@ -583,11 +609,14 @@ struct ModifierTypeItemView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
+                
+                Spacer() 
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(isHovered ? Color.primary.opacity(0.05) : Color.clear)
             .contentShape(Rectangle())
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }

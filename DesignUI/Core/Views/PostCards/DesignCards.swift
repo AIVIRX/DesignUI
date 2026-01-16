@@ -159,10 +159,10 @@ struct DesignCards: View {
                 isComponent: isComponent
             )) {
                 imageView
-                    .buttonStyle(PlainButtonStyle())
             }
+            .buttonStyle(ScalingButtonStyle())
             .simultaneousGesture(TapGesture().onEnded {
-                HapticManager.shared.triggerImpact(style: .heavy)
+                HapticManager.shared.triggerImpact(style: .soft)
             })
 #endif
         }
@@ -173,69 +173,52 @@ struct DesignCards: View {
         // Templates: portrait style (up/down long) - aspect ratio < 1 (height > width)
         // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
         let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
-        // Calculate max size based on screen size to reduce memory usage
-        #if os(iOS)
-        let maxWidth = min(UIScreen.main.bounds.width * 2, 800) // 2x for retina, but cap at 800px
-        #else
-        let maxWidth: CGFloat = 800 // Mac: reasonable max width
-        #endif
         
-        WebImage(url: URL(string: media)) { image in
-                Color.clear
-                    .aspectRatio(aspectRatio, contentMode: .fit)
-                    .overlay(
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    )
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                    .overlay(alignment: .topTrailing) {
-                        #if os(iOS)
-                        if showLikeButton || isPremium || showDeleteButton {
-                            HStack(spacing: 6) {
-                                if isPremium {
-                                Image(systemName: "crown.fill")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.clear)
-                                        .overlay(
-                                        LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
-                                                .mask(
-                                                Image(systemName: "crown.fill")
-                                                        .font(.system(size: 14, weight: .semibold))
-                                                )
-                                        )
-                                }
-                                if showLikeButton {
-                                    LikeButton(postId: id)
-                                }
-                                if showDeleteButton, let onDelete = onDelete {
-                                    Button(action: onDelete) {
-                                        Image(systemName: "trash")
-                                            .font(.system(size: 14, weight: .semibold))
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                            }
-                            .padding(6)
-                            .background(.black.opacity(0.8), in: Capsule())
-                            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                            .padding(6)
-                        }
-                        #endif
-                    }
-        } placeholder: {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.1))
-                    .aspectRatio(aspectRatio, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+        RippleImageView(mediaURL: media, aspectRatio: aspectRatio) { location in
+            // Optional: Handle logic on long press if needed
         }
-        .indicator(.activity)
-        .transition(.fade(duration: 0.3))
         .id(media)
+        .overlay(alignment: .topTrailing) {
+            #if os(iOS)
+            if showLikeButton || isPremium || showDeleteButton {
+                HStack(spacing: 6) {
+                    if isPremium {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.clear)
+                            .overlay(
+                                LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
+                                    .mask(
+                                        Image(systemName: "crown.fill")
+                                            .font(.system(size: 14, weight: .semibold))
+                                    )
+                            )
+                    }
+                    if showLikeButton {
+                        LikeButton(postId: id)
+                    }
+                    if showDeleteButton, let onDelete = onDelete {
+                        Button(action: onDelete) {
+                            Image(systemName: "trash")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .padding(6)
+                .background(.black.opacity(0.8), in: Capsule())
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                .padding(6)
+            }
+            #endif
+        }
+    }
+}
+
+struct ScalingButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
     }
 }

@@ -62,7 +62,7 @@ struct NewsListView: View {
         LargeHero(
             name: "Latest News & Updates",
             description: "Discover the latest design trends, tips, and stories. Stay inspired and connected with designers worldwide.",
-            height: 300,
+            height: 400,
             cornerRadius: 0
         )
     }

@@ -48,7 +48,7 @@ struct LikeButton: View {
         }
 #if os(iOS)
         .simultaneousGesture(TapGesture().onEnded {
-            HapticManager.shared.triggerImpact(style: .light)
+            HapticManager.shared.triggerImpact(style: .soft)
         })
 #endif
 #if os(macOS)
@@ -111,7 +111,10 @@ struct LikeButton: View {
                 ])
                 
                 // Request review when user favorites a post (only once per session)
-                requestReview()
+                if !SessionManager.shared.hasRequestedReview {
+                    requestReview()
+                    SessionManager.shared.hasRequestedReview = true
+                }
             }
         } catch {
             print("Error toggling like:", error)

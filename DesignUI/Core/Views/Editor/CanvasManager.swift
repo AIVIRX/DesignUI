@@ -47,26 +47,36 @@ class CanvasManager: ObservableObject {
     @Published var canvasOffset: CGSize = .zero
     @Published var centerCanvasTrigger: Bool = false // Triggers canvas centering when toggled
     
+    // Ripple effect trigger for add/delete actions
+    @Published var rippleTrigger: Int = 0
+    @Published var rippleOrigin: CGPoint = CGPoint(x: 200, y: 400) // Default center-ish
+    
     // Special status bar component
     @Published var statusBarComponent: UIComponent?
     
     // Design name for code generation
     @Published var designName: String = "GeneratedView"
     
-    // Undo/Redo
-    private var undoStack: [CanvasState] = []
-    private var redoStack: [CanvasState] = []
+    // Undo/Redo with action descriptions
+    private var undoStack: [UndoableAction] = []
+    private var redoStack: [UndoableAction] = []
     private let maxUndoSteps = 50
     private var saveStateWorkItem: DispatchWorkItem?
     private var lastSavedState: CanvasState? // Track last saved state to prevent duplicates
+    
+    // Toast message for undo/redo feedback
+    @Published var undoMessage: String? = nil
+    
+    // Current action description (set before making changes)
+    private var pendingActionDescription: String? = nil
     
     // Clipboard for copy/paste
     private var clipboard: UIComponent?
     var hasClipboardContent: Bool { clipboard != nil }
     
     var canUndo: Bool { 
-        // Can undo if we have more than one state (base state + at least one change)
-        undoStack.count > 1
+        // Can undo if we have at least one action
+        !undoStack.isEmpty
     }
     var canRedo: Bool { !redoStack.isEmpty }
     
@@ -76,16 +86,6 @@ class CanvasManager: ObservableObject {
         selectedComponent = nil
         statusBarComponent = createStatusBarComponent()
         // Don't save state in init - wait until design is loaded
-        
-        // Listen for BEFORE changes - save state synchronously for undo support
-        NotificationCenter.default.addObserver(
-            forName: .designWillChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            // Save state immediately BEFORE the change happens
-            self?.saveStateForUndo()
-        }
         
         // Listen for AFTER changes - persist to file (debounced)
         NotificationCenter.default.addObserver(
@@ -124,26 +124,21 @@ class CanvasManager: ObservableObject {
     
     // MARK: - Component Management
     func addComponent(_ component: UIComponent) {
-        // Cancel any pending debounced saves
-        saveStateWorkItem?.cancel()
-        saveStateWorkItem = nil
-        
-        // Save state BEFORE making the change - FORCE save to ensure we capture the state before addition
-        saveState(force: true)
+        // Register undo action with description BEFORE making the change
+        registerUndoAction("Added \(component.type.rawValue)")
         
         components.append(component)
         selectedComponent = component
+        
+        // Trigger ripple effect
+        rippleTrigger += 1
     }
     
     func addComponentToContainer(_ component: UIComponent, container: UIComponent) {
         // Check if the container can accept children (like ScrollView, VStack, etc.)
         if canAcceptChildren(container) {
-            // Cancel any pending debounced saves
-            saveStateWorkItem?.cancel()
-            saveStateWorkItem = nil
-            
-            // Save state BEFORE making the change - FORCE save to ensure we capture the state before change
-            saveState(force: true)
+            // Register undo action with description BEFORE making the change
+            registerUndoAction("Added \(component.type.rawValue) to \(container.type.rawValue)")
             
             // Remove component from root level if it exists there
             components.removeAll { $0.id == component.id }
@@ -169,18 +164,14 @@ class CanvasManager: ObservableObject {
     func removeComponent(_ component: UIComponent) {
         print("🗑️ removeComponent: Removing component \(component.id.uuidString.prefix(8)), current count: \(components.count)")
         
-        // Cancel any pending debounced saves
-        saveStateWorkItem?.cancel()
-        saveStateWorkItem = nil
-        
-        // Save state BEFORE making the change - FORCE save to ensure we capture the state with component
-        saveState(force: true)
-        
         // Find the actual component in the hierarchy to get its full children tree
         guard let actualComponent = findComponent(by: component.id) else {
             print("⚠️ removeComponent: Component not found in hierarchy")
             return
         }
+        
+        // Register undo action with description BEFORE making the change
+        registerUndoAction("Deleted \(actualComponent.type.rawValue)")
         
         // Check if this is a modifier-child (mask/background/overlay parent component)
         // If so, we need to also remove the modifier from the parent component
@@ -217,6 +208,9 @@ class CanvasManager: ObservableObject {
         if let selectedId = selectedComponent?.id, idsToRemove.contains(selectedId) {
             selectedComponent = nil
         }
+        
+        // Trigger ripple effect
+        rippleTrigger += 1
         
         print("🗑️ removeComponent: After removal, count: \(components.count)")
     }
@@ -600,7 +594,11 @@ class CanvasManager: ObservableObject {
         // Only allow valid container types
         guard type == .vstack || type == .hstack || type == .zstack || type == .scrollView else { return }
         
-        let container = UIComponent(type: type, children: [])
+        let container = UIComponent(
+            type: type,
+            properties: UIComponent.defaultProperties(for: type),
+            children: []
+        )
         
         // Find parent and index
         if let parentId = findParentId(of: component.id), let parentComponent = findComponent(by: parentId) {
@@ -835,50 +833,68 @@ class CanvasManager: ObservableObject {
     // MARK: - Undo/Redo
     
     /// Save the initial state when loading a design file
-    /// This creates the base state that undo can return to
+    /// This clears undo history for a fresh start
     func saveInitialState() {
         // Cancel any pending work
         saveStateWorkItem?.cancel()
         saveStateWorkItem = nil
         isRestoringState = false
         
-        let state = CanvasState(
-            components: deepCopyComponents(components)
-        )
-        
-        // Clear any existing stack and set this as the only state
-        undoStack = [state]
+        // Clear undo/redo stacks for fresh start
+        undoStack.removeAll()
         redoStack.removeAll()
+        
+        let state = CanvasState(components: deepCopyComponents(components))
         lastSavedState = state
         
-        print("💾 saveInitialState: Saved initial state with \(state.components.count) components")
+        print("💾 saveInitialState: Initialized with \(state.components.count) components")
     }
     
-    /// Called BEFORE a mutation happens (via .designWillChange notification)
-    /// This saves the current state so undo can restore it
-    private func saveStateForUndo() {
-        // Don't save state while we're restoring (undo/redo in progress)
+    /// Register an undoable action with a description
+    /// Call this BEFORE making the change, and the state will be captured
+    /// - Parameters:
+    ///   - description: Human readable description of the action
+    ///   - coalesceKey: Optional key to group rapid updates (e.g., continuous slider movement)
+    func registerUndoAction(_ description: String, coalesceKey: String? = nil) {
+        // Don't register while we're restoring (undo/redo in progress)
         guard !isRestoringState else {
-            print("🔄 saveStateForUndo: Skipping - currently restoring state")
+            print("🔄 registerUndoAction: Skipping - currently restoring state")
             return
         }
         
-        // Coalesce rapid changes - if we just saved, skip
-        // This prevents multiple saves for a single user action
-        let now = Date()
-        if let lastSave = lastUndoSaveTime, now.timeIntervalSince(lastSave) < 0.1 {
-            print("🔄 saveStateForUndo: Skipping - coalescing rapid changes")
+        // Coalescing logic:
+        // If we have a coalesceKey, check if the last action matches it AND is recent (< 0.5s)
+        if let key = coalesceKey, let lastAction = undoStack.last,
+           lastAction.coalesceKey == key,
+           Date().timeIntervalSince(lastAction.timestamp) < 1.0 { // 1.0 second threshold
+            print("🔄 registerUndoAction: Coalescing with previous action '\(key)'")
+            // We update the description but KEEP the original stateBefore
+            // This ensures undo reverts to the state BEFORE the *first* coalesced action
+            
+            // We need to replace the last action with a new one that has updated timestamp/description
+            // but same stateBefore
+            let updatedAction = UndoableAction(
+                description: description,
+                stateBefore: lastAction.stateBefore,
+                timestamp: Date(),
+                coalesceKey: key
+            )
+            undoStack.removeLast()
+            undoStack.append(updatedAction)
             return
         }
-        lastUndoSaveTime = now
         
-        let state = CanvasState(
-            components: deepCopyComponents(components)
+        // Capture the current state BEFORE the change
+        let stateBefore = CanvasState(components: deepCopyComponents(components))
+        
+        let action = UndoableAction(
+            description: description,
+            stateBefore: stateBefore,
+            timestamp: Date(),
+            coalesceKey: coalesceKey
         )
         
-        print("💾 saveStateForUndo: Stack size before: \(undoStack.count)")
-        
-        undoStack.append(state)
+        undoStack.append(action)
         if undoStack.count > maxUndoSteps {
             undoStack.removeFirst()
         }
@@ -886,15 +902,17 @@ class CanvasManager: ObservableObject {
         // Clear redo stack when new action is performed
         redoStack.removeAll()
         
-        // Update last saved state
-        lastSavedState = state
-        
-        print("💾 saveStateForUndo: Stack size after: \(undoStack.count)")
+        print("💾 registerUndoAction: '\(description)' - stack size: \(undoStack.count)")
     }
     
-    /// This is kept for backward compatibility with explicit saveState calls in CanvasManager
+    /// Legacy method - now a no-op, use registerUndoAction instead
     func saveState(force: Bool = false) {
-        saveStateForUndo()
+        // No-op - use registerUndoAction with explicit description instead
+    }
+    
+    /// Legacy method - no-op
+    private func saveStateForUndo() {
+        // No-op - use registerUndoAction with explicit description instead
     }
     
     /// Mark design as needing to be persisted (but don't save undo state)
@@ -929,46 +947,67 @@ class CanvasManager: ObservableObject {
     private var lastUndoSaveTime: Date?
     
     func undo() {
-        // Need at least 2 states: the current state and a previous state to go back to
-        guard undoStack.count >= 1 else { 
+        guard let action = undoStack.popLast() else { 
             print("↩️ undo: Cannot undo - stack empty")
             return 
         }
         
-        print("↩️ undo: Stack has \(undoStack.count) states, redo has \(redoStack.count)")
+        print("↩️ undo: '\(action.description)' - stack has \(undoStack.count) remaining")
         
-        // Save current state to redo stack BEFORE restoring
-        let currentState = CanvasState(
-            components: deepCopyComponents(components)
+        // Save current state to redo stack BEFORE restoring (with the same description)
+        let currentState = CanvasState(components: deepCopyComponents(components))
+        let redoAction = UndoableAction(
+            description: action.description,
+            stateBefore: currentState,
+            timestamp: Date(),
+            coalesceKey: action.coalesceKey
         )
-        redoStack.append(currentState)
+        redoStack.append(redoAction)
         
-        // Pop and restore the previous state
-        let previousState = undoStack.removeLast()
+        // Restore the previous state
+        restoreState(action.stateBefore)
         
-        print("↩️ undo: Restoring state with \(previousState.components.count) components")
-        restoreState(previousState)
+        // Show toast message
+        undoMessage = "Undo: \(action.description)"
+        
+        // Auto-dismiss toast after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            if self?.undoMessage == "Undo: \(action.description)" {
+                self?.undoMessage = nil
+            }
+        }
     }
     
     func redo() {
-        guard !redoStack.isEmpty else { 
+        guard let action = redoStack.popLast() else { 
             print("↪️ redo: Cannot redo - stack empty")
             return 
         }
         
-        print("↪️ redo: Redo stack has \(redoStack.count) states")
+        print("↪️ redo: '\(action.description)' - redo stack has \(redoStack.count) remaining")
         
         // Save current state to undo stack BEFORE restoring
-        let currentState = CanvasState(
-            components: deepCopyComponents(components)
+        let currentState = CanvasState(components: deepCopyComponents(components))
+        let undoAction = UndoableAction(
+            description: action.description,
+            stateBefore: currentState,
+            timestamp: Date(),
+            coalesceKey: action.coalesceKey
         )
-        undoStack.append(currentState)
+        undoStack.append(undoAction)
         
-        // Pop and restore the next state
-        let nextState = redoStack.removeLast()
+        // Restore the redo state
+        restoreState(action.stateBefore)
         
-        print("↪️ redo: Restoring state with \(nextState.components.count) components")
-        restoreState(nextState)
+        // Show toast message
+        undoMessage = "Redo: \(action.description)"
+        
+        // Auto-dismiss toast after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            if self?.undoMessage == "Redo: \(action.description)" {
+                self?.undoMessage = nil
+            }
+        }
     }
     
     private func restoreState(_ state: CanvasState) {
@@ -1015,6 +1054,91 @@ class CanvasManager: ObservableObject {
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
+    // MARK: - Modifier Management
+    func addModifier(to component: UIComponent, modifier: ComponentModifier) {
+        // Find the actual component in the hierarchy
+        guard let actualComponent = findComponent(by: component.id) else {
+            print("⚠️ addModifier: Component not found in hierarchy")
+            return
+        }
+        
+        registerUndoAction("Added \(modifier.type.rawValue) modifier")
+        
+        actualComponent.addModifier(modifier)
+        
+        // Trigger ripple effect
+        rippleTrigger += 1
+        
+        // Ensure UI updates
+        actualComponent.objectWillChange.send()
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+    
+    func removeModifier(from component: UIComponent, modifier: ComponentModifier) {
+        // Find the actual component in the hierarchy
+        guard let actualComponent = findComponent(by: component.id) else {
+            print("⚠️ removeModifier: Component not found in hierarchy")
+            return
+        }
+        
+        registerUndoAction("Deleted \(modifier.type.rawValue) modifier")
+        
+        actualComponent.removeModifier(modifier)
+        
+        // Trigger ripple effect
+        rippleTrigger += 1
+        
+        // Ensure UI updates
+        actualComponent.objectWillChange.send()
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+    
+    func duplicateModifier(for component: UIComponent, modifier: ComponentModifier) {
+        // Find the actual component in the hierarchy
+        guard let actualComponent = findComponent(by: component.id) else {
+            print("⚠️ duplicateModifier: Component not found in hierarchy")
+            return
+        }
+        
+        // Find the index of the original modifier
+        guard let index = actualComponent.modifiers.firstIndex(where: { $0.id == modifier.id }) else {
+            return
+        }
+
+        registerUndoAction("Duplicated \(modifier.type.rawValue) modifier")
+        
+        // Create a new modifier with the same type and properties
+        let duplicatedModifier = ComponentModifier(
+            type: modifier.type,
+            properties: modifier.properties
+        )
+        
+        // Insert the duplicate right after the current modifier
+        actualComponent.modifiers.insert(duplicatedModifier, at: index + 1)
+        
+        // Ensure UI updates
+        actualComponent.objectWillChange.send()
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+    
+    func updateModifier(for component: UIComponent, modifier: ComponentModifier) {
+        // Find the actual component in the hierarchy
+        guard let actualComponent = findComponent(by: component.id) else {
+            print("⚠️ updateModifier: Component not found in hierarchy")
+            return
+        }
+        
+        // Use a persistent key for coalescing based on modifier ID
+        let coalesceKey = "update_modifier_\(modifier.id.uuidString)"
+        registerUndoAction("Updated \(modifier.type.rawValue)", coalesceKey: coalesceKey)
+        
+        actualComponent.updateModifier(modifier)
+        
+        // Ensure UI updates
+        actualComponent.objectWillChange.send()
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+
     // MARK: - Overlay Management
     func createOverlayFolder(for component: UIComponent) {
         // Create a default overlay component (a simple text badge)
@@ -1080,4 +1204,13 @@ class CanvasManager: ObservableObject {
 // MARK: - Canvas State
 struct CanvasState {
     let components: [UIComponent]
+}
+
+// MARK: - Undoable Action
+/// Combines a human-readable description with a full state snapshot
+struct UndoableAction {
+    let description: String  // e.g., "Deleted Text component"
+    let stateBefore: CanvasState  // State before the action (for undo)
+    let timestamp: Date  // When this action occurred (for coalescing)
+    let coalesceKey: String? // Key for grouping related actions (e.g. typing)
 }

@@ -238,6 +238,10 @@ struct CanvasView: View {
                 .frame(width: deviceSize.width, height: deviceSize.height)
                 .background(Color.clear) // Placeholder/Clear background
                 .colorScheme(colorScheme ?? .light)
+                .modifier(RippleEffect(
+                    at: CGPoint(x: deviceSize.width / 2, y: deviceSize.height / 2),
+                    trigger: canvasManager.rippleTrigger
+                ))
             }
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }
@@ -329,7 +333,6 @@ struct ComponentsContainerWithStatusBar: View {
             }
             
             ForEach(components, id: \.id) { component in
-                // let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                 ComponentView(
                     component: component,
                     isSelected: canvasManager.selectedComponentIds.contains(component.id),
@@ -353,10 +356,8 @@ struct ComponentsContainerWithStatusBar: View {
                     removal: .opacity.combined(with: .scale(scale: 0.95))
                 ))
                 .onAppear {
-                    print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                     // Force a refresh after a short delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        // print("🎨 ComponentView force refresh for \(component.type.rawValue)")
                     }
                 }
             }
@@ -406,7 +407,6 @@ struct ComponentsContainerWithoutStatusBar: View {
     var body: some View {
         VStack(spacing: 0) {
             ForEach(components, id: \.id) { component in
-                // let _ = print("🎨 Rendering component: \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                 ComponentView(
                     component: component,
                     isSelected: canvasManager.selectedComponentIds.contains(component.id),
@@ -430,10 +430,8 @@ struct ComponentsContainerWithoutStatusBar: View {
                     removal: .opacity.combined(with: .scale(scale: 0.95))
                 ))
                 .onAppear {
-                    print("🎨 ComponentView appeared for \(component.type.rawValue) with \(component.modifiers.count) modifiers")
                     // Force a refresh after a short delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        // print("🎨 ComponentView force refresh for \(component.type.rawValue)")
                     }
                 }
             }
@@ -471,7 +469,6 @@ struct ComponentsContainerWithoutStatusBar: View {
     }
 }
 
-// MARK: - Status Bar Container View
 // Separate view to observe the status bar component's isVisible property
 struct StatusBarContainerView: View {
     @ObservedObject var statusBarComponent: UIComponent
@@ -480,7 +477,6 @@ struct StatusBarContainerView: View {
     let colorScheme: ColorScheme?
     let statusBarHasBackground: Bool
     let onSelect: () -> Void
-    
     var body: some View {
         if statusBarComponent.isVisible {
             StatusBarView(
@@ -495,7 +491,6 @@ struct StatusBarContainerView: View {
     }
 }
 
-// MARK: - Scroll Handler for macOS
 // MARK: - Scroll Handler for macOS
 #if os(macOS)
 /// NSViewRepresentable for trackpad scroll (pan) and Cmd+scroll (zoom)

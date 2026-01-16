@@ -36,6 +36,28 @@ enum ModifierType: String, CaseIterable, Identifiable, Codable {
     
     var id: String { rawValue }
     
+    // Custom decoder to handle legacy modifier type names
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        // Handle legacy names
+        switch rawValue {
+        case "Font Size", "Font Weight":
+            self = .font
+        default:
+            guard let type = ModifierType(rawValue: rawValue) else {
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: decoder.codingPath,
+                        debugDescription: "Cannot initialize ModifierType from invalid String value \(rawValue)"
+                    )
+                )
+            }
+            self = type
+        }
+    }
+    
     var description: String {
         switch self {
         case .frame:

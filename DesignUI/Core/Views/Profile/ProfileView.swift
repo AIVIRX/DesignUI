@@ -42,14 +42,23 @@ struct ProfileView: View {
                     // Profile Header
                     VStack(spacing: 16) {
                         // Avatar
-                        ZStack {
-                            Circle()
-                                .fill(Color.blue.opacity(0.8)) // Customize color
-                                .frame(width: 80, height: 80)
+                        ZStack(alignment: .bottomTrailing) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.8)) // Customize color
+                                    .frame(width: 80, height: 80)
+                                
+                                Text(viewModel.profile?.display_name?.prefix(1).uppercased() ?? "?")
+                                    .font(.system(size: 36, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
                             
-                            Text(viewModel.profile?.display_name?.prefix(1).uppercased() ?? "?")
-                                .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(.white)
+                            if viewModel.profile?.verified == true {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.blue)
+                                    .offset(x: 2, y: 2)
+                            }
                         }
                         // User Info
                         VStack(spacing: 8) {
@@ -57,12 +66,6 @@ struct ProfileView: View {
                             Text(viewModel.profile?.display_name ?? "user")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                
-                                if viewModel.profile?.verified == true {
-                                    Image(systemName: "checkmark.seal.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.blue)
-                                }
                             }
                             
                             Text("@\(viewModel.profile?.username ?? "username")")

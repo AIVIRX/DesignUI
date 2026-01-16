@@ -19,6 +19,9 @@
 		EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
+		EC37CE232F195EF3006CFD08 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE222F195EEC006CFD08 /* DetailView.swift */; };
+		EC37CE252F196758006CFD08 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE242F196751006CFD08 /* DesignCards.swift */; };
+		EC37CE512F19C1F6006CFD08 /* UndoToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE502F19C1F6006CFD08 /* UndoToastView.swift */; };
 		EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D132D2E1DABCE00F659DB /* LargeHero.swift */; };
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
@@ -40,8 +43,6 @@
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
 		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
 		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
-		EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF22C19E543003134B1 /* DetailView.swift */; };
-		EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF42C19E546003134B1 /* DesignCards.swift */; };
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
 		EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
@@ -53,6 +54,10 @@
 		EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54702E187FA700AAE9EC /* BlogListView.swift */; };
 		EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */; };
 		EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54742E1889B700AAE9EC /* NewsContentView.swift */; };
+		ECAF05632F189B1F008F9BEA /* RippleModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05612F189B1F008F9BEA /* RippleModifier.swift */; };
+		ECAF05642F189B1F008F9BEA /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05622F189B1F008F9BEA /* SessionManager.swift */; };
+		ECAF05692F18B21A008F9BEA /* Ripples.metal in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05682F18B21A008F9BEA /* Ripples.metal */; };
+		ECAF056B2F18B826008F9BEA /* RippleImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF056A2F18B826008F9BEA /* RippleImageView.swift */; };
 		ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA42EB06B5D00420663 /* RevenueCat */; };
 		ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA62EB06B5D00420663 /* RevenueCatUI */; };
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
@@ -87,7 +92,6 @@
 		ECB94C9A2EFB0D21000AAF34 /* OpacityModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C8A2EFB0D21000AAF34 /* OpacityModifierEditor.swift */; };
 		ECB94C9B2EFB0D21000AAF34 /* OverlayModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C8B2EFB0D21000AAF34 /* OverlayModifierEditor.swift */; };
 		ECB94CA22EFB1041000AAF34 /* MissingModifierEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94CA12EFB1041000AAF34 /* MissingModifierEditors.swift */; };
-		ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = ECC527532E270E5E00DAA548 /* StatefulTabView */; };
 		ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */; };
 		ECC527602E27155000DAA548 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275F2E27155000DAA548 /* Supabase */; };
 		ECC527622E27155500DAA548 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527612E27155500DAA548 /* Storage */; };
@@ -104,8 +108,6 @@
 		ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */; };
 		ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */; };
 		ECDF3CDC2F18380B00C68936 /* MasonryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */; };
-		ECDF3CE02F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF3CDF2F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift */; };
-		ECDF3CE22F184A0900C68936 /* FullScreenToolbarModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF3CE12F184A0900C68936 /* FullScreenToolbarModifier.swift */; };
 		ECE995512C98881000C60416 /* TemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE995502C98881000C60416 /* TemplateView.swift */; };
 		ECFC6AC62EA9C48400177480 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ECFC6AC52EA9C48400177480 /* AppIcon.icon */; };
 		ECFDEA122F0F805C00540DD3 /* LatestPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */; };
@@ -131,6 +133,9 @@
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = ConfigStore.storekit; sourceTree = "<group>"; };
+		EC37CE222F195EEC006CFD08 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
+		EC37CE242F196751006CFD08 /* DesignCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
+		EC37CE502F19C1F6006CFD08 /* UndoToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoToastView.swift; sourceTree = "<group>"; };
 		EC3D132D2E1DABCE00F659DB /* LargeHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHero.swift; sourceTree = "<group>"; };
 		EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollView.swift; sourceTree = "<group>"; };
 		EC419E5B2E85D6B60081C5D2 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
@@ -153,8 +158,6 @@
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		EC7D7BF22C19E543003134B1 /* DetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
-		EC7D7BF42C19E546003134B1 /* DesignCards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignCards.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
 		EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -167,6 +170,10 @@
 		EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogDetailView.swift; sourceTree = "<group>"; };
 		EC9F54742E1889B700AAE9EC /* NewsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsContentView.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ECAF05612F189B1F008F9BEA /* RippleModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleModifier.swift; sourceTree = "<group>"; };
+		ECAF05622F189B1F008F9BEA /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
+		ECAF05682F18B21A008F9BEA /* Ripples.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ripples.metal; sourceTree = "<group>"; };
+		ECAF056A2F18B826008F9BEA /* RippleImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleImageView.swift; sourceTree = "<group>"; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
 		ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasScreenshotView.swift; sourceTree = "<group>"; };
@@ -209,8 +216,6 @@
 		ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
 		ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSetupView.swift; sourceTree = "<group>"; };
 		ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasonryGrid.swift; sourceTree = "<group>"; };
-		ECDF3CDF2F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollEdgeEffectHiddenModifier.swift; sourceTree = "<group>"; };
-		ECDF3CE12F184A0900C68936 /* FullScreenToolbarModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenToolbarModifier.swift; sourceTree = "<group>"; };
 		ECE995502C98881000C60416 /* TemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateView.swift; sourceTree = "<group>"; };
 		ECFC6AC52EA9C48400177480 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatestPostsViewModel.swift; sourceTree = "<group>"; };
@@ -227,7 +232,6 @@
 			files = (
 				EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */,
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
-				ECC527542E270E5E00DAA548 /* StatefulTabView in Frameworks */,
 				ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */,
 				ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */,
 				EC70F8502EB6C2FD001D39DC /* GoogleMobileAds in Frameworks */,
@@ -309,9 +313,18 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		ECAF05662F189D2E008F9BEA /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				ECAF05682F18B21A008F9BEA /* Ripples.metal */,
+			);
+			path = Shaders;
+			sourceTree = "<group>";
+		};
 		ECB94C542EFB0C19000AAF34 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				EC37CE502F19C1F6006CFD08 /* UndoToastView.swift */,
 				ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */,
 				ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */,
 				ECB94C592EFB0C6F000AAF34 /* CanvasView.swift */,
@@ -369,6 +382,7 @@
 		ECD13FD32C18BA7B00105B3E /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				ECAF05662F189D2E008F9BEA /* Shaders */,
 				ECD13FF92C18BF8800105B3E /* Components */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
 				ECD13FFE2C18C12400105B3E /* Resources */,
@@ -381,8 +395,8 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				ECDF3CE12F184A0900C68936 /* FullScreenToolbarModifier.swift */,
-				ECDF3CDF2F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift */,
+				ECAF05612F189B1F008F9BEA /* RippleModifier.swift */,
+				ECAF05622F189B1F008F9BEA /* SessionManager.swift */,
 				EC70F84C2EB6C280001D39DC /* AdManager.swift */,
 				AA000002AAAA000100000001 /* AppLoadingState.swift */,
 				BA0806D04A0548A1B5E07322 /* ColorSchemeManager.swift */,
@@ -455,8 +469,9 @@
 		ECD13FEA2C18BE5C00105B3E /* PostCards */ = {
 			isa = PBXGroup;
 			children = (
-				EC7D7BF42C19E546003134B1 /* DesignCards.swift */,
-				EC7D7BF22C19E543003134B1 /* DetailView.swift */,
+				EC37CE242F196751006CFD08 /* DesignCards.swift */,
+				EC37CE222F195EEC006CFD08 /* DetailView.swift */,
+				ECAF056A2F18B826008F9BEA /* RippleImageView.swift */,
 				EC59829F2D568E5500633392 /* LikeButton.swift */,
 				ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */,
 			);
@@ -528,7 +543,6 @@
 			);
 			name = DesignUI;
 			packageProductDependencies = (
-				ECC527532E270E5E00DAA548 /* StatefulTabView */,
 				ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */,
 				ECC5275F2E27155000DAA548 /* Supabase */,
 				ECC527612E27155500DAA548 /* Storage */,
@@ -609,7 +623,6 @@
 			);
 			mainGroup = ECADF5F22BCAE9610096753A;
 			packageReferences = (
-				ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */,
 				ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
@@ -646,6 +659,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ECAF056B2F18B826008F9BEA /* RippleImageView.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */,
 				ECFDEA122F0F805C00540DD3 /* LatestPostsViewModel.swift in Sources */,
@@ -657,9 +671,11 @@
 				ECB94C6C2EFB0C6F000AAF34 /* ComponentLibraryView.swift in Sources */,
 				ECDF3CDC2F18380B00C68936 /* MasonryGrid.swift in Sources */,
 				ECB94C6D2EFB0C6F000AAF34 /* CanvasView.swift in Sources */,
+				ECAF05692F18B21A008F9BEA /* Ripples.metal in Sources */,
 				ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */,
 				ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */,
 				ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */,
+				EC37CE252F196758006CFD08 /* DesignCards.swift in Sources */,
 				ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */,
 				ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */,
 				ECB94C752EFB0C6F000AAF34 /* LayersPanelView.swift in Sources */,
@@ -667,6 +683,7 @@
 				ECB94C772EFB0C6F000AAF34 /* DesignBrowserView.swift in Sources */,
 				ECB94C782EFB0C6F000AAF34 /* CanvasScreenshotView.swift in Sources */,
 				ECB94C792EFB0C6F000AAF34 /* Modifier.swift in Sources */,
+				EC37CE512F19C1F6006CFD08 /* UndoToastView.swift in Sources */,
 				ECB94C7A2EFB0C6F000AAF34 /* UIComponent.swift in Sources */,
 				ECB94C7B2EFB0C6F000AAF34 /* ModifierPanelView.swift in Sources */,
 				ECB94C7D2EFB0C6F000AAF34 /* PropertiesPanelView.swift in Sources */,
@@ -682,20 +699,17 @@
 				EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */,
 				EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */,
 				ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */,
-				EC7D7BF52C19E546003134B1 /* DesignCards.swift in Sources */,
 				EC0C95C72EB2A18F00AA6A84 /* CustomPaywallView.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC5982A42D57F54000633392 /* GridColumns.swift in Sources */,
 				EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */,
 				EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */,
 				EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */,
-				ECDF3CE02F1848AA00C68936 /* ScrollEdgeEffectHiddenModifier.swift in Sources */,
 				EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				ECB94C902EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift in Sources */,
 				ECB94C922EFB0D21000AAF34 /* FontModifierEditor.swift in Sources */,
 				ECB94C932EFB0D21000AAF34 /* BackgroundModifierEditor.swift in Sources */,
-				ECDF3CE22F184A0900C68936 /* FullScreenToolbarModifier.swift in Sources */,
 				ECB94C942EFB0D21000AAF34 /* TransformModifierEditors.swift in Sources */,
 				ECB94C952EFB0D21000AAF34 /* PaddingModifierEditor.swift in Sources */,
 				ECB94C962EFB0D21000AAF34 /* ShadowModifierEditor.swift in Sources */,
@@ -708,14 +722,16 @@
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
+				ECAF05632F189B1F008F9BEA /* RippleModifier.swift in Sources */,
+				ECAF05642F189B1F008F9BEA /* SessionManager.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
+				EC37CE232F195EF3006CFD08 /* DetailView.swift in Sources */,
 				EC50CFB62D1393B9006586DA /* Profile.swift in Sources */,
 				EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */,
 				EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */,
 				ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */,
 				EC53EB802D91CD6300E175DB /* HapticManager.swift in Sources */,
-				EC7D7BF32C19E543003134B1 /* DetailView.swift in Sources */,
 				ECB94CA22EFB1041000AAF34 /* MissingModifierEditors.swift in Sources */,
 				ECE995512C98881000C60416 /* TemplateView.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
@@ -904,6 +920,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
@@ -981,6 +998,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
@@ -1069,14 +1087,6 @@
 				minimumVersion = 5.45.0;
 			};
 		};
-		ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/NicholasBellucci/StatefulTabView";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.10;
-			};
-		};
 		ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift.git";
@@ -1110,11 +1120,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCatUI;
-		};
-		ECC527532E270E5E00DAA548 /* StatefulTabView */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECC527522E270E5E00DAA548 /* XCRemoteSwiftPackageReference "StatefulTabView" */;
-			productName = StatefulTabView;
 		};
 		ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;

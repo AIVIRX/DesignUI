@@ -106,10 +106,24 @@ struct LargeHero: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Animated Mesh Gradient Background
+            // Animated Mesh Gradient Background - stretches on overscroll
             AnimatedMeshGradientBackground(theme: theme)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius ?? 20))
+                .visualEffect { effect, geometry in
+                    let currentHeight = geometry.size.height
+                    let scrollOffset = geometry.frame(in: .scrollView).minY
+                    let positiveOffset = max(0, scrollOffset)
+                    let newHeight = currentHeight + positiveOffset
+                    let scaleFactor = newHeight / currentHeight
+                    
+                    return effect.scaleEffect(
+                        x: scaleFactor,
+                        y: scaleFactor,
+                        anchor: .bottom
+                    )
+                }
             
-            // Content overlay - counter-scaled to stay fixed during stretch
+            // Content overlay - stays fixed at bottom
             VStack(alignment: .leading, spacing: 10) {
                 Spacer()
                 
@@ -126,27 +140,36 @@ struct LargeHero: View {
                     .lineLimit(3)
                     .frame(maxWidth: 300, alignment: .leading)
                 
-                // CTA Button
-                if let buttonTitle = buttonTitle, let onButtonTap = onButtonTap {
-                    Button(action: onButtonTap) {
-                        Text(buttonTitle)
+                // CTA Button - always reserve space for consistent height
+                Group {
+                    if let buttonTitle = buttonTitle, let onButtonTap = onButtonTap {
+                        Button(action: onButtonTap) {
+                            Text(buttonTitle)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.white.opacity(0.25))
+                                )
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        // Invisible placeholder to maintain consistent height
+                        Text("Placeholder")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white.opacity(0.25))
-                            )
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                            )
+                            .opacity(0)
                     }
-                    .buttonStyle(.plain)
-                    .padding(.top, 4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .padding(.top, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Spacer()
                     .frame(height: 8)
@@ -154,24 +177,8 @@ struct LargeHero: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 28)
             .frame(maxWidth: 1600)
-            // Counter-scale to keep text stationary
-            .visualEffect { effect, geometry in
-                let currentHeight = geometry.size.height
-                let scrollOffset = geometry.frame(in: .scrollView).minY
-                let positiveOffset = max(0, scrollOffset)
-                let newHeight = currentHeight + positiveOffset
-                let scaleFactor = currentHeight / newHeight // Inverse scale
-                
-                return effect.scaleEffect(
-                    x: scaleFactor,
-                    y: scaleFactor,
-                    anchor: .bottom
-                )
-            }
         }
         .frame(height: height)
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius ?? 20))
-        .stretchy()
     }
 }
 

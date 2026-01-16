@@ -295,13 +295,6 @@ class DesignManager: ObservableObject {
         print("🔍 Checking iCloud availability...")
         print("🔍 Container identifier: \(containerIdentifier)")
         
-        // Check if iCloud is available
-        if let ubiquityIdentityToken = FileManager.default.ubiquityIdentityToken {
-            print("☁️ iCloud identity token found: \(ubiquityIdentityToken)")
-        } else {
-            print("⚠️ No iCloud identity token - user may not be signed in to iCloud")
-        }
-        
         let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier)?
             .appendingPathComponent("Documents/DockUI")
         
@@ -312,7 +305,6 @@ class DesignManager: ObservableObject {
             // Ensure directory exists
             do {
                 try FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
-                print("☁️ iCloud directory created/verified: \(ubiquityURL.path)")
             } catch {
                 print("⚠️ Failed to create iCloud directory: \(error)")
             }
@@ -339,9 +331,7 @@ class DesignManager: ObservableObject {
         self.storageStatus = finalStorageStatus
         self.documentsDirectory = finalDesignsDirectory.deletingLastPathComponent()
         
-        print("🚀 DesignManager initialized")
         print("📁 Designs Directory: \(designsDirectory.path)")
-        print("📊 Storage Status: \(storageStatus)")
         
         createDesignsDirectoryIfNeeded()
         migrateFromUserDocuments()
@@ -369,7 +359,6 @@ class DesignManager: ObservableObject {
             if let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier)?
                 .appendingPathComponent("Documents/DockUI") {
                 
-                print("☁️ iCloud became available on retry!")
                 
                 // Create directory if needed
                 do {
@@ -396,9 +385,7 @@ class DesignManager: ObservableObject {
                 DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 3.0) {
                     if let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier)?
                         .appendingPathComponent("Documents/DockUI") {
-                        
-                        print("☁️ iCloud became available on second retry!")
-                        
+                                                
                         do {
                             try FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
                         } catch {
@@ -431,12 +418,9 @@ class DesignManager: ObservableObject {
     // MARK: - iCloud File Discovery
     private func startICloudQuery() {
         guard !isQueryRunning else {
-            print("☁️ iCloud query already running")
             return
         }
-        
-        print("☁️ Starting iCloud metadata query...")
-        
+                
         // Stop any existing query
         metadataQuery?.stop()
         
@@ -463,12 +447,6 @@ class DesignManager: ObservableObject {
         
         metadataQuery = query
         isQueryRunning = query.start()
-        
-        if isQueryRunning {
-            print("☁️ iCloud metadata query started successfully")
-        } else {
-            print("⚠️ Failed to start iCloud metadata query")
-        }
     }
     
     @objc private func handleICloudQueryDidFinishGathering(_ notification: Notification) {
@@ -488,7 +466,6 @@ class DesignManager: ObservableObject {
     }
     
     private func processICloudQueryResults(_ query: NSMetadataQuery) {
-        print("☁️ Processing iCloud query results: \(query.resultCount) items found")
         
         var foundNewFiles = false
         
@@ -499,14 +476,12 @@ class DesignManager: ObservableObject {
             }
             
             let fileName = fileURL.lastPathComponent
-            print("☁️ Found iCloud file: \(fileName)")
             
             // Check download status
             let downloadStatus = metadataItem.value(forAttribute: NSMetadataUbiquitousItemDownloadingStatusKey) as? String
             let isDownloaded = downloadStatus == NSMetadataUbiquitousItemDownloadingStatusCurrent
             
             if !isDownloaded {
-                print("☁️ File not downloaded locally, initiating download: \(fileName)")
                 do {
                     try FileManager.default.startDownloadingUbiquitousItem(at: fileURL)
                     foundNewFiles = true
@@ -524,7 +499,6 @@ class DesignManager: ObservableObject {
                             if !self.designFiles.contains(where: { $0.fileURL == fileURL }) {
                                 self.designFiles.append(designFile)
                                 self.designFiles.sort { $0.lastModified > $1.lastModified }
-                                print("✅ Added iCloud design: \(designFile.name)")
                             }
                         }
                     }
@@ -535,7 +509,6 @@ class DesignManager: ObservableObject {
         // If there were downloads initiated, reload after a delay
         if foundNewFiles {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                print("☁️ Reloading design files after iCloud downloads...")
                 self.loadDesignFiles()
             }
         }
@@ -545,13 +518,11 @@ class DesignManager: ObservableObject {
         metadataQuery?.stop()
         metadataQuery = nil
         isQueryRunning = false
-        print("☁️ iCloud metadata query stopped")
     }
     
     func loadDesignFiles() {
         do {
             print("🔍 Loading design files from: \(designsDirectory.path)")
-            print("🔍 Directory exists: \(FileManager.default.fileExists(atPath: designsDirectory.path))")
             
             // Ensure directory exists before trying to read from it
             if !FileManager.default.fileExists(atPath: designsDirectory.path) {
@@ -895,7 +866,6 @@ class DesignManager: ObservableObject {
             
             self.designsDirectory = ubiquityURL
             self.storageStatus = "☁️ iCloud Drive"
-            print("☁️ Switched to iCloud: \(ubiquityURL.path)")
         }
     }
     
