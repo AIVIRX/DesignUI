@@ -238,10 +238,6 @@ struct CanvasView: View {
                 .frame(width: deviceSize.width, height: deviceSize.height)
                 .background(Color.clear) // Placeholder/Clear background
                 .colorScheme(colorScheme ?? .light)
-                .modifier(RippleEffect(
-                    at: CGPoint(x: deviceSize.width / 2, y: deviceSize.height / 2),
-                    trigger: canvasManager.rippleTrigger
-                ))
             }
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }

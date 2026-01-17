@@ -345,8 +345,20 @@ struct CodeGenerator {
         let startPoint = component.getProperty(key: "startPoint") as? String ?? "top"
         let endPoint = component.getProperty(key: "endPoint") as? String ?? "bottom"
 
-        let colorStrings = colors.map { colorString -> String in
-             return colorToString(colorString)
+        // Parse "colorname:opacity" format and generate proper SwiftUI code
+        let colorStrings = colors.map { colorStr -> String in
+            let parts = colorStr.split(separator: ":")
+            let colorName = parts.count >= 1 ? String(parts[0]) : "blue"
+            let opacity = parts.count >= 2 ? (Double(parts[1]) ?? 1.0) : 1.0
+            
+            let baseColor = colorToString(colorName)
+            if opacity >= 0.99 {
+                return baseColor
+            } else {
+                let opacityString = String(format: "%.2f", opacity)
+                    .replacingOccurrences(of: "\\.?0+$", with: "", options: .regularExpression)
+                return "\(baseColor).opacity(\(opacityString))"
+            }
         }
         let colorsList = colorStrings.joined(separator: ", ")
 
@@ -481,10 +493,9 @@ struct CodeGenerator {
             return "\(nextIndent).background(\(gradientCode))"
         }
         
-        // Color background with opacity support
-        let colorValue = modifier.properties["color"]
-        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
-        return "\(nextIndent).background(\(colorWithOpacityToString(colorValue, opacity: opacity)))"
+        // Parse unified "colorname:opacity" format
+        let colorCode = parseColorWithOpacity(modifier: modifier)
+        return "\(nextIndent).background(\(colorCode))"
     }
     
     private static func generateBackgroundModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
@@ -499,10 +510,9 @@ struct CodeGenerator {
             return "\(nextIndent).background(\(gradientCode))"
         }
         
-        // Fallback to color background with opacity support
-        let colorValue = modifier.properties["color"]
-        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
-        return "\(nextIndent).background(\(colorWithOpacityToString(colorValue, opacity: opacity)))"
+        // Parse unified "colorname:opacity" format
+        let colorCode = parseColorWithOpacity(modifier: modifier)
+        return "\(nextIndent).background(\(colorCode))"
     }
     
     private static func generateFillModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
@@ -511,15 +521,34 @@ struct CodeGenerator {
             return "\(nextIndent).fill(\(gradientCode))"
         }
         
-        let colorValue = modifier.properties["color"]
-        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
-        return "\(nextIndent).fill(\(colorWithOpacityToString(colorValue, opacity: opacity)))"
+        // Parse unified "colorname:opacity" format
+        let colorCode = parseColorWithOpacity(modifier: modifier)
+        return "\(nextIndent).fill(\(colorCode))"
     }
     
     private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
-        let color = modifier.properties["color"]
-        let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
-        return "\(nextIndent).foregroundStyle(\(colorWithOpacityToString(color, opacity: opacity)))"
+        // Parse unified "colorname:opacity" format
+        let colorCode = parseColorWithOpacity(modifier: modifier)
+        return "\(nextIndent).foregroundStyle(\(colorCode))"
+    }
+    
+    /// Parse "colorname:opacity" format
+    private static func parseColorWithOpacity(modifier: ComponentModifier) -> String {
+        if let colorData = modifier.properties["color"] as? String {
+            let parts = colorData.split(separator: ":")
+            let colorName = parts.count >= 1 ? String(parts[0]) : "primary"
+            let baseColor = colorToString(colorName)
+            let opacity = parts.count >= 2 ? (Double(parts[1]) ?? 1.0) : 1.0
+            
+            if opacity >= 0.99 {
+                return baseColor
+            } else {
+                let opacityString = String(format: "%.2f", opacity)
+                    .replacingOccurrences(of: "\\.?0+$", with: "", options: .regularExpression)
+                return "\(baseColor).opacity(\(opacityString))"
+            }
+        }
+        return ".primary"
     }
     
     /// Converts color value and opacity to a SwiftUI code string like `.red.opacity(0.73)` or just `.red`

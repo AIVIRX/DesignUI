@@ -324,11 +324,16 @@ extension ComponentProperty: Codable {
         var g: CGFloat = 0
         var b: CGFloat = 0
         var a: CGFloat = 0
-        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-        if a < 1.0 {
-            return String(format: "rgba(%.3f,%.3f,%.3f,%.3f)", Double(r), Double(g), Double(b), Double(a))
+        // getRed returns bool indicating success
+        if uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) {
+            if a < 1.0 {
+                return String(format: "rgba(%.3f,%.3f,%.3f,%.3f)", Double(r), Double(g), Double(b), Double(a))
+            } else {
+                return String(format: "rgb(%.3f,%.3f,%.3f)", Double(r), Double(g), Double(b))
+            }
         } else {
-            return String(format: "rgb(%.3f,%.3f,%.3f)", Double(r), Double(g), Double(b))
+            // Fallback for semantic colors that cannot be converted (e.g. some system patterns)
+            return "primary" 
         }
         #endif
     }
@@ -441,7 +446,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     // MARK: - Property Management
     func setProperty(key: String, value: Any) {
-        print("🔑 setProperty called - key: '\(key)', value: '\(value)'")
         
         // Save state for undo BEFORE making changes
         NotificationCenter.default.post(name: .designWillChange, object: nil)
@@ -453,7 +457,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
         
         if let index = properties.firstIndex(where: { $0.key == key }) {
-            print("🔑 Found existing property at index \(index)")
             let property = properties[index]
             
             // For color properties, convert Color objects to strings to preserve semantic colors
@@ -464,15 +467,12 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             }
             
             properties[index].value = finalValue
-            print("🔑 Updated property '\(key)' to '\(finalValue)'")
-            
             if Thread.isMainThread {
                 updateUI()
             } else {
                 DispatchQueue.main.async { updateUI() }
             }
         } else {
-            print("🔑 Property '\(key)' doesn't exist, adding it")
             // Property doesn't exist, add it
             
             // Determine property type - check if it's a color property by key name
@@ -679,7 +679,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         modifiers.append(newModifier)
         objectWillChange.send()
-        print("🔄 Modifier added: \(newModifier.type.rawValue)")
         
         // Post notification to trigger design file saving
         NotificationCenter.default.post(name: .designChanged, object: nil)
@@ -701,7 +700,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         modifiers.removeAll { $0.id == modifier.id }
         objectWillChange.send()
-        print("🔄 Modifier removed: \(modifier.type.rawValue)")
         
         // Post notification to trigger design file saving
         NotificationCenter.default.post(name: .designChanged, object: nil)
@@ -727,7 +725,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         modifiers.remove(at: index)
         objectWillChange.send()
-        print("🔄 Modifier removed at index \(index): \(removedModifier.type.rawValue)")
         
         // Post notification to trigger design file saving
         NotificationCenter.default.post(name: .designChanged, object: nil)
@@ -740,7 +737,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             NotificationCenter.default.post(name: .designWillChange, object: nil)
             
             modifiers[index] = modifier
-            print("🔄 Modifier updated: \(modifier.type.rawValue) with properties: \(modifier.properties)")
             
             // Defer state changes to avoid publishing during view updates
             DispatchQueue.main.async { [weak self] in
@@ -774,7 +770,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         modifiers.move(fromOffsets: source, toOffset: destination)
         objectWillChange.send()
-        print("🔄 Modifiers reordered")
         
         // Post notification to trigger design file saving
         NotificationCenter.default.post(name: .designChanged, object: nil)
@@ -882,7 +877,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
         
         objectWillChange.send()
-        print("🔄 Component converted to \(newType.rawValue)")
         
         // Post notification to trigger design file saving
         NotificationCenter.default.post(name: .designChanged, object: nil)

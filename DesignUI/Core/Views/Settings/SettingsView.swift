@@ -157,6 +157,32 @@ struct SettingsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 
+                // Features Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("FEATURES")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 0) {
+                        NavigationLink(destination: SFIconsView()) {
+                            HStack {
+                                Text("SF Symbols")
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 12)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.1)))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                
                 // Community Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("COMMUNITY")

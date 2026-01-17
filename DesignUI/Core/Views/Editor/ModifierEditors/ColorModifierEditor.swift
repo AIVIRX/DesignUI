@@ -141,26 +141,27 @@ struct ColorModifierEditor: View {
     }
     
     private func loadColor() {
-        // Load color name
+        // Parse "colorname:opacity" format
         if let colorData = modifier.properties["color"] as? String {
-            let cleanString = colorData.hasPrefix("color:") ? String(colorData.dropFirst(6)) : colorData
-            selectedColorName = cleanString.lowercased()
+            let parts = colorData.split(separator: ":")
+            if parts.count >= 1 {
+                selectedColorName = String(parts[0]).lowercased()
+            }
+            if parts.count >= 2, let opacity = Double(parts[1]) {
+                opacityValue = opacity
+            } else {
+                opacityValue = 1.0
+            }
         } else {
             selectedColorName = "primary"
-        }
-        
-        // Load opacity
-        if let opacity = modifier.properties["colorOpacity"] as? Double {
-            opacityValue = opacity
-        } else {
             opacityValue = 1.0
         }
     }
     
     private func saveColor() {
         var updatedModifier = modifier
-        updatedModifier.properties["color"] = "color:\(selectedColorName)"
-        updatedModifier.properties["colorOpacity"] = opacityValue
+        // Save in "colorname:opacity" format
+        updatedModifier.properties["color"] = "\(selectedColorName):\(opacityValue)"
         modifier = updatedModifier
         
         DispatchQueue.main.async {

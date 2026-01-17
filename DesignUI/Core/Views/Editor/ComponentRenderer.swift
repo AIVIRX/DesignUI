@@ -515,8 +515,13 @@ struct ComponentRenderer: View {
         let startPointStr = component.getProperty(key: "startPoint") as? String ?? "top"
         let endPointStr = component.getProperty(key: "endPoint") as? String ?? "bottom"
         
-        // Convert strings to Color objects
-        let gradientColors = colors.map { ComponentProperty.colorStringToColor($0) }
+        // Convert strings to Color objects, parsing "colorname:opacity" format
+        let gradientColors = colors.map { colorStr -> Color in
+            let parts = colorStr.split(separator: ":")
+            let colorName = parts.count >= 1 ? String(parts[0]) : "blue"
+            let opacity = parts.count >= 2 ? (Double(parts[1]) ?? 1.0) : 1.0
+            return ComponentProperty.colorStringToColor(colorName).opacity(opacity)
+        }
         
         // Convert strings to UnitPoints
         let startPoint = unitPointFromString(startPointStr)
@@ -783,6 +788,18 @@ private extension View {
         return view
     }
     
+    /// Parse "colorname:opacity" format
+    private func parseColorWithOpacity(modifier: ComponentModifier) -> (Color, Double) {
+        if let colorData = modifier.properties["color"] as? String {
+            let parts = colorData.split(separator: ":")
+            let colorName = parts.count >= 1 ? String(parts[0]) : "primary"
+            let color = ComponentProperty.colorStringToColor(colorName)
+            let opacity = parts.count >= 2 ? (Double(parts[1]) ?? 1.0) : 1.0
+            return (color, opacity)
+        }
+        return (.primary, 1.0)
+    }
+    
     private func applyModifier(_ modifier: ComponentModifier, to view: AnyView, component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent, Bool) -> Void)?, selectedComponentIds: Set<UUID>) -> AnyView {
         switch modifier.type {
         case .frame:
@@ -875,13 +892,13 @@ private extension View {
             if let gradient = modifier.getGradient(key: "gradient") {
                 return AnyView(view.background(gradient))
             }
-            let color = modifier.getColor(key: "color", defaultValue: .blue)
-            let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+            // Parse unified "colorname:opacity" format
+            let (color, opacity) = parseColorWithOpacity(modifier: modifier)
             return AnyView(view.background(color.opacity(opacity)))
             
         case .foregroundColor:
-            let color = modifier.getColor(key: "color", defaultValue: .primary)
-            let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+            // Parse unified "colorname:opacity" format
+            let (color, opacity) = parseColorWithOpacity(modifier: modifier)
             return AnyView(view.foregroundStyle(color.opacity(opacity)))
             
         case .font:
@@ -895,8 +912,8 @@ private extension View {
             if let gradient = modifier.getGradient(key: "gradient") {
                 return AnyView(view.background(gradient))
             }
-            let color = modifier.getColor(key: "color", defaultValue: .blue)
-            let opacity = modifier.properties["colorOpacity"] as? Double ?? 1.0
+            // Parse unified "colorname:opacity" format
+            let (color, opacity) = parseColorWithOpacity(modifier: modifier)
             return AnyView(view.background(color.opacity(opacity)))
             
         case .cornerRadius:

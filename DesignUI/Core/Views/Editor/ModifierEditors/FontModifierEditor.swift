@@ -13,10 +13,11 @@ struct FontModifierEditor: View {
     @ObservedObject var component: UIComponent
     @State private var fontSize: String = "body"
     @State private var fontWeight: String = "regular"
+    @State private var weightSliderValue: Double = 3 // Default to regular (index 3)
     
     private let fontSizes: [(name: String, displayName: String)] = [
         ("largeTitle", "Large Title"),
-        ("title", "Title"),
+        ("title", "Title 1"),
         ("title2", "Title 2"),
         ("title3", "Title 3"),
         ("headline", "Headline"),
@@ -24,10 +25,10 @@ struct FontModifierEditor: View {
         ("callout", "Callout"),
         ("subheadline", "Subheadline"),
         ("footnote", "Footnote"),
-        ("caption", "Caption"),
+        ("caption", "Caption 1"),
         ("caption2", "Caption 2")
     ]
-    
+
     private let fontWeights: [(name: String, displayName: String)] = [
         ("ultraLight", "Ultra Light"),
         ("thin", "Thin"),
@@ -39,75 +40,20 @@ struct FontModifierEditor: View {
         ("heavy", "Heavy"),
         ("black", "Black")
     ]
+
+    private let orderedWeights: [String] = [
+        "ultraLight", "thin", "light", "regular", "medium",
+        "semibold", "bold", "heavy", "black"
+    ]
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 // Size List
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Size")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    VStack(spacing: 0) {
-                        ForEach(fontSizes, id: \.name) { sizeInfo in
-                            FontOptionRow(
-                                name: sizeInfo.name,
-                                displayName: sizeInfo.displayName,
-                                isSelected: fontSize == sizeInfo.name,
-                                font: getFont(for: sizeInfo.name),
-                                weight: .regular,
-                                onSelect: {
-                                    fontSize = sizeInfo.name
-                                    saveFont()
-                                }
-                            )
-                            
-                            if sizeInfo.name != fontSizes.last?.name {
-                                Divider()
-                                    .padding(.leading, 16)
-                            }
-                        }
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.secondary.opacity(0.1))
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
+                sizeList
                 
-                // Weight List
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Weight")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    VStack(spacing: 0) {
-                        ForEach(fontWeights, id: \.name) { weightInfo in
-                            FontOptionRow(
-                                name: weightInfo.name,
-                                displayName: weightInfo.displayName,
-                                isSelected: fontWeight == weightInfo.name,
-                                font: .body,
-                                weight: getWeight(for: weightInfo.name),
-                                onSelect: {
-                                    fontWeight = weightInfo.name
-                                    saveFont()
-                                }
-                            )
-                            
-                            if weightInfo.name != fontWeights.last?.name {
-                                Divider()
-                                    .padding(.leading, 16)
-                            }
-                        }
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.secondary.opacity(0.1))
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
+                // Weight Slider
+                weightSlider
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -121,12 +67,106 @@ struct FontModifierEditor: View {
         }
     }
     
+    // MARK: - Subviews
+    private var sizeList: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Size")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            VStack(spacing: 0) {
+                ForEach(fontSizes, id: \.name) { sizeInfo in
+                    FontOptionRow(
+                        name: sizeInfo.name,
+                        displayName: sizeInfo.displayName,
+                        isSelected: fontSize == sizeInfo.name,
+                        font: getFont(for: sizeInfo.name),
+                        weight: .regular,
+                        onSelect: {
+                            fontSize = sizeInfo.name
+                            saveFont()
+                        }
+                    )
+                    
+                    if sizeInfo.name != fontSizes.last?.name {
+                        Divider()
+                            .padding(.leading, 16)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.secondary.opacity(0.1))
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+    }
+    
+    private var weightSlider: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Weight")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Text(getDisplayName(for: fontWeight))
+                    .font(.caption)
+                    .foregroundColor(.primary)
+            }
+            
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    // Icon
+                    Image(systemName: "bold")
+                        .font(.system(size: 16))
+                        .foregroundColor(.primary)
+                        .frame(width: 24, height: 24)
+                    
+                    // Slider (0-8)
+                    UndoableSlider(
+                        value: $weightSliderValue,
+                        range: 0...8,
+                        step: 1,
+                        onValueChanged: { newValue in
+                            updateWeightFromSlider(value: newValue)
+                        },
+                        onEditingEnded: { _ in
+                            saveFont()
+                        }
+                    )
+                    
+                    // Value label (Hidden or descriptive?)
+                    Text("\(Int(weightSliderValue))")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                        .frame(width: 20, alignment: .trailing)
+                        .opacity(0.5)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.secondary.opacity(0.1))
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+    }
+
+    
     private var previewFont: Font {
         getFont(for: fontSize)
     }
     
     private var previewWeight: Font.Weight {
         getWeight(for: fontWeight)
+    }
+    
+    private func getDisplayName(for weight: String) -> String {
+        fontWeights.first(where: { $0.name == weight })?.displayName ?? "Regular"
     }
     
     private func getFont(for name: String) -> Font {
@@ -162,6 +202,23 @@ struct FontModifierEditor: View {
     private func loadFont() {
         fontSize = modifier.properties["fontSize"] as? String ?? "body"
         fontWeight = modifier.properties["fontWeight"] as? String ?? "regular"
+        updateSliderFromWeight()
+    }
+    
+    private func updateSliderFromWeight() {
+        if let index = orderedWeights.firstIndex(of: fontWeight) {
+            weightSliderValue = Double(index)
+        } else {
+            weightSliderValue = 3 // Default regular
+        }
+    }
+    
+    private func updateWeightFromSlider(value: Double) {
+        let index = Int(round(value))
+        if index >= 0 && index < orderedWeights.count {
+            fontWeight = orderedWeights[index]
+            saveFontContinuous()
+        }
     }
     
     private func saveFont() {
@@ -173,6 +230,17 @@ struct FontModifierEditor: View {
         DispatchQueue.main.async {
             component.updateModifier(updatedModifier)
             NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    private func saveFontContinuous() {
+        var updatedModifier = modifier
+        updatedModifier.properties["fontSize"] = fontSize
+        updatedModifier.properties["fontWeight"] = fontWeight
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }

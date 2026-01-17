@@ -76,10 +76,10 @@ struct ModifierPanelView: View {
         }
 #if os(iOS)
         .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
-            view.navigationDestination(isPresented: $showingAddModifier) {
+            view.sheet(isPresented: $showingAddModifier) {
                 AddModifierView(component: component, canvasManager: canvasManager)
-                    .navigationTitle("Add Modifier")
-                    .navigationBarTitleDisplayMode(.inline)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
         }
         .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
@@ -87,6 +87,9 @@ struct ModifierPanelView: View {
                 AddModifierView(component: component, canvasManager: canvasManager)
                     .frame(width: 350, height: 500)
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+            showingAddModifier = false
         }
 #else
         .popover(isPresented: $showingAddModifier) {
@@ -202,6 +205,9 @@ struct ModifierItemView: View {
                 // Only show editor for modifiers that don't rely on parent components
                 // background, overlay, and mask all use component children instead of property editors
                 if modifier.type != .overlay && modifier.type != .mask && modifier.type != .background {
+                    #if os(iOS)
+                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                    #endif
                     showingEditor = true
                 }
             }
@@ -254,6 +260,9 @@ struct ModifierItemView: View {
                     ))
                     .frame(width: 320, height: 400)
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+                showingEditor = false
             }
 #else
             .popover(isPresented: $showingEditor) {
@@ -551,6 +560,9 @@ struct AddModifierView: View {
                                         ModifierTypeItemView(
                                             modifierType: modifierType,
                                             onAdd: {
+                                                #if os(iOS)
+                                                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                                                #endif
                                                 let modifier = ComponentModifier.createWithDefaults(type: modifierType)
                                                 // Use CanvasManager to add modifier so undo/redo works
                                                 canvasManager.addModifier(to: component, modifier: modifier)
@@ -581,6 +593,9 @@ struct AddModifierView: View {
 #if os(macOS)
         .frame(width: 400, height: 600)
 #endif
+        .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+            dismiss()
+        }
     }
 }
 

@@ -20,6 +20,7 @@ extension Notification.Name {
     static let statusBarVisibilityChanged = Notification.Name("statusBar.visibilityChanged")
     static let selectComponent = Notification.Name("selectComponent")
     static let minimizeSheet = Notification.Name("minimizeSheet") // Minimize iOS sheet to height 80
+    static let dismissChildNavigation = Notification.Name("dismissChildNavigation") // Dismiss child views (add components, modifiers)
 }
 
 // MARK: - Undoable Slider
@@ -220,6 +221,7 @@ struct UIBuilderView: View {
     #if os(iOS)
     @State private var selection: PresentationDetent = .height(80)
     @State private var activeTab: AppTab = .layers
+    @State private var sheetNavigationPath = NavigationPath()
     #endif
     
 
@@ -434,11 +436,13 @@ struct UIBuilderView: View {
         }
         
         ToolbarItemGroup(placement: .primaryAction) {
-            // Color scheme toggle
-            Button(action: {
-                colorScheme = colorScheme == .light ? .dark : .light
-            }) {
-                Image(systemName: colorScheme == .light ? "sun.max.fill" : "moon.fill")
+            // Color scheme toggle - iPad only
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                Button(action: {
+                    colorScheme = colorScheme == .light ? .dark : .light
+                }) {
+                    Image(systemName: colorScheme == .light ? "sun.max.fill" : "moon.fill")
+                }
             }
             
             // Recenter button
@@ -466,11 +470,13 @@ struct UIBuilderView: View {
         
         ToolbarItemGroup(placement: .primaryAction) {
             Menu {
-                Button(action: { showCodePreview = true }) {
-                    Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                if UIDevice.current.userInterfaceIdiom != .phone {
+                    Button(action: { showCodePreview = true }) {
+                        Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                    }
+                    
+                    Divider()
                 }
-                
-                Divider()
                 
                 Button(action: { saveAsScreenshot() }) {
                     Label("Save as Screenshot", systemImage: "photo")
@@ -706,7 +712,7 @@ struct UIBuilderView: View {
 #if os(iOS)
     private var editorPanelSheet: some View {
         VStack(spacing: 0) {
-            NavigationStack {
+            NavigationStack(path: $sheetNavigationPath) {
                 Group {
                     // Show different content based on active tab
                     switch activeTab {
@@ -843,6 +849,12 @@ struct UIBuilderView: View {
                 .frame(maxWidth: .infinity)
                 .contentShape(.rect)
                 .onTapGesture {
+                    // Reset navigation path and dismiss child views when switching tabs
+                    if activeTab != tab {
+                        sheetNavigationPath = NavigationPath()
+                        // Post notification to dismiss any child views (Component Library, Modifier Editors, etc.)
+                        NotificationCenter.default.post(name: .dismissChildNavigation, object: nil)
+                    }
                     activeTab = tab
                     // Auto-expand sheet when tab is tapped
                     selection = .medium
@@ -1118,11 +1130,21 @@ struct UIBuilderView: View {
             
             ToolbarItemGroup(placement: .primaryAction) {
                 Menu {
+                    #if os(iOS)
+                    if UIDevice.current.userInterfaceIdiom != .phone {
+                        Button(action: { showCodePreview = true }) {
+                            Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                        }
+                        
+                        Divider()
+                    }
+                    #else
                     Button(action: { showCodePreview = true }) {
                         Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                     
                     Divider()
+                    #endif
                     
                     Button(action: { saveAsScreenshot() }) {
                         Label("Save as Screenshot", systemImage: "photo")
@@ -1184,7 +1206,6 @@ struct UIBuilderView: View {
             if response == .OK, let url = savePanel.url {
                 do {
                     try imageData.write(to: url)
-                    print("✅ Screenshot saved to: \(url.path)")
                     // Open in Finder
                     NSWorkspace.shared.activateFileViewerSelecting([url])
                 } catch {
@@ -1196,20 +1217,8 @@ struct UIBuilderView: View {
         // iOS: Save to Photos
         if let uiImage = UIImage(data: imageData) {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
-            print("✅ Screenshot saved to Photos")
         }
         #endif
-    }
-    
-    private func saveDesign() {
-        print("💾 Manual save button pressed")
-        // Capture screenshot before saving
-        captureScreenshot()
-        // Wait a bit for screenshot to be captured, then save
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.designManager.saveCurrentDesign()
-            print("💾 Manual save triggered")
-        }
     }
     
     private func setupCanvas() {
@@ -1257,20 +1266,16 @@ struct UIBuilderView: View {
     }
     
     private func syncComponents() {
-            print("🔄 syncComponents: Components changed - syncing to design file")
-            print("🔄 syncComponents: Components count: \(canvasManager.components.count)")
             designFile.components = canvasManager.components
             
             // Capture screenshot for thumbnail
             captureScreenshot()
             
             designManager.markAsChanged()
-            print("🔄 syncComponents: Posting .designChanged notification")
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     
     private func syncSelection() {
-            print("🔄 Selection changed - syncing to design file")
             designFile.components = canvasManager.components
             
             // Capture screenshot for thumbnail
@@ -1281,17 +1286,6 @@ struct UIBuilderView: View {
         }
     
     private func syncDesignChanges() {
-            print("🔄 Design changed notification received - syncing components")
-            print("🔄 Canvas components count: \(canvasManager.components.count)")
-            print("🔄 Design file components count: \(designFile.components.count)")
-            
-            // Debug: Print modifier details before sync
-            for (index, component) in canvasManager.components.enumerated() {
-                print("🔄 Canvas component \(index): \(component.type.rawValue) with \(component.modifiers.count) modifiers")
-                for (modIndex, modifier) in component.modifiers.enumerated() {
-                    print("🔄   - Modifier \(modIndex): \(modifier.type.rawValue) with properties: \(modifier.properties)")
-                }
-            }
             
             designFile.components = canvasManager.components
             
@@ -1335,8 +1329,6 @@ struct UIBuilderView: View {
     }
     
     private func performScreenshotCapture() {
-        print("📸 capturing screenshot...")
-            
         let screenshotView = CanvasScreenshotView(
             components: self.canvasManager.components,
             deviceSize: self.selectedDevice.size,
@@ -1352,9 +1344,9 @@ struct UIBuilderView: View {
         ) {
             // This will overwrite the previous thumbnail and store device preset
             self.designFile.setThumbnail(thumbnailData, devicePreset: self.selectedDevice.rawValue)
-            print("✅ Screenshot captured and set on design file")
+            print("📸 Screenshot captured and set on design file")
         } else {
-            print("⚠️ Failed to capture screenshot")
+            print("📸 Failed to capture screenshot")
         }
     }
     

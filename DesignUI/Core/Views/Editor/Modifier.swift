@@ -216,8 +216,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .backgroundColor:
             defaultProperties = [
-                "color": "color:primary",
-                "colorOpacity": Double(1.0)
+                "color": "primary:1.0"
             ]
         case .background:
             defaultProperties = [
@@ -226,8 +225,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .foregroundColor:
             defaultProperties = [
-                "color": "color:primary",
-                "colorOpacity": Double(1.0)
+                "color": "primary:1.0"
             ]
         case .font:
             defaultProperties = [
@@ -257,8 +255,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
             ]
         case .fill:
             defaultProperties = [
-                "color": "color:blue",
-                "colorOpacity": Double(1.0)
+                "color": "blue:1.0"
             ]
         case .aspectRatio:
             defaultProperties = [

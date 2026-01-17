@@ -529,7 +529,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "DesignUI needs permission to save screenshots to your photo library."
+            "value" : "DockUI needs permission to save screenshots to your photo library."
           }
         }
       }

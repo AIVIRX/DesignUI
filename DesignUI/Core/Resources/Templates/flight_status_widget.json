@@ -1,6 +1,6 @@
 {
     "name": "Flight Status Widget",
-    "description": "Flight details with status and gate info",
+    "description": "Flight details with status and gate info (Updated)",
     "thumbnail": "flightInfoWidget",
     "devicePreset": "Widget Medium",
     "components": [
@@ -376,7 +376,7 @@
                                         {
                                             "type": "Foreground Color",
                                             "properties": {
-                                                "color": "color:green"
+                                                "color": "green:1.0"
                                             }
                                         }
                                     ],
@@ -465,7 +465,7 @@
                                                 {
                                                     "type": "Foreground Color",
                                                     "properties": {
-                                                        "color": "color:gray"
+                                                        "color": "secondary:1.0"
                                                     }
                                                 },
                                                 {

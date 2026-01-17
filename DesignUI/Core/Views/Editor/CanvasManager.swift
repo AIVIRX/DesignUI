@@ -106,6 +106,15 @@ class CanvasManager: ObservableObject {
             guard let self = self, let componentId = notification.object as? UUID else { return }
             self.selectComponent(withId: componentId)
         }
+        
+        // Listen for BEFORE changes (modifiers reorder, etc) - capture undo state
+        NotificationCenter.default.addObserver(
+            forName: .designWillChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.registerUndoAction("Component Update")
+        }
     }
     
     deinit {
@@ -449,7 +458,11 @@ class CanvasManager: ObservableObject {
 
     // MARK: - Hierarchy Manipulation
     /// Move a component in the hierarchy to a new parent and position
+    /// Move a component in the hierarchy to a new parent and position
     func moveComponentInHierarchy(componentId: UUID, newParentId: UUID?, toIndex: Int) {
+        // Register undo before making changes
+        registerUndoAction("Reorder Layer")
+        
         guard let moved = removeComponentRecursively(id: componentId) else { return }
 
         if let parentId = newParentId, let parent = findComponent(by: parentId) {
@@ -473,7 +486,8 @@ class CanvasManager: ObservableObject {
         }
 
         // Force save to track layer reorders (same components, different order)
-        saveState(force: true)
+        // designChanged is sufficient for file persistence
+        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
 
     /// Find parent id for a node anywhere in the tree
@@ -637,22 +651,36 @@ class CanvasManager: ObservableObject {
     }
     
     private func createDeepCopy(of component: UIComponent) -> UIComponent {
-        // Copy modifiers with their properties and order
+        // Deep copy modifiers with their properties
         let duplicatedModifiers = component.modifiers.map { modifier in
             ComponentModifier(
                 type: modifier.type,
-                properties: modifier.properties
+                properties: deepCopyDictionary(modifier.properties)
             )
         }
         
-        // Recursively copy children with their modifiers
+        // Recursively deep copy children
         let duplicatedChildren = component.children.map { child in
             createDeepCopy(of: child)
         }
         
+        // Deep copy properties array (value can contain reference types like arrays)
+        let duplicatedProperties = component.properties.map { prop in
+            ComponentProperty(
+                key: prop.key,
+                displayName: prop.displayName,
+                type: prop.type,
+                value: deepCopyValue(prop.value),
+                defaultValue: deepCopyValue(prop.defaultValue),
+                options: prop.options,
+                isRequired: prop.isRequired
+            )
+        }
+        
+        // Create new component with NEW UUID (UIComponent init generates new id)
         let duplicatedComponent = UIComponent(
             type: component.type,
-            properties: component.properties,
+            properties: duplicatedProperties,
             children: duplicatedChildren,
             frame: CGRect(
                 x: component.frame.origin.x + 20,
@@ -666,6 +694,28 @@ class CanvasManager: ObservableObject {
             modifierType: component.modifierType
         )
         return duplicatedComponent
+    }
+    
+
+    /// Deep copy a dictionary with Any values
+    private func deepCopyDictionary(_ dict: [String: Any]) -> [String: Any] {
+        var result: [String: Any] = [:]
+        for (key, value) in dict {
+            result[key] = deepCopyValue(value)
+        }
+        return result
+    }
+    
+    /// Deep copy any value, handling arrays and dictionaries
+    private func deepCopyValue(_ value: Any) -> Any {
+        if let array = value as? [Any] {
+            return array.map { deepCopyValue($0) }
+        } else if let dict = value as? [String: Any] {
+            return deepCopyDictionary(dict)
+        } else {
+            // Primitive types (String, Int, Double, Bool, etc.) are value types
+            return value
+        }
     }
     
     // MARK: - Copy/Paste/Cut
@@ -717,7 +767,7 @@ class CanvasManager: ObservableObject {
         let duplicatedModifiers = component.modifiers.map { modifier in
             ComponentModifier(
                 type: modifier.type,
-                properties: modifier.properties
+                properties: deepCopyDictionary(modifier.properties)
             )
         }
         
@@ -725,9 +775,22 @@ class CanvasManager: ObservableObject {
             createDeepCopyForClipboard(of: child)
         }
         
+        // Deep copy properties array
+        let duplicatedProperties = component.properties.map { prop in
+            ComponentProperty(
+                key: prop.key,
+                displayName: prop.displayName,
+                type: prop.type,
+                value: deepCopyValue(prop.value),
+                defaultValue: deepCopyValue(prop.defaultValue),
+                options: prop.options,
+                isRequired: prop.isRequired
+            )
+        }
+        
         let duplicatedComponent = UIComponent(
             type: component.type,
-            properties: component.properties,
+            properties: duplicatedProperties,
             children: duplicatedChildren,
             frame: component.frame, // Keep original frame for clipboard
             modifiers: duplicatedModifiers,
@@ -847,7 +910,6 @@ class CanvasManager: ObservableObject {
         let state = CanvasState(components: deepCopyComponents(components))
         lastSavedState = state
         
-        print("💾 saveInitialState: Initialized with \(state.components.count) components")
     }
     
     /// Register an undoable action with a description

@@ -229,6 +229,7 @@ struct PropertyEditor: View {
     @State private var textValue: String = ""
     @State private var numberValue: Double = 0.0
     @State private var showSFSymbolPicker: Bool = false
+    @FocusState private var isTextFieldFocused: Bool
     @State private var showImagePicker: Bool = false
     @State private var isHovered: Bool = false
     @Environment(\.colorScheme) var colorScheme
@@ -281,7 +282,12 @@ struct PropertyEditor: View {
                         }
                         .buttonStyle(.plain)
                         .onAppear {
-                            textValue = property.value as? String ?? ""
+                            // Read from component to get the latest value
+                            if let currentValue = component.getProperty(key: property.key) as? String {
+                                textValue = currentValue
+                            } else {
+                                textValue = property.value as? String ?? ""
+                            }
                         }
                         .onReceive(component.objectWillChange) { _ in
                             if let stringValue = component.getProperty(key: property.key) as? String {
@@ -303,16 +309,30 @@ struct PropertyEditor: View {
                     TextField("Hello World", text: $textValue)
                         .font(.system(size: 13, weight: .medium))
                         .textFieldStyle(.plain)
+                        .focused($isTextFieldFocused)
                         .onAppear {
-                            textValue = property.value as? String ?? ""
+                            // Read from component to get the latest value, not the potentially stale property parameter
+                            if let currentValue = component.getProperty(key: property.key) as? String {
+                                textValue = currentValue
+                            } else {
+                                textValue = property.value as? String ?? ""
+                            }
                         }
                         .onReceive(component.objectWillChange) { _ in
-                            if let stringValue = component.getProperty(key: property.key) as? String {
+                            // Only sync from component when not actively editing
+                            if !isTextFieldFocused,
+                               let stringValue = component.getProperty(key: property.key) as? String {
                                 textValue = stringValue
                             }
                         }
                         .onChange(of: textValue) { _, newValue in
                             component.setProperty(key: property.key, value: newValue)
+                        }
+                        .onChange(of: isTextFieldFocused) { oldValue, newValue in
+                            // When losing focus, ensure value is committed
+                            if oldValue && !newValue {
+                                component.setProperty(key: property.key, value: textValue)
+                            }
                         }
                         .onSubmit {
                             // Commit the final value when Enter is pressed
@@ -354,7 +374,12 @@ struct PropertyEditor: View {
                 }
                 .contentShape(Rectangle())
                 .onAppear {
-                    numberValue = property.value as? Double ?? 0.0
+                    // Read from component to get the latest value
+                    if let currentValue = component.getProperty(key: property.key) as? Double {
+                        numberValue = currentValue
+                    } else {
+                        numberValue = property.value as? Double ?? 0.0
+                    }
                 }
                 .onReceive(component.objectWillChange) { _ in
                     if let doubleValue = component.getProperty(key: property.key) as? Double {
@@ -628,7 +653,12 @@ struct PropertyEditor: View {
                         .font(.system(size: 13, weight: .medium))
                         .textFieldStyle(.plain)
                         .onAppear {
-                            numberValue = property.value as? Double ?? 0.0
+                            // Read from component to get the latest value
+                            if let currentValue = component.getProperty(key: property.key) as? Double {
+                                numberValue = currentValue
+                            } else {
+                                numberValue = property.value as? Double ?? 0.0
+                            }
                         }
                         .onReceive(component.objectWillChange) { _ in
                             if let doubleValue = component.getProperty(key: property.key) as? Double {
@@ -666,7 +696,7 @@ struct PropertyEditor: View {
                         Spacer()
                         Button(action: {
                             var colors = (component.getProperty(key: property.key) as? [String]) ?? []
-                            colors.append("blue")
+                            colors.append("blue:1.0")
                             component.setProperty(key: property.key, value: colors)
                         }) {
                             Image(systemName: "plus.circle")
@@ -677,10 +707,10 @@ struct PropertyEditor: View {
                     let colors = (component.getProperty(key: property.key) as? [String]) ?? []
                     ForEach(Array(colors.enumerated()), id: \.offset) { index, colorStr in
                         HStack {
-                            SimpleColorPicker(colorString: Binding(
+                            GradientColorPicker(colorString: Binding(
                                 get: { 
                                     let currentColors = (component.getProperty(key: property.key) as? [String]) ?? []
-                                    return index < currentColors.count ? currentColors[index] : "blue"
+                                    return index < currentColors.count ? currentColors[index] : "blue:1.0"
                                 },
                                 set: { newVal in
                                     var currentColors = (component.getProperty(key: property.key) as? [String]) ?? []
@@ -771,12 +801,28 @@ struct PropertyEditor: View {
                 }
             }
         }
+#if os(iOS)
+        .sheet(isPresented: $showSFSymbolPicker) {
+            SFSymbolPickerView(selectedSymbol: $textValue) { selectedSymbol in
+                component.setProperty(key: property.key, value: selectedSymbol)
+                textValue = selectedSymbol
+            }
+             .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+                showSFSymbolPicker = false
+            }
+            .presentationDetents([.medium, .large])
+        }
+#else
         .popover(isPresented: $showSFSymbolPicker) {
             SFSymbolPickerView(selectedSymbol: $textValue) { selectedSymbol in
                 component.setProperty(key: property.key, value: selectedSymbol)
                 textValue = selectedSymbol
             }
+             .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+                showSFSymbolPicker = false
+            }
         }
+#endif
     }
 }
 
@@ -811,28 +857,7 @@ struct ColorPopover: View {
         }
     }
     
-    private let swiftUIColors: [(String, Color)] = [
-        ("Primary", .primary),
-        ("Secondary", .secondary),
-        ("Tertiary", .primary.opacity(0.6)),
-        ("Quaternary", .primary.opacity(0.3)),
-        ("Black", .black),
-        ("White", .white),
-        ("Red", .red),
-        ("Orange", .orange),
-        ("Yellow", .yellow),
-        ("Green", .green),
-        ("Mint", .mint),
-        ("Teal", .teal),
-        ("Cyan", .cyan),
-        ("Blue", .blue),
-        ("Indigo", .indigo),
-        ("Purple", .purple),
-        ("Pink", .pink),
-        ("Brown", .brown),
-        ("Gray", .gray),
-        ("Clear", .clear)
-    ]
+
     
     private var currentColor: Color {
         component.getProperty(key: property.key) as? Color ?? Color.primary
@@ -887,141 +912,47 @@ struct ColorPopover: View {
     }
     
     private var colorPopoverContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Choose Color")
-                .font(.headline)
-                .padding(.bottom, 4)
-            
-            colorGrid
-        }
-        .padding()
-        .frame(width: 220)
-    }
-    
-    private var colorGrid: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-            ForEach(swiftUIColors, id: \.0) { colorName, color in
-                colorButton(colorName: colorName, color: color)
+        StandardColorPickerContent(
+            selectedColorName: Binding(
+                get: {
+                    // Map current color to name key
+                    let current = self.colorName(for: self.currentColor)
+                    // Ensure we match the keys in StandardColorPickerContent
+                    return current.lowercased()
+                },
+                set: { _ in }
+            ),
+            onColorSelected: { name in
+                DispatchQueue.main.async {
+                    // Logic to save color
+                    // Find the color object if needed, or save the string
+                    // The standard picker keys are "primary", "blue", etc.
+                    // Ideally we save the string "primary", "blue".
+                    // But if it's "Custom", we might want to keep the custom color object?
+                    // The picker only lets you pick from the list.
+                    // So if you pick from the list, we save the name (or the color object if it's Primary/Custom special case).
+                    
+                    if name == "primary" {
+                        // Special case for primary? StandardColorPickerContent.swiftUIColors has .primary
+                        // Old logic saved .primary color for "Primary" name.
+                        // We can save "primary" string, and Modifier.swift handles it (color:primary).
+                        self.component.setProperty(key: self.property.key, value: "primary")
+                    } else {
+                        self.component.setProperty(key: self.property.key, value: name)
+                    }
+                }
+                isPresented = false
             }
-        }
-    }
-    
-    @ViewBuilder
-    private func colorButton(colorName: String, color: Color) -> some View {
-        Button(action: {
-            DispatchQueue.main.async {
-                let storageValue: Any = (colorName == "Custom" || colorName == "Primary") ? color : colorName.lowercased()
-                component.setProperty(key: property.key, value: storageValue)
-            }
-            isPresented = false
-        }) {
-            VStack(spacing: 4) {
-                colorCircle(colorName: colorName, color: color)
-                    .overlay(selectionCheckmark(for: color))
-                
-                Text(colorName)
-                    .font(.caption2)
-                    .foregroundColor(.primary)
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
-    @ViewBuilder
-    private func colorCircle(colorName: String, color: Color) -> some View {
-        Group {
-            if colorName == "Primary" {
-                primaryColorCircle
-            } else if colorName == "Clear" {
-                clearColorCircle
-            } else {
-                Circle()
-                    .fill(color)
-                    .frame(width: 32, height: 32)
-            }
-        }
-        .overlay(
-            Circle()
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
         )
-        .contentShape(Circle())
     }
     
-    private var primaryColorCircle: some View {
-        ZStack {
-            Circle()
-                .fill(Color.black)
-                .frame(width: 32, height: 32)
-            
-            Circle()
-                .fill(Color.white)
-                .frame(width: 32, height: 32)
-                .mask(
-                    Rectangle()
-                        .frame(width: 16, height: 32)
-                        .offset(x: 8)
-                )
-        }
-    }
-    
-    private var clearColorCircle: some View {
-        ZStack {
-            Circle()
-                .fill(Color.gray.opacity(0.1))
-                .frame(width: 32, height: 32)
-            
-            Circle()
-                .stroke(Color.gray.opacity(0.3), lineWidth: 2)
-                .frame(width: 32, height: 32)
-            
-            Rectangle()
-                .fill(Color.red)
-                .frame(width: 2, height: 20)
-                .rotationEffect(.degrees(45))
-        }
-    }
-    
-    @ViewBuilder
-    private func selectionCheckmark(for color: Color) -> some View {
-        if isSelected(color) {
-            Image(systemName: "checkmark")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(.white)
-                .shadow(color: .black, radius: 1)
-        }
-    }
-    
+    // Helper to get display name for the button label
     private func colorName(for color: Color) -> String {
-        return swiftUIColors.first { $0.1 == color }?.0 ?? "Primary"
-    }
-    
-    private func isSelected(_ color: Color) -> Bool {
-        // Get the property to check its stored value
-        guard let property = component.properties.first(where: { $0.key == self.property.key }),
-              property.type == .color else { return false }
-        
-        // If stored as string, compare string values
-        if let storedString = property.value as? String {
-            let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
-            // Normalize the stored string (lowercase) and compare
-            let normalizedStored = storedString.lowercased()
-            let normalizedTarget = targetColorName.lowercased()
-            return normalizedStored == normalizedTarget
+        // Reverse lookup in StandardColorPickerContent
+        if let match = StandardColorPickerContent.swiftUIColors.first(where: { $0.color == color }) {
+            return match.displayName
         }
-        
-        // If stored as Color, try direct comparison
-        if let storedColor = property.value as? Color {
-            if storedColor == color {
-            return true
-        }
-        
-        // Fallback to name comparison
-            let currentColorName = colorName(for: storedColor)
-        let targetColorName = swiftUIColors.first { $0.1 == color }?.0 ?? "Custom"
-        return currentColorName == targetColorName && currentColorName != "Custom"
-        }
-        
-        return false
+        return "Custom"
     }
     
 }
@@ -1279,9 +1210,8 @@ struct SFSymbolPickerView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .frame(maxHeight: 400) // Limit height for popover
         }
-        .frame(width: 400) // Fixed width for popover
+        .frame(width: 400, height: 500) // Fixed width and height for popover to support scrolling
     }
 }
 
@@ -1755,5 +1685,271 @@ struct SimpleColorPicker: View {
             .padding()
             .frame(width: 220)
         }
+    }
+}
+
+// MARK: - Gradient Color Picker (with opacity support, matching ColorModifierEditor style)
+// Reusable Color Picker Content matching ColorPopover exactly
+struct StandardColorPickerContent: View {
+    @Binding var selectedColorName: String
+    var onColorSelected: ((String) -> Void)?
+    
+    // Shared color list
+    static let swiftUIColors: [(name: String, displayName: String, color: Color)] = [
+        ("primary", "Primary", .primary),
+        ("secondary", "Secondary", .secondary),
+        ("tertiary", "Tertiary", .primary.opacity(0.6)),
+        ("quaternary", "Quaternary", .primary.opacity(0.3)),
+        ("black", "Black", .black),
+        ("white", "White", .white),
+        ("red", "Red", .red),
+        ("orange", "Orange", .orange),
+        ("yellow", "Yellow", .yellow),
+        ("green", "Green", .green),
+        ("mint", "Mint", .mint),
+        ("teal", "Teal", .teal),
+        ("cyan", "Cyan", .cyan),
+        ("blue", "Blue", .blue),
+        ("indigo", "Indigo", .indigo),
+        ("purple", "Purple", .purple),
+        ("pink", "Pink", .pink),
+        ("brown", "Brown", .brown),
+        ("gray", "Gray", .gray),
+        ("clear", "Clear", .clear)
+    ]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Choose Color")
+                .font(.headline)
+                .padding(.bottom, 4)
+            
+            VStack(spacing: 0) {
+                ForEach(Self.swiftUIColors, id: \.name) { colorInfo in
+                    Button(action: {
+                        selectedColorName = colorInfo.name
+                        onColorSelected?(colorInfo.name)
+                    }) {
+                        HStack(spacing: 12) {
+                            // Color Circle
+                            colorCircle(colorName: colorInfo.displayName, color: colorInfo.color)
+                            
+                            // Color Name
+                            Text(colorInfo.displayName)
+                                .font(.system(size: 14))
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
+                            // Checkmark
+                            if selectedColorName.lowercased() == colorInfo.name.lowercased() {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(selectedColorName.lowercased() == colorInfo.name.lowercased() ? Color.blue.opacity(0.1) : Color.clear)
+                    )
+                    
+                    if colorInfo.name != Self.swiftUIColors.last?.name {
+                        Divider()
+                            .padding(.leading, 44) // Indent divider to align with text
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.secondary.opacity(0.1))
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .padding()
+    }
+    
+    @ViewBuilder
+    private func colorCircle(colorName: String, color: Color) -> some View {
+        Group {
+            if colorName == "Primary" {
+                ZStack {
+                    Circle()
+                        .fill(Color.black)
+                        .frame(width: 24, height: 24)
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 24, height: 24)
+                        .mask(
+                            Rectangle()
+                                .frame(width: 12, height: 24)
+                                .offset(x: 6)
+                        )
+                }
+            } else if colorName == "Clear" {
+                ZStack {
+                    Circle()
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(width: 24, height: 24)
+                    Circle()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        .frame(width: 24, height: 24)
+                    Rectangle()
+                        .fill(Color.red)
+                        .frame(width: 2, height: 16)
+                        .rotationEffect(.degrees(45))
+                }
+            } else {
+                Circle()
+                    .fill(color)
+                    .frame(width: 24, height: 24)
+            }
+        }
+        .overlay(
+            Circle()
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        )
+    }
+}
+
+struct GradientColorPicker: View {
+    @Binding var colorString: String
+    @State private var isPresented = false
+    @State private var selectedColorName: String = "blue"
+    @State private var opacityValue: Double = 1.0
+    
+    // Helper to get color from string name
+    private func getColor(for name: String) -> Color {
+        let colors: [String: Color] = [
+            "primary": .primary, "secondary": .secondary, "black": .black, "white": .white,
+            "red": .red, "orange": .orange, "yellow": .yellow, "green": .green,
+            "mint": .mint, "teal": .teal, "cyan": .cyan, "blue": .blue,
+            "indigo": .indigo, "purple": .purple, "pink": .pink, "brown": .brown,
+            "gray": .gray, "clear": .clear
+        ]
+        return colors[name] ?? .blue
+    }
+    
+    private var currentColor: Color {
+        return getColor(for: selectedColorName).opacity(opacityValue)
+    }
+    
+    var body: some View {
+        Button(action: { isPresented = true }) {
+            HStack(spacing: 6) {
+                // Color preview with transparency indicator
+                ZStack {
+                    if opacityValue < 1.0 {
+                        Circle()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 30, height: 30)
+                    }
+                    Circle()
+                        .fill(currentColor)
+                        .frame(width: 30, height: 30)
+                }
+                .overlay(
+                    Circle()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+                
+                Text("\(selectedColorName.capitalized) \(opacityValue < 1.0 ? "(\(Int(opacityValue * 100))%)" : "")")
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.down")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onAppear {
+            parseColorString()
+        }
+        .popover(isPresented: $isPresented) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Preview
+                    HStack {
+                        Text("Gradient Color")
+                            .font(.headline)
+                        Spacer()
+                        Circle()
+                            .fill(currentColor)
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                    
+                    // Opacity Slider
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Opacity")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            
+                        HStack(spacing: 12) {
+                            Image(systemName: "circle.lefthalf.filled")
+                                .font(.system(size: 14))
+                                .foregroundColor(.primary)
+                            
+                            Slider(value: $opacityValue, in: 0...1)
+                                .onChange(of: opacityValue) { _, _ in
+                                    saveColor()
+                                }
+                            
+                            Text("\(Int(opacityValue * 100))%")
+                                .font(.system(size: 12))
+                                .monospacedDigit()
+                                .frame(width: 36, alignment: .trailing)
+                        }
+                        .padding(8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                    }
+                    
+                    Divider()
+                    
+                    // Standard Color Picker (Reuses exact UI from ColorPopover)
+                    StandardColorPickerContent(selectedColorName: $selectedColorName, onColorSelected: { _ in
+                        saveColor()
+                    })
+                    // Remove padding from the content itself since StandardColorPickerContent has its own padding/frame logic, 
+                    // but we might need to adjust it if it's too nested.
+                    // StandardColorPickerContent has .padding() and .frame(width: 220).
+                    // In a scrollview, this frame width might constrain it nicely.
+                }
+                .padding()
+            }
+            // Allow the popover to size itself based on content, but ensure min size
+            .frame(minWidth: 260, minHeight: 500)
+        }
+    }
+    
+    private func parseColorString() {
+        // Parse "colorname:opacity" or just "colorname"
+        let parts = colorString.split(separator: ":")
+        if parts.count >= 1 {
+            selectedColorName = String(parts[0]).lowercased()
+        }
+        if parts.count >= 2, let opacity = Double(parts[1]) {
+            opacityValue = opacity
+        } else {
+            opacityValue = 1.0
+        }
+    }
+    
+    private func saveColor() {
+        colorString = "\(selectedColorName):\(opacityValue)"
     }
 }

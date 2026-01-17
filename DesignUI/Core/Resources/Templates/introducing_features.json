@@ -1,6 +1,6 @@
 {
   "name": "Introducing Features",
-  "description": "Feature highlights with icons and descriptions",
+  "description": "Feature highlights with blue icons and buttons",
   "thumbnail": "introducingFeatures",
   "devicePreset": null,
   "components": [
@@ -240,7 +240,7 @@
                     {
                       "type": "Foreground Color",
                       "properties": {
-                        "color": "color:blue"
+                        "color": "blue:1.0"
                       }
                     },
                     {
@@ -480,7 +480,7 @@
                     {
                       "type": "Foreground Color",
                       "properties": {
-                        "color": "color:blue"
+                        "color": "blue:1.0"
                       }
                     },
                     {
@@ -720,7 +720,7 @@
                     {
                       "type": "Foreground Color",
                       "properties": {
-                        "color": "color:blue"
+                        "color": "blue:1.0"
                       }
                     },
                     {
@@ -960,7 +960,7 @@
                     {
                       "type": "Foreground Color",
                       "properties": {
-                        "color": "color:blue"
+                        "color": "blue:1.0"
                       }
                     },
                     {
@@ -1183,13 +1183,13 @@
             {
               "type": "Background Color",
               "properties": {
-                "color": "color:blue"
+                "color": "blue:1.0"
               }
             },
             {
               "type": "Foreground Color",
               "properties": {
-                "color": "color:white"
+                "color": "white:1.0"
               }
             },
             {

@@ -41,7 +41,6 @@ class ScreenshotUtility {
                 print("❌ Failed to convert CGImage to PNG")
                 return nil
             }
-            print("✅ Screenshot captured (CGImage): \(pngData.count) bytes, size: \(cgImage.width)x\(cgImage.height)")
             return pngData
         }
         
@@ -58,7 +57,7 @@ class ScreenshotUtility {
             return nil
         }
         
-        print("✅ Screenshot captured (NSImage): \(pngData.count) bytes")
+        print("✅ Screenshot captured (NSImage)")
         return pngData
         #else
         guard let uiImage = renderer.uiImage else {
@@ -72,7 +71,6 @@ class ScreenshotUtility {
             return nil
         }
         
-        print("✅ Screenshot captured: \(pngData.count) bytes, size: \(uiImage.size)")
         return pngData
         #endif
     }

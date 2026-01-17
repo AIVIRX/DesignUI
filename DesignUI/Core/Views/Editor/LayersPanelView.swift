@@ -460,6 +460,10 @@ struct LayersPanelView: View {
                             .frame(width: 320, height: 480)
                     }
                 }
+                // Auto-dismiss child navigation when triggered
+                .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+                    showComponentLibrary = false
+                }
         #else
                 .popover(isPresented: $showComponentLibrary) {
                     ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
@@ -622,7 +626,12 @@ private struct StatusBarRowView: View {
                 .fill(backgroundFillColor)
         )
         .contentShape(Rectangle())
-        .onTapGesture { onSelect() }
+        .onTapGesture {
+            #if os(iOS)
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            #endif
+            onSelect()
+        }
         .onHover { isHovered = $0 }
         .padding(.horizontal, 4)
         .padding(.vertical, 2)
@@ -699,38 +708,8 @@ private struct OutlineRow: View {
                             }
                         },
                         onDuplicate: {
-                            // Copy modifiers with their properties and order
-                            let duplicatedModifiers = child.modifiers.map { modifier in
-                                ComponentModifier(
-                                    type: modifier.type,
-                                    properties: modifier.properties
-                                )
-                            }
-                            
-                            let duplicatedChild = UIComponent(
-                                type: child.type,
-                                properties: child.properties,
-                                children: child.children,
-                                frame: CGRect(
-                                    x: child.frame.origin.x + 20,
-                                    y: child.frame.origin.y + 20,
-                                    width: child.frame.width,
-                                    height: child.frame.height
-                                ),
-                                modifiers: duplicatedModifiers,
-                                modifierId: child.modifierId,
-                                modifierType: child.modifierType
-                            )
-                            if let childIndex = component.children.firstIndex(where: { $0.id == child.id }) {
-                                component.children.insert(duplicatedChild, at: childIndex + 1)
-                            } else {
-                                if let modifierId = child.modifierId {
-                                    component.addModifierChild(duplicatedChild, modifierId: modifierId)
-                                } else {
-                                    component.addChild(duplicatedChild)
-                                }
-                            }
-                            selectedComponent = duplicatedChild
+                            canvasManager.duplicateComponent(child)
+
                         },
                         onMove: onMove,
                         getParentOf: getParentOf,
@@ -871,8 +850,10 @@ private struct OutlineRow: View {
                 }
             }
             .onTapGesture {
-                // Select component
-                    onSelect(component)
+#if os(iOS)
+                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                #endif
+                onSelect(component)
             }
             .onHover { isHovered = $0 }
             .onDrag { dragAction }

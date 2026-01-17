@@ -309,7 +309,7 @@ struct UsernameSetupView: View {
     
     private var isContinueDisabled: Bool {
         let hasErrors = !displayNameError.isEmpty || !usernameError.isEmpty
-        let isEmpty = displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || 
+        let isEmpty = displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                       username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         return isSaving || hasErrors || isEmpty
     }

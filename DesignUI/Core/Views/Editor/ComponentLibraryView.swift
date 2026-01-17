@@ -53,18 +53,31 @@ struct ComponentLibraryView: View {
                             componentType: componentType,
                             isFirstComponent: canvasManager.components.isEmpty,
                             onAdd: { component in
-                                // Check if there's a selected container component
-                                if let selected = selectedComponent,
-                                   canvasManager.canAcceptChildren(selected) {
-                                    // Reset frame to be relative to container
-                                    component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
-                                    
-                                    // Add directly to container - NEVER add to root level
-                                    selected.addChild(component)
-                                    selectedComponent = component
-                                    canvasManager.saveState()
+                                if let selected = selectedComponent {
+                                    if canvasManager.canAcceptChildren(selected) {
+                                        // Selected is a container - add as child
+                                        canvasManager.registerUndoAction("Added \(component.type.rawValue) to \(selected.type.rawValue)")
+                                        component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
+                                        selected.addChild(component)
+                                        canvasManager.selectedComponent = component
+                                    } else if let parent = canvasManager.findParentComponent(of: selected.id) {
+                                        // Selected is not a container but has a parent - add as sibling
+                                        canvasManager.registerUndoAction("Added \(component.type.rawValue)")
+                                        component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
+                                        
+                                        // Insert after the selected component
+                                        if let index = parent.children.firstIndex(where: { $0.id == selected.id }) {
+                                            parent.children.insert(component, at: index + 1)
+                                        } else {
+                                            parent.addChild(component)
+                                        }
+                                        canvasManager.selectedComponent = component
+                                    } else {
+                                        // Selected is at root level and can't accept children - add to root
+                                        canvasManager.addComponent(component)
+                                    }
                                 } else {
-                                    // Add to main canvas
+                                    // No selection - add to root
                                     canvasManager.addComponent(component)
                                 }
                             }
@@ -120,6 +133,9 @@ struct ComponentLibraryItem: View {
         .animation(.easeInOut(duration: 0.1), value: isPressed)
         .onHover { isHovering = $0 }
         .onTapGesture {
+            #if os(iOS)
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            #endif
             // Create and add component to canvas. First component centers (0,0 relies on renderer fallback), subsequent at a small offset.
             let defaultOrigin = isFirstComponent ? CGPoint(x: 0, y: 0) : CGPoint(x: 100, y: 100)
             let component = UIComponent(

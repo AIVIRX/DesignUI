@@ -116,7 +116,7 @@ class DesignFile: ObservableObject, Identifiable {
         self.lastModified = Date()
         
         do {
-            print("💾 Saving design: \(name) to \(fileURL.path)")
+            print("💾 Saving design to \(fileURL.path)")
             
             // Encode data on calling thread (usually Main) to ensure thread safety of accessing @Published properties [Snapshotting]
             let encoder = JSONEncoder()
@@ -145,8 +145,6 @@ class DesignFile: ObservableObject, Identifiable {
                 // We'll rely on the main thread check above and the queue ordering.
                 
                 do {
-                    print("💾 [Background] Starting write for: \(name) (\(data.count) bytes)")
-                    
                     // Use file coordination for iCloud files
                     let isiCloudFile = fileURL.path.contains("Mobile Documents") || fileURL.path.contains("iCloud~")
                     
@@ -235,7 +233,6 @@ class DesignFile: ObservableObject, Identifiable {
             
             // Try to create a basic design file with the filename ONLY if file is 0 bytes
             let filename = url.deletingPathExtension().lastPathComponent
-            print("🔄 Creating fallback for empty (0 byte) file: \(filename)")
             return DesignFile(name: filename, components: [], fileURL: url)
         }
     }
@@ -522,8 +519,6 @@ class DesignManager: ObservableObject {
     
     func loadDesignFiles() {
         do {
-            print("🔍 Loading design files from: \(designsDirectory.path)")
-            
             // Ensure directory exists before trying to read from it
             if !FileManager.default.fileExists(atPath: designsDirectory.path) {
                 print("📁 Directory doesn't exist, creating it...")
@@ -531,34 +526,26 @@ class DesignManager: ObservableObject {
             }
             
             let fileURLs = try FileManager.default.contentsOfDirectory(at: designsDirectory, includingPropertiesForKeys: [.contentModificationDateKey])
-            print("🔍 Found \(fileURLs.count) files in directory")
-            print("🔍 All files: \(fileURLs.map { $0.lastPathComponent })")
             
             // Load regular design files
             let regularFiles = fileURLs
                 .filter { $0.pathExtension == "dockui" }
                 .compactMap { DesignFile.load(from: $0) }
-            
-            print("🔍 Loaded \(regularFiles.count) regular design files")
-            
+                        
             // Try to recover from backup files if regular files are corrupted
             let backupFiles = fileURLs
                 .filter { $0.pathExtension == "dockui.backup" }
                 .compactMap { DesignFile.load(from: $0) }
-            
-            print("🔍 Found \(backupFiles.count) backup files")
             
             // Combine and deduplicate
             var allFiles = regularFiles
             for backupFile in backupFiles {
                 if !allFiles.contains(where: { $0.name == backupFile.name }) {
                     allFiles.append(backupFile)
-                    print("🔄 Recovered design from backup: \(backupFile.name)")
                 }
             }
             
             designFiles = allFiles.sorted { $0.lastModified > $1.lastModified }
-            print("📁 Loaded \(designFiles.count) design files total")
             
             // Print each design file name
             for design in designFiles {
@@ -580,8 +567,6 @@ class DesignManager: ObservableObject {
             
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 do {
-                    print("🔍 [Async] Loading design files from: \(designsDir.path)")
-                    
                     // Ensure directory exists
                     if !FileManager.default.fileExists(atPath: designsDir.path) {
                         try FileManager.default.createDirectory(at: designsDir, withIntermediateDirectories: true)
@@ -596,8 +581,6 @@ class DesignManager: ObservableObject {
                     let designFileURLs = fileURLs.filter { $0.pathExtension == "dockui" }
                     let backupFileURLs = fileURLs.filter { $0.pathExtension == "dockui.backup" }
                     let totalFiles = designFileURLs.count + backupFileURLs.count
-                    
-                    print("🔍 [Async] Found \(designFileURLs.count) design files, \(backupFileURLs.count) backup files")
                     
                     // Report initial progress
                     DispatchQueue.main.async {
@@ -631,7 +614,6 @@ class DesignManager: ObservableObject {
                             // Only add if not already loaded
                             if !loadedFiles.contains(where: { $0.name == backupFile.name }) {
                                 loadedFiles.append(backupFile)
-                                print("🔄 [Async] Recovered design from backup: \(backupFile.name)")
                             }
                         }
                         loadedCount = designFileURLs.count + index + 1
@@ -750,7 +732,6 @@ class DesignManager: ObservableObject {
     
     // MARK: - Change Detection and Auto-save
     func markAsChanged() {
-        print("🔄 Design marked as changed")
         hasUnsavedChanges = true
         // Save immediately when changes are detected
         performAutoSave()
@@ -776,7 +757,6 @@ class DesignManager: ObservableObject {
         DispatchQueue.main.async {
             self.isAutoSaving = true
             print("💾 Auto-saving design: \(currentDesign.name)")
-            print("💾 Components to save: \(currentDesign.components.count)")
             
             // Save the design
             currentDesign.save()
@@ -832,7 +812,6 @@ class DesignManager: ObservableObject {
     }
     
     func refreshDesignFiles() {
-        print("🔄 Refreshing design files...")
         
         // If currently local, try to connect to iCloud again
         if storageStatus.contains("Local") {
@@ -868,23 +847,6 @@ class DesignManager: ObservableObject {
             self.storageStatus = "☁️ iCloud Drive"
         }
     }
-    
-    func getStorageInfo() -> String {
-        var info = "📁 Directory: \(designsDirectory.path)\n"
-        info += "📊 Designs found: \(designFiles.count)\n"
-        info += "🔄 Status: \(storageStatus)"
-        return info
-    }
-    
-    func showInFinder() {
-        #if os(macOS)
-        NSWorkspace.shared.selectFile(designsDirectory.path, inFileViewerRootedAtPath: "")
-        print("📁 Opening Finder to: \(designsDirectory.path)")
-        #else
-        print("📁 Finder not available on iOS. Directory: \(designsDirectory.path)")
-        #endif
-    }
-    
     
     // MARK: - Unique Name Generation
     func generateUniqueFileName(baseName: String) -> String {
@@ -948,7 +910,6 @@ class DesignManager: ObservableObject {
                         currentDesign = reloadedDesign
                     }
                     
-                    print("✅ Renamed and reloaded design: \(displayName)")
                 } else {
                     print("⚠️ Failed to reload design after rename, but file was moved")
                 }
@@ -961,7 +922,6 @@ class DesignManager: ObservableObject {
     }
     
     func migrateFromUserDocuments() {
-        print("🔄 Checking for existing files to migrate...")
         
         // Check if there are files in the user's Documents/DockUI folder
         let userDocumentsPath = "/Users/\(NSUserName())/Documents"
@@ -975,8 +935,7 @@ class DesignManager: ObservableObject {
                 let designFiles = userFiles.filter { $0.pathExtension == "dockui" }
                 
                 if !designFiles.isEmpty {
-                    print("📄 Found \(designFiles.count) design files in user Documents/DockUI folder")
-                    print("📄 Files: \(designFiles.map { $0.lastPathComponent }.joined(separator: ", "))")
+                    print("Found \(designFiles.count) design files in user Documents/DockUI folder")
                     
                     // Create the Documents/DockUI directory if it doesn't exist
                     try? FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
@@ -989,7 +948,6 @@ class DesignManager: ObservableObject {
                         
                         do {
                             try FileManager.default.copyItem(at: file, to: destination)
-                            print("✅ Copied \(file.lastPathComponent) as \(uniqueFileName)")
                         } catch {
                             print("❌ Failed to copy \(file.lastPathComponent): \(error)")
                         }
@@ -997,21 +955,19 @@ class DesignManager: ObservableObject {
                     
                     // Refresh the design files
                     refreshDesignFiles()
-                    print("✅ Migration completed. Found \(designFiles.count) files in Documents folder.")
+                    print("Migration completed. Found files in Documents folder.")
                 } else {
-                    print("📄 No design files found in user Documents/DockUI folder")
+                    print("No design files found in user Documents/DockUI folder")
                 }
             } else {
-                print("📄 No user Documents/DockUI folder found")
+                print("No user Documents/DockUI folder found")
             }
         } catch {
-            print("❌ Error accessing user Documents folder: \(error)")
+            print("Error accessing user Documents folder: \(error)")
         }
     }
     
 }
-
-// MARK: - Local Image Gallery Manager
 
 class ImageGalleryManager: ObservableObject {
     static let shared = ImageGalleryManager()
@@ -1036,26 +992,19 @@ class ImageGalleryManager: ObservableObject {
         if !fileManager.fileExists(atPath: imagesDirectory.path) {
             do {
                 try fileManager.createDirectory(at: imagesDirectory, withIntermediateDirectories: true, attributes: nil)
-                print("✅ ImageGalleryManager: Created gallery directory at \(imagesDirectory.path)")
+                print("✅ ImageGalleryManager: Created gallery directory")
             } catch {
                 print("❌ ImageGalleryManager: Failed to create gallery directory: \(error)")
             }
         }
     }
     
-    // MARK: - Save
-    
-    /// Save image data to gallery and return the filename
-    /// - Parameters:
-    ///   - data: Image data
-    ///   - originalFilename: Optional original filename to preserve extension or name (if clean)
-    /// - Returns: The filename stored in the gallery
     func saveImage(data: Data, originalFilename: String? = nil) -> String? {
         guard let imagesDirectory = imagesDirectory else { return nil }
         
         // Optimize the image data (Resize + Compress)
         guard let optimizedData = ImageGalleryManager.compressAndResizeImage(data: data) else {
-            print("❌ ImageGalleryManager: Failed to optimize image, falling back to original data")
+            print("ImageGalleryManager: Failed to optimize image, falling back to original data")
             return saveRawData(data: data, originalFilename: originalFilename)
         }
         
@@ -1065,10 +1014,10 @@ class ImageGalleryManager: ObservableObject {
         
         do {
             try optimizedData.write(to: fileURL)
-            print("✅ ImageGalleryManager: Saved optimized image \(filename) (Size: \(ByteCountFormatter.string(fromByteCount: Int64(optimizedData.count), countStyle: .file)))")
+            print("ImageGalleryManager: Saved optimized image")
             return filename
         } catch {
-            print("❌ ImageGalleryManager: Failed to save image: \(error)")
+            print("ImageGalleryManager: Failed to save image: \(error)")
             // Fallback to raw if optimized write fails (unlikely, but safe)
             return saveRawData(data: data, originalFilename: originalFilename)
         }
@@ -1195,37 +1144,33 @@ class ImageGalleryManager: ObservableObject {
         return fileManager.fileExists(atPath: fileURL.path)
     }
     
-    // MARK: - List
-    
     /// Get all image filenames in the gallery, sorted by creation date (newest first)
-    func getAllImageFilenames() -> [String] {
-        guard let imagesDirectory = imagesDirectory else { return [] }
-        
-        do {
-            let fileURLs = try fileManager.contentsOfDirectory(at: imagesDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)
+        func getAllImageFilenames() -> [String] {
+            guard let imagesDirectory = imagesDirectory else { return [] }
             
-            // Filter only images (basic extension check)
-            let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
-            let imageFiles = fileURLs.filter { url in
-                imageExtensions.contains(url.pathExtension.lowercased())
+            do {
+                let fileURLs = try fileManager.contentsOfDirectory(at: imagesDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)
+                
+                // Filter only images (basic extension check)
+                let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
+                let imageFiles = fileURLs.filter { url in
+                    imageExtensions.contains(url.pathExtension.lowercased())
+                }
+                
+                // Sort by creation date descending
+                let sortedFiles = imageFiles.sorted { url1, url2 in
+                    let date1 = (try? url1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                    let date2 = (try? url2.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                    return date1 > date2
+                }
+                
+                return sortedFiles.map { $0.lastPathComponent }
+            } catch {
+                print("❌ ImageGalleryManager: Failed to list images: \(error)")
+                return []
             }
-            
-            // Sort by creation date descending
-            let sortedFiles = imageFiles.sorted { url1, url2 in
-                let date1 = (try? url1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                let date2 = (try? url2.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                return date1 > date2
-            }
-            
-            return sortedFiles.map { $0.lastPathComponent }
-        } catch {
-            print("❌ ImageGalleryManager: Failed to list images: \(error)")
-            return []
         }
-    }
-    
-    // MARK: - Delete
-    
+            
     func deleteImage(filename: String) {
         guard let imagesDirectory = imagesDirectory else { return }
         let fileURL = imagesDirectory.appendingPathComponent(filename)

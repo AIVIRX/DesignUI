@@ -503,8 +503,8 @@
 				ECFC6AC52EA9C48400177480 /* AppIcon.icon */,
 				EC7D7BD82C19E426003134B1 /* Assets.xcassets */,
 				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
-				ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */,
 				ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */,
+				ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */,
 				ECC93A392F16D4C800D9F11E /* Templates */,
 			);
 			path = Resources;
@@ -926,6 +926,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DockUI needs permission to save screenshots to your photo library.";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -1004,6 +1005,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DockUI needs permission to save screenshots to your photo library.";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;

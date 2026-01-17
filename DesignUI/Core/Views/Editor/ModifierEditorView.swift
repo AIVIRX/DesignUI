@@ -68,5 +68,8 @@ struct ModifierEditorView: View {
 #if os(macOS)
         .frame(width: 320)
 #endif
+        .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+            dismiss()
+        }
     }
 }

@@ -258,11 +258,11 @@ struct DesignCardView: View {
                         onRename()
                     }
                     
-#if os(macOS)
-                    Button("Show in Finder") {
-                        NSWorkspace.shared.activateFileViewerSelecting([designFile.fileURL])
-                    }
-#endif
+//#if os(macOS)
+//                    Button("Show in Finder") {
+//                        NSWorkspace.shared.activateFileViewerSelecting([designFile.fileURL])
+//                    }
+//#endif
                     
                     Button("Delete", role: .destructive) {
                         onDelete()
