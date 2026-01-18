@@ -1150,6 +1150,10 @@ struct UIBuilderView: View {
                         Label("Save as Screenshot", systemImage: "photo")
                     }
                     
+                    Button(action: { copyAsJSON() }) {
+                        Label("Copy as JSON", systemImage: "doc.on.clipboard")
+                    }
+                    
 
                 } label: {
                     Image(systemName: "square.and.arrow.up")
@@ -1219,6 +1223,37 @@ struct UIBuilderView: View {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
         }
         #endif
+    }
+    
+    private func copyAsJSON() {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        
+        // Create a DesignTemplate to match the expected file format
+        let template = DesignTemplate(
+            name: designFile.name,
+            description: "Exported from Studio",
+            thumbnail: "blank", // Placeholder as this is just raw JSON
+            devicePreset: selectedDevice.rawValue,
+            components: canvasManager.components
+        )
+        
+        do {
+            let data = try encoder.encode(template)
+            
+            if let jsonString = String(data: data, encoding: .utf8) {
+                #if os(macOS)
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(jsonString, forType: .string)
+                #else
+                UIPasteboard.general.string = jsonString
+                #endif
+                print("✅ Copied design template JSON to clipboard")
+            }
+        } catch {
+            print("❌ Failed to encode JSON: \(error)")
+        }
     }
     
     private func setupCanvas() {
@@ -1365,7 +1400,6 @@ struct UIBuilderView: View {
 
 struct ComponentView: View {
     @ObservedObject var component: UIComponent
-    let isSelected: Bool
     let onSelect: (Bool) -> Void  // Bool indicates additive selection
     let selectedDevice: DevicePreset
     let colorScheme: ColorScheme?
@@ -1374,9 +1408,8 @@ struct ComponentView: View {
     let canvasManager: CanvasManager
     @State private var isHovered: Bool = false
     
-    init(component: UIComponent, isSelected: Bool, onSelect: @escaping (Bool) -> Void, selectedDevice: DevicePreset, colorScheme: ColorScheme?, selectedComponentIds: Set<UUID>, onSelectChild: ((UIComponent, Bool) -> Void)? = nil, canvasManager: CanvasManager) {
+    init(component: UIComponent, onSelect: @escaping (Bool) -> Void, selectedDevice: DevicePreset, colorScheme: ColorScheme?, selectedComponentIds: Set<UUID>, onSelectChild: ((UIComponent, Bool) -> Void)? = nil, canvasManager: CanvasManager) {
         self.component = component
-        self.isSelected = isSelected
         self.onSelect = onSelect
         self.selectedDevice = selectedDevice
         self.colorScheme = colorScheme
@@ -1387,24 +1420,8 @@ struct ComponentView: View {
     
     var body: some View {
         ComponentRenderer(component: component, deviceSize: selectedDevice.size, colorScheme: colorScheme, onTap: onSelect, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
-            .overlay(
-                // Selection and hover overlays
-                Group {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.blue, lineWidth: 2)
-                            .allowsHitTesting(false)
-                    } else if isHovered && component.children.isEmpty {
-                        // Only show hover for leaf components (components without children)
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.blue.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                            .allowsHitTesting(false)
-                    }
-                }
-            )
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.frame)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.isVisible)
-            .animation(.easeInOut(duration: 0.2), value: isSelected)
             .animation(.easeInOut(duration: 0.15), value: isHovered)
             .onHover { hovering in
                 isHovered = hovering

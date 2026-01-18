@@ -139,9 +139,9 @@ struct ComponentProperty: Identifiable, Equatable {
     var value: Any
     let defaultValue: Any
     let options: [Any]?
-    let isRequired: Bool
+
     
-    init(key: String, displayName: String, type: PropertyType, value: Any, defaultValue: Any, options: [Any]? = nil, isRequired: Bool = false) {
+    init(key: String, displayName: String, type: PropertyType, value: Any, defaultValue: Any, options: [Any]? = nil) {
         self.id = UUID()
         self.key = key
         self.displayName = displayName
@@ -149,13 +149,25 @@ struct ComponentProperty: Identifiable, Equatable {
         self.value = value
         self.defaultValue = defaultValue
         self.options = options
-        self.isRequired = isRequired
+    }
+    
+    // MARK: - Value Comparison for Diff-Only Saving
+    static func valuesAreEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+        // Compare by type
+        if let l = lhs as? String, let r = rhs as? String { return l == r }
+        if let l = lhs as? Double, let r = rhs as? Double { return l == r }
+        if let l = lhs as? Int, let r = rhs as? Int { return l == r }
+        if let l = lhs as? Bool, let r = rhs as? Bool { return l == r }
+        if let l = lhs as? Color, let r = rhs as? Color { return colorToColorString(l) == colorToColorString(r) }
+        // For other types, convert to string and compare
+        return "\(lhs)" == "\(rhs)"
     }
     
     
     // MARK: - Codable Implementation
+    // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case id, key, displayName, type, value, defaultValue, options, isRequired
+        case key, value
     }
 }
 
@@ -166,39 +178,52 @@ extension ComponentProperty: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         // Handle backward compatibility for missing fields
-        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        // Handle backward compatibility for missing fields
+        self.id = UUID() // Always generate new ID for property on load
         self.key = try container.decode(String.self, forKey: .key)
-        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName) ?? Self.properDisplayName(for: self.key)
-        self.type = try container.decode(PropertyType.self, forKey: .type)
-        self.isRequired = try container.decodeIfPresent(Bool.self, forKey: .isRequired) ?? false
+        self.displayName = Self.properDisplayName(for: self.key) // Derive display name from key
         
-        // Decode value based on type
-        self.value = try Self.decodeAnyValue(from: container, forKey: .value, type: type)
-        self.defaultValue = try Self.decodeAnyValue(from: container, forKey: .defaultValue, type: type)
+        // Type is no longer encoded - infer generic type from value
+        // The authoritative type will be restored in UIComponent.init(from:)
+        let (inferredValue, inferredType) = try Self.decodeValueAndInferType(from: container, forKey: .value)
         
-        // Decode options if present
-        if let optionsStrings = try container.decodeIfPresent([String].self, forKey: .options) {
-            self.options = optionsStrings
-        } else {
-            self.options = nil
-        }
+        self.value = inferredValue
+        self.type = inferredType
+        
+        // defaultValue and options are no longer encoded/decoded
+        // They are restored from code in UIComponent.init(from:)
+        self.defaultValue = self.value // Temporary placeholder
+        self.options = nil // Temporary placeholder
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
+        // id and displayName are not encoded - derived on load
         try container.encode(key, forKey: .key)
-        try container.encode(type, forKey: .type)
-        try container.encode(isRequired, forKey: .isRequired)
+        // type removed
         
         // Encode value based on type
+        // Since we don't store type, we just encode the value directly as primitive
         try Self.encodeAnyValue(value, to: &container, forKey: .value, type: type)
-        try Self.encodeAnyValue(defaultValue, to: &container, forKey: .defaultValue, type: type)
         
-        // Encode options if present
-        if let options = options {
-            let optionsStrings = options.map { "\($0)" }
-            try container.encode(optionsStrings, forKey: .options)
+        // defaultValue and options are NOT encoded anymore
+    }
+    
+    // Helper to decode value and infer a provisional type
+    private static func decodeValueAndInferType(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) throws -> (Any, PropertyType) {
+        if let boolVal = try? container.decode(Bool.self, forKey: key) {
+            return (boolVal, .boolean)
+        } else if let intVal = try? container.decode(Int.self, forKey: key) {
+             return (Double(intVal), .number) 
+        } else if let doubleVal = try? container.decode(Double.self, forKey: key) {
+            return (doubleVal, .number)
+        } else if let stringVal = try? container.decode(String.self, forKey: key) {
+            return (stringVal, .string) // Default to string, will be refined to .color/etc later
+        } else if let arrayVal = try? container.decode([String].self, forKey: key) {
+            return (arrayVal, .string) // Provisional - technically valid for colorArray logic
+        } else {
+             // Fallback for empty/null - usually string
+             return ("", .string)
         }
     }
     
@@ -424,7 +449,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     }
-    @Published var isSelected: Bool = false
     @Published var isVisible: Bool = true
     @Published var zIndex: Int = 0
     @Published var modifiers: [ComponentModifier]
@@ -563,6 +587,14 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                 // Otherwise return the color as-is
                 return color
             }
+        }
+        
+        // For number properties, ensure we always return Double (JSON can decode as Int)
+        if property.type == .number {
+            if let intVal = property.value as? Int {
+                return Double(intVal)
+            }
+            // Already Double or other - return as-is
         }
         
         return property.value
@@ -889,15 +921,31 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
-        case id, type, properties, children, frame, isSelected, isVisible, zIndex, modifiers, isOverlay, modifierId, modifierType
+        case id, type, properties, children, frame, isVisible, zIndex, modifiers, isOverlay, modifierId, modifierType
     }
     
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try container.decode(UUID.self, forKey: .id)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.type = try container.decode(ComponentType.self, forKey: .type)
-        self.properties = try container.decode([ComponentProperty].self, forKey: .properties)
-        self.children = try container.decode([UIComponent].self, forKey: .children)
+        
+        // DICTIONARY PROPERTIES FORMAT: { "key": value }
+        if let propsDict = try? container.decode([String: AnyCodable].self, forKey: .properties) {
+            self.properties = propsDict.map { key, anyValue in
+                ComponentProperty(
+                    key: key,
+                    displayName: ComponentProperty.properDisplayName(for: key),
+                    type: .string, // Provisional type, restored from defaults later
+                    value: anyValue.value,
+                    defaultValue: anyValue.value, // Placeholder
+                    options: nil
+                )
+            }
+        } else {
+            self.properties = []
+        }
+        
+        self.children = try container.decodeIfPresent([UIComponent].self, forKey: .children) ?? []
         
         // Handle frame decoding - support both array format [[x, y], [width, height]] and dictionary format
         if let frameArray = try? container.decode([[Double]].self, forKey: .frame),
@@ -911,30 +959,115 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             let height = frameArray[1][1]
             self._frame = CGRect(x: x, y: y, width: width, height: height)
         } else {
-            // Dictionary format (standard CGRect Codable)
-        self._frame = try container.decode(CGRect.self, forKey: .frame)
+            // Dictionary format (standard CGRect Codable) - default to .zero if missing
+            self._frame = try container.decodeIfPresent(CGRect.self, forKey: .frame) ?? .zero
         }
-        self.isSelected = try container.decodeIfPresent(Bool.self, forKey: .isSelected) ?? false
         self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible) ?? true
         self.zIndex = try container.decodeIfPresent(Int.self, forKey: .zIndex) ?? 0
         self.modifiers = try container.decodeIfPresent([ComponentModifier].self, forKey: .modifiers) ?? []
         self.isOverlay = try container.decodeIfPresent(Bool.self, forKey: .isOverlay) ?? false
         self.modifierId = try container.decodeIfPresent(UUID.self, forKey: .modifierId)
         self.modifierType = try container.decodeIfPresent(ModifierType.self, forKey: .modifierType)
+        
+        // RESTORE OPTIONS FROM CODE DEFAULTS AND ADD MISSING PROPERTIES
+        // Since we use diff-only saving, properties at their default value are not in JSON.
+        // We must re-hydrate ALL default properties, using saved values where available.
+        let defaultProps = UIComponent.defaultProperties(for: self.type)
+        var restoredProperties: [ComponentProperty] = []
+        
+        for defaultProp in defaultProps {
+            // Check if this property was saved in JSON
+            if let savedProp = self.properties.first(where: { $0.key == defaultProp.key }) {
+                // Property exists in JSON - use saved value with restored metadata
+                var correctValue = savedProp.value
+                
+                // Convert types if needed (e.g., String -> Color, Int -> Double)
+                if defaultProp.type == .color, let stringVal = correctValue as? String {
+                    correctValue = ComponentProperty.colorStringToColor(stringVal)
+                }
+                if defaultProp.type == .number {
+                    // JSON numbers can decode as Int or Double, normalize to Double
+                    if let intVal = correctValue as? Int {
+                        correctValue = Double(intVal)
+                    } else if let stringVal = correctValue as? String, let doubleVal = Double(stringVal) {
+                        correctValue = doubleVal
+                    }
+                }
+                
+                restoredProperties.append(ComponentProperty(
+                    key: defaultProp.key,
+                    displayName: defaultProp.displayName,
+                    type: defaultProp.type,
+                    value: correctValue,
+                    defaultValue: defaultProp.defaultValue,
+                    options: defaultProp.options
+                ))
+            } else {
+                // Property NOT in JSON - use default value from code
+                restoredProperties.append(defaultProp)
+            }
+        }
+        
+        // Also add any custom properties that aren't in defaults (shouldn't happen often)
+        for savedProp in self.properties {
+            if !restoredProperties.contains(where: { $0.key == savedProp.key }) {
+                restoredProperties.append(savedProp)
+            }
+        }
+        
+        self.properties = restoredProperties
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(type, forKey: .type)
-        try container.encode(properties, forKey: .properties)
-        try container.encode(children, forKey: .children)
-        try container.encode(frame, forKey: .frame)
-        try container.encode(isSelected, forKey: .isSelected)
-        try container.encode(isVisible, forKey: .isVisible)
-        try container.encode(zIndex, forKey: .zIndex)
-        try container.encode(modifiers, forKey: .modifiers)
-        try container.encode(isOverlay, forKey: .isOverlay)
+        // DIFF-ONLY PROPERTY SAVING: Only encode properties that differ from defaults
+        let defaultProps = UIComponent.defaultProperties(for: self.type)
+        var propsDict: [String: AnyCodable] = [:]
+        for prop in properties {
+            // Find the default property for this key
+            let defaultProp = defaultProps.first { $0.key == prop.key }
+            
+            // Only encode if value differs from default
+            if let defProp = defaultProp {
+                if !ComponentProperty.valuesAreEqual(prop.value, defProp.defaultValue) {
+                    propsDict[prop.key] = AnyCodable(prop.value)
+                }
+            } else {
+                // No default found, always encode (custom property)
+                propsDict[prop.key] = AnyCodable(prop.value)
+            }
+        }
+        if !propsDict.isEmpty {
+            try container.encode(propsDict, forKey: .properties)
+        }
+        
+        if !children.isEmpty {
+            try container.encode(children, forKey: .children)
+        }
+        
+        // Only encode values that differ from defaults to keep JSON clean
+        if frame != .zero {
+            try container.encode(frame, forKey: .frame)
+        }
+        
+        if !isVisible { // Default is true
+            try container.encode(isVisible, forKey: .isVisible)
+        }
+        
+        if zIndex != 0 {
+            try container.encode(zIndex, forKey: .zIndex)
+        }
+        
+        if !modifiers.isEmpty {
+            try container.encode(modifiers, forKey: .modifiers)
+        }
+        
+        if isOverlay { // Default is false
+            try container.encode(isOverlay, forKey: .isOverlay)
+        }
+        
         try container.encodeIfPresent(modifierId, forKey: .modifierId)
         try container.encodeIfPresent(modifierType, forKey: .modifierType)
     }

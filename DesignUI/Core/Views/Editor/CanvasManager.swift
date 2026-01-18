@@ -107,14 +107,11 @@ class CanvasManager: ObservableObject {
             self.selectComponent(withId: componentId)
         }
         
-        // Listen for BEFORE changes (modifiers reorder, etc) - capture undo state
-        NotificationCenter.default.addObserver(
-            forName: .designWillChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.registerUndoAction("Component Update")
-        }
+        
+        // NOTE: Notification-based undo REMOVED
+        // Undo is now registered ONLY through explicit CanvasManager method calls
+        // (addComponent, removeComponent, updateModifier, etc.)
+        // This prevents spurious undo registrations on component selection
     }
     
     deinit {
@@ -570,6 +567,8 @@ class CanvasManager: ObservableObject {
         if let parentId = findParentId(of: component.id), let parentComponent = findComponent(by: parentId) {
             // Find the index of the original component in its parent
             if let originalIndex = parentComponent.children.firstIndex(where: { $0.id == component.id }) {
+                // Register undo BEFORE making the change
+                registerUndoAction("Duplicated \(component.type.rawValue)")
                 // Insert the duplicate right after the original component
                 parentComponent.children.insert(duplicatedComponent, at: originalIndex + 1)
             } else {
@@ -584,7 +583,7 @@ class CanvasManager: ObservableObject {
                 saveStateWorkItem = nil
                 
                 // Save state BEFORE making the change
-                saveState(force: true)
+                registerUndoAction("Duplicated \(component.type.rawValue)")
                 
                 components.insert(duplicatedComponent, at: originalIndex + 1)
                 selectedComponent = duplicatedComponent
@@ -673,7 +672,6 @@ class CanvasManager: ObservableObject {
                 value: deepCopyValue(prop.value),
                 defaultValue: deepCopyValue(prop.defaultValue),
                 options: prop.options,
-                isRequired: prop.isRequired
             )
         }
         
@@ -784,7 +782,6 @@ class CanvasManager: ObservableObject {
                 value: deepCopyValue(prop.value),
                 defaultValue: deepCopyValue(prop.defaultValue),
                 options: prop.options,
-                isRequired: prop.isRequired
             )
         }
         
@@ -999,6 +996,21 @@ class CanvasManager: ObservableObject {
             return copiedComponents
         } catch {
             print("⚠️ Failed to deep copy components: \(error)")
+            print("⚠️ Error details: \(error.localizedDescription)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .dataCorrupted(let context):
+                    print("⚠️ Data corrupted: \(context.debugDescription)")
+                case .keyNotFound(let key, let context):
+                    print("⚠️ Key not found: \(key.stringValue) - \(context.debugDescription)")
+                case .typeMismatch(let type, let context):
+                    print("⚠️ Type mismatch: \(type) - \(context.debugDescription)")
+                case .valueNotFound(let type, let context):
+                    print("⚠️ Value not found: \(type) - \(context.debugDescription)")
+                @unknown default:
+                    print("⚠️ Unknown decoding error")
+                }
+            }
             // Fallback: return original components (not ideal but prevents crash)
             return components
         }

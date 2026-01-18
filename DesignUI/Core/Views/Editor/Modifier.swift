@@ -396,11 +396,10 @@ struct AnyCodable: Codable {
         
         if let bool = try? container.decode(Bool.self) {
             value = bool
-        } else if let int = try? container.decode(Int.self) {
-            value = int
         } else if let double = try? container.decode(Double.self) {
-            // Convert Double back to CGFloat for consistency
-            value = CGFloat(double)
+            // Decode all numbers as Double for consistency with property types
+            // This ensures spacing: 24 becomes Double(24), not Int(24)
+            value = double
         } else if let colorDict = try? container.decode([String: Double].self) {
             // Decode Color from RGBA dictionary
             if let red = colorDict["red"],

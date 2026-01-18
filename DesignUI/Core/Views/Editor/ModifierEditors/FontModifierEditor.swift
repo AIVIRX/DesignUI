@@ -49,11 +49,11 @@ struct FontModifierEditor: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                // Weight Slider (at top)
+                weightSlider
+                
                 // Size List
                 sizeList
-                
-                // Weight Slider
-                weightSlider
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -81,7 +81,7 @@ struct FontModifierEditor: View {
                         displayName: sizeInfo.displayName,
                         isSelected: fontSize == sizeInfo.name,
                         font: getFont(for: sizeInfo.name),
-                        weight: .regular,
+                        weight: getWeight(for: fontWeight), // Apply current weight to preview
                         onSelect: {
                             fontSize = sizeInfo.name
                             saveFont()

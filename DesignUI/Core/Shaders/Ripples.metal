@@ -39,14 +39,8 @@ half4 Ripples(
     // A vector of length `amplitude` that points away from position.
     float2 n = normalize(position - origin);
 
-    // Scale `n` by the ripple amount at the current pixel position and add it
-    // to the current pixel position.
-    //
-    // This new position moves toward or away from `origin` based on the
-    // sign and magnitude of `rippleAmount`.
     float2 newPosition = position + rippleAmount * n;
 
-    // Sample the layer at the new position.
     half4 color = layer.sample(newPosition);
 
     // Lighten or darken the color based on the ripple amount and its alpha

@@ -331,7 +331,6 @@ struct ComponentsContainerWithStatusBar: View {
             ForEach(components, id: \.id) { component in
                 ComponentView(
                     component: component,
-                    isSelected: canvasManager.selectedComponentIds.contains(component.id),
                     onSelect: { additive in
                         canvasManager.selectComponent(component, additive: additive)
                     },
@@ -405,7 +404,6 @@ struct ComponentsContainerWithoutStatusBar: View {
             ForEach(components, id: \.id) { component in
                 ComponentView(
                     component: component,
-                    isSelected: canvasManager.selectedComponentIds.contains(component.id),
                     onSelect: { additive in
                         canvasManager.selectComponent(component, additive: additive)
                     },

@@ -5,49 +5,10 @@
   "devicePreset": null,
   "components": [
     {
-      "id": "00000000-0000-0000-0000-000000000001",
       "type": "VStack",
-      "isSelected": false,
-      "isVisible": true,
-      "isOverlay": false,
-      "zIndex": 0,
-      "frame": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          0
-        ]
-      ],
-      "properties": [
-        {
-          "key": "alignment",
-          "displayName": "Alignment",
-          "type": {
-            "segmentedControl": {}
-          },
-          "value": "center",
-          "defaultValue": "center",
-          "options": [
-            "leading",
-            "center",
-            "trailing"
-          ],
-          "isRequired": false
-        },
-        {
-          "key": "spacing",
-          "displayName": "Spacing",
-          "type": {
-            "number": {}
-          },
-          "value": 24,
-          "defaultValue": 8,
-          "isRequired": false
-        }
-      ],
+      "properties": {
+        "spacing": 24
+      },
       "modifiers": [
         {
           "type": "Padding",
@@ -59,34 +20,10 @@
       ],
       "children": [
         {
-          "id": "00000000-0000-0000-0000-000000000002",
           "type": "Text",
-          "isSelected": false,
-          "isVisible": true,
-          "isOverlay": false,
-          "zIndex": 0,
-          "frame": [
-            [
-              0,
-              0
-            ],
-            [
-              0,
-              0
-            ]
-          ],
-          "properties": [
-            {
-              "key": "text",
-              "displayName": "Text",
-              "type": {
-                "string": {}
-              },
-              "value": "What's New",
-              "defaultValue": "Text",
-              "isRequired": false
-            }
-          ],
+          "properties": {
+            "text": "What's New"
+          },
           "modifiers": [
             {
               "type": "Font",
@@ -102,140 +39,28 @@
                 "location": "vertical"
               }
             }
-          ],
-          "children": []
+          ]
         },
         {
-          "id": "00000000-0000-0000-0000-000000000010",
           "type": "VStack",
-          "isSelected": false,
-          "isVisible": true,
-          "isOverlay": false,
-          "zIndex": 0,
-          "frame": [
-            [
-              0,
-              0
-            ],
-            [
-              0,
-              0
-            ]
-          ],
-          "properties": [
-            {
-              "key": "alignment",
-              "displayName": "Alignment",
-              "type": {
-                "segmentedControl": {}
-              },
-              "value": "leading",
-              "defaultValue": "center",
-              "options": [
-                "leading",
-                "center",
-                "trailing"
-              ],
-              "isRequired": false
-            },
-            {
-              "key": "spacing",
-              "displayName": "Spacing",
-              "type": {
-                "number": {}
-              },
-              "value": 24,
-              "defaultValue": 8,
-              "isRequired": false
-            }
-          ],
-          "modifiers": [],
+          "properties": {
+            "alignment": "leading",
+            "spacing": 24
+          },
           "children": [
             {
-              "id": "00000000-0000-0000-0000-000000000011",
               "type": "HStack",
-              "isSelected": false,
-              "isVisible": true,
-              "isOverlay": false,
-              "zIndex": 0,
-              "frame": [
-                [
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0
-                ]
-              ],
-              "properties": [
-                {
-                  "key": "alignment",
-                  "displayName": "Alignment",
-                  "type": {
-                    "segmentedControl": {}
-                  },
-                  "value": "top",
-                  "defaultValue": "center",
-                  "options": [
-                    "top",
-                    "center",
-                    "bottom"
-                  ],
-                  "isRequired": false
-                },
-                {
-                  "key": "spacing",
-                  "displayName": "Spacing",
-                  "type": {
-                    "number": {}
-                  },
-                  "value": 12,
-                  "defaultValue": 8,
-                  "isRequired": false
-                }
-              ],
-              "modifiers": [],
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
               "children": [
                 {
-                  "id": "00000000-0000-0000-0000-000000000012",
                   "type": "SF Symbol",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "symbolName",
-                      "displayName": "Symbol Name",
-                      "type": {
-                        "string": {}
-                      },
-                      "value": "sparkles",
-                      "defaultValue": "star",
-                      "isRequired": false
-                    },
-                    {
-                      "key": "resizable",
-                      "displayName": "Resizable",
-                      "type": {
-                        "boolean": {}
-                      },
-                      "value": true,
-                      "defaultValue": false,
-                      "isRequired": false
-                    }
-                  ],
+                  "properties": {
+                    "symbolName": "sparkles",
+                    "resizable": true
+                  },
                   "modifiers": [
                     {
                       "type": "Foreground Color",
@@ -252,84 +77,20 @@
                         "height": 32
                       }
                     }
-                  ],
-                  "children": []
+                  ]
                 },
                 {
-                  "id": "00000000-0000-0000-0000-000000000013",
                   "type": "VStack",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "alignment",
-                      "displayName": "Alignment",
-                      "type": {
-                        "segmentedControl": {}
-                      },
-                      "value": "leading",
-                      "defaultValue": "center",
-                      "options": [
-                        "leading",
-                        "center",
-                        "trailing"
-                      ],
-                      "isRequired": false
-                    },
-                    {
-                      "key": "spacing",
-                      "displayName": "Spacing",
-                      "type": {
-                        "number": {}
-                      },
-                      "value": 4,
-                      "defaultValue": 8,
-                      "isRequired": false
-                    }
-                  ],
-                  "modifiers": [],
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
                   "children": [
                     {
-                      "id": "00000000-0000-0000-0000-000000000014",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Smart Suggestions",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Smart Suggestions"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -338,38 +99,13 @@
                             "fontWeight": "semibold"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     },
                     {
-                      "id": "00000000-0000-0000-0000-000000000015",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Get personalized recommendations based on your design style",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Get personalized recommendations based on your design style"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -384,98 +120,25 @@
                             "color": "color:secondary"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     }
                   ]
                 }
               ]
             },
             {
-              "id": "00000000-0000-0000-0000-000000000021",
               "type": "HStack",
-              "isSelected": false,
-              "isVisible": true,
-              "isOverlay": false,
-              "zIndex": 0,
-              "frame": [
-                [
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0
-                ]
-              ],
-              "properties": [
-                {
-                  "key": "alignment",
-                  "displayName": "Alignment",
-                  "type": {
-                    "segmentedControl": {}
-                  },
-                  "value": "top",
-                  "defaultValue": "center",
-                  "options": [
-                    "top",
-                    "center",
-                    "bottom"
-                  ],
-                  "isRequired": false
-                },
-                {
-                  "key": "spacing",
-                  "displayName": "Spacing",
-                  "type": {
-                    "number": {}
-                  },
-                  "value": 12,
-                  "defaultValue": 8,
-                  "isRequired": false
-                }
-              ],
-              "modifiers": [],
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
               "children": [
                 {
-                  "id": "00000000-0000-0000-0000-000000000022",
                   "type": "SF Symbol",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "symbolName",
-                      "displayName": "Symbol Name",
-                      "type": {
-                        "string": {}
-                      },
-                      "value": "bolt.fill",
-                      "defaultValue": "star",
-                      "isRequired": false
-                    },
-                    {
-                      "key": "resizable",
-                      "displayName": "Resizable",
-                      "type": {
-                        "boolean": {}
-                      },
-                      "value": true,
-                      "defaultValue": false,
-                      "isRequired": false
-                    }
-                  ],
+                  "properties": {
+                    "symbolName": "bolt.fill",
+                    "resizable": true
+                  },
                   "modifiers": [
                     {
                       "type": "Foreground Color",
@@ -492,84 +155,20 @@
                         "height": 32
                       }
                     }
-                  ],
-                  "children": []
+                  ]
                 },
                 {
-                  "id": "00000000-0000-0000-0000-000000000023",
                   "type": "VStack",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "alignment",
-                      "displayName": "Alignment",
-                      "type": {
-                        "segmentedControl": {}
-                      },
-                      "value": "leading",
-                      "defaultValue": "center",
-                      "options": [
-                        "leading",
-                        "center",
-                        "trailing"
-                      ],
-                      "isRequired": false
-                    },
-                    {
-                      "key": "spacing",
-                      "displayName": "Spacing",
-                      "type": {
-                        "number": {}
-                      },
-                      "value": 4,
-                      "defaultValue": 8,
-                      "isRequired": false
-                    }
-                  ],
-                  "modifiers": [],
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
                   "children": [
                     {
-                      "id": "00000000-0000-0000-0000-000000000024",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Faster Performance",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Faster Performance"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -578,38 +177,13 @@
                             "fontWeight": "semibold"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     },
                     {
-                      "id": "00000000-0000-0000-0000-000000000025",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Optimized rendering for smoother design experience",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Optimized rendering for smoother design experience"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -624,98 +198,25 @@
                             "color": "color:secondary"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     }
                   ]
                 }
               ]
             },
             {
-              "id": "00000000-0000-0000-0000-000000000031",
               "type": "HStack",
-              "isSelected": false,
-              "isVisible": true,
-              "isOverlay": false,
-              "zIndex": 0,
-              "frame": [
-                [
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0
-                ]
-              ],
-              "properties": [
-                {
-                  "key": "alignment",
-                  "displayName": "Alignment",
-                  "type": {
-                    "segmentedControl": {}
-                  },
-                  "value": "top",
-                  "defaultValue": "center",
-                  "options": [
-                    "top",
-                    "center",
-                    "bottom"
-                  ],
-                  "isRequired": false
-                },
-                {
-                  "key": "spacing",
-                  "displayName": "Spacing",
-                  "type": {
-                    "number": {}
-                  },
-                  "value": 12,
-                  "defaultValue": 8,
-                  "isRequired": false
-                }
-              ],
-              "modifiers": [],
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
               "children": [
                 {
-                  "id": "00000000-0000-0000-0000-000000000032",
                   "type": "SF Symbol",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "symbolName",
-                      "displayName": "Symbol Name",
-                      "type": {
-                        "string": {}
-                      },
-                      "value": "paintpalette.fill",
-                      "defaultValue": "star",
-                      "isRequired": false
-                    },
-                    {
-                      "key": "resizable",
-                      "displayName": "Resizable",
-                      "type": {
-                        "boolean": {}
-                      },
-                      "value": true,
-                      "defaultValue": false,
-                      "isRequired": false
-                    }
-                  ],
+                  "properties": {
+                    "symbolName": "paintpalette.fill",
+                    "resizable": true
+                  },
                   "modifiers": [
                     {
                       "type": "Foreground Color",
@@ -732,84 +233,20 @@
                         "height": 32
                       }
                     }
-                  ],
-                  "children": []
+                  ]
                 },
                 {
-                  "id": "00000000-0000-0000-0000-000000000033",
                   "type": "VStack",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "alignment",
-                      "displayName": "Alignment",
-                      "type": {
-                        "segmentedControl": {}
-                      },
-                      "value": "leading",
-                      "defaultValue": "center",
-                      "options": [
-                        "leading",
-                        "center",
-                        "trailing"
-                      ],
-                      "isRequired": false
-                    },
-                    {
-                      "key": "spacing",
-                      "displayName": "Spacing",
-                      "type": {
-                        "number": {}
-                      },
-                      "value": 4,
-                      "defaultValue": 8,
-                      "isRequired": false
-                    }
-                  ],
-                  "modifiers": [],
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
                   "children": [
                     {
-                      "id": "00000000-0000-0000-0000-000000000034",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Theme Editor",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Theme Editor"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -818,38 +255,13 @@
                             "fontWeight": "semibold"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     },
                     {
-                      "id": "00000000-0000-0000-0000-000000000035",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Customize your app's look and feel with ease",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Customize your app's look and feel with ease"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -864,98 +276,25 @@
                             "color": "color:secondary"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     }
                   ]
                 }
               ]
             },
             {
-              "id": "00000000-0000-0000-0000-000000000041",
               "type": "HStack",
-              "isSelected": false,
-              "isVisible": true,
-              "isOverlay": false,
-              "zIndex": 0,
-              "frame": [
-                [
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0
-                ]
-              ],
-              "properties": [
-                {
-                  "key": "alignment",
-                  "displayName": "Alignment",
-                  "type": {
-                    "segmentedControl": {}
-                  },
-                  "value": "top",
-                  "defaultValue": "center",
-                  "options": [
-                    "top",
-                    "center",
-                    "bottom"
-                  ],
-                  "isRequired": false
-                },
-                {
-                  "key": "spacing",
-                  "displayName": "Spacing",
-                  "type": {
-                    "number": {}
-                  },
-                  "value": 12,
-                  "defaultValue": 8,
-                  "isRequired": false
-                }
-              ],
-              "modifiers": [],
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
               "children": [
                 {
-                  "id": "00000000-0000-0000-0000-000000000042",
                   "type": "SF Symbol",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "symbolName",
-                      "displayName": "Symbol Name",
-                      "type": {
-                        "string": {}
-                      },
-                      "value": "lock.shield.fill",
-                      "defaultValue": "star",
-                      "isRequired": false
-                    },
-                    {
-                      "key": "resizable",
-                      "displayName": "Resizable",
-                      "type": {
-                        "boolean": {}
-                      },
-                      "value": true,
-                      "defaultValue": false,
-                      "isRequired": false
-                    }
-                  ],
+                  "properties": {
+                    "symbolName": "lock.shield.fill",
+                    "resizable": true
+                  },
                   "modifiers": [
                     {
                       "type": "Foreground Color",
@@ -972,84 +311,20 @@
                         "height": 32
                       }
                     }
-                  ],
-                  "children": []
+                  ]
                 },
                 {
-                  "id": "00000000-0000-0000-0000-000000000043",
                   "type": "VStack",
-                  "isSelected": false,
-                  "isVisible": true,
-                  "isOverlay": false,
-                  "zIndex": 0,
-                  "frame": [
-                    [
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      0
-                    ]
-                  ],
-                  "properties": [
-                    {
-                      "key": "alignment",
-                      "displayName": "Alignment",
-                      "type": {
-                        "segmentedControl": {}
-                      },
-                      "value": "leading",
-                      "defaultValue": "center",
-                      "options": [
-                        "leading",
-                        "center",
-                        "trailing"
-                      ],
-                      "isRequired": false
-                    },
-                    {
-                      "key": "spacing",
-                      "displayName": "Spacing",
-                      "type": {
-                        "number": {}
-                      },
-                      "value": 4,
-                      "defaultValue": 8,
-                      "isRequired": false
-                    }
-                  ],
-                  "modifiers": [],
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
                   "children": [
                     {
-                      "id": "00000000-0000-0000-0000-000000000044",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Secure Cloud",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Secure Cloud"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -1058,38 +333,13 @@
                             "fontWeight": "semibold"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     },
                     {
-                      "id": "00000000-0000-0000-0000-000000000045",
                       "type": "Text",
-                      "isSelected": false,
-                      "isVisible": true,
-                      "isOverlay": false,
-                      "zIndex": 0,
-                      "frame": [
-                        [
-                          0,
-                          0
-                        ],
-                        [
-                          0,
-                          0
-                        ]
-                      ],
-                      "properties": [
-                        {
-                          "key": "text",
-                          "displayName": "Text",
-                          "type": {
-                            "string": {}
-                          },
-                          "value": "Keep your designs safe with encrypted storage and backups",
-                          "defaultValue": "Text",
-                          "isRequired": false
-                        }
-                      ],
+                      "properties": {
+                        "text": "Keep your designs safe with encrypted storage and backups"
+                      },
                       "modifiers": [
                         {
                           "type": "Font",
@@ -1104,8 +354,7 @@
                             "color": "color:secondary"
                           }
                         }
-                      ],
-                      "children": []
+                      ]
                     }
                   ]
                 }
@@ -1114,55 +363,13 @@
           ]
         },
         {
-          "id": "00000000-0000-0000-0000-000000000050",
-          "type": "Spacer",
-          "isSelected": false,
-          "isVisible": true,
-          "isOverlay": false,
-          "zIndex": 0,
-          "frame": [
-            [
-              0,
-              0
-            ],
-            [
-              0,
-              0
-            ]
-          ],
-          "properties": [],
-          "modifiers": [],
-          "children": []
+          "type": "Spacer"
         },
         {
-          "id": "00000000-0000-0000-0000-000000000051",
           "type": "Text",
-          "isSelected": false,
-          "isVisible": true,
-          "isOverlay": false,
-          "zIndex": 0,
-          "frame": [
-            [
-              0,
-              0
-            ],
-            [
-              0,
-              0
-            ]
-          ],
-          "properties": [
-            {
-              "key": "text",
-              "displayName": "Text",
-              "type": {
-                "string": {}
-              },
-              "value": "Continue",
-              "defaultValue": "Text",
-              "isRequired": false
-            }
-          ],
+          "properties": {
+            "text": "Continue"
+          },
           "modifiers": [
             {
               "type": "Padding",
@@ -1205,29 +412,10 @@
                 "fontWeight": "bold"
               }
             }
-          ],
-          "children": []
+          ]
         },
         {
-          "id": "00000000-0000-0000-0000-000000000052",
-          "type": "Spacer",
-          "isSelected": false,
-          "isVisible": true,
-          "isOverlay": false,
-          "zIndex": 0,
-          "frame": [
-            [
-              0,
-              0
-            ],
-            [
-              0,
-              0
-            ]
-          ],
-          "properties": [],
-          "modifiers": [],
-          "children": []
+          "type": "Spacer"
         }
       ]
     }
