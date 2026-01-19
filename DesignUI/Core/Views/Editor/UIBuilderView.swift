@@ -194,6 +194,13 @@ struct UIBuilderView: View {
     @EnvironmentObject private var designManager: DesignManager
     @StateObject private var canvasManager = CanvasManager()
 
+    enum SidebarTab {
+        case layers
+        case pages
+    }
+    
+    @State private var selectedSidebarTab: SidebarTab = .layers
+
     @State private var showCodePreview = false
     @State private var selectedDevice: DevicePreset = .iphone16Pro
     @State private var baseZoomLevel: CGFloat = 1.0
@@ -206,11 +213,18 @@ struct UIBuilderView: View {
     @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
     
+    // Page state (for multi-page support)
+    @State private var currentPageIndex: Int = 0
+    @State private var isSwitchingPage: Bool = false
+
+    
     // iOS half sheet states (iPhone only, iPad uses floating panels)
     @State private var showLayersSheet = false
     @State private var showPropertiesInPanel = false // For NavigationStack inside panel
     @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
+    
+    @State private var showComponentLibrary = false
 
     
     // Screenshot capture debouncing
@@ -223,9 +237,9 @@ struct UIBuilderView: View {
     @State private var activeTab: AppTab = .layers
     @State private var sheetNavigationPath = NavigationPath()
     #endif
-    
 
     var body: some View {
+
         NavigationStack {
 #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .phone {
@@ -280,7 +294,7 @@ struct UIBuilderView: View {
                 .toolbar { iPadToolbarContent }
             }
 #else
-            // macOS: Resizable panels layout
+            // macOS: Normal canvas layout with overlaid panels
             ZStack {
                 mainCanvasArea
                 
@@ -295,7 +309,7 @@ struct UIBuilderView: View {
                             isVisible: $showLayersPanel,
                             handlePosition: .right
                         ) {
-                            layersPanel
+                            sidebarPanel
                         }
                         .transition(.move(edge: .leading).combined(with: .opacity))
                         .padding()
@@ -355,8 +369,9 @@ struct UIBuilderView: View {
             setupCanvas()
             // Restore saved device preset and color scheme
             restoreCanvasSettings()
-            // Capture initial screenshot
-            captureScreenshot()
+            
+            // Capture initial screenshot IMMEDIATELY (no debounce) on open
+            performScreenshotCapture()
             
             #if os(iOS)
             // Show sheet on iPhone only
@@ -365,34 +380,49 @@ struct UIBuilderView: View {
             }
             #endif
         }
+        .onChange(of: selectedSidebarTab) { tab, _ in
+            if tab == .pages {
+                // Force immediate capture when opening pages tab to ensure thumbnail is fresh
+                performScreenshotCapture()
+            }
+        }
         .onChange(of: canvasManager.components) { _, _ in
-            syncComponents()
+            // Skip sync if we are just switching pages (loading data)
+            if !isSwitchingPage {
+                syncComponents()
+            }
         }
         .onChange(of: canvasManager.selectedComponent) { _, newSelection in
-            syncSelection()
-            #if os(iOS)
-            // Only auto-show sheet on iPhone
-            if UIDevice.current.userInterfaceIdiom == .phone && newSelection != nil {
-                showLayersSheet = true
+            if !isSwitchingPage {
+                syncSelection()
+                #if os(iOS)
+                // Only auto-show sheet on iPhone
+                if UIDevice.current.userInterfaceIdiom == .phone && newSelection != nil {
+                    showLayersSheet = true
+                }
+                #endif
             }
-            #endif
         }
         .onChange(of: selectedDevice) { _, newDevice in
-            saveCanvasSettings()
-            
-            // Auto-hide status bar for widgets, show for others
-            if newDevice.category == .widget {
-                designFile.statusBarVisible = false
-                canvasManager.statusBarComponent?.isVisible = false
-                NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
-            } else {
-                designFile.statusBarVisible = true
-                canvasManager.statusBarComponent?.isVisible = true
-                NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
+            if !isSwitchingPage {
+                saveCanvasSettings()
+                
+                // Auto-hide status bar for widgets, show for others
+                if newDevice.category == .widget {
+                    designFile.statusBarVisible = false
+                    canvasManager.statusBarComponent?.isVisible = false
+                    NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
+                } else {
+                    designFile.statusBarVisible = true
+                    canvasManager.statusBarComponent?.isVisible = true
+                    NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
+                }
             }
         }
         .onChange(of: colorScheme) { _, _ in
-            saveCanvasSettings()
+            if !isSwitchingPage {
+                saveCanvasSettings()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
             canvasManager.undo()
@@ -592,10 +622,73 @@ struct UIBuilderView: View {
     }
 #endif
 
+    
+    private var sidebarPanel: some View {
+        VStack(spacing: 0) {
+            // Unified Header with Dropdown
+            HStack {
+                Menu {
+                    Button(action: { selectedSidebarTab = .layers }) {
+                        Label("Layers", systemImage: "square.3.layers.3d")
+                    }
+                    Button(action: { selectedSidebarTab = .pages }) {
+                        Label("Pages", systemImage: "doc.on.doc")
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.primary)
+                        Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
+                            .font(.headline).fontWeight(.semibold)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .buttonStyle(.plain)
+                
+                Spacer()
+                
+                Button(action: {
+                    if selectedSidebarTab == .layers {
+                        showComponentLibrary = true
+                    } else {
+                        let (_, newIndex) = designFile.addPage()
+                        switchToPage(newIndex)
+                    }
+                }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12))
+                }
+                .help(selectedSidebarTab == .layers ? "Add Component" : "Add Page")
+                .buttonStyle(.bordered)
+                .frame(width: 28, height: 28)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            
+            // Content
+            switch selectedSidebarTab {
+            case .layers:
+                layersPanel
+            case .pages:
+                SidebarPagesView(
+                    designFile: designFile,
+                    currentPageIndex: $currentPageIndex,
+                    onPageChange: { index in
+                        switchToPage(index)
+                    }
+                )
+            }
+        }
+    }
+    
     private var layersPanel: some View {
         LayersPanelView(
             canvasManager: canvasManager,
-            selectedComponent: $canvasManager.selectedComponent
+            selectedComponent: $canvasManager.selectedComponent,
+            showComponentLibrary: $showComponentLibrary
         )
     }
     
@@ -719,7 +812,8 @@ struct UIBuilderView: View {
                     case .layers:
                         LayersPanelView(
                             canvasManager: canvasManager,
-                            selectedComponent: $canvasManager.selectedComponent
+                            selectedComponent: $canvasManager.selectedComponent,
+                            showComponentLibrary: $showComponentLibrary
                         )
                         .background(Color(uiColor: .systemBackground))
                     case .properties:
@@ -1150,10 +1244,7 @@ struct UIBuilderView: View {
                         Label("Save as Screenshot", systemImage: "photo")
                     }
                     
-                    Button(action: { copyAsJSON() }) {
-                        Label("Copy as JSON", systemImage: "doc.on.clipboard")
-                    }
-                    
+
 
                 } label: {
                     Image(systemName: "square.and.arrow.up")
@@ -1161,6 +1252,7 @@ struct UIBuilderView: View {
                 }
                 .help("Export")
             }
+
         }
     }
 
@@ -1225,45 +1317,82 @@ struct UIBuilderView: View {
         #endif
     }
     
-    private func copyAsJSON() {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        
-        // Create a DesignTemplate to match the expected file format
-        let template = DesignTemplate(
-            name: designFile.name,
-            description: "Exported from Studio",
-            thumbnail: "blank", // Placeholder as this is just raw JSON
-            devicePreset: selectedDevice.rawValue,
-            components: canvasManager.components
-        )
-        
-        do {
-            let data = try encoder.encode(template)
-            
-            if let jsonString = String(data: data, encoding: .utf8) {
-                #if os(macOS)
-                let pasteboard = NSPasteboard.general
-                pasteboard.clearContents()
-                pasteboard.setString(jsonString, forType: .string)
-                #else
-                UIPasteboard.general.string = jsonString
-                #endif
-                print("✅ Copied design template JSON to clipboard")
-            }
-        } catch {
-            print("❌ Failed to encode JSON: \(error)")
-        }
-    }
+
     
     private func setupCanvas() {
-            canvasManager.components = designFile.components
-            canvasManager.setDesignName(designFile.name)
-            
-            // Save the initial loaded state as the base state (but don't allow undo to this)
-            // This ensures we can undo back to the loaded state, but undo is disabled until we make a change
-            canvasManager.saveInitialState()
+        // Initialize page index from design file
+        currentPageIndex = designFile.currentPageIndex
+        
+        // Load components from current page
+        canvasManager.components = designFile.components
+        canvasManager.setDesignName(designFile.name)
+        
+        // Save the initial loaded state as the base state (but don't allow undo to this)
+        // This ensures we can undo back to the loaded state, but undo is disabled until we make a change
+        canvasManager.saveInitialState()
+    }
+    
+    /// Switch to a different page
+    private func switchToPage(_ pageIndex: Int) {
+        // Guard against same page or invalid index
+        guard pageIndex != currentPageIndex,
+              pageIndex >= 0 && pageIndex < designFile.pages.count else {
+            return
         }
+        
+        let newPage = designFile.pages[pageIndex]
+        
+        // Prevent redundant sync/save during switch
+        isSwitchingPage = true
+        defer {
+            DispatchQueue.main.async { isSwitchingPage = false }
+        }
+        
+        // Save current page's state before switching
+        if currentPageIndex >= 0 && currentPageIndex < designFile.pages.count {
+            let oldPage = designFile.pages[currentPageIndex]
+            oldPage.components = canvasManager.components
+            oldPage.thumbnail = designFile.thumbnail
+            // Save canvas settings to old page
+            oldPage.devicePreset = selectedDevice.rawValue
+            oldPage.colorScheme = colorScheme == .light ? "light" : (colorScheme == .dark ? "dark" : nil)
+            oldPage.statusBarVisible = designFile.statusBarVisible
+        }
+        
+        // Update both the designFile and local state
+        designFile.currentPageIndex = pageIndex
+        currentPageIndex = pageIndex
+        
+        // Deselect any selected component
+        canvasManager.deselectAll()
+        
+        // Load new page's components
+        canvasManager.components = newPage.components
+        
+        // Restore canvas settings from new page
+        if let savedDevicePreset = newPage.devicePreset,
+           let devicePreset = DevicePreset.allCases.first(where: { $0.rawValue == savedDevicePreset }) {
+            selectedDevice = devicePreset
+        }
+        
+        if let savedColorScheme = newPage.colorScheme {
+            colorScheme = savedColorScheme.lowercased() == "light" ? .light : (savedColorScheme.lowercased() == "dark" ? .dark : nil)
+        } else {
+            colorScheme = nil  // System default
+        }
+        
+        // Restore status bar visibility and update component
+        designFile.statusBarVisible = newPage.statusBarVisible
+        canvasManager.statusBarComponent?.isVisible = newPage.statusBarVisible
+        
+        // Reset undo/redo for the new page context
+        canvasManager.saveInitialState()
+        
+        // Trigger save for the page switch
+        designManager.markAsChanged()
+        
+        print("📄 Switched to page \(pageIndex): \(newPage.name) with \(canvasManager.components.count) components")
+    }
     
     private func restoreCanvasSettings() {
         // Restore selected device preset
@@ -1379,7 +1508,11 @@ struct UIBuilderView: View {
         ) {
             // This will overwrite the previous thumbnail and store device preset
             self.designFile.setThumbnail(thumbnailData, devicePreset: self.selectedDevice.rawValue)
-            print("📸 Screenshot captured and set on design file")
+            
+            // Also save to current page for gallery preview
+            self.designFile.currentPage?.thumbnail = thumbnailData
+            
+            print("📸 Screenshot captured and set on design file and current page")
         } else {
             print("📸 Failed to capture screenshot")
         }

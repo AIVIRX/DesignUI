@@ -98,18 +98,31 @@ struct PropertiesPanelView: View {
     private func updateImageProperty(with name: String) {
         guard let component = selectedComponent else { return }
         
-        if let key = activeImagePropertyKey {
-            // Update specific key
-            component.setProperty(key: key, value: name)
-            
-            // If main image, clear legacy data
-            if key == "imageName" {
-                component.setProperty(key: "imageData", value: "")
-            }
-        } else {
-            // Fallback to standard properties
+        // If we are updating an Image component, we must distinguish between:
+        // 1. Files/Assets (names) -> "imageName"
+        // 2. Raw Data (base64) -> "imageData" (handled by ImagePickerEditor usually)
+        
+        // Since this method is called by the Gallery (which returns filenames),
+        // we should ALWAYS prefer "imageName" for Image components.
+        
+        if component.type == .image {
+            // Set the name and clear any conflicting data
             component.setProperty(key: "imageName", value: name)
             component.setProperty(key: "imageData", value: "")
+        } else {
+            // For other components (e.g. background modifiers), use the active key
+            if let key = activeImagePropertyKey {
+                component.setProperty(key: key, value: name)
+                
+                // If the key happened to be "imageName", ensure imageData is cleared
+                if key == "imageName" {
+                    component.setProperty(key: "imageData", value: "")
+                }
+            } else {
+                // Fallback
+                component.setProperty(key: "imageName", value: name)
+                component.setProperty(key: "imageData", value: "")
+            }
         }
         
         component.objectWillChange.send()
@@ -1351,15 +1364,63 @@ struct ImagePickerEditor: View {
                 }
                 .id(baseImageName)
             }
-            // Priority 2: Gallery filename from imageData property (old components)
+            // Priority 2: Direct load via ImageGalleryManager (Bundled Assets match here)
+            else if !baseImageName.isEmpty, let platformImage = ImageGalleryManager.shared.loadImage(filename: baseImageName) {
+                #if os(macOS)
+                Image(nsImage: platformImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                #else
+                Image(uiImage: platformImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                #endif
+            }
+            // Priority 3: Gallery filename from imageData property (old components)
             else if baseImageName.isEmpty && !imageDataString.isEmpty,
-                    (imageDataString.hasSuffix(".jpg") || imageDataString.hasSuffix(".jpeg") || imageDataString.hasSuffix(".png") || imageDataString.hasSuffix(".gif") || imageDataString.hasSuffix(".heic")),
-                    let fileURL = ImageGalleryManager.shared.getImageUrl(filename: imageDataString),
-                    FileManager.default.fileExists(atPath: fileURL.path) {
-                AsyncImage(url: fileURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
+                    (imageDataString.hasSuffix(".jpg") || imageDataString.hasSuffix(".jpeg") || imageDataString.hasSuffix(".png") || imageDataString.hasSuffix(".gif") || imageDataString.hasSuffix(".heic") || ImageGalleryManager.shared.getAllImageFilenames().contains(imageDataString)) {
+                
+                Group {
+                    // Try to load as file first
+                    if let fileURL = ImageGalleryManager.shared.getImageUrl(filename: imageDataString),
+                       FileManager.default.fileExists(atPath: fileURL.path) {
+                        AsyncImage(url: fileURL) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(maxWidth: .infinity, maxHeight: 150)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                            case .empty:
+                                ProgressView()
+                            case .failure:
+                                EmptyView()
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    }
+                    // Fallback to load via Manager (for bundled assets in imageData)
+                    else if let platformImage = ImageGalleryManager.shared.loadImage(filename: imageDataString) {
+                        #if os(macOS)
+                        Image(nsImage: platformImage)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(maxWidth: .infinity, maxHeight: 150)
@@ -1368,23 +1429,20 @@ struct ImagePickerEditor: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                             )
-                    case .empty:
-                        ProgressView()
-                    case .failure:
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.gray.opacity(0.1))
-                                .frame(maxWidth: .infinity, maxHeight: 150)
-                            VStack(spacing: 8) {
-                                Image(systemName: "photo")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(.secondary)
-                                Text("Tap to select image")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    @unknown default:
+                        #else
+                        Image(uiImage: platformImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: .infinity, maxHeight: 150)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                        #endif
+                    }
+                    // If neither file nor bundled asset, show placeholder
+                    else {
                         ZStack {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color.gray.opacity(0.1))
@@ -1402,7 +1460,7 @@ struct ImagePickerEditor: View {
                 }
                 .id(imageDataString)
             }
-            // Priority 3: Base64 image data
+            // Priority 4: Base64 image data
             else if !imageDataString.isEmpty,
                let imageData = Data(base64Encoded: imageDataString),
                let image = createImage(from: imageData) {

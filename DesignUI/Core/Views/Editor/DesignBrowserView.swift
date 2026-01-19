@@ -26,7 +26,7 @@ struct DesignBrowserView: View {
     @State private var showingLimitAlert = false
     
     // Free tier limit
-    private let freeDesignLimit = 5
+    private let freeDesignLimit = 3
     
     var body: some View {
         #if os(macOS)
@@ -508,7 +508,7 @@ struct CanvasPreviewView: View {
                             .clipped()
                             .padding()
 #endif
-                    } else if designFile.components.isEmpty {
+                    } else if designFile.totalComponentCount == 0 {
                         VStack {
                             Image(systemName: "doc.text")
                                 .font(.system(size: 20))
@@ -523,7 +523,7 @@ struct CanvasPreviewView: View {
                                 .font(.system(size: 24))
                                 .foregroundColor(.blue)
                             
-                            Text("\(designFile.components.count) components")
+                            Text("\(designFile.totalComponentCount) components")
                                 .font(.caption)
                                 .foregroundColor(.primary)
                             

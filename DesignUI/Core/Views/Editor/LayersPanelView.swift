@@ -12,7 +12,7 @@ struct LayersPanelView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
     var onLayerTapped: ((UIComponent) -> Void)? = nil // Callback for iOS navigation
-    @State private var showComponentLibrary = false
+    @Binding var showComponentLibrary: Bool
     @State private var expanded: Set<UUID> = []
     @State private var expandedOverlayFolders: Set<UUID> = [] // Track overlay folder expansion separately
     @State private var dragOverTarget: UUID?
@@ -43,34 +43,7 @@ struct LayersPanelView: View {
     private var regularSizeView: some View {
         if hSizeClass == .regular {
             VStack(alignment: .leading, spacing: 0) {
-                // Header with toolbar
-                VStack(spacing: 0) {
-                    HStack {
-                        HStack(spacing: 6) {
-                            Image(systemName: "square.3.layers.3d.top.filled")
-                                .font(.system(size: 14))
-                                .foregroundColor(.primary)
-                            Text("Layers")
-                                .font(.headline).fontWeight(.semibold)
-                        }
-                        
-                        Spacer()
-                        
-                        // Toolbar
-                        HStack(spacing: 8) {
-                            Button(action: { showComponentLibrary = true }) {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 12))
-                            }
-                            .help("Add Component")
-                            .buttonStyle(.bordered)
-                            .frame(width: 28, height: 28)
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Color.clear)
+                // Layers outline with scroll-to-selection
                 
                 // Layers outline with scroll-to-selection
                 ScrollViewReader { scrollProxy in

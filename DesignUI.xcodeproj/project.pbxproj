@@ -16,6 +16,8 @@
 		EC0C95C22EB2A08500AA6A84 /* PaywallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */; };
 		EC0C95C42EB2A17B00AA6A84 /* PurchasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */; };
 		EC0C95C72EB2A18F00AA6A84 /* CustomPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */; };
+		EC1A03B32F1D52100084FF52 /* DesignPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1A03B12F1D52100084FF52 /* DesignPage.swift */; };
+		EC1A03B42F1D52100084FF52 /* PageSelectorBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1A03B22F1D52100084FF52 /* PageSelectorBar.swift */; };
 		EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
@@ -56,7 +58,6 @@
 		EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54742E1889B700AAE9EC /* NewsContentView.swift */; };
 		ECAF05632F189B1F008F9BEA /* RippleModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05612F189B1F008F9BEA /* RippleModifier.swift */; };
 		ECAF05642F189B1F008F9BEA /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05622F189B1F008F9BEA /* SessionManager.swift */; };
-		ECAF05692F18B21A008F9BEA /* Ripples.metal in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05682F18B21A008F9BEA /* Ripples.metal */; };
 		ECAF056B2F18B826008F9BEA /* RippleImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF056A2F18B826008F9BEA /* RippleImageView.swift */; };
 		ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA42EB06B5D00420663 /* RevenueCat */; };
 		ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA62EB06B5D00420663 /* RevenueCatUI */; };
@@ -107,7 +108,6 @@
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
 		ECDAB0FA2E774B3C0058EF13 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */; };
 		ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */; };
-		ECDF3CDC2F18380B00C68936 /* MasonryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */; };
 		ECE995512C98881000C60416 /* TemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE995502C98881000C60416 /* TemplateView.swift */; };
 		ECFC6AC62EA9C48400177480 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ECFC6AC52EA9C48400177480 /* AppIcon.icon */; };
 		ECFDEA122F0F805C00540DD3 /* LatestPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */; };
@@ -129,6 +129,8 @@
 		EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallManager.swift; sourceTree = "<group>"; };
 		EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesService.swift; sourceTree = "<group>"; };
 		EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPaywallView.swift; sourceTree = "<group>"; };
+		EC1A03B12F1D52100084FF52 /* DesignPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignPage.swift; sourceTree = "<group>"; };
+		EC1A03B22F1D52100084FF52 /* PageSelectorBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageSelectorBar.swift; sourceTree = "<group>"; };
 		EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSnippets.swift; sourceTree = "<group>"; };
 		EC240CFF2C72B8B600956AB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
@@ -172,7 +174,6 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECAF05612F189B1F008F9BEA /* RippleModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleModifier.swift; sourceTree = "<group>"; };
 		ECAF05622F189B1F008F9BEA /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
-		ECAF05682F18B21A008F9BEA /* Ripples.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ripples.metal; sourceTree = "<group>"; };
 		ECAF056A2F18B826008F9BEA /* RippleImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleImageView.swift; sourceTree = "<group>"; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
@@ -215,7 +216,6 @@
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		ECDAB0F92E774B3C0058EF13 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
 		ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSetupView.swift; sourceTree = "<group>"; };
-		ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasonryGrid.swift; sourceTree = "<group>"; };
 		ECE995502C98881000C60416 /* TemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateView.swift; sourceTree = "<group>"; };
 		ECFC6AC52EA9C48400177480 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatestPostsViewModel.swift; sourceTree = "<group>"; };
@@ -313,17 +313,11 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		ECAF05662F189D2E008F9BEA /* Shaders */ = {
-			isa = PBXGroup;
-			children = (
-				ECAF05682F18B21A008F9BEA /* Ripples.metal */,
-			);
-			path = Shaders;
-			sourceTree = "<group>";
-		};
 		ECB94C542EFB0C19000AAF34 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				EC1A03B12F1D52100084FF52 /* DesignPage.swift */,
+				EC1A03B22F1D52100084FF52 /* PageSelectorBar.swift */,
 				EC37CE502F19C1F6006CFD08 /* UndoToastView.swift */,
 				ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */,
 				ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */,
@@ -382,7 +376,6 @@
 		ECD13FD32C18BA7B00105B3E /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				ECAF05662F189D2E008F9BEA /* Shaders */,
 				ECD13FF92C18BF8800105B3E /* Components */,
 				ECD13FDA2C18BC3200105B3E /* Models */,
 				ECD13FFE2C18C12400105B3E /* Resources */,
@@ -405,7 +398,6 @@
 				EC5982A32D57F54000633392 /* GridColumns.swift */,
 				EC53EB7F2D91CD6300E175DB /* HapticManager.swift */,
 				EC5E63502EB5B1CD00133C05 /* LazyMasonryView.swift */,
-				ECDF3CDB2F18380B00C68936 /* MasonryGrid.swift */,
 				EC0C95BF2EB2A08500AA6A84 /* PaywallManager.swift */,
 				EC0C95C32EB2A17B00AA6A84 /* PurchasesService.swift */,
 				EC9E02E32EB16B060094D7C6 /* SubscriptionManager.swift */,
@@ -669,9 +661,7 @@
 				E5848CC5CC9440AE8630CC9BF787CD37 /* UserPostsView.swift in Sources */,
 				EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */,
 				ECB94C6C2EFB0C6F000AAF34 /* ComponentLibraryView.swift in Sources */,
-				ECDF3CDC2F18380B00C68936 /* MasonryGrid.swift in Sources */,
 				ECB94C6D2EFB0C6F000AAF34 /* CanvasView.swift in Sources */,
-				ECAF05692F18B21A008F9BEA /* Ripples.metal in Sources */,
 				ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */,
 				ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */,
 				ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */,
@@ -685,6 +675,8 @@
 				ECB94C792EFB0C6F000AAF34 /* Modifier.swift in Sources */,
 				EC37CE512F19C1F6006CFD08 /* UndoToastView.swift in Sources */,
 				ECB94C7A2EFB0C6F000AAF34 /* UIComponent.swift in Sources */,
+				EC1A03B32F1D52100084FF52 /* DesignPage.swift in Sources */,
+				EC1A03B42F1D52100084FF52 /* PageSelectorBar.swift in Sources */,
 				ECB94C7B2EFB0C6F000AAF34 /* ModifierPanelView.swift in Sources */,
 				ECB94C7D2EFB0C6F000AAF34 /* PropertiesPanelView.swift in Sources */,
 				ECB94C7E2EFB0C6F000AAF34 /* StatusBarView.swift in Sources */,

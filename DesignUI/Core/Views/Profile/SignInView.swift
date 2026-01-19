@@ -42,7 +42,7 @@ struct SignInView: View {
                             .resizable()
                             .frame(width: 50, height: 50)
                             .padding()
-                        Text("Dock UI Account")
+                        Text("Accounts")
                             .font(.system(size: 30, weight: .bold))
                         Text("Sign in to sync favorites and access exclusive features.")
                             .foregroundStyle(.secondary)
@@ -100,7 +100,7 @@ struct SignInView: View {
                                         .foregroundStyle(.secondary)
                                         .blurOpacityEffect(initialAnimation)
                                     
-                                    Text("Dock UI Accounts")
+                                    Text("Accounts")
                                         .font(.largeTitle.bold())
                                         .foregroundStyle(.white)
                                         .padding(.bottom)

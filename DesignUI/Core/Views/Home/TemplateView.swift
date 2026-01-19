@@ -9,25 +9,39 @@ import SwiftUI
 
 struct ExploreView: View {
     @StateObject private var viewModel = LatestPostsViewModel()
+    @State private var searchText = ""
+    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
     @Binding var selectedTab: ContentView.Tabs
+
+    var filteredPosts: [DesignPost] {
+        // Filter by search text only (type filtering is done at database level)
+        guard !searchText.isEmpty else { return viewModel.posts }
+        
+        let searchQuery = searchText.lowercased()
+        
+        return viewModel.posts.filter { post in
+            let titleMatch = post.title.lowercased().contains(searchQuery)
+            let descriptionMatch = post.description.lowercased().contains(searchQuery)
+            return titleMatch || descriptionMatch
+        }
+    }
     
-    @State private var adInterval: Int = 20 // Ads every 20 posts
+    @State private var adInterval: Int = 20 // Ads every 15 posts
     @State private var adIdentifiers: [Int: String] = [:] // Cache ad identifiers by position to prevent shifting
-    @State private var showSettings = false
     
     // Combine posts with ads, inserting ads every 7 posts
     var feedItems: [FeedItem] {
-        let posts = viewModel.posts
+        let posts = filteredPosts
         var items: [FeedItem] = []
         
         // Don't show ads on macOS (AdMob SDK not supported), iPad, or if user is subscribed
-#if os(iOS)
+        #if os(iOS)
         let shouldShowAds = !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone
-#else
+        #else
         let shouldShowAds = false // No ads on macOS
-#endif
+        #endif
         
         // Use the current adInterval
         let currentInterval = adInterval
@@ -56,7 +70,7 @@ struct ExploreView: View {
     // Generate ad identifiers when posts change to avoid modifying state during view update
     private func generateAdIdentifiers(for posts: [DesignPost]) {
         // Only generate ad identifiers if we should show ads (iPhone only, not subscribed)
-#if os(iOS)
+        #if os(iOS)
         guard !posts.isEmpty && !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone else {
             adIdentifiers = [:] // Clear identifiers if we shouldn't show ads
             return
@@ -78,16 +92,16 @@ struct ExploreView: View {
         }
         
         adIdentifiers = newIdentifiers
-#else
+        #else
         // No ads on macOS
         adIdentifiers = [:]
-#endif
+        #endif
     }
     
     // Generate identifiers only for newly added posts during pagination
     private func generateAdIdentifiersForNewPosts(oldCount: Int, newPosts: [DesignPost]) {
         // Only generate ad identifiers if we should show ads (iPhone only, not subscribed)
-#if os(iOS)
+        #if os(iOS)
         guard oldCount < newPosts.count && !subscriptionManager.isSubscribed && UIDevice.current.userInterfaceIdiom == .phone else { return }
         
         let currentInterval = adInterval
@@ -105,54 +119,38 @@ struct ExploreView: View {
         }
         
         adIdentifiers = updatedIdentifiers
-#endif
+        #else
+        // No ads on macOS - do nothing
+        #endif
     }
     
     var body: some View {
         NavigationStack {
-            Group {
-                if viewModel.posts.isEmpty && (viewModel.isLoading || viewModel.isRefreshing) {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            heroView
-                            postsGridView
-                                .frame(maxWidth: 1600)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .ignoresSafeArea(edges: .top)
-                    .refreshable {
-                        await viewModel.fetchPosts()
-                    }
-                    .toolbar {
-                        ToolbarItem {
-                            Button {
-                                showSettings = true
-                            } label: {
-                                Image(systemName: "gearshape.fill")
-                            }
+            ScrollView {
+                VStack(spacing: 12) {
+                    postsContentView
+                }
+                .onChange(of: searchText) { oldValue, newValue in
+                    Task {
+                        try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
+                        if newValue == searchText { // Prevent outdated calls
+                            await viewModel.searchPosts(query: newValue, filterType: nil, isAllPosts: true)
                         }
                     }
-                    .sheet(isPresented: $showSettings) {
-                        NavigationStack {
-                            SettingsView()
-                        }
-                        #if os(macOS)
-                        .frame(minWidth: 500, minHeight: 400)
-                        #endif
-                    }
-
-
+                }
+                .frame(maxWidth: 1600)
+                .navigationTitle("Templates")
+            }
+            .refreshable {
+                Task {
+                    await viewModel.refreshPosts(filterType: nil, isAllPosts: true)
                 }
             }
             .task {
                 if viewModel.posts.isEmpty {
                     await viewModel.fetchPostsByType(postType: nil, isAllPosts: true)
                 }
-            }            
+            }
             .onChange(of: viewModel.posts) { oldPosts, newPosts in
                 // Only regenerate identifiers if posts actually changed (different count or different posts)
                 // Don't regenerate during pagination if we're just appending more posts
@@ -177,15 +175,23 @@ struct ExploreView: View {
                     adIdentifiers = [:]
                 } else {
                     // User unsubscribed - regenerate ad identifiers if on iOS
-#if os(iOS)
+                    #if os(iOS)
                     generateAdIdentifiers(for: viewModel.posts)
-#endif
+                    #endif
                 }
             }
-            .navigationTitle("Home")
-#if os(iOS)
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-#endif
+            #endif
+            .searchable(text: $searchText, prompt: "Search templates")
+            .toolbar {
+                ToolbarItem {
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gearshape")
+                            .font(.title3)
+                    }
+                }
+            }
         }
 #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
@@ -195,95 +201,136 @@ struct ExploreView: View {
 
 // MARK: - Helpers
 extension ExploreView {
-    private var heroView: some View {
-        LargeHero(
-            name: "Introducing Studio",
-            description: "Transform concepts into polished designs with DockUI Studio. No coding required.",
-            height: 400,
-            buttonTitle: "Get Started",
-            cornerRadius: 0
-        ) {
-            selectedTab = .studio
-        }
-    }
-    
     @ViewBuilder
     private var postsContentView: some View {
         if !viewModel.posts.isEmpty {
-            postsGridView
-                .frame(maxWidth: 1600)
+            if filteredPosts.isEmpty {
+                Text("No posts found")
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                postsGridView
+            }
+        } else if viewModel.isLoading || viewModel.isRefreshing {
+            ProgressView("Loading posts...")
+                .padding()
         } else {
-            // Empty state (not loading - that's handled in body)
             Text("No posts found")
                 .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding()
         }
     }
     
     @ViewBuilder
     private var postsGridView: some View {
-        AdaptiveMasonryGrid(
-            items: feedItems,
-            spacing: 12,
-            hasMorePosts: viewModel.hasMorePosts,
-            isLoading: viewModel.isLoading,
-            loadMoreHandler: { item in
-                guard let feedItem = item else { return }
-                if case .post(let post) = feedItem {
-                    Task {
-                        await viewModel.loadMorePostsIfNeeded(currentItem: post)
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            if #available(iOS 16.0, *) {
+                LazyMasonryView(
+                    items: feedItems,
+                    columns: 2,
+                    spacing: 8,
+                    hasMorePosts: viewModel.hasMorePosts,
+                    isLoading: viewModel.isLoading,
+                    loadMoreHandler: { item in
+                        guard let feedItem = item else { return }
+                        
+                        // Only trigger loading for posts, not ads
+                        if case .post(let post) = feedItem {
+                            Task {
+                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                            }
+                        }
+                        // Ad items don't trigger loading - just return
                     }
+                ) { item in
+                    feedItemCell(for: item)
                 }
-            }
-        ) { item in
-            feedItemCell(for: item)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-    }
-    
-    private func calculateColumns(for width: CGFloat) -> Int {
-        #if os(iOS)
-        let isPhone = UIDevice.current.userInterfaceIdiom == .phone
-        if isPhone {
-            return 2
-        } else {
-            // iPad: adaptive based on width
-            if width < 700 {
-                return 3
-            } else if width < 1000 {
-                return 4
+                .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
             } else {
-                return 5
+                gridView(spacing: 8, horizontalPadding: 8, verticalPadding: 8)
+            }
+        } else {
+            // iPad: Use adaptive columns based on available width
+            if #available(iOS 16.0, *) {
+                AdaptiveColumnMasonryView(
+                    items: feedItems,
+                    minColumnWidth: 200,
+                    maxColumns: 6,
+                    spacing: 16,
+                    hasMorePosts: viewModel.hasMorePosts,
+                    isLoading: viewModel.isLoading,
+                    searchText: searchText,
+                    loadMoreHandler: { item in
+                        guard let feedItem = item else { return }
+                        
+                        // Only trigger loading for posts, not ads
+                        if case .post(let post) = feedItem {
+                            Task {
+                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                            }
+                        }
+                        // Ad items don't trigger loading - just return
+                    }
+                ) { item in
+                    feedItemCell(for: item)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+            } else {
+                gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
             }
         }
-        #else
-        // macOS: adaptive based on width
-        if width < 600 {
-            return 2
-        } else if width < 900 {
-            return 3
-        } else if width < 1200 {
-            return 4
+#else
+        if #available(macOS 13.0, *) {
+            LazyMasonryView(
+                items: feedItems,
+                columns: 5,
+                spacing: 16,
+                hasMorePosts: viewModel.hasMorePosts,
+                isLoading: viewModel.isLoading,
+                loadMoreHandler: { item in
+                    guard let feedItem = item else { return }
+                    
+                    // Only trigger loading for posts, not ads
+                    if case .post(let post) = feedItem {
+                        Task {
+                            await viewModel.loadMorePostsIfNeeded(currentItem: post)
+                        }
+                    }
+                    // Ad items don't trigger loading - just return
+                }
+            ) { item in
+                feedItemCell(for: item)
+            }
+            .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
         } else {
-            return 5
+            gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
         }
-        #endif
+#endif
     }
     
     private var gridColumns: [GridItem] {
 #if os(macOS)
+        // More columns for macOS - allows 5+ columns based on screen width
+        // Minimum width of 160px per column means ~5 columns on typical macOS screens
         [
             GridItem(.adaptive(minimum: 160), spacing: 16)
         ]
 #else
+        // iOS: iPad uses LazyMasonryView now, but keep this for fallback
         if UIDevice.current.userInterfaceIdiom == .phone {
             [
                 GridItem(.flexible(), spacing: 8),
                 GridItem(.flexible(), spacing: 8)
             ]
         } else {
+            // iPad fallback
             [
                 GridItem(.adaptive(minimum: 160), spacing: 16)
             ]
@@ -330,7 +377,6 @@ extension ExploreView {
             #endif
         }
     }
-    
     @ViewBuilder
     private func postCell(for post: DesignPost) -> some View {
         // DesignCards contains NavigationLink - DetailView will handle premium paywall
@@ -344,6 +390,17 @@ extension ExploreView {
 }
 
 #if os(iOS)
+struct iPadSearchableModifier: ViewModifier {
+    @Binding var searchText: String
+    
+    func body(content: Content) -> some View {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            content.searchable(text: $searchText, prompt: "Search templates")
+        } else {
+            content
+        }
+    }
+}
 
 // Preference key to read container width
 struct ContainerWidthKey: PreferenceKey {
@@ -362,6 +419,7 @@ struct AdaptiveColumnMasonryView<Content: View, Item: Identifiable>: View {
     let spacing: CGFloat
     let hasMorePosts: Bool
     let isLoading: Bool
+    let searchText: String
     let loadMoreHandler: ((Item?) -> Void)?
     let content: (Item) -> Content
     
@@ -384,6 +442,7 @@ struct AdaptiveColumnMasonryView<Content: View, Item: Identifiable>: View {
         ) { item in
             content(item)
         }
+        .id("masonry-\(searchText)-\(calculatedColumns)")
         .background(
             GeometryReader { geometry in
                 Color.clear

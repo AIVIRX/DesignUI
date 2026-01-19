@@ -293,6 +293,16 @@
     "%lld" : {
 
     },
+    "%lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@"
+          }
+        }
+      }
+    },
     "%lld × %lld" : {
       "localizations" : {
         "en" : {
@@ -1346,6 +1356,9 @@
     "Account" : {
 
     },
+    "Accounts" : {
+
+    },
     "Actions" : {
 
     },
@@ -1368,6 +1381,9 @@
 
     },
     "Add Overlay Component" : {
+
+    },
+    "Add Page" : {
 
     },
     "Alignment" : {
@@ -4707,9 +4723,6 @@
         }
       }
     },
-    "Copy as JSON" : {
-
-    },
     "Copy code" : {
       "localizations" : {
         "ar" : {
@@ -6483,259 +6496,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示名稱"
-          }
-        }
-      }
-    },
-    "Dock UI Account" : {
-
-    },
-    "Dock UI Accounts" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "حسابات واجهة مستخدم Dock"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comptes de la interfície d'usuari del moll"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Účty uživatelského rozhraní Docku"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI-konti"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock-UI-Konten"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Λογαριασμοί Dock UI"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI Accounts"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI Accounts"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI Accounts"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cuentas de la interfaz de usuario del muelle"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cuentas de la interfaz de usuario del muelle"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cuentas de la interfaz de usuario del muelle"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI -tilit"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comptes de l'interface utilisateur du Dock"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comptes de l'interface utilisateur du Dock"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "חשבונות Dock UI"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "डॉक UI खाते"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Računi korisničkog sučelja Docka"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI fiókok"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Akun Dock UI"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Account dell'interfaccia utente Dock"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI アカウント"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI 계정"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Akaun UI Dok"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI-kontoer"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI-accounts"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konta Dock UI"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contas da interface do usuário do Dock"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contas da interface do utilizador do Dock"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conturi UI Dock"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Учетные записи Dock UI"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Účty používateľského rozhrania Dock"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Računi uporabniškega vmesnika Dock"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI-konton"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "บัญชี Dock UI"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI Hesapları"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Облікові записи інтерфейсу Dock"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tài khoản giao diện Dock"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI 帐户"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI 帳戶"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock UI 帳戶"
           }
         }
       }
@@ -8592,6 +8352,9 @@
     "Loading design..." : {
 
     },
+    "Loading posts..." : {
+
+    },
     "Loading subscription..." : {
       "localizations" : {
         "ar" : {
@@ -10144,6 +9907,12 @@
 
     },
     "Padding" : {
+
+    },
+    "Page Name" : {
+
+    },
+    "Pages" : {
 
     },
     "Pending" : {
@@ -12205,6 +11974,9 @@
           }
         }
       }
+    },
+    "Search templates" : {
+
     },
     "Select" : {
 

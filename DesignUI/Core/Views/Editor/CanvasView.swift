@@ -141,24 +141,30 @@ struct CanvasView: View {
                 }
             }
             .onChange(of: selectedDevice) {
-                // Update zoom when device changes
+                // Update zoom when device changes with animation
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
-                    baseZoomLevel = canvasManager.zoomLevel
-                    // Reset offset when changing device
-                    currentOffset = .zero
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+                        baseZoomLevel = canvasManager.zoomLevel
+                        // Reset offset when changing device
+                        currentOffset = .zero
+                    }
                 }
                 
                 // Update status bar component frame for new device
                 if let statusBarComponent = canvasManager.statusBarComponent {
-                    statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 53)
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 53)
+                    }
                 }
             }
             .onChange(of: geometry.size) {
-                // Update zoom when canvas size changes
+                // Update zoom when canvas size changes with animation
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
-                    baseZoomLevel = canvasManager.zoomLevel
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                        canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+                        baseZoomLevel = canvasManager.zoomLevel
+                    }
                 }
             }
             .onChange(of: canvasManager.centerCanvasTrigger) {
@@ -238,6 +244,7 @@ struct CanvasView: View {
                 .frame(width: deviceSize.width, height: deviceSize.height)
                 .background(Color.clear) // Placeholder/Clear background
                 .colorScheme(colorScheme ?? .light)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedDevice)
             }
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }

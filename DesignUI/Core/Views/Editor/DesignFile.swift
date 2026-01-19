@@ -24,7 +24,8 @@ extension Notification.Name {
 class DesignFile: ObservableObject, Identifiable {
     let id = UUID()
     @Published var name: String
-    @Published var components: [UIComponent]
+    @Published var pages: [DesignPage]
+    @Published var currentPageIndex: Int = 0
     @Published var lastModified: Date
     @Published var thumbnail: Data?
     @Published var devicePreset: String? // Store device preset name for thumbnail styling
@@ -37,11 +38,101 @@ class DesignFile: ObservableObject, Identifiable {
     // Serial queue for saving operations to prevent race conditions and UI blocking
     private static let saveQueue = DispatchQueue(label: "com.designui.saveQueue", qos: .background)
     
+    /// Computed property for backwards compatibility - delegates to current page
+    var components: [UIComponent] {
+        get { currentPage?.components ?? [] }
+        set { currentPage?.components = newValue }
+    }
+    
+    /// The currently active page
+    var currentPage: DesignPage? {
+        guard currentPageIndex >= 0 && currentPageIndex < pages.count else { return nil }
+        return pages[currentPageIndex]
+    }
+    
+    /// Total component count across all pages (for display purposes)
+    var totalComponentCount: Int {
+        pages.reduce(0) { $0 + $1.components.count }
+    }
+    
     init(name: String, components: [UIComponent] = [], fileURL: URL) {
         self.name = name
-        self.components = components
+        // Create default page with provided components
+        self.pages = [DesignPage(name: "Page 1", components: components)]
         self.lastModified = Date()
         self.fileURL = fileURL
+    }
+    
+    init(name: String, pages: [DesignPage], fileURL: URL) {
+        self.name = name
+        self.pages = pages.isEmpty ? [DesignPage(name: "Page 1")] : pages
+        self.lastModified = Date()
+        self.fileURL = fileURL
+    }
+    
+    // MARK: - Page Management
+    
+    /// Add a new page with optional name. Does NOT switch to the new page automatically.
+    /// Returns a tuple of (new page, new page index)
+    func addPage(name: String? = nil) -> (page: DesignPage, index: Int) {
+        let pageName = name ?? "Page \(pages.count + 1)"
+        // Default to iPhone 17 Pro Max and Light Mode as requested
+        let newPage = DesignPage(
+            name: pageName,
+            devicePreset: "iPhone 17 Pro Max",
+            colorScheme: "light"
+        )
+        pages.append(newPage)
+        let newIndex = pages.count - 1
+        // Don't update currentPageIndex here - let caller handle the switch
+        return (newPage, newIndex)
+    }
+    
+    /// Duplicate an existing page. Does NOT switch to the new page automatically.
+    /// Returns a tuple of (duplicated page, new page index) or nil if invalid
+    func duplicatePage(at index: Int) -> (page: DesignPage, index: Int)? {
+        guard index >= 0 && index < pages.count else { return nil }
+        let duplicated = pages[index].clone()
+        pages.insert(duplicated, at: index + 1)
+        let newIndex = index + 1
+        // Don't update currentPageIndex here - let caller handle the switch
+        return (duplicated, newIndex)
+    }
+    
+    /// Delete a page at index (cannot delete the last page)
+    func deletePage(at index: Int) -> Bool {
+        guard pages.count > 1, index >= 0 && index < pages.count else { return false }
+        pages.remove(at: index)
+        // Adjust current index if needed
+        if currentPageIndex >= pages.count {
+            currentPageIndex = pages.count - 1
+        }
+        return true
+    }
+    
+    /// Rename a page
+    func renamePage(at index: Int, to newName: String) {
+        guard index >= 0 && index < pages.count else { return }
+        pages[index].name = newName
+    }
+    
+    /// Move a page from one index to another
+    func movePage(from sourceIndex: Int, to destinationIndex: Int) {
+        guard sourceIndex != destinationIndex,
+              sourceIndex >= 0 && sourceIndex < pages.count,
+              destinationIndex >= 0 && destinationIndex < pages.count else { return }
+        
+        let page = pages.remove(at: sourceIndex)
+        pages.insert(page, at: destinationIndex)
+        
+        // Update current page index if the current page was moved
+        if currentPageIndex == sourceIndex {
+            currentPageIndex = destinationIndex
+        } else if sourceIndex < currentPageIndex && destinationIndex >= currentPageIndex {
+            currentPageIndex -= 1
+        } else if sourceIndex > currentPageIndex && destinationIndex <= currentPageIndex {
+            currentPageIndex += 1
+        }
     }
     
     // MARK: - Thumbnail Management
@@ -123,7 +214,8 @@ class DesignFile: ObservableObject, Identifiable {
             encoder.dateEncodingStrategy = .iso8601
             let data = try encoder.encode(DesignFileData(
                 name: name,
-                components: components,
+                pages: pages,
+                currentPageIndex: currentPageIndex,
                 lastModified: lastModified,
                 thumbnail: thumbnail,
                 devicePreset: devicePreset,
@@ -198,7 +290,16 @@ class DesignFile: ObservableObject, Identifiable {
             
             print("📂 Loading design: \(designData.name)")
             
-            let designFile = DesignFile(name: designData.name, components: designData.components, fileURL: url)
+            // Handle migration: use pages if available, otherwise create from legacy components
+            let designFile: DesignFile
+            if let pages = designData.pages, !pages.isEmpty {
+                // New format with pages
+                designFile = DesignFile(name: designData.name, pages: pages, fileURL: url)
+                designFile.currentPageIndex = min(designData.currentPageIndex ?? 0, pages.count - 1)
+            } else {
+                // Legacy format: migrate components to single page
+                designFile = DesignFile(name: designData.name, components: designData.components ?? [], fileURL: url)
+            }
             designFile.lastModified = designData.lastModified
             designFile.thumbnail = designData.thumbnail
             designFile.devicePreset = designData.devicePreset
@@ -241,7 +342,9 @@ class DesignFile: ObservableObject, Identifiable {
 // MARK: - Design File Data (for JSON encoding/decoding)
 struct DesignFileData: Codable {
     let name: String
-    let components: [UIComponent]
+    let pages: [DesignPage]?  // New: array of pages
+    let currentPageIndex: Int?  // New: current page index
+    let components: [UIComponent]?  // Legacy: kept for migration
     let lastModified: Date
     let thumbnail: Data?
     let devicePreset: String?
@@ -249,8 +352,25 @@ struct DesignFileData: Codable {
     let canvasColorScheme: String?
     let statusBarVisible: Bool?
     
+    // New format initializer (with pages)
+    init(name: String, pages: [DesignPage], currentPageIndex: Int, lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
+        self.name = name
+        self.pages = pages
+        self.currentPageIndex = currentPageIndex
+        self.components = nil  // Don't save legacy format
+        self.lastModified = lastModified
+        self.thumbnail = thumbnail
+        self.devicePreset = devicePreset
+        self.selectedDevicePreset = selectedDevicePreset
+        self.canvasColorScheme = canvasColorScheme
+        self.statusBarVisible = statusBarVisible
+    }
+    
+    // Legacy format initializer (for backwards compatibility when decoding)
     init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
         self.name = name
+        self.pages = nil
+        self.currentPageIndex = nil
         self.components = components
         self.lastModified = lastModified
         self.thumbnail = thumbnail
@@ -733,8 +853,14 @@ class DesignManager: ObservableObject {
     // MARK: - Change Detection and Auto-save
     func markAsChanged() {
         hasUnsavedChanges = true
-        // Save immediately when changes are detected
-        performAutoSave()
+        // Debounce auto-save to prevent UI freezing on every change/switch
+        // This stops the main thread from being blocked by JSON encoding immediately after value changes
+        autoSaveTimer?.invalidate()
+        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.performAutoSave()
+            }
+        }
     }
     
     private func stopAutoSave() {
@@ -982,6 +1108,17 @@ class ImageGalleryManager: ObservableObject {
         return documentsURL.appendingPathComponent(galleryFolderName)
     }
     
+    // Bundled assets that should appear in the gallery
+    private let bundledAssets: [String] = [
+        "image1",
+        "image2",
+        "image3",
+        "image4",
+        "blank",
+        "flightInfoWidget",
+        "introducingFeatures"
+    ]
+    
     init() {
         createGalleryDirectoryIfNeeded()
     }
@@ -1117,6 +1254,42 @@ class ImageGalleryManager: ObservableObject {
     // MARK: - Load
     
     func loadImage(filename: String) -> PlatformImage? {
+        if bundledAssets.contains(filename) {
+            print("🎨 Loading bundled asset: \(filename)")
+            
+            #if os(macOS)
+            if let image = NSImage(named: filename) {
+                print("✅ Successfully loaded bundled asset from default bundle: \(filename)")
+                return image
+            }
+            
+            // Fallback: Search all bundles
+            for bundle in Bundle.allBundles {
+                if let image = bundle.image(forResource: filename) {
+                    print("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
+                    return image
+                }
+            }
+            #else
+            if let image = UIImage(named: filename) {
+                print("✅ Successfully loaded bundled asset from default bundle: \(filename)")
+                return image
+            }
+            
+            // Fallback: Search all bundles
+            for bundle in Bundle.allBundles {
+                if let image = UIImage(named: filename, in: bundle, compatibleWith: nil) {
+                    print("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
+                    return image
+                }
+            }
+            #endif
+            
+            print("❌ Failed to load bundled asset: \(filename)")
+            return nil
+        }
+        
+        // 2. Check Local Directory
         guard let imagesDirectory = imagesDirectory else { return nil }
         let fileURL = imagesDirectory.appendingPathComponent(filename)
         
@@ -1146,32 +1319,48 @@ class ImageGalleryManager: ObservableObject {
     
     /// Get all image filenames in the gallery, sorted by creation date (newest first)
         func getAllImageFilenames() -> [String] {
-            guard let imagesDirectory = imagesDirectory else { return [] }
+            var allImages: [String] = []
             
-            do {
-                let fileURLs = try fileManager.contentsOfDirectory(at: imagesDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)
-                
-                // Filter only images (basic extension check)
-                let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
-                let imageFiles = fileURLs.filter { url in
-                    imageExtensions.contains(url.pathExtension.lowercased())
+            // 1. Add Bundled Assets first (or last, depending on preference. Let's add them at the end or mix them?)
+            // We'll add them to the list.
+            
+            // 2. Add Local Images
+            if let imagesDirectory = imagesDirectory {
+                do {
+                    let fileURLs = try fileManager.contentsOfDirectory(at: imagesDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)
+                    
+                    // Filter only images (basic extension check)
+                    let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
+                    let localImages = fileURLs.filter { url in
+                        imageExtensions.contains(url.pathExtension.lowercased())
+                    }
+                    
+                    // Sort by creation date descending
+                    let sortedLocalImages = localImages.sorted { url1, url2 in
+                        let date1 = (try? url1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                        let date2 = (try? url2.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                        return date1 > date2
+                    }
+                    
+                    allImages.append(contentsOf: sortedLocalImages.map { $0.lastPathComponent })
+                } catch {
+                    print("❌ ImageGalleryManager: Failed to list images: \(error)")
                 }
-                
-                // Sort by creation date descending
-                let sortedFiles = imageFiles.sorted { url1, url2 in
-                    let date1 = (try? url1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                    let date2 = (try? url2.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                    return date1 > date2
-                }
-                
-                return sortedFiles.map { $0.lastPathComponent }
-            } catch {
-                print("❌ ImageGalleryManager: Failed to list images: \(error)")
-                return []
             }
+            
+            // Append bundled assets at the end (so newest user images are first)
+            allImages.append(contentsOf: bundledAssets)
+            
+            return allImages
         }
             
     func deleteImage(filename: String) {
+        // Prevent deletion of bundled assets
+        if bundledAssets.contains(filename) {
+            print("⚠️ Cannot delete bundled asset: \(filename)")
+            return
+        }
+        
         guard let imagesDirectory = imagesDirectory else { return }
         let fileURL = imagesDirectory.appendingPathComponent(filename)
         

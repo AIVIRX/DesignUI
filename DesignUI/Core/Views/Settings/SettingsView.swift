@@ -439,7 +439,7 @@ struct SettingsView: View {
                 // Community Section
                 Section("Community") {
                     Button {
-                        if let url = URL(string: "https://www.threads.net/@dock.ui") { UIApplication.shared.open(url) }
+                        if let url = URL(string: "https://www.threads.net/@dockui") { UIApplication.shared.open(url) }
                     } label: {
                         HStack {
                             Image(systemName: "at")
@@ -455,7 +455,7 @@ struct SettingsView: View {
                     .foregroundColor(.primary)
                     
                     Button {
-                        if let url = URL(string: "https://twitter.com/dock_ui") { UIApplication.shared.open(url) }
+                        if let url = URL(string: "https://twitter.com/dockui") { UIApplication.shared.open(url) }
                     } label: {
                         HStack {
                             Image(systemName: "bird")

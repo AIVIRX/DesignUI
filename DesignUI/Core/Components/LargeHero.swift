@@ -159,13 +159,6 @@ struct LargeHero: View {
                                 )
                         }
                         .buttonStyle(.plain)
-                    } else {
-                        // Invisible placeholder to maintain consistent height
-                        Text("Placeholder")
-                            .font(.system(size: 14, weight: .semibold))
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .opacity(0)
                     }
                 }
                 .padding(.top, 4)
@@ -221,6 +214,6 @@ struct AnimatedMeshGradientBackground: View {
                 smoothsColors: true
             )
         }
-        .ignoresSafeArea()
+
     }
 }

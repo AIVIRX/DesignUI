@@ -65,7 +65,7 @@ struct CodePreviewView: View {
                 .background(Color.gray.opacity(0.1))
             }
         }
-        .frame(maxWidth: 1000, maxHeight: 800) // Increased default size
+        .frame(minWidth: 1000, idealWidth: 1400, minHeight: 600, idealHeight: 900) // Increased default size with stronger constraints
         .background(Color.gray.opacity(0.1))
         .cornerRadius(20)
         .overlay(
@@ -84,7 +84,7 @@ struct CodePreviewView: View {
         return """
         //
         //
-        //  Generated in DockUI Studio
+        //  Generated in DockUI
         //
 
         \(viewCode)
@@ -104,7 +104,7 @@ struct CompleteFileCode: View {
         return """
         //
         //
-        //  Generated in DockUI Studio
+        //  Generated in DockUI
         //
 
         \(viewCode)

@@ -151,9 +151,18 @@ struct ComponentRenderer: View {
         // Fallback: check if imageData contains a filename (for old components without imageName property)
         if imageName.isEmpty {
             let imageData = component.getProperty(key: "imageData") as? String ?? ""
-            // If imageData looks like a filename (has file extension), use it
-            if !imageData.isEmpty && (imageData.hasSuffix(".jpg") || imageData.hasSuffix(".jpeg") || imageData.hasSuffix(".png") || imageData.hasSuffix(".gif") || imageData.hasSuffix(".heic")) {
-                imageName = imageData
+            
+            // IF imageData is not empty, check if it's actually a filename
+            if !imageData.isEmpty {
+                // 1. Check if it looks like a file extension
+                if imageData.hasSuffix(".jpg") || imageData.hasSuffix(".jpeg") || imageData.hasSuffix(".png") || imageData.hasSuffix(".gif") || imageData.hasSuffix(".heic") {
+                    imageName = imageData
+                }
+                // 2. Check if it matches a valid local gallery image OR bundled asset
+                else if ImageGalleryManager.shared.getAllImageFilenames().contains(imageData) {
+                     // It is a valid filename (even without extension, e.g. bundled asset "image1")
+                     imageName = imageData
+                }
             }
         }
         
@@ -1232,74 +1241,30 @@ struct ImageComponentView: View {
     let deviceSize: CGSize?
     
     var body: some View {
-        if !imageName.isEmpty {
-            // Priority 1: Check Local Gallery first
-            if let fileURL = ImageGalleryManager.shared.getImageUrl(filename: imageName) {
-                // Load image synchronously since it's a local file
-                #if os(macOS)
-                if let nsImage = NSImage(contentsOf: fileURL) {
-                    let imageView = Image(nsImage: nsImage)
-                    let modifiedImage = resizable ? imageView.resizable() : imageView
-                    
-                    if aspectRatio == "fit" {
-                        modifiedImage.aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                    } else if aspectRatio == "fill" {
-                        modifiedImage.aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                    } else {
-                        modifiedImage
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                    }
+        if !imageName.isEmpty, let platformImage = ImageGalleryManager.shared.loadImage(filename: imageName) {
+            #if os(macOS)
+            let imageView = Image(nsImage: platformImage)
+            #else
+            let imageView = Image(uiImage: platformImage)
+            #endif
+            
+            let modifiedImage = resizable ? imageView.resizable() : imageView
+            
+            Group {
+                if aspectRatio == "fit" {
+                    modifiedImage.aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                } else if aspectRatio == "fill" {
+                    modifiedImage.aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
                 } else {
-                    // Start of Asset Catalog Fallback (macOS)
-                    renderAssetImage()
+                    modifiedImage
+                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
                 }
-                #else
-                if let uiImage = UIImage(contentsOfFile: fileURL.path) {
-                    let imageView = Image(uiImage: uiImage)
-                    let modifiedImage = resizable ? imageView.resizable() : imageView
-                    
-                    if aspectRatio == "fit" {
-                        modifiedImage.aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                    } else if aspectRatio == "fill" {
-                        modifiedImage.aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                    } else {
-                        modifiedImage
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                    }
-                } else {
-                    // Start of Asset Catalog Fallback (iOS)
-                    renderAssetImage()
-                }
-                #endif
-            } else {
-                // Priority 2: Try Asset Catalog
-                renderAssetImage()
             }
         } else {
+            // Fallback for empty name or failed load
             EmptyView()
-        }
-    }
-    
-    // Helper to render from Asset Catalog
-    private func renderAssetImage() -> some View {
-        let imageView = Image(imageName)
-        let modifiedImage = resizable ? imageView.resizable() : imageView
-        
-        return Group {
-            if aspectRatio == "fit" {
-                modifiedImage.aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-            } else if aspectRatio == "fill" {
-                modifiedImage.aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-            } else {
-                modifiedImage
-                    .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-            }
         }
     }
 }
