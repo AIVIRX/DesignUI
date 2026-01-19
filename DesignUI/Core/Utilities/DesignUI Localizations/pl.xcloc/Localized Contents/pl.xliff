@@ -1,0 +1,1048 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd">
+  <file original="DesignUI/Core/Resources/InfoPlist.xcstrings" source-language="en" target-language="pl" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.2" build-num="17C52"/>
+    </header>
+    <body>
+      <trans-unit id="CFBundleDisplayName" translate="no" xml:space="preserve">
+        <source>Dock UI</source>
+        <target state="needs-review-l10n">Dock UI</target>
+        <note>Bundle display name</note>
+      </trans-unit>
+      <trans-unit id="CFBundleName" translate="no" xml:space="preserve">
+        <source>Dock UI</source>
+        <target state="translated">Dock UI</target>
+        <note>Bundle name</note>
+      </trans-unit>
+      <trans-unit id="NSPhotoLibraryAddUsageDescription" xml:space="preserve">
+        <source>DockUI needs permission to save screenshots to your photo library.</source>
+        <note>Privacy - Photo Library Additions Usage Description</note>
+      </trans-unit>
+      <trans-unit id="NSUserTrackingUsageDescription" xml:space="preserve">
+        <source>This identifier will be used to deliver personalized ads to you.</source>
+        <target state="translated">Ten identyfikator będzie używany w celu dostarczania Ci spersonalizowanych reklam.</target>
+        <note>Privacy - Tracking Usage Description</note>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="DesignUI/Core/Resources/Localizable.xcstrings" source-language="en" target-language="pl" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.2" build-num="17C52"/>
+    </header>
+    <body>
+      <trans-unit id="" xml:space="preserve">
+        <source/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%" xml:space="preserve">
+        <source>%</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%@" xml:space="preserve">
+        <source>%@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%@ %@" xml:space="preserve">
+        <source>%1$@ %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld" xml:space="preserve">
+        <source>%lld</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld Selected" xml:space="preserve">
+        <source>%lld Selected</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld components" xml:space="preserve">
+        <source>%lld components</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld pt" xml:space="preserve">
+        <source>%lld pt</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld%%" xml:space="preserve">
+        <source>%lld%%</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld/15" xml:space="preserve">
+        <source>%lld/15</source>
+        <target state="translated">%lld/15</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld/50" xml:space="preserve">
+        <source>%lld/50</source>
+        <target state="translated">%lld/50</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld/130" xml:space="preserve">
+        <source>%lld/130</source>
+        <target state="translated">%lld/130</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lldpt" xml:space="preserve">
+        <source>%lldpt</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lldpt %@" xml:space="preserve">
+        <source>%1$lldpt %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%lld°" xml:space="preserve">
+        <source>%lld°</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="(%lld, %lld)" xml:space="preserve">
+        <source>(%1$lld, %2$lld)</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="9:41" xml:space="preserve">
+        <source>9:41</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="10" xml:space="preserve">
+        <source>10</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="100" xml:space="preserve">
+        <source>100</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="@%@" xml:space="preserve">
+        <source>@%@</source>
+        <target state="translated">@%@</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="APPEARANCE" xml:space="preserve">
+        <source>APPEARANCE</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Account" xml:space="preserve">
+        <source>Account</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Accounts" xml:space="preserve">
+        <source>Accounts</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Actions" xml:space="preserve">
+        <source>Actions</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Active" xml:space="preserve">
+        <source>Active</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add" xml:space="preserve">
+        <source>Add</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add Another" xml:space="preserve">
+        <source>Add Another</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add Component" xml:space="preserve">
+        <source>Add Component</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add Overlay Component" xml:space="preserve">
+        <source>Add Overlay Component</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add Page" xml:space="preserve">
+        <source>Add Page</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add components from the library to start!" xml:space="preserve">
+        <source>Add components from the library to start!</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add components to use as background elements." xml:space="preserve">
+        <source>Add components to use as background elements.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="App" xml:space="preserve">
+        <source>App</source>
+        <target state="translated">Aplikacja</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Appearance" xml:space="preserve">
+        <source>Appearance</source>
+        <target state="translated">Wygląd</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Are you sure you want to delete this design? This action cannot be undone." xml:space="preserve">
+        <source>Are you sure you want to delete this design? This action cannot be undone.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Are you sure you want to delete this post? This action cannot be undone." xml:space="preserve">
+        <source>Are you sure you want to delete this post? This action cannot be undone.</source>
+        <target state="translated">Czy na pewno chcesz usunąć ten post? Tej czynności nie można cofnąć.</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Are you sure you want to delete your account?" xml:space="preserve">
+        <source>Are you sure you want to delete your account?</source>
+        <target state="translated">Czy na pewno chcesz usunąć swoje konto?</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Aspect Ratio" xml:space="preserve">
+        <source>Aspect Ratio</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Back" xml:space="preserve">
+        <source>Back</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Back to Designs" xml:space="preserve">
+        <source>Back to Designs</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Background Color" xml:space="preserve">
+        <source>Background Color</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Bio" xml:space="preserve">
+        <source>Bio</source>
+        <target state="translated">Biografia</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Blur" xml:space="preserve">
+        <source>Blur</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Border" xml:space="preserve">
+        <source>Border</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Bottom Leading" xml:space="preserve">
+        <source>Bottom Leading</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Bottom Trailing" xml:space="preserve">
+        <source>Bottom Trailing</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="COMMUNITY" xml:space="preserve">
+        <source>COMMUNITY</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Cancel" xml:space="preserve">
+        <source>Cancel</source>
+        <target state="translated">Anuluj</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Canvas" xml:space="preserve">
+        <source>Canvas</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Capsule" xml:space="preserve">
+        <source>Capsule</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Center" xml:space="preserve">
+        <source>Center</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Center Canvas" xml:space="preserve">
+        <source>Center Canvas</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Change Plan" xml:space="preserve">
+        <source>Change Plan</source>
+        <target state="translated">Zmień plan</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Choose Background Color" xml:space="preserve">
+        <source>Choose Background Color</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Choose Color" xml:space="preserve">
+        <source>Choose Color</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Choose Device" xml:space="preserve">
+        <source>Choose Device</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Choose from Photos" xml:space="preserve">
+        <source>Choose from Photos</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Circle" xml:space="preserve">
+        <source>Circle</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Clip Shape" xml:space="preserve">
+        <source>Clip Shape</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Code" xml:space="preserve">
+        <source>Code</source>
+        <target state="translated">Kod</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Code Snippet" xml:space="preserve">
+        <source>Code Snippet</source>
+        <target state="translated">Fragment kodu</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Color" xml:space="preserve">
+        <source>Color</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Color Scheme" xml:space="preserve">
+        <source>Color Scheme</source>
+        <target state="translated">Schemat kolorów</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Community" xml:space="preserve">
+        <source>Community</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Complete Your Profile" xml:space="preserve">
+        <source>Complete Your Profile</source>
+        <target state="translated">Uzupełnij swój profil</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Component Overlay" xml:space="preserve">
+        <source>Component Overlay</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Components" xml:space="preserve">
+        <source>Components</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Continue" xml:space="preserve">
+        <source>Continue</source>
+        <target state="translated">Dalej</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Convert to" xml:space="preserve">
+        <source>Convert to</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Copy &quot;%@&quot;" xml:space="preserve">
+        <source>Copy "%@"</source>
+        <target state="translated">Kopiuj "%@"</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Copy code" xml:space="preserve">
+        <source>Copy code</source>
+        <target state="translated">Kopiuj kod</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Corner Radius" xml:space="preserve">
+        <source>Corner Radius</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Create" xml:space="preserve">
+        <source>Create</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Create New Design" xml:space="preserve">
+        <source>Create New Design</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Create your account to save favorites,&#10;sync across devices, and access&#10;exclusive features." xml:space="preserve">
+        <source>Create your account to save favorites,
+sync across devices, and access
+exclusive features.</source>
+        <target state="translated">Utwórz konto, aby zapisywać ulubione,
+synchronizować się między urządzeniami i uzyskiwać dostęp
+do ekskluzywnych funkcji.</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Create your first design to get started" xml:space="preserve">
+        <source>Create your first design to get started</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Dark" xml:space="preserve">
+        <source>Dark</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete" xml:space="preserve">
+        <source>Delete</source>
+        <target state="translated">Usuń</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete Account" xml:space="preserve">
+        <source>Delete Account</source>
+        <target state="translated">Usuń konto</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete Component" xml:space="preserve">
+        <source>Delete Component</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete Design" xml:space="preserve">
+        <source>Delete Design</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete Post" xml:space="preserve">
+        <source>Delete Post</source>
+        <target state="translated">Usuń post</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Denied" xml:space="preserve">
+        <source>Denied</source>
+        <target state="translated">Zaprzeczony</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Design Browser" xml:space="preserve">
+        <source>Design Browser</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Design Name" xml:space="preserve">
+        <source>Design Name</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Display Name" xml:space="preserve">
+        <source>Display Name</source>
+        <target state="translated">Wyświetlana nazwa</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="DockUI" xml:space="preserve">
+        <source>DockUI</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Done" xml:space="preserve">
+        <source>Done</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Duplicate" xml:space="preserve">
+        <source>Duplicate</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Edit Profile" xml:space="preserve">
+        <source>Edit Profile</source>
+        <target state="translated">Edycja profilu</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Ellipse" xml:space="preserve">
+        <source>Ellipse</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Empty Design" xml:space="preserve">
+        <source>Empty Design</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Enter a new name for this design." xml:space="preserve">
+        <source>Enter a new name for this design.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Error" xml:space="preserve">
+        <source>Error</source>
+        <target state="translated">Błąd</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Export" xml:space="preserve">
+        <source>Export</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="FEATURES" xml:space="preserve">
+        <source>FEATURES</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Factor" xml:space="preserve">
+        <source>Factor</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Features" xml:space="preserve">
+        <source>Features</source>
+        <target state="translated">Cechy</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Free Limit Reached" xml:space="preserve">
+        <source>Free Limit Reached</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Free users are limited to %lld designs. Subscribe to create unlimited designs." xml:space="preserve">
+        <source>Free users are limited to %lld designs. Subscribe to create unlimited designs.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="From Photos" xml:space="preserve">
+        <source>From Photos</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Gallery" xml:space="preserve">
+        <source>Gallery</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Generated Code" xml:space="preserve">
+        <source>Generated Code</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="HStack" xml:space="preserve">
+        <source>HStack</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Height" xml:space="preserve">
+        <source>Height</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Hello World" xml:space="preserve">
+        <source>Hello World</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Home" xml:space="preserve">
+        <source>Home</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Introducing" xml:space="preserve">
+        <source>Introducing</source>
+        <target state="translated">Przedstawiamy</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Is Visible" xml:space="preserve">
+        <source>Is Visible</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="John Doe" xml:space="preserve">
+        <source>John Doe</source>
+        <target state="translated">nieznany z nazwiska</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="LEGAL" xml:space="preserve">
+        <source>LEGAL</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Layers" xml:space="preserve">
+        <source>Layers</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Legal" xml:space="preserve">
+        <source>Legal</source>
+        <target state="translated">Informacje prawne</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Light" xml:space="preserve">
+        <source>Light</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Likes" xml:space="preserve">
+        <source>Likes</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Loading code..." xml:space="preserve">
+        <source>Loading code...</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Loading posts..." xml:space="preserve">
+        <source>Loading posts...</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Loading subscription..." xml:space="preserve">
+        <source>Loading subscription...</source>
+        <target state="translated">Ładowanie subskrypcji...</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Location" xml:space="preserve">
+        <source>Location</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Mask Type" xml:space="preserve">
+        <source>Mask Type</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Modifiers" xml:space="preserve">
+        <source>Modifiers</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="My Designs" xml:space="preserve">
+        <source>My Designs</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="New Design" xml:space="preserve">
+        <source>New Design</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="News" xml:space="preserve">
+        <source>News</source>
+        <target state="translated">wiadomości</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No Component Selected" xml:space="preserve">
+        <source>No Component Selected</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No Designs Yet" xml:space="preserve">
+        <source>No Designs Yet</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No Selection" xml:space="preserve">
+        <source>No Selection</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No layers yet" xml:space="preserve">
+        <source>No layers yet</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No liked posts yet" xml:space="preserve">
+        <source>No liked posts yet</source>
+        <target state="translated">Brak polubionych postów</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No modifiers applied" xml:space="preserve">
+        <source>No modifiers applied</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No posts found" xml:space="preserve">
+        <source>No posts found</source>
+        <target state="translated">Nie znaleziono postów</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No posts yet" xml:space="preserve">
+        <source>No posts yet</source>
+        <target state="translated">Brak postów</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="OK" xml:space="preserve">
+        <source>OK</source>
+        <target state="translated">OK</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Offset" xml:space="preserve">
+        <source>Offset</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Offset X" xml:space="preserve">
+        <source>Offset X</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Offset Y" xml:space="preserve">
+        <source>Offset Y</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Opacity" xml:space="preserve">
+        <source>Opacity</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Overlay" xml:space="preserve">
+        <source>Overlay</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Overlay Color" xml:space="preserve">
+        <source>Overlay Color</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Overlay Text" xml:space="preserve">
+        <source>Overlay Text</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Padding" xml:space="preserve">
+        <source>Padding</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Page Name" xml:space="preserve">
+        <source>Page Name</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Pages" xml:space="preserve">
+        <source>Pages</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Pending" xml:space="preserve">
+        <source>Pending</source>
+        <target state="translated">Oczekujące</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Position" xml:space="preserve">
+        <source>Position</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Posts" xml:space="preserve">
+        <source>Posts</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Premium" xml:space="preserve">
+        <source>Premium</source>
+        <target state="translated">Premia</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Premium Template" xml:space="preserve">
+        <source>Premium Template</source>
+        <target state="translated">Szablon Premium</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Presets" xml:space="preserve">
+        <source>Presets</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Privacy Policy" xml:space="preserve">
+        <source>Privacy Policy</source>
+        <target state="translated">Polityka prywatności</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Profile" xml:space="preserve">
+        <source>Profile</source>
+        <target state="translated">Profil</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Properties" xml:space="preserve">
+        <source>Properties</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Radius" xml:space="preserve">
+        <source>Radius</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Rate App" xml:space="preserve">
+        <source>Rate App</source>
+        <target state="translated">Oceń aplikację</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Rate Us" xml:space="preserve">
+        <source>Rate Us</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Rectangle" xml:space="preserve">
+        <source>Rectangle</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Redo" xml:space="preserve">
+        <source>Redo</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Rename" xml:space="preserve">
+        <source>Rename</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Rename Design" xml:space="preserve">
+        <source>Rename Design</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Replace" xml:space="preserve">
+        <source>Replace</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Rotation" xml:space="preserve">
+        <source>Rotation</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Rounded Rectangle" xml:space="preserve">
+        <source>Rounded Rectangle</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="SF Symbols" xml:space="preserve">
+        <source>SF Symbols</source>
+        <target state="translated">Symbole SF</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="SUBSCRIPTION" xml:space="preserve">
+        <source>SUBSCRIPTION</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="SUPPORT" xml:space="preserve">
+        <source>SUPPORT</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Save" xml:space="preserve">
+        <source>Save</source>
+        <target state="translated">Zachowaj</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Save as Screenshot" xml:space="preserve">
+        <source>Save as Screenshot</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Scale" xml:space="preserve">
+        <source>Scale</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="ScrollView" xml:space="preserve">
+        <source>ScrollView</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Search SF Symbols" xml:space="preserve">
+        <source>Search SF Symbols</source>
+        <target state="translated">Wyszukaj symbole SF</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Search components..." xml:space="preserve">
+        <source>Search components...</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Search modifiers..." xml:space="preserve">
+        <source>Search modifiers...</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Search templates" xml:space="preserve">
+        <source>Search templates</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Select" xml:space="preserve">
+        <source>Select</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Select File" xml:space="preserve">
+        <source>Select File</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Select Image" xml:space="preserve">
+        <source>Select Image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Select SF Symbol" xml:space="preserve">
+        <source>Select SF Symbol</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Select a component to edit its properties" xml:space="preserve">
+        <source>Select a component to edit its properties</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Send Feedback" xml:space="preserve">
+        <source>Send Feedback</source>
+        <target state="translated">Wyślij opinię</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Settings" xml:space="preserve">
+        <source>Settings</source>
+        <target state="translated">Ustawienia</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Setup Profile" xml:space="preserve">
+        <source>Setup Profile</source>
+        <target state="translated">Konfiguracja profilu</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Shadow" xml:space="preserve">
+        <source>Shadow</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Shapes" xml:space="preserve">
+        <source>Shapes</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Share" xml:space="preserve">
+        <source>Share</source>
+        <target state="translated">Udostępnij</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Share App" xml:space="preserve">
+        <source>Share App</source>
+        <target state="translated">Udostępnij aplikację</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Sign In Required" xml:space="preserve">
+        <source>Sign In Required</source>
+        <target state="translated">Wymagane zalogowanie</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Sign Out" xml:space="preserve">
+        <source>Sign Out</source>
+        <target state="translated">Wyloguj się</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Sign in to sync favorites and access exclusive features." xml:space="preserve">
+        <source>Sign in to sync favorites and access exclusive features.</source>
+        <target state="translated">Zaloguj się, aby zsynchronizować ulubione i uzyskać dostęp do ekskluzywnych funkcji.</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Similar Posts" xml:space="preserve">
+        <source>Similar Posts</source>
+        <target state="translated">Podobne posty</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Size" xml:space="preserve">
+        <source>Size</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Status Bar" xml:space="preserve">
+        <source>Status Bar</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Studio" xml:space="preserve">
+        <source>Studio</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Subscribe" xml:space="preserve">
+        <source>Subscribe</source>
+        <target state="translated">Subskrybuj</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Subscribe to access this template." xml:space="preserve">
+        <source>Subscribe to access this template.</source>
+        <target state="translated">Subskrybuj, aby uzyskać dostęp do tego szablonu.</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Subscription" xml:space="preserve">
+        <source>Subscription</source>
+        <target state="translated">Subskrypcja</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Support" xml:space="preserve">
+        <source>Support</source>
+        <target state="translated">Wsparcie</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Tap on a component in the canvas to edit its properties" xml:space="preserve">
+        <source>Tap on a component in the canvas to edit its properties</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Tap to Select Image" xml:space="preserve">
+        <source>Tap to Select Image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Tap to open" xml:space="preserve">
+        <source>Tap to open</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Tap to select image" xml:space="preserve">
+        <source>Tap to select image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Tell us a bit about yourself" xml:space="preserve">
+        <source>Tell us a bit about yourself</source>
+        <target state="translated">Opowiedz nam trochę o sobie</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Tell us about yourself..." xml:space="preserve">
+        <source>Tell us about yourself...</source>
+        <target state="translated">Opowiedz nam o sobie...</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Templates" xml:space="preserve">
+        <source>Templates</source>
+        <target state="translated">Szablony</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Terms of Service" xml:space="preserve">
+        <source>Terms of Service</source>
+        <target state="translated">Warunki korzystania z usługi</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Text Alignment" xml:space="preserve">
+        <source>Text Alignment</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Text Badge" xml:space="preserve">
+        <source>Text Badge</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Theme" xml:space="preserve">
+        <source>Theme</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Threads" xml:space="preserve">
+        <source>Threads</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Title" xml:space="preserve">
+        <source>Title</source>
+        <target state="translated">Tytuł</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Top Leading" xml:space="preserve">
+        <source>Top Leading</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Top Trailing" xml:space="preserve">
+        <source>Top Trailing</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Twitter" xml:space="preserve">
+        <source>Twitter</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Type" xml:space="preserve">
+        <source>Type</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Undo" xml:space="preserve">
+        <source>Undo</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported property type" xml:space="preserve">
+        <source>Unsupported property type</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Username" xml:space="preserve">
+        <source>Username</source>
+        <target state="translated">Użytkownik</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VStack" xml:space="preserve">
+        <source>VStack</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Version %@" xml:space="preserve">
+        <source>Version %@</source>
+        <target state="translated">Wersja %@</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="View Code" xml:space="preserve">
+        <source>View Code</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Website" xml:space="preserve">
+        <source>Website</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Weight" xml:space="preserve">
+        <source>Weight</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Widgets" xml:space="preserve">
+        <source>Widgets</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Width" xml:space="preserve">
+        <source>Width</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Width Presets" xml:space="preserve">
+        <source>Width Presets</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Wrap in..." xml:space="preserve">
+        <source>Wrap in...</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="X" xml:space="preserve">
+        <source>X</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Y" xml:space="preserve">
+        <source>Y</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="You need to be signed in to like a design." xml:space="preserve">
+        <source>You need to be signed in to like a design.</source>
+        <target state="translated">Aby polubić projekt, musisz się zalogować.</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Z Index" xml:space="preserve">
+        <source>Z Index</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="ZStack" xml:space="preserve">
+        <source>ZStack</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="iPad" xml:space="preserve">
+        <source>iPad</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="iPhone" xml:space="preserve">
+        <source>iPhone</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="johndoe" xml:space="preserve">
+        <source>johndoe</source>
+        <target state="translated">Jan Nowak</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="x: %lld, y: %lld" xml:space="preserve">
+        <source>x: %1$lld, y: %2$lld</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="•" xml:space="preserve">
+        <source>•</source>
+        <target state="translated">•</target>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

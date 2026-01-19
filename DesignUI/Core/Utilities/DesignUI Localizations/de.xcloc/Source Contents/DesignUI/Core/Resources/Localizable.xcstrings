@@ -1,0 +1,739 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "(%lld, %lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(%1$lld, %2$lld)"
+          }
+        }
+      }
+    },
+    "@%@" : {
+
+    },
+    "%" : {
+
+    },
+    "%@" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld components" : {
+
+    },
+    "%lld pt" : {
+
+    },
+    "%lld Selected" : {
+
+    },
+    "%lld/15" : {
+
+    },
+    "%lld/50" : {
+
+    },
+    "%lld/130" : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "%lld°" : {
+
+    },
+    "%lldpt" : {
+
+    },
+    "%lldpt %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lldpt %2$@"
+          }
+        }
+      }
+    },
+    "•" : {
+
+    },
+    "9:41" : {
+
+    },
+    "10" : {
+
+    },
+    "100" : {
+
+    },
+    "Account" : {
+
+    },
+    "Accounts" : {
+
+    },
+    "Actions" : {
+
+    },
+    "Active" : {
+
+    },
+    "Add" : {
+
+    },
+    "Add Another" : {
+
+    },
+    "Add Component" : {
+
+    },
+    "Add components from the library to start!" : {
+
+    },
+    "Add components to use as background elements." : {
+
+    },
+    "Add Overlay Component" : {
+
+    },
+    "Add Page" : {
+
+    },
+    "App" : {
+
+    },
+    "Appearance" : {
+
+    },
+    "APPEARANCE" : {
+
+    },
+    "Are you sure you want to delete this design? This action cannot be undone." : {
+
+    },
+    "Are you sure you want to delete this post? This action cannot be undone." : {
+
+    },
+    "Are you sure you want to delete your account?" : {
+
+    },
+    "Aspect Ratio" : {
+
+    },
+    "Back" : {
+
+    },
+    "Back to Designs" : {
+
+    },
+    "Background Color" : {
+
+    },
+    "Bio" : {
+
+    },
+    "Blur" : {
+
+    },
+    "Border" : {
+
+    },
+    "Bottom Leading" : {
+
+    },
+    "Bottom Trailing" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Canvas" : {
+
+    },
+    "Capsule" : {
+
+    },
+    "Center" : {
+
+    },
+    "Center Canvas" : {
+
+    },
+    "Change Plan" : {
+
+    },
+    "Choose Background Color" : {
+
+    },
+    "Choose Color" : {
+
+    },
+    "Choose Device" : {
+
+    },
+    "Choose from Photos" : {
+
+    },
+    "Circle" : {
+
+    },
+    "Clip Shape" : {
+
+    },
+    "Code" : {
+
+    },
+    "Code Snippet" : {
+
+    },
+    "Color" : {
+
+    },
+    "Color Scheme" : {
+
+    },
+    "Community" : {
+
+    },
+    "COMMUNITY" : {
+
+    },
+    "Complete Your Profile" : {
+
+    },
+    "Component Overlay" : {
+
+    },
+    "Components" : {
+
+    },
+    "Continue" : {
+
+    },
+    "Convert to" : {
+
+    },
+    "Copy \"%@\"" : {
+
+    },
+    "Copy code" : {
+
+    },
+    "Corner Radius" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create New Design" : {
+
+    },
+    "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
+
+    },
+    "Create your first design to get started" : {
+
+    },
+    "Dark" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Delete Account" : {
+
+    },
+    "Delete Component" : {
+
+    },
+    "Delete Design" : {
+
+    },
+    "Delete Post" : {
+
+    },
+    "Denied" : {
+
+    },
+    "Design Browser" : {
+
+    },
+    "Design Name" : {
+
+    },
+    "Display Name" : {
+
+    },
+    "DockUI" : {
+
+    },
+    "Done" : {
+
+    },
+    "Duplicate" : {
+
+    },
+    "Edit Profile" : {
+
+    },
+    "Ellipse" : {
+
+    },
+    "Empty Design" : {
+
+    },
+    "Enter a new name for this design." : {
+
+    },
+    "Error" : {
+
+    },
+    "Export" : {
+
+    },
+    "Factor" : {
+
+    },
+    "Features" : {
+
+    },
+    "FEATURES" : {
+
+    },
+    "Free Limit Reached" : {
+
+    },
+    "Free users are limited to %lld designs. Subscribe to create unlimited designs." : {
+
+    },
+    "From Photos" : {
+
+    },
+    "Gallery" : {
+
+    },
+    "Generated Code" : {
+
+    },
+    "Height" : {
+
+    },
+    "Hello World" : {
+
+    },
+    "Home" : {
+
+    },
+    "HStack" : {
+
+    },
+    "Introducing" : {
+
+    },
+    "iPad" : {
+
+    },
+    "iPhone" : {
+
+    },
+    "Is Visible" : {
+
+    },
+    "John Doe" : {
+
+    },
+    "johndoe" : {
+
+    },
+    "Layers" : {
+
+    },
+    "Legal" : {
+
+    },
+    "LEGAL" : {
+
+    },
+    "Light" : {
+
+    },
+    "Likes" : {
+
+    },
+    "Loading code..." : {
+
+    },
+    "Loading posts..." : {
+
+    },
+    "Loading subscription..." : {
+
+    },
+    "Location" : {
+
+    },
+    "Mask Type" : {
+
+    },
+    "Modifiers" : {
+
+    },
+    "My Designs" : {
+
+    },
+    "New Design" : {
+
+    },
+    "News" : {
+
+    },
+    "No Component Selected" : {
+
+    },
+    "No Designs Yet" : {
+
+    },
+    "No layers yet" : {
+
+    },
+    "No liked posts yet" : {
+
+    },
+    "No modifiers applied" : {
+
+    },
+    "No posts found" : {
+
+    },
+    "No posts yet" : {
+
+    },
+    "No Selection" : {
+
+    },
+    "Offset" : {
+
+    },
+    "Offset X" : {
+
+    },
+    "Offset Y" : {
+
+    },
+    "OK" : {
+
+    },
+    "Opacity" : {
+
+    },
+    "Overlay" : {
+
+    },
+    "Overlay Color" : {
+
+    },
+    "Overlay Text" : {
+
+    },
+    "Padding" : {
+
+    },
+    "Page Name" : {
+
+    },
+    "Pages" : {
+
+    },
+    "Pending" : {
+
+    },
+    "Position" : {
+
+    },
+    "Posts" : {
+
+    },
+    "Premium" : {
+
+    },
+    "Premium Template" : {
+
+    },
+    "Presets" : {
+
+    },
+    "Privacy Policy" : {
+
+    },
+    "Profile" : {
+
+    },
+    "Properties" : {
+
+    },
+    "Radius" : {
+
+    },
+    "Rate App" : {
+
+    },
+    "Rate Us" : {
+
+    },
+    "Rectangle" : {
+
+    },
+    "Redo" : {
+
+    },
+    "Rename" : {
+
+    },
+    "Rename Design" : {
+
+    },
+    "Replace" : {
+
+    },
+    "Rotation" : {
+
+    },
+    "Rounded Rectangle" : {
+
+    },
+    "Save" : {
+
+    },
+    "Save as Screenshot" : {
+
+    },
+    "Scale" : {
+
+    },
+    "ScrollView" : {
+
+    },
+    "Search components..." : {
+
+    },
+    "Search modifiers..." : {
+
+    },
+    "Search SF Symbols" : {
+
+    },
+    "Search templates" : {
+
+    },
+    "Select" : {
+
+    },
+    "Select a component to edit its properties" : {
+
+    },
+    "Select File" : {
+
+    },
+    "Select Image" : {
+
+    },
+    "Select SF Symbol" : {
+
+    },
+    "Send Feedback" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Setup Profile" : {
+
+    },
+    "SF Symbols" : {
+
+    },
+    "Shadow" : {
+
+    },
+    "Shapes" : {
+
+    },
+    "Share" : {
+
+    },
+    "Share App" : {
+
+    },
+    "Sign In Required" : {
+
+    },
+    "Sign in to sync favorites and access exclusive features." : {
+
+    },
+    "Sign Out" : {
+
+    },
+    "Similar Posts" : {
+
+    },
+    "Size" : {
+
+    },
+    "Status Bar" : {
+
+    },
+    "Studio" : {
+
+    },
+    "Subscribe" : {
+
+    },
+    "Subscribe to access this template." : {
+
+    },
+    "Subscription" : {
+
+    },
+    "SUBSCRIPTION" : {
+
+    },
+    "Support" : {
+
+    },
+    "SUPPORT" : {
+
+    },
+    "Tap on a component in the canvas to edit its properties" : {
+
+    },
+    "Tap to open" : {
+
+    },
+    "Tap to select image" : {
+
+    },
+    "Tap to Select Image" : {
+
+    },
+    "Tell us a bit about yourself" : {
+
+    },
+    "Tell us about yourself..." : {
+
+    },
+    "Templates" : {
+
+    },
+    "Terms of Service" : {
+
+    },
+    "Text Alignment" : {
+
+    },
+    "Text Badge" : {
+
+    },
+    "Theme" : {
+
+    },
+    "Threads" : {
+
+    },
+    "Title" : {
+      "extractionState" : "stale"
+    },
+    "Top Leading" : {
+
+    },
+    "Top Trailing" : {
+
+    },
+    "Twitter" : {
+
+    },
+    "Type" : {
+
+    },
+    "Undo" : {
+
+    },
+    "Unsupported property type" : {
+
+    },
+    "Username" : {
+
+    },
+    "Version %@" : {
+
+    },
+    "View Code" : {
+
+    },
+    "VStack" : {
+
+    },
+    "Website" : {
+
+    },
+    "Weight" : {
+
+    },
+    "Widgets" : {
+
+    },
+    "Width" : {
+
+    },
+    "Width Presets" : {
+
+    },
+    "Wrap in..." : {
+
+    },
+    "X" : {
+
+    },
+    "x: %lld, y: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "x: %1$lld, y: %2$lld"
+          }
+        }
+      }
+    },
+    "Y" : {
+
+    },
+    "You need to be signed in to like a design." : {
+
+    },
+    "Z Index" : {
+
+    },
+    "ZStack" : {
+
+    }
+  },
+  "version" : "1.0"
+}
