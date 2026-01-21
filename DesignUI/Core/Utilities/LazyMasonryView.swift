@@ -29,7 +29,8 @@ struct LazyMasonryView<Content: View, Item: Identifiable>: View {
     @State private var itemColumnAssignments: [Item.ID: Int] = [:]
     
     // Limit height cache to prevent unbounded memory growth
-    private let maxHeightCacheSize = 50
+    // Increased to 1000 to ensure stable layout for larger galleries (unbounded cache for ~50 items was causing layout instability)
+    private let maxHeightCacheSize = 1000
     
     init(
         items: [Item],

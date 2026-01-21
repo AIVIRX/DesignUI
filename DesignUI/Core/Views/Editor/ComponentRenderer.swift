@@ -1129,12 +1129,16 @@ private extension View {
 }
 
 // MARK: - Helper Functions
+// MARK: - Helper Functions
 fileprivate func fontWeightFromString(_ weight: String) -> Font.Weight {
     switch weight {
-    case "bold": return .bold
+    case "ultraLight": return .ultraLight
+    case "thin": return .thin
     case "light": return .light
+    case "regular": return .regular
     case "medium": return .medium
     case "semibold": return .semibold
+    case "bold": return .bold
     case "heavy": return .heavy
     case "black": return .black
     default: return .regular
@@ -1211,8 +1215,8 @@ fileprivate func createIOSFont(for fontSize: String, weight: Font.Weight, device
         else if isiPad { size = 22 } // iPad Title 3: 22pt
         else { size = 20 } // iOS Title 3: 20pt
     case "headline":
-        size = isMac ? 18 : 17 // macOS: 18pt, iOS/iPad: 17pt (always semibold)
-        return .system(size: size, weight: .semibold)
+        size = isMac ? 18 : 17 // macOS: 18pt, iOS/iPad: 17pt (default semibold, but overridable)
+        return .system(size: size, weight: weight)
     case "body":
         size = isMac ? 15 : 17 // macOS: 15pt, iOS/iPad: 17pt
     case "callout":

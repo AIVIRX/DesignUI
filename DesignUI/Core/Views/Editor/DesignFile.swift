@@ -1109,15 +1109,8 @@ class ImageGalleryManager: ObservableObject {
     }
     
     // Bundled assets that should appear in the gallery
-    private let bundledAssets: [String] = [
-        "image1",
-        "image2",
-        "image3",
-        "image4",
-        "blank",
-        "flightInfoWidget",
-        "introducingFeatures"
-    ]
+    // Bundled assets that should appear in the gallery
+    private let bundledAssets: [String] = []
     
     init() {
         createGalleryDirectoryIfNeeded()

@@ -21,130 +21,200 @@ struct ImageGalleryView: View {
     @State private var selectionToDelete = Set<String>()
     @State private var showFileImporter = false
     
+    @State private var showUnsplashGallery = false
+    @State private var searchText = ""
+    
     // Grid layout
     private let columns = [
         GridItem(.adaptive(minimum: 100, maximum: 150), spacing: 12)
     ]
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Custom Toolbar / Header
-            HStack {
-                if isEditing {
-                    Button("Done") {
-                        isEditing = false
-                        selectionToDelete.removeAll()
+        NavigationStack {
+            VStack(spacing: 0) {
+                #if os(macOS)
+                // Custom Header for macOS (to force top placement)
+                HStack {
+                    if isEditing {
+                        Button("Done") {
+                            isEditing = false
+                            selectionToDelete.removeAll()
+                        }
+                        .buttonStyle(.plain)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    } else {
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .fontWeight(.medium)
+                                .frame(width: 30, height: 30)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(.ultraThinMaterial, in: Capsule())
-                } else {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .fontWeight(.medium)
-                            .frame(width: 30, height: 30)
-                            .background(.ultraThinMaterial, in: Circle())
-                    }
-                    .buttonStyle(.plain)
-                }
-                
-                Spacer()
-                
-                Text(isEditing ? "\(selectionToDelete.count) Selected" : "Gallery")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                if isEditing {
-                    Button(role: .destructive) {
-                        deleteSelectedItems()
-                    } label: {
-                        Image(systemName: "trash")
-                            .fontWeight(.semibold)
-                            .frame(width: 30, height: 30)
-                            .background(.ultraThinMaterial, in: Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(selectionToDelete.isEmpty)
-                } else {
-                    // Select button to enter multi-selection mode
-                    Button(action: {
-                        isEditing = true
-                    }) {
-                        Text("Select")
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                    .buttonStyle(.plain)
                     
-                    Menu {
-                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                            Label("From Photos", systemImage: "photo")
-                        }
-                        
-                        Button {
-                            showFileImporter = true
+                    Spacer()
+                    
+                    Text(isEditing ? "\(selectionToDelete.count) Selected" : "Gallery")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                    
+                    if isEditing {
+                        Button(role: .destructive) {
+                            deleteSelectedItems()
                         } label: {
-                            Label("Select File", systemImage: "folder")
+                            Image(systemName: "trash")
+                                .fontWeight(.semibold)
+                                .frame(width: 30, height: 30)
+                                .background(.ultraThinMaterial, in: Circle())
                         }
-                    } label: {
-                        Image(systemName: "plus")
-                            .fontWeight(.semibold)
-                            .frame(width: 30, height: 30)
-                            .background(.ultraThinMaterial, in: Circle())
+                        .buttonStyle(.plain)
+                        .disabled(selectionToDelete.isEmpty)
+                    } else {
+                        // Select button to enter multi-selection mode
+                        Button(action: {
+                            isEditing = true
+                        }) {
+                            Text("Select")
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.ultraThinMaterial, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Menu {
+                            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                                Label("From Photos", systemImage: "photo")
+                            }
+                            
+                            Button {
+                                showFileImporter = true
+                            } label: {
+                                Label("Select File", systemImage: "folder")
+                            }
+                            
+                            Button {
+                                showUnsplashGallery = true
+                            } label: {
+                                Label("From Unsplash", systemImage: "globe")
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                                .fontWeight(.semibold)
+                                .frame(width: 30, height: 30)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .menuIndicator(.hidden)
+                        .buttonStyle(.plain)
                     }
-                    .menuIndicator(.hidden)
-                    .buttonStyle(.plain)
+                }
+                .padding()
+                .background(Color(nsColor: .windowBackgroundColor))
+                
+                Divider()
+                #endif
+                
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(imageFilenames, id: \.self) { filename in
+                            Button(action: {
+                                if isEditing {
+                                    toggleSelection(filename)
+                                } else {
+                                    selectedImageName = filename
+                                    dismiss()
+                                }
+                            }) {
+                                GalleryImageCell(
+                                    filename: filename,
+                                    isSelected: isEditing ? selectionToDelete.contains(filename) : selectedImageName == filename,
+                                    isEditing: isEditing
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                if !isEditing {
+                                    Button(role: .destructive) {
+                                        deleteImage(filename: filename)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                            }
+                            .transition(.scale.combined(with: .opacity))
+                        }
+                    }
+                    .padding()
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: imageFilenames)
                 }
             }
-            .padding()
-
             #if os(macOS)
             .background(Color(nsColor: .windowBackgroundColor))
             #else
             .background(Color(uiColor: .systemBackground))
-            #endif
-            
-            Divider()
-            
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(imageFilenames, id: \.self) { filename in
-                        Button(action: {
-                            if isEditing {
-                                toggleSelection(filename)
-                            } else {
-                                selectedImageName = filename
-                                dismiss()
-                            }
-                        }) {
-                            GalleryImageCell(
-                                filename: filename,
-                                isSelected: isEditing ? selectionToDelete.contains(filename) : selectedImageName == filename,
-                                isEditing: isEditing
-                            )
+            .navigationTitle(isEditing ? "\(selectionToDelete.count) Selected" : "Gallery")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                // Leading Items
+                ToolbarItem(placement: .cancellationAction) {
+                    if isEditing {
+                        Button("Done") {
+                            isEditing = false
+                            selectionToDelete.removeAll()
                         }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            if !isEditing {
-                                Button(role: .destructive) {
-                                    deleteImage(filename: filename)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
+                    } else {
+                        Button(action: { dismiss() }) {
+                            Image(systemName: "chevron.down")
+                        }
+                    }
+                }
+                
+                // Trailing Items
+                ToolbarItem(placement: .primaryAction) {
+                    HStack {
+                        if isEditing {
+                            Button(role: .destructive) {
+                                deleteSelectedItems()
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            .disabled(selectionToDelete.isEmpty)
+                        } else {
+                            Button("Select") {
+                                isEditing = true
+                            }
+                            
+                            Menu {
+                                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                                    Label("From Photos", systemImage: "photo")
                                 }
+                                
+                                Button {
+                                    showFileImporter = true
+                                } label: {
+                                    Label("Select File", systemImage: "folder")
+                                }
+                                
+                                Button {
+                                    showUnsplashGallery = true
+                                } label: {
+                                    Label("From Unsplash", systemImage: "globe")
+                                }
+                            } label: {
+                                Image(systemName: "plus")
                             }
                         }
                     }
                 }
-                .padding()
             }
+            #endif
             .fileImporter(
                 isPresented: $showFileImporter,
                 allowedContentTypes: [.image],
@@ -153,7 +223,6 @@ struct ImageGalleryView: View {
                 handleFileImport(result)
             }
             .onAppear {
-                selectedImageName = ""
                 loadImages()
             }
             .onChange(of: selectedPhotoItem) { _, newItem in
@@ -163,6 +232,14 @@ struct ImageGalleryView: View {
                         saveAndReload(data: data)
                     }
                 }
+            }
+            .navigationDestination(isPresented: $showUnsplashGallery) {
+                UnsplashGalleryView(onImageSelected: { filename in
+                    showUnsplashGallery = false
+                    loadImages()
+                    selectedImageName = filename
+                    dismiss()
+                })
             }
         }
         #if os(macOS)

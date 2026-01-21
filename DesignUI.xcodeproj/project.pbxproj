@@ -47,6 +47,8 @@
 		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
 		EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */; };
+		EC8D7B292F2070DC008E4AB3 /* UnsplashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8D7B282F2070DC008E4AB3 /* UnsplashService.swift */; };
+		EC8D7B2B2F20711F008E4AB3 /* UnsplashGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
 		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
@@ -162,6 +164,8 @@
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
 		EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
+		EC8D7B282F2070DC008E4AB3 /* UnsplashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashService.swift; sourceTree = "<group>"; };
+		EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashGalleryView.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
@@ -316,6 +320,7 @@
 		ECB94C542EFB0C19000AAF34 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */,
 				EC1A03B12F1D52100084FF52 /* DesignPage.swift */,
 				EC1A03B22F1D52100084FF52 /* PageSelectorBar.swift */,
 				EC37CE502F19C1F6006CFD08 /* UndoToastView.swift */,
@@ -388,6 +393,7 @@
 		ECD13FD72C18BBB900105B3E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				EC8D7B282F2070DC008E4AB3 /* UnsplashService.swift */,
 				ECAF05612F189B1F008F9BEA /* RippleModifier.swift */,
 				ECAF05622F189B1F008F9BEA /* SessionManager.swift */,
 				EC70F84C2EB6C280001D39DC /* AdManager.swift */,
@@ -715,6 +721,7 @@
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
 				ECAF05632F189B1F008F9BEA /* RippleModifier.swift in Sources */,
+				EC8D7B292F2070DC008E4AB3 /* UnsplashService.swift in Sources */,
 				ECAF05642F189B1F008F9BEA /* SessionManager.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
 				ECFF2C812D55961D006A7FE6 /* ProfileViewModel.swift in Sources */,
@@ -731,6 +738,7 @@
 				EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */,
 				EC5982A02D568E5500633392 /* LikeButton.swift in Sources */,
 				ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */,
+				EC8D7B2B2F20711F008E4AB3 /* UnsplashGalleryView.swift in Sources */,
 				EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */,
 				F19CEA4018CA4B7A8403D953 /* ColorSchemeManager.swift in Sources */,
 				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
@@ -894,7 +902,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 900;
+				CURRENT_PROJECT_VERSION = 902;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -973,7 +981,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 900;
+				CURRENT_PROJECT_VERSION = 902;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
