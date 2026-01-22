@@ -230,7 +230,7 @@ struct UIBuilderView: View {
     // Screenshot capture debouncing
     // Screenshot capture debouncing
     @State private var lastScreenshotRequestTime: Date = Date()
-    private let screenshotDebounceInterval: TimeInterval = 0.5
+    private let screenshotDebounceInterval: TimeInterval = 3.0
     
     #if os(iOS)
     @State private var selection: PresentationDetent = .height(80)

@@ -119,7 +119,7 @@ struct ModifierReorderableList: View {
                     dragOverPosition: $dragOverPosition,
                     draggingId: $draggingId,
                     onMove: { sourceIndex, targetIndex in
-                        component.moveModifier(from: IndexSet(integer: sourceIndex), to: targetIndex)
+                        canvasManager.moveModifier(for: component, from: IndexSet(integer: sourceIndex), to: targetIndex)
                     },
                     canvasManager: canvasManager
                 )

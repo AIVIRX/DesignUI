@@ -1195,6 +1195,23 @@ class CanvasManager: ObservableObject {
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
+    func moveModifier(for component: UIComponent, from source: IndexSet, to destination: Int) {
+        // Find the actual component in the hierarchy
+        guard let actualComponent = findComponent(by: component.id) else {
+            print("⚠️ moveModifier: Component not found in hierarchy")
+            return
+        }
+        
+        registerUndoAction("Reorder Modifiers")
+        
+        // Perform the move
+        actualComponent.moveModifier(from: source, to: destination)
+        
+        // Ensure UI updates
+        actualComponent.objectWillChange.send()
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+    
     func updateModifier(for component: UIComponent, modifier: ComponentModifier) {
         // Find the actual component in the hierarchy
         guard let actualComponent = findComponent(by: component.id) else {

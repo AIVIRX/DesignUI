@@ -797,8 +797,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     }
     
     func moveModifier(from source: IndexSet, to destination: Int) {
-        // Save state for undo BEFORE making changes
-        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        // Note: Undo state should be saved by the caller (CanvasManager)
         
         modifiers.move(fromOffsets: source, toOffset: destination)
         objectWillChange.send()
