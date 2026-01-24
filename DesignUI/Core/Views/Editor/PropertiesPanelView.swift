@@ -65,7 +65,7 @@ struct PropertiesPanelView: View {
                     }
                 }) {
                     ImageGalleryView(selectedImageName: $galleryImageName)
-                        .presentationDetents([.medium, .large])
+                        .presentationDetents([.medium])
                 }
                 .onChange(of: galleryImageName) { _, newName in
                     if !newName.isEmpty {
@@ -1291,7 +1291,14 @@ struct ImagePickerEditor: View {
                     print("⚠️ Compression failed, using original data")
                 }
                 
-                // Convert to base64 and store
+                // Auto-save to Library (Syncs to iCloud)
+                if let filename = ImageGalleryManager.shared.saveImage(data: finalData) {
+                    print("✅ Saved to Image Library: \(filename)")
+                    // Update imageName so it uses the synced file (Priority 1)
+                    component.setProperty(key: "imageName", value: filename)
+                }
+                
+                // Convert to base64 and store (Portable Backup)
                 let base64String = finalData.base64EncodedString()
                 print("🖼️ Base64 string length: \(base64String.count)")
                 

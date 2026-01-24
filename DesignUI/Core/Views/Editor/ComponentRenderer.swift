@@ -166,8 +166,8 @@ struct ComponentRenderer: View {
             }
         }
         
-        // Priority 0: Check Local Gallery first
-        if !imageName.isEmpty {
+        // Priority 0: Check Local Gallery first (if file exists)
+        if !imageName.isEmpty && ImageGalleryManager.shared.imageExists(filename: imageName) {
              return AnyView(ImageComponentView(
                 imageName: imageName,
                 resizable: resizable,

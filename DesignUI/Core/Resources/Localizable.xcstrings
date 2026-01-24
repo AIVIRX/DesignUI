@@ -11773,6 +11773,7 @@
       }
     },
     "Canvas" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12021,6 +12022,9 @@
           }
         }
       }
+    },
+    "Canvas Settings" : {
+
     },
     "Capsule" : {
       "localizations" : {
@@ -14523,6 +14527,7 @@
       }
     },
     "Code" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -31776,6 +31781,7 @@
       }
     },
     "No Component Selected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -49780,6 +49786,7 @@
       }
     },
     "Tap on a component in the canvas to edit its properties" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

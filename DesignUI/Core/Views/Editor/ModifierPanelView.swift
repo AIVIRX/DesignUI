@@ -78,8 +78,9 @@ struct ModifierPanelView: View {
         .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
             view.sheet(isPresented: $showingAddModifier) {
                 AddModifierView(component: component, canvasManager: canvasManager)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
+                    .presentationBackground(Color(uiColor: .systemBackground))
             }
         }
         .if(UIDevice.current.userInterfaceIdiom != .phone) { view in

@@ -1111,6 +1111,13 @@ class ImageGalleryManager: ObservableObject {
     private let galleryFolderName = "DesignImages"
     
     private var imagesDirectory: URL? {
+        // Try iCloud first
+        let containerIdentifier = "iCloud.com.Maicol.Dockui"
+        if let ubiquityURL = fileManager.url(forUbiquityContainerIdentifier: containerIdentifier) {
+            return ubiquityURL.appendingPathComponent("Documents/\(galleryFolderName)")
+        }
+        
+        // Fallback to local
         guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return nil
         }

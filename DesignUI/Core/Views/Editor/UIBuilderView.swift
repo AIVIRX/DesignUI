@@ -233,9 +233,24 @@ struct UIBuilderView: View {
     private let screenshotDebounceInterval: TimeInterval = 3.0
     
     #if os(iOS)
-    @State private var selection: PresentationDetent = .height(80)
-    @State private var activeTab: AppTab = .layers
-    @State private var sheetNavigationPath = NavigationPath()
+    @State private var selection: PresentationDetent = .medium // Locked to medium
+    @State private var activeTab: AppTab? = .layers // Optional to allow closing
+    
+    enum AppTab: String, CaseIterable, Identifiable {
+        case layers = "Layers"
+        case properties = "Properties"
+        case canvas = "Canvas"
+        
+        var id: String { rawValue }
+        
+        var icon: String {
+            switch self {
+            case .layers: return "square.3.layers.3d.top.filled"
+            case .properties: return "slider.horizontal.3"
+            case .canvas: return "iphone"
+            }
+        }
+    }
     #endif
 
     var body: some View {
@@ -354,33 +369,15 @@ struct UIBuilderView: View {
             }
         }
 
-#if os(iOS)
-        // Only show sheet on iPhone (iPad uses floating panels)
-        .sheet(isPresented: $showLayersSheet) {
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                editorPanelSheet
-                    .presentationDetents([.height(80), .medium], selection: $selection)
-                    .presentationBackgroundInteraction(.enabled)
-                    .interactiveDismissDisabled()
-                    .presentationContentInteraction(.scrolls)
-            }
-        }
-        
-#endif
+
         .onAppear {
             setupCanvas()
+            
             // Restore saved device preset and color scheme
             restoreCanvasSettings()
             
             // Capture initial screenshot IMMEDIATELY (no debounce) on open
             performScreenshotCapture()
-            
-            #if os(iOS)
-            // Show sheet on iPhone only
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                showLayersSheet = true
-            }
-            #endif
         }
         .onChange(of: selectedSidebarTab) { tab, _ in
             if tab == .pages {
@@ -398,13 +395,8 @@ struct UIBuilderView: View {
             if !isSwitchingPage {
                 syncSelection()
                 #if os(iOS)
-                // Dismiss any open child views (like modifier editors) and reset navigation stack
-                NotificationCenter.default.post(name: .dismissChildNavigation, object: nil)
-                sheetNavigationPath = NavigationPath()
-                
-                // Only auto-show sheet on iPhone
                 if UIDevice.current.userInterfaceIdiom == .phone && newSelection != nil {
-                    showLayersSheet = true
+                     activeTab = .properties
                 }
                 #endif
             }
@@ -452,12 +444,7 @@ struct UIBuilderView: View {
                 designManager.markAsChanged()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .minimizeSheet)) { _ in
-            #if os(iOS)
-            // Minimize sheet to height 80 when canvas background is tapped
-            selection = .height(80)
-            #endif
-        }
+
     }
     
 #if os(iOS)
@@ -465,6 +452,18 @@ struct UIBuilderView: View {
         ZStack {
             mainCanvasArea
                 .ignoresSafeArea()
+            
+            // Floating Tab Bar
+            VStack {
+                Spacer()
+                floatingTabBar
+            }
+        }
+        .sheet(item: $activeTab) { tab in
+            sheetContent(for: tab)
+                .presentationDetents([.medium])
+                .presentationBackgroundInteraction(.enabled)
+                .interactiveDismissDisabled(false)
         }
     }
     
@@ -817,160 +816,219 @@ struct UIBuilderView: View {
     
 #if os(iOS)
     private var editorPanelSheet: some View {
-        VStack(spacing: 0) {
-            NavigationStack(path: $sheetNavigationPath) {
-                Group {
-                    // Show different content based on active tab
-                    switch activeTab {
-                    case .layers:
-                        LayersPanelView(
-                            canvasManager: canvasManager,
-                            selectedComponent: $canvasManager.selectedComponent,
-                            showComponentLibrary: $showComponentLibrary
-                        )
-                        .background(Color(uiColor: .systemBackground))
-                    case .properties:
-                        propertiesPanelContent
-                            .navigationTitle("Properties")
-                            .navigationBarTitleDisplayMode(.inline)
-                            .toolbar {
-                                ToolbarItem(placement: .navigationBarLeading) {
-                                    Button(action: {
-                                        activeTab = .layers
-                                    }) {
-                                        HStack(spacing: 4) {
-                                            Image(systemName: "chevron.left")
-                                            Text("Layers")
-                                        }
-                                    }
-                                }
-                            }
-                            .background(Color(uiColor: .systemBackground))
-                    case .canvas:
-                        List {
-                            // Color Scheme Section
-                            Section("Appearance") {
-                                HStack(spacing: 12) {
-                                    Button {
-                                        colorScheme = .light
-                                    } label: {
-                                        HStack {
-                                            Image(systemName: "sun.max.fill")
-                                                .font(.system(size: 16))
-                                            Text("Light")
-                                            Spacer()
-                                            if colorScheme == .light {
-                                                Image(systemName: "checkmark")
-                                                    .foregroundColor(.blue)
-                                            }
-                                        }
-                                        .foregroundColor(.primary)
-                                        .padding(.vertical, 4)
-                                        .contentShape(Rectangle())
-                                    }
-                                    .buttonStyle(.plain)
-                                    
-                                    Divider()
-                                    
-                                    Button {
-                                        colorScheme = .dark
-                                    } label: {
-                                        HStack {
-                                            Image(systemName: "moon.fill")
-                                                .font(.system(size: 16))
-                                            Text("Dark")
-                                            Spacer()
-                                            if colorScheme == .dark {
-                                                Image(systemName: "checkmark")
-                                                    .foregroundColor(.blue)
-                                            }
-                                        }
-                                        .foregroundColor(.primary)
-                                        .padding(.vertical, 4)
-                                        .contentShape(Rectangle())
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            
-                            // Device Presets
-                            devicePresetsListSections
-                        }
-                        .listStyle(.insetGrouped)
-                        .navigationTitle("Canvas")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .scrollContentBackground(.hidden)
-                        .background(Color(uiColor: .systemBackground))
-                    case .code:
-                        codeTabContent
-                            .navigationTitle("Code")
-                            .navigationBarTitleDisplayMode(.inline)
-                            .background(Color(uiColor: .systemBackground))
-                    }
-                }
-            }
-            .frame(maxHeight: .infinity)
-            
-            customTabBar()
-                .background(Color(uiColor: .systemBackground))
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(uiColor: .systemBackground))
-        .ignoresSafeArea(.all, edges: .bottom)
-    }
-    
-    enum AppTab: String, CaseIterable{
-        case layers = "Layers"
-        case properties = "Properties"
-        case canvas = "Canvas"
-        case code = "Code"
-        
-        var symbolImage: String{
-            switch self {
-            case .layers:
-                return "square.3.layers.3d.top.filled"
-            case .properties:
-                return "slider.horizontal.3"
-            case .canvas:
-                return "iphone"
-            case .code:
-                return "chevron.left.forwardslash.chevron.right"
-            }
-        }
+        // Reduced to just the sheet modifier on the main canvas
+        EmptyView()
     }
     
     @ViewBuilder
-    func customTabBar() -> some View {
-        HStack {
-            ForEach(AppTab.allCases, id: \.rawValue) { tab in
-                VStack(spacing: 6){
-                    Image(systemName: tab.symbolImage)
-                        .font(.title3)
-                        .symbolVariant(.fill)
-                    
-                    Text(tab.rawValue)
-                        .font(.caption2)
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(activeTab == tab ? .blue : .gray)
-                .frame(maxWidth: .infinity)
-                .contentShape(.rect)
-                .onTapGesture {
-                    // Reset navigation path and dismiss child views when switching tabs
-                    if activeTab != tab {
-                        sheetNavigationPath = NavigationPath()
-                        // Post notification to dismiss any child views (Component Library, Modifier Editors, etc.)
-                        NotificationCenter.default.post(name: .dismissChildNavigation, object: nil)
+    private var floatingTabBar: some View {
+        HStack(spacing: 8) {
+            ForEach(AppTab.allCases) { tab in
+                Button(action: {
+                    if activeTab == tab {
+                        activeTab = nil // Close if tapping active
+                    } else {
+                        activeTab = tab
+                        selection = .medium // Reset detent
                     }
-                    activeTab = tab
-                    // Auto-expand sheet when tab is tapped
-                    selection = .medium
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 14))
+                        
+                        if activeTab == tab {
+                            Text(tab.rawValue)
+                                .font(.system(size: 14, weight: .semibold))
+                                .fixedSize()
+                        }
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, activeTab == tab ? 16 : 12)
+                    .background(
+                        Capsule()
+                            .fill(activeTab == tab ? Color.blue : Color.clear)
+                    )
+                    .foregroundColor(activeTab == tab ? .white : .primary)
+                    .background(
+                        // Hover effect background for non-active
+                        Capsule()
+                            .fill(Color.secondary.opacity(0.1))
+                            .opacity(activeTab == tab ? 0 : 1)
+                    )
                 }
+                .buttonStyle(.plain)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: activeTab)
             }
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 10)
+        .padding(6)
+        .background(
+            Capsule()
+                .fill(Color(uiColor: .systemBackground))
+                .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 5)
+                .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 0)
+        )
+        .padding(.bottom, 8)
     }
+    
+    @ViewBuilder
+    private func sheetContent(for tab: AppTab) -> some View {
+        switch tab {
+        case .layers:
+            VStack(spacing: 0) {
+                // Header with Dropdown and Add Button
+                HStack {
+                    Menu {
+                        Button(action: { selectedSidebarTab = .layers }) {
+                            Label("Layers", systemImage: "square.3.layers.3d")
+                        }
+                        Button(action: { selectedSidebarTab = .pages }) {
+                            Label("Pages", systemImage: "doc.on.doc")
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.primary)
+                            Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
+                                .font(.headline).fontWeight(.semibold)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        if selectedSidebarTab == .layers {
+                            showComponentLibrary = true
+                        } else {
+                            let (_, newIndex) = designFile.addPage()
+                            switchToPage(newIndex)
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .medium))
+                    }
+                    .buttonStyle(.bordered)
+                    .frame(width: 36, height: 36)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                
+                // Content Switching
+                if selectedSidebarTab == .layers {
+                    LayersPanelView(
+                        canvasManager: canvasManager,
+                        selectedComponent: $canvasManager.selectedComponent,
+                        showComponentLibrary: $showComponentLibrary
+                    )
+                } else {
+                    SidebarPagesView(
+                        designFile: designFile,
+                        currentPageIndex: $currentPageIndex,
+                        onPageChange: { index in
+                            switchToPage(index)
+                        }
+                    )
+                }
+            }
+            .background(Color(uiColor: .systemBackground))
+            .sheet(isPresented: $showComponentLibrary) {
+                ComponentLibraryView(
+                    selectedComponent: $canvasManager.selectedComponent,
+                    canvasManager: canvasManager
+                )
+                .presentationDetents([.medium])
+            }
+            
+        case .properties:
+            NavigationStack {
+                PropertiesPanelView(
+                    selectedComponent: $canvasManager.selectedComponent,
+                    canvasManager: canvasManager
+                )
+                .id(canvasManager.selectedComponent?.id)
+                .navigationTitle("Properties")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(action: {
+                            canvasManager.deselectAll()
+                            activeTab = .layers
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                Text("Layers")
+                            }
+                        }
+                    }
+                    
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            activeTab = nil // Close sheet
+                        }
+                    }
+                }
+            }
+            
+        case .canvas:
+            NavigationStack {
+                List {
+                    // Color Scheme Section
+                    Section("Appearance") {
+                        HStack(spacing: 12) {
+                            Button {
+                                canvasManager.colorScheme = .light
+                            } label: {
+                                HStack {
+                                    Image(systemName: "sun.max.fill")
+                                    Text("Light")
+                                    Spacer()
+                                    if canvasManager.colorScheme == .light {
+                                        Image(systemName: "checkmark").foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            
+                            Divider()
+                            
+                            Button {
+                                canvasManager.colorScheme = .dark
+                            } label: {
+                                HStack {
+                                    Image(systemName: "moon.fill")
+                                    Text("Dark")
+                                    Spacer()
+                                    if canvasManager.colorScheme == .dark {
+                                        Image(systemName: "checkmark").foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    
+                    // Device Presets
+                    devicePresetsListSections
+                }
+                .navigationTitle("Canvas Settings")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+    }
+    
+
+
+
+    
+
     
     private var devicePresetsList: some View {
         List {
@@ -1088,37 +1146,7 @@ struct UIBuilderView: View {
         }
     }
 
-    private var propertiesPanelContent: some View {
-        Group {
-            if canvasManager.selectedComponent != nil {
-                PropertiesPanelView(
-                    selectedComponent: $canvasManager.selectedComponent,
-                    canvasManager: canvasManager
-                )
-            } else {
-                VStack(spacing: 16) {
-                    Image(systemName: "cursorarrow.click")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    
-                    Text("No Component Selected")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                    
-                    Text("Tap on a component in the canvas to edit its properties")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-            }
-        }
-    }
-    
-    private var codeTabContent: some View {
-        CodeTabView(canvasManager: canvasManager)
-    }
+
 #endif
     
     private var toolbarButtons: some ToolbarContent {
