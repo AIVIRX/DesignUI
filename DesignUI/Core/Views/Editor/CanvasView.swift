@@ -11,7 +11,7 @@ import SwiftUI
 struct CanvasView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Binding var selectedComponent: UIComponent?
-    @Binding var selectedDevice: DevicePreset
+    let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
     @Binding var statusBarHasBackground: Bool
     @Binding var colorScheme: ColorScheme?

@@ -14,18 +14,20 @@ struct DesignTemplate: Identifiable, Codable {
     let description: String
     let thumbnail: String // Image name for image
     let devicePreset: String? // Optional device preset for initial canvas size
+    let canvasColorScheme: String? // Optional color scheme preference (light/dark)
     let components: [UIComponent]
     
     enum CodingKeys: String, CodingKey {
-        case name, description, thumbnail, devicePreset, components
+        case name, description, thumbnail, devicePreset, canvasColorScheme, components
     }
     
-    init(name: String, description: String, thumbnail: String, devicePreset: String?, components: [UIComponent]) {
+    init(name: String, description: String, thumbnail: String, devicePreset: String?, canvasColorScheme: String? = nil, components: [UIComponent]) {
         self.id = UUID()
         self.name = name
         self.description = description
         self.thumbnail = thumbnail
         self.devicePreset = devicePreset
+        self.canvasColorScheme = canvasColorScheme
         self.components = components
     }
     
@@ -36,6 +38,7 @@ struct DesignTemplate: Identifiable, Codable {
         self.description = try container.decode(String.self, forKey: .description)
         self.thumbnail = try container.decode(String.self, forKey: .thumbnail)
         self.devicePreset = try container.decodeIfPresent(String.self, forKey: .devicePreset)
+        self.canvasColorScheme = try container.decodeIfPresent(String.self, forKey: .canvasColorScheme)
         self.components = try container.decode([UIComponent].self, forKey: .components)
     }
 }

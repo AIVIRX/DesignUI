@@ -202,10 +202,10 @@ struct UIBuilderView: View {
     @State private var selectedSidebarTab: SidebarTab = .layers
 
     @State private var showCodePreview = false
-    @State private var selectedDevice: DevicePreset = .iphone16Pro
+    // @State private var selectedDevice: DevicePreset = .iphone16Pro -- Moved to CanvasManager
     @State private var baseZoomLevel: CGFloat = 1.0
     @State private var statusBarHasBackground: Bool = false
-    @State private var colorScheme: ColorScheme? = .light
+    // @State private var colorScheme: ColorScheme? = nil -- Moved to CanvasManager
     
     // Panel states
     @State private var layersPanelWidth: CGFloat = 300
@@ -287,6 +287,7 @@ struct UIBuilderView: View {
                             ))
                             .padding()
                             .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
+                            .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
                         }
                     }
                 }
@@ -333,6 +334,7 @@ struct UIBuilderView: View {
                         ))
                         .padding()
                         .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
+                        .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
                     }
                 }
             }
@@ -396,6 +398,10 @@ struct UIBuilderView: View {
             if !isSwitchingPage {
                 syncSelection()
                 #if os(iOS)
+                // Dismiss any open child views (like modifier editors) and reset navigation stack
+                NotificationCenter.default.post(name: .dismissChildNavigation, object: nil)
+                sheetNavigationPath = NavigationPath()
+                
                 // Only auto-show sheet on iPhone
                 if UIDevice.current.userInterfaceIdiom == .phone && newSelection != nil {
                     showLayersSheet = true
@@ -403,7 +409,7 @@ struct UIBuilderView: View {
                 #endif
             }
         }
-        .onChange(of: selectedDevice) { _, newDevice in
+        .onChange(of: canvasManager.devicePreset) { _, newDevice in
             if !isSwitchingPage {
                 saveCanvasSettings()
                 
@@ -419,7 +425,7 @@ struct UIBuilderView: View {
                 }
             }
         }
-        .onChange(of: colorScheme) { _, _ in
+        .onChange(of: canvasManager.colorScheme) { _, _ in
             if !isSwitchingPage {
                 saveCanvasSettings()
             }
@@ -429,6 +435,13 @@ struct UIBuilderView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
             canvasManager.redo()
+        }
+        .onChange(of: canvasManager.undoStackVersion) { _, _ in
+            // Trigger sync when undo stack changes (action performed, undo, or redo)
+            // Use async to ensure the change has propagated
+            DispatchQueue.main.async {
+                syncDesignChanges()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
             syncDesignChanges()
@@ -469,9 +482,9 @@ struct UIBuilderView: View {
             // Color scheme toggle - iPad only
             if UIDevice.current.userInterfaceIdiom == .pad {
                 Button(action: {
-                    colorScheme = colorScheme == .light ? .dark : .light
+                    canvasManager.setColorScheme(canvasManager.colorScheme == .light ? .dark : .light)
                 }) {
-                    Image(systemName: colorScheme == .light ? "sun.max.fill" : "moon.fill")
+                    Image(systemName: canvasManager.colorScheme == .light ? "sun.max.fill" : "moon.fill")
                 }
             }
             
@@ -536,7 +549,7 @@ struct UIBuilderView: View {
                 Section("iPhone") {
                     ForEach(DevicePreset.iphones) { preset in
                         Button(preset.rawValue) {
-                            selectedDevice = preset
+                            canvasManager.setDevicePreset(preset)
                         }
                     }
                 }
@@ -547,7 +560,7 @@ struct UIBuilderView: View {
                 Section("iPad") {
                     ForEach(DevicePreset.ipads) { preset in
                         Button(preset.rawValue) {
-                            selectedDevice = preset
+                            canvasManager.setDevicePreset(preset)
                         }
                     }
                 }
@@ -556,7 +569,7 @@ struct UIBuilderView: View {
                 Section("Widgets") {
                     ForEach(DevicePreset.widgets) { preset in
                         Button(preset.rawValue) {
-                            selectedDevice = preset
+                            canvasManager.setDevicePreset(preset)
                         }
                     }
                 }
@@ -564,7 +577,7 @@ struct UIBuilderView: View {
                 HStack(spacing: 4) {
                     Image(systemName: deviceIcon)
                         .font(.system(size: 11))
-                    Text(selectedDevice.rawValue)
+                    Text(canvasManager.devicePreset.rawValue)
                         .font(.system(size: 11, weight: .medium))
                         .frame(maxWidth: 100) // Limit width
                         .lineLimit(1)
@@ -574,9 +587,9 @@ struct UIBuilderView: View {
                         
             // Color scheme toggle
             Button(action: {
-                colorScheme = colorScheme == .light ? .dark : .light
+                canvasManager.setColorScheme(canvasManager.colorScheme == .light ? .dark : .light)
             }) {
-                Image(systemName: colorScheme == .light ? "sun.max.fill" : "moon.fill")
+                Image(systemName: canvasManager.colorScheme == .light ? "sun.max.fill" : "moon.fill")
             }
             
             // Recenter button
@@ -717,10 +730,10 @@ struct UIBuilderView: View {
         CanvasView(
             canvasManager: canvasManager,
             selectedComponent: $canvasManager.selectedComponent,
-            selectedDevice: $selectedDevice,
+            selectedDevice: canvasManager.devicePreset,
             baseZoomLevel: $baseZoomLevel,
             statusBarHasBackground: $statusBarHasBackground,
-            colorScheme: $colorScheme
+            colorScheme: $canvasManager.colorScheme
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
@@ -964,13 +977,13 @@ struct UIBuilderView: View {
             Section("iPhone") {
                 ForEach(DevicePreset.iphones) { preset in
                     Button(action: {
-                        selectedDevice = preset
+                        canvasManager.setDevicePreset(preset)
                     }) {
                         HStack {
                             Text(preset.rawValue)
                                 .foregroundColor(.primary)
                             Spacer()
-                            if selectedDevice == preset {
+                            if canvasManager.devicePreset == preset {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.blue)
                             }
@@ -982,13 +995,13 @@ struct UIBuilderView: View {
             Section("iPad") {
                 ForEach(DevicePreset.ipads) { preset in
                     Button(action: {
-                        selectedDevice = preset
+                        canvasManager.setDevicePreset(preset)
                     }) {
                         HStack {
                             Text(preset.rawValue)
                                 .foregroundColor(.primary)
                             Spacer()
-                            if selectedDevice == preset {
+                            if canvasManager.devicePreset == preset {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.blue)
                             }
@@ -1000,13 +1013,13 @@ struct UIBuilderView: View {
             Section("Widgets") {
                 ForEach(DevicePreset.widgets) { preset in
                     Button(action: {
-                        selectedDevice = preset
+                        canvasManager.setDevicePreset(preset)
                     }) {
                         HStack {
                             Text(preset.rawValue)
                                 .foregroundColor(.primary)
                             Spacer()
-                            if selectedDevice == preset {
+                            if canvasManager.devicePreset == preset {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.blue)
                             }
@@ -1023,13 +1036,13 @@ struct UIBuilderView: View {
         Section("iPhone") {
             ForEach(DevicePreset.iphones) { preset in
                 Button(action: {
-                    selectedDevice = preset
+                    canvasManager.setDevicePreset(preset)
                 }) {
                     HStack {
                         Text(preset.rawValue)
                             .foregroundColor(.primary)
                         Spacer()
-                        if selectedDevice == preset {
+                        if canvasManager.devicePreset == preset {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.blue)
                         }
@@ -1041,13 +1054,13 @@ struct UIBuilderView: View {
         Section("iPad") {
             ForEach(DevicePreset.ipads) { preset in
                 Button(action: {
-                    selectedDevice = preset
+                    canvasManager.setDevicePreset(preset)
                 }) {
                     HStack {
                         Text(preset.rawValue)
                             .foregroundColor(.primary)
                         Spacer()
-                        if selectedDevice == preset {
+                        if canvasManager.devicePreset == preset {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.blue)
                         }
@@ -1059,13 +1072,13 @@ struct UIBuilderView: View {
         Section("Widgets") {
             ForEach(DevicePreset.widgets) { preset in
                 Button(action: {
-                    selectedDevice = preset
+                    canvasManager.setDevicePreset(preset)
                 }) {
                     HStack {
                         Text(preset.rawValue)
                             .foregroundColor(.primary)
                         Spacer()
-                        if selectedDevice == preset {
+                        if canvasManager.devicePreset == preset {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.blue)
                         }
@@ -1131,7 +1144,7 @@ struct UIBuilderView: View {
                     Section("iPhone") {
                         ForEach(DevicePreset.iphones) { preset in
                             Button(preset.rawValue) {
-                                selectedDevice = preset
+                                canvasManager.setDevicePreset(preset)
                             }
                         }
                     }
@@ -1142,7 +1155,7 @@ struct UIBuilderView: View {
                     Section("iPad") {
                         ForEach(DevicePreset.ipads) { preset in
                             Button(preset.rawValue) {
-                                selectedDevice = preset
+                                canvasManager.setDevicePreset(preset)
                             }
                         }
                     }
@@ -1153,7 +1166,7 @@ struct UIBuilderView: View {
                     Section("Widgets") {
                         ForEach(DevicePreset.widgets) { preset in
                             Button(preset.rawValue) {
-                                selectedDevice = preset
+                                canvasManager.setDevicePreset(preset)
                             }
                         }
                     }
@@ -1161,7 +1174,7 @@ struct UIBuilderView: View {
                     HStack(spacing: 4) {
                         Image(systemName: deviceIcon)
                             .font(.system(size: 11))
-                        Text(selectedDevice.rawValue)
+                        Text(canvasManager.devicePreset.rawValue)
                             .font(.system(size: 11, weight: .medium))
                             .frame(maxWidth: 100) // Limit width
                             .lineLimit(1)
@@ -1172,13 +1185,13 @@ struct UIBuilderView: View {
                 // Color Scheme Picker
                 Menu {
                     Button("Light") {
-                        colorScheme = .light
+                        canvasManager.setColorScheme(.light)
                     }
                     Button("Dark") {
-                        colorScheme = .dark
+                        canvasManager.setColorScheme(.dark)
                     }
                 } label: {
-                    Image(systemName: colorScheme == .light ? "sun.max" : "moon")
+                    Image(systemName: canvasManager.colorScheme == .light ? "sun.max" : "moon")
                         .font(.system(size: 12))
                 }
                 .help("Color Scheme")
@@ -1187,7 +1200,7 @@ struct UIBuilderView: View {
                 Button(action: {
                     // Reset zoom and trigger canvas centering with animation
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: CGSize(width: 800, height: 600))
+                        canvasManager.zoomToFitDevice(canvasManager.devicePreset.size, canvasSize: CGSize(width: 800, height: 600))
                     }
                     // Update base zoom level after animation starts (no visual impact, just for state)
                     baseZoomLevel = canvasManager.zoomLevel
@@ -1275,16 +1288,16 @@ struct UIBuilderView: View {
     private func saveAsScreenshot() {
         let screenshotView = CanvasScreenshotView(
             components: canvasManager.components,
-            deviceSize: selectedDevice.size,
-            colorScheme: colorScheme ?? .light,
+            deviceSize: canvasManager.devicePreset.size,
+            colorScheme: canvasManager.colorScheme ?? .light,
             statusBarComponent: canvasManager.statusBarComponent,
             statusBarHasBackground: statusBarHasBackground
         )
         
         guard let imageData = ScreenshotUtility.shared.captureThumbnail(
             of: screenshotView,
-            size: selectedDevice.size,
-            colorScheme: colorScheme ?? .light
+            size: canvasManager.devicePreset.size,
+            colorScheme: canvasManager.colorScheme ?? .light
         ) else {
             print("❌ Failed to capture screenshot for saving")
             return
@@ -1354,8 +1367,8 @@ struct UIBuilderView: View {
             oldPage.components = canvasManager.components
             oldPage.thumbnail = designFile.thumbnail
             // Save canvas settings to old page
-            oldPage.devicePreset = selectedDevice.rawValue
-            oldPage.colorScheme = colorScheme == .light ? "light" : (colorScheme == .dark ? "dark" : nil)
+            oldPage.devicePreset = canvasManager.devicePreset.rawValue
+            oldPage.colorScheme = canvasManager.colorScheme == .light ? "light" : (canvasManager.colorScheme == .dark ? "dark" : nil)
             oldPage.statusBarVisible = designFile.statusBarVisible
         }
         
@@ -1372,13 +1385,13 @@ struct UIBuilderView: View {
         // Restore canvas settings from new page
         if let savedDevicePreset = newPage.devicePreset,
            let devicePreset = DevicePreset.allCases.first(where: { $0.rawValue == savedDevicePreset }) {
-            selectedDevice = devicePreset
+            canvasManager.devicePreset = devicePreset
         }
         
         if let savedColorScheme = newPage.colorScheme {
-            colorScheme = savedColorScheme.lowercased() == "light" ? .light : (savedColorScheme.lowercased() == "dark" ? .dark : nil)
+            canvasManager.colorScheme = savedColorScheme.lowercased() == "light" ? .light : (savedColorScheme.lowercased() == "dark" ? .dark : nil)
         } else {
-            colorScheme = nil  // System default
+            canvasManager.colorScheme = nil  // System default
         }
         
         // Restore status bar visibility and update component
@@ -1398,15 +1411,15 @@ struct UIBuilderView: View {
         // Restore selected device preset
         if let savedDevicePreset = designFile.selectedDevicePreset,
            let devicePreset = DevicePreset.allCases.first(where: { $0.rawValue == savedDevicePreset }) {
-            selectedDevice = devicePreset
+            canvasManager.devicePreset = devicePreset
         }
         
         // Restore canvas color scheme
         if let savedColorScheme = designFile.canvasColorScheme {
             if savedColorScheme.lowercased() == "light" {
-                colorScheme = .light
+                canvasManager.colorScheme = .light
             } else if savedColorScheme.lowercased() == "dark" {
-                colorScheme = .dark
+                canvasManager.colorScheme = .dark
             }
         }
         
@@ -1416,10 +1429,10 @@ struct UIBuilderView: View {
     
     private func saveCanvasSettings() {
         // Save selected device preset
-        designFile.selectedDevicePreset = selectedDevice.rawValue
+        designFile.selectedDevicePreset = canvasManager.devicePreset.rawValue
         
         // Save canvas color scheme
-        if let scheme = colorScheme {
+        if let scheme = canvasManager.colorScheme {
             designFile.canvasColorScheme = scheme == .light ? "light" : "dark"
         } else {
             designFile.canvasColorScheme = nil
@@ -1495,19 +1508,19 @@ struct UIBuilderView: View {
     private func performScreenshotCapture() {
         let screenshotView = CanvasScreenshotView(
             components: self.canvasManager.components,
-            deviceSize: self.selectedDevice.size,
-            colorScheme: self.colorScheme ?? .light,
+            deviceSize: self.canvasManager.devicePreset.size,
+            colorScheme: self.canvasManager.colorScheme ?? .light,
             statusBarComponent: self.canvasManager.statusBarComponent,
             statusBarHasBackground: self.statusBarHasBackground
         )
         
         if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
             of: screenshotView,
-            size: self.selectedDevice.size,
-            colorScheme: self.colorScheme ?? .light
+            size: self.canvasManager.devicePreset.size,
+            colorScheme: self.canvasManager.colorScheme ?? .light
         ) {
             // This will overwrite the previous thumbnail and store device preset
-            self.designFile.setThumbnail(thumbnailData, devicePreset: self.selectedDevice.rawValue)
+            self.designFile.setThumbnail(thumbnailData, devicePreset: self.canvasManager.devicePreset.rawValue)
             
             // Also save to current page for gallery preview
             self.designFile.currentPage?.thumbnail = thumbnailData
@@ -1520,7 +1533,7 @@ struct UIBuilderView: View {
     
     /// Returns appropriate icon based on selected device category
     private var deviceIcon: String {
-        switch selectedDevice.category {
+        switch canvasManager.devicePreset.category {
         case .iphone:
             return "iphone"
         case .ipad:

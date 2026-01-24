@@ -3,6 +3,7 @@
   "description": "Flight details with status and gate info (Updated)",
   "thumbnail": "flightInfoWidget",
   "devicePreset": "Widget Medium",
+  "canvasColorScheme": "dark",
   "components": [
     {
       "type": "VStack",

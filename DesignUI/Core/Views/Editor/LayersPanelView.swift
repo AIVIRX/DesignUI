@@ -228,13 +228,13 @@ struct LayersPanelView: View {
                 .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
                     view.popover(isPresented: $showComponentLibrary) {
                         ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                            .frame(width: 320, height: 480)
+                            .frame(width: 320, height: 700)
                     }
                 }
         #else
                 .popover(isPresented: $showComponentLibrary) {
                     ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                        .frame(width: 500, height: 400)
+                        .frame(width: 500, height: 600)
                 }
         #endif
             }
@@ -430,7 +430,7 @@ struct LayersPanelView: View {
                 .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
                     view.popover(isPresented: $showComponentLibrary) {
                         ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                            .frame(width: 320, height: 480)
+                            .frame(width: 320, height: 700)
                     }
                 }
                 // Auto-dismiss child navigation when triggered
@@ -440,7 +440,7 @@ struct LayersPanelView: View {
         #else
                 .popover(isPresented: $showComponentLibrary) {
                     ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
-                        .frame(width: 500, height: 400)
+                        .frame(width: 500, height: 600)
                 }
         #endif
             }

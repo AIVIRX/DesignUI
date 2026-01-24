@@ -43029,6 +43029,7 @@
       }
     },
     "Search templates" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

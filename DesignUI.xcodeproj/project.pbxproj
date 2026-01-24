@@ -20,6 +20,7 @@
 		EC1A03B42F1D52100084FF52 /* PageSelectorBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1A03B22F1D52100084FF52 /* PageSelectorBar.swift */; };
 		EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */; };
 		EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC240CFF2C72B8B600956AB4 /* ContentView.swift */; };
+		EC26F3532F246D500035E1EA /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = EC26F3522F246D500035E1EA /* FluidGradient */; };
 		EC2C2DCE2CBB6F5400860E4D /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2C2DCD2CBB6F5400860E4D /* SupabaseManager.swift */; };
 		EC37CE232F195EF3006CFD08 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE222F195EEC006CFD08 /* DetailView.swift */; };
 		EC37CE252F196758006CFD08 /* DesignCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE242F196751006CFD08 /* DesignCards.swift */; };
@@ -58,7 +59,6 @@
 		EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54702E187FA700AAE9EC /* BlogListView.swift */; };
 		EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */; };
 		EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54742E1889B700AAE9EC /* NewsContentView.swift */; };
-		ECAF05632F189B1F008F9BEA /* RippleModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05612F189B1F008F9BEA /* RippleModifier.swift */; };
 		ECAF05642F189B1F008F9BEA /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05622F189B1F008F9BEA /* SessionManager.swift */; };
 		ECAF056B2F18B826008F9BEA /* RippleImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF056A2F18B826008F9BEA /* RippleImageView.swift */; };
 		ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA42EB06B5D00420663 /* RevenueCat */; };
@@ -176,7 +176,6 @@
 		EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogDetailView.swift; sourceTree = "<group>"; };
 		EC9F54742E1889B700AAE9EC /* NewsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsContentView.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		ECAF05612F189B1F008F9BEA /* RippleModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleModifier.swift; sourceTree = "<group>"; };
 		ECAF05622F189B1F008F9BEA /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		ECAF056A2F18B826008F9BEA /* RippleImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleImageView.swift; sourceTree = "<group>"; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
@@ -234,6 +233,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC26F3532F246D500035E1EA /* FluidGradient in Frameworks */,
 				EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */,
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
 				ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */,
@@ -394,7 +394,6 @@
 			isa = PBXGroup;
 			children = (
 				EC8D7B282F2070DC008E4AB3 /* UnsplashService.swift */,
-				ECAF05612F189B1F008F9BEA /* RippleModifier.swift */,
 				ECAF05622F189B1F008F9BEA /* SessionManager.swift */,
 				EC70F84C2EB6C280001D39DC /* AdManager.swift */,
 				AA000002AAAA000100000001 /* AppLoadingState.swift */,
@@ -550,6 +549,7 @@
 				ECB10DA42EB06B5D00420663 /* RevenueCat */,
 				ECB10DA62EB06B5D00420663 /* RevenueCatUI */,
 				EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */,
+				EC26F3522F246D500035E1EA /* FluidGradient */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -625,6 +625,7 @@
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -720,7 +721,6 @@
 				EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */,
 				ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */,
 				EC9F546E2E187F4700AAE9EC /* BlogViewModel.swift in Sources */,
-				ECAF05632F189B1F008F9BEA /* RippleModifier.swift in Sources */,
 				EC8D7B292F2070DC008E4AB3 /* UnsplashService.swift in Sources */,
 				ECAF05642F189B1F008F9BEA /* SessionManager.swift in Sources */,
 				EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */,
@@ -1073,6 +1073,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Cindori/FluidGradient.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
@@ -1108,6 +1116,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		EC26F3522F246D500035E1EA /* FluidGradient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */;
+			productName = FluidGradient;
+		};
 		EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;

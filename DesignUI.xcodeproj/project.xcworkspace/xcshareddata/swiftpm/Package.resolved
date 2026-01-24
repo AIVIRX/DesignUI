@@ -1,6 +1,15 @@
 {
-  "originHash" : "355e25d4aeeeb4c26ddaa58c32bdd2995dd6c683389bc87988c24aa2fda5d5f4",
+  "originHash" : "7079fb99620f1694519c97efba57aa60eea9c34a3a97de311de72d5ffd6c14a5",
   "pins" : [
+    {
+      "identity" : "fluidgradient",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Cindori/FluidGradient.git",
+      "state" : {
+        "revision" : "9ddda4cf23671ef0228e88681ec6210cb3e0d7f7",
+        "version" : "1.0.0"
+      }
+    },
     {
       "identity" : "purchases-ios-spm",
       "kind" : "remoteSourceControl",

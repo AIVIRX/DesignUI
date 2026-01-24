@@ -71,7 +71,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case ellipse = "Ellipse"
     case linearGradient = "Linear Gradient"
     case scrollView = "ScrollView"
-
+    
     case statusBar = "Status Bar"
     case textField = "Text Field"
     case toggle = "Switch"
@@ -90,7 +90,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .divider: return "minus"
         case .rectangle: return "rectangle"
         case .circle: return "circle"
-        case .roundedRectangle: return "rectangle.ratio.4.to.3.fill"
+        case .roundedRectangle: return "rectangle.ratio.4.to.3"
         case .capsule: return "capsule"
         case .ellipse: return "oval"
         case .linearGradient: return "square.fill.text.grid.1x2"
@@ -101,6 +101,10 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .toggle: return "switch.2"
         case .slider: return "slider.horizontal.3"
         }
+    }
+    
+    var assetName: String {
+        return "component_\(String(describing: self).lowercased())"
     }
 }
 

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AuthenticationServices
+import FluidGradient
 
 struct Card: Identifiable, Hashable {
     var id: String = UUID().uuidString
@@ -36,6 +37,10 @@ struct SignInView: View {
             ZStack {
                 #if os(macOS)
                 // macOS modern sign-in layout
+                FluidGradient(blobs: [.purple, Color(red: 0.11, green: 0.01, blue: 0.2), .blue],
+                              speed: 0.5,
+                                      blur: 0.75)
+                          .ignoresSafeArea()
                 VStack(spacing: 24) {
                     VStack(spacing: 8) {
                         Image("AppLogo")

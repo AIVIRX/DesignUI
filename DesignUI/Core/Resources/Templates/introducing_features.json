@@ -2,7 +2,8 @@
   "name": "Introducing Features",
   "description": "Feature highlights with blue icons and buttons",
   "thumbnail": "introducingFeatures",
-  "devicePreset": null,
+  "devicePreset": "iPhone 16 Pro",
+  "canvasColorScheme": "light",
   "components": [
     {
       "type": "VStack",

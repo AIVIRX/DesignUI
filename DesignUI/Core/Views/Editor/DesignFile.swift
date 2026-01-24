@@ -58,7 +58,9 @@ class DesignFile: ObservableObject, Identifiable {
     init(name: String, components: [UIComponent] = [], fileURL: URL) {
         self.name = name
         // Create default page with provided components
-        self.pages = [DesignPage(name: "Page 1", components: components)]
+        self.pages = [DesignPage(name: "Page 1", components: components, devicePreset: "iPhone 17 Pro Max", colorScheme: "light")]
+        self.canvasColorScheme = "light"
+        self.selectedDevicePreset = "iPhone 17 Pro Max"
         self.lastModified = Date()
         self.fileURL = fileURL
     }
@@ -66,6 +68,8 @@ class DesignFile: ObservableObject, Identifiable {
     init(name: String, pages: [DesignPage], fileURL: URL) {
         self.name = name
         self.pages = pages.isEmpty ? [DesignPage(name: "Page 1")] : pages
+        self.canvasColorScheme = "light"
+        self.selectedDevicePreset = "iPhone 17 Pro Max"
         self.lastModified = Date()
         self.fileURL = fileURL
     }
@@ -304,7 +308,7 @@ class DesignFile: ObservableObject, Identifiable {
             designFile.thumbnail = designData.thumbnail
             designFile.devicePreset = designData.devicePreset
             designFile.selectedDevicePreset = designData.selectedDevicePreset
-            designFile.canvasColorScheme = designData.canvasColorScheme
+            designFile.canvasColorScheme = designData.canvasColorScheme ?? "light"
             designFile.statusBarVisible = designData.statusBarVisible ?? true
             return designFile
         } catch {
@@ -804,6 +808,11 @@ class DesignManager: ObservableObject {
         // Apply template device preset if available
         if let preset = template.devicePreset {
             designFile.selectedDevicePreset = preset
+        }
+        
+        // Apply template color scheme if available
+        if let scheme = template.canvasColorScheme {
+            designFile.canvasColorScheme = scheme
         }
         
         designFile.save()

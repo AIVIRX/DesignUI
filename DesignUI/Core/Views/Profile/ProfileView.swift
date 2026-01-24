@@ -450,7 +450,6 @@ struct ProfileView: View {
         ZStack {
             DesignCards(
                 post: post,
-                showLikeButton: true,
                 showDeleteButton: !isLikedFilter,
                 onDelete: !isLikedFilter ? {
                     postToDelete = post

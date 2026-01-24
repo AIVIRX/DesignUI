@@ -183,7 +183,6 @@ struct ExploreView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .searchable(text: $searchText, prompt: "Search templates")
             .toolbar {
                 ToolbarItem {
                     NavigationLink(destination: SettingsView()) {
@@ -390,17 +389,6 @@ extension ExploreView {
 }
 
 #if os(iOS)
-struct iPadSearchableModifier: ViewModifier {
-    @Binding var searchText: String
-    
-    func body(content: Content) -> some View {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            content.searchable(text: $searchText, prompt: "Search templates")
-        } else {
-            content
-        }
-    }
-}
 
 // Preference key to read container width
 struct ContainerWidthKey: PreferenceKey {

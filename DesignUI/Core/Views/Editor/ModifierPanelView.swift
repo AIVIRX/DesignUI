@@ -498,8 +498,8 @@ struct AddModifierView: View {
             ModifierCategory(name: "Layout", modifiers: [
                 .frame, .padding, .aspectRatio
             ]),
-            ModifierCategory(name: "Style", modifiers: [
-                .fill, .foregroundColor, .backgroundColor, .opacity, .shadow, .border, .blur
+            ModifierCategory(name: "Style & Effects", modifiers: [
+                .fill, .foregroundColor, .backgroundColor, .opacity, .shadow, .cornerRadius, .clipShape, .border, .blur
             ]),
             ModifierCategory(name: "Text", modifiers: [
                 .font, .textAlignment
@@ -507,8 +507,8 @@ struct AddModifierView: View {
             ModifierCategory(name: "Transform", modifiers: [
                 .scale, .rotation, .offset
             ]),
-            ModifierCategory(name: "Layers & Effects", modifiers: [
-                .background, .overlay, .zIndex, .mask, .clipShape, .cornerRadius
+            ModifierCategory(name: "Layer", modifiers: [
+                .background, .overlay, .zIndex, .mask,
             ])
         ]
     }
@@ -524,7 +524,7 @@ struct AddModifierView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
+            VStack{
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -533,49 +533,49 @@ struct AddModifierView: View {
                     TextField("Search modifiers...", text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
                 .background(Color.secondary.opacity(0.1))
-                
-                Divider()
-                
-                // Modifiers list
-                ScrollView {
-                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                        ForEach(filteredCategories) { category in
-                            if !category.modifiers.isEmpty {
-                                Section(header:
-                                            HStack {
-                                    Text(category.name)
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.secondary)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                    Spacer()
-                                }
-                                    .background(.regularMaterial)
-                                ) {
-                                    ForEach(category.modifiers) { modifierType in
-                                        ModifierTypeItemView(
-                                            modifierType: modifierType,
-                                            onAdd: {
-                                                #if os(iOS)
-                                                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                                                #endif
-                                                let modifier = ComponentModifier.createWithDefaults(type: modifierType)
-                                                // Use CanvasManager to add modifier so undo/redo works
-                                                canvasManager.addModifier(to: component, modifier: modifier)
-                                                dismiss()
-                                            }
-                                        )
-                                    }
+                .cornerRadius(8)
+            }
+            .padding(16)
+                        
+            // Modifiers list
+            ScrollView {
+                LazyVStack(spacing: 4, pinnedViews: [.sectionHeaders]) {
+                    ForEach(filteredCategories) { category in
+                        if !category.modifiers.isEmpty {
+                            Section(header:
+                                        HStack {
+                                Text(category.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                Spacer()
+                            }
+                                .background(.regularMaterial)
+                            ) {
+                                ForEach(category.modifiers) { modifierType in
+                                    ModifierTypeItemView(
+                                        modifierType: modifierType,
+                                        onAdd: {
+#if os(iOS)
+                                            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+#endif
+                                            let modifier = ComponentModifier.createWithDefaults(type: modifierType)
+                                            // Use CanvasManager to add modifier so undo/redo works
+                                            canvasManager.addModifier(to: component, modifier: modifier)
+                                            dismiss()
+                                        }
+                                    )
                                 }
                             }
                         }
                     }
-                    .padding(.bottom, 16)
                 }
+                .padding(12)
             }
         }
 #if os(macOS)
@@ -603,15 +603,38 @@ struct ModifierTypeItemView: View {
     let modifierType: ModifierType
     let onAdd: () -> Void
     @State private var isHovered = false
+    @State private var isPressed = false
     
     var body: some View {
-        Button(action: onAdd) {
+        Button(action: {
+            isPressed = true
+            #if os(iOS)
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            #endif
+            
+            onAdd()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isPressed = false
+            }
+        }) {
             HStack(spacing: 12) {
-                // Modifier icon
-                Image(systemName: modifierType.icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(.blue)
-                    .frame(width: 24, height: 24)
+                // Icon/Thumbnail Container
+                ZStack {
+                    // Background for the thumbnail area
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.1))
+                        .frame(width: 44, height: 44)
+                    
+                    // Modifier Icon
+                    Image(systemName: modifierType.icon)
+                        .font(.system(size: 20, weight: .semibold)) // Increased size
+                        .foregroundColor(.accentColor)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                )
                 
                 // Modifier info
                 VStack(alignment: .leading, spacing: 2) {
@@ -626,12 +649,23 @@ struct ModifierTypeItemView: View {
                 }
                 
                 Spacer() 
+                
+                // Add Button (Visual Indicator)
+                 Image(systemName: "plus.circle.fill")
+                    .foregroundColor(isHovered ? .accentColor : .clear)
+                    .scaleEffect(isHovered ? 1.0 : 0.5)
+                    .opacity(isHovered ? 1.0 : 0.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(isHovered ? Color.primary.opacity(0.05) : Color.clear)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(isPressed ? Color.accentColor.opacity(0.15) : (isHovered ? Color.secondary.opacity(0.1) : Color.clear))
+            )
             .contentShape(Rectangle())
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: isPressed)
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }

@@ -2,6 +2,7 @@
     "name": "Blank",
     "description": "Start with an empty canvas",
     "thumbnail": "blank",
-    "devicePreset": null,
+    "devicePreset": "iPhone 16 Pro",
+    "canvasColorScheme": "light",
     "components": []
 }

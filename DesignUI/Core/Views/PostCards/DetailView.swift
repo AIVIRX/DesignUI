@@ -72,6 +72,12 @@ struct DetailView: View {
                             url: mediaURL,
                             isComponent: isComponent
                         )
+                        .overlay(alignment: .bottomTrailing) {
+                            LikeButton(postId: id)
+                                .padding(8)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .padding(12)
+                        }
                     } else {
                         RoundedRectangle(cornerRadius: 15)
                             .fill(Color.gray.opacity(0.2))
@@ -87,6 +93,12 @@ struct DetailView: View {
                                     isComponent: isComponent
                                 )
                             )
+                            .overlay(alignment: .bottomTrailing) {
+                                LikeButton(postId: id)
+                                    .padding(8)
+                                    .background(.ultraThinMaterial, in: Circle())
+                                    .padding(12)
+                            }
                     }
                     
                     Text(loadedDescription ?? description)
@@ -99,7 +111,7 @@ struct DetailView: View {
                         .padding(.bottom)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    Divider()
+                    Divider().padding(.vertical,5)
                     
                     // Show loading indicator or code snippet
                     if isLoadingDetails {
@@ -131,19 +143,17 @@ struct DetailView: View {
             .frame(maxWidth: .infinity)
             .navigationTitle(title)
         }
-#if os(iOS)
-        .toolbar {
-            ShareLink(item: URL(string: "https://dockui.com/templates/\(slug)")!)
-        }
-#else
         .toolbar {
             ToolbarItem {
-                ShareLink(item: URL(string: "https://dockui.com/templates/\(slug)")!) {
-                    Image(systemName: "square.and.arrow.up")
+                HStack {
+                    ShareLink(item: URL(string: "https://dockui.com/templates/\(slug)")!) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
                 }
+                .padding(.horizontal,3)
+
             }
         }
-#endif
         .overlay(
             Group {
                 if isPremium && !subscriptionManager.isSubscribed {

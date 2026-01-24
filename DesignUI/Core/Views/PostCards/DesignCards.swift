@@ -11,7 +11,6 @@ import SDWebImageSwiftUI
 
 struct DesignCards: View {
     let post: DesignPost
-    var showLikeButton: Bool = true
     var showDeleteButton: Bool = false
     var onDelete: (() -> Void)? = nil
     
@@ -31,45 +30,17 @@ struct DesignCards: View {
     }
     
     @State private var isHovered: Bool = false
-    @State private var isLikedByUser: Bool = false
-    @State private var userId: String? = nil
-    let client = SupabaseManager.shared.client
     
     init(
         post: DesignPost,
-        showLikeButton: Bool = true,
         showDeleteButton: Bool = false,
         onDelete: (() -> Void)? = nil
     ) {
         self.post = post
-        self.showLikeButton = showLikeButton
         self.showDeleteButton = showDeleteButton
         self.onDelete = onDelete
     }
     
-    func checkIfUserLikedPost() async {
-        guard let userId = userId else { return }
-        
-        do {
-            let result = try await client
-                .from("likes")
-                .select()
-                .eq("user_id", value: userId)
-                .eq("post_id", value: id)
-                .execute()
-                .data
-            
-            DispatchQueue.main.async {
-                isLikedByUser = !result.isEmpty
-            }
-        } catch {
-            // Silently ignore cancelled requests (happens when card scrolls off screen)
-            if let urlError = error as? URLError, urlError.code == .cancelled {
-                return
-            }
-            print("Error checking like status: \(error)")
-        }
-    }
     
     private var aspectRatio: CGFloat {
         // Components: horizontal/landscape (1.6 = width > height)
@@ -99,8 +70,8 @@ struct DesignCards: View {
                 .buttonStyle(PlainButtonStyle())
                 .accentColor(.clear)
                 
-                // Like/Delete button outside NavigationLink to prevent tap propagation
-                if showLikeButton || isPremium || showDeleteButton {
+                // Delete button outside NavigationLink to prevent tap propagation
+                if isPremium || showDeleteButton {
                     HStack(spacing: 6) {
                         if isPremium {
                             Image(systemName: "crown.fill")
@@ -113,9 +84,6 @@ struct DesignCards: View {
                                                 .font(.system(size: 14, weight: .semibold))
                                         )
                                 )
-                        }
-                        if showLikeButton {
-                            LikeButton(postId: id)
                         }
                         if showDeleteButton, let onDelete = onDelete {
                             Button(action: onDelete) {
@@ -160,7 +128,6 @@ struct DesignCards: View {
             )) {
                 imageView
             }
-            .buttonStyle(ScalingButtonStyle())
             .simultaneousGesture(TapGesture().onEnded {
                 HapticManager.shared.triggerImpact(style: .soft)
             })
@@ -180,7 +147,7 @@ struct DesignCards: View {
         .id(media)
         .overlay(alignment: .topTrailing) {
             #if os(iOS)
-            if showLikeButton || isPremium || showDeleteButton {
+            if isPremium || showDeleteButton {
                 HStack(spacing: 6) {
                     if isPremium {
                         Image(systemName: "crown.fill")
@@ -193,9 +160,6 @@ struct DesignCards: View {
                                             .font(.system(size: 14, weight: .semibold))
                                     )
                             )
-                    }
-                    if showLikeButton {
-                        LikeButton(postId: id)
                     }
                     if showDeleteButton, let onDelete = onDelete {
                         Button(action: onDelete) {
@@ -212,13 +176,5 @@ struct DesignCards: View {
             }
             #endif
         }
-    }
-}
-
-struct ScalingButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
     }
 }

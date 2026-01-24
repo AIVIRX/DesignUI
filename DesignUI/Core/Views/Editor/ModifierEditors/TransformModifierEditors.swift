@@ -205,7 +205,7 @@ struct ScaleModifierEditor: View {
                             .font(.system(size: 14))
                             .foregroundColor(.secondary)
                         
-                        Slider(value: $scale, in: 0.5...5.0, step: 0.5)
+                        Slider(value: $scale, in: 0.5...8.0, step: 0.5)
                             .onChange(of: scale) { _, newValue in
                                 saveScale()
                             }

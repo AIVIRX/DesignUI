@@ -47,9 +47,7 @@ class CanvasManager: ObservableObject {
     @Published var canvasOffset: CGSize = .zero
     @Published var centerCanvasTrigger: Bool = false // Triggers canvas centering when toggled
     
-    // Ripple effect trigger for add/delete actions
-    @Published var rippleTrigger: Int = 0
-    @Published var rippleOrigin: CGPoint = CGPoint(x: 200, y: 400) // Default center-ish
+    
     
     // Special status bar component
     @Published var statusBarComponent: UIComponent?
@@ -57,7 +55,12 @@ class CanvasManager: ObservableObject {
     // Design name for code generation
     @Published var designName: String = "GeneratedView"
     
+    // Canvas settings
+    @Published var colorScheme: ColorScheme? = nil
+    @Published var devicePreset: DevicePreset = .iphone16Pro
+    
     // Undo/Redo with action descriptions
+    @Published var undoStackVersion: Int = 0 
     private var undoStack: [UndoableAction] = []
     private var redoStack: [UndoableAction] = []
     private let maxUndoSteps = 50
@@ -84,6 +87,7 @@ class CanvasManager: ObservableObject {
         // Start with an empty canvas; no predefined root container
         components = []
         selectedComponent = nil
+        colorScheme = nil
         statusBarComponent = createStatusBarComponent()
         // Don't save state in init - wait until design is loaded
         
@@ -135,9 +139,6 @@ class CanvasManager: ObservableObject {
         
         components.append(component)
         selectedComponent = component
-        
-        // Trigger ripple effect
-        rippleTrigger += 1
     }
     
     func addComponentToContainer(_ component: UIComponent, container: UIComponent) {
@@ -214,9 +215,6 @@ class CanvasManager: ObservableObject {
         if let selectedId = selectedComponent?.id, idsToRemove.contains(selectedId) {
             selectedComponent = nil
         }
-        
-        // Trigger ripple effect
-        rippleTrigger += 1
         
         print("🗑️ removeComponent: After removal, count: \(components.count)")
     }
@@ -904,7 +902,7 @@ class CanvasManager: ObservableObject {
         undoStack.removeAll()
         redoStack.removeAll()
         
-        let state = CanvasState(components: deepCopyComponents(components))
+        let state = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset)
         lastSavedState = state
         
     }
@@ -944,7 +942,12 @@ class CanvasManager: ObservableObject {
         }
         
         // Capture the current state BEFORE the change
-        let stateBefore = CanvasState(components: deepCopyComponents(components))
+        // Capture the current state BEFORE the change
+        let stateBefore = CanvasState(
+            components: deepCopyComponents(components), 
+            colorScheme: colorScheme,
+            devicePreset: devicePreset
+        )
         
         let action = UndoableAction(
             description: description,
@@ -962,6 +965,7 @@ class CanvasManager: ObservableObject {
         redoStack.removeAll()
         
         print("💾 registerUndoAction: '\(description)' - stack size: \(undoStack.count)")
+        undoStackVersion += 1
     }
     
     /// Legacy method - now a no-op, use registerUndoAction instead
@@ -1029,7 +1033,7 @@ class CanvasManager: ObservableObject {
         print("↩️ undo: '\(action.description)' - stack has \(undoStack.count) remaining")
         
         // Save current state to redo stack BEFORE restoring (with the same description)
-        let currentState = CanvasState(components: deepCopyComponents(components))
+        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset)
         let redoAction = UndoableAction(
             description: action.description,
             stateBefore: currentState,
@@ -1050,6 +1054,7 @@ class CanvasManager: ObservableObject {
                 self?.undoMessage = nil
             }
         }
+        undoStackVersion += 1
     }
     
     func redo() {
@@ -1061,7 +1066,7 @@ class CanvasManager: ObservableObject {
         print("↪️ redo: '\(action.description)' - redo stack has \(redoStack.count) remaining")
         
         // Save current state to undo stack BEFORE restoring
-        let currentState = CanvasState(components: deepCopyComponents(components))
+        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset)
         let undoAction = UndoableAction(
             description: action.description,
             stateBefore: currentState,
@@ -1082,6 +1087,7 @@ class CanvasManager: ObservableObject {
                 self?.undoMessage = nil
             }
         }
+        undoStackVersion += 1
     }
     
     private func restoreState(_ state: CanvasState) {
@@ -1096,6 +1102,12 @@ class CanvasManager: ObservableObject {
         
         // Restore components
         components = deepCopyComponents(state.components)
+        
+        // Restore color scheme
+        colorScheme = state.colorScheme
+        
+        // Restore device preset
+        devicePreset = state.devicePreset
         
         // If selected component no longer exists, clear selection
         // Update selectedComponent to point to the new instance in the restored components
@@ -1140,9 +1152,6 @@ class CanvasManager: ObservableObject {
         
         actualComponent.addModifier(modifier)
         
-        // Trigger ripple effect
-        rippleTrigger += 1
-        
         // Ensure UI updates
         actualComponent.objectWillChange.send()
         NotificationCenter.default.post(name: .designChanged, object: nil)
@@ -1158,9 +1167,6 @@ class CanvasManager: ObservableObject {
         registerUndoAction("Deleted \(modifier.type.rawValue) modifier")
         
         actualComponent.removeModifier(modifier)
-        
-        // Trigger ripple effect
-        rippleTrigger += 1
         
         // Ensure UI updates
         actualComponent.objectWillChange.send()
@@ -1251,6 +1257,27 @@ class CanvasManager: ObservableObject {
     }
     
     // MARK: - Design Management
+    func setColorScheme(_ scheme: ColorScheme?) {
+        guard colorScheme != scheme else { return }
+        
+        registerUndoAction("Changed Color Scheme")
+        colorScheme = scheme
+        
+        // Trigger design changed notification
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+    
+    /// Sets the device preset (canvas size) with undo support
+    func setDevicePreset(_ preset: DevicePreset) {
+        guard preset != devicePreset else { return }
+        
+        registerUndoAction("Change Canvas Size")
+        self.devicePreset = preset
+        
+        // Notify design changed immediately for this setting
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+
     func setDesignName(_ name: String) {
         designName = name
     }
@@ -1295,6 +1322,8 @@ class CanvasManager: ObservableObject {
 // MARK: - Canvas State
 struct CanvasState {
     let components: [UIComponent]
+    let colorScheme: ColorScheme?
+    let devicePreset: DevicePreset
 }
 
 // MARK: - Undoable Action

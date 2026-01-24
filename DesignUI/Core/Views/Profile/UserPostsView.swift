@@ -162,7 +162,6 @@ struct UserPostsView: View {
         ZStack {
             DesignCards(
                 post: post,
-                showLikeButton: false,
                 showDeleteButton: true,
                 onDelete: {
                     postToDelete = post
