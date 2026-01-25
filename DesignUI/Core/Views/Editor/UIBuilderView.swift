@@ -369,7 +369,6 @@ struct UIBuilderView: View {
             }
         }
 
-
         .onAppear {
             setupCanvas()
             
@@ -459,11 +458,15 @@ struct UIBuilderView: View {
                 floatingTabBar
             }
         }
-        .sheet(item: $activeTab) { tab in
-            sheetContent(for: tab)
-                .presentationDetents([.medium])
-                .presentationBackgroundInteraction(.enabled)
-                .interactiveDismissDisabled(false)
+        .overlay {
+            CustomBottomSheet(isPresented: Binding(
+                get: { activeTab != nil },
+                set: { if !$0 { activeTab = nil } }
+            )) {
+                if let tab = activeTab {
+                    sheetContent(for: tab)
+                }
+            }
         }
     }
     
@@ -874,73 +877,69 @@ struct UIBuilderView: View {
     private func sheetContent(for tab: AppTab) -> some View {
         switch tab {
         case .layers:
-            VStack(spacing: 0) {
-                // Header with Dropdown and Add Button
-                HStack {
-                    Menu {
-                        Button(action: { selectedSidebarTab = .layers }) {
-                            Label("Layers", systemImage: "square.3.layers.3d")
+            NavigationStack {
+                VStack(spacing: 0) {
+                    // Header with Dropdown and Add Button
+                    HStack {
+                        Menu {
+                            Button(action: { selectedSidebarTab = .layers }) {
+                                Label("Layers", systemImage: "square.3.layers.3d")
+                            }
+                            Button(action: { selectedSidebarTab = .pages }) {
+                                Label("Pages", systemImage: "doc.on.doc")
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.primary)
+                                Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
+                                    .font(.headline).fontWeight(.semibold)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.secondary)
+                            }
                         }
-                        Button(action: { selectedSidebarTab = .pages }) {
-                            Label("Pages", systemImage: "doc.on.doc")
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            if selectedSidebarTab == .layers {
+                                showComponentLibrary = true
+                            } else {
+                                let (_, newIndex) = designFile.addPage()
+                                switchToPage(newIndex)
+                            }
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .medium))
                         }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(.primary)
-                            Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
-                                .font(.headline).fontWeight(.semibold)
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
-                        }
+                        .buttonStyle(.bordered)
+                        .frame(width: 36, height: 36)
                     }
-                    .buttonStyle(.plain)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     
-                    Spacer()
-                    
-                    Button(action: {
-                        if selectedSidebarTab == .layers {
-                            showComponentLibrary = true
-                        } else {
-                            let (_, newIndex) = designFile.addPage()
-                            switchToPage(newIndex)
-                        }
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 18, weight: .medium))
+                    // Content Switching
+                    if selectedSidebarTab == .layers {
+                        LayersPanelView(
+                            canvasManager: canvasManager,
+                            selectedComponent: $canvasManager.selectedComponent,
+                            showComponentLibrary: $showComponentLibrary
+                        )
+                    } else {
+                        SidebarPagesView(
+                            designFile: designFile,
+                            currentPageIndex: $currentPageIndex,
+                            onPageChange: { index in
+                                switchToPage(index)
+                            }
+                        )
                     }
-                    .buttonStyle(.bordered)
-                    .frame(width: 36, height: 36)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                
-                // Content Switching
-                if selectedSidebarTab == .layers {
-                    LayersPanelView(
-                        canvasManager: canvasManager,
-                        selectedComponent: $canvasManager.selectedComponent,
-                        showComponentLibrary: $showComponentLibrary
-                    )
-                } else {
-                    SidebarPagesView(
-                        designFile: designFile,
-                        currentPageIndex: $currentPageIndex,
-                        onPageChange: { index in
-                            switchToPage(index)
-                        }
-                    )
-                }
-            }
-            .background(Color(uiColor: .systemBackground))
-            .sheet(isPresented: $showComponentLibrary) {
-                ComponentLibraryView(
-                    selectedComponent: $canvasManager.selectedComponent,
-                    canvasManager: canvasManager
-                )
-                .presentationDetents([.medium])
+                .background(Color(uiColor: .systemBackground))
+                .toolbar(.hidden, for: .navigationBar)
             }
             
         case .properties:
