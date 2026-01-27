@@ -182,7 +182,6 @@ extension ComponentProperty: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         // Handle backward compatibility for missing fields
-        // Handle backward compatibility for missing fields
         self.id = UUID() // Always generate new ID for property on load
         self.key = try container.decode(String.self, forKey: .key)
         self.displayName = Self.properDisplayName(for: self.key) // Derive display name from key

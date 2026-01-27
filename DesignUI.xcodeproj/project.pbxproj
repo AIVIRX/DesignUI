@@ -60,6 +60,7 @@
 		EC9F54712E187FA700AAE9EC /* BlogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54702E187FA700AAE9EC /* BlogListView.swift */; };
 		EC9F54732E187FCD00AAE9EC /* BlogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */; };
 		EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54742E1889B700AAE9EC /* NewsContentView.swift */; };
+		ECA67AFE2F285B610021941D /* LayersPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67AFD2F285B610021941D /* LayersPanelView.swift */; };
 		ECAF05642F189B1F008F9BEA /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF05622F189B1F008F9BEA /* SessionManager.swift */; };
 		ECAF056B2F18B826008F9BEA /* RippleImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF056A2F18B826008F9BEA /* RippleImageView.swift */; };
 		ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA42EB06B5D00420663 /* RevenueCat */; };
@@ -72,7 +73,6 @@
 		ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C692EFB0C6F000AAF34 /* UIBuilderView.swift */; };
 		ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5D2EFB0C6F000AAF34 /* ComponentRenderer.swift */; };
 		ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C602EFB0C6F000AAF34 /* DesignTemplate.swift */; };
-		ECB94C752EFB0C6F000AAF34 /* LayersPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C622EFB0C6F000AAF34 /* LayersPanelView.swift */; };
 		ECB94C762EFB0C6F000AAF34 /* CodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5A2EFB0C6F000AAF34 /* CodeGenerator.swift */; };
 		ECB94C772EFB0C6F000AAF34 /* DesignBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5E2EFB0C6F000AAF34 /* DesignBrowserView.swift */; };
 		ECB94C782EFB0C6F000AAF34 /* CanvasScreenshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */; };
@@ -177,6 +177,7 @@
 		EC9F54702E187FA700AAE9EC /* BlogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogListView.swift; sourceTree = "<group>"; };
 		EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogDetailView.swift; sourceTree = "<group>"; };
 		EC9F54742E1889B700AAE9EC /* NewsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsContentView.swift; sourceTree = "<group>"; };
+		ECA67AFD2F285B610021941D /* LayersPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanelView.swift; sourceTree = "<group>"; };
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECAF05622F189B1F008F9BEA /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		ECAF056A2F18B826008F9BEA /* RippleImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleImageView.swift; sourceTree = "<group>"; };
@@ -191,7 +192,6 @@
 		ECB94C5E2EFB0C6F000AAF34 /* DesignBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignBrowserView.swift; sourceTree = "<group>"; };
 		ECB94C5F2EFB0C6F000AAF34 /* DesignFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignFile.swift; sourceTree = "<group>"; };
 		ECB94C602EFB0C6F000AAF34 /* DesignTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTemplate.swift; sourceTree = "<group>"; };
-		ECB94C622EFB0C6F000AAF34 /* LayersPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanelView.swift; sourceTree = "<group>"; };
 		ECB94C632EFB0C6F000AAF34 /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
 		ECB94C642EFB0C6F000AAF34 /* ModifierEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierEditorView.swift; sourceTree = "<group>"; };
 		ECB94C652EFB0C6F000AAF34 /* ModifierPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierPanelView.swift; sourceTree = "<group>"; };
@@ -341,11 +341,11 @@
 				ECB94C5B2EFB0C6F000AAF34 /* CodePreviewView.swift */,
 				ECB94C5C2EFB0C6F000AAF34 /* ComponentLibraryView.swift */,
 				ECB94C5D2EFB0C6F000AAF34 /* ComponentRenderer.swift */,
+				ECA67AFD2F285B610021941D /* LayersPanelView.swift */,
 				ECB94C5E2EFB0C6F000AAF34 /* DesignBrowserView.swift */,
 				ECB94C5F2EFB0C6F000AAF34 /* DesignFile.swift */,
 				ECB94C602EFB0C6F000AAF34 /* DesignTemplate.swift */,
 				ECCCBBE12F0DDC24001817C3 /* ImageGalleryView.swift */,
-				ECB94C622EFB0C6F000AAF34 /* LayersPanelView.swift */,
 				ECB94C632EFB0C6F000AAF34 /* Modifier.swift */,
 				ECB94C832EFB0D07000AAF34 /* ModifierEditors */,
 				ECB94C642EFB0C6F000AAF34 /* ModifierEditorView.swift */,
@@ -686,13 +686,13 @@
 				EC37CE252F196758006CFD08 /* DesignCards.swift in Sources */,
 				ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */,
 				ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */,
-				ECB94C752EFB0C6F000AAF34 /* LayersPanelView.swift in Sources */,
 				ECB94C762EFB0C6F000AAF34 /* CodeGenerator.swift in Sources */,
 				ECB94C772EFB0C6F000AAF34 /* DesignBrowserView.swift in Sources */,
 				ECB94C782EFB0C6F000AAF34 /* CanvasScreenshotView.swift in Sources */,
 				ECB94C792EFB0C6F000AAF34 /* Modifier.swift in Sources */,
 				EC37CE512F19C1F6006CFD08 /* UndoToastView.swift in Sources */,
 				ECB94C7A2EFB0C6F000AAF34 /* UIComponent.swift in Sources */,
+				ECA67AFE2F285B610021941D /* LayersPanelView.swift in Sources */,
 				EC1A03B32F1D52100084FF52 /* DesignPage.swift in Sources */,
 				EC1A03B42F1D52100084FF52 /* PageSelectorBar.swift in Sources */,
 				ECB94C7B2EFB0C6F000AAF34 /* ModifierPanelView.swift in Sources */,

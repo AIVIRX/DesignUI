@@ -24,6 +24,7 @@ struct ModifierPanelView: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
     @State private var showingAddModifier = false
+    @State private var editingModifier: ComponentModifier?
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -71,7 +72,7 @@ struct ModifierPanelView: View {
                             .fill(Color.secondary.opacity(0.1))
                     )
             } else {
-                ModifierReorderableList(component: component, canvasManager: canvasManager)
+                ModifierReorderableList(component: component, canvasManager: canvasManager, editingModifier: $editingModifier)
             }
         }
 #if os(iOS)
@@ -91,18 +92,78 @@ struct ModifierPanelView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
             showingAddModifier = false
+            editingModifier = nil
         }
 #else
         .popover(isPresented: $showingAddModifier) {
             AddModifierView(component: component, canvasManager: canvasManager)
         }
 #endif
+        // iPhone: Use Navigation Stack
+        #if os(iOS)
+        .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
+            view.navigationDestination(isPresented: Binding(
+                get: { editingModifier != nil },
+                set: { if !$0 { editingModifier = nil } }
+            )) {
+                if let modifier = editingModifier {
+                    modifierEditor(for: modifier)
+                        .navigationTitle(modifier.type.rawValue)
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+        }
+        // iPad: Use Popover
+        .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
+            view.popover(isPresented: Binding(
+                get: { editingModifier != nil },
+                set: { if !$0 { editingModifier = nil } }
+            )) {
+                if let modifier = editingModifier {
+                    modifierEditor(for: modifier)
+                        .frame(width: 350, height: 500)
+                }
+            }
+        }
+        #else
+        // macOS: Use Popover
+        .popover(isPresented: Binding(
+            get: { editingModifier != nil },
+            set: { if !$0 { editingModifier = nil } }
+        )) {
+            if let modifier = editingModifier {
+                modifierEditor(for: modifier)
+                    .frame(width: 350, height: 500)
+            }
+        }
+        #endif
+    }
+    
+    @ViewBuilder
+    private func modifierEditor(for modifier: ComponentModifier) -> some View {
+        ModifierEditorView(component: component, modifier: Binding(
+            get: {
+                // Always fetch latest modifier from component to ensure fresh state
+                component.modifiers.first(where: { $0.id == modifier.id }) ?? modifier
+            },
+            set: { newModifier in
+                DispatchQueue.main.async {
+                    // Update the component with the new modifier
+                    canvasManager.updateModifier(for: component, modifier: newModifier)
+                    // Update local state to reflect changes immediately
+                    if editingModifier?.id == newModifier.id {
+                        editingModifier = newModifier
+                    }
+                }
+            }
+        ))
     }
 }
 
 struct ModifierReorderableList: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
+    @Binding var editingModifier: ComponentModifier?
     @State private var dragOverTarget: UUID? 
     @State private var dragOverPosition: ModifierDropPosition = .none
     @State private var draggingId: UUID?
@@ -122,7 +183,10 @@ struct ModifierReorderableList: View {
                     onMove: { sourceIndex, targetIndex in
                         canvasManager.moveModifier(for: component, from: IndexSet(integer: sourceIndex), to: targetIndex)
                     },
-                    canvasManager: canvasManager
+                    canvasManager: canvasManager,
+                    onEdit: {
+                        editingModifier = modifier
+                    }
                 )
             }
         }
@@ -147,7 +211,7 @@ struct ModifierItemView: View {
     @Binding var draggingId: UUID?
     let onMove: (Int, Int) -> Void
     @ObservedObject var canvasManager: CanvasManager
-    @State private var showingEditor = false
+    let onEdit: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -209,7 +273,7 @@ struct ModifierItemView: View {
                     #if os(iOS)
                     UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                     #endif
-                    showingEditor = true
+                    onEdit()
                 }
             }
             .contextMenu {
@@ -234,49 +298,6 @@ struct ModifierItemView: View {
                 dragOverPosition: $dragOverPosition,
                 onMove: onMove
             ))
-#if os(iOS)
-            .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
-                view.navigationDestination(isPresented: $showingEditor) {
-                    ModifierEditorView(component: component, modifier: Binding(
-                        get: { modifier },
-                        set: { newModifier in
-                            DispatchQueue.main.async {
-                                canvasManager.updateModifier(for: component, modifier: newModifier)
-                            }
-                        }
-                    ))
-                    .navigationTitle(modifier.type.rawValue)
-                    .navigationBarTitleDisplayMode(.inline)
-                }
-            }
-            .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
-                view.popover(isPresented: $showingEditor) {
-                    ModifierEditorView(component: component, modifier: Binding(
-                        get: { modifier },
-                        set: { newModifier in
-                            DispatchQueue.main.async {
-                                canvasManager.updateModifier(for: component, modifier: newModifier)
-                            }
-                        }
-                    ))
-                    .frame(width: 320, height: 400)
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
-                showingEditor = false
-            }
-#else
-            .popover(isPresented: $showingEditor) {
-                ModifierEditorView(component: component, modifier: Binding(
-                    get: { modifier },
-                    set: { newModifier in
-                        DispatchQueue.main.async {
-                            canvasManager.updateModifier(for: component, modifier: newModifier)
-                        }
-                    }
-                ))
-            }
-#endif
         }
     }
     

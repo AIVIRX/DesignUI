@@ -1784,6 +1784,9 @@ struct GradientColorPicker: View {
                 title: "Gradient Color",
                 onColorChanged: {
                     saveColor()
+                },
+                onColorConfirmed: {
+                    saveColor()
                 }
             )
         }

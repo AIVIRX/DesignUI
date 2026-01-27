@@ -240,6 +240,7 @@ struct UIBuilderView: View {
         case layers = "Layers"
         case properties = "Properties"
         case canvas = "Canvas"
+        case code = "Code"
         
         var id: String { rawValue }
         
@@ -248,6 +249,7 @@ struct UIBuilderView: View {
             case .layers: return "square.3.layers.3d.top.filled"
             case .properties: return "slider.horizontal.3"
             case .canvas: return "iphone"
+            case .code: return "chevron.left.forwardslash.chevron.right"
             }
         }
     }
@@ -357,9 +359,11 @@ struct UIBuilderView: View {
         }
         .navigationTitle("Studio")
         .toolbar { toolbarButtons }
+        #if os(macOS)
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
         }
+        #endif
         // Undo/Redo Toast Overlay
         .overlay(alignment: .top) {
             if let message = canvasManager.undoMessage {
@@ -458,14 +462,16 @@ struct UIBuilderView: View {
                 floatingTabBar
             }
         }
-        .overlay {
-            CustomBottomSheet(isPresented: Binding(
-                get: { activeTab != nil },
-                set: { if !$0 { activeTab = nil } }
-            )) {
-                if let tab = activeTab {
-                    sheetContent(for: tab)
-                }
+        .sheet(isPresented: Binding(
+            get: { activeTab != nil },
+            set: { if !$0 { activeTab = nil } }
+        )) {
+            if let tab = activeTab {
+                sheetContent(for: tab)
+                    .presentationDetents(tab == .code ? [.medium, .large] : [.medium], selection: $selection)
+                    .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+                    .presentationBackground(.regularMaterial)
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -515,13 +521,21 @@ struct UIBuilderView: View {
         
         ToolbarItemGroup(placement: .primaryAction) {
             Menu {
-                if UIDevice.current.userInterfaceIdiom != .phone {
-                    Button(action: { showCodePreview = true }) {
-                        Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                Button(action: { 
+                    #if os(iOS)
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        activeTab = .code
+                    } else {
+                        showCodePreview = true
                     }
-                    
-                    Divider()
+                    #else
+                    showCodePreview = true 
+                    #endif
+                }) {
+                    Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
+                
+                Divider()
                 
                 Button(action: { saveAsScreenshot() }) {
                     Label("Save as Screenshot", systemImage: "photo")
@@ -777,21 +791,6 @@ struct UIBuilderView: View {
                 .keyboardShortcut("v", modifiers: .command)
                 .hidden()
                 
-                
-                // Cut (Cmd+X) - Removed as per request
-                /*
-                Button(action: {
-                    if let component = canvasManager.selectedComponent, component.type != .statusBar {
-                        canvasManager.cutComponent(component)
-                        canvasManager.deselectAll()
-                    }
-                }) {
-                    EmptyView()
-                }
-                .keyboardShortcut("x", modifiers: .command)
-                .hidden()
-                */
-                
                 // Duplicate (Cmd+D) - not for status bar
                 Button(action: {
                     if let component = canvasManager.selectedComponent, component.type != .statusBar {
@@ -938,39 +937,59 @@ struct UIBuilderView: View {
                         )
                     }
                 }
-                .background(Color(uiColor: .systemBackground))
+                // Background removed to allow material to show
+                // .background(Color(uiColor: .systemBackground))
                 .toolbar(.hidden, for: .navigationBar)
             }
             
         case .properties:
             NavigationStack {
-                PropertiesPanelView(
-                    selectedComponent: $canvasManager.selectedComponent,
-                    canvasManager: canvasManager
-                )
-                .id(canvasManager.selectedComponent?.id)
-                .navigationTitle("Properties")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                VStack(spacing: 0) {
+                    // Custom Header
+                    HStack {
                         Button(action: {
                             canvasManager.deselectAll()
                             activeTab = .layers
                         }) {
                             HStack(spacing: 4) {
                                 Image(systemName: "chevron.left")
-                                Text("Layers")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text("Back")
+                                    .font(.system(size: 16))
                             }
                         }
-                    }
-                    
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done") {
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
+                        
+                        Text("Properties")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                        
+                        Button(action: {
                             activeTab = nil // Close sheet
+                        }) {
+                            Text("Done")
+                                .font(.system(size: 16, weight: .semibold))
                         }
+                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    // .background(Color(uiColor: .systemBackground))
+                    
+                    Divider()
+                    
+                    PropertiesPanelView(
+                        selectedComponent: $canvasManager.selectedComponent,
+                        canvasManager: canvasManager
+                    )
                 }
+                .toolbar(.hidden, for: .navigationBar)
             }
+            .id(canvasManager.selectedComponent?.id)
             
         case .canvas:
             NavigationStack {
@@ -1019,15 +1038,13 @@ struct UIBuilderView: View {
                 }
                 .navigationTitle("Canvas Settings")
                 .navigationBarTitleDisplayMode(.inline)
+                .scrollContentBackground(.hidden)
             }
+        
+        case .code:
+            CodePreviewView(canvasManager: canvasManager)
         }
     }
-    
-
-
-
-    
-
     
     private var devicePresetsList: some View {
         List {
@@ -1265,13 +1282,17 @@ struct UIBuilderView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 Menu {
                     #if os(iOS)
-                    if UIDevice.current.userInterfaceIdiom != .phone {
-                        Button(action: { showCodePreview = true }) {
-                            Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                    Button(action: { 
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            activeTab = .code
+                        } else {
+                            showCodePreview = true
                         }
-                        
-                        Divider()
+                    }) {
+                        Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
+                    
+                    Divider()
                     #else
                     Button(action: { showCodePreview = true }) {
                         Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
@@ -1481,9 +1502,7 @@ struct UIBuilderView: View {
     
     private func syncSelection() {
             designFile.components = canvasManager.components
-            
-            // Capture screenshot for thumbnail
-            captureScreenshot()
+            // Don't capture screenshot on selection change - inefficient
             
             designManager.markAsChanged()
             NotificationCenter.default.post(name: .designChanged, object: nil)

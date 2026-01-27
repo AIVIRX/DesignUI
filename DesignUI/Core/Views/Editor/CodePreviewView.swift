@@ -14,69 +14,88 @@ struct CodePreviewView: View {
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
-        ScrollView{
-            VStack(spacing: 0) {
-                // Header with styling matching CodeSnippets
-                HStack {
-                    Text("Generated Code")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        copyToClipboard(completeFileCode)
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.doc")
-                                .font(.system(size: 12, weight: .medium))
-                            Text("Copy code")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .foregroundColor(.primary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.gray.opacity(0.2))
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .buttonStyle(.borderedProminent)
+        let content = VStack(spacing: 0) {
+            codePreviewContent
+        }
+        
+        #if os(macOS)
+        return content
+            .frame(minWidth: 1000, idealWidth: 1400, minHeight: 600, idealHeight: 900)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        colorScheme == .dark
+                            ? Color(red: 0.3, green: 0.3, blue: 0.3)
+                            : Color(red: 0.8, green: 0.8, blue: 0.8),
+                        lineWidth: 1
+                    )
+            )
+        #else
+        return content
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        colorScheme == .dark
+                            ? Color(red: 0.3, green: 0.3, blue: 0.3)
+                            : Color(red: 0.8, green: 0.8, blue: 0.8),
+                        lineWidth: 1
+                    )
+            )
+        #endif
+    }
+    
+    @ViewBuilder
+    private var codePreviewContent: some View {
+        // Header with styling matching CodeSnippets
+        HStack {
+            Text("Generated Code")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.primary)
+            
+            Spacer()
+            
+            Button(action: {
+                copyToClipboard(completeFileCode)
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 12, weight: .medium))
+                    Text("Copy code")
+                        .font(.system(size: 12, weight: .medium))
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
                 .background(
-                    Rectangle()
+                    RoundedRectangle(cornerRadius: 10)
                         .fill(Color.gray.opacity(0.2))
                 )
-                
-                // Code content with syntax highlighting
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        CompleteFileCode(canvasManager: canvasManager)
-                    }
-                    .padding(0) // Removed padding as requested
-                }
-                .background(Color.gray.opacity(0.1))
             }
+            .buttonStyle(PlainButtonStyle())
+            
+            Button("Done") {
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
         }
-        .frame(minWidth: 1000, idealWidth: 1400, minHeight: 600, idealHeight: 900) // Increased default size with stronger constraints
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(20)
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(
-                    colorScheme == .dark
-                        ? Color(red: 0.3, green: 0.3, blue: 0.3)
-                        : Color(red: 0.8, green: 0.8, blue: 0.8),
-                    lineWidth: 1
-                )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            Rectangle()
+                .fill(Color.gray.opacity(0.2))
         )
+        
+        // Code content with syntax highlighting
+        // Code content with syntax highlighting
+        VStack(alignment: .leading, spacing: 0) {
+            CompleteFileCode(canvasManager: canvasManager)
+        }
+        .padding(0)
+        .background(Color.gray.opacity(0.1))
     }
     
     private var completeFileCode: String {
@@ -121,8 +140,9 @@ struct CompleteFileCode: View {
                     .textSelection(.enabled)
                     .fixedSize(horizontal: true, vertical: false)
                     .padding(20) // Added inline padding
+                    .coordinateSpace(name: "codeScroll") // Give coordinate space a name if needed
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure it fills available space
             .overlay(loadingOverlay)
         }
         .onAppear {

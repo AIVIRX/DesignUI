@@ -43,14 +43,26 @@ struct ProfileView: View {
                     VStack(spacing: 16) {
                         // Avatar
                         ZStack(alignment: .bottomTrailing) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.8)) // Customize color
-                                    .frame(width: 80, height: 80)
-                                
-                                Text(viewModel.profile?.display_name?.prefix(1).uppercased() ?? "?")
-                                    .font(.system(size: 36, weight: .bold))
-                                    .foregroundColor(.white)
+                            if let avatarUrl = viewModel.profile?.avatarUrl, let url = URL(string: avatarUrl) {
+                                AsyncImage(url: url) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                } placeholder: {
+                                    ProgressView()
+                                }
+                                .frame(width: 80, height: 80)
+                                .clipShape(Circle())
+                            } else {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.8)) // Customize color
+                                        .frame(width: 80, height: 80)
+                                    
+                                    Text(viewModel.profile?.display_name?.prefix(1).uppercased() ?? "?")
+                                        .font(.system(size: 36, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
                             }
                             
                             if viewModel.profile?.verified == true {

@@ -82,10 +82,12 @@ struct ColorModifierEditor: View {
                             .frame(width: 24, height: 24)
                         
                         // Slider
-                        Slider(value: $opacityValue, in: 0...1)
-                            .onChange(of: opacityValue) { _, _ in
-                                saveColor()
-                            }
+                        UndoableSlider(
+                            value: $opacityValue,
+                            range: 0...1,
+                            onValueChanged: { _ in saveColorContinuous() },
+                            onEditingEnded: { _ in saveColor() }
+                        )
                         
                         // Percentage label
                         Text("\(Int(opacityValue * 100))%")
@@ -167,6 +169,17 @@ struct ColorModifierEditor: View {
         DispatchQueue.main.async {
             component.updateModifier(updatedModifier)
             NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    private func saveColorContinuous() {
+        var updatedModifier = modifier
+        // Save in "colorname:opacity" format
+        updatedModifier.properties["color"] = "\(selectedColorName):\(opacityValue)"
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }
@@ -270,6 +283,7 @@ struct UniversalColorPickerView: View {
     @Binding var opacityValue: Double
     let title: String
     var onColorChanged: (() -> Void)?
+    var onColorConfirmed: (() -> Void)?
     
     static let swiftUIColors: [(name: String, displayName: String, color: Color)] = [
         ("primary", "Primary", .primary),
@@ -334,10 +348,12 @@ struct UniversalColorPickerView: View {
                             .foregroundColor(.primary)
                             .frame(width: 24, height: 24)
                         
-                        Slider(value: $opacityValue, in: 0...1)
-                            .onChange(of: opacityValue) { _, _ in
-                                onColorChanged?()
-                            }
+                        UndoableSlider(
+                            value: $opacityValue,
+                            range: 0...1,
+                            onValueChanged: { _ in onColorChanged?() },
+                            onEditingEnded: { _ in onColorConfirmed?() }
+                        )
                         
                         Text("\(Int(opacityValue * 100))%")
                             .font(.system(size: 14))
@@ -365,6 +381,7 @@ struct UniversalColorPickerView: View {
                             onSelect: {
                                 selectedColorName = colorInfo.name
                                 onColorChanged?()
+                                onColorConfirmed?()
                             }
                         )
                         

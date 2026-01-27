@@ -12024,7 +12024,7 @@
       }
     },
     "Canvas Settings" : {
-
+      "shouldTranslate" : false
     },
     "Capsule" : {
       "localizations" : {
@@ -12775,6 +12775,9 @@
           }
         }
       }
+    },
+    "Change Photo" : {
+
     },
     "Change Plan" : {
       "localizations" : {
@@ -25276,9 +25279,6 @@
           }
         }
       }
-    },
-    "From Unsplash" : {
-
     },
     "Gallery" : {
       "localizations" : {

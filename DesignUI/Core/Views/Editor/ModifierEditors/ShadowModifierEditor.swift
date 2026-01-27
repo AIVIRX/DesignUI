@@ -137,10 +137,12 @@ struct ShadowModifierEditor: View {
                             .font(.system(size: 14))
                             .foregroundColor(.secondary)
                         
-                        Slider(value: $opacity, in: 0...1)
-                            .onChange(of: opacity) { _, _ in
-                                saveShadow()
-                            }
+                        UndoableSlider(
+                            value: $opacity,
+                            range: 0...1,
+                            onValueChanged: { _ in saveShadowContinuous() },
+                            onEditingEnded: { _ in saveShadow() }
+                        )
                         
                         Image(systemName: "sun.max")
                             .font(.system(size: 14))
@@ -167,10 +169,15 @@ struct ShadowModifierEditor: View {
                             .font(.system(size: 14))
                             .foregroundColor(.secondary)
                         
-                        Slider(value: $radius, in: 0...50)
-                            .onChange(of: radius) { _, _ in
-                                saveShadow()
-                            }
+                        UndoableSlider(
+                            value: Binding(
+                                get: { Double(radius) },
+                                set: { radius = CGFloat($0) }
+                            ),
+                            range: 0...50,
+                            onValueChanged: { _ in saveShadowContinuous() },
+                            onEditingEnded: { _ in saveShadow() }
+                        )
                     }
                 }
                 .padding(12)
@@ -190,10 +197,15 @@ struct ShadowModifierEditor: View {
                                 .monospacedDigit()
                         }
                         
-                        Slider(value: $offsetX, in: -50...50)
-                            .onChange(of: offsetX) { _, _ in
-                                saveShadow()
-                            }
+                        UndoableSlider(
+                            value: Binding(
+                                get: { Double(offsetX) },
+                                set: { offsetX = CGFloat($0) }
+                            ),
+                            range: -50...50,
+                            onValueChanged: { _ in saveShadowContinuous() },
+                            onEditingEnded: { _ in saveShadow() }
+                        )
                     }
                     
                     // Y Offset
@@ -208,10 +220,15 @@ struct ShadowModifierEditor: View {
                                 .monospacedDigit()
                         }
                         
-                        Slider(value: $offsetY, in: -50...50)
-                            .onChange(of: offsetY) { _, _ in
-                                saveShadow()
-                            }
+                        UndoableSlider(
+                            value: Binding(
+                                get: { Double(offsetY) },
+                                set: { offsetY = CGFloat($0) }
+                            ),
+                            range: -50...50,
+                            onValueChanged: { _ in saveShadowContinuous() },
+                            onEditingEnded: { _ in saveShadow() }
+                        )
                     }
                 }
                 .padding(12)
@@ -272,6 +289,27 @@ struct ShadowModifierEditor: View {
         DispatchQueue.main.async {
             component.updateModifier(updatedModifier)
             NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    private func saveShadowContinuous() {
+        var updatedModifier = modifier
+        updatedModifier.properties["radius"] = radius
+        updatedModifier.properties["opacity"] = opacity
+        updatedModifier.properties["x"] = offsetX
+        updatedModifier.properties["y"] = offsetY
+        
+        // Save the color name as string for better consistency
+        updatedModifier.properties["colorString"] = selectedColorName
+        
+        // Also save the actual Color object with opacity applied for rendering
+        let baseColor = colors.first(where: { $0.name == selectedColorName })?.color ?? .black
+        updatedModifier.properties["color"] = baseColor.opacity(opacity)
+        
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }

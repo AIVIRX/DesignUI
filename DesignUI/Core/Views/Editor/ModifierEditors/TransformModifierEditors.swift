@@ -42,10 +42,13 @@ struct RotationModifierEditor: View {
                             .rotationEffect(.degrees(angle))
                         
                         // Slider
-                        Slider(value: $angle, in: 0...360)
-                            .onChange(of: angle) { _, _ in
-                                saveAngle()
-                            }
+                        // Slider
+                        UndoableSlider(
+                            value: $angle,
+                            range: 0...360,
+                            onValueChanged: { _ in saveAngleContinuous() },
+                            onEditingEnded: { _ in saveAngle() }
+                        )
                         
                         // Value label
                         Text("\(Int(angle))°")
@@ -116,6 +119,16 @@ struct RotationModifierEditor: View {
         DispatchQueue.main.async {
             component.updateModifier(updatedModifier)
             NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    private func saveAngleContinuous() {
+        var updatedModifier = modifier
+        updatedModifier.properties["angle"] = angle
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }
@@ -205,10 +218,13 @@ struct ScaleModifierEditor: View {
                             .font(.system(size: 14))
                             .foregroundColor(.secondary)
                         
-                        Slider(value: $scale, in: 0.5...8.0, step: 0.5)
-                            .onChange(of: scale) { _, newValue in
-                                saveScale()
-                            }
+                        UndoableSlider(
+                            value: $scale,
+                            range: 0.5...8.0,
+                            step: 0.5,
+                            onValueChanged: { _ in saveScaleContinuous() },
+                            onEditingEnded: { _ in saveScale() }
+                        )
                         
                         Text("\(String(format: "%.1f", scale))")
                             .font(.system(size: 14))
@@ -275,6 +291,17 @@ struct ScaleModifierEditor: View {
         DispatchQueue.main.async {
             component.updateModifier(updatedModifier)
             NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    private func saveScaleContinuous() {
+        var updatedModifier = modifier
+        updatedModifier.properties["x"] = scale
+        updatedModifier.properties["y"] = scale
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }

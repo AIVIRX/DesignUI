@@ -298,7 +298,26 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
     
     // MARK: - Equatable Implementation
     static func == (lhs: ComponentModifier, rhs: ComponentModifier) -> Bool {
-        return lhs.id == rhs.id
+        // First check ID
+        if lhs.id != rhs.id { return false }
+        
+        // Then check if types match (should if IDs match, but safety first)
+        if lhs.type != rhs.type { return false }
+        
+        // Then check properties count
+        if lhs.properties.count != rhs.properties.count { return false }
+        
+        // Finally check all property values
+        for (key, lhsValue) in lhs.properties {
+            guard let rhsValue = rhs.properties[key] else { return false }
+            
+            // Use ComponentProperty's helper for Any comparison
+            if !ComponentProperty.valuesAreEqual(lhsValue, rhsValue) {
+                return false
+            }
+        }
+        
+        return true
     }
     
     // MARK: - Helper Methods for Safe Type Conversion

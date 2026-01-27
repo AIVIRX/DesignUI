@@ -1125,7 +1125,6 @@ class ImageGalleryManager: ObservableObject {
     }
     
     // Bundled assets that should appear in the gallery
-    // Bundled assets that should appear in the gallery
     private let bundledAssets: [String] = []
     
     init() {

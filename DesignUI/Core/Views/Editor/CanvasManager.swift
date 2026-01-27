@@ -47,8 +47,6 @@ class CanvasManager: ObservableObject {
     @Published var canvasOffset: CGSize = .zero
     @Published var centerCanvasTrigger: Bool = false // Triggers canvas centering when toggled
     
-    
-    
     // Special status bar component
     @Published var statusBarComponent: UIComponent?
     

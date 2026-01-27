@@ -25,17 +25,8 @@ struct CustomBottomSheet<Content: View>: View {
             
             ZStack(alignment: .bottom) {
                 // Dimmed Background
-                if isPresented {
-                    Color.black
-                        .opacity(0.3)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.spring()) {
-                                isPresented = false
-                            }
-                        }
-                        .transition(.opacity)
-                }
+                // Dimmed Background removed to allow interaction
+                // if isPresented { ... }
                 
                 // Sheet Content
                 if isPresented {
@@ -49,14 +40,16 @@ struct CustomBottomSheet<Content: View>: View {
                                 .padding(.bottom, 10)
                         }
                         .frame(maxWidth: .infinity)
-                        .background(Color(uiColor: .systemBackground))
+                        .frame(maxWidth: .infinity)
+                        .background(backgroundColor)
                         
                         // Main Content
                         content
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .frame(height: sheetHeight)
-                    .background(Color(uiColor: .systemBackground))
+                    .frame(height: sheetHeight)
+                    .background(backgroundColor)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
                     .shadow(color: .black.opacity(0.1), radius: 10, y: -5)
                     .offset(y: max(0, offset + translation))
@@ -69,6 +62,7 @@ struct CustomBottomSheet<Content: View>: View {
                             .onEnded { value in
                                 let snapDistance = sheetHeight * 0.25
                                 if value.translation.height > snapDistance || value.velocity.height > 1000 {
+                                    offset = value.translation.height // Capture current position
                                     withAnimation(.spring()) {
                                         isPresented = false
                                     }
@@ -79,9 +73,21 @@ struct CustomBottomSheet<Content: View>: View {
                                 }
                             }
                     )
+                    .onAppear {
+                        offset = 0
+                    }
                 }
             }
             .ignoresSafeArea(edges: .bottom)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+    
+    private var backgroundColor: Color {
+        #if os(iOS)
+        return Color(uiColor: .systemBackground)
+        #else
+        return Color(NSColor.windowBackgroundColor)
+        #endif
     }
 }

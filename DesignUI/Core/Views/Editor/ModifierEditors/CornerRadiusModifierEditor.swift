@@ -41,10 +41,19 @@ struct CornerRadiusModifierEditor: View {
                             .frame(width: 24, height: 24)
                         
                         // Slider
-                        Slider(value: $radius, in: 0...100)
-                            .onChange(of: radius) { _, _ in
+                        UndoableSlider(
+                            value: Binding(
+                                get: { Double(radius) },
+                                set: { radius = CGFloat($0) }
+                            ),
+                            range: 0...100,
+                            onValueChanged: { _ in
+                                saveRadiusContinuous()
+                            },
+                            onEditingEnded: { _ in
                                 saveRadius()
                             }
+                        )
                         
                         // Value label
                         Text("\(Int(radius))")
@@ -115,6 +124,16 @@ struct CornerRadiusModifierEditor: View {
         DispatchQueue.main.async {
             component.updateModifier(updatedModifier)
             NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
+    }
+    
+    private func saveRadiusContinuous() {
+        var updatedModifier = modifier
+        updatedModifier.properties["radius"] = radius
+        modifier = updatedModifier
+        
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }

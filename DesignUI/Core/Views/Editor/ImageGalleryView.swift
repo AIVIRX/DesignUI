@@ -103,7 +103,7 @@ struct ImageGalleryView: View {
                             Button {
                                 showUnsplashGallery = true
                             } label: {
-                                Label("From Unsplash", systemImage: "globe")
+                                Label("Unsplash", systemImage: "globe")
                             }
                         } label: {
                             Image(systemName: "plus")
@@ -205,7 +205,7 @@ struct ImageGalleryView: View {
                                 Button {
                                     showUnsplashGallery = true
                                 } label: {
-                                    Label("From Unsplash", systemImage: "globe")
+                                    Label("Unsplash", systemImage: "globe")
                                 }
                             } label: {
                                 Image(systemName: "plus")

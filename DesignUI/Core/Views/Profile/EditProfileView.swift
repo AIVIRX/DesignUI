@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import Supabase
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
@@ -12,6 +14,12 @@ struct EditProfileView: View {
     @State private var errorMessage = ""
     @State private var displayNameError: String = ""
     @State private var usernameError: String = ""
+    
+    // Photo Selection
+    @State private var selectedItem: PhotosPickerItem?
+    @State private var selectedImageData: Data?
+    @State private var avatarUrl: String?
+    @State private var isImporting = false
     
     @FocusState private var focusedField: Field?
     
@@ -27,7 +35,9 @@ struct EditProfileView: View {
         self.viewModel = viewModel
         _displayName = State(initialValue: viewModel.profile?.display_name ?? "")
         _username = State(initialValue: viewModel.profile?.username ?? "")
+        _username = State(initialValue: viewModel.profile?.username ?? "")
         _bio = State(initialValue: viewModel.profile?.bio ?? "")
+        _avatarUrl = State(initialValue: viewModel.profile?.avatarUrl ?? "")
     }
     
     var body: some View {
@@ -78,17 +88,110 @@ struct EditProfileView: View {
     
     private var profilePictureSection: some View {
         VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.blue.opacity(0.8))
-                    .frame(width: 70, height: 70)
-                
-                Text(displayName.prefix(1).uppercased())
-                    .font(.system(size: 40, weight: .bold))
-                    .foregroundColor(.white)
+            #if os(iOS)
+            PhotosPicker(selection: $selectedItem, matching: .images) {
+                avatarView
             }
+            .onChange(of: selectedItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                        selectedImageData = data
+                    }
+                }
+            }
+            #else
+            Button(action: {
+                isImporting = true
+            }) {
+                avatarView
+            }
+            .buttonStyle(.plain)
+            .fileImporter(
+                isPresented: $isImporting,
+                allowedContentTypes: [.image],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first {
+                        // Access security scoped resource
+                        guard url.startAccessingSecurityScopedResource() else { return }
+                        defer { url.stopAccessingSecurityScopedResource() }
+                        
+                        if let data = try? Data(contentsOf: url) {
+                            DispatchQueue.main.async {
+                                selectedImageData = data
+                            }
+                        }
+                    }
+                case .failure(let error):
+                    print("File import failed: \(error.localizedDescription)")
+                }
+            }
+            #endif
+            
+            Text("Change Photo")
+                .font(.footnote)
+                .foregroundColor(.accentColor)
         }
         .padding(.top)
+    }
+    
+    private var avatarView: some View {
+        ZStack {
+            if let selectedImageData {
+                #if os(iOS)
+                if let uiImage = UIImage(data: selectedImageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                }
+                #elseif os(macOS)
+                if let nsImage = NSImage(data: selectedImageData) {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                }
+                #endif
+            } else if let avatarUrl, let url = URL(string: avatarUrl) {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    ProgressView()
+                }
+                .frame(width: 80, height: 80)
+                .clipShape(Circle())
+            } else {
+                ZStack {
+                    Circle()
+                        .fill(Color.blue.opacity(0.8))
+                        .frame(width: 80, height: 80)
+                    
+                    Text(displayName.prefix(1).uppercased())
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(.white)
+                }
+            }
+            
+            // Edit overlay
+            Circle()
+                .stroke(Color.white, lineWidth: 2)
+                .frame(width: 80, height: 80)
+            
+            Image(systemName: "camera.fill")
+                .font(.system(size: 14))
+                .foregroundColor(.white)
+                .padding(6)
+                .background(Color.black.opacity(0.5))
+                .clipShape(Circle())
+                .offset(x: 25, y: 25)
+        }
     }
     
     private var displayNameField: some View {
@@ -342,66 +445,132 @@ struct EditProfileView: View {
             }
         }
         
-        private func updateProfile() async {
-            guard let userId = supabase.auth.currentUser?.id else { return }
-            
-            // Final validation before saving
-            validateDisplayName()
-            validateUsername()
-            
-            if !displayNameError.isEmpty || !usernameError.isEmpty {
-                return
+    private func updateProfile() async {
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        // Final validation before saving
+        validateDisplayName()
+        validateUsername()
+        
+        if !displayNameError.isEmpty || !usernameError.isEmpty {
+            return
+        }
+        
+        isLoading = true
+        
+        // Upload photo if changed
+        if let selectedImageData {
+            if let uploadedUrl = await uploadAvatar(userId: userId, data: selectedImageData) {
+                avatarUrl = uploadedUrl
             }
-            
-            isLoading = true
-            
-            do {
-                // Check username uniqueness if it changed
-                if username.lowercased() != viewModel.profile?.username?.lowercased() {
-                    let checkResponse = try await supabase
-                        .from("profiles")
-                        .select("username")
-                        .eq("username", value: username.lowercased())
-                        .neq("id", value: userId.uuidString)
-                        .execute()
-                    
-                    let decoder = JSONDecoder()
-                    struct UsernameRecord: Decodable { let username: String }
-                    let existingUsers = try decoder.decode([UsernameRecord].self, from: checkResponse.data)
-                    
-                    if !existingUsers.isEmpty {
-                        await MainActor.run {
-                            usernameError = "Username is already taken"
-                            isLoading = false
-                        }
-                        return
-                    }
-                }
-                
-                try await supabase
+        }
+        
+        do {
+            // Check username uniqueness if it changed
+            if username.lowercased() != viewModel.profile?.username?.lowercased() {
+                let checkResponse = try await supabase
                     .from("profiles")
-                    .upsert([
-                        "id": userId.uuidString,
-                        "display_name": displayName.trimmingCharacters(in: .whitespacesAndNewlines),
-                        "username": username.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
-                        "bio": bio,
-                        "updated_at": ISO8601DateFormatter().string(from: Date()),
-                    ], onConflict: "id")
-                    .select()
-                    .single()
+                    .select("username")
+                    .eq("username", value: username.lowercased())
+                    .neq("id", value: userId.uuidString)
                     .execute()
                 
-                await authViewModel.checkUsername()
-                await viewModel.fetchProfile()
-                dismiss()
+                let decoder = JSONDecoder()
+                struct UsernameRecord: Decodable { let username: String }
+                let existingUsers = try decoder.decode([UsernameRecord].self, from: checkResponse.data)
                 
-            } catch {
-                await MainActor.run {
-                    showError = true
-                    errorMessage = "Failed to update profile. Please try again."
+                if !existingUsers.isEmpty {
+                    await MainActor.run {
+                        usernameError = "Username is already taken"
+                        isLoading = false
+                    }
+                    return
                 }
             }
             
-            isLoading = false
+            let updatePayload = ProfileUpdatePayload(
+                id: userId.uuidString,
+                display_name: displayName.trimmingCharacters(in: .whitespacesAndNewlines),
+                username: username.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+                bio: bio,
+                avatar_url: avatarUrl,
+                updated_at: ISO8601DateFormatter().string(from: Date())
+            )
+            
+            try await supabase
+                .from("profiles")
+                .upsert(updatePayload, onConflict: "id")
+                .select()
+                .single()
+                .execute()
+            
+            await authViewModel.checkUsername()
+            await viewModel.fetchProfile()
+            dismiss()
+            
+        } catch {
+            await MainActor.run {
+                showError = true
+                errorMessage = "Failed to update profile. Please try again."
+                print("Error updating profile: \(error)")
+            }
+        }
+        
+        isLoading = false
+    }
+    
+    private func uploadAvatar(userId: UUID, data: Data) async -> String? {
+        // Check file size (limit 10MB)
+        let fileSizeInMB = Double(data.count) / (1024 * 1024)
+        if fileSizeInMB > 10 {
+            await MainActor.run {
+                errorMessage = "Image size too large. Please select an image under 10MB."
+                showError = true
+            }
+            return nil
+        }
+        
+        let fileName = "\(userId.uuidString)/avatar.jpg"
+        
+        do {
+            // Upload to Supabase Storage
+            _ = try await supabase.storage
+                .from("avatars")
+                .upload(
+                    fileName,
+                    data: data,
+                    options: FileOptions(
+                        cacheControl: "3600",
+                        contentType: "image/jpeg",
+                        upsert: true
+                    )
+                )
+            
+            // Get Public URL
+            let publicUrl = try supabase.storage
+                .from("avatars")
+                .getPublicURL(path: fileName)
+            
+            // Append timestamp to bust cache since filename is constant
+            return "\(publicUrl.absoluteString)?t=\(Int(Date().timeIntervalSince1970))"
+            
+        } catch {
+            print("Error uploading avatar: \(error)")
+            await MainActor.run {
+                errorMessage = "Failed to upload image: \(error.localizedDescription)"
+                showError = true
+            }
+            return nil
         }
     }
+}
+
+// Helper struct for updates
+private struct ProfileUpdatePayload: Encodable {
+    let id: String
+    let display_name: String
+    let username: String
+    let bio: String
+    let avatar_url: String?
+    let updated_at: String
+}
