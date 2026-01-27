@@ -10,7 +10,7 @@ struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showEditProfile = false
     @State private var showDeleteAlert = false
-    @State private var showUploadTemplate = false
+
     @State private var selectedTab: ProfileTab = .liked
     @StateObject private var likedViewModel = LikedPostsViewModel()
     @StateObject private var userViewModel = UserPostsViewModel()

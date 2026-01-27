@@ -35,7 +35,7 @@ struct EditProfileView: View {
         self.viewModel = viewModel
         _displayName = State(initialValue: viewModel.profile?.display_name ?? "")
         _username = State(initialValue: viewModel.profile?.username ?? "")
-        _username = State(initialValue: viewModel.profile?.username ?? "")
+
         _bio = State(initialValue: viewModel.profile?.bio ?? "")
         _avatarUrl = State(initialValue: viewModel.profile?.avatarUrl ?? "")
     }
@@ -396,7 +396,7 @@ struct EditProfileView: View {
     private var displayNameFieldBorder: some View {
         RoundedRectangle(cornerRadius: 12)
             .stroke(
-                displayNameError.isEmpty ? (focusedField == .displayName ? Color.white : Color.gray.opacity(0.3)) : Color.red,
+                displayNameError.isEmpty ? (focusedField == .displayName ? Color.accentColor : Color.gray.opacity(0.3)) : Color.red,
                 lineWidth: focusedField == .displayName || !displayNameError.isEmpty ? 2 : 1
             )
     }
@@ -404,7 +404,7 @@ struct EditProfileView: View {
     private var usernameFieldBorder: some View {
         RoundedRectangle(cornerRadius: 12)
             .stroke(
-                usernameError.isEmpty ? (focusedField == .username ? Color.white : Color.gray.opacity(0.3)) : Color.red,
+                usernameError.isEmpty ? (focusedField == .username ? Color.accentColor : Color.gray.opacity(0.3)) : Color.red,
                 lineWidth: focusedField == .username || !usernameError.isEmpty ? 2 : 1
             )
     }
@@ -412,7 +412,7 @@ struct EditProfileView: View {
     private var bioFieldBorder: some View {
         RoundedRectangle(cornerRadius: 12)
             .stroke(
-                focusedField == .bio ? Color.white : Color.gray.opacity(0.3),
+                focusedField == .bio ? Color.accentColor : Color.gray.opacity(0.3),
                 lineWidth: focusedField == .bio ? 2 : 1
             )
     }

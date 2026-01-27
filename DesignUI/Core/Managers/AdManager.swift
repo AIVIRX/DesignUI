@@ -21,7 +21,7 @@ class AdManager: ObservableObject {
     private var adDelegates: [String: AdLoaderDelegate] = [:] // Keep strong references to delegates
     
     private init() {
-        // For testing, you can use: "ca-app-pub-3940256099942544/3986624511"
+        // For testing use: "ca-app-pub-3940256099942544/3986624511"
 
         self.adUnitID = "ca-app-pub-2043555402127024/3628489512" // TODO: Replace with production ID
     }
@@ -34,11 +34,7 @@ class AdManager: ObservableObject {
         }
         
         #if canImport(GoogleMobileAds)
-        // Ensure AdMob SDK is initialized before loading ads
-        // This prevents the "Failed to change to usage state 2" error
-        // Initialize on first use if not already initialized
-        // Note: Initialization should ideally be done in AppDelegate
-        // This is a fallback initialization
+        
         MobileAds.shared.start(completionHandler: nil)
         
         // Get root view controller using iOS 13+ window scene API
