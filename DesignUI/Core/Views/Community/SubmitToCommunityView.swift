@@ -1,0 +1,264 @@
+//
+//  SubmitToCommunityView.swift
+//  DesignUI
+//
+//  Created by Maicol Cabreja on 1/28/25.
+//
+
+import SwiftUI
+
+struct SubmitToCommunityView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var authViewModel = AuthViewModel()
+    @StateObject private var viewModel = CommunitySubmissionViewModel()
+    
+    let designFile: DesignFile
+    
+    @State private var title: String = ""
+    @State private var description: String = ""
+    @State private var showLoginPrompt = false
+    
+    init(designFile: DesignFile) {
+        self.designFile = designFile
+        _title = State(initialValue: designFile.name)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Group {
+                if !authViewModel.isAuthenticated {
+                    loginRequiredView
+                } else {
+                    submissionForm
+                }
+            }
+            .navigationTitle("Submit to Community")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+            .alert("Error", isPresented: $viewModel.showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.errorMessage)
+            }
+            .onChange(of: viewModel.submissionSuccess) { _, success in
+                if success {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Login Required View
+    
+    private var loginRequiredView: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "person.crop.circle.badge.exclamationmark")
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+            
+            Text("Sign In Required")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            Text("You need to be signed in to submit designs to the community.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            
+            Button {
+                showLoginPrompt = true
+            } label: {
+                Text("Sign In")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.accentColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal, 48)
+        }
+        .padding()
+    }
+    
+    // MARK: - Submission Form
+    
+    private var submissionForm: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Preview
+                designPreview
+                
+                // Title Field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Title")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    TextField("My Amazing Design", text: $title)
+                        .textFieldStyle(.plain)
+                        .padding()
+                        .background(fieldBackground)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                }
+                
+                // Description Field
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Description")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Spacer()
+                        
+                        Text("Optional")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    TextEditor(text: $description)
+                        .scrollContentBackground(.hidden)
+                        .padding(12)
+                        .frame(minHeight: 100)
+                        .background(fieldBackground)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                }
+                
+                // Info Banner
+                infoBanner
+                
+                // Submit Button
+                submitButton
+            }
+            .padding()
+        }
+    }
+    
+    private var designPreview: some View {
+        VStack(spacing: 12) {
+            if let thumbnailData = designFile.thumbnail,
+               let image = createImage(from: thumbnailData) {
+                #if os(iOS)
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 200)
+                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                #else
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 200)
+                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                #endif
+            } else {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(height: 150)
+                    .overlay(
+                        VStack {
+                            Image(systemName: "photo")
+                                .font(.largeTitle)
+                                .foregroundColor(.secondary)
+                            Text("Preview will be generated")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    )
+            }
+            
+            Text("Preview")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private var infoBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "info.circle.fill")
+                .foregroundColor(.blue)
+            
+            Text("Your submission will be reviewed before appearing in the community.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(12)
+    }
+    
+    private var submitButton: some View {
+        Button {
+            Task {
+                await viewModel.submitDesign(
+                    designFile: designFile,
+                    title: title.isEmpty ? designFile.name : title,
+                    description: description
+                )
+            }
+        } label: {
+            Group {
+                if viewModel.isLoading {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                            .tint(.white)
+                        Text(viewModel.uploadProgress)
+                    }
+                } else if viewModel.submissionSuccess {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Submitted!")
+                    }
+                } else {
+                    Text("Submit to Community")
+                }
+            }
+            .font(.headline)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(viewModel.submissionSuccess ? Color.green : Color.accentColor)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+        }
+        .disabled(title.isEmpty || viewModel.isLoading)
+    }
+    
+    private var fieldBackground: Color {
+        #if os(iOS)
+        Color(uiColor: .secondarySystemBackground)
+        #else
+        Color(NSColor.controlBackgroundColor)
+        #endif
+    }
+    
+    #if os(iOS)
+    private func createImage(from data: Data) -> UIImage? {
+        UIImage(data: data)
+    }
+    #else
+    private func createImage(from data: Data) -> NSImage? {
+        NSImage(data: data)
+    }
+    #endif
+}

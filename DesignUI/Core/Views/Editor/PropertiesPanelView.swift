@@ -244,7 +244,7 @@ struct PropertyEditor: View {
     @State private var showSFSymbolPicker: Bool = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var showImagePicker: Bool = false
-    @State private var isHovered: Bool = false
+
     @Environment(\.colorScheme) var colorScheme
     
     private var menuTextColor: Color {
@@ -310,13 +310,7 @@ struct PropertyEditor: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                    )
-                    .onHover { hovering in
-                        isHovered = hovering
-                    }
+
                     .contentShape(Rectangle())
                 } else {
                     TextField("Hello World", text: $textValue)
@@ -391,13 +385,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
             case .boolean:
                 HStack {
@@ -419,13 +407,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
                 
             case .color:
@@ -465,13 +447,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
                 
             case .alignment:
@@ -506,13 +482,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
                 
             case .segmentedControl:
@@ -547,13 +517,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
                 
             case .dropdown:
@@ -588,13 +552,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
                 
             case .spacing:
@@ -615,13 +573,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
                 .onAppear {
                     if let doubleValue = component.getProperty(key: property.key) as? Double {
@@ -684,13 +636,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 .contentShape(Rectangle())
                 
             case .colorArray:
@@ -745,13 +691,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
 
             case .unitPoint:
                 HStack {
@@ -785,13 +725,7 @@ struct PropertyEditor: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                )
-                .onHover { hovering in
-                    isHovered = hovering
-                }
+
                 
             default:
                 HStack {

@@ -225,7 +225,7 @@ struct UIBuilderView: View {
     @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
     
     @State private var showComponentLibrary = false
-
+    @State private var showCommunitySubmission = false
     
     // Screenshot capture debouncing
     // Screenshot capture debouncing
@@ -364,6 +364,9 @@ struct UIBuilderView: View {
             CodePreviewView(canvasManager: canvasManager)
         }
         #endif
+        .sheet(isPresented: $showCommunitySubmission) {
+            SubmitToCommunityView(designFile: designFile)
+        }
         // Undo/Redo Toast Overlay
         .overlay(alignment: .top) {
             if let message = canvasManager.undoMessage {
@@ -435,7 +438,14 @@ struct UIBuilderView: View {
             // Trigger sync when undo stack changes (action performed, undo, or redo)
             // Use async to ensure the change has propagated
             DispatchQueue.main.async {
-                syncDesignChanges()
+                // Sync design changes (persist components)
+                designFile.components = canvasManager.components
+                designFile.objectWillChange.send()
+                designManager.markAsChanged()
+                
+                // Capture screenshot immediately for undo stack changes
+                // (bypassing debounce since these are discrete, important state changes)
+                performScreenshotCapture()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
@@ -1305,7 +1315,11 @@ struct UIBuilderView: View {
                         Label("Save as Screenshot", systemImage: "photo")
                     }
                     
-
+                    Divider()
+                    
+                    Button(action: { showCommunitySubmission = true }) {
+                        Label("Submit to Community", systemImage: "globe")
+                    }
 
                 } label: {
                     Image(systemName: "square.and.arrow.up")
@@ -1509,11 +1523,10 @@ struct UIBuilderView: View {
         }
     
     private func syncDesignChanges() {
-            
             designFile.components = canvasManager.components
             
-            // Capture screenshot for thumbnail
-            captureScreenshot()
+            // Note: Screenshot capture is now handled by undoStackVersion change handler
+            // to ensure captures happen at the right time (with each undo action)
             
             designFile.objectWillChange.send() // Force design file to recognize changes
             designManager.markAsChanged()

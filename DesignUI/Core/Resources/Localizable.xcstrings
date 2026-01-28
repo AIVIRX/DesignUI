@@ -20780,6 +20780,9 @@
         }
       }
     },
+    "Description" : {
+
+    },
     "Design Browser" : {
       "localizations" : {
         "ar" : {
@@ -30030,6 +30033,9 @@
         }
       }
     },
+    "Loading submissions..." : {
+
+    },
     "Loading subscription..." : {
       "localizations" : {
         "ar" : {
@@ -31030,6 +31036,9 @@
         }
       }
     },
+    "My Amazing Design" : {
+
+    },
     "My Designs" : {
       "localizations" : {
         "ar" : {
@@ -31279,6 +31288,9 @@
           }
         }
       }
+    },
+    "My Submissions" : {
+
     },
     "New Design" : {
       "localizations" : {
@@ -33781,6 +33793,9 @@
         }
       }
     },
+    "No Submissions Yet" : {
+
+    },
     "Offset" : {
       "localizations" : {
         "ar" : {
@@ -35030,6 +35045,9 @@
           }
         }
       }
+    },
+    "Optional" : {
+
     },
     "Overlay" : {
       "localizations" : {
@@ -38030,6 +38048,12 @@
           }
         }
       }
+    },
+    "Preview" : {
+
+    },
+    "Preview will be generated" : {
+
     },
     "Privacy Policy" : {
       "localizations" : {
@@ -46535,6 +46559,9 @@
         }
       }
     },
+    "Sign In" : {
+
+    },
     "Sign In Required" : {
       "localizations" : {
         "ar" : {
@@ -48284,6 +48311,15 @@
           }
         }
       }
+    },
+    "Submit to Community" : {
+
+    },
+    "Submit your designs to the community to see them here." : {
+
+    },
+    "Submitted!" : {
+
     },
     "Subscribe" : {
       "localizations" : {
@@ -52785,6 +52821,9 @@
           }
         }
       }
+    },
+    "Title" : {
+
     },
     "Top Leading" : {
       "localizations" : {
@@ -57794,6 +57833,12 @@
           }
         }
       }
+    },
+    "You need to be signed in to submit designs to the community." : {
+
+    },
+    "Your submission will be reviewed before appearing in the community." : {
+
     },
     "Z Index" : {
       "localizations" : {

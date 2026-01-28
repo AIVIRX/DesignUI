@@ -41,6 +41,9 @@
 		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
 		EC7D7BF12C19E520003134B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BF02C19E520003134B1 /* SettingsView.swift */; };
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
+		EC86A0F92F29E02800FD74CA /* CommunitySubmissionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC86A0F82F29E02800FD74CA /* CommunitySubmissionViewModel.swift */; };
+		EC86A0FD2F29E03A00FD74CA /* SubmitToCommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC86A0FB2F29E03A00FD74CA /* SubmitToCommunityView.swift */; };
+		EC86A0FE2F29E03A00FD74CA /* MySubmissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC86A0FA2F29E03A00FD74CA /* MySubmissionsView.swift */; };
 		EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */; };
 		EC8D7B2B2F20711F008E4AB3 /* UnsplashGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
@@ -164,6 +167,9 @@
 		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
+		EC86A0F82F29E02800FD74CA /* CommunitySubmissionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunitySubmissionViewModel.swift; sourceTree = "<group>"; };
+		EC86A0FA2F29E03A00FD74CA /* MySubmissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MySubmissionsView.swift; sourceTree = "<group>"; };
+		EC86A0FB2F29E03A00FD74CA /* SubmitToCommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitToCommunityView.swift; sourceTree = "<group>"; };
 		EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC8D7B282F2070DC008E4AB3 /* UnsplashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashService.swift; sourceTree = "<group>"; };
 		EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashGalleryView.swift; sourceTree = "<group>"; };
@@ -280,6 +286,15 @@
 				EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */,
 			);
 			path = Paywall;
+			sourceTree = "<group>";
+		};
+		EC86A0FC2F29E03A00FD74CA /* Community */ = {
+			isa = PBXGroup;
+			children = (
+				EC86A0FA2F29E03A00FD74CA /* MySubmissionsView.swift */,
+				EC86A0FB2F29E03A00FD74CA /* SubmitToCommunityView.swift */,
+			);
+			path = Community;
 			sourceTree = "<group>";
 		};
 		EC96C2DC2F25891B00DA8459 /* Components */ = {
@@ -464,6 +479,7 @@
 		ECD13FDA2C18BC3200105B3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				EC86A0F82F29E02800FD74CA /* CommunitySubmissionViewModel.swift */,
 				ECFF2C7E2D559500006A7FE6 /* AuthViewModel.swift */,
 				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
@@ -481,6 +497,7 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				EC86A0FC2F29E03A00FD74CA /* Community */,
 				EC96C2DC2F25891B00DA8459 /* Components */,
 				EC9F546F2E187F8E00AAE9EC /* Blog */,
 				ECB94C542EFB0C19000AAF34 /* Editor */,
@@ -708,6 +725,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				ECAF056B2F18B826008F9BEA /* RippleImageView.swift in Sources */,
+				EC86A0FD2F29E03A00FD74CA /* SubmitToCommunityView.swift in Sources */,
+				EC86A0FE2F29E03A00FD74CA /* MySubmissionsView.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				ECA67B0B2F2899A50021941D /* HapticManager.swift in Sources */,
 				ECA67B0C2F2899A50021941D /* UnsplashService.swift in Sources */,
@@ -731,6 +750,7 @@
 				ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */,
 				ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */,
 				ECB94C702EFB0C6F000AAF34 /* UIBuilderView.swift in Sources */,
+				EC86A0F92F29E02800FD74CA /* CommunitySubmissionViewModel.swift in Sources */,
 				EC37CE252F196758006CFD08 /* DesignCards.swift in Sources */,
 				ECB94C732EFB0C6F000AAF34 /* ComponentRenderer.swift in Sources */,
 				ECB94C742EFB0C6F000AAF34 /* DesignTemplate.swift in Sources */,
