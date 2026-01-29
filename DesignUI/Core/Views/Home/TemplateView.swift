@@ -224,93 +224,12 @@ extension ExploreView {
     private var postsGridView: some View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
-            if #available(iOS 16.0, *) {
-                LazyMasonryView(
-                    items: feedItems,
-                    columns: 2,
-                    spacing: 8,
-                    hasMorePosts: viewModel.hasMorePosts,
-                    isLoading: viewModel.isLoading,
-                    loadMoreHandler: { item in
-                        guard let feedItem = item else { return }
-                        
-                        // Only trigger loading for posts, not ads
-                        if case .post(let post) = feedItem {
-                            Task {
-                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
-                            }
-                        }
-                        // Ad items don't trigger loading - just return
-                    }
-                ) { item in
-                    feedItemCell(for: item)
-                }
-                .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
-            } else {
-                gridView(spacing: 8, horizontalPadding: 8, verticalPadding: 8)
-            }
+             gridView(spacing: 8, horizontalPadding: 8, verticalPadding: 8)
         } else {
-            // iPad: Use adaptive columns based on available width
-            if #available(iOS 16.0, *) {
-                AdaptiveColumnMasonryView(
-                    items: feedItems,
-                    minColumnWidth: 200,
-                    maxColumns: 6,
-                    spacing: 16,
-                    hasMorePosts: viewModel.hasMorePosts,
-                    isLoading: viewModel.isLoading,
-                    searchText: searchText,
-                    loadMoreHandler: { item in
-                        guard let feedItem = item else { return }
-                        
-                        // Only trigger loading for posts, not ads
-                        if case .post(let post) = feedItem {
-                            Task {
-                                await viewModel.loadMorePostsIfNeeded(currentItem: post)
-                            }
-                        }
-                        // Ad items don't trigger loading - just return
-                    }
-                ) { item in
-                    feedItemCell(for: item)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-            } else {
-                gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
-            }
+             gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
         }
 #else
-        if #available(macOS 13.0, *) {
-            LazyMasonryView(
-                items: feedItems,
-                columns: 5,
-                spacing: 16,
-                hasMorePosts: viewModel.hasMorePosts,
-                isLoading: viewModel.isLoading,
-                loadMoreHandler: { item in
-                    guard let feedItem = item else { return }
-                    
-                    // Only trigger loading for posts, not ads
-                    if case .post(let post) = feedItem {
-                        Task {
-                            await viewModel.loadMorePostsIfNeeded(currentItem: post)
-                        }
-                    }
-                    // Ad items don't trigger loading - just return
-                }
-            ) { item in
-                feedItemCell(for: item)
-            }
-            .id("masonry-\(searchText)") // Only reset when search changes, not on pagination
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-        } else {
-            gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
-        }
+        gridView(spacing: 16, horizontalPadding: 16, verticalPadding: 16)
 #endif
     }
     
@@ -388,58 +307,4 @@ extension ExploreView {
     }
 }
 
-#if os(iOS)
 
-// Preference key to read container width
-struct ContainerWidthKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-// Helper view for adaptive column layout on iPad
-@available(iOS 16.0, *)
-struct AdaptiveColumnMasonryView<Content: View, Item: Identifiable>: View {
-    let items: [Item]
-    let minColumnWidth: CGFloat
-    let maxColumns: Int
-    let spacing: CGFloat
-    let hasMorePosts: Bool
-    let isLoading: Bool
-    let searchText: String
-    let loadMoreHandler: ((Item?) -> Void)?
-    let content: (Item) -> Content
-    
-    @State private var containerWidth: CGFloat = 0
-    
-    var calculatedColumns: Int {
-        guard containerWidth > 0 else { return 5 } // Default to 5 columns
-        let calculated = max(2, Int(containerWidth / (minColumnWidth + spacing)))
-        return min(calculated, maxColumns)
-    }
-    
-    var body: some View {
-        LazyMasonryView(
-            items: items,
-            columns: calculatedColumns,
-            spacing: spacing,
-            hasMorePosts: hasMorePosts,
-            isLoading: isLoading,
-            loadMoreHandler: loadMoreHandler
-        ) { item in
-            content(item)
-        }
-        .id("masonry-\(searchText)-\(calculatedColumns)")
-        .background(
-            GeometryReader { geometry in
-                Color.clear
-                    .preference(key: ContainerWidthKey.self, value: geometry.size.width)
-            }
-        )
-        .onPreferenceChange(ContainerWidthKey.self) { width in
-            containerWidth = width
-        }
-    }
-}
-#endif

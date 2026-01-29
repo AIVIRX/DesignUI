@@ -42,6 +42,22 @@ struct SubmitToCommunityView: View {
                         dismiss()
                     }
                 }
+                
+                #if os(macOS)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        submitAction()
+                    } label: {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Text("Submit")
+                        }
+                    }
+                    .disabled(title.isEmpty || viewModel.isLoading)
+                }
+                #endif
             }
             .alert("Error", isPresented: $viewModel.showError) {
                 Button("OK", role: .cancel) { }
@@ -147,7 +163,9 @@ struct SubmitToCommunityView: View {
                 infoBanner
                 
                 // Submit Button
+                #if os(iOS)
                 submitButton
+                #endif
             }
             .padding()
         }
@@ -208,15 +226,19 @@ struct SubmitToCommunityView: View {
         .cornerRadius(12)
     }
     
+    private func submitAction() {
+        Task {
+            await viewModel.submitDesign(
+                designFile: designFile,
+                title: title.isEmpty ? designFile.name : title,
+                description: description
+            )
+        }
+    }
+    
     private var submitButton: some View {
         Button {
-            Task {
-                await viewModel.submitDesign(
-                    designFile: designFile,
-                    title: title.isEmpty ? designFile.name : title,
-                    description: description
-                )
-            }
+            submitAction()
         } label: {
             Group {
                 if viewModel.isLoading {

@@ -31,6 +31,7 @@ struct CommunitySubmission: Identifiable, Codable {
 
 /// Payload for creating a new community submission
 private struct SubmissionPayload: Encodable {
+    let id: String
     let title: String
     let description: String
     let preview_image_url: String
@@ -55,7 +56,7 @@ class CommunitySubmissionViewModel: ObservableObject {
     @Published var submissionSuccess = false
     
     private let client = SupabaseManager.shared.client
-    private let storageBucket = "design-images"
+    private let storageBucket = "preview-images"
     
     // MARK: - Submit Design
     
@@ -88,12 +89,17 @@ class CommunitySubmissionViewModel: ObservableObject {
                 throw SubmissionError.previewCaptureFailed
             }
             
-            // 2. Upload preview image
+            // 2. Generate Post ID
+            let postId = UUID().uuidString
+            
+            // 3. Upload preview image
             uploadProgress = "Uploading preview image..."
+            // Path: userid/postid/image.jpg (using png extension for consistency with data)
+            let imagePath = "\(userId)/\(postId)/preview.png"
+            
             let previewUrl = try await uploadImage(
                 data: previewData,
-                fileName: "\(UUID().uuidString).png",
-                folder: "previews"
+                path: imagePath
             )
             
             // 3. Process design JSON - upload any embedded images
@@ -106,6 +112,7 @@ class CommunitySubmissionViewModel: ObservableObject {
             // 5. Create submission payload
             uploadProgress = "Submitting to community..."
             let payload = SubmissionPayload(
+                id: postId,
                 title: title,
                 description: description,
                 preview_image_url: previewUrl,
@@ -132,11 +139,18 @@ class CommunitySubmissionViewModel: ObservableObject {
             return true
             
         } catch {
-            errorMessage = "Failed to submit design: \(error.localizedDescription)"
+            print("❌ Submission error: \(error)")
+            
+            let errorString = "\(error)"
+            if errorString.localizedCaseInsensitiveContains("bucket not found") || error.localizedDescription.localizedCaseInsensitiveContains("bucket not found") {
+                errorMessage = "Configuration Error: Storage bucket '\(storageBucket)' not found. Please create it in Supabase."
+            } else {
+                errorMessage = "Failed to submit design: \(error.localizedDescription)"
+            }
+            
             showError = true
             isLoading = false
             isUploading = false
-            print("❌ Submission error: \(error)")
             return false
         }
     }
@@ -171,8 +185,8 @@ class CommunitySubmissionViewModel: ObservableObject {
     // MARK: - Image Upload
     
     /// Upload an image to Supabase storage
-    private func uploadImage(data: Data, fileName: String, folder: String) async throws -> String {
-        let path = "\(folder)/\(fileName)"
+    private func uploadImage(data: Data, path: String) async throws -> String {
+
         
         _ = try await client.storage
             .from(storageBucket)
