@@ -332,6 +332,10 @@ struct DesignCardView: View {
                 Spacer()
                 
                 Menu {
+                    Button("Open") {
+                        onOpen()
+                    }
+                    
                     Button("Rename") {
                         onRename()
                     }
@@ -365,6 +369,13 @@ struct DesignCardView: View {
             withAnimation(.easeOut(duration: 0.2)) {
                 isHovered = hovering
             }
+            #if os(macOS)
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+            #endif
         }
         .onTapGesture {
             onOpen()
@@ -523,6 +534,13 @@ struct TemplateCardView: View {
             withAnimation(.easeOut(duration: 0.2)) {
                 isHovered = hovering
             }
+            #if os(macOS)
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+            #endif
         }
         .onTapGesture {
             onSelect()

@@ -46,6 +46,7 @@ class CanvasManager: ObservableObject {
     @Published var zoomLevel: CGFloat = 1.0
     @Published var canvasOffset: CGSize = .zero
     @Published var centerCanvasTrigger: Bool = false // Triggers canvas centering when toggled
+    @Published var scrollToSelectionTrigger: Bool = false // Triggers scrolling to selection
     
     // Special status bar component
     @Published var statusBarComponent: UIComponent?
@@ -797,6 +798,24 @@ class CanvasManager: ObservableObject {
     // MARK: - Canvas Controls
     func zoomIn() {
         zoomLevel = min(zoomLevel * 1.2, 5.0)
+    }
+    
+    // MARK: - Frame Calculations
+    
+    /// Calculate absolute frame of a component including all parent offsets
+    func getAbsoluteFrame(for component: UIComponent) -> CGRect {
+        // Start with component's own frame
+        var frame = component.frame
+        
+        // Find parent and add its origin recursively
+        var current = component
+        while let parentId = findParentId(of: current.id), let parent = findComponent(by: parentId) {
+            frame.origin.x += parent.frame.origin.x
+            frame.origin.y += parent.frame.origin.y
+            current = parent
+        }
+        
+        return frame
     }
     
     func zoomOut() {

@@ -189,6 +189,34 @@ struct CanvasView: View {
                     currentOffset = .zero
                 }
             }
+            .onChange(of: canvasManager.scrollToSelectionTrigger) {
+                // Scroll to selected component
+                if let selected = canvasManager.selectedComponent {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        // Get component absolute frame
+                        let absoluteFrame = canvasManager.getAbsoluteFrame(for: selected)
+                        let center = CGPoint(x: absoluteFrame.midX, y: absoluteFrame.midY)
+                        
+                        // Current device size
+                        let deviceSize = selectedDevice.size
+                        let deviceCenter = CGPoint(x: deviceSize.width / 2, y: deviceSize.height / 2)
+                        
+                        // Calculate offset needed to bring component center to device center
+                        // Note: The canvas pan logic applies offset to the devicePreview
+                        // So if we want to move content at (x,y) to (0,0), we need offset (-x, -y)
+                        // But (0,0) is top-left, we want to move it to view center.
+                        // Actually, the devicePreview is centered in GeometryReader by default.
+                        // offset(x, y) moves it FROM center.
+                        // If we want a point 'center' component to be at screen center,
+                        // we need to shift the device so that 'center' aligns with deviceCenter.
+                        // Shift = deviceCenter - center
+                        let targetOffsetX = (deviceCenter.x - center.x) * canvasManager.zoomLevel
+                        let targetOffsetY = (deviceCenter.y - center.y) * canvasManager.zoomLevel
+                        
+                        currentOffset = CGSize(width: targetOffsetX, height: targetOffsetY)
+                    }
+                }
+            }
         }
         .clipped()
     }

@@ -1000,6 +1000,19 @@ struct UIBuilderView: View {
                 .toolbar(.hidden, for: .navigationBar)
             }
             .id(canvasManager.selectedComponent?.id)
+            .onChange(of: canvasManager.selectedComponent?.id) { oldValue, newValue in
+                // On iPhone, when selection changes and we are in properties view, scroll to it
+                if newValue != nil {
+                    #if os(iOS)
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        // Small delay to ensure view is ready
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            canvasManager.scrollToSelectionTrigger.toggle()
+                        }
+                    }
+                    #endif
+                }
+            }
             
         case .canvas:
             NavigationStack {

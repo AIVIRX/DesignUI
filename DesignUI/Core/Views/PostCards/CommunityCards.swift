@@ -8,6 +8,9 @@
 import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 struct CommunityCards: View {
     let post: DesignPost
@@ -201,6 +204,13 @@ struct CommunityCards: View {
         .contentShape(Rectangle()) // Make the whole area hoverable/tappable
         .onHover { hovering in
             isHovered = hovering
+            #if os(macOS)
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+            #endif
         }
     }
     

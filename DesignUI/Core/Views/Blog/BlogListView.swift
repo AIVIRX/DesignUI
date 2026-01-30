@@ -20,7 +20,7 @@ struct NewsListView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .center, spacing: 16) {
                     heroView
                     
                     let gridPosts = Array(viewModel.posts)
@@ -35,9 +35,9 @@ struct NewsListView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
+                        .frame(maxWidth: 1800)
                     }
                 }
-                .frame(maxWidth: 1800)
                 .frame(maxWidth: .infinity)
                 .navigationTitle("News")
 #if os(iOS)
