@@ -9,7 +9,7 @@ import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
 
-struct DesignCards: View {
+struct CommunityCards: View {
     let post: DesignPost
     var showDeleteButton: Bool = false
     var onDelete: (() -> Void)? = nil
@@ -88,8 +88,8 @@ struct DesignCards: View {
                         if showDeleteButton, let onDelete = onDelete {
                             Button(action: onDelete) {
                                 Image(systemName: "trash")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
                             }
                             .buttonStyle(.plain)
                         }
@@ -102,18 +102,28 @@ struct DesignCards: View {
                     .offset(x: -6, y: 6)
                 }
             }
-            .overlay(
-                Color.white.opacity(isHovered ? 0.1 : 0)
-                    .blendMode(.screen)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .allowsHitTesting(false)
-            )
+            // Hover effect on the image
+            .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
             .scaleEffect(isHovered ? 1.02 : 1.0)
             .animation(.easeInOut(duration: 0.2), value: isHovered)
             .zIndex(isHovered ? 10 : 0)
-            .onHover { hovering in
-                isHovered = hovering
+            
+            // Title and Author Row
+            HStack {
+                Text(title)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text(authorName)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
             }
+            .padding(.top, 2)
+            
 #else
             NavigationLink(destination: DetailView(
                 id: id,
@@ -126,12 +136,34 @@ struct DesignCards: View {
                 isPremium: isPremium,
                 isComponent: isComponent
             )) {
-                imageView
+                VStack(alignment: .leading, spacing: 8) {
+                    imageView
+                    
+                    HStack {
+                        Text(title)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        Text(authorName)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                    .padding(.top, 2)
+                }
             }
+            .buttonStyle(PlainButtonStyle()) // Needed for proper tap behavior in lists
             .simultaneousGesture(TapGesture().onEnded {
                 HapticManager.shared.triggerImpact(style: .soft)
             })
 #endif
+        }
+        .contentShape(Rectangle()) // Make the whole area hoverable/tappable
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
     
@@ -141,7 +173,7 @@ struct DesignCards: View {
         // Components: landscape style (horizontal left/right) - aspect ratio > 1 (width > height)
         let aspectRatio: CGFloat = isComponent ? 1.6 : 0.55
         
-        RippleImageView(mediaURL: media, aspectRatio: aspectRatio) { location in
+        RippleImageView(mediaURL: media, aspectRatio: aspectRatio, cornerRadius: 12, showStroke: false) { location in
             // Optional: Handle logic on long press if needed
         }
         .id(media)
