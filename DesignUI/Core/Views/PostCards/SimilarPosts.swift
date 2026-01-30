@@ -17,7 +17,7 @@ struct SimilarPostsView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(similarPosts) { post in
-                            DesignCards(post: post)
+                            CommunityCards(post: post)
                             .frame(width: 200) // Constrain width for horizontal scroll
                         }
                     }

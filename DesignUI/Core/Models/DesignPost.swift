@@ -14,10 +14,11 @@ struct DesignPost: Identifiable, Codable, Equatable {
     var description: String = ""  // Optional - not loaded in feed, fetched in DetailView
     var code_snippet: String = "" // Optional - not loaded in feed, fetched in DetailView
     let created_at: String
+    var design_json: DesignFileData? // Optional - full design data
     let profiles: AuthorProfile
-    let isPremium: Bool?
-    let post_type: String?
-    let status: String?
+    var isPremium: Bool = false
+    var post_type: String?
+    var status: String?
     
     struct AuthorProfile: Codable, Equatable {
         let username: String
@@ -34,9 +35,9 @@ struct DesignPost: Identifiable, Codable, Equatable {
         case created_at
         case profiles
         case isPremium
-        case is_premium
         case post_type
         case status
+        case design_json
     }
     
     init(from decoder: Decoder) throws {
@@ -53,11 +54,12 @@ struct DesignPost: Identifiable, Codable, Equatable {
         // Support either camelCase (isPremium) or snake_case (is_premium)
         if let premium = try container.decodeIfPresent(Bool.self, forKey: .isPremium) {
             isPremium = premium
-        } else {
-            isPremium = try container.decodeIfPresent(Bool.self, forKey: .is_premium)
         }
         post_type = try container.decodeIfPresent(String.self, forKey: .post_type)
         status = try container.decodeIfPresent(String.self, forKey: .status)
+        // Try decoding design_json directly if it matches DesignFileData
+        // Use try? to prevent entire post fetch failure if design_json schema doesn't match
+        design_json = try? container.decodeIfPresent(DesignFileData.self, forKey: .design_json)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -70,14 +72,13 @@ struct DesignPost: Identifiable, Codable, Equatable {
         try container.encode(code_snippet, forKey: .code_snippet)
         try container.encode(created_at, forKey: .created_at)
         try container.encode(profiles, forKey: .profiles)
-        if let isPremium = isPremium {
-            try container.encode(isPremium, forKey: .isPremium)
-        }
+        try container.encode(isPremium, forKey: .isPremium)
         if let post_type = post_type {
             try container.encode(post_type, forKey: .post_type)
         }
         if let status = status {
             try container.encode(status, forKey: .status)
         }
+        try container.encodeIfPresent(design_json, forKey: .design_json)
     }
 }

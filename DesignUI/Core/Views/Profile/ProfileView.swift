@@ -434,9 +434,7 @@ struct ProfileView: View {
     }
     
     private func gridView(spacing: CGFloat, horizontalPadding: CGFloat) -> some View {
-        let columns = [
-            GridItem(.adaptive(minimum: 150), spacing: spacing)
-        ]
+        let columns = GridConfiguration.shared.columns
         
         return LazyVGrid(columns: columns, spacing: spacing) {
             ForEach(posts) { post in
@@ -460,7 +458,7 @@ struct ProfileView: View {
         let isDenied = status == "denied" || status == "rejected"
         
         ZStack {
-            DesignCards(
+            CommunityCards(
                 post: post,
                 showDeleteButton: !isLikedFilter,
                 onDelete: !isLikedFilter ? {

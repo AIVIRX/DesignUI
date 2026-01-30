@@ -206,8 +206,12 @@ struct DetailView: View {
     }
     
     private func fetchPostDetailsIfNeeded() async {
-        // Only fetch if code snippet is empty (not loaded in feed)
-        guard codeSnippet.isEmpty && loadedCodeSnippet == nil else { return }
+        // Fetch if code snippet OR description is missing.
+        // Also fetch if we haven't loaded them yet.
+        let needsFetch = (codeSnippet.isEmpty && loadedCodeSnippet == nil) || 
+                        (description.isEmpty && loadedDescription == nil)
+        
+        guard needsFetch else { return }
         
         await MainActor.run {
             isLoadingDetails = true
@@ -225,6 +229,9 @@ struct DetailView: View {
             print("Error fetching post details: \(error.localizedDescription)")
             await MainActor.run {
                 isLoadingDetails = false
+                // Optionally set an error state here to show in UI
+                // self.error = error
+                // Fallback: loadedDescription = "Could not load details."
             }
         }
     }

@@ -14,7 +14,19 @@ import UIKit
 
 struct DesignBrowserView: View {
     @EnvironmentObject private var designManager: DesignManager
+    
+    var body: some View {
+        NavigationStack {
+            DesignBrowserContent()
+        }
+    }
+}
+
+struct DesignBrowserContent: View {
+    @EnvironmentObject private var designManager: DesignManager
     @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var communityViewModel = LatestPostsViewModel()
+    
     @State private var showingNewDesignSheet = false
     @State private var newDesignName = ""
     @State private var showingDeleteAlert = false
@@ -44,10 +56,10 @@ struct DesignBrowserView: View {
     }
     
     private var browserContent: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Main Content
-                ScrollView {
+        VStack(spacing: 0) {
+            // Main Content
+            ScrollView {
+                VStack(spacing: 24) {
                     // User's Designs Section
                     VStack(alignment: .leading, spacing: 16) {
                         Text("My Designs")
@@ -114,7 +126,6 @@ struct DesignBrowserView: View {
                         
                         TemplatesGridView(
                             onSelectTemplate: { template in
-                                // Check if user can create more designs
                                 if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
                                     showingLimitAlert = true
                                 } else {
@@ -125,25 +136,92 @@ struct DesignBrowserView: View {
                             }
                         )
                     }
+                    
+                    Divider()
+                        .padding(.horizontal)
+                    
+                    // Community Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Community")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
+                        
+                        if communityViewModel.isLoading && communityViewModel.posts.isEmpty {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                        } else if communityViewModel.posts.isEmpty {
+                            Text("No community posts yet.")
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                        } else {
+                            LazyVGrid(columns: GridConfiguration.shared.columns, spacing: 16) {
+                                ForEach(communityViewModel.posts) { post in
+                                    CommunityCards(
+                                        post: post,
+                                        onOpen: { postToOpen in
+                                            // Check subscription limits first
+                                            if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                                                showingLimitAlert = true
+                                                return
+                                            }
+                                            
+                                            Task {
+                                                // TODO: Show global loading indicator if possible
+                                                do {
+                                                    // 1. Fetch full details (including design_json)
+                                                    let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
+                                                    
+                                                    // 2. Create DesignFile from post
+                                                    if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
+                                                        // 3. Open it
+                                                        await MainActor.run {
+                                                            designManager.openDesign(newDesign)
+                                                        }
+                                                    } else {
+                                                        print("Error: No design JSON found in post")
+                                                        // Handle error (maybe show toast)
+                                                    }
+                                                } catch {
+                                                    print("Error opening community design: \(error)")
+                                                }
+                                            }
+                                        }
+                                    )
+                                        .task {
+                                            await communityViewModel.loadMorePostsIfNeeded(currentItem: post)
+                                        }
+                                }
+                            }
+                            .frame(maxWidth: 1800)
+                            .padding(.horizontal)
+                        }
+                    }
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("Design Browser")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        // Check if user can create more designs
-                        if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                            showingLimitAlert = true
-                        } else {
-                            showingNewDesignSheet = true
-                        }
-                    }) {
-                        Label("New Design", systemImage: "plus")
+        }
+        .task {
+            if communityViewModel.posts.isEmpty {
+                await communityViewModel.fetchPostsByType(postType: nil, isAllPosts: true)
+            }
+        }
+        .navigationTitle("Design Browser")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    // Check if user can create more designs
+                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                        showingLimitAlert = true
+                    } else {
+                        showingNewDesignSheet = true
                     }
+                }) {
+                    Label("New Design", systemImage: "plus")
                 }
             }
         }

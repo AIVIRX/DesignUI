@@ -14,9 +14,14 @@ struct CommunitySubmission: Identifiable, Codable {
     let title: String
     let description: String?
     let preview_image_url: String?
-    let submission_status: String
+    private let status_raw: String
     let created_at: String
     let original_post_id: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, title, description, preview_image_url, created_at, original_post_id
+        case status_raw = "status"
+    }
     
     enum SubmissionStatus: String {
         case pending = "pending"
@@ -25,7 +30,7 @@ struct CommunitySubmission: Identifiable, Codable {
     }
     
     var status: SubmissionStatus {
-        SubmissionStatus(rawValue: submission_status) ?? .pending
+        SubmissionStatus(rawValue: status_raw) ?? .pending
     }
 }
 
@@ -37,7 +42,7 @@ private struct SubmissionPayload: Encodable {
     let preview_image_url: String
     let design_json: String
     let author_id: String
-    let submission_status: String
+    let status: String
     let original_post_id: String?
     let slug: String
     let post_type: String
@@ -118,7 +123,7 @@ class CommunitySubmissionViewModel: ObservableObject {
                 preview_image_url: previewUrl,
                 design_json: processedDesignJson,
                 author_id: userId.uuidString,
-                submission_status: "pending",
+                status: "pending",
                 original_post_id: existingPostId,
                 slug: slug,
                 post_type: "design",
@@ -166,7 +171,7 @@ class CommunitySubmissionViewModel: ObservableObject {
         do {
             let response = try await client
                 .from("posts")
-                .select("id, title, description, preview_image_url, submission_status, created_at, original_post_id")
+                .select("id, title, description, preview_image_url, status, created_at, original_post_id")
                 .eq("author_id", value: userId.uuidString)
                 .order("created_at", ascending: false)
                 .execute()

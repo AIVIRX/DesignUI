@@ -29784,6 +29784,7 @@
       }
     },
     "Loading posts..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -31791,6 +31792,9 @@
           }
         }
       }
+    },
+    "No community posts yet." : {
+
     },
     "No Component Selected" : {
       "extractionState" : "stale",

@@ -133,7 +133,7 @@ struct LikedPostsView: View {
     }
     
     private func gridView(spacing: CGFloat, horizontalPadding: CGFloat) -> some View {
-        LazyVGrid(columns: gridColumns, spacing: spacing) {
+        LazyVGrid(columns: GridConfiguration.shared.columns, spacing: spacing) {
             ForEach(viewModelLiked.likedPosts) { post in
                 likedPostCell(for: post)
                     .task {
@@ -146,6 +146,6 @@ struct LikedPostsView: View {
     
     @ViewBuilder
     private func likedPostCell(for post: DesignPost) -> some View {
-        DesignCards(post: post)
+       CommunityCards(post: post)
     }
 }

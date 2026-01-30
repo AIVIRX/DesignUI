@@ -10,7 +10,7 @@ import Foundation
 
 /// Represents a single page/screen within a design file.
 /// Each page has its own components, device preset, color scheme, and status bar settings.
-class DesignPage: ObservableObject, Identifiable, Codable {
+class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
     let id: UUID
     @Published var name: String
     @Published var components: [UIComponent]
@@ -57,6 +57,18 @@ class DesignPage: ObservableObject, Identifiable, Codable {
         try container.encodeIfPresent(devicePreset, forKey: .devicePreset)
         try container.encodeIfPresent(colorScheme, forKey: .colorScheme)
         try container.encode(statusBarVisible, forKey: .statusBarVisible)
+    }
+    
+    // MARK: - Equatable
+    
+    static func == (lhs: DesignPage, rhs: DesignPage) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.name == rhs.name &&
+               lhs.components == rhs.components &&
+               lhs.thumbnail == rhs.thumbnail &&
+               lhs.devicePreset == rhs.devicePreset &&
+               lhs.colorScheme == rhs.colorScheme &&
+               lhs.statusBarVisible == rhs.statusBarVisible
     }
     
     // MARK: - Deep Copy

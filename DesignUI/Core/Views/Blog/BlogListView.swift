@@ -37,6 +37,7 @@ struct NewsListView: View {
                         }
                     }
                 }
+                .frame(maxWidth: 1800)
                 .frame(maxWidth: .infinity)
                 .navigationTitle("News")
 #if os(iOS)

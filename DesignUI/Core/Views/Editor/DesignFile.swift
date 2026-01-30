@@ -344,7 +344,7 @@ class DesignFile: ObservableObject, Identifiable {
 }
 
 // MARK: - Design File Data (for JSON encoding/decoding)
-struct DesignFileData: Codable {
+struct DesignFileData: Codable, Equatable {
     let name: String
     let pages: [DesignPage]?  // New: array of pages
     let currentPageIndex: Int?  // New: current page index
@@ -819,6 +819,39 @@ class DesignManager: ObservableObject {
         
         designFiles.insert(designFile, at: 0)
         return designFile
+    }
+
+    func createDesignFromPost(post: DesignPost, name: String) -> DesignFile? {
+        // Ensure we have design data
+        guard let designData = post.design_json else { return nil }
+        
+        // Generate unique file name
+        let uniqueFileName = generateUniqueFileName(baseName: name)
+        let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
+        let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
+        
+        let newDesign: DesignFile
+        
+        // Use pages if available (new format), else legacy components
+        if let pages = designData.pages, !pages.isEmpty {
+            newDesign = DesignFile(name: displayName, pages: pages, fileURL: fileURL)
+            newDesign.currentPageIndex = min(designData.currentPageIndex ?? 0, pages.count - 1)
+        } else {
+            // Legacy fallback
+            newDesign = DesignFile(name: displayName, components: designData.components ?? [], fileURL: fileURL)
+        }
+        
+        // Restore meta-settings
+        newDesign.canvasColorScheme = designData.canvasColorScheme ?? "light"
+        newDesign.selectedDevicePreset = designData.selectedDevicePreset ?? "iPhone 17 Pro Max"
+        newDesign.statusBarVisible = designData.statusBarVisible ?? true
+        
+        // Save to disk
+        newDesign.save()
+        
+        // Add to manager
+        designFiles.insert(newDesign, at: 0)
+        return newDesign
     }
     
     private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {

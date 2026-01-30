@@ -444,6 +444,7 @@ enum PostFetcher {
                 isPremium,
                 post_type,
                 status,
+                design_json,
                 profiles!posts_author_id_fkey (
                   username,
                   verified
