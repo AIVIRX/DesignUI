@@ -95,12 +95,6 @@ enum DevicePreset: String, CaseIterable, Identifiable {
     case iphone14Pro = "iPhone 14 Pro"
     case iphone14ProMax = "iPhone 14 Pro Max"
     
-    // iPhone 13 Series
-    case iphone13Mini = "iPhone 13 mini"
-    case iphone13 = "iPhone 13"
-    case iphone13Pro = "iPhone 13 Pro"
-    case iphone13ProMax = "iPhone 13 Pro Max"
-    
     // iPad Series
     case ipadPro11 = "iPad Pro 11" 
     case ipadPro12 = "iPad Pro 12.9"
@@ -124,8 +118,7 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         switch self {
         case .iphone17ProMax, .iphone16, .iphone16Plus, .iphone16Pro, .iphone16ProMax,
              .iphone15Pro, .iphone15ProMax, .iphone15, .iphone15Plus,
-             .iphone14, .iphone14Pro, .iphone14ProMax,
-             .iphone13Mini, .iphone13, .iphone13Pro, .iphone13ProMax:
+             .iphone14, .iphone14Pro, .iphone14ProMax:
             return .iphone
         case .ipadPro11, .ipadPro12:
             return .ipad
@@ -169,12 +162,6 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         case .iphone14: return CGSize(width: 390, height: 844) // 6.1" display
         case .iphone14Pro: return CGSize(width: 393, height: 852) // 6.1" display
         case .iphone14ProMax: return CGSize(width: 430, height: 932) // 6.7" display
-        
-        // iPhone 13 Series - Based on actual viewport dimensions
-        case .iphone13Mini: return CGSize(width: 375, height: 812) // 5.4" display
-        case .iphone13: return CGSize(width: 390, height: 844) // 6.1" display
-        case .iphone13Pro: return CGSize(width: 390, height: 844) // 6.1" display
-        case .iphone13ProMax: return CGSize(width: 428, height: 926) // 6.7" display
         
         // iPad Series - Landscape orientation
         case .ipadPro11: return CGSize(width: 1194, height: 834) // 11" display
@@ -232,6 +219,8 @@ struct UIBuilderView: View {
     @State private var lastScreenshotRequestTime: Date = Date()
     private let screenshotDebounceInterval: TimeInterval = 3.0
     
+    @Environment(\.dismiss) private var dismiss
+    
     #if os(iOS)
     @State private var selection: PresentationDetent = .medium // Locked to medium
     @State private var activeTab: AppTab? = .layers // Optional to allow closing
@@ -240,6 +229,7 @@ struct UIBuilderView: View {
         case layers = "Layers"
         case properties = "Properties"
         case canvas = "Canvas"
+        case ai = "AI"
         case code = "Code"
         
         var id: String { rawValue }
@@ -249,6 +239,7 @@ struct UIBuilderView: View {
             case .layers: return "square.3.layers.3d.top.filled"
             case .properties: return "slider.horizontal.3"
             case .canvas: return "iphone"
+            case .ai: return "sparkles"
             case .code: return "chevron.left.forwardslash.chevron.right"
             }
         }
@@ -350,10 +341,18 @@ struct UIBuilderView: View {
                             removal: .move(edge: .trailing).combined(with: .opacity)
                         ))
                         .padding()
-                        .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
                         .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
                     }
                 }
+                
+                // AI Chat Overlay (Bottom Center)
+                VStack {
+                    Spacer()
+                    AIChatView(canvasManager: canvasManager, mode: .floating)
+                        .padding(.bottom, 24)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .zIndex(100)
             }
 #endif
         }
@@ -441,7 +440,7 @@ struct UIBuilderView: View {
                 // Sync design changes (persist components)
                 designFile.components = canvasManager.components
                 designFile.objectWillChange.send()
-                designManager.markAsChanged()
+                designFile.markAsChanged()
                 
                 // Capture screenshot immediately for undo stack changes
                 // (bypassing debounce since these are discrete, important state changes)
@@ -454,7 +453,7 @@ struct UIBuilderView: View {
         .onReceive(NotificationCenter.default.publisher(for: .statusBarVisibilityChanged)) { notification in
             if let isVisible = notification.object as? Bool {
                 designFile.statusBarVisible = isVisible
-                designManager.markAsChanged()
+                designFile.markAsChanged()
             }
         }
 
@@ -490,6 +489,7 @@ struct UIBuilderView: View {
     private var iOSToolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button(action: {
+                designFile.save()
                 designManager.closeCurrentDesign()
             }) {
                 Image(systemName: "chevron.left")
@@ -531,6 +531,8 @@ struct UIBuilderView: View {
         
         ToolbarItemGroup(placement: .primaryAction) {
             Menu {
+
+                
                 Button(action: { 
                     #if os(iOS)
                     if UIDevice.current.userInterfaceIdiom == .phone {
@@ -562,6 +564,7 @@ struct UIBuilderView: View {
     private var iPadToolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button(action: {
+                designFile.save()
                 designManager.closeCurrentDesign()
             }) {
                 Image(systemName: "chevron.left")
@@ -574,8 +577,15 @@ struct UIBuilderView: View {
                 // iPhones section
                 Section("iPhone") {
                     ForEach(DevicePreset.iphones) { preset in
-                        Button(preset.rawValue) {
+                        Button {
                             canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
                         }
                     }
                 }
@@ -585,8 +595,15 @@ struct UIBuilderView: View {
                 // iPads section
                 Section("iPad") {
                     ForEach(DevicePreset.ipads) { preset in
-                        Button(preset.rawValue) {
+                        Button {
                             canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
                         }
                     }
                 }
@@ -594,8 +611,15 @@ struct UIBuilderView: View {
                 // Widgets section
                 Section("Widgets") {
                     ForEach(DevicePreset.widgets) { preset in
-                        Button(preset.rawValue) {
+                        Button {
                             canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
                         }
                     }
                 }
@@ -611,10 +635,30 @@ struct UIBuilderView: View {
             }
             .help("Choose Device")
                         
-            // Color scheme toggle
-            Button(action: {
-                canvasManager.setColorScheme(canvasManager.colorScheme == .light ? .dark : .light)
-            }) {
+            // Color scheme menu
+            Menu {
+                Button {
+                    canvasManager.setColorScheme(.light)
+                } label: {
+                    HStack {
+                        Text("Light Mode")
+                        if canvasManager.colorScheme == .light {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+                
+                Button {
+                    canvasManager.setColorScheme(.dark)
+                } label: {
+                    HStack {
+                        Text("Dark Mode")
+                        if canvasManager.colorScheme == .dark {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            } label: {
                 Image(systemName: canvasManager.colorScheme == .light ? "sun.max.fill" : "moon.fill")
             }
             
@@ -641,6 +685,8 @@ struct UIBuilderView: View {
         
         ToolbarItemGroup(placement: .primaryAction) {
             Menu {
+
+                
                 Button(action: { showCodePreview = true }) {
                     Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
@@ -746,7 +792,7 @@ struct UIBuilderView: View {
                 captureScreenshot()
                 // Save to persist the thumbnail (wait shortly for capture)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    designManager.saveCurrentDesign()
+                    designFile.save()
                 }
             }
         }
@@ -1063,11 +1109,21 @@ struct UIBuilderView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .scrollContentBackground(.hidden)
             }
-        
+            
+        case .ai:
+             AIChatView(canvasManager: canvasManager, mode: .fullScreen)
+                .presentationDragIndicator(.visible)
+
         case .code:
-            CodePreviewView(canvasManager: canvasManager)
+            NavigationStack {
+                CodePreviewView(canvasManager: canvasManager)
+                    .navigationTitle("Code Preview")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
         }
     }
+        
+
     
     private var devicePresetsList: some View {
         List {
@@ -1190,20 +1246,6 @@ struct UIBuilderView: View {
     
     private var toolbarButtons: some ToolbarContent {
         Group{
-            #if os(macOS)
-            ToolbarItem(placement: .navigation) {
-                Button(action: {
-                    designManager.closeCurrentDesign()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                }
-                .help("Back to Designs")
-            }
-            #endif
-            
             ToolbarItemGroup(placement: .primaryAction) {
                 // Device Picker
                 Menu {
@@ -1315,13 +1357,10 @@ struct UIBuilderView: View {
                         Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                     
-                    Divider()
                     #else
                     Button(action: { showCodePreview = true }) {
                         Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
-                    
-                    Divider()
                     #endif
                     
                     Button(action: { saveAsScreenshot() }) {
@@ -1333,7 +1372,6 @@ struct UIBuilderView: View {
                     Button(action: { showCommunitySubmission = true }) {
                         Label("Submit to Community", systemImage: "globe")
                     }
-
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 14, weight: .medium))
@@ -1343,7 +1381,6 @@ struct UIBuilderView: View {
 
         }
     }
-
         
     private var magnificationGesture: some Gesture {
         MagnificationGesture()
@@ -1477,7 +1514,7 @@ struct UIBuilderView: View {
         canvasManager.saveInitialState()
         
         // Trigger save for the page switch
-        designManager.markAsChanged()
+        designFile.markAsChanged()
         
         print("📄 Switched to page \(pageIndex): \(newPage.name) with \(canvasManager.components.count) components")
     }
@@ -1514,7 +1551,7 @@ struct UIBuilderView: View {
         }
         
         // Trigger save
-        designManager.markAsChanged()
+        designFile.markAsChanged()
     }
     
     private func syncComponents() {
@@ -1523,7 +1560,7 @@ struct UIBuilderView: View {
             // Capture screenshot for thumbnail
             captureScreenshot()
             
-            designManager.markAsChanged()
+            designFile.markAsChanged()
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     
@@ -1531,7 +1568,7 @@ struct UIBuilderView: View {
             designFile.components = canvasManager.components
             // Don't capture screenshot on selection change - inefficient
             
-            designManager.markAsChanged()
+            designFile.markAsChanged()
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     
@@ -1542,7 +1579,7 @@ struct UIBuilderView: View {
             // to ensure captures happen at the right time (with each undo action)
             
             designFile.objectWillChange.send() // Force design file to recognize changes
-            designManager.markAsChanged()
+            designFile.markAsChanged()
     }
     
     // MARK: - Screenshot Capture

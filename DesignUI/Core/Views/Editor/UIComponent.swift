@@ -713,15 +713,19 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
         
         modifiers.append(newModifier)
-        objectWillChange.send()
         
-        // Post notification to trigger design file saving
-        NotificationCenter.default.post(name: .designChanged, object: nil)
+        Task { @MainActor in
+            objectWillChange.send()
+            // Post notification to trigger design file saving
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
     }
     
     func removeModifier(_ modifier: ComponentModifier) {
         // Save state for undo BEFORE making changes
-        NotificationCenter.default.post(name: .designWillChange, object: nil)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .designWillChange, object: nil)
+        }
         
         // For overlay, mask, and background modifiers, remove the parent component
         if modifier.type == .overlay || modifier.type == .mask || modifier.type == .background {
@@ -730,14 +734,16 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                 removeChild(child)
             }
             // Trigger UI update after removing children
-            objectWillChange.send()
+            Task { @MainActor in objectWillChange.send() }
         }
         
         modifiers.removeAll { $0.id == modifier.id }
-        objectWillChange.send()
         
-        // Post notification to trigger design file saving
-        NotificationCenter.default.post(name: .designChanged, object: nil)
+        Task { @MainActor in
+            objectWillChange.send()
+            // Post notification to trigger design file saving
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+        }
     }
     
     func removeModifier(at index: Int) {

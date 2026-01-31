@@ -63,9 +63,9 @@ struct CommunityCards: View {
                 )) {
                     VStack(alignment: .leading, spacing: 8) {
                         // Template Preview
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(height: 200)
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(Color.secondary.opacity(0.05))
+                            .frame(height: 240)
                             .overlay(
                                 WebImage(url: URL(string: media)) { image in
                                     if !isComponent{
@@ -95,7 +95,12 @@ struct CommunityCards: View {
                                 .transition(.fade(duration: 0.3))
                             )
                             .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
-                            .scaleEffect(isHovered ? 1.02 : 1.0)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                            )
+                            .scaleEffect(isHovered ? 1.03 : 1.0)
+
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -135,7 +140,7 @@ struct CommunityCards: View {
             }
             // Hover effect on the image
             .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
-            .scaleEffect(isHovered ? 1.02 : 1.0)
+            .scaleEffect(isHovered ? 1.03 : 1.0)
             .animation(.easeInOut(duration: 0.2), value: isHovered)
             .zIndex(isHovered ? 10 : 0)
 #else
@@ -216,30 +221,19 @@ struct CommunityCards: View {
     
     @ViewBuilder
     private var imageView: some View {
-        RoundedRectangle(cornerRadius: 12)
-            .fill(Color.gray.opacity(0.2))
-            .frame(height: 200)
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(Color.secondary.opacity(0.05))
+            .frame(height: 220)
             .overlay(
                 WebImage(url: URL(string: media)) { image in
-                    if !isComponent {
-                        image
-                            .renderingMode(.original)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .clipped()
-                            .padding()
-                    } else {
-                        image
-                            .renderingMode(.original)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .clipped()
-                            .padding()
-                    }
+                    image
+                        .renderingMode(.original)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+                        .padding()
                 } placeholder: {
                     ProgressView()
                         .frame(width: 30, height: 30)
@@ -247,7 +241,17 @@ struct CommunityCards: View {
                 .indicator(.activity)
                 .transition(.fade(duration: 0.3))
             )
-            .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
-            .scaleEffect(isHovered ? 1.02 : 1.0)
+            .shadow(
+                color: .black.opacity(isHovered ? 0.2 : 0.1),
+                radius: isHovered ? 16 : 8,
+                x: 0,
+                y: isHovered ? 8 : 4
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+            )
+            .scaleEffect(isHovered ? 1.03 : 1.0)
+
     }
 }

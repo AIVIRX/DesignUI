@@ -29,7 +29,7 @@ struct LargeHero: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             // Animated Fluid Gradient Background - stretches on overscroll
-            FluidGradient(blobs: [.purple, .blue, .cyan],
+            FluidGradient(blobs: [.purple, .blue, .mint, .indigo, .cyan],
                           speed: 0.4,
                           blur: 0.75)
                 .clipShape(RoundedRectangle(cornerRadius: cornerRadius ?? 20))
@@ -52,7 +52,7 @@ struct LargeHero: View {
                 Spacer()
                 
                 Text(name)
-                    .font(.largeTitle).bold()
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .shadow(color: Color.black.opacity(0.4), radius: 4, x: 0, y: 2)
                     .frame(maxWidth: .infinity, alignment: .leading)

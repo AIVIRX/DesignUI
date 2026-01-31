@@ -69,7 +69,9 @@ struct ProfileView: View {
                                 Image(systemName: "checkmark.seal.fill")
                                     .font(.system(size: 20))
                                     .foregroundColor(.blue)
+                                    .background(Circle().fill(Color.white).padding(2))
                                     .offset(x: 2, y: 2)
+                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                             }
                         }
                         // User Info
@@ -104,12 +106,12 @@ struct ProfileView: View {
                             VStack(spacing: 0) {
                                 HStack(spacing: 40) {
                                     // Liked Tab
-                                    VStack{
-                                        Button {
-                                            withAnimation(.easeInOut(duration: 0.2)) {
-                                                selectedTab = .liked
-                                            }
-                                        } label: {
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedTab = .liked
+                                        }
+                                    } label: {
+                                        VStack {
                                             HStack{
                                                 Image(systemName: "heart")
                                                     .foregroundColor(selectedTab == .liked ? .primary : .gray)
@@ -117,27 +119,26 @@ struct ProfileView: View {
                                              Text("Likes")
                                                     .font(.caption)
                                                     .foregroundColor(selectedTab == .liked ? .primary : .gray)
-
                                             }
-                                        }
-                                        .buttonStyle(.plain)
                                         
-                                        // Indicator
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .frame(width: 80, height: 3)
-                                            .foregroundColor(selectedTab == .liked ? .primary : .clear)
-                                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                                            .padding(.top, 16)
+                                            // Indicator
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .frame(width: 80, height: 3)
+                                                .foregroundColor(selectedTab == .liked ? .primary : .clear)
+                                                .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                                                .padding(.top, 16)
+                                        }
+                                        .contentShape(Rectangle())
                                     }
+                                    .buttonStyle(.plain)
                                     
-                                    VStack{
-                                        // My Posts Tab
-                                        Button {
-                                            withAnimation(.easeInOut(duration: 0.2)) {
-                                                selectedTab = .myPosts
-                                            }
-                                        } label: {
-                                            HStack{
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedTab = .myPosts
+                                        }
+                                    } label: {
+                                        VStack {
+                                            HStack {
                                                 Image(systemName: "square.grid.2x2")
                                                     .foregroundColor(selectedTab == .myPosts ? .primary : .gray)
                                                     .bold()
@@ -145,18 +146,18 @@ struct ProfileView: View {
                                                 Text("Posts")
                                                     .font(.caption)
                                                     .foregroundColor(selectedTab == .myPosts ? .primary : .gray)
-
                                             }
+                                            
+                                            // Indicator
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .frame(width: 80, height: 3)
+                                                .foregroundColor(selectedTab == .myPosts ? .primary : .clear)
+                                                .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                                                .padding(.top, 16)
                                         }
-                                        .buttonStyle(.plain)
-                                        
-                                        // Indicator
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .frame(width: 80, height: 3)
-                                            .foregroundColor(selectedTab == .myPosts ? .primary : .clear)
-                                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                                            .padding(.top, 16)
+                                        .contentShape(Rectangle())
                                     }
+                                    .buttonStyle(.plain)
                                 }
                                 .padding(.top)
                                 .frame(maxWidth: .infinity)

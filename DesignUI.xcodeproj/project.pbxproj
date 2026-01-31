@@ -114,6 +114,9 @@
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
 		ECDE7C9E2EB405AB00E80823 /* UsernameSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */; };
+		ECF5611F2F2DBCEF008150DE /* AIChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF5611C2F2DBCEF008150DE /* AIChatView.swift */; };
+		ECF561202F2DBCEF008150DE /* AIChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF5611D2F2DBCEF008150DE /* AIChatViewModel.swift */; };
+		ECF561222F2DC6F7008150DE /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF561212F2DC6F7008150DE /* AIService.swift */; };
 		ECFC6AC62EA9C48400177480 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ECFC6AC52EA9C48400177480 /* AppIcon.icon */; };
 		ECFDEA122F0F805C00540DD3 /* LatestPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */; };
 		ECFF2C792D55936B006A7FE6 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFF2C782D55936B006A7FE6 /* ProfileView.swift */; };
@@ -224,6 +227,9 @@
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSetupView.swift; sourceTree = "<group>"; };
+		ECF5611C2F2DBCEF008150DE /* AIChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatView.swift; sourceTree = "<group>"; };
+		ECF5611D2F2DBCEF008150DE /* AIChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatViewModel.swift; sourceTree = "<group>"; };
+		ECF561212F2DC6F7008150DE /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		ECFC6AC52EA9C48400177480 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatestPostsViewModel.swift; sourceTree = "<group>"; };
 		ECFF2C782D55936B006A7FE6 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -319,6 +325,7 @@
 		ECA67B0A2F2899A50021941D /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				ECF561212F2DC6F7008150DE /* AIService.swift */,
 				ECA67B082F2899A50021941D /* PurchasesService.swift */,
 				ECA67B092F2899A50021941D /* UnsplashService.swift */,
 			);
@@ -471,6 +478,7 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				ECF5611E2F2DBCEF008150DE /* AI */,
 				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
 				EC7D7BF02C19E520003134B1 /* SettingsView.swift */,
 				EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */,
@@ -519,6 +527,15 @@
 				ECC93A392F16D4C800D9F11E /* Templates */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		ECF5611E2F2DBCEF008150DE /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				ECF5611C2F2DBCEF008150DE /* AIChatView.swift */,
+				ECF5611D2F2DBCEF008150DE /* AIChatViewModel.swift */,
+			);
+			path = AI;
 			sourceTree = "<group>";
 		};
 		ECFF2C772D558CCA006A7FE6 /* Profile */ = {
@@ -674,6 +691,8 @@
 			files = (
 				EC86A0FD2F29E03A00FD74CA /* SubmitToCommunityView.swift in Sources */,
 				EC86A0FE2F29E03A00FD74CA /* MySubmissionsView.swift in Sources */,
+				ECF5611F2F2DBCEF008150DE /* AIChatView.swift in Sources */,
+				ECF561202F2DBCEF008150DE /* AIChatViewModel.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				ECA67B0B2F2899A50021941D /* HapticManager.swift in Sources */,
 				ECA67B0C2F2899A50021941D /* UnsplashService.swift in Sources */,
@@ -707,6 +726,7 @@
 				ECB94C792EFB0C6F000AAF34 /* Modifier.swift in Sources */,
 				EC37CE512F19C1F6006CFD08 /* UndoToastView.swift in Sources */,
 				ECB94C7A2EFB0C6F000AAF34 /* UIComponent.swift in Sources */,
+				ECF561222F2DC6F7008150DE /* AIService.swift in Sources */,
 				ECA67AFE2F285B610021941D /* LayersPanelView.swift in Sources */,
 				EC1A03B32F1D52100084FF52 /* DesignPage.swift in Sources */,
 				EC1A03B42F1D52100084FF52 /* PageSelectorBar.swift in Sources */,

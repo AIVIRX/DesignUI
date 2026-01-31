@@ -22,7 +22,7 @@ extension Notification.Name {
 
 // MARK: - Design File Model
 class DesignFile: ObservableObject, Identifiable {
-    let id = UUID()
+    let id: UUID
     @Published var name: String
     @Published var pages: [DesignPage]
     @Published var currentPageIndex: Int = 0
@@ -37,6 +37,15 @@ class DesignFile: ObservableObject, Identifiable {
     
     // Serial queue for saving operations to prevent race conditions and UI blocking
     private static let saveQueue = DispatchQueue(label: "com.designui.saveQueue", qos: .background)
+    
+    // Auto-save state
+    private var autoSaveTimer: Timer?
+    private var hasUnsavedChanges = false
+    @Published var isAutoSaving = false
+    
+    deinit {
+        stopAutoSave()
+    }
     
     /// Computed property for backwards compatibility - delegates to current page
     var components: [UIComponent] {
@@ -55,7 +64,8 @@ class DesignFile: ObservableObject, Identifiable {
         pages.reduce(0) { $0 + $1.components.count }
     }
     
-    init(name: String, components: [UIComponent] = [], fileURL: URL) {
+    init(name: String, components: [UIComponent] = [], fileURL: URL, id: UUID? = nil) {
+        self.id = id ?? UUID()
         self.name = name
         // Create default page with provided components
         self.pages = [DesignPage(name: "Page 1", components: components, devicePreset: "iPhone 17 Pro Max", colorScheme: "light")]
@@ -65,7 +75,8 @@ class DesignFile: ObservableObject, Identifiable {
         self.fileURL = fileURL
     }
     
-    init(name: String, pages: [DesignPage], fileURL: URL) {
+    init(name: String, pages: [DesignPage], fileURL: URL, id: UUID? = nil) {
+        self.id = id ?? UUID()
         self.name = name
         self.pages = pages.isEmpty ? [DesignPage(name: "Page 1")] : pages
         self.canvasColorScheme = "light"
@@ -200,6 +211,45 @@ class DesignFile: ObservableObject, Identifiable {
     }
     
     // MARK: - Auto-save functionality
+    
+    func markAsChanged() {
+        hasUnsavedChanges = true
+        // Debounce auto-save to prevent UI freezing on every change/switch
+        autoSaveTimer?.invalidate()
+        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.performAutoSave()
+            }
+        }
+    }
+    
+    private func stopAutoSave() {
+        autoSaveTimer?.invalidate()
+        autoSaveTimer = nil
+    }
+    
+    private func performAutoSave() {
+        // Check if there are actual changes
+        if !hasUnsavedChanges {
+            return
+        }
+        
+        DispatchQueue.main.async {
+            self.isAutoSaving = true
+            print("💾 Auto-saving design: \(self.name)")
+            
+            // Save the design
+            self.save()
+            
+            // Update the saved state
+            self.hasUnsavedChanges = false
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.isAutoSaving = false
+            }
+        }
+    }
+
     func save() {
         // Don't save if marked for deletion
         if isDeleted {
@@ -217,6 +267,7 @@ class DesignFile: ObservableObject, Identifiable {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
             let data = try encoder.encode(DesignFileData(
+                id: id,
                 name: name,
                 pages: pages,
                 currentPageIndex: currentPageIndex,
@@ -234,12 +285,6 @@ class DesignFile: ObservableObject, Identifiable {
             
             // Perform file writing on background serial queue
             DesignFile.saveQueue.async {
-                // Check deletion flag again in background (though order should handle it)
-                // We can't access self.isDeleted safely here if we don't capture it or trust the queue order.
-                // Since we rely on queue order (save queued -> delete queued), the deletion will happen last.
-                // However, checking a flag if we could would be nice, but accessing self across threads is tricky.
-                // We'll rely on the main thread check above and the queue ordering.
-                
                 do {
                     // Use file coordination for iCloud files
                     let isiCloudFile = fileURL.path.contains("Mobile Documents") || fileURL.path.contains("iCloud~")
@@ -298,10 +343,11 @@ class DesignFile: ObservableObject, Identifiable {
             let designFile: DesignFile
             if let pages = designData.pages, !pages.isEmpty {
                 // New format with pages
-                designFile = DesignFile(name: designData.name, pages: pages, fileURL: url)
+                designFile = DesignFile(name: designData.name, pages: pages, fileURL: url, id: designData.id)
                 designFile.currentPageIndex = min(designData.currentPageIndex ?? 0, pages.count - 1)
             } else {
                 // Legacy format: migrate components to single page
+                // Legacy files won't have an ID, so a new one is generated (acceptable for first migration)
                 designFile = DesignFile(name: designData.name, components: designData.components ?? [], fileURL: url)
             }
             designFile.lastModified = designData.lastModified
@@ -345,6 +391,7 @@ class DesignFile: ObservableObject, Identifiable {
 
 // MARK: - Design File Data (for JSON encoding/decoding)
 struct DesignFileData: Codable, Equatable {
+    let id: UUID? // New: persisted ID
     let name: String
     let pages: [DesignPage]?  // New: array of pages
     let currentPageIndex: Int?  // New: current page index
@@ -357,7 +404,8 @@ struct DesignFileData: Codable, Equatable {
     let statusBarVisible: Bool?
     
     // New format initializer (with pages)
-    init(name: String, pages: [DesignPage], currentPageIndex: Int, lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
+    init(id: UUID? = nil, name: String, pages: [DesignPage], currentPageIndex: Int, lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
+        self.id = id
         self.name = name
         self.pages = pages
         self.currentPageIndex = currentPageIndex
@@ -372,6 +420,7 @@ struct DesignFileData: Codable, Equatable {
     
     // Legacy format initializer (for backwards compatibility when decoding)
     init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
+        self.id = nil
         self.name = name
         self.pages = nil
         self.currentPageIndex = nil
@@ -400,9 +449,6 @@ class DesignManager: ObservableObject {
     @Published var storageStatus: String = "Using Documents folder"
     
     private let documentsDirectory: URL
-    private var autoSaveTimer: Timer?
-    private var lastSavedComponents: [UIComponent] = []
-    private var hasUnsavedChanges = false
     
     // iCloud file discovery
     private var metadataQuery: NSMetadataQuery?
@@ -872,86 +918,15 @@ class DesignManager: ObservableObject {
     }
     
     func openDesign(_ designFile: DesignFile) {
-        // Stop any existing auto-save timer
-        stopAutoSave()
-        
         currentDesign = designFile
-        // Store the initial state for change detection
-        lastSavedComponents = designFile.components
-        hasUnsavedChanges = false
     }
     
     func closeCurrentDesign() {
-        // Save any unsaved changes before closing
-        if hasUnsavedChanges {
-            performAutoSave()
-        }
-        stopAutoSave()
-        currentDesign = nil
-        lastSavedComponents = []
-        hasUnsavedChanges = false
-    }
-    
-    // MARK: - Change Detection and Auto-save
-    func markAsChanged() {
-        hasUnsavedChanges = true
-        // Debounce auto-save to prevent UI freezing on every change/switch
-        // This stops the main thread from being blocked by JSON encoding immediately after value changes
-        autoSaveTimer?.invalidate()
-        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
-            Task { @MainActor in
-                self?.performAutoSave()
-            }
-        }
-    }
-    
-    private func stopAutoSave() {
-        autoSaveTimer?.invalidate()
-        autoSaveTimer = nil
-    }
-    
-    private func performAutoSave() {
-        guard let currentDesign = currentDesign else { 
-            print("⚠️ No current design to auto-save")
-            return 
-        }
-        
-        // Check if there are actual changes
-        if !hasUnsavedChanges {
-            print("ℹ️ No changes to save")
-            return
-        }
-        
-        DispatchQueue.main.async {
-            self.isAutoSaving = true
-            print("💾 Auto-saving design: \(currentDesign.name)")
-            
-            // Save the design
+        if let currentDesign = currentDesign {
+            // Save before closing if needed - now handled by DesignFile but we can force it
             currentDesign.save()
-            
-            // Update the saved state
-            self.lastSavedComponents = currentDesign.components
-            self.hasUnsavedChanges = false
-            
-            // Update the design files list to reflect the new lastModified date
-            if let index = self.designFiles.firstIndex(where: { $0.id == currentDesign.id }) {
-                self.designFiles[index] = currentDesign
-                self.designFiles.sort { $0.lastModified > $1.lastModified }
-                print("✅ Design list updated: \(currentDesign.name)")
-            } else {
-                print("⚠️ Design not found in list: \(currentDesign.name)")
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.isAutoSaving = false
-            }
         }
-    }
-    
-    // Manual save method for immediate saves
-    func saveCurrentDesign() {
-        guard currentDesign != nil else { return }
-        performAutoSave()
+        currentDesign = nil
     }
     
     // MARK: - Directory Management
@@ -1086,6 +1061,86 @@ class DesignManager: ObservableObject {
             print("✅ Renamed design to: \(displayName)")
         } catch {
             print("❌ Failed to rename design: \(error)")
+        }
+    }
+
+    func handleOpenURL(_ url: URL, completion: @escaping (DesignFile?) -> Void) {
+        // Ensure it's a file URL
+        guard url.isFileURL else {
+            completion(nil)
+            return
+        }
+        
+        // Check if the file is already in our designs directory
+        // Resolve symlinks to be sure we are comparing canonical paths
+        let standardURL = url.resolvingSymlinksInPath()
+        let standardDesignsDir = designsDirectory.resolvingSymlinksInPath()
+        
+        let isInternalFile = standardURL.path.hasPrefix(standardDesignsDir.path)
+        
+        if isInternalFile {
+            print("📂 Opening existing internal file: \(url.lastPathComponent)")
+            
+            // It's already our file, just find or load it
+            // 1. Check if already loaded in memory
+            if let existingDesign = designFiles.first(where: { $0.fileURL.resolvingSymlinksInPath() == standardURL }) {
+                completion(existingDesign)
+                return
+            }
+            
+            // 2. Not in memory, try to load it
+            if let loadedDesign = DesignFile.load(from: url) {
+                DispatchQueue.main.async {
+                    // Check duplicate again in case of race
+                    if let existing = self.designFiles.first(where: { $0.fileURL.path == loadedDesign.fileURL.path }) {
+                        completion(existing)
+                    } else {
+                        self.designFiles.insert(loadedDesign, at: 0)
+                        self.designFiles.sort { $0.lastModified > $1.lastModified }
+                        completion(loadedDesign)
+                    }
+                }
+            } else {
+                 print("❌ Failed to load existing internal file")
+                 completion(nil)
+            }
+            
+        } else {
+            // It's an external file - IMPORT IT
+            print("📥 Importing external file: \(url.lastPathComponent)")
+            
+            // 1. Generate unique filename in our container
+            let originalName = url.deletingPathExtension().lastPathComponent
+            let uniqueFileName = generateUniqueFileName(baseName: originalName)
+            let destinationURL = designsDirectory.appendingPathComponent(uniqueFileName)
+            
+            do {
+                // 2. secure copy
+                if FileManager.default.fileExists(atPath: destinationURL.path) {
+                    try FileManager.default.removeItem(at: destinationURL)
+                }
+                
+                try FileManager.default.copyItem(at: url, to: destinationURL)
+                print("✅ Imported design to: \(destinationURL.path)")
+                
+                // 3. Load the new design
+                if let importedDesign = DesignFile.load(from: destinationURL) {
+                    // 4. Update UI
+                    DispatchQueue.main.async {
+                        self.designFiles.insert(importedDesign, at: 0)
+                        self.designFiles.sort { $0.lastModified > $1.lastModified }
+                        completion(importedDesign)
+                    }
+                } else {
+                    print("❌ Failed to load imported design")
+                    try? FileManager.default.removeItem(at: destinationURL)
+                    completion(nil)
+                }
+                
+            } catch {
+                print("❌ Failed to import design: \(error)")
+                completion(nil)
+            }
         }
     }
     

@@ -13,6 +13,7 @@ import SDWebImage
 #if os(iOS)
 import AppTrackingTransparency
 import GoogleMobileAds
+import Foundation
 
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
@@ -76,6 +77,33 @@ struct DesignUIApp: App {
                 .onAppear {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
                 }
+                .onOpenURL { url in
+                    // Handle file import
+                    guard url.isFileURL else { return }
+                    
+                    // Start accessing security scoped resource
+                    #if os(iOS)
+                        guard (url as NSURL).startAccessingSecurityScopedResource() else {
+                            print("❌ Failed to access security scoped resource: \(url)")
+                            return
+                        }
+                        defer { url.stopAccessingSecurityScopedResource() }
+                    #else
+                        _ = (url as NSURL).startAccessingSecurityScopedResource()
+                        defer { url.stopAccessingSecurityScopedResource() }
+                    #endif
+                    
+                    print("📂 Opening file: \(url.path)")
+                    
+                    // Import the file
+                    designManager.importDesign(from: url) { success in
+                        if success {
+                            toastManager.showToast(message: "Design imported successfully", type: .success)
+                        } else {
+                            toastManager.showToast(message: "Failed to import design", type: .error)
+                        }
+                    }
+                }
         }
     }
 }
@@ -83,9 +111,11 @@ struct DesignUIApp: App {
 
 #if os(macOS)
 import UniformTypeIdentifiers
+import Foundation
 
 @main
 struct DesignUIApp: App {
+    @Environment(\.openWindow) private var openWindow
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
@@ -113,21 +143,89 @@ struct DesignUIApp: App {
     
     var body: some Scene {
         // Main app window
-        WindowGroup {
-            ContentView()
-                .environmentObject(colorSchemeManager)
-                .environmentObject(toastManager)
-                .environmentObject(subscriptionManager)
-                .environmentObject(paywallManager)
-                .environmentObject(designManager)
-                .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
-                .frame(minWidth: 1000, minHeight: 600)
-        }
-        .windowResizability(.automatic)
-        .defaultSize(width: 1200, height: 800)
-        .commands {
-            TextEditingCommands()
+            // Main app window
+            WindowGroup {
+                MainWindow()
+                    .environmentObject(colorSchemeManager)
+                    .environmentObject(toastManager)
+                    .environmentObject(subscriptionManager)
+                    .environmentObject(paywallManager)
+                    .environmentObject(designManager)
+                    .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
+                    .frame(minWidth: 1200, minHeight: 750)
+            }
+            .windowResizability(.automatic)
+            .defaultSize(width: 1200, height: 750)
+            .commands {
+                TextEditingCommands()
+            }
+            
+            // Editor Window Group
+            WindowGroup(for: DesignFile.ID.self) { $designId in
+                if let id = $designId.wrappedValue,
+                   let design = designManager.designFiles.first(where: { $0.id == id }) {
+                    EditorLoadingView(designFile: design)
+                        .environmentObject(colorSchemeManager)
+                        .environmentObject(toastManager)
+                        .environmentObject(subscriptionManager)
+                        .environmentObject(paywallManager)
+                        .environmentObject(designManager)
+                        .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
+                        .frame(minWidth: 1200, minHeight: 750)
+                } else {
+                    Text("Design not found")
+                        .frame(width: 300, height: 200)
+                }
+            }
+            .windowResizability(.automatic)
+            .defaultSize(width: 1200, height: 750)
+            .restorationBehavior(.disabled)
         }
     }
+
+struct MainWindow: View {
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var designManager: DesignManager
+    @EnvironmentObject var toastManager: ToastManager
+    
+    var body: some View {
+        ContentView()
+            .onOpenURL { url in
+                // Handle file import
+                guard url.isFileURL else { return }
+                
+                // Start accessing security scoped resource
+                #if os(iOS)
+                    guard (url as NSURL).startAccessingSecurityScopedResource() else {
+                        print("❌ Failed to access security scoped resource: \(url)")
+                        return
+                    }
+                    defer { url.stopAccessingSecurityScopedResource() }
+                #else
+                    _ = (url as NSURL).startAccessingSecurityScopedResource()
+                    defer { url.stopAccessingSecurityScopedResource() }
+                #endif
+                
+                print("📂 Opening file: \(url.path)")
+                
+                // Import or open the file
+                designManager.handleOpenURL(url) { design in
+                    if let design = design {
+                        toastManager.showToast(ToastData(title: "Opened", icon: "checkmark.circle.fill"))
+                        openWindow(value: design.id)
+                        
+                        // Close the main window after opening the editor
+                        // giving a small delay to ensure the new window is registering
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            dismiss()
+                        }
+                    } else {
+                        toastManager.showToast(ToastData(title: "Failed", icon: "xmark.circle.fill"))
+                    }
+                }
+            }
+    }
 }
+
 #endif

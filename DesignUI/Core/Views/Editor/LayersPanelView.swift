@@ -691,10 +691,7 @@ private struct OutlineRow: View {
                         onWrap: onWrap,
                         canvasManager: canvasManager
                     )
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .top)),
-                        removal: .opacity.combined(with: .move(edge: .top))
-                    ))
+                    .transition(.opacity)
                 }
             }
         }
@@ -711,8 +708,9 @@ private struct OutlineRow: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 5)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(backgroundFill)
             }
-            .background(backgroundFill)
+
             .overlay(dragOverlay)
             .overlay(dropZoneOverlay)
             .contentShape(Rectangle())
@@ -838,9 +836,10 @@ private struct OutlineRow: View {
     
     private var rowContent: some View {
         HStack(spacing: 8) {
-            expandCollapseButton
             componentIcon
             componentName
+            Spacer()
+            expandCollapseButton
         }
     }
     
@@ -857,14 +856,14 @@ private struct OutlineRow: View {
             if !component.children.isEmpty {
                 Button(action: { toggleExpand() }) {
                     Image(systemName: expanded.contains(component.id) ? "chevron.down" : "chevron.right")
-                        .font(.system(size: 12))
+                        .font(.system(size: 14).bold())
                         .foregroundColor(selectedComponent?.id == component.id ? .white : .secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .frame(width: 24, height: 24)
                 .contentShape(Rectangle())
             } else {
-                Spacer().frame(width: 24, height: 24)
+                Spacer()
             }
         }
     }
@@ -1163,7 +1162,7 @@ private struct OverlayFolderRow: View {
     var body: some View {
         VStack(spacing: 0) {
             // Overlay folder header
-            HStack(spacing: 8) {
+            HStack(spacing: 0) {
                 // Indentation
                 HStack(spacing: 0) {
                     ForEach(0..<level, id: \.self) { _ in
@@ -1171,15 +1170,7 @@ private struct OverlayFolderRow: View {
                     }
                 }
                 
-                // Expand/collapse button
-                Button(action: { toggleExpand() }) {
-                    Image(systemName: expandedOverlayFolders.contains(component.id) ? "chevron.down" : "chevron.right")
-                        .font(.system(size: 12))
-                        .foregroundColor(selectedComponent?.id == component.id ? .white : .secondary)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .frame(width: 24, height: 24)
-                .contentShape(Rectangle())
+                HStack(spacing: 8) {
                 
                 // Folder icon
                 Image(systemName: "square.stack.3d.up")
@@ -1204,6 +1195,16 @@ private struct OverlayFolderRow: View {
                     .buttonStyle(PlainButtonStyle())
                     .help("Add Overlay Component")
                 }
+                
+                // Expand/collapse button - moved to right
+                Button(action: { toggleExpand() }) {
+                    Image(systemName: expandedOverlayFolders.contains(component.id) ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 12))
+                        .foregroundColor(selectedComponent?.id == component.id ? .white : .secondary)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .frame(width: 40, height: 24)
+                .contentShape(Rectangle())
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
@@ -1211,6 +1212,7 @@ private struct OverlayFolderRow: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.orange.opacity(0.1))
             )
+        }
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.orange.opacity(0.3), lineWidth: 1)
@@ -1275,10 +1277,7 @@ private struct OverlayFolderRow: View {
                         onWrap: onWrap,
                         canvasManager: canvasManager
                     )
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .top)),
-                        removal: .opacity.combined(with: .move(edge: .top))
-                    ))
+                    .transition(.opacity)
                 }
             }
         }

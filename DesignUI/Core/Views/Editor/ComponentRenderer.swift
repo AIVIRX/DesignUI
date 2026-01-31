@@ -84,20 +84,7 @@ struct ComponentRenderer: View {
             hasAppliedModifiers = true
         }
         .overlay(
-            // Selection and hover overlays for child components
-            Group {
-                if selectedComponentIds.contains(component.id) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.blue, lineWidth: 2)
-                        .allowsHitTesting(false)
-                } else if isHovered && onSelectChild != nil && component.children.isEmpty {
-                    // Only show hover for leaf components (components without children)
-                    // Solid stroke, thinner than selected
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.blue.opacity(0.7), lineWidth: 1)
-                        .allowsHitTesting(false)
-                }
-            }
+            renderSelectionOverlay()
         )
         .onHover { hovering in
             isHovered = hovering
@@ -116,6 +103,55 @@ struct ComponentRenderer: View {
         )
     }
     
+    // MARK: - Selection Overlay
+    private func renderSelectionOverlay() -> some View {
+        let isSelected = selectedComponentIds.contains(component.id)
+        let isHovering = isHovered && onSelectChild != nil && component.children.isEmpty
+        
+        guard isSelected || isHovering else { return AnyView(EmptyView()) }
+        
+        let color = isSelected ? Color.blue : Color.blue.opacity(0.7)
+        let lineWidth: CGFloat = isSelected ? 2 : 1
+        
+        // 1. Check modifiers first (ClipShape has highest priority for shape)
+        if let clipMod = component.modifiers.first(where: { $0.type == .clipShape }),
+           let shapeName = clipMod.properties["shape"] as? String {
+            if shapeName == "Circle" { return AnyView(Circle().stroke(color, lineWidth: lineWidth)) }
+            if shapeName == "Capsule" { return AnyView(Capsule().stroke(color, lineWidth: lineWidth)) }
+            if shapeName == "Ellipse" { return AnyView(Ellipse().stroke(color, lineWidth: lineWidth)) }
+            if shapeName == "RoundedRectangle" {
+                // Try to get radius from clip shape properties, otherwise default
+                // Note: clipShape modifier usually doesn't store radius in "shape" string, 
+                // but if we had a more complex storage (which we don't for clipShape currently in Modifier.swift details),
+                // we'd use it. For now, clipShape usually just takes a shape name. 
+                // A dedicated RoundedRectangle clip might strictly need a corner radius param if supported.
+                // Assuming standard default if not specified.
+                return AnyView(RoundedRectangle(cornerRadius: 8).stroke(color, lineWidth: lineWidth))
+            }
+        }
+        
+        // 2. Check for CornerRadius modifier
+        if let radiusMod = component.modifiers.first(where: { $0.type == .cornerRadius }) {
+            let radius = radiusMod.getCGFloat(key: "radius", defaultValue: 8)
+            return AnyView(RoundedRectangle(cornerRadius: radius).stroke(color, lineWidth: lineWidth))
+        }
+        
+        // 3. Check Component Type & Intrinsic Properties
+        switch component.type {
+        case .circle:
+            return AnyView(Circle().stroke(color, lineWidth: lineWidth))
+        case .capsule:
+            return AnyView(Capsule().stroke(color, lineWidth: lineWidth))
+        case .ellipse:
+            return AnyView(Ellipse().stroke(color, lineWidth: lineWidth))
+        case .roundedRectangle:
+            let radius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
+            return AnyView(RoundedRectangle(cornerRadius: radius).stroke(color, lineWidth: lineWidth))
+        default:
+            // Standard rectangular bounds for everything else
+            return AnyView(RoundedRectangle(cornerRadius: 4).stroke(color, lineWidth: lineWidth))
+        }
+    }
     private func isContainerComponent(_ type: ComponentType) -> Bool {
         switch type {
         case .vstack, .hstack, .zstack, .scrollView:

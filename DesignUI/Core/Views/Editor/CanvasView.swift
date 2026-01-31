@@ -28,6 +28,11 @@ struct CanvasView: View {
     @State private var isCanvasHovered: Bool = false
     @State private var isHoveringScrollable: Bool = false
     
+    // State for local zoom handling (performance optimization)
+    @State private var localZoomLevel: CGFloat = 1.0
+    // Debounce timer for syncing back to manager
+    @State private var zoomSyncTask: Task<Void, Never>?
+    
     // Force redraw on zoom end for sharp text
     @State private var zoomGeneration: Int = 0
     
@@ -54,7 +59,15 @@ struct CanvasView: View {
                 
                 // Device preview with zoom and pan transforms
                 devicePreview(geometry: geometry)
-                    .scaleEffect(canvasManager.zoomLevel * magnifyScale)
+                    // Only rasterize during active gestures or animations to prevent pixelation at high zooms
+                    // When static, let SwiftUI render vectors for optimal sharpness
+                    // Use tolerance to avoid floating point noise keeping rasterization active
+                    .modifier(ConditionalDrawingGroup(shouldRasterize: 
+                        abs(magnifyScale - 1.0) > 0.001 || 
+                        abs(dragOffset.width) > 0.5 || 
+                        abs(dragOffset.height) > 0.5
+                    ))
+                    .scaleEffect(localZoomLevel * magnifyScale)
                     .offset(
                         x: currentOffset.width + dragOffset.width,
                         y: currentOffset.height + dragOffset.height
@@ -81,9 +94,13 @@ struct CanvasView: View {
                             state = value
                         }
                         .onEnded { value in
-                            let newZoom = canvasManager.zoomLevel * value
-                            canvasManager.zoomLevel = min(max(newZoom, 0.1), 5.0)
-                            baseZoomLevel = canvasManager.zoomLevel
+                            let newZoom = localZoomLevel * value
+                            localZoomLevel = min(max(newZoom, 0.1), 5.0)
+                            baseZoomLevel = localZoomLevel
+                            
+                            // Sync to manager
+                            canvasManager.zoomLevel = localZoomLevel
+                            
                             // Force redraw to ensure sharp text at new zoom level
                             zoomGeneration += 1
                         }
@@ -112,7 +129,7 @@ struct CanvasView: View {
                         )
                     },
                     onZoom: { delta, mouseLocation in
-                        let oldZoom = canvasManager.zoomLevel
+                        let oldZoom = localZoomLevel
                         let newZoom = min(max(oldZoom * (1.0 + delta), 0.1), 5.0)
                         
                         // Calculate zoom ratio
@@ -133,27 +150,43 @@ struct CanvasView: View {
                         let newOffsetY = mouseOffset.height - (mouseOffset.height - currentOffset.height) * zoomRatio
                         
                         currentOffset = CGSize(width: newOffsetX, height: newOffsetY)
-                        canvasManager.zoomLevel = newZoom
+                        localZoomLevel = newZoom
                         baseZoomLevel = newZoom
                         
-                        // Debounce zoom generation update for scroll wheel
-                        // We don't want to rebuild on every scroll tick, but maybe periodically or we accept it might be blurry during scroll
-                        // Ideally we'd detect scroll end, but that's hard with onScroll.
-                        // For now, let's just rely on the fact that scroll zoom is usually discrete steps or we can accept it.
-                        // Actually, users might retain the zoom level.
-                        // Let's try to update it only if the change is significant or throttled?
-                        // Alternatively, we can use a Timer.
-                        // Ideally, we just update it.
-                        zoomGeneration += 1
+                        // Debounce sync to manager to avoid flooding view updates
+                        zoomSyncTask?.cancel()
+                        zoomSyncTask = Task {
+                            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s debounce
+                            if !Task.isCancelled {
+                                await MainActor.run {
+                                    canvasManager.zoomLevel = localZoomLevel
+                                    zoomGeneration += 1 // Sharpen after settle
+                                }
+                            }
+                        }
                     }
                 )
             )
             #endif
             .onAppear {
+                // Initialize local zoom
+                localZoomLevel = canvasManager.zoomLevel
+                baseZoomLevel = canvasManager.zoomLevel
+                
                 // Set optimal zoom when canvas appears
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+                    localZoomLevel = canvasManager.zoomLevel
                     baseZoomLevel = canvasManager.zoomLevel
+                }
+            }
+            .onChange(of: canvasManager.zoomLevel) {
+                // Sync external changes (e.g. from Zoom controls or Zoom to Fit) to local state
+                // Only update if significantly different to avoid feedback loops with the debounce task
+                let newZoom = canvasManager.zoomLevel
+                if abs(localZoomLevel - newZoom) > 0.001 {
+                    localZoomLevel = newZoom
+                    baseZoomLevel = newZoom
                 }
             }
             .onChange(of: selectedDevice) {
@@ -161,6 +194,7 @@ struct CanvasView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                         canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+                        localZoomLevel = canvasManager.zoomLevel // Sync local
                         baseZoomLevel = canvasManager.zoomLevel
                         // Reset offset when changing device
                         currentOffset = .zero
@@ -179,6 +213,7 @@ struct CanvasView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                         canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+                        localZoomLevel = canvasManager.zoomLevel // Sync local
                         baseZoomLevel = canvasManager.zoomLevel
                     }
                 }
@@ -202,16 +237,8 @@ struct CanvasView: View {
                         let deviceCenter = CGPoint(x: deviceSize.width / 2, y: deviceSize.height / 2)
                         
                         // Calculate offset needed to bring component center to device center
-                        // Note: The canvas pan logic applies offset to the devicePreview
-                        // So if we want to move content at (x,y) to (0,0), we need offset (-x, -y)
-                        // But (0,0) is top-left, we want to move it to view center.
-                        // Actually, the devicePreview is centered in GeometryReader by default.
-                        // offset(x, y) moves it FROM center.
-                        // If we want a point 'center' component to be at screen center,
-                        // we need to shift the device so that 'center' aligns with deviceCenter.
-                        // Shift = deviceCenter - center
-                        let targetOffsetX = (deviceCenter.x - center.x) * canvasManager.zoomLevel
-                        let targetOffsetY = (deviceCenter.y - center.y) * canvasManager.zoomLevel
+                        let targetOffsetX = (deviceCenter.x - center.x) * localZoomLevel
+                        let targetOffsetY = (deviceCenter.y - center.y) * localZoomLevel
                         
                         currentOffset = CGSize(width: targetOffsetX, height: targetOffsetY)
                     }
@@ -638,3 +665,16 @@ struct ScrollableHoverPreferenceKey: PreferenceKey {
     }
 }
 #endif
+
+// Helper modifier to conditionally apply drawingGroup
+struct ConditionalDrawingGroup: ViewModifier {
+    var shouldRasterize: Bool
+    
+    func body(content: Content) -> some View {
+        if shouldRasterize {
+            content.drawingGroup()
+        } else {
+            content
+        }
+    }
+}

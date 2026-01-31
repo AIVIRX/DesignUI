@@ -203,7 +203,6 @@ struct ColorRowView: View {
                 // Color name
                 Text(displayName)
                     .font(.system(size: 14))
-                    .foregroundColor(.primary)
                 
                 Spacer()
                 

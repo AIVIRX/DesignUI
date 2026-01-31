@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FluidGradient
 #if os(macOS)
 import AppKit
 #else
@@ -26,6 +27,7 @@ struct DesignBrowserContent: View {
     @EnvironmentObject private var designManager: DesignManager
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var communityViewModel = LatestPostsViewModel()
+    @Environment(\.openWindow) private var openWindow
     
     @State private var showingNewDesignSheet = false
     @State private var newDesignName = ""
@@ -36,65 +38,71 @@ struct DesignBrowserContent: View {
     @State private var renameText = ""
     @State private var showingPaywall = false
     @State private var showingLimitAlert = false
+    @State private var showingSettings = false
     
     // Free tier limit
     private let freeDesignLimit = 3
     
     var body: some View {
-        #if os(macOS)
-        // macOS: Conditionally show browser or editor as full view
-        if let currentDesign = designManager.currentDesign {
-            EditorLoadingView(designFile: currentDesign)
-                .environmentObject(designManager)
-        } else {
-            browserContent
-        }
-        #else
-        // iOS: Use fullScreenCover for editor
+        // Show browser content (editor opens in new window on macOS)
         browserContent
-        #endif
     }
     
     private var browserContent: some View {
         VStack(spacing: 0) {
             // Main Content
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 32) {
+                    // Hero Header
+                    HeroHeaderView(userName: "Designer", onCreateNew: {
+                        if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                            showingLimitAlert = true
+                        } else {
+                            showingNewDesignSheet = true
+                        }
+                    })
+                    .padding(.horizontal)
+                    .padding(.top, 16)
+                    
                     // User's Designs Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("My Designs")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .padding(.horizontal)
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text("Recent Designs")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                        }
+                        .padding(.horizontal)
                         
                         if designManager.designFiles.isEmpty {
                             // Empty state
                             VStack(spacing: 20) {
                                 Image(systemName: "doc.text")
                                     .font(.system(size: 60))
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.secondary.opacity(0.5))
                                 
                                 Text("No Designs Yet")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
+                                    .font(.title3.weight(.medium))
+                                    .fontDesign(.rounded)
                                 
                                 Text("Create your first design to get started")
                                     .foregroundColor(.secondary)
-                                
-                                Button("Create New Design") {
-                                    showingNewDesignSheet = true
-                                }
-                                .buttonStyle(.borderedProminent)
                             }
-                            .padding()
+                            .padding(.vertical, 40)
                             .frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 20).fill(Color.secondary.opacity(0.05)))
+                            .padding(.horizontal)
                         } else {
                             ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 16) {
+                                LazyHStack(spacing: 24) {
                                     ForEach(designManager.designFiles) { designFile in
                                         DesignCardView(
                                             designFile: designFile,
-                                            onOpen: { designManager.openDesign(designFile) },
+                                            onOpen: {
+                                                #if os(macOS)
+                                                openWindow(value: designFile.id)
+                                                #else
+                                                designManager.openDesign(designFile)
+                                                #endif
+                                            },
                                             onDelete: {
                                                 designToDelete = designFile
                                                 showingDeleteAlert = true
@@ -108,20 +116,15 @@ struct DesignBrowserContent: View {
                                     }
                                 }
                                 .padding(.horizontal)
-                                .padding(.vertical, 12)
                             }
                             .scrollClipDisabled()
                         }
                     }
                     
-                    Divider()
-                        .padding(.horizontal)
-                    
                     // Templates Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Templates")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                    VStack(alignment: .leading) {
+                        Text("Start from Template")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
                             .padding(.horizontal)
                         
                         TemplatesGridView(
@@ -131,20 +134,20 @@ struct DesignBrowserContent: View {
                                 } else {
                                     let name = template.name
                                     let newDesign = designManager.createDesignFromTemplate(template: template, name: name)
+                                    #if os(macOS)
+                                    openWindow(value: newDesign.id)
+                                    #else
                                     designManager.openDesign(newDesign)
+                                    #endif
                                 }
                             }
                         )
                     }
                     
-                    Divider()
-                        .padding(.horizontal)
-                    
                     // Community Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Community")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                    VStack(alignment: .leading) {
+                        Text("Explore Community")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
                             .padding(.horizontal)
                         
                         if communityViewModel.isLoading && communityViewModel.posts.isEmpty {
@@ -156,7 +159,7 @@ struct DesignBrowserContent: View {
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal)
                         } else {
-                            LazyVGrid(columns: GridConfiguration.shared.columns, spacing: 16) {
+                            LazyVGrid(columns: GridConfiguration.shared.columns, spacing: 24) {
                                 ForEach(communityViewModel.posts) { post in
                                     CommunityCards(
                                         post: post,
@@ -177,11 +180,14 @@ struct DesignBrowserContent: View {
                                                     if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
                                                         // 3. Open it
                                                         await MainActor.run {
+                                                            #if os(macOS)
+                                                            openWindow(value: newDesign.id)
+                                                            #else
                                                             designManager.openDesign(newDesign)
+                                                            #endif
                                                         }
                                                     } else {
                                                         print("Error: No design JSON found in post")
-                                                        // Handle error (maybe show toast)
                                                     }
                                                 } catch {
                                                     print("Error opening community design: \(error)")
@@ -214,6 +220,14 @@ struct DesignBrowserContent: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: {
+                    showingSettings = true
+                }) {
+                    Label("Settings", systemImage: "gear")
+                }
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
                     // Check if user can create more designs
                     if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
                         showingLimitAlert = true
@@ -230,7 +244,11 @@ struct DesignBrowserContent: View {
                 designName: $newDesignName,
                 onCreate: { name in
                     let newDesign = designManager.createNewDesign(name: name)
+                    #if os(macOS)
+                    openWindow(value: newDesign.id)
+                    #else
                     designManager.openDesign(newDesign)
+                    #endif
                     showingNewDesignSheet = false
                     newDesignName = ""
                 },
@@ -302,6 +320,71 @@ struct DesignBrowserContent: View {
         } message: {
             Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
         }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
+    }
+}
+
+struct HeroHeaderView: View {
+    let userName: String
+    let onCreateNew: () -> Void
+    
+    
+    
+    var body: some View {
+        ZStack {
+            // Fancy Background
+            // Fancy Background
+            FluidGradient(blobs: [.purple, .blue, .cyan],
+                          speed: 0.4,
+                          blur: 0.75)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+                )
+            
+            // Content
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Welcome")
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(.secondary)
+                    
+                    Text("Let's Create\nSomething Amazing")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.primary, .primary.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .lineLimit(2)
+                }
+                
+                Spacer()
+                
+                Button(action: onCreateNew) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .bold))
+                        Text("Create")
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 24)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+                    .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(32)
+        }
+        .frame(height: 220)
     }
 }
 
@@ -317,11 +400,20 @@ struct DesignCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Canvas Preview with rounded corners
             CanvasPreviewView(designFile: designFile)
-                .frame(width: 250, height: 200)
-                .background(Color.secondary.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
-                .scaleEffect(isHovered ? 1.02 : 1.0)
+                .frame(width: 280, height: 220)
+                .background(Color.secondary.opacity(0.05))
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .shadow(
+                    color: .black.opacity(isHovered ? 0.2 : 0.1),
+                    radius: isHovered ? 16 : 8,
+                    x: 0,
+                    y: isHovered ? 8 : 4
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                )
+                .scaleEffect(isHovered ? 1.03 : 1.0)
             
             // Name and menu row
             HStack {
@@ -332,30 +424,40 @@ struct DesignCardView: View {
                 Spacer()
                 
                 Menu {
-                    Button("Open") {
+                    Button {
                         onOpen()
+                    } label: {
+                        Label("Open", systemImage: "pencil")
                     }
                     
-                    Button("Rename") {
+                    Button {
                         onRename()
+                    } label: {
+                        Label("Rename", systemImage: "character.cursor.ibeam")
                     }
                     
-//#if os(macOS)
-//                    Button("Show in Finder") {
-//                        NSWorkspace.shared.activateFileViewerSelecting([designFile.fileURL])
-//                    }
-//#endif
+#if os(macOS)
+                    Button {
+                        NSWorkspace.shared.activateFileViewerSelecting([designFile.fileURL])
+                    } label: {
+                        Label("Show in Finder", systemImage: "folder")
+                    }
+#endif
+                    Divider()
                     
-                    Button("Delete", role: .destructive) {
+                    Button(role: .destructive) {
                         onDelete()
+                    } label: {
+                        Text("\(Image(systemName: "trash")) Delete Design")
+                            .foregroundColor(.red)
                     }
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.primary)
-                        .frame(width: 30, height: 30)
+                        .frame(width: 25, height: 25)
                         .background(Color.secondary.opacity(0.15))
-                        .clipShape(Circle())
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
                 .buttonStyle(.plain)
 #if os(macOS)
@@ -484,7 +586,6 @@ struct TemplatesGridView: View {
     private let templateManager = DesignTemplateManager.shared
     
     var body: some View {
-        // Templates Grid
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 16) {
                 ForEach(templateManager.templates) { template in
@@ -498,7 +599,6 @@ struct TemplatesGridView: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.vertical, 12)
         }
         .scrollClipDisabled()
     }
@@ -514,14 +614,24 @@ struct TemplateCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Template Preview
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 250, height: 200)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color.secondary.opacity(0.05))
+                .frame(width: 280, height: 220)
                 .overlay(
                     renderThumbnail()
                 )
-                .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
-                .scaleEffect(isHovered ? 1.02 : 1.0)
+                .shadow(
+                    color: .black.opacity(isHovered ? 0.2 : 0.1),
+                    radius: isHovered ? 16 : 8,
+                    x: 0,
+                    y: isHovered ? 8 : 4
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                )
+                .scaleEffect(isHovered ? 1.03 : 1.0)
+
             
             // Name
             Text(template.name)
@@ -579,8 +689,8 @@ struct CanvasPreviewView: View {
     
     var body: some View {
         // Background rectangle (same as DetailView pattern)
-        RoundedRectangle(cornerRadius: 12)
-            .fill(Color.gray.opacity(0.2))
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(Color.secondary.opacity(0.05))
             .overlay(
                 Group {
                     if let thumbnailData = designFile.thumbnail,
@@ -590,7 +700,7 @@ struct CanvasPreviewView: View {
                             .renderingMode(.original)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped()
                             .padding()
@@ -599,7 +709,7 @@ struct CanvasPreviewView: View {
                             .renderingMode(.original)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped()
                             .padding()

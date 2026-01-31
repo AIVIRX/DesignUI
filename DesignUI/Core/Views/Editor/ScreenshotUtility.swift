@@ -34,30 +34,33 @@ class ScreenshotUtility {
         renderer.scale = 2.0 // Retina quality
         
         #if os(macOS)
-        // Use cgImage directly if available (macOS 13+)
-        if let cgImage = renderer.cgImage {
-            let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
-            guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
-                print("❌ Failed to convert CGImage to PNG")
-                return nil
-            }
-            return pngData
-        }
+        // detailed crash fix: ImageRenderer on some macOS versions/configurations crashes with
+        // "unable to load binary archive for shader library" when rendering SF Symbols (IconRendering).
+        // specificially: /System/Library/PrivateFrameworks/IconRendering.framework/Resources/binary.metallib
+        // We fallback to the legacy NSHostingView rasterization which is more robust.
         
-        // Fallback to nsImage if cgImage fails (unlikely on modern macOS with ImageRenderer)
-        guard let nsImage = renderer.nsImage else {
-            print("❌ Failed to render image with ImageRenderer")
+        let hostingView = NSHostingView(rootView: contentView)
+        hostingView.frame = CGRect(origin: .zero, size: size)
+        
+        // Force layout
+        hostingView.layout()
+        
+        // Render to bitmap
+        guard let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) else {
+            print("❌ Failed to create bitmap rep")
             return nil
         }
         
-        guard let tiffData = nsImage.tiffRepresentation,
-              let bitmapRep = NSBitmapImageRep(data: tiffData),
-              let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
-            print("❌ Failed to convert NSImage to PNG")
+        // Clear background if needed, though usually SwiftUI views handles it. 
+        // hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep) caused issues in some contexts, 
+        // but let's try standard layer rendering first.
+        hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
+        
+        guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
+            print("❌ Failed to convert to PNG")
             return nil
         }
-        
-        print("✅ Screenshot captured (NSImage)")
+
         return pngData
         #else
         guard let uiImage = renderer.uiImage else {

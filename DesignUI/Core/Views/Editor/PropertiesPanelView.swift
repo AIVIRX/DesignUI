@@ -194,7 +194,7 @@ struct PropertiesSection: View {
                         return false // Filter out imageName for images - we use imageData instead
                     }
                     if property.key == "cornerRadius" {
-                        if component.type == .rectangle || component.type == .roundedRectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse {
+                        if component.type == .rectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse {
                             return false // Filter out cornerRadius for shapes - use modifier instead
                         }
                     }
@@ -244,12 +244,6 @@ struct PropertyEditor: View {
     @State private var showSFSymbolPicker: Bool = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var showImagePicker: Bool = false
-
-    @Environment(\.colorScheme) var colorScheme
-    
-    private var menuTextColor: Color {
-        colorScheme == .dark ? .white : .primary
-    }
 
     private let fontStyles = [
         "largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"
@@ -313,38 +307,60 @@ struct PropertyEditor: View {
 
                     .contentShape(Rectangle())
                 } else {
-                    TextField("Hello World", text: $textValue)
-                        .font(.system(size: 13, weight: .medium))
-                        .textFieldStyle(.plain)
-                        .focused($isTextFieldFocused)
-                        .onAppear {
-                            // Read from component to get the latest value, not the potentially stale property parameter
-                            if let currentValue = component.getProperty(key: property.key) as? String {
-                                textValue = currentValue
-                            } else {
-                                textValue = property.value as? String ?? ""
+                    HStack {
+                        Text(displayName)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        TextField("Value", text: $textValue)
+                            .font(.system(size: 13, weight: .medium))
+                            .textFieldStyle(.plain)
+                            .focused($isTextFieldFocused)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.secondary.opacity(0.1))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                            )
+                            .frame(width: 120) // Fixed width for consistent alignment
+                            .onAppear {
+                                // Read from component to get the latest value, not the potentially stale property parameter
+                                if let currentValue = component.getProperty(key: property.key) as? String {
+                                    textValue = currentValue
+                                } else {
+                                    textValue = property.value as? String ?? ""
+                                }
                             }
-                        }
-                        .onReceive(component.objectWillChange) { _ in
-                            // Only sync from component when not actively editing
-                            if !isTextFieldFocused,
-                               let stringValue = component.getProperty(key: property.key) as? String {
-                                textValue = stringValue
+                            .onReceive(component.objectWillChange) { _ in
+                                // Only sync from component when not actively editing
+                                if !isTextFieldFocused,
+                                   let stringValue = component.getProperty(key: property.key) as? String {
+                                    textValue = stringValue
+                                }
                             }
-                        }
-                        .onChange(of: textValue) { _, newValue in
-                            component.setProperty(key: property.key, value: newValue)
-                        }
-                        .onChange(of: isTextFieldFocused) { oldValue, newValue in
-                            // When losing focus, ensure value is committed
-                            if oldValue && !newValue {
+                            .onChange(of: textValue) { _, newValue in
+                                component.setProperty(key: property.key, value: newValue)
+                            }
+                            .onChange(of: isTextFieldFocused) { oldValue, newValue in
+                                // When losing focus, ensure value is committed
+                                if oldValue && !newValue {
+                                    component.setProperty(key: property.key, value: textValue)
+                                }
+                            }
+                            .onSubmit {
+                                // Commit the final value when Enter is pressed
                                 component.setProperty(key: property.key, value: textValue)
                             }
-                        }
-                        .onSubmit {
-                            // Commit the final value when Enter is pressed
-                            component.setProperty(key: property.key, value: textValue)
-                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
                 }
                 
             case .number:
@@ -430,7 +446,6 @@ struct PropertyEditor: View {
                                 }
                             }) {
                                 Text(option.capitalized)
-                                    .foregroundColor(.primary)
                             }
                         }
                     } label: {
@@ -466,7 +481,6 @@ struct PropertyEditor: View {
                                 }
                             }) {
                                 Text(option.capitalized)
-                                    .foregroundColor(menuTextColor)
                             }
                         }
                     } label: {
@@ -501,7 +515,6 @@ struct PropertyEditor: View {
                                 }
                             }) {
                                 Text(option.capitalized)
-                                    .foregroundColor(menuTextColor)
                             }
                         }
                     } label: {
@@ -536,7 +549,6 @@ struct PropertyEditor: View {
                                 }
                             }) {
                                 Text(option.capitalized)
-                                    .foregroundColor(menuTextColor)
                             }
                         }
                     } label: {
@@ -709,7 +721,6 @@ struct PropertyEditor: View {
                                 }
                             }) {
                                 Text(option.capitalized) // Format for display: "topLeading" -> "Top Leading"? Keeping simple for now.
-                                    .foregroundColor(menuTextColor)
                             }
                         }
                     } label: {
