@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Status Bar View
 struct StatusBarView: View {
     let deviceSize: CGSize
     let isSelected: Bool
@@ -15,7 +14,7 @@ struct StatusBarView: View {
     let onSelect: () -> Void
     
     private var statusBarHeight: CGFloat {
-        return 53.0
+        return 50.0
     }
     
     private var statusBarTextColor: Color {
@@ -30,7 +29,7 @@ struct StatusBarView: View {
         HStack {
             // Left side - Time
             Text("9:41")
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(statusBarTextColor)
                 .frame(width: 100)
             
@@ -40,23 +39,22 @@ struct StatusBarView: View {
             HStack(spacing: 5) {
                 // Signal strength
                 Image(systemName: "cellularbars")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(statusBarTextColor)
                 
                 // WiFi
                 Image(systemName: "wifi")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(statusBarTextColor)
                 
                 // Battery
                 Image(systemName: "battery.75percent")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(statusBarTextColor)
             }
             .frame(width: 100)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 5)
+        .padding(.horizontal, 15)
         .frame(width: deviceSize.width, height: statusBarHeight)
         .contentShape(Rectangle())
         .onTapGesture {

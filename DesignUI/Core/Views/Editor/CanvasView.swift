@@ -72,7 +72,31 @@ struct CanvasView: View {
                         x: currentOffset.width + dragOffset.width,
                         y: currentOffset.height + dragOffset.height
                     )
+                // Device preview with zoom and pan transforms
                     .id("zoom-\(zoomGeneration)") // Force redraw when zoom ends
+                
+                // AI Processing "Ghost" Indicator (Creation Mode)
+                if canvasManager.isAIProcessing && canvasManager.selectedComponent == nil {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                            .controlSize(.large)
+                            .tint(.purple)
+                        
+                        Text("Dreaming up designs...")
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(32)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(.white.opacity(0.2), lineWidth: 1)
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .zIndex(100) // Ensure it's on top
+                }
             }
             // Simultaneous pan and zoom gestures (like Photos app)
             .gesture(
@@ -204,7 +228,7 @@ struct CanvasView: View {
                 // Update status bar component frame for new device
                 if let statusBarComponent = canvasManager.statusBarComponent {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 53)
+                        statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 50)
                     }
                 }
             }
@@ -401,9 +425,10 @@ struct ComponentsContainerWithStatusBar: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            if statusBarComponent.isVisible {
+            // Top padding (Safe Area)
+            if let topSafeArea = statusBarComponent.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool, topSafeArea {
                 Spacer()
-                    .frame(height: 53) // Top padding for status bar
+                    .frame(height: 50) // Top padding for status bar
             }
             
             ForEach(components, id: \.id) { component in
@@ -439,7 +464,7 @@ struct ComponentsContainerWithStatusBar: View {
         .clipped() // Prevent content from expanding beyond the screen bounds
         .contentShape(Rectangle())
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarComponent.isVisible)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarComponent.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool)
         .onTapGesture {
             // Deselect when clicking empty space
             canvasManager.deselectAll()
@@ -550,7 +575,8 @@ struct StatusBarContainerView: View {
     let statusBarHasBackground: Bool
     let onSelect: () -> Void
     var body: some View {
-        if statusBarComponent.isVisible {
+        // Show status bar overlay if enabled
+        if let showStatusBar = statusBarComponent.properties.first(where: { $0.key == "showStatusBar" })?.value as? Bool, showStatusBar {
             StatusBarView(
                 deviceSize: deviceSize,
                 isSelected: isSelected,
@@ -558,7 +584,7 @@ struct StatusBarContainerView: View {
                 onSelect: onSelect
             )
             .background(.clear)
-            .allowsHitTesting(true)
+            .allowsHitTesting(false)
         }
     }
 }

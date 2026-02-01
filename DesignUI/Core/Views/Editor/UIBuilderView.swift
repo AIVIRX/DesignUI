@@ -21,6 +21,7 @@ extension Notification.Name {
     static let selectComponent = Notification.Name("selectComponent")
     static let minimizeSheet = Notification.Name("minimizeSheet") // Minimize iOS sheet to height 80
     static let dismissChildNavigation = Notification.Name("dismissChildNavigation") // Dismiss child views (add components, modifiers)
+    static let toggleAICommandBar = Notification.Name("toggleAICommandBar")
 }
 
 // MARK: - Undoable Slider
@@ -249,6 +250,13 @@ struct UIBuilderView: View {
     var body: some View {
 
         NavigationStack {
+            Color.clear
+                .onAppear {
+                    // Ensure status bar properties are valid (migration/hotfix)
+                    canvasManager.validateStatusBarProperties()
+                }
+                .frame(width: 0, height: 0)
+
 #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .phone {
                 // iPhone: Full screen canvas with bottom sheet
@@ -324,7 +332,15 @@ struct UIBuilderView: View {
                         .padding()
                     }
                     
-                    Spacer()
+                    // Center Canvas Area with AI Bar
+                    ZStack(alignment: .bottom) {
+                        // Spacer to fill the remaining width between panels (acting like the original Spacer)
+                        Color.clear
+                        
+                        // AI Command Bar constrained to the center area
+
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     if showPropertiesPanel && canvasManager.selectedComponent != nil {
                         ResizablePanel(
@@ -344,16 +360,8 @@ struct UIBuilderView: View {
                         .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
                     }
                 }
-                
-                // AI Chat Overlay (Bottom Center)
-                VStack {
-                    Spacer()
-                    AIChatView(canvasManager: canvasManager, mode: .floating)
-                        .padding(.bottom, 24)
-                }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .zIndex(100)
             }
+
 #endif
         }
         .navigationTitle("Studio")
@@ -432,6 +440,11 @@ struct UIBuilderView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
             canvasManager.redo()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
+            if !isSwitchingPage {
+                saveCanvasSettings()
+            }
         }
         .onChange(of: canvasManager.undoStackVersion) { _, _ in
             // Trigger sync when undo stack changes (action performed, undo, or redo)
@@ -681,6 +694,25 @@ struct UIBuilderView: View {
                 Image(systemName: "arrow.uturn.forward")
             }
             .disabled(!canvasManager.canRedo)
+            
+            // AI Trigger Button
+            Button(action: {
+                NotificationCenter.default.post(name: .toggleAICommandBar, object: nil)
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(.purple)
+                    Text("Ask AI")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(Color.purple.opacity(0.1))
+                        .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                )
+            }
         }
         
         ToolbarItemGroup(placement: .primaryAction) {
@@ -709,63 +741,69 @@ struct UIBuilderView: View {
 
     
     private var sidebarPanel: some View {
-        VStack(spacing: 0) {
-            // Unified Header with Dropdown
-            HStack {
-                Menu {
-                    Button(action: { selectedSidebarTab = .layers }) {
-                        Label("Layers", systemImage: "square.3.layers.3d")
+        VStack(spacing: 16) {
+            // 1. Top Panel: Layers / Pages
+            VStack(spacing: 0) {
+                // Unified Header with Dropdown
+                HStack {
+                    Menu {
+                        Button(action: { selectedSidebarTab = .layers }) {
+                            Label("Layers", systemImage: "square.3.layers.3d")
+                        }
+                        Button(action: { selectedSidebarTab = .pages }) {
+                            Label("Pages", systemImage: "doc.on.doc")
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.primary)
+                            Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
+                                .font(.headline).fontWeight(.semibold)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.secondary)
+                        }
                     }
-                    Button(action: { selectedSidebarTab = .pages }) {
-                        Label("Pages", systemImage: "doc.on.doc")
+                    .buttonStyle(.plain)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        if selectedSidebarTab == .layers {
+                            showComponentLibrary = true
+                        } else {
+                            let (_, newIndex) = designFile.addPage()
+                            switchToPage(newIndex)
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 12))
                     }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(.primary)
-                        Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
-                            .font(.headline).fontWeight(.semibold)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
-                    }
+                    .help(selectedSidebarTab == .layers ? "Add Component" : "Add Page")
+                    .buttonStyle(.bordered)
+                    .frame(width: 28, height: 28)
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
                 
-                Spacer()
-                
-                Button(action: {
-                    if selectedSidebarTab == .layers {
-                        showComponentLibrary = true
-                    } else {
-                        let (_, newIndex) = designFile.addPage()
-                        switchToPage(newIndex)
-                    }
-                }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 12))
+                // Content
+                switch selectedSidebarTab {
+                case .layers:
+                    layersPanel
+                case .pages:
+                    SidebarPagesView(
+                        designFile: designFile,
+                        currentPageIndex: $currentPageIndex,
+                        onPageChange: { index in
+                            switchToPage(index)
+                        }
+                    )
                 }
-                .help(selectedSidebarTab == .layers ? "Add Component" : "Add Page")
-                .buttonStyle(.bordered)
-                .frame(width: 28, height: 28)
+                
+                Spacer(minLength: 0) // Ensure panel stretches if content is short
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            
-            // Content
-            switch selectedSidebarTab {
-            case .layers:
-                layersPanel
-            case .pages:
-                SidebarPagesView(
-                    designFile: designFile,
-                    currentPageIndex: $currentPageIndex,
-                    onPageChange: { index in
-                        switchToPage(index)
-                    }
-                )
-            }
+            .editorPanelStyle()
         }
     }
     
@@ -826,6 +864,7 @@ struct UIBuilderView: View {
                 }
                 .keyboardShortcut(.delete, modifiers: [])
                 .hidden()
+                .disabled(canvasManager.isAIInputFocused) // Disable when typing in AI
                 
                 // Copy (Cmd+C) - not for status bar
                 Button(action: {
@@ -837,6 +876,7 @@ struct UIBuilderView: View {
                 }
                 .keyboardShortcut("c", modifiers: .command)
                 .hidden()
+                .disabled(canvasManager.isAIInputFocused) 
                 
                 // Paste (Cmd+V)
                 Button(action: {
@@ -846,19 +886,19 @@ struct UIBuilderView: View {
                 }
                 .keyboardShortcut("v", modifiers: .command)
                 .hidden()
+                .disabled(canvasManager.isAIInputFocused) // Critical for AI Paste
                 
                 // Duplicate (Cmd+D) - not for status bar
                 Button(action: {
                     if let component = canvasManager.selectedComponent, component.type != .statusBar {
                         canvasManager.duplicateComponent(component)
-                        // Select the duplicated component
-                        // selectedComponent = canvasManager.selectedComponent // Already handled by canvasManager
                     }
                 }) {
                     EmptyView()
                 }
                 .keyboardShortcut("d", modifiers: .command)
                 .hidden()
+                .disabled(canvasManager.isAIInputFocused)
             }
             .frame(width: 0, height: 0)
         )
@@ -870,6 +910,7 @@ struct UIBuilderView: View {
             selectedComponent: $canvasManager.selectedComponent,
             canvasManager: canvasManager
         )
+        .editorPanelStyle()
     }
     
 #if os(iOS)
@@ -1372,6 +1413,21 @@ struct UIBuilderView: View {
                     Button(action: { showCommunitySubmission = true }) {
                         Label("Submit to Community", systemImage: "globe")
                     }
+
+                    Divider()
+
+                    Button(action: {
+                        let json = canvasManager.getDesignAsJSON()
+                        #if os(iOS)
+                        UIPasteboard.general.string = json
+                        #elseif os(macOS)
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(json, forType: .string)
+                        #endif
+                    }) {
+                        Label("Copy JSON", systemImage: "doc.on.clipboard")
+                    }
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 14, weight: .medium))
@@ -1482,6 +1538,7 @@ struct UIBuilderView: View {
             oldPage.devicePreset = canvasManager.devicePreset.rawValue
             oldPage.colorScheme = canvasManager.colorScheme == .light ? "light" : (canvasManager.colorScheme == .dark ? "dark" : nil)
             oldPage.statusBarVisible = designFile.statusBarVisible
+            oldPage.statusBarComponent = canvasManager.statusBarComponent?.clone()
         }
         
         // Update both the designFile and local state
@@ -1506,9 +1563,15 @@ struct UIBuilderView: View {
             canvasManager.colorScheme = nil  // System default
         }
         
-        // Restore status bar visibility and update component
+        // Restore status bar visibility and component
+        if let savedStatusBar = newPage.statusBarComponent {
+            canvasManager.statusBarComponent = savedStatusBar.clone()
+        } else {
+            // Legacy/Default fallback
+            canvasManager.statusBarComponent?.isVisible = newPage.statusBarVisible
+        }
+        canvasManager.validateStatusBarProperties()
         designFile.statusBarVisible = newPage.statusBarVisible
-        canvasManager.statusBarComponent?.isVisible = newPage.statusBarVisible
         
         // Reset undo/redo for the new page context
         canvasManager.saveInitialState()
@@ -1535,8 +1598,13 @@ struct UIBuilderView: View {
             }
         }
         
-        // Restore status bar visibility
-        canvasManager.statusBarComponent?.isVisible = designFile.statusBarVisible
+        // Restore status bar settings
+        if let savedStatusBar = designFile.currentPage?.statusBarComponent {
+            canvasManager.statusBarComponent = savedStatusBar.clone()
+        } else {
+             canvasManager.statusBarComponent?.isVisible = designFile.statusBarVisible
+        }
+        canvasManager.validateStatusBarProperties()
     }
     
     private func saveCanvasSettings() {
@@ -1549,6 +1617,9 @@ struct UIBuilderView: View {
         } else {
             designFile.canvasColorScheme = nil
         }
+        
+        // Save status bar settings to current page
+        designFile.currentPage?.statusBarComponent = canvasManager.statusBarComponent?.clone()
         
         // Trigger save
         designFile.markAsChanged()
@@ -1675,8 +1746,29 @@ struct ComponentView: View {
     
     var body: some View {
         ComponentRenderer(component: component, deviceSize: selectedDevice.size, colorScheme: colorScheme, onTap: onSelect, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
+            .overlay(
+                // AI Processing Visual Feedback
+                ZStack {
+                    if canvasManager.isAIProcessing && canvasManager.isComponentSelected(component) {
+                        RoundedRectangle(cornerRadius: 8) // Approximate corner radius
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [.purple, .blue],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                            .shadow(color: .purple.opacity(0.5), radius: 8, x: 0, y: 0)
+                            .opacity(0.8)
+                            // Pulse animation handled by view transitions or repeatForever in onAppear
+                            // But since isAIProcessing toggles, simple transition might be enough or we need an explicit explicit animation modifier
+                    }
+                }
+            )
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.frame)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.isVisible)
+            .animation(.easeInOut(duration: 0.3), value: canvasManager.isAIProcessing) // Smooth fade in/out of border
             .animation(.easeInOut(duration: 0.15), value: isHovered)
             .onHover { hovering in
                 isHovered = hovering
@@ -1750,20 +1842,6 @@ struct ResizablePanel<Content: View>: View {
             }
         }
         .frame(maxHeight: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(panelBackgroundColor)
-                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-    
-    private var panelBackgroundColor: Color {
-        if colorScheme == .dark {
-            return Color(red: 28/255, green: 28/255, blue: 30/255) // #1C1C1E
-        } else {
-            return Color.white
-        }
     }
     
     private var handleColor: Color {
@@ -1776,7 +1854,7 @@ struct ResizablePanel<Content: View>: View {
             }
         }
         // Blend in with panel when not hovering
-        return panelBackgroundColor
+        return Color.clear
     }
     
     private var resizeHandle: some View {
@@ -1859,3 +1937,33 @@ struct CodeTabView: View {
     }
 }
 #endif
+
+import SwiftUI
+
+struct EditorPanelStyle: ViewModifier {
+    @Environment(\.colorScheme) var colorScheme
+    
+    var panelBackgroundColor: Color {
+        if colorScheme == .dark {
+            return Color(red: 28/255, green: 28/255, blue: 30/255) // #1C1C1E
+        } else {
+            return Color.white
+        }
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(panelBackgroundColor)
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+extension View {
+    func editorPanelStyle() -> some View {
+        modifier(EditorPanelStyle())
+    }
+}

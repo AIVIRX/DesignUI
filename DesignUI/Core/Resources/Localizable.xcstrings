@@ -7775,9 +7775,6 @@
         }
       }
     },
-    "Add to Canvas" : {
-
-    },
     "App" : {
       "localizations" : {
         "ar" : {
@@ -9277,9 +9274,6 @@
           }
         }
       }
-    },
-    "Ask Copilot..." : {
-
     },
     "Aspect Ratio" : {
       "localizations" : {
@@ -17288,6 +17282,9 @@
         }
       }
     },
+    "Copy JSON" : {
+
+    },
     "Corner Radius" : {
       "localizations" : {
         "ar" : {
@@ -20288,9 +20285,6 @@
         }
       }
     },
-    "Describe a change or component..." : {
-
-    },
     "Description" : {
 
     },
@@ -20543,9 +20537,6 @@
           }
         }
       }
-    },
-    "Design Copilot" : {
-
     },
     "Design Name" : {
       "localizations" : {
@@ -21549,6 +21540,9 @@
           }
         }
       }
+    },
+    "Dreaming up designs..." : {
+
     },
     "Duplicate" : {
       "localizations" : {
@@ -24052,6 +24046,12 @@
           }
         }
       }
+    },
+    "Fill" : {
+
+    },
+    "Fit" : {
+
     },
     "Free Limit Reached" : {
       "localizations" : {
@@ -27054,6 +27054,7 @@
       }
     },
     "Is Visible" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -39586,6 +39587,9 @@
         }
       }
     },
+    "Resizable" : {
+
+    },
     "Rotation" : {
       "localizations" : {
         "ar" : {
@@ -50859,9 +50863,6 @@
           }
         }
       }
-    },
-    "Thinking..." : {
-
     },
     "Threads" : {
       "localizations" : {

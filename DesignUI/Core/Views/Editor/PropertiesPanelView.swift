@@ -72,8 +72,20 @@ struct PropertiesPanelView: View {
                         updateImageProperty(with: newName)
                     }
                 }
+            } else if let statusBar = canvasManager.statusBarComponent {
+                 // No selection: Show Canvas Settings
+                 ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        PropertiesSection(
+                            component: statusBar,
+                            showGallery: $showImageGallery,
+                            activePropertyKey: $activeImagePropertyKey
+                        )
+                    }
+                    .padding()
+                }
             } else {
-                // No selection state
+                // Fallback No selection state
                 VStack(spacing: 12) {
                     Image(systemName: "slider.horizontal.3")
                         .font(.system(size: 32))
@@ -136,41 +148,75 @@ struct PropertiesSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(component.type.rawValue)
+            Text(component.type == .statusBar ? "Canvas Settings" : component.type.rawValue)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             // For status bar, only show isVisible
-            if component.type == .statusBar {
+            // For status bar, we now fall through to generic properties
+            if component.type == .image {
+                // Explicit Schema for Image
                 VStack(alignment: .leading, spacing: 0) {
+                    
+                    // 1. Image Picker (imageName)
+                    PropertyEditor(
+                        property: ComponentProperty(
+                            key: "imageName",
+                            displayName: "Image",
+                            type: .string,
+                            value: component.getProperty(key: "imageName") as? String ?? "photo",
+                            defaultValue: "photo"
+                        ),
+                        component: component,
+                        showGallery: $showGallery,
+                        activePropertyKey: $activePropertyKey
+                    )
+                    
+                    Divider().opacity(0.3).padding(.vertical, 2)
+                    
+                    // 2. Resizable (Boolean) - Not usually in properties list but we force it key "resizable"
                     HStack {
-                        Text("Is Visible")
+                        Text("Resizable")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.primary)
-                        
                         Spacer()
-                        
                         Toggle("", isOn: Binding(
-                            get: { component.isVisible },
-                            set: { newValue in
-                                component.isVisible = newValue
-                                // Post notification to trigger save
-                                NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: newValue)
-                            }
+                            get: { component.getProperty(key: "resizable") as? Bool ?? false },
+                            set: { component.setProperty(key: "resizable", value: $0) }
                         ))
                         .toggleStyle(SwitchToggleStyle())
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    
+                    Divider().opacity(0.3).padding(.vertical, 2)
+                    
+                    // 3. Aspect Ratio (Dropdown: fit/fill)
+                     HStack {
+                         Text("Aspect Ratio")
+                             .font(.system(size: 12, weight: .medium))
+                             .foregroundColor(.primary)
+                         Spacer()
+                         Menu {
+                             Button("Fit") { component.setProperty(key: "contentMode", value: "fit") }
+                             Button("Fill") { component.setProperty(key: "contentMode", value: "fill") }
+                         } label: {
+                             HStack {
+                                 Text((component.getProperty(key: "contentMode") as? String ?? "fit").capitalized)
+                                     .foregroundColor(.primary)
+                                 Image(systemName: "chevron.up.chevron.down")
+                                     .font(.caption2).foregroundColor(.secondary)
+                             }
+                         }
+                         .buttonStyle(.plain)
+                     }
+                     .padding(.horizontal, 12).padding(.vertical, 8)
+                    
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.secondary.opacity(0.1))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                )
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.1)))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3), lineWidth: 0.5))
+                
             } else {
                 // For all other components, show their properties in a grouped form
                 // Filter out minLength property for Spacer components, foregroundColor for all components, font properties, cornerRadius for buttons/shapes, fill for shapes, backgroundColor for SF Symbols, and imageName for images (use modifiers instead)
@@ -191,7 +237,8 @@ struct PropertiesSection: View {
                         return false // Filter out backgroundColor for SF Symbols - use modifier instead
                     }
                     if property.key == "imageName" && component.type == .image {
-                        return false // Filter out imageName for images - we use imageData instead
+                        // Do NOT filter out imageName - we want to show it using the ImagePickerEditor
+                        return true
                     }
                     if property.key == "cornerRadius" {
                         if component.type == .rectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse {
@@ -257,9 +304,9 @@ struct PropertyEditor: View {
         VStack(alignment: .leading, spacing: 4) {
             switch property.type {
             case .string:
-                if property.key == "imageData" && component.type == .image {
-                    // Image picker for custom images (only show this one for image components)
-                    ImagePickerEditor(property: property, component: component, useImageData: true, showGallery: $showGallery, activePropertyKey: $activePropertyKey)
+                if (property.key == "imageData" || property.key == "imageName") && component.type == .image {
+                    // Image picker for custom images (show for both keys)
+                    ImagePickerEditor(property: property, component: component, useImageData: property.key == "imageData", showGallery: $showGallery, activePropertyKey: $activePropertyKey)
                 } else if property.key == "symbolName" {
                     // Special SF Symbol picker
                     HStack {
@@ -420,6 +467,11 @@ struct PropertyEditor: View {
                         }
                     ))
                     .toggleStyle(SwitchToggleStyle())
+                    .onChange(of: component.getProperty(key: property.key) as? Bool) { newValue in
+                         if property.key == "showStatusBar", let value = newValue {
+                             NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: value)
+                         }
+                    }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -953,13 +1005,13 @@ struct ComponentActionsSection: View {
                 HStack {
                     Text("Delete Component")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color.red) // #FF453A
+                        .foregroundColor(Color.red)
                     
                     Spacer()
                     
                     Image(systemName: "trash")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color.red) // #FF453A
+                        .foregroundColor(Color.red)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -1671,9 +1723,6 @@ struct SimpleColorPicker: View {
         }
     }
 }
-
-// NOTE: StandardColorPickerContent has been removed
-// Use UniversalColorPickerView from ColorModifierEditor.swift instead
 
 struct GradientColorPicker: View {
     @Binding var colorString: String

@@ -180,6 +180,9 @@ struct DesignUIApp: App {
             .windowResizability(.automatic)
             .defaultSize(width: 1200, height: 750)
             .restorationBehavior(.disabled)
+            .commands {
+                TextEditingCommands()
+            }
         }
     }
 

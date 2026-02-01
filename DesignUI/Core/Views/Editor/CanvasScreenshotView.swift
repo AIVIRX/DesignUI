@@ -42,7 +42,7 @@ struct CanvasScreenshotView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.top, (statusBarComponent?.isVisible ?? true) && !statusBarHasBackground ? 53 : 0) // Safe area for status bar
+            .padding(.top, (statusBarComponent?.isVisible ?? true) && !statusBarHasBackground ? 50 : 0) // Safe area for status bar
             
             // Status bar if needed and visible
             if let statusBarComponent = statusBarComponent, statusBarComponent.isVisible {

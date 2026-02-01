@@ -16,124 +16,14 @@ struct ColorModifierEditor: View {
     @State private var selectedColorName: String = "primary"
     @State private var opacityValue: Double = 1.0
     
-    private let swiftUIColors: [(name: String, displayName: String, color: Color)] = [
-        ("primary", "Primary", .primary),
-        ("secondary", "Secondary", .secondary),
-        ("black", "Black", .black),
-        ("white", "White", .white),
-        ("red", "Red", .red),
-        ("orange", "Orange", .orange),
-        ("yellow", "Yellow", .yellow),
-        ("green", "Green", .green),
-        ("mint", "Mint", .mint),
-        ("teal", "Teal", .teal),
-        ("cyan", "Cyan", .cyan),
-        ("blue", "Blue", .blue),
-        ("indigo", "Indigo", .indigo),
-        ("purple", "Purple", .purple),
-        ("pink", "Pink", .pink),
-        ("brown", "Brown", .brown),
-        ("gray", "Gray", .gray),
-        ("clear", "Clear", .clear)
-    ]
-    
-    private var currentColor: Color {
-        let baseColor = swiftUIColors.first { $0.name == selectedColorName }?.color ?? .primary
-        return baseColor.opacity(opacityValue)
-    }
-    
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Color Preview Header
-                HStack {
-                    Text(title)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    // Color preview circle with transparency indicator
-                    ZStack {
-                        // Checkered background to show transparency
-                        if opacityValue < 1.0 {
-                            Circle()
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(width: 24, height: 24)
-                        }
-                        
-                        Circle()
-                            .fill(currentColor)
-                            .frame(width: 24, height: 24)
-                    }
-                    .overlay(
-                        Circle()
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                }
-                
-                // Opacity Slider (in list style)
-                VStack(spacing: 0) {
-                    HStack(spacing: 12) {
-                        // Opacity icon
-                        Image(systemName: "circle.lefthalf.filled")
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-                            .frame(width: 24, height: 24)
-                        
-                        // Slider
-                        UndoableSlider(
-                            value: $opacityValue,
-                            range: 0...1,
-                            onValueChanged: { _ in saveColorContinuous() },
-                            onEditingEnded: { _ in saveColor() }
-                        )
-                        
-                        // Percentage label
-                        Text("\(Int(opacityValue * 100))%")
-                            .font(.system(size: 14))
-                            .foregroundColor(.primary)
-                            .monospacedDigit()
-                            .frame(width: 44, alignment: .trailing)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.secondary.opacity(0.1))
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                
-                // Color List
-                VStack(spacing: 0) {
-                    ForEach(swiftUIColors, id: \.name) { colorInfo in
-                        ColorRowView(
-                            colorName: colorInfo.name,
-                            displayName: colorInfo.displayName,
-                            color: colorInfo.color,
-                            isSelected: selectedColorName == colorInfo.name,
-                            onSelect: {
-                                selectedColorName = colorInfo.name
-                                saveColor()
-                            }
-                        )
-                        
-                        if colorInfo.name != swiftUIColors.last?.name {
-                            Divider()
-                                .padding(.leading, 44)
-                        }
-                    }
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.secondary.opacity(0.1))
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-            .padding()
-        }
-        .frame(maxHeight: 400)
+        UniversalColorPickerView(
+            selectedColorName: $selectedColorName,
+            opacityValue: $opacityValue,
+            title: title,
+            onColorChanged: { saveColorContinuous() },
+            onColorConfirmed: { saveColor() }
+        )
         .onAppear {
             loadColor()
         }
@@ -209,7 +99,11 @@ struct ColorRowView: View {
                 // Checkmark for selected
                 if isSelected {
                     Image(systemName: "checkmark")
+                    #if os(macOS)
                         .font(.system(size: 14, weight: .semibold))
+                    #else
+                        .font(.system(size: 14, weight: .semibold))
+                    #endif
                         .foregroundColor(.blue)
                 }
             }
@@ -285,6 +179,7 @@ struct UniversalColorPickerView: View {
     var onColorConfirmed: (() -> Void)?
     
     static let swiftUIColors: [(name: String, displayName: String, color: Color)] = [
+        // Standard Colors
         ("primary", "Primary", .primary),
         ("secondary", "Secondary", .secondary),
         ("black", "Black", .black),
@@ -398,7 +293,7 @@ struct UniversalColorPickerView: View {
             }
             .padding()
         }
-        .frame(minWidth: 280, maxHeight: 400)
+        .frame(maxHeight: 400)
     }
     
     /// Helper to get Color from name

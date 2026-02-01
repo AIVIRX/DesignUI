@@ -281,8 +281,8 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.type = try container.decode(ModifierType.self, forKey: .type)
         
-        // Decode properties as [String: Any]
-        let propertiesDict = try container.decode([String: AnyCodable].self, forKey: .properties)
+        // Decode properties as [String: Any] - Make optional for Lean JSON compatibility
+        let propertiesDict = try container.decodeIfPresent([String: AnyCodable].self, forKey: .properties) ?? [:]
         self.properties = propertiesDict.mapValues { $0.value }
     }
     

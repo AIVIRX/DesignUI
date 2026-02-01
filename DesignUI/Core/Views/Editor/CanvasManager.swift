@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 enum LayoutAlignment {
     case left, centerHorizontally, right
@@ -58,6 +59,10 @@ class CanvasManager: ObservableObject {
     @Published var colorScheme: ColorScheme? = nil
     @Published var devicePreset: DevicePreset = .iphone16Pro
     
+    // AI Integation State
+    @Published var isAIProcessing: Bool = false
+    @Published var isAIInputFocused: Bool = false // Tracks if AI input is focused to disable global shortcuts
+    
     // Undo/Redo with action descriptions
     @Published var undoStackVersion: Int = 0 
     private var undoStack: [UndoableAction] = []
@@ -74,6 +79,7 @@ class CanvasManager: ObservableObject {
     
     // Clipboard for copy/paste
     private var clipboard: UIComponent?
+    private var statusBarCancellable: AnyCancellable?
     var hasClipboardContent: Bool { clipboard != nil }
     
     var canUndo: Bool { 
@@ -88,6 +94,7 @@ class CanvasManager: ObservableObject {
         selectedComponent = nil
         colorScheme = nil
         statusBarComponent = createStatusBarComponent()
+        observeStatusBarChanges()
         // Don't save state in init - wait until design is loaded
         
         // Listen for AFTER changes - persist to file (debounced)
@@ -125,10 +132,55 @@ class CanvasManager: ObservableObject {
     private func createStatusBarComponent() -> UIComponent {
         let statusBarComponent = UIComponent(
             type: .statusBar,
-            properties: [],
-            frame: CGRect(x: 0, y: 0, width: 393, height: 53) // Default iPhone width
+            properties: UIComponent.defaultProperties(for: .statusBar),
+            frame: CGRect(x: 0, y: 0, width: 393, height: 50) // Default iPhone width
         )
         return statusBarComponent
+    }
+    
+    private func observeStatusBarChanges() {
+        statusBarCancellable?.cancel()
+        statusBarCancellable = statusBarComponent?.objectWillChange.sink { [weak self] _ in
+            guard let self = self else { return }
+            // Capture state BEFORE change for Undo
+            self.registerUndoAction("Updated Canvas Settings")
+        }
+    }
+    
+    /// Ensures status bar component has all required properties (migration/hotfix)
+    func validateStatusBarProperties() {
+        guard let statusBar = statusBarComponent else {
+            statusBarComponent = createStatusBarComponent()
+            observeStatusBarChanges()
+            return
+        }
+        
+        // Check for missing properties AND remove deprecated ones
+        let defaults = UIComponent.defaultProperties(for: .statusBar)
+        let defaultKeys = Set(defaults.map { $0.key })
+        
+        var currentProps = statusBar.properties
+        var changed = false
+        
+        // 1. Remove deprecated properties (keys not in defaults)
+        let filteredProps = currentProps.filter { defaultKeys.contains($0.key) }
+        if filteredProps.count != currentProps.count {
+            currentProps = filteredProps
+            changed = true
+        }
+        
+        // 2. Add missing properties
+        for defaultProp in defaults {
+            if !currentProps.contains(where: { $0.key == defaultProp.key }) {
+                currentProps.append(defaultProp)
+                changed = true
+            }
+        }
+        
+        if changed {
+            statusBar.properties = currentProps
+            objectWillChange.send()
+        }
     }
     
     // MARK: - Component Management
@@ -919,7 +971,7 @@ class CanvasManager: ObservableObject {
         undoStack.removeAll()
         redoStack.removeAll()
         
-        let state = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset)
+        let state = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
         lastSavedState = state
         
     }
@@ -959,11 +1011,11 @@ class CanvasManager: ObservableObject {
         }
         
         // Capture the current state BEFORE the change
-        // Capture the current state BEFORE the change
         let stateBefore = CanvasState(
-            components: deepCopyComponents(components), 
+            components: deepCopyComponents(components),
             colorScheme: colorScheme,
-            devicePreset: devicePreset
+            devicePreset: devicePreset,
+            statusBarComponent: statusBarComponent?.clone()
         )
         
         let action = UndoableAction(
@@ -1042,15 +1094,15 @@ class CanvasManager: ObservableObject {
     private var lastUndoSaveTime: Date?
     
     func undo() {
-        guard let action = undoStack.popLast() else { 
+        guard let action = undoStack.popLast() else {
             print("↩️ undo: Cannot undo - stack empty")
-            return 
+            return
         }
         
         print("↩️ undo: '\(action.description)' - stack has \(undoStack.count) remaining")
         
         // Save current state to redo stack BEFORE restoring (with the same description)
-        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset)
+        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
         let redoAction = UndoableAction(
             description: action.description,
             stateBefore: currentState,
@@ -1075,15 +1127,15 @@ class CanvasManager: ObservableObject {
     }
     
     func redo() {
-        guard let action = redoStack.popLast() else { 
+        guard let action = redoStack.popLast() else {
             print("↪️ redo: Cannot redo - stack empty")
-            return 
+            return
         }
         
         print("↪️ redo: '\(action.description)' - redo stack has \(redoStack.count) remaining")
         
         // Save current state to undo stack BEFORE restoring
-        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset)
+        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
         let undoAction = UndoableAction(
             description: action.description,
             stateBefore: currentState,
@@ -1121,10 +1173,19 @@ class CanvasManager: ObservableObject {
         components = deepCopyComponents(state.components)
         
         // Restore color scheme
-        colorScheme = state.colorScheme
+        self.colorScheme = state.colorScheme
+        
+        // Restore status bar
+        if let savedStatusBar = state.statusBarComponent {
+            self.statusBarComponent = savedStatusBar.clone()
+            // Make sure we re-observe the new instance
+            observeStatusBarChanges()
+        } else {
+            self.statusBarComponent = nil
+        }
         
         // Restore device preset
-        devicePreset = state.devicePreset
+        self.devicePreset = state.devicePreset
         
         // If selected component no longer exists, clear selection
         // Update selectedComponent to point to the new instance in the restored components
@@ -1341,6 +1402,7 @@ struct CanvasState {
     let components: [UIComponent]
     let colorScheme: ColorScheme?
     let devicePreset: DevicePreset
+    let statusBarComponent: UIComponent?
 }
 
 // MARK: - Undoable Action

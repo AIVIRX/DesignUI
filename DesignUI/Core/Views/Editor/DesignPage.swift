@@ -20,8 +20,9 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
     @Published var devicePreset: String?  // e.g., "iPhone 16 Pro"
     @Published var colorScheme: String?   // "light", "dark", or nil for system
     @Published var statusBarVisible: Bool
+    @Published var statusBarComponent: UIComponent? // Persisted Canvas Settings
     
-    init(id: UUID = UUID(), name: String = "Page 1", components: [UIComponent] = [], thumbnail: Data? = nil, devicePreset: String? = nil, colorScheme: String? = nil, statusBarVisible: Bool = true) {
+    init(id: UUID = UUID(), name: String = "Page 1", components: [UIComponent] = [], thumbnail: Data? = nil, devicePreset: String? = nil, colorScheme: String? = nil, statusBarVisible: Bool = true, statusBarComponent: UIComponent? = nil) {
         self.id = id
         self.name = name
         self.components = components
@@ -29,12 +30,13 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
         self.devicePreset = devicePreset
         self.colorScheme = colorScheme
         self.statusBarVisible = statusBarVisible
+        self.statusBarComponent = statusBarComponent
     }
     
     // MARK: - Codable
     
     enum CodingKeys: String, CodingKey {
-        case id, name, components, thumbnail, devicePreset, colorScheme, statusBarVisible
+        case id, name, components, thumbnail, devicePreset, colorScheme, statusBarVisible, statusBarComponent
     }
     
     required init(from decoder: Decoder) throws {
@@ -46,6 +48,7 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
         devicePreset = try container.decodeIfPresent(String.self, forKey: .devicePreset)
         colorScheme = try container.decodeIfPresent(String.self, forKey: .colorScheme)
         statusBarVisible = try container.decodeIfPresent(Bool.self, forKey: .statusBarVisible) ?? true
+        statusBarComponent = try container.decodeIfPresent(UIComponent.self, forKey: .statusBarComponent)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -57,6 +60,7 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
         try container.encodeIfPresent(devicePreset, forKey: .devicePreset)
         try container.encodeIfPresent(colorScheme, forKey: .colorScheme)
         try container.encode(statusBarVisible, forKey: .statusBarVisible)
+        try container.encodeIfPresent(statusBarComponent, forKey: .statusBarComponent)
     }
     
     // MARK: - Equatable
@@ -68,7 +72,9 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
                lhs.thumbnail == rhs.thumbnail &&
                lhs.devicePreset == rhs.devicePreset &&
                lhs.colorScheme == rhs.colorScheme &&
-               lhs.statusBarVisible == rhs.statusBarVisible
+               lhs.statusBarVisible == rhs.statusBarVisible &&
+               lhs.statusBarComponent?.id == rhs.statusBarComponent?.id &&
+               lhs.statusBarComponent?.properties.count == rhs.statusBarComponent?.properties.count // Shallow check
     }
     
     // MARK: - Deep Copy
@@ -77,6 +83,7 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
     func clone(withName newName: String? = nil) -> DesignPage {
         // Deep copy components using their clone method
         let clonedComponents = components.map { $0.clone() }
+        let clonedStatusBar = statusBarComponent?.clone()
         
         return DesignPage(
             id: UUID(),
@@ -85,7 +92,8 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
             thumbnail: thumbnail,
             devicePreset: devicePreset,
             colorScheme: colorScheme,
-            statusBarVisible: statusBarVisible
+            statusBarVisible: statusBarVisible,
+            statusBarComponent: clonedStatusBar
         )
     }
 }

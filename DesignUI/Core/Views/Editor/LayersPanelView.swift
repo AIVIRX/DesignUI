@@ -50,18 +50,7 @@ struct LayersPanelView: View {
                     ScrollView {
                         VStack(spacing: 0) {
                             // Status Bar (always shown so it can be toggled even when hidden)
-                            if let statusBar = canvasManager.statusBarComponent {
-                                StatusBarRowView(
-                                    statusBar: statusBar,
-                                    isSelected: selectedComponent?.id == statusBar.id,
-                                    onSelect: {
-                                        isUserInitiatedSelection = true
-                                        selectedComponent = statusBar
-                                        onLayerTapped?(statusBar)
-                                    }
-                                )
-                                .id(statusBar.id)
-                            }
+
                             
                             ForEach(canvasManager.components) { component in
                                 // Render overlay folder above component if it has overlay children
@@ -143,7 +132,7 @@ struct LayersPanelView: View {
                                 )
                                 .id(component.id)
                             }
-                            if canvasManager.components.isEmpty && canvasManager.statusBarComponent == nil {
+                            if canvasManager.components.isEmpty {
                                 EmptyLayersState()
                             }
                         }
@@ -246,7 +235,7 @@ struct LayersPanelView: View {
                 ScrollViewReader { scrollProxy in
                     ScrollView {
                         VStack(spacing: 0) {
-                            // Status Bar (always shown so it can be toggled even when hidden)
+                            // Canvas Settings (Status Bar)
                             if let statusBar = canvasManager.statusBarComponent {
                                 StatusBarRowView(
                                     statusBar: statusBar,
@@ -340,7 +329,7 @@ struct LayersPanelView: View {
                                 )
                                 .id(component.id)
                             }
-                            if canvasManager.components.isEmpty && canvasManager.statusBarComponent == nil {
+                            if canvasManager.components.isEmpty {
                                 EmptyLayersState()
                             }
                         }
@@ -577,16 +566,16 @@ private struct StatusBarRowView: View {
     var body: some View {
         HStack(spacing: 8) {
             // Empty space for alignment with other rows
-            Spacer().frame(width: 24)
+            // Spacer().frame(width: 24) // Removed to flush left
             
             // Status bar icon
-            Image(systemName: "battery.100.bolt")
+            Image(systemName: "iphone")
                 .font(.system(size: 14))
-                .foregroundColor(isSelected ? .white : .green)
+                .foregroundColor(isSelected ? .white : .primary)
                 .frame(width: 20)
             
             // Label
-            Text("Status Bar")
+            Text("Canvas Settings")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(isSelected ? .white : .primary)
             

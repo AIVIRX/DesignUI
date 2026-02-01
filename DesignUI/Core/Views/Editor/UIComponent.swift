@@ -368,6 +368,17 @@ extension ComponentProperty: Codable {
     
     // Helper to convert color string back to Color (make it accessible)
     static func colorStringToColor(_ colorString: String) -> Color {
+        // Handle transparency suffix (e.g. "blue:0.5" or "primary:0.3")
+        if colorString.contains(":") && !colorString.hasPrefix("rgb") {
+            let components = colorString.split(separator: ":")
+            if components.count == 2 {
+                let baseColorString = String(components[0])
+                if let opacity = Double(components[1]) {
+                    return colorStringToColor(baseColorString).opacity(opacity)
+                }
+            }
+        }
+        
         // Handle common SwiftUI colors
         switch colorString {
         case "primary": return .primary
@@ -376,6 +387,34 @@ extension ComponentProperty: Codable {
         case "quaternary": return .primary.opacity(0.3)
         case "black": return .black
         case "white": return .white
+        case "gray": return .gray
+        
+        // Semantic / Dark Mode Adaptable
+        case "systemBackground": 
+            #if os(macOS)
+            return Color(nsColor: .windowBackgroundColor)
+            #else
+            return Color(uiColor: .systemBackground)
+            #endif
+        case "secondarySystemBackground":
+             #if os(macOS)
+             return Color(nsColor: .controlBackgroundColor)
+             #else
+             return Color(uiColor: .secondarySystemBackground)
+             #endif
+        case "label":
+            #if os(macOS)
+            return Color(nsColor: .labelColor)
+            #else
+            return Color(uiColor: .label)
+            #endif
+        case "secondaryLabel":
+             #if os(macOS)
+             return Color(nsColor: .secondaryLabelColor)
+             #else
+             return Color(uiColor: .secondaryLabel)
+             #endif
+             
         case "red": return .red
         case "orange": return .orange
         case "yellow": return .yellow
@@ -388,7 +427,6 @@ extension ComponentProperty: Codable {
         case "purple": return .purple
         case "pink": return .pink
         case "brown": return .brown
-        case "gray": return .gray
         case "clear": return .clear
         default:
             // Try to parse RGB/RGBA format
@@ -1141,7 +1179,8 @@ extension UIComponent {
             ]
         case .statusBar:
             return [
-                // Status bar only has isVisible property
+                ComponentProperty(key: "showStatusBar", displayName: "Show Status Bar", type: .boolean, value: true, defaultValue: true),
+                ComponentProperty(key: "topSafeArea", displayName: "Top Safe Area", type: .boolean, value: true, defaultValue: true)
             ]
         case .textField:
             return [
