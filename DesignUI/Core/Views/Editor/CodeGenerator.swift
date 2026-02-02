@@ -10,7 +10,7 @@ import SwiftUI
 struct CodeGenerator {
     
     /// Formats a number cleanly: removes .0 for whole numbers, keeps decimals when needed
-    private static func formatNumber(_ value: Double) -> String {
+    static func formatNumber(_ value: Double) -> String {
         if value.truncatingRemainder(dividingBy: 1) == 0 {
             return String(format: "%.0f", value)
         } else {
@@ -67,7 +67,9 @@ struct CodeGenerator {
             baseCode = generateSliderCode(component: component, indent: indent, nextIndent: nextIndent)
         case .linearGradient:
             baseCode = generateLinearGradientCode(component: component, indent: indent, nextIndent: nextIndent)
-
+        case .chart:
+            baseCode = generateChartCode(component: component, indent: indent, nextIndent: nextIndent)
+            
         default:
             return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
         }
@@ -304,16 +306,8 @@ struct CodeGenerator {
     // MARK: - SF Symbol Code Generation
     private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
-        let isResizable = component.getProperty(key: "resizable") as? Bool ?? false
         
-        var code = "\(indent)Image(systemName: \"\(symbolName)\")"
-        
-        if isResizable {
-            code += "\n\(nextIndent).resizable()"
-            code += "\n\(nextIndent).aspectRatio(contentMode: .fit)"
-        }
-        
-        return code
+        return "\(indent)Image(systemName: \"\(symbolName)\")"
     }
 
     // MARK: - Text Field Code Generation
@@ -364,6 +358,8 @@ struct CodeGenerator {
 
         return "\(indent)LinearGradient(gradient: Gradient(colors: [\(colorsList)]), startPoint: .\(startPoint), endPoint: .\(endPoint))"
     }
+    
+
     
 
     
@@ -570,19 +566,31 @@ struct CodeGenerator {
     private static func generateFontModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let size = modifier.properties["fontSize"] as? String ?? "body"
         let weight = modifier.properties["fontWeight"] as? String ?? "regular"
+        let design = modifier.properties["fontDesign"] as? String
         
-        // Don't generate code if both are defaults (body + regular)
-        if size == "body" && weight == "regular" {
+        var designCode = ""
+        if let design = design, design != "default" {
+            designCode = ", design: .\(design)"
+        }
+        
+        // Don't generate code if everything is default (body + regular + no design)
+        if size == "body" && weight == "regular" && designCode.isEmpty {
             return ""
         }
         
-        // If weight is regular, just output .font(.size)
-        if weight == "regular" {
-            return "\(nextIndent).font(.\(size))"
+        // Check for custom size (number)
+        if let _ = Double(size) {
+            return "\(nextIndent).font(.system(size: \(size), weight: .\(weight)\(designCode)))"
         }
         
-        // Otherwise output .font(.system(.size, weight: .weight))
-        return "\(nextIndent).font(.system(.\(size), weight: .\(weight)))"
+        // Preset size
+        // If we have design or non-regular weight, utilize .system(style, design, weight)
+        if !designCode.isEmpty || weight != "regular" {
+             return "\(nextIndent).font(.system(.\(size)\(designCode), weight: .\(weight)))"
+        }
+        
+        // Simple case: just size (regular weight, default design)
+        return "\(nextIndent).font(.\(size))"
     }
     
     private static func generateCornerRadiusModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
@@ -791,7 +799,7 @@ struct CodeGenerator {
         return "LinearGradient(gradient: Gradient(colors: [\(colorsList)]), startPoint: .\(startPoint), endPoint: .\(endPoint))"
     }
     
-    private static func colorToString(_ value: Any?) -> String {
+    static func colorToString(_ value: Any?) -> String {
         // Handle semantic color strings (intent preservation)
         if let colorString = value as? String {
             let cleanString = colorString.hasPrefix("color:") ? String(colorString.dropFirst(6)) : colorString
@@ -801,9 +809,9 @@ struct CodeGenerator {
                 return ".\(cleanString.lowercased())"
             }
             
-            // If it's an RGB string, convert to Color object and let the RGB logic handle it
+            // If it's an RGB string or Hex, convert to Color object and let the RGB logic handle it
             // This allows matching against standard colors with tolerance
-            if cleanString.hasPrefix("rgb(") || cleanString.hasPrefix("rgba(") {
+            if cleanString.hasPrefix("rgb(") || cleanString.hasPrefix("rgba(") || cleanString.hasPrefix("#") {
                 let color = ComponentProperty.colorStringToColor(cleanString)
                 return colorToString(color) // Recursive call to handle Color object
             }

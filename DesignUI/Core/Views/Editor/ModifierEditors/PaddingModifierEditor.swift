@@ -115,7 +115,6 @@ struct PaddingModifierEditor: View {
             }
             .padding()
         }
-        .frame(maxHeight: 400)
         .onAppear {
             loadPadding()
         }

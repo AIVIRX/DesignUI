@@ -221,6 +221,12 @@ struct PropertiesSection: View {
                 // For all other components, show their properties in a grouped form
                 // Filter out minLength property for Spacer components, foregroundColor for all components, font properties, cornerRadius for buttons/shapes, fill for shapes, backgroundColor for SF Symbols, and imageName for images (use modifiers instead)
                 let filteredProperties = component.properties.filter { property in
+                    if property.key == "lineWidth" || property.key == "data" {
+                        return false
+                    }
+                    if component.type == .chart && (property.key == "foregroundColor" || property.key == "backgroundColor") {
+                         return false
+                    }
                     if property.key == "minLength" && component.type == .spacer {
                         return false
                     }
@@ -309,32 +315,60 @@ struct PropertyEditor: View {
                     ImagePickerEditor(property: property, component: component, useImageData: property.key == "imageData", showGallery: $showGallery, activePropertyKey: $activePropertyKey)
                 } else if property.key == "symbolName" {
                     // Special SF Symbol picker
-                    HStack {
-                        Text(displayName)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.primary)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            // Open SF Symbols view
-                            showSFSymbolPicker = true
-                        }) {
+                    Button(action: {
+                        showSFSymbolPicker = true
+                    }) {
+                        HStack {
+                            Text(displayName)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
                             HStack {
                                 Image(systemName: textValue.isEmpty ? "star" : textValue)
                                     .font(.system(size: 16))
                                     .foregroundColor(.blue)
-                                
-                                Text(textValue.isEmpty ? "Select Symbol" : textValue)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.primary)
                                 
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 10))
                                     .foregroundColor(.secondary)
                             }
                         }
-                        .buttonStyle(.plain)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .onAppear {
+                        // Read from component to get the latest value
+                        if let currentValue = component.getProperty(key: property.key) as? String {
+                            textValue = currentValue
+                        } else {
+                            textValue = property.value as? String ?? ""
+                        }
+                    }
+                    .onReceive(component.objectWillChange) { _ in
+                        if let stringValue = component.getProperty(key: property.key) as? String {
+                            textValue = stringValue
+                        }
+                    }
+                } else if property.key == "text" || property.key == "placeholder" {
+                    // Text Component Content - Just the text field
+                    TextField("Text", text: $textValue)
+                        .font(.system(size: 13, weight: .medium))
+                        .textFieldStyle(.plain)
+                        .focused($isTextFieldFocused)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                        )
                         .onAppear {
                             // Read from component to get the latest value
                             if let currentValue = component.getProperty(key: property.key) as? String {
@@ -344,24 +378,29 @@ struct PropertyEditor: View {
                             }
                         }
                         .onReceive(component.objectWillChange) { _ in
-                            if let stringValue = component.getProperty(key: property.key) as? String {
+                            // Only sync from component when not actively editing
+                            if !isTextFieldFocused,
+                               let stringValue = component.getProperty(key: property.key) as? String {
                                 textValue = stringValue
                             }
                         }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-
-                    .contentShape(Rectangle())
+                        .onChange(of: textValue) { _, newValue in
+                            component.setProperty(key: property.key, value: newValue)
+                        }
+                        .onChange(of: isTextFieldFocused) { oldValue, newValue in
+                            // When losing focus, ensure value is committed
+                            if oldValue && !newValue {
+                                component.setProperty(key: property.key, value: textValue)
+                            }
+                        }
+                        .onSubmit {
+                            component.setProperty(key: property.key, value: textValue)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                 } else {
                     HStack {
-                        Text(displayName)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.primary)
-                        
-                        Spacer()
-                        
-                        TextField("Value", text: $textValue)
+                        TextField("Text", text: $textValue)
                             .font(.system(size: 13, weight: .medium))
                             .textFieldStyle(.plain)
                             .focused($isTextFieldFocused)
@@ -410,6 +449,36 @@ struct PropertyEditor: View {
                     .contentShape(Rectangle())
                 }
                 
+            case .slider:
+                HStack {
+                    Text(displayName)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.primary)
+                        .frame(width: 80, alignment: .leading)
+                    
+                    let minIndex = 0
+                    let maxIndex = 1
+                    let min = (property.options?.count ?? 0) > minIndex ? (property.options?[minIndex] as? Double ?? 0.0) : 0.0
+                    let max = (property.options?.count ?? 0) > maxIndex ? (property.options?[maxIndex] as? Double ?? 100.0) : 100.0
+                    
+                    Slider(value: Binding(
+                        get: {
+                            component.getProperty(key: property.key) as? Double ?? property.defaultValue as? Double ?? 0.0
+                        },
+                        set: { newValue in
+                             component.setProperty(key: property.key, value: newValue)
+                        }
+                    ), in: min...max)
+                    
+                    Text(String(format: "%.0f", component.getProperty(key: property.key) as? Double ?? 0.0))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 30, alignment: .trailing)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
+
             case .number:
                 HStack {
                     Text(displayName)
@@ -418,33 +487,33 @@ struct PropertyEditor: View {
                     
                     Spacer()
                     
-                    // Use computed binding that reads directly from component
-                    TextField("", value: Binding(
-                        get: {
-                            if let val = component.getProperty(key: property.key) as? Double {
-                                return val
-                            } else if let val = component.getProperty(key: property.key) as? Int {
-                                return Double(val)
+                        // Standard Number Field
+                        TextField("", value: Binding(
+                            get: {
+                                if let val = component.getProperty(key: property.key) as? Double {
+                                    return val
+                                } else if let val = component.getProperty(key: property.key) as? Int {
+                                    return Double(val)
+                                }
+                                return property.value as? Double ?? (property.value as? Int).map { Double($0) } ?? 0.0
+                            },
+                            set: { newValue in
+                                component.setProperty(key: property.key, value: newValue)
                             }
-                            return property.value as? Double ?? (property.value as? Int).map { Double($0) } ?? 0.0
-                        },
-                        set: { newValue in
-                            component.setProperty(key: property.key, value: newValue)
-                        }
-                    ), format: .number)
-                        .font(.system(size: 13, weight: .medium))
-                        .textFieldStyle(.plain)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                        )
-                        .frame(width: 80) // Fixed width for number input
+                        ), format: .number.precision(.fractionLength(0...2)))
+                            .font(.system(size: 13, weight: .medium))
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.secondary.opacity(0.1))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                            )
+                            .frame(width: 80) // Fixed width for number input
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -467,7 +536,7 @@ struct PropertyEditor: View {
                         }
                     ))
                     .toggleStyle(SwitchToggleStyle())
-                    .onChange(of: component.getProperty(key: property.key) as? Bool) { newValue in
+                    .onChange(of: component.getProperty(key: property.key) as? Bool) { _, newValue in
                          if property.key == "showStatusBar", let value = newValue {
                              NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: value)
                          }
@@ -480,7 +549,13 @@ struct PropertyEditor: View {
                 
             case .color:
                 
-                ColorPopover(property: property, component: component)
+                ColorPropertyEditor(
+                    title: displayName,
+                    colorString: Binding(
+                        get: { component.getProperty(key: property.key) as? String ?? property.defaultValue as? String ?? "primary" },
+                        set: { component.setProperty(key: property.key, value: $0) }
+                    )
+                )
                 
             case .font:
                 HStack {
@@ -627,7 +702,7 @@ struct PropertyEditor: View {
                     
                     Spacer()
                     
-                    TextField("", value: $numberValue, format: .number)
+                    TextField("", value: $numberValue, format: .number.precision(.fractionLength(0...2)))
                         .font(.system(size: 13, weight: .medium))
                         .textFieldStyle(.plain)
                         .padding(.horizontal, 6)
@@ -671,7 +746,7 @@ struct PropertyEditor: View {
                     
                     Spacer()
                     
-                    TextField("", value: $numberValue, format: .number)
+                    TextField("", value: $numberValue, format: .number.precision(.fractionLength(0...2)))
                         .font(.system(size: 13, weight: .medium))
                         .textFieldStyle(.plain)
                         .onAppear {
@@ -829,140 +904,103 @@ struct PropertyEditor: View {
     }
 }
 
-// MARK: - Color Popover
-struct ColorPopover: View {
-    let property: ComponentProperty
-    @ObservedObject var component: UIComponent
+// MARK: - Color Property Editor
+struct ColorPropertyEditor: View {
+    let title: String
+    @Binding var colorString: String
+    
     @State private var isPresented = false
-    @State private var isHovered = false
-    
-    private var displayName: String {
-        switch property.key {
-        case "fontSize": return "Size"
-        case "foregroundColor": return "Color"
-        case "backgroundColor": return "Background"
-        case "cornerRadius": return "Corner Radius"
-        case "title": return "Title"
-        case "text": return "Text"
-        case "alignment": return "Alignment"
-        case "spacing": return "Spacing"
-        case "padding": return "Padding"
-        case "rotation": return "Rotation"
-        case "scale": return "Scale"
-        case "offset": return "Offset"
-        case "shadow": return "Shadow"
-        case "border": return "Border"
-        case "gradient": return "Gradient"
-        case "animation": return "Animation"
-        case "resizable": return "Resizable"
-        case "aspectRatio": return "Aspect Ratio"
-        default: return property.key.capitalized
-        }
-    }
-    
+    @State private var selectedColorName: String = "primary"
+    @State private var opacityValue: Double = 1.0
 
-    
+    // Computed current color for preview
     private var currentColor: Color {
-        component.getProperty(key: property.key) as? Color ?? Color.primary
+        let color = UniversalColorPickerView.color(for: selectedColorName)
+        return color.opacity(opacityValue)
     }
     
+    // Display name for the selected color
+    private var selectedColorDisplayName: String {
+        // Reverse lookup in UniversalColorPickerView
+        if let match = UniversalColorPickerView.swiftUIColors.first(where: { $0.color == currentColor && opacityValue == 1.0 }) {
+            return match.displayName
+        }
+        if selectedColorName.hasPrefix("#") {
+            return selectedColorName.uppercased()
+        }
+        return selectedColorName.capitalized
+    }
+
     var body: some View {
         HStack {
-            Text(displayName)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.primary)
-            
+            Text(title)
+                 .font(.system(size: 12, weight: .medium))
+                 .foregroundColor(.primary)
             Spacer()
             
-            colorPickerButton
+            Button(action: { 
+                parseColorString()
+                isPresented = true 
+            }) {
+                HStack(spacing: 6) {
+                    // Preview Circle
+                    ZStack {
+                        if opacityValue < 1.0 {
+                             Circle().fill(Color.gray.opacity(0.2)).frame(width: 16, height: 16)
+                        }
+                        Circle().fill(currentColor).frame(width: 16, height: 16)
+                    }
+                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                    
+                    // Name
+                    Text(selectedColorDisplayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $isPresented) {
+                 UniversalColorPickerView(
+                    selectedColorName: $selectedColorName,
+                    opacityValue: $opacityValue,
+                    title: title,
+                    onColorChanged: { saveColor() },
+                    onColorConfirmed: { saveColor() }
+                )
+                .frame(width: 280, height: 350)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-        )
-        .onHover { hovering in
-            isHovered = hovering
-        }
         .contentShape(Rectangle())
-        .popover(isPresented: $isPresented) {
-            colorPopoverContent
+        .onAppear {
+            parseColorString()
+        }
+        .onChange(of: colorString) { _, _ in
+            parseColorString()
         }
     }
     
-    private var colorPickerButton: some View {
-        Button(action: { isPresented = true }) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(currentColor)
-                    .frame(width: 16, height: 16)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                
-                Text(colorName(for: currentColor))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Image(systemName: "chevron.down")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
+    private func parseColorString() {
+         let parts = colorString.split(separator: ":")
+         if parts.count >= 1 {
+             selectedColorName = String(parts[0]).lowercased()
+         }
+         
+         if parts.count >= 2, let opacity = Double(parts[1]) {
+             opacityValue = opacity
+         } else {
+             opacityValue = 1.0
+         }
     }
     
-    private var colorPopoverContent: some View {
-        // Use a simple list-based picker matching UniversalColorPickerView
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Choose Color")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                VStack(spacing: 0) {
-                    ForEach(UniversalColorPickerView.swiftUIColors, id: \.name) { colorInfo in
-                        ColorRowView(
-                            colorName: colorInfo.name,
-                            displayName: colorInfo.displayName,
-                            color: colorInfo.color,
-                            isSelected: colorName(for: currentColor).lowercased() == colorInfo.name,
-                            onSelect: {
-                                DispatchQueue.main.async {
-                                    self.component.setProperty(key: self.property.key, value: colorInfo.name)
-                                }
-                                isPresented = false
-                            }
-                        )
-                        
-                        if colorInfo.name != UniversalColorPickerView.swiftUIColors.last?.name {
-                            Divider()
-                                .padding(.leading, 44)
-                        }
-                    }
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.secondary.opacity(0.1))
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-            .padding()
-        }
-        .frame(minWidth: 280, maxHeight: 400)
+    private func saveColor() {
+        colorString = "\(selectedColorName):\(opacityValue)"
     }
-    
-    // Helper to get display name for the button label
-    private func colorName(for color: Color) -> String {
-        // Reverse lookup in UniversalColorPickerView
-        if let match = UniversalColorPickerView.swiftUIColors.first(where: { $0.color == color }) {
-            return match.displayName
-        }
-        return "Custom"
-    }
-    
 }
 
 // MARK: - Component Actions Section
@@ -1783,6 +1821,7 @@ struct GradientColorPicker: View {
                     saveColor()
                 }
             )
+            .frame(minWidth: 280, maxHeight: 400)
         }
     }
     

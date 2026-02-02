@@ -98,7 +98,6 @@ struct RotationModifierEditor: View {
             }
             .padding()
         }
-        .frame(maxHeight: 400)
         .onAppear {
             loadAngle()
         }
@@ -268,7 +267,6 @@ struct ScaleModifierEditor: View {
             }
             .padding()
         }
-        .frame(maxHeight: 400)
         .onAppear {
             loadScale()
         }

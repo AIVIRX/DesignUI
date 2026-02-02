@@ -109,6 +109,8 @@
 		ECC93A3A2F16D4C800D9F11E /* blank.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A362F16D4C800D9F11E /* blank.json */; };
 		ECC93A3B2F16D4C800D9F11E /* flight_status_widget.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A372F16D4C800D9F11E /* flight_status_widget.json */; };
 		ECC93A3C2F16D4C800D9F11E /* introducing_features.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A382F16D4C800D9F11E /* introducing_features.json */; };
+		ECCC832B2F305EAB00D3C9CC /* CodeGenerator_Chart.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCC83292F305EAB00D3C9CC /* CodeGenerator_Chart.swift */; };
+		ECCC832C2F305EAB00D3C9CC /* ComponentRenderer_Chart.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCC832A2F305EAB00D3C9CC /* ComponentRenderer_Chart.swift */; };
 		ECCCBBE22F0DDC24001817C3 /* ImageGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCCBBE12F0DDC24001817C3 /* ImageGalleryView.swift */; };
 		ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD12B362D8F487D001A73C7 /* Toast.swift */; };
 		ECD228BE2C63A84F00525FC5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */; };
@@ -219,6 +221,8 @@
 		ECC93A362F16D4C800D9F11E /* blank.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = blank.json; sourceTree = "<group>"; };
 		ECC93A372F16D4C800D9F11E /* flight_status_widget.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = flight_status_widget.json; sourceTree = "<group>"; };
 		ECC93A382F16D4C800D9F11E /* introducing_features.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = introducing_features.json; sourceTree = "<group>"; };
+		ECCC83292F305EAB00D3C9CC /* CodeGenerator_Chart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeGenerator_Chart.swift; sourceTree = "<group>"; };
+		ECCC832A2F305EAB00D3C9CC /* ComponentRenderer_Chart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentRenderer_Chart.swift; sourceTree = "<group>"; };
 		ECCCBBE12F0DDC24001817C3 /* ImageGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGalleryView.swift; sourceTree = "<group>"; };
 		ECD12B362D8F487D001A73C7 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		ECD228BD2C63A84F00525FC5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -366,6 +370,8 @@
 		ECB94C542EFB0C19000AAF34 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				ECCC83292F305EAB00D3C9CC /* CodeGenerator_Chart.swift */,
+				ECCC832A2F305EAB00D3C9CC /* ComponentRenderer_Chart.swift */,
 				EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */,
 				EC1A03B12F1D52100084FF52 /* DesignPage.swift */,
 				EC1A03B22F1D52100084FF52 /* PageSelectorBar.swift */,
@@ -712,6 +718,8 @@
 				EC1A03B42F1D52100084FF52 /* PageSelectorBar.swift in Sources */,
 				ECB94C7B2EFB0C6F000AAF34 /* ModifierPanelView.swift in Sources */,
 				ECB94C7D2EFB0C6F000AAF34 /* PropertiesPanelView.swift in Sources */,
+				ECCC832B2F305EAB00D3C9CC /* CodeGenerator_Chart.swift in Sources */,
+				ECCC832C2F305EAB00D3C9CC /* ComponentRenderer_Chart.swift in Sources */,
 				ECB94C7E2EFB0C6F000AAF34 /* StatusBarView.swift in Sources */,
 				ECB94C7F2EFB0C6F000AAF34 /* ModifierEditorView.swift in Sources */,
 				ECB94C802EFB0C6F000AAF34 /* ScreenshotUtility.swift in Sources */,

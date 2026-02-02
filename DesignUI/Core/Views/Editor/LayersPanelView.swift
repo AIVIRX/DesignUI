@@ -49,9 +49,19 @@ struct LayersPanelView: View {
                 ScrollViewReader { scrollProxy in
                     ScrollView {
                         VStack(spacing: 0) {
-                            // Status Bar (always shown so it can be toggled even when hidden)
-
-                            
+                            // Canvas Settings (Status Bar)
+                            if let statusBar = canvasManager.statusBarComponent {
+                                StatusBarRowView(
+                                    statusBar: statusBar,
+                                    isSelected: selectedComponent?.id == statusBar.id,
+                                    onSelect: {
+                                        isUserInitiatedSelection = true
+                                        selectedComponent = statusBar
+                                        onLayerTapped?(statusBar)
+                                    }
+                                )
+                                .id(statusBar.id)
+                            }
                             ForEach(canvasManager.components) { component in
                                 // Render overlay folder above component if it has overlay children
                                 if !component.getOverlayChildren().isEmpty {

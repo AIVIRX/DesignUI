@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import Charts
+
 
 struct ComponentRenderer: View {
     @ObservedObject var component: UIComponent
@@ -70,6 +72,9 @@ struct ComponentRenderer: View {
                 renderSlider()
             case .linearGradient:
                 renderLinearGradient()
+            case .chart:
+                renderChart()
+
             default:
                 renderPlaceholder()
             }
@@ -173,7 +178,7 @@ struct ComponentRenderer: View {
     // Returns platform-specific font sizes per Apple Human Interface Guidelines
     // Reference: https://developer.apple.com/design/human-interface-guidelines/typography
     private func iosFont(for fontSize: String, weight: Font.Weight, deviceSize: CGSize? = nil) -> Font {
-        return createIOSFont(for: fontSize, weight: weight, deviceSize: deviceSize ?? self.deviceSize)
+        return createIOSFont(for: fontSize, weight: weight, design: .default, deviceSize: deviceSize ?? self.deviceSize)
     }
     
     // MARK: - Image Renderer
@@ -383,7 +388,8 @@ struct ComponentRenderer: View {
         
         // No children: Use default SwiftUI button with label-based initializer and apply properties
         let title = component.getProperty(key: "title") as? String ?? "Button"
-        let backgroundColor = component.getProperty(key: "backgroundColor") as? Color ?? Color.blue
+        let bgString = component.getProperty(key: "backgroundColor") as? String ?? ""
+        let backgroundColor = bgString.isEmpty ? Color.blue : ComponentProperty.colorStringToColor(bgString)
         
         // Check if there's a frame modifier with full width
         let hasFullWidthFrame = component.modifiers.contains { modifier in
@@ -494,7 +500,8 @@ struct ComponentRenderer: View {
     
     // MARK: - Shape Renderers
     private func renderRectangle() -> some View {
-        let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
+        let strokeString = component.getProperty(key: "stroke") as? String ?? ""
+        let stroke = strokeString.isEmpty ? Color.clear : ComponentProperty.colorStringToColor(strokeString)
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
         if stroke != Color.clear {
@@ -506,7 +513,8 @@ struct ComponentRenderer: View {
     }
     
     private func renderCircle() -> some View {
-        let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
+        let strokeString = component.getProperty(key: "stroke") as? String ?? ""
+        let stroke = strokeString.isEmpty ? Color.clear : ComponentProperty.colorStringToColor(strokeString)
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
         if stroke != Color.clear {
@@ -518,7 +526,8 @@ struct ComponentRenderer: View {
     }
     
     private func renderRoundedRectangle() -> some View {
-        let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
+        let strokeString = component.getProperty(key: "stroke") as? String ?? ""
+        let stroke = strokeString.isEmpty ? Color.clear : ComponentProperty.colorStringToColor(strokeString)
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
         
@@ -531,7 +540,8 @@ struct ComponentRenderer: View {
     }
     
     private func renderCapsule() -> some View {
-        let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
+        let strokeString = component.getProperty(key: "stroke") as? String ?? ""
+        let stroke = strokeString.isEmpty ? Color.clear : ComponentProperty.colorStringToColor(strokeString)
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
         if stroke != Color.clear {
@@ -543,7 +553,8 @@ struct ComponentRenderer: View {
     }
     
     private func renderEllipse() -> some View {
-        let stroke = component.getProperty(key: "stroke") as? Color ?? Color.clear
+        let strokeString = component.getProperty(key: "stroke") as? String ?? ""
+        let stroke = strokeString.isEmpty ? Color.clear : ComponentProperty.colorStringToColor(strokeString)
         let lineWidth = component.getProperty(key: "lineWidth") as? Double ?? 1.0
         
         if stroke != Color.clear {
@@ -574,6 +585,8 @@ struct ComponentRenderer: View {
         
         return LinearGradient(gradient: Gradient(colors: gradientColors), startPoint: startPoint, endPoint: endPoint)
     }
+    
+
     
     // MARK: - ScrollView Renderer
     private func renderScrollView() -> some View {
@@ -616,10 +629,8 @@ struct ComponentRenderer: View {
     
 
     // MARK: - SF Symbol Renderer
-    // MARK: - SF Symbol Renderer
     private func renderSFSymbol() -> some View {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
-        let isResizable = component.getProperty(key: "resizable") as? Bool ?? false
         // Check if there's a font modifier - if so, don't set default font
         let hasFontModifier = component.modifiers.contains { $0.type == .font }
         // Check if there's a foregroundColor modifier
@@ -628,50 +639,26 @@ struct ComponentRenderer: View {
         // Determine fallback color (primary can be translucent on macOS, so use explicit black/white)
         let fallbackColor = (colorScheme ?? .light) == .dark ? Color.white : Color.black
         
-        if isResizable {
-            // Resizable SF Symbol - can be sized with frame modifier
-            let baseView = Image(systemName: symbolName)
-                .resizable()
-                .symbolRenderingMode(.monochrome) // Ensure solid color
-            
-            if !hasForegroundColorModifier {
-                // Apply explicit black/white if no specific color set
-                let coloredView = baseView.foregroundStyle(fallbackColor)
-                if hasFontModifier {
-                    return AnyView(coloredView)
-                } else {
-                    return AnyView(coloredView.aspectRatio(contentMode: .fit))
-                }
+        // Non-resizable SF Symbol - sized by font (Standard behavior)
+        let baseView = Image(systemName: symbolName)
+            .symbolRenderingMode(.monochrome) // Ensure solid color
+        
+        if !hasForegroundColorModifier {
+            // Apply explicit black/white if no specific color set
+            let coloredView = baseView.foregroundStyle(fallbackColor)
+            if hasFontModifier {
+                return AnyView(coloredView)
             } else {
-                // Use base view (color handled by modifiers)
-                if hasFontModifier {
-                    return AnyView(baseView)
-                } else {
-                    return AnyView(baseView.aspectRatio(contentMode: .fit))
-                }
+                let font = iosFont(for: "largeTitle", weight: .regular)
+                return AnyView(coloredView.font(font))
             }
         } else {
-            // Non-resizable SF Symbol - sized by font
-            let baseView = Image(systemName: symbolName)
-                .symbolRenderingMode(.monochrome) // Ensure solid color
-            
-            if !hasForegroundColorModifier {
-                // Apply explicit black/white if no specific color set
-                let coloredView = baseView.foregroundStyle(fallbackColor)
-                if hasFontModifier {
-                    return AnyView(coloredView)
-                } else {
-                    let font = iosFont(for: "largeTitle", weight: .regular)
-                    return AnyView(coloredView.font(font))
-                }
+            // Use base view (color handled by modifiers)
+            if hasFontModifier {
+                return AnyView(baseView)
             } else {
-                // Use base view (color handled by modifiers)
-                if hasFontModifier {
-                    return AnyView(baseView)
-                } else {
-                    let font = iosFont(for: "largeTitle", weight: .regular)
-                    return AnyView(baseView.font(font))
-                }
+                let font = iosFont(for: "largeTitle", weight: .regular)
+                return AnyView(baseView.font(font))
             }
         }
     }
@@ -947,11 +934,28 @@ private extension View {
             return AnyView(view.foregroundStyle(color.opacity(opacity)))
             
         case .font:
-            let size = modifier.properties["fontSize"] as? String ?? "body"
+            let size = modifier.properties["fontSize"]
             let weight = modifier.properties["fontWeight"] as? String ?? "regular"
+            let design = modifier.properties["fontDesign"] as? String
+            
             let fontWeight = fontWeightFromString(weight)
-            let font = createIOSFont(for: size, weight: fontWeight, deviceSize: deviceSize)
-            return AnyView(view.font(font))
+            let fontDesign = fontDesignFromString(design)
+            
+            if let sizeStr = size as? String, let customSize = Double(sizeStr) {
+                 // It's a string containing a number (legacy or input)
+                 // Clamp to minimum 1.0 as requested
+                let effectiveSize = max(1.0, customSize)
+                let font = Font.system(size: effectiveSize, weight: fontWeight, design: fontDesign)
+                return AnyView(view.font(font))
+            } else if let sizeStr = size as? String {
+                // It's a semantic size string
+                let font = createIOSFont(for: sizeStr, weight: fontWeight, design: fontDesign, deviceSize: deviceSize)
+                return AnyView(view.font(font))
+            } else {
+                 // Fallback
+                let font = createIOSFont(for: "body", weight: fontWeight, design: fontDesign, deviceSize: deviceSize)
+                return AnyView(view.font(font))
+            }
             
         case .fill:
             if let gradient = modifier.getGradient(key: "gradient") {
@@ -1226,7 +1230,7 @@ fileprivate func verticalAlignmentFromString(_ alignment: String) -> VerticalAli
 }
 
 // MARK: - Font Helper
-fileprivate func createIOSFont(for fontSize: String, weight: Font.Weight, deviceSize: CGSize?) -> Font {
+fileprivate func createIOSFont(for fontSize: String, weight: Font.Weight, design: Font.Design, deviceSize: CGSize?) -> Font {
     // Detect device type from deviceSize
     let deviceWidth = deviceSize?.width ?? 393 // Default to iPhone
     let isiPad = deviceWidth >= 700 && deviceWidth < 1200 // iPad range: 834-1024
@@ -1252,7 +1256,7 @@ fileprivate func createIOSFont(for fontSize: String, weight: Font.Weight, device
         else { size = 20 } // iOS Title 3: 20pt
     case "headline":
         size = isMac ? 18 : 17 // macOS: 18pt, iOS/iPad: 17pt (default semibold, but overridable)
-        return .system(size: size, weight: weight)
+        return .system(size: size, weight: weight, design: design)
     case "body":
         size = isMac ? 15 : 17 // macOS: 15pt, iOS/iPad: 17pt
     case "callout":
@@ -1269,7 +1273,7 @@ fileprivate func createIOSFont(for fontSize: String, weight: Font.Weight, device
         size = isMac ? 15 : 17 // Default to body
     }
     
-    return .system(size: size, weight: weight)
+    return .system(size: size, weight: weight, design: design)
 }
 
 // MARK: - Image Component View
@@ -1373,5 +1377,15 @@ fileprivate struct CustomSliderView: View {
             .frame(height: 30, alignment: .center)
         }
         .frame(height: 30)
+    }
+}
+
+fileprivate func fontDesignFromString(_ design: String?) -> Font.Design {
+    switch design {
+    case "default": return .default
+    case "serif": return .serif
+    case "rounded": return .rounded
+    case "monospaced": return .monospaced
+    default: return .default
     }
 }

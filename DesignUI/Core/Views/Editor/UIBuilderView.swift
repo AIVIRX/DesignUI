@@ -21,7 +21,6 @@ extension Notification.Name {
     static let selectComponent = Notification.Name("selectComponent")
     static let minimizeSheet = Notification.Name("minimizeSheet") // Minimize iOS sheet to height 80
     static let dismissChildNavigation = Notification.Name("dismissChildNavigation") // Dismiss child views (add components, modifiers)
-    static let toggleAICommandBar = Notification.Name("toggleAICommandBar")
 }
 
 // MARK: - Undoable Slider
@@ -250,12 +249,12 @@ struct UIBuilderView: View {
     var body: some View {
 
         NavigationStack {
-            Color.clear
+            ZStack(alignment: .top) {
+                Color.clear
                 .onAppear {
                     // Ensure status bar properties are valid (migration/hotfix)
                     canvasManager.validateStatusBarProperties()
                 }
-                .frame(width: 0, height: 0)
 
 #if os(iOS)
             if UIDevice.current.userInterfaceIdiom == .phone {
@@ -312,7 +311,7 @@ struct UIBuilderView: View {
             }
 #else
             // macOS: Normal canvas layout with overlaid panels
-            ZStack {
+            ZStack(alignment: .top) {
                 mainCanvasArea
                 
                 // Floating panels with proper margins
@@ -362,7 +361,9 @@ struct UIBuilderView: View {
                 }
             }
 
+
 #endif
+            }
         }
         .navigationTitle("Studio")
         .toolbar { toolbarButtons }
@@ -423,10 +424,16 @@ struct UIBuilderView: View {
                     designFile.statusBarVisible = false
                     canvasManager.statusBarComponent?.isVisible = false
                     NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
+                    
+                    // Also disable Top Safe Area for widgets
+                    canvasManager.statusBarComponent?.setProperty(key: "topSafeArea", value: false)
                 } else {
                     designFile.statusBarVisible = true
                     canvasManager.statusBarComponent?.isVisible = true
                     NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
+                    
+                    // Enable Top Safe Area for non-widgets
+                    canvasManager.statusBarComponent?.setProperty(key: "topSafeArea", value: true)
                 }
             }
         }
@@ -694,25 +701,6 @@ struct UIBuilderView: View {
                 Image(systemName: "arrow.uturn.forward")
             }
             .disabled(!canvasManager.canRedo)
-            
-            // AI Trigger Button
-            Button(action: {
-                NotificationCenter.default.post(name: .toggleAICommandBar, object: nil)
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "sparkles")
-                        .foregroundStyle(.purple)
-                    Text("Ask AI")
-                        .font(.system(size: 13, weight: .semibold))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(Color.purple.opacity(0.1))
-                        .stroke(Color.purple.opacity(0.3), lineWidth: 1)
-                )
-            }
         }
         
         ToolbarItemGroup(placement: .primaryAction) {
@@ -1824,24 +1812,15 @@ struct ResizablePanel<Content: View>: View {
     }
     
     var body: some View {
-        HStack(spacing: 0) {
-            // Handle on left for Properties panel
-            if handlePosition == .left {
-                resizeHandle
-            }
-            
-            // Panel content
-            content
-                .frame(width: width)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 4)
-            
-            // Handle on right for Layers panel
-            if handlePosition == .right {
-                resizeHandle
-            }
-        }
-        .frame(maxHeight: .infinity)
+        content
+            .frame(width: width)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 4)
+            .overlay(
+                resizeHandle,
+                alignment: handlePosition == .left ? .leading : .trailing
+            )
+            .frame(maxHeight: .infinity)
     }
     
     private var handleColor: Color {

@@ -103,7 +103,6 @@ struct CornerRadiusModifierEditor: View {
             }
             .padding()
         }
-        .frame(maxHeight: 400)
         .onAppear {
             loadRadius()
         }

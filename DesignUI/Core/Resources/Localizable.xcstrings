@@ -18535,6 +18535,9 @@
         }
       }
     },
+    "Custom" : {
+
+    },
     "Dark" : {
       "localizations" : {
         "ar" : {
@@ -20286,6 +20289,9 @@
       }
     },
     "Description" : {
+
+    },
+    "Design" : {
 
     },
     "Design Browser" : {
@@ -25803,6 +25809,9 @@
         }
       }
     },
+    "Hex (e.g. #FF0000)" : {
+
+    },
     "Home" : {
       "localizations" : {
         "ar" : {
@@ -26302,6 +26311,9 @@
           }
         }
       }
+    },
+    "Index" : {
+
     },
     "Introducing" : {
       "localizations" : {
@@ -50113,6 +50125,9 @@
           }
         }
       }
+    },
+    "Text" : {
+
     },
     "Text Alignment" : {
       "localizations" : {

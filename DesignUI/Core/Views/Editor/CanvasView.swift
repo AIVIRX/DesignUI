@@ -62,10 +62,13 @@ struct CanvasView: View {
                     // Only rasterize during active gestures or animations to prevent pixelation at high zooms
                     // When static, let SwiftUI render vectors for optimal sharpness
                     // Use tolerance to avoid floating point noise keeping rasterization active
+                    // SKIPPING RASTERIZATION IF MAP IS PRESENT (MapKit doesn't support drawingGroup)
                     .modifier(ConditionalDrawingGroup(shouldRasterize: 
-                        abs(magnifyScale - 1.0) > 0.001 || 
-                        abs(dragOffset.width) > 0.5 || 
-                        abs(dragOffset.height) > 0.5
+                        !canvasManager.hasMapComponent && (
+                            abs(magnifyScale - 1.0) > 0.001 || 
+                            abs(dragOffset.width) > 0.5 || 
+                            abs(dragOffset.height) > 0.5
+                        )
                     ))
                     .scaleEffect(localZoomLevel * magnifyScale)
                     .offset(
@@ -323,7 +326,7 @@ struct CanvasView: View {
                         StatusBarContainerView(
                             statusBarComponent: statusBarComponent,
                             deviceSize: deviceSize,
-                            isSelected: canvasManager.selectedComponentIds.contains(statusBarComponent.id),
+                            isSelected: false,
                             colorScheme: colorScheme,
                             statusBarHasBackground: statusBarHasBackground,
                             onSelect: { 

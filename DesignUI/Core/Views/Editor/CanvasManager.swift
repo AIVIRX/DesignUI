@@ -82,6 +82,12 @@ class CanvasManager: ObservableObject {
     private var statusBarCancellable: AnyCancellable?
     var hasClipboardContent: Bool { clipboard != nil }
     
+    // Check if design contains a map component (to disable rasterization)
+    // Check if design contains a map component (to disable rasterization)
+    var hasMapComponent: Bool {
+        return false
+    }
+    
     var canUndo: Bool { 
         // Can undo if we have at least one action
         !undoStack.isEmpty
@@ -1370,16 +1376,57 @@ class CanvasManager: ObservableObject {
         let cleanedName = designName.filter { $0.isLetter || $0.isNumber }
         let viewName = "\(cleanedName.isEmpty ? "Generated" : cleanedName)View"
         
-        var code = """
-        import SwiftUI
-
+        var code = "import SwiftUI"
+        
+        // Scan for Chart components to conditionally import Charts
+        var hasChart = false
+        // Helper to recursively check for chart
+        func checkForChart(_ comps: [UIComponent]) {
+            for comp in comps {
+                if comp.type == .chart {
+                    hasChart = true
+                }
+                checkForChart(comp.children)
+            }
+        }
+        checkForChart(components)
+        
+        if hasChart {
+            code += "\nimport Charts"
+        }
+        
+        code += """
+        
+        
         struct \(viewName): View {
             var body: some View {
         """
         
         var bodyContent = ""
+        
+        // Check if we should ignore safe area (when status bar is hidden)
+        let showStatusBar = statusBarComponent?.getProperty(key: "showStatusBar") as? Bool ?? true
+        let shouldIgnoreSafeArea = !showStatusBar
+        
         if components.isEmpty {
             bodyContent = "        Text(\"No components added yet\")"
+        } else if shouldIgnoreSafeArea {
+            if components.count == 1 {
+                // Single component - simple modifier append
+                let component = components[0]
+                var componentCode = CodeGenerator.generateCode(for: component, indentLevel: 2)
+                componentCode += "\n            .ignoresSafeArea()"
+                bodyContent = componentCode
+            } else {
+                // Multiple components - wrap in Group
+                bodyContent = "        Group {"
+                for component in components {
+                    let componentCode = CodeGenerator.generateCode(for: component, indentLevel: 3)
+                    bodyContent += "\n" + componentCode
+                }
+                bodyContent += "\n        }"
+                bodyContent += "\n        .ignoresSafeArea()"
+            }
         } else {
             for (index, component) in components.enumerated() {
                 let componentCode = CodeGenerator.generateCode(for: component, indentLevel: 2)

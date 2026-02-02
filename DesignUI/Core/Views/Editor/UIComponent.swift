@@ -76,6 +76,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case textField = "Text Field"
     case toggle = "Switch"
     case slider = "Slider"
+    case chart = "Chart"
     
     var id: String { rawValue }
     
@@ -100,6 +101,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .textField: return "text.cursor"
         case .toggle: return "switch.2"
         case .slider: return "slider.horizontal.3"
+        case .chart: return "chart.bar.fill"
         }
     }
     
@@ -132,6 +134,7 @@ enum PropertyType: Codable {
     case dropdown
     case colorArray
     case unitPoint
+    case slider
 }
 
 // MARK: - Component Property
@@ -167,8 +170,6 @@ struct ComponentProperty: Identifiable, Equatable {
         return "\(lhs)" == "\(rhs)"
     }
     
-    
-    // MARK: - Codable Implementation
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
         case key, value
@@ -177,7 +178,6 @@ struct ComponentProperty: Identifiable, Equatable {
 
 // MARK: - Codable Extension
 extension ComponentProperty: Codable {
-    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
@@ -252,7 +252,7 @@ extension ComponentProperty: Codable {
             }
         case .font, .alignment, .segmentedControl, .dropdown:
             try container.encode(value as? String ?? "", forKey: key)
-        case .spacing, .cornerRadius, .padding, .frame, .offset, .rotation, .scale, .opacity, .shadow, .border, .gradient, .animation:
+        case .spacing, .cornerRadius, .padding, .frame, .offset, .rotation, .scale, .opacity, .shadow, .border, .gradient, .animation, .slider:
             // For numeric properties, try to encode as Double
             if let doubleValue = value as? Double {
                 try container.encode(doubleValue, forKey: key)
@@ -295,7 +295,7 @@ extension ComponentProperty: Codable {
             return colorStringToColor(colorString)
         case .font, .alignment, .segmentedControl, .dropdown:
             return try container.decode(String.self, forKey: key)
-        case .spacing, .cornerRadius, .padding, .frame, .offset, .rotation, .scale, .opacity, .shadow, .border, .gradient, .animation:
+        case .spacing, .cornerRadius, .padding, .frame, .offset, .rotation, .scale, .opacity, .shadow, .border, .gradient, .animation, .slider:
             // Try to decode as Double first, fallback to String
             if let doubleValue = try? container.decode(Double.self, forKey: key) {
                 return doubleValue
@@ -429,6 +429,27 @@ extension ComponentProperty: Codable {
         case "brown": return .brown
         case "clear": return .clear
         default:
+            // Check for Hex (standard #RRGGBB or #RRGGBBAA)
+            if colorString.hasPrefix("#") {
+                let hex = colorString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                var int: UInt64 = 0
+                Scanner(string: hex).scanHexInt64(&int)
+                let a, r, g, b: UInt64
+                
+                switch hex.count {
+                case 3: // RGB (12-bit)
+                    (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+                case 6: // RGB (24-bit)
+                    (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+                case 8: // ARGB (32-bit)
+                    (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+                default:
+                    (a, r, g, b) = (255, 0, 0, 0)
+                }
+                
+                return Color(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: Double(a) / 255)
+            }
+            
             // Try to parse RGB/RGBA format
             if colorString.hasPrefix("rgb(") || colorString.hasPrefix("rgba(") {
                 let cleaned = colorString
@@ -613,9 +634,9 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         // For color properties, ensure semantic colors are preserved
         if property.type == .color {
-            // If stored as string, convert to Color (semantic colors will adapt)
+            // If stored as string, return as string (Editor expects String binding)
             if let colorString = property.value as? String {
-                return ComponentProperty.colorStringToColor(colorString)
+                return colorString
             }
             // If stored as Color, check if it's a semantic color and preserve it
             if let color = property.value as? Color {
@@ -1028,9 +1049,14 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                 var correctValue = savedProp.value
                 
                 // Convert types if needed (e.g., String -> Color, Int -> Double)
+                // Removed automatic conversion for .color type.
+                // We want to keep the value as String so the Editor binding works correctly.
+                // Renderers are now updated to handle String resolution to Color on demand.
+                /*
                 if defaultProp.type == .color, let stringVal = correctValue as? String {
                     correctValue = ComponentProperty.colorStringToColor(stringVal)
                 }
+                */
                 if defaultProp.type == .number {
                     // JSON numbers can decode as Int or Double, normalize to Double
                     if let intVal = correctValue as? Int {
@@ -1174,8 +1200,7 @@ extension UIComponent {
             ]
         case .sfSymbol:
             return [
-                ComponentProperty(key: "symbolName", displayName: "Symbol Name", type: .string, value: "star", defaultValue: "star"),
-                ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: false, defaultValue: false)
+                ComponentProperty(key: "symbolName", displayName: "Symbol", type: .string, value: "star", defaultValue: "star")
             ]
         case .statusBar:
             return [
@@ -1196,7 +1221,40 @@ extension UIComponent {
                 ComponentProperty(key: "value", displayName: "Value", type: .number, value: 0.5, defaultValue: 0.5),
                 ComponentProperty(key: "min", displayName: "Minimum", type: .number, value: 0.0, defaultValue: 0.0),
                 ComponentProperty(key: "max", displayName: "Maximum", type: .number, value: 1.0, defaultValue: 1.0)
+
             ]
+        case .chart:
+            return [
+                ComponentProperty(key: "chartStyle", displayName: "Chart Style", type: .dropdown, value: "Line + Area", defaultValue: "Line + Area", options: ["Line + Area", "Line", "Area", "Bar"]),
+                ComponentProperty(key: "dataPreset", displayName: "Data Pattern", type: .dropdown, value: "Increasing", defaultValue: "Increasing", options: ["Increasing", "Decreasing", "Stable", "Volatile"]),
+
+                ComponentProperty(key: "pointCount", displayName: "Point Count", type: .slider, value: 20.0, defaultValue: 20.0, options: [5.0, 30.0]),
+                // Wait, .slider type usually has separate "min" and "max" component properties if it's a dedicated slider component.
+                // But this is a PROPERTY editor. The PropertyEditor for .number usually is a text field.
+                // Do we have a .slider property type?
+                // Checking PropertyType enum in UIComponent (Line 112).
+                // It has `case number`. It doesn't seem to have `.range` or `.slider` as a property type for the EDITOR.
+                // It has `case slider` as a COMPONENT TYPE.
+                // The Editor UI (`PropertiesPanelView`) handles `PropertyType`.
+                // Looking at `UIComponent.swift` lines 112-135:
+                // `case number`
+                // `case opacity` (likely slider 0-1)
+                // `case cornerRadius` (likely slider)
+                // `case padding` (number)
+                
+                // If I want a slider for "Point Count", I might need to reuse an existing type that renders as slider, OR update `PropertiesPanelView` to support general sliders.
+                // `opacity` renders as slider 0-1.
+                // `cornerRadius` renders as number input (usually).
+                
+                // Let's create a NEW property type `.slider` or re-examine `PropertiesPanelView` to see what renders as a slider.
+                // Step 1 check PropertiesPanelView.
+
+
+                ComponentProperty(key: "color", displayName: "Color", type: .color, value: "blue", defaultValue: "blue"),
+                ComponentProperty(key: "showXAxis", displayName: "Show X Axis", type: .boolean, value: true, defaultValue: true),
+                ComponentProperty(key: "showYAxis", displayName: "Show Y Axis", type: .boolean, value: true, defaultValue: true)
+            ]
+
         default:
             return []
         }

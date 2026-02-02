@@ -178,6 +178,9 @@ struct UniversalColorPickerView: View {
     var onColorChanged: (() -> Void)?
     var onColorConfirmed: (() -> Void)?
     
+    @State private var hexInput: String = ""
+    @FocusState private var isHexFocused: Bool
+    
     static let swiftUIColors: [(name: String, displayName: String, color: Color)] = [
         // Standard Colors
         ("primary", "Primary", .primary),
@@ -201,8 +204,11 @@ struct UniversalColorPickerView: View {
     ]
     
     private var currentColor: Color {
-        let baseColor = Self.swiftUIColors.first { $0.name == selectedColorName }?.color ?? .primary
-        return baseColor.opacity(opacityValue)
+        if let baseColor = Self.swiftUIColors.first(where: { $0.name == selectedColorName })?.color {
+            return baseColor.opacity(opacityValue)
+        }
+        // Fallback to resolving hex/rgb
+        return ComponentProperty.colorStringToColor(selectedColorName).opacity(opacityValue)
     }
     
     var body: some View {
@@ -257,6 +263,50 @@ struct UniversalColorPickerView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
+                    
+                    Divider()
+                        .padding(.leading, 48)
+                    
+                    // Hex Input
+                    HStack(spacing: 12) {
+                        Image(systemName: "number")
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+                            .frame(width: 24, height: 24)
+                        
+                        TextField("Hex (e.g. #FF0000)", text: $hexInput)
+                            .textFieldStyle(.plain)
+                            .font(.system(.body, design: .monospaced))
+                            .padding(.vertical, 8)
+                            .focused($isHexFocused)
+                            .onSubmit {
+                                processHexInput(hexInput, confirm: true)
+                            }
+                            .onChange(of: hexInput) { _, newValue in
+                                // Enforce character limit and allowed characters
+                                let filtered = newValue.uppercased().filter { "0123456789ABCDEF#".contains($0) }
+                                
+                                var limited = filtered
+                                if limited.hasPrefix("#") {
+                                    if limited.count > 9 { limited = String(limited.prefix(9)) }
+                                } else {
+                                    if limited.count > 8 { limited = String(limited.prefix(8)) }
+                                }
+                                
+                                if hexInput != limited {
+                                    hexInput = limited
+                                }
+                                
+                                // Live update if valid
+                                processHexInput(limited, confirm: false)
+                            }
+                            .onChange(of: isHexFocused) { _, isFocused in
+                                if !isFocused {
+                                    processHexInput(hexInput, confirm: true)
+                                }
+                            }
+                    }
+                    .padding(.horizontal, 12)
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 10)
@@ -293,7 +343,40 @@ struct UniversalColorPickerView: View {
             }
             .padding()
         }
-        .frame(maxHeight: 400)
+        .onAppear {
+            updateHexFromSelection()
+        }
+        .onChange(of: selectedColorName) { _, _ in
+            updateHexFromSelection()
+        }
+    }
+    
+    private func updateHexFromSelection() {
+        if selectedColorName.hasPrefix("#") {
+            hexInput = selectedColorName
+        } else {
+            hexInput = ""
+        }
+    }
+    
+    private func processHexInput(_ input: String, confirm: Bool) {
+        var cleanHex = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !cleanHex.hasPrefix("#") {
+            cleanHex = "#" + cleanHex
+        }
+        
+        // Remove hash for counting
+        let rawHex = cleanHex.dropFirst()
+        
+        let validLengths = [3, 6, 8]
+        if validLengths.contains(rawHex.count) {
+             selectedColorName = cleanHex
+             onColorChanged?()
+             
+             if confirm {
+                 onColorConfirmed?()
+             }
+        }
     }
     
     /// Helper to get Color from name

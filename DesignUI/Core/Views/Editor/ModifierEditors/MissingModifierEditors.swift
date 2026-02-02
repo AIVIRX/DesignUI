@@ -95,7 +95,6 @@ struct BlurModifierEditor: View {
             }
             .padding()
         }
-        .frame(maxHeight: 400)
         .onAppear {
             loadRadius()
         }
@@ -164,7 +163,6 @@ struct PresetBlurRow: View {
     }
 }
 
-// MARK: - ClipShape Modifier Editor
 // MARK: - ClipShape Modifier Editor
 struct ClipShapeModifierEditor: View {
     @Binding var modifier: ComponentModifier
@@ -802,7 +800,6 @@ struct PresetRatioRow: View {
     }
 }
 
-// MARK: - Z Index Modifier Editor
 // MARK: - Z Index Modifier Editor
 struct ZIndexModifierEditor: View {
     @Binding var modifier: ComponentModifier
