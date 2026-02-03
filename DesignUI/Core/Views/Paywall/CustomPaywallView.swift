@@ -1,11 +1,6 @@
 import SwiftUI
 import RevenueCat
 import RevenueCatUI
-#if os(iOS)
-import UIKit
-#elseif os(macOS)
-import AppKit
-#endif
 
 struct CustomPaywallView: View {
     @Environment(\.dismiss) private var dismiss

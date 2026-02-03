@@ -6,14 +6,11 @@
 //
 
 import SwiftUI
-import RevenueCat
-import RevenueCatUI
 import SDWebImage
 import SDWebImageSwiftUI
 
 struct NewsDetailView: View {
     let post: NewsPost
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     
     var body: some View {
         ScrollView {

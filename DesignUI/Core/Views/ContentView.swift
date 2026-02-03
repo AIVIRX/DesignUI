@@ -19,7 +19,6 @@ struct ContentView: View {
     
     enum Tabs: Hashable {
         case home
-        case studio
         case news
         case profile
     }

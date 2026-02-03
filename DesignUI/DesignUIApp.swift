@@ -11,30 +11,9 @@ import RevenueCat
 import SDWebImage
 
 #if os(iOS)
-import AppTrackingTransparency
-import GoogleMobileAds
-import Foundation
-
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
-            if #available(iOS 14, *) {
-                ATTrackingManager.requestTrackingAuthorization { status in
-                    switch status {
-                    case .authorized:
-                        MobileAds.shared.start(completionHandler: nil)
-                    case .denied:
-                        MobileAds.shared.start(completionHandler: nil)
-                    default:
-                        MobileAds.shared.start(completionHandler: nil)
-                    }
-                }
-            } else {
-                MobileAds.shared.start(completionHandler: nil)
-            }
-        })
-        
         //        Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
         
@@ -55,15 +34,11 @@ struct DesignUIApp: App {
     init() {
         // Ensure paywall is not shown on launch
         PaywallManager.shared.isPresenting = false
-        // Limit memory cache to 15MB for lower memory footprint
-        SDImageCache.shared.config.maxMemoryCost = 15 * 1024 * 1024 // 15MB
-        // Limit memory cache to 30 images max (keeps recent images, evicts old ones)
-        SDImageCache.shared.config.maxMemoryCount = 30
-        // Enable auto-cleanup when memory warning
-        SDImageCache.shared.config.shouldUseWeakMemoryCache = true
-        // Set disk cache limit to 200MB
+        SDImageCache.shared.config.maxMemoryCost = 15 * 1024 * 1024 // 15MB Limit memory cache to 15MB for lower memory footprint
+        SDImageCache.shared.config.maxMemoryCount = 30 // Limit memory cache to 30 images max (keeps recent images, evicts old ones)
+        SDImageCache.shared.config.shouldUseWeakMemoryCache = true // Enable auto-cleanup when memory warning
         SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 7 // 7 days
-        SDImageCache.shared.config.maxDiskSize = 200 * 1024 * 1024 // 200MB
+        SDImageCache.shared.config.maxDiskSize = 200 * 1024 * 1024 // Set disk cache limit to 200MB
     }
     var body: some Scene {
         WindowGroup {
@@ -79,20 +54,19 @@ struct DesignUIApp: App {
                 }
                 .onOpenURL { url in
                     guard url.isFileURL else { return }
-
+                    
                     let success = url.startAccessingSecurityScopedResource()
                     guard success else {
                         print("❌ Failed to access security scoped resource")
                         return
                     }
-
+                    
                     defer {
                         url.stopAccessingSecurityScopedResource()
                     }
-
+                    
                     print("📂 Opening file: \(url.path)")
                 }
-
         }
     }
 }
@@ -113,7 +87,7 @@ struct DesignUIApp: App {
     
     init() {
         // Configure RevenueCat for macOS
-        Purchases.logLevel = .debug
+        //Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
         // Ensure paywall is not shown on launch
         PaywallManager.shared.isPresenting = false
@@ -189,11 +163,6 @@ struct MainWindow: View {
                 
                 // Start accessing security scoped resource
                 #if os(iOS)
-                    
-                
-                
-                
-                
                     defer { url.stopAccessingSecurityScopedResource() }
                 #else
                     _ = (url as NSURL).startAccessingSecurityScopedResource()
@@ -220,5 +189,4 @@ struct MainWindow: View {
             }
     }
 }
-
 #endif

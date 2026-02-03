@@ -8,9 +8,6 @@
 import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
-#if os(macOS)
-import AppKit
-#endif
 
 struct CommunityCards: View {
     let post: DesignPost
@@ -156,8 +153,6 @@ struct CommunityCards: View {
             )) {
                 VStack(alignment: .leading, spacing: 8) {
                     imageView
-                    
-
                 }
             }
             .buttonStyle(PlainButtonStyle()) // Needed for proper tap behavior in lists

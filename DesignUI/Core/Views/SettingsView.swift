@@ -10,9 +10,6 @@ import StoreKit
 import RevenueCatUI
 #if os(iOS)
 import MessageUI
-import UIKit
-#elseif os(macOS)
-import AppKit
 #endif
 
 #if os(iOS)

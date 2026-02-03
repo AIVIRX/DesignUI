@@ -32,9 +32,6 @@
 		EC62CF652F09F0DB00D7EFF8 /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC70F84B2EB6C24C001D39DC /* FeedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC70F84A2EB6C24C001D39DC /* FeedItem.swift */; };
-		EC70F8502EB6C2FD001D39DC /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */; };
-		EC70F8522EB6C3C9001D39DC /* NativeAdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */; };
-		EC70F8532EB6DD06001D39DC /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC419E5B2E85D6B60081C5D2 /* AdSupport.framework */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
 		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
@@ -42,8 +39,6 @@
 		EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */; };
 		EC86A0F92F29E02800FD74CA /* CommunitySubmissionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC86A0F82F29E02800FD74CA /* CommunitySubmissionViewModel.swift */; };
 		EC86A0FD2F29E03A00FD74CA /* SubmitToCommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC86A0FB2F29E03A00FD74CA /* SubmitToCommunityView.swift */; };
-		EC86A0FE2F29E03A00FD74CA /* MySubmissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC86A0FA2F29E03A00FD74CA /* MySubmissionsView.swift */; };
-		EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */; };
 		EC8D7B2B2F20711F008E4AB3 /* UnsplashGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		EC96C2DD2F25891B00DA8459 /* CustomBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC96C2DB2F25891B00DA8459 /* CustomBottomSheet.swift */; };
@@ -59,7 +54,6 @@
 		ECA67B0C2F2899A50021941D /* UnsplashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67B092F2899A50021941D /* UnsplashService.swift */; };
 		ECA67B0D2F2899A50021941D /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67B032F2899A50021941D /* SessionManager.swift */; };
 		ECA67B0E2F2899A50021941D /* PurchasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67B082F2899A50021941D /* PurchasesService.swift */; };
-		ECA67B0F2F2899A50021941D /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67AFF2F2899A50021941D /* AdManager.swift */; };
 		ECA67B102F2899A50021941D /* PaywallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67B022F2899A50021941D /* PaywallManager.swift */; };
 		ECA67B112F2899A50021941D /* ColorSchemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67B002F2899A50021941D /* ColorSchemeManager.swift */; };
 		ECA67B122F2899A50021941D /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA67B042F2899A50021941D /* SubscriptionManager.swift */; };
@@ -153,14 +147,12 @@
 		EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC70F84A2EB6C24C001D39DC /* FeedItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItem.swift; sourceTree = "<group>"; };
-		EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
 		EC7D7BF02C19E520003134B1 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFIconsView.swift; sourceTree = "<group>"; };
 		EC86A0F82F29E02800FD74CA /* CommunitySubmissionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunitySubmissionViewModel.swift; sourceTree = "<group>"; };
-		EC86A0FA2F29E03A00FD74CA /* MySubmissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MySubmissionsView.swift; sourceTree = "<group>"; };
 		EC86A0FB2F29E03A00FD74CA /* SubmitToCommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitToCommunityView.swift; sourceTree = "<group>"; };
 		EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashGalleryView.swift; sourceTree = "<group>"; };
@@ -174,7 +166,6 @@
 		EC9F54722E187FCD00AAE9EC /* BlogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlogDetailView.swift; sourceTree = "<group>"; };
 		EC9F54742E1889B700AAE9EC /* NewsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsContentView.swift; sourceTree = "<group>"; };
 		ECA67AFD2F285B610021941D /* LayersPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanelView.swift; sourceTree = "<group>"; };
-		ECA67AFF2F2899A50021941D /* AdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdManager.swift; sourceTree = "<group>"; };
 		ECA67B002F2899A50021941D /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
 		ECA67B012F2899A50021941D /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		ECA67B022F2899A50021941D /* PaywallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallManager.swift; sourceTree = "<group>"; };
@@ -242,18 +233,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC26F3532F246D500035E1EA /* FluidGradient in Frameworks */,
-				EC8B7AA62EBD4EF0006FE323 /* AppTrackingTransparency.framework in Frameworks */,
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
 				ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */,
 				ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */,
-				EC70F8502EB6C2FD001D39DC /* GoogleMobileAds in Frameworks */,
 				ECC527602E27155000DAA548 /* Supabase in Frameworks */,
 				ECC527682E27156000DAA548 /* PostgREST in Frameworks */,
 				ECC527662E27155D00DAA548 /* Functions in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
 				ECC527622E27155500DAA548 /* Storage in Frameworks */,
 				ECC527642E27155900DAA548 /* Auth in Frameworks */,
-				EC70F8532EB6DD06001D39DC /* AdSupport.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,7 +268,6 @@
 		EC86A0FC2F29E03A00FD74CA /* Community */ = {
 			isa = PBXGroup;
 			children = (
-				EC86A0FA2F29E03A00FD74CA /* MySubmissionsView.swift */,
 				EC86A0FB2F29E03A00FD74CA /* SubmitToCommunityView.swift */,
 			);
 			path = Community;
@@ -308,7 +295,6 @@
 		ECA67B072F2899A50021941D /* Managers */ = {
 			isa = PBXGroup;
 			children = (
-				ECA67AFF2F2899A50021941D /* AdManager.swift */,
 				ECA67B002F2899A50021941D /* ColorSchemeManager.swift */,
 				ECA67B012F2899A50021941D /* HapticManager.swift */,
 				ECA67B022F2899A50021941D /* PaywallManager.swift */,
@@ -508,7 +494,6 @@
 			children = (
 				EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */,
 				EC3D132D2E1DABCE00F659DB /* LargeHero.swift */,
-				EC70F8512EB6C3C9001D39DC /* NativeAdView.swift */,
 				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 			);
 			path = Components;
@@ -568,7 +553,6 @@
 				ECC527672E27156000DAA548 /* PostgREST */,
 				ECB10DA42EB06B5D00420663 /* RevenueCat */,
 				ECB10DA62EB06B5D00420663 /* RevenueCatUI */,
-				EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */,
 				EC26F3522F246D500035E1EA /* FluidGradient */,
 			);
 			productName = DesignUI;
@@ -644,7 +628,6 @@
 				ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
-				EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
@@ -679,13 +662,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC86A0FD2F29E03A00FD74CA /* SubmitToCommunityView.swift in Sources */,
-				EC86A0FE2F29E03A00FD74CA /* MySubmissionsView.swift in Sources */,
 				EC7D7BFB2C19E57D003134B1 /* SFIconsView.swift in Sources */,
 				ECA67B0B2F2899A50021941D /* HapticManager.swift in Sources */,
 				ECA67B0C2F2899A50021941D /* UnsplashService.swift in Sources */,
 				ECA67B0D2F2899A50021941D /* SessionManager.swift in Sources */,
 				ECA67B0E2F2899A50021941D /* PurchasesService.swift in Sources */,
-				ECA67B0F2F2899A50021941D /* AdManager.swift in Sources */,
 				ECA67B102F2899A50021941D /* PaywallManager.swift in Sources */,
 				ECA67B112F2899A50021941D /* ColorSchemeManager.swift in Sources */,
 				ECA67B122F2899A50021941D /* SubscriptionManager.swift in Sources */,
@@ -762,7 +743,6 @@
 				ECB94CA22EFB1041000AAF34 /* MissingModifierEditors.swift in Sources */,
 				ECA67B162F289E520021941D /* LazyMasonryView.swift in Sources */,
 				EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */,
-				EC70F8522EB6C3C9001D39DC /* NativeAdView.swift in Sources */,
 				EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */,
 				EC5982A02D568E5500633392 /* LikeButton.swift in Sources */,
 				ECFF2C7F2D559500006A7FE6 /* AuthViewModel.swift in Sources */,
@@ -951,7 +931,6 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DockUI needs permission to save screenshots to your photo library.";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1030,7 +1009,6 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DockUI needs permission to save screenshots to your photo library.";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1105,14 +1083,6 @@
 				minimumVersion = 1.0.0;
 			};
 		};
-		EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.12.0;
-			};
-		};
 		ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
@@ -1144,11 +1114,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */;
 			productName = FluidGradient;
-		};
-		EC70F84F2EB6C2FD001D39DC /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC70F84E2EB6C2FD001D39DC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
 		};
 		ECB10DA42EB06B5D00420663 /* RevenueCat */ = {
 			isa = XCSwiftPackageProductDependency;

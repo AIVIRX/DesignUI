@@ -14,7 +14,6 @@ struct HeightPreferenceKey: PreferenceKey {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, *)
 struct LazyMasonryView<Content: View, Item: Identifiable>: View {
     let items: [Item]
     let columns: Int

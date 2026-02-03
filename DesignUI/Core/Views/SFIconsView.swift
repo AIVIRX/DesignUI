@@ -11,18 +11,17 @@ struct SFIconsView: View {
     @State private var searchText = ""
     @State private var debouncedSearch = ""
     @State private var searchTask: Task<Void, Never>?
-    @State private var opacity: Double = 0.0
     @EnvironmentObject private var toastManager: ToastManager
-
+    
     private var filteredSymbols: [String] {
         guard !debouncedSearch.isEmpty else { return symbols }
         return symbols.filter { $0.localizedCaseInsensitiveContains(debouncedSearch) }
     }
-
+    
     private var grid: [GridItem] {
         [GridItem(.adaptive(minimum: 96), spacing: 16)]
     }
-
+    
     var body: some View {
         VStack {
             ScrollView {
@@ -49,13 +48,6 @@ struct SFIconsView: View {
             searchTask = Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 180_000_000)
                 debouncedSearch = newValue
-            }
-        }
-        .opacity(opacity)
-        .onAppear {
-            debouncedSearch = searchText
-            withAnimation(.easeInOut(duration: 0.35)) {
-                opacity = 1.0
             }
         }
     }

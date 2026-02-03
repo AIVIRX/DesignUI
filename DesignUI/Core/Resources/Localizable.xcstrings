@@ -29325,9 +29325,6 @@
         }
       }
     },
-    "Loading submissions..." : {
-
-    },
     "Loading subscription..." : {
       "localizations" : {
         "ar" : {
@@ -30329,9 +30326,6 @@
       }
     },
     "My Amazing Design" : {
-
-    },
-    "My Submissions" : {
 
     },
     "New Design" : {
@@ -32586,9 +32580,6 @@
           }
         }
       }
-    },
-    "No Submissions Yet" : {
-
     },
     "Offset" : {
       "localizations" : {
@@ -46874,9 +46865,6 @@
 
     },
     "Submit to Community" : {
-
-    },
-    "Submit your designs to the community to see them here." : {
 
     },
     "Submitted!" : {
