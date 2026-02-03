@@ -39,6 +39,7 @@ class LatestPostsViewModel: ObservableObject {
         post_type,
         status,
         public,
+        design_json,
         profiles!posts_author_id_fkey (
           username,
           verified
@@ -454,6 +455,8 @@ enum PostFetcher {
             .single()
             .execute()
         
-        return try JSONDecoder().decode(DesignPost.self, from: response.data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(DesignPost.self, from: response.data)
     }
 }

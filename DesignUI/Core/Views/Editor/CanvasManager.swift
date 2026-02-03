@@ -43,6 +43,7 @@ class CanvasManager: ObservableObject {
             }
         }
     }
+    
     @Published var selectedComponentIds: Set<UUID> = [] // Multi-selection support
     @Published var zoomLevel: CGFloat = 1.0
     @Published var canvasOffset: CGSize = .zero
@@ -58,10 +59,6 @@ class CanvasManager: ObservableObject {
     // Canvas settings
     @Published var colorScheme: ColorScheme? = nil
     @Published var devicePreset: DevicePreset = .iphone16Pro
-    
-    // AI Integation State
-    @Published var isAIProcessing: Bool = false
-    @Published var isAIInputFocused: Bool = false // Tracks if AI input is focused to disable global shortcuts
     
     // Undo/Redo with action descriptions
     @Published var undoStackVersion: Int = 0 
@@ -122,12 +119,6 @@ class CanvasManager: ObservableObject {
             guard let self = self, let componentId = notification.object as? UUID else { return }
             self.selectComponent(withId: componentId)
         }
-        
-        
-        // NOTE: Notification-based undo REMOVED
-        // Undo is now registered ONLY through explicit CanvasManager method calls
-        // (addComponent, removeComponent, updateModifier, etc.)
-        // This prevents spurious undo registrations on component selection
     }
     
     deinit {
@@ -491,13 +482,26 @@ class CanvasManager: ObservableObject {
     
     func getDesignAsJSON() -> String {
         let encoder = JSONEncoder()
-        // No pretty print for token saving if needed, but pretty print is better for AI if not too long
         encoder.outputFormatting = .prettyPrinted
-        if let data = try? encoder.encode(components),
+        if let excludeIdsKey = CodingUserInfoKey(rawValue: "excludeIds") {
+            encoder.userInfo[excludeIdsKey] = true
+        }
+        
+        // create a temporary DesignTemplate from current state
+        let template = DesignTemplate(
+            name: self.designName,
+            description: "Exported from DesignUI",
+            thumbnail: "blank", // Default placeholder
+            devicePreset: self.devicePreset.rawValue,
+            canvasColorScheme: self.colorScheme == .light ? "light" : (self.colorScheme == .dark ? "dark" : nil),
+            components: self.components
+        )
+        
+        if let data = try? encoder.encode(template),
            let json = String(data: data, encoding: .utf8) {
             return json
         }
-        return "[]"
+        return "{}"
     }
     
     // MARK: - Component Manipulation

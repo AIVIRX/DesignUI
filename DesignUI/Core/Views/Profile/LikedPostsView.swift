@@ -9,6 +9,12 @@ import SwiftUI
 
 struct LikedPostsView: View {
     @StateObject private var viewModelLiked = LikedPostsViewModel()
+    @EnvironmentObject private var designManager: DesignManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @Environment(\.openWindow) private var openWindow
+    @State private var showingLimitAlert = false
+    @State private var showingPaywall = false
+    private let freeDesignLimit = 3
     
     var body: some View {
         ScrollView {
@@ -55,6 +61,19 @@ struct LikedPostsView: View {
         }
         .refreshable {
             await viewModelLiked.refreshPosts()
+        }
+        .sheet(isPresented: $showingPaywall) {
+            CustomPaywallView()
+                .environmentObject(PaywallManager.shared)
+                .environmentObject(subscriptionManager)
+        }
+        .alert("Free Limit Reached", isPresented: $showingLimitAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Subscribe") {
+                showingPaywall = true
+            }
+        } message: {
+            Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
         }
     }
     
@@ -146,6 +165,43 @@ struct LikedPostsView: View {
     
     @ViewBuilder
     private func likedPostCell(for post: DesignPost) -> some View {
-       CommunityCards(post: post)
+       CommunityCards(
+           post: post,
+           onOpen: { postToOpen in
+               // Check subscription limits first
+               if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                   showingLimitAlert = true
+                   return
+               }
+               
+               // Show loading toast
+               ToastManager.shared.showToast(ToastData(title: "Loading Design...", icon: "clock.fill", duration: 5.0))
+               
+               Task {
+                   do {
+                       // 1. Fetch full details (including design_json)
+                       let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
+                       
+                       // 2. Create DesignFile from post
+                       if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
+                           // 3. Open it
+                           await MainActor.run {
+                               ToastManager.shared.dismissToast()
+                               #if os(macOS)
+                               openWindow(value: newDesign.id)
+                               #else
+                               designManager.openDesign(newDesign)
+                               #endif
+                           }
+                       }
+                   } catch {
+                       print("Error opening liked post: \(error)")
+                       await MainActor.run {
+                           ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
+                       }
+                   }
+               }
+           }
+       )
     }
 }

@@ -12529,9 +12529,6 @@
         }
       }
     },
-    "Change Photo" : {
-
-    },
     "Change Plan" : {
       "localizations" : {
         "ar" : {
@@ -14281,6 +14278,9 @@
           }
         }
       }
+    },
+    "Code Preview" : {
+
     },
     "Code Snippet" : {
       "localizations" : {
@@ -18787,6 +18787,9 @@
           }
         }
       }
+    },
+    "Dark Mode" : {
+
     },
     "Delete" : {
       "localizations" : {
@@ -28818,6 +28821,9 @@
           }
         }
       }
+    },
+    "Light Mode" : {
+
     },
     "Likes" : {
       "localizations" : {

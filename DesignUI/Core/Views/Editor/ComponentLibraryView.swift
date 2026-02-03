@@ -16,7 +16,7 @@ struct ComponentLibraryView: View {
     private let componentOrder: [ComponentType] = [
         .text, .image, .sfSymbol, // Core Content
         .vstack, .hstack, .zstack, .scrollView, .spacer, .divider, // Layout
-        .rectangle, .roundedRectangle, .circle, .capsule, .ellipse, // Shapes
+        .shape, // Shapes
         .linearGradient, // Styles
         .textField, .toggle, .slider // Controls
     ]
@@ -25,6 +25,10 @@ struct ComponentLibraryView: View {
         // First filter by availability (excluding internal types like statusBar) and search text
         let filtered = ComponentType.allCases.filter { type in
             guard type != .statusBar else { return false }
+            // Filter out legacy individual shape types
+            if type == .rectangle || type == .circle || type == .roundedRectangle || type == .capsule || type == .ellipse {
+                return false
+            }
             if searchText.isEmpty { return true }
             return type.rawValue.localizedCaseInsensitiveContains(searchText)
         }

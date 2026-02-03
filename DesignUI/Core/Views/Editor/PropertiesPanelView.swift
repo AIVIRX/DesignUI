@@ -190,18 +190,18 @@ struct PropertiesSection: View {
                     
                     Divider().opacity(0.3).padding(.vertical, 2)
                     
-                    // 3. Aspect Ratio (Dropdown: fit/fill)
+                     // 3. Aspect Ratio (Dropdown: fit/fill)
                      HStack {
                          Text("Aspect Ratio")
                              .font(.system(size: 12, weight: .medium))
                              .foregroundColor(.primary)
                          Spacer()
                          Menu {
-                             Button("Fit") { component.setProperty(key: "contentMode", value: "fit") }
-                             Button("Fill") { component.setProperty(key: "contentMode", value: "fill") }
+                             Button("Fit") { component.setProperty(key: "aspectRatio", value: "fit") }
+                             Button("Fill") { component.setProperty(key: "aspectRatio", value: "fill") }
                          } label: {
                              HStack {
-                                 Text((component.getProperty(key: "contentMode") as? String ?? "fit").capitalized)
+                                 Text((component.getProperty(key: "aspectRatio") as? String ?? "fit").capitalized)
                                      .foregroundColor(.primary)
                                  Image(systemName: "chevron.up.chevron.down")
                                      .font(.caption2).foregroundColor(.secondary)
@@ -249,6 +249,12 @@ struct PropertiesSection: View {
                     if property.key == "cornerRadius" {
                         if component.type == .rectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse {
                             return false // Filter out cornerRadius for shapes - use modifier instead
+                        }
+                        if component.type == .shape {
+                             let shapeType = component.getProperty(key: "shapeType") as? String ?? "Rectangle"
+                             if shapeType != "Rounded Rectangle" {
+                                 return false
+                             }
                         }
                     }
                     if property.key == "fill" && (component.type == .rectangle || component.type == .roundedRectangle || component.type == .circle || component.type == .capsule || component.type == .ellipse) {

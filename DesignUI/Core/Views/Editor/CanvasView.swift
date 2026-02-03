@@ -38,241 +38,216 @@ struct CanvasView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Canvas background
-                Rectangle()
-                    .fill(appColorScheme == .dark ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color(red: 0.9, green: 0.9, blue: 0.9))
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        // Deselect components and dismiss keyboard
-                        canvasManager.deselectAll()
-                        #if os(iOS)
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        // On iPhone, minimize the sheet
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                            NotificationCenter.default.post(name: .minimizeSheet, object: nil)
-                        }
-                        #elseif os(macOS)
-                        NSApp.keyWindow?.makeFirstResponder(nil)
-                        #endif
-                    }
-                
-                // Device preview with zoom and pan transforms
-                devicePreview(geometry: geometry)
-                    // Only rasterize during active gestures or animations to prevent pixelation at high zooms
-                    // When static, let SwiftUI render vectors for optimal sharpness
-                    // Use tolerance to avoid floating point noise keeping rasterization active
-                    // SKIPPING RASTERIZATION IF MAP IS PRESENT (MapKit doesn't support drawingGroup)
-                    .modifier(ConditionalDrawingGroup(shouldRasterize: 
-                        !canvasManager.hasMapComponent && (
-                            abs(magnifyScale - 1.0) > 0.001 || 
-                            abs(dragOffset.width) > 0.5 || 
-                            abs(dragOffset.height) > 0.5
-                        )
-                    ))
-                    .scaleEffect(localZoomLevel * magnifyScale)
-                    .offset(
-                        x: currentOffset.width + dragOffset.width,
-                        y: currentOffset.height + dragOffset.height
-                    )
-                // Device preview with zoom and pan transforms
-                    .id("zoom-\(zoomGeneration)") // Force redraw when zoom ends
-                
-                // AI Processing "Ghost" Indicator (Creation Mode)
-                if canvasManager.isAIProcessing && canvasManager.selectedComponent == nil {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .controlSize(.large)
-                            .tint(.purple)
-                        
-                        Text("Dreaming up designs...")
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(32)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(.white.opacity(0.2), lineWidth: 1)
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                    .zIndex(100) // Ensure it's on top
+            canvasContent(in: geometry)
+                .gesture(canvasGestures)
+                #if os(macOS)
+                .onHover { hovering in
+                    isCanvasHovered = hovering
                 }
-            }
-            // Simultaneous pan and zoom gestures (like Photos app)
-            .gesture(
-                SimultaneousGesture(
-                    // Drag gesture for panning
-                    DragGesture()
-                        .updating($dragOffset) { value, state, _ in
-                            state = value.translation
-                        }
-                        .onEnded { value in
-                            currentOffset = CGSize(
-                                width: currentOffset.width + value.translation.width,
-                                height: currentOffset.height + value.translation.height
-                            )
+                .onPreferenceChange(ScrollableHoverPreferenceKey.self) { isHovering in
+                    isHoveringScrollable = isHovering
+                }
+                .background(
+                    CanvasScrollHandler(
+                        isEnabled: isCanvasHovered,
+                        shouldPan: { !canvasManager.isHoveringScrollable },
+                        onPan: { deltaX, deltaY in
+                            currentOffset = CGSize(width: currentOffset.width + deltaX, height: currentOffset.height + deltaY)
                         },
-                    // Magnification gesture for zooming
-                    MagnificationGesture()
-                        .updating($magnifyScale) { value, state, _ in
-                            state = value
+                        onZoom: { delta, mouseLocation in
+                            handleMacZoom(delta: delta, mouseLocation: mouseLocation, geometry: geometry)
                         }
-                        .onEnded { value in
-                            let newZoom = localZoomLevel * value
-                            localZoomLevel = min(max(newZoom, 0.1), 5.0)
-                            baseZoomLevel = localZoomLevel
-                            
-                            // Sync to manager
-                            canvasManager.zoomLevel = localZoomLevel
-                            
-                            // Force redraw to ensure sharp text at new zoom level
-                            zoomGeneration += 1
-                        }
+                    )
                 )
-            )
-            #if os(macOS)
-            // Track hover state
-            .onHover { hovering in
-                isCanvasHovered = hovering
-            }
-            .onPreferenceChange(ScrollableHoverPreferenceKey.self) { isHovering in
-                isHoveringScrollable = isHovering
-            }
-            // macOS: Cmd/Option + scroll for zooming, normal scroll for panning
-            .background(
-                CanvasScrollHandler(
-                    isEnabled: isCanvasHovered,
-                    shouldPan: {
-                        // Simply check if we're hovering over a scrollable component
-                        !canvasManager.isHoveringScrollable
-                    },
-                    onPan: { deltaX, deltaY in
-                        currentOffset = CGSize(
-                            width: currentOffset.width + deltaX,
-                            height: currentOffset.height + deltaY
-                        )
-                    },
-                    onZoom: { delta, mouseLocation in
-                        let oldZoom = localZoomLevel
-                        let newZoom = min(max(oldZoom * (1.0 + delta), 0.1), 5.0)
-                        
-                        // Calculate zoom ratio
-                        let zoomRatio = newZoom / oldZoom
-                        
-                        // Center of the canvas view
-                        let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                        
-                        // Mouse position relative to center
-                        let mouseOffset = CGSize(
-                            width: mouseLocation.x - center.x,
-                            height: mouseLocation.y - center.y
-                        )
-                        
-                        // Calculate new offset to keeping the point under mouse stable
-                        // Formula: O_new = P_mouse - (P_mouse - O_old) * (Zoom_new / Zoom_old)
-                        let newOffsetX = mouseOffset.width - (mouseOffset.width - currentOffset.width) * zoomRatio
-                        let newOffsetY = mouseOffset.height - (mouseOffset.height - currentOffset.height) * zoomRatio
-                        
-                        currentOffset = CGSize(width: newOffsetX, height: newOffsetY)
-                        localZoomLevel = newZoom
-                        baseZoomLevel = newZoom
-                        
-                        // Debounce sync to manager to avoid flooding view updates
-                        zoomSyncTask?.cancel()
-                        zoomSyncTask = Task {
-                            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s debounce
-                            if !Task.isCancelled {
-                                await MainActor.run {
-                                    canvasManager.zoomLevel = localZoomLevel
-                                    zoomGeneration += 1 // Sharpen after settle
-                                }
-                            }
-                        }
-                    }
+                #endif
+                .onAppear {
+                     initializeZoom(geometry: geometry)
+                }
+                .onChange(of: canvasManager.zoomLevel) { syncLocalZoom() }
+                .onChange(of: selectedDevice) { updateDeviceLayout(geometry: geometry) }
+                .onChange(of: geometry.size) { updateLayoutForSizeChange(geometry: geometry) }
+                .onChange(of: canvasManager.centerCanvasTrigger) { centerCanvas() }
+                .onChange(of: canvasManager.scrollToSelectionTrigger) { scrollToSelection() }
+        }
+        .clipped()
+    }
+    
+    private func canvasContent(in geometry: GeometryProxy) -> some View {
+        ZStack {
+            canvasBackground
+            
+            devicePreview(geometry: geometry)                
+                .scaleEffect(localZoomLevel * magnifyScale)
+                .offset(
+                    x: currentOffset.width + dragOffset.width,
+                    y: currentOffset.height + dragOffset.height
                 )
-            )
-            #endif
-            .onAppear {
-                // Initialize local zoom
-                localZoomLevel = canvasManager.zoomLevel
-                baseZoomLevel = canvasManager.zoomLevel
-                
-                // Set optimal zoom when canvas appears
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
-                    localZoomLevel = canvasManager.zoomLevel
-                    baseZoomLevel = canvasManager.zoomLevel
+                .id("zoom-\(zoomGeneration)")
+        }
+    }
+    
+    private var canvasGestures: some Gesture {
+        SimultaneousGesture(
+            DragGesture()
+                .updating($dragOffset) { value, state, _ in state = value.translation }
+                .onEnded { value in
+                    currentOffset = CGSize(
+                        width: currentOffset.width + value.translation.width,
+                        height: currentOffset.height + value.translation.height
+                    )
+                },
+            MagnificationGesture()
+                .updating($magnifyScale) { value, state, _ in state = value }
+                .onEnded { value in
+                    let newZoom = localZoomLevel * value
+                    localZoomLevel = min(max(newZoom, 0.1), 5.0)
+                    baseZoomLevel = localZoomLevel
+                    canvasManager.zoomLevel = localZoomLevel
+                    zoomGeneration += 1
                 }
-            }
-            .onChange(of: canvasManager.zoomLevel) {
-                // Sync external changes (e.g. from Zoom controls or Zoom to Fit) to local state
-                // Only update if significantly different to avoid feedback loops with the debounce task
-                let newZoom = canvasManager.zoomLevel
-                if abs(localZoomLevel - newZoom) > 0.001 {
-                    localZoomLevel = newZoom
-                    baseZoomLevel = newZoom
-                }
-            }
-            .onChange(of: selectedDevice) {
-                // Update zoom when device changes with animation
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
-                        localZoomLevel = canvasManager.zoomLevel // Sync local
-                        baseZoomLevel = canvasManager.zoomLevel
-                        // Reset offset when changing device
-                        currentOffset = .zero
-                    }
-                }
-                
-                // Update status bar component frame for new device
-                if let statusBarComponent = canvasManager.statusBarComponent {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 50)
-                    }
-                }
-            }
-            .onChange(of: geometry.size) {
-                // Update zoom when canvas size changes with animation
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                        canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
-                        localZoomLevel = canvasManager.zoomLevel // Sync local
-                        baseZoomLevel = canvasManager.zoomLevel
-                    }
-                }
-            }
-            .onChange(of: canvasManager.centerCanvasTrigger) {
-                // Reset offset to center canvas when triggered from toolbar
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    currentOffset = .zero
-                }
-            }
-            .onChange(of: canvasManager.scrollToSelectionTrigger) {
-                // Scroll to selected component
-                if let selected = canvasManager.selectedComponent {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        // Get component absolute frame
-                        let absoluteFrame = canvasManager.getAbsoluteFrame(for: selected)
-                        let center = CGPoint(x: absoluteFrame.midX, y: absoluteFrame.midY)
-                        
-                        // Current device size
-                        let deviceSize = selectedDevice.size
-                        let deviceCenter = CGPoint(x: deviceSize.width / 2, y: deviceSize.height / 2)
-                        
-                        // Calculate offset needed to bring component center to device center
-                        let targetOffsetX = (deviceCenter.x - center.x) * localZoomLevel
-                        let targetOffsetY = (deviceCenter.y - center.y) * localZoomLevel
-                        
-                        currentOffset = CGSize(width: targetOffsetX, height: targetOffsetY)
-                    }
+        )
+    }
+
+    // MARK: - Event Handlers
+    private func handleMacZoom(delta: CGFloat, mouseLocation: CGPoint, geometry: GeometryProxy) {
+        let oldZoom = localZoomLevel
+        let newZoom = min(max(oldZoom * (1.0 + delta), 0.1), 5.0)
+        let zoomRatio = newZoom / oldZoom
+        let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+        let mouseOffset = CGSize(width: mouseLocation.x - center.x, height: mouseLocation.y - center.y)
+        
+        let newOffsetX = mouseOffset.width - (mouseOffset.width - currentOffset.width) * zoomRatio
+        let newOffsetY = mouseOffset.height - (mouseOffset.height - currentOffset.height) * zoomRatio
+        
+        currentOffset = CGSize(width: newOffsetX, height: newOffsetY)
+        localZoomLevel = newZoom
+        baseZoomLevel = newZoom
+        
+        zoomSyncTask?.cancel()
+        zoomSyncTask = Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            if !Task.isCancelled {
+                await MainActor.run {
+                    canvasManager.zoomLevel = localZoomLevel
+                    zoomGeneration += 1
                 }
             }
         }
-        .clipped()
+    }
+
+    private func initializeZoom(geometry: GeometryProxy) {
+        localZoomLevel = canvasManager.zoomLevel
+        baseZoomLevel = canvasManager.zoomLevel
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+            localZoomLevel = canvasManager.zoomLevel
+            baseZoomLevel = canvasManager.zoomLevel
+        }
+    }
+
+    private func syncLocalZoom() {
+        let newZoom = canvasManager.zoomLevel
+        if abs(localZoomLevel - newZoom) > 0.001 {
+            localZoomLevel = newZoom
+            baseZoomLevel = newZoom
+        }
+    }
+
+    private func updateDeviceLayout(geometry: GeometryProxy) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+                localZoomLevel = canvasManager.zoomLevel
+                baseZoomLevel = canvasManager.zoomLevel
+                currentOffset = .zero
+            }
+        }
+        if let statusBarComponent = canvasManager.statusBarComponent {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                statusBarComponent.frame = CGRect(x: 0, y: 0, width: selectedDevice.size.width, height: 50)
+            }
+        }
+    }
+
+    private func updateLayoutForSizeChange(geometry: GeometryProxy) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+                localZoomLevel = canvasManager.zoomLevel
+                baseZoomLevel = canvasManager.zoomLevel
+            }
+        }
+    }
+
+    private func centerCanvas() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            currentOffset = .zero
+        }
+    }
+
+    private func scrollToSelection() {
+        if let selected = canvasManager.selectedComponent {
+             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                let absoluteFrame = canvasManager.getAbsoluteFrame(for: selected)
+                let center = CGPoint(x: absoluteFrame.midX, y: absoluteFrame.midY)
+                let deviceSize = selectedDevice.size
+                let deviceCenter = CGPoint(x: deviceSize.width / 2, y: deviceSize.height / 2)
+                let targetOffsetX = (deviceCenter.x - center.x) * localZoomLevel
+                let targetOffsetY = (deviceCenter.y - center.y) * localZoomLevel
+                currentOffset = CGSize(width: targetOffsetX, height: targetOffsetY)
+            }
+        }
+    }
+    
+    // Computed property to simplify body expression for compiler
+    private var shouldRasterize: Bool {
+        if canvasManager.hasMapComponent { return false }
+        
+        let isZooming = abs(magnifyScale - 1.0) > 0.001
+        let isPanning = abs(dragOffset.width) > 0.5 || abs(dragOffset.height) > 0.5
+        
+        return isZooming || isPanning
+    }
+    
+    private var canvasBackground: some View {
+        Rectangle()
+            .fill(appColorScheme == .dark ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color(red: 0.9, green: 0.9, blue: 0.9))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // Deselect components and dismiss keyboard
+                canvasManager.deselectAll()
+                #if os(iOS)
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                // On iPhone, minimize the sheet
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    NotificationCenter.default.post(name: .minimizeSheet, object: nil)
+                }
+                #elseif os(macOS)
+                NSApp.keyWindow?.makeFirstResponder(nil)
+                #endif
+            }
+    }
+    
+    private var aiProcessingOverlay: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .controlSize(.large)
+                .tint(.purple)
+            
+            Text("Dreaming up designs...")
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+        .padding(32)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.white.opacity(0.2), lineWidth: 1)
+        )
+        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+        .zIndex(100) // Ensure it's on top
     }
     
     private func devicePreview(geometry: GeometryProxy) -> some View {

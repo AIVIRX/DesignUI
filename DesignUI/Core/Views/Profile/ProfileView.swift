@@ -18,6 +18,12 @@ struct ProfileView: View {
     @State private var postToDelete: DesignPost?
     @State private var hasLoadedLiked = false
     @State private var hasLoadedUserPosts = false
+    @EnvironmentObject private var designManager: DesignManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @Environment(\.openWindow) private var openWindow
+    @State private var showingLimitAlert = false
+    @State private var showingPaywall = false
+    private let freeDesignLimit = 3
     
     private var isLikedFilter: Bool {
         selectedTab == .liked
@@ -69,7 +75,6 @@ struct ProfileView: View {
                                 Image(systemName: "checkmark.seal.fill")
                                     .font(.system(size: 20))
                                     .foregroundColor(.blue)
-                                    .background(Circle().fill(Color.white).padding(2))
                                     .offset(x: 2, y: 2)
                                     .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                             }
@@ -249,6 +254,19 @@ struct ProfileView: View {
                     } message: {
                         Text("Are you sure you want to delete this post? This action cannot be undone.")
                     }
+                    .sheet(isPresented: $showingPaywall) {
+                        CustomPaywallView()
+                            .environmentObject(PaywallManager.shared)
+                            .environmentObject(subscriptionManager)
+                    }
+                    .alert("Free Limit Reached", isPresented: $showingLimitAlert) {
+                        Button("Cancel", role: .cancel) { }
+                        Button("Subscribe") {
+                            showingPaywall = true
+                        }
+                    } message: {
+                        Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
+                    }
                 }
                 .alert("Are you sure you want to delete your account?",
                        isPresented: $showDeleteAlert) {
@@ -266,36 +284,6 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
 #endif
             .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(action: {
-                            showEditProfile = true
-                        }) {
-                            Label("Edit Profile", systemImage: "slider.vertical.3")
-                        }
-                        
-                        Button {
-                            Task {
-                                await authViewModel.signOut()
-                            }
-                        } label: {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
-                        }
-                        
-                        Button(role: .destructive) {
-                            showDeleteAlert = true
-                        } label: {
-                            Label("Delete Account", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.title2)
-                    }
-                }
-#endif
-                
-#if os(macOS)
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(action: {
@@ -312,6 +300,8 @@ struct ProfileView: View {
                             Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.forward")
                         }
                         
+                        Divider()
+                        
                         Button(role: .destructive) {
                             showDeleteAlert = true
                         } label: {
@@ -322,7 +312,6 @@ struct ProfileView: View {
                             .font(.title2)
                     }
                 }
-#endif
             }
             // Replace the sheet presentation with:
             .sheet(isPresented: $showEditProfile) {
@@ -405,32 +394,28 @@ struct ProfileView: View {
             }
         }
 #else
-        if #available(macOS 13.0, *) {
-            LazyMasonryView(
-                items: posts,
-                columns: 5,
-                spacing: 16,
-                hasMorePosts: hasMorePosts,
-                isLoading: isLoading,
-                    loadMoreHandler: { post in
-                        guard let post = post else { return }
-                        Task {
-                            if isLikedFilter {
-                                await likedViewModel.loadMoreLikedPostsIfNeeded(currentItem: post)
-                            } else {
-                                await userViewModel.loadMoreUserPostsIfNeeded(currentItem: post)
-                            }
-                        }
+        LazyMasonryView(
+            items: posts,
+            columns: 5,
+            spacing: 16,
+            hasMorePosts: hasMorePosts,
+            isLoading: isLoading,
+            loadMoreHandler: { post in
+                guard let post = post else { return }
+                Task {
+                    if isLikedFilter {
+                        await likedViewModel.loadMoreLikedPostsIfNeeded(currentItem: post)
+                    } else {
+                        await userViewModel.loadMoreUserPostsIfNeeded(currentItem: post)
                     }
-            ) { post in
-                postCell(for: post)
+                }
             }
-            .id("masonry-\(selectedTab)")
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-        } else {
-            gridView(spacing: 16, horizontalPadding: 16)
+        ) { post in
+            postCell(for: post)
         }
+        .id("masonry-\(selectedTab)")
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
 #endif
     }
     
@@ -462,6 +447,41 @@ struct ProfileView: View {
             CommunityCards(
                 post: post,
                 showDeleteButton: !isLikedFilter,
+                onOpen: { postToOpen in
+                    // Check subscription limits first
+                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                        showingLimitAlert = true
+                        return
+                    }
+                    
+                    // Show loading toast
+                    ToastManager.shared.showToast(ToastData(title: "Loading Design...", icon: "clock.fill", duration: 5.0))
+                    
+                    Task {
+                        do {
+                            // 1. Fetch full details (including design_json)
+                            let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
+                            
+                            // 2. Create DesignFile from post
+                            if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
+                                // 3. Open it
+                                await MainActor.run {
+                                    ToastManager.shared.dismissToast()
+                                    #if os(macOS)
+                                    openWindow(value: newDesign.id)
+                                    #else
+                                    designManager.openDesign(newDesign)
+                                    #endif
+                                }
+                            }
+                        } catch {
+                            print("Error opening post from profile: \(error)")
+                            await MainActor.run {
+                                ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
+                            }
+                        }
+                    }
+                },
                 onDelete: !isLikedFilter ? {
                     postToDelete = post
                     showDeletePostAlert = true

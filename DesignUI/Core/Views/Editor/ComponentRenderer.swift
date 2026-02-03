@@ -74,6 +74,8 @@ struct ComponentRenderer: View {
                 renderLinearGradient()
             case .chart:
                 renderChart()
+            case .shape:
+                renderShape()
 
             default:
                 renderPlaceholder()
@@ -152,6 +154,21 @@ struct ComponentRenderer: View {
         case .roundedRectangle:
             let radius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
             return AnyView(RoundedRectangle(cornerRadius: radius).stroke(color, lineWidth: lineWidth))
+        case .shape:
+            let shapeType = component.getProperty(key: "shapeType") as? String ?? "Rectangle"
+            switch shapeType {
+            case "Circle":
+                return AnyView(Circle().stroke(color, lineWidth: lineWidth))
+            case "Capsule":
+                return AnyView(Capsule().stroke(color, lineWidth: lineWidth))
+            case "Ellipse":
+                return AnyView(Ellipse().stroke(color, lineWidth: lineWidth))
+            case "Rounded Rectangle":
+                let radius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
+                return AnyView(RoundedRectangle(cornerRadius: radius).stroke(color, lineWidth: lineWidth))
+            default:
+                return AnyView(RoundedRectangle(cornerRadius: 0).stroke(color, lineWidth: lineWidth))
+            }
         default:
             // Standard rectangular bounds for everything else
             return AnyView(RoundedRectangle(cornerRadius: 4).stroke(color, lineWidth: lineWidth))
@@ -179,6 +196,27 @@ struct ComponentRenderer: View {
     // Reference: https://developer.apple.com/design/human-interface-guidelines/typography
     private func iosFont(for fontSize: String, weight: Font.Weight, deviceSize: CGSize? = nil) -> Font {
         return createIOSFont(for: fontSize, weight: weight, design: .default, deviceSize: deviceSize ?? self.deviceSize)
+    }
+    
+
+    
+    // MARK: - Shape Renderer
+    private func renderShape() -> some View {
+        let shapeType = component.getProperty(key: "shapeType") as? String ?? "Rectangle"
+        
+        switch shapeType {
+        case "Circle":
+            return AnyView(Circle())
+        case "Capsule":
+            return AnyView(Capsule())
+        case "Ellipse":
+            return AnyView(Ellipse())
+        case "Rounded Rectangle":
+             let radius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
+             return AnyView(RoundedRectangle(cornerRadius: radius))
+        default:
+            return AnyView(Rectangle())
+        }
     }
     
     // MARK: - Image Renderer
@@ -269,7 +307,7 @@ struct ComponentRenderer: View {
                         case "fit":
                             view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
                         case "fill":
-                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fill))
+                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fill).clipped())
                         default:
                             view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
                         }
@@ -278,7 +316,7 @@ struct ComponentRenderer: View {
                         case "fit":
                             view = AnyView(view.aspectRatio(contentMode: .fit))
                         case "fill":
-                            view = AnyView(view.aspectRatio(contentMode: .fill))
+                            view = AnyView(view.aspectRatio(contentMode: .fill).clipped())
                         default:
                             break
                         }
@@ -1155,7 +1193,7 @@ private extension View {
             case "fit":
                 return AnyView(view.aspectRatio(contentMode: .fit))
             case "fill":
-                return AnyView(view.aspectRatio(contentMode: .fill))
+                return AnyView(view.aspectRatio(contentMode: .fill).clipped())
             default:
                 return AnyView(view.aspectRatio(contentMode: .fit))
             }
@@ -1301,6 +1339,7 @@ struct ImageComponentView: View {
                 } else if aspectRatio == "fill" {
                     modifiedImage.aspectRatio(contentMode: .fill)
                         .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                        .clipped()
                 } else {
                     modifiedImage
                         .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)

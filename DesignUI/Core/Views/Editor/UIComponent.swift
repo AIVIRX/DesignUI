@@ -77,6 +77,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case toggle = "Switch"
     case slider = "Slider"
     case chart = "Chart"
+    case shape = "Shape"
     
     var id: String { rawValue }
     
@@ -102,6 +103,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .toggle: return "switch.2"
         case .slider: return "slider.horizontal.3"
         case .chart: return "chart.bar.fill"
+        case .shape: return "square.on.circle"
         }
     }
     
@@ -899,7 +901,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     func convertType(to newType: ComponentType) {
         // Only allow conversion between similar component categories
         let containers: Set<ComponentType> = [.vstack, .hstack, .zstack, .scrollView]
-        let shapes: Set<ComponentType> = [.rectangle, .circle, .roundedRectangle, .capsule, .ellipse]
+        let shapes: Set<ComponentType> = [.rectangle, .circle, .roundedRectangle, .capsule, .ellipse, .shape]
         
         let currentCategory: String
         if containers.contains(type) {
@@ -1092,7 +1094,15 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
+        
+        // Conditionally encode ID based on userInfo (for cleaner template exports)
+        let excludeIdsKey = CodingUserInfoKey(rawValue: "excludeIds")!
+        let shouldExcludeIds = encoder.userInfo[excludeIdsKey] as? Bool ?? false
+        
+        if !shouldExcludeIds {
+            try container.encode(id, forKey: .id)
+        }
+
         try container.encode(type, forKey: .type)
         // DIFF-ONLY PROPERTY SAVING: Only encode properties that differ from defaults
         let defaultProps = UIComponent.defaultProperties(for: self.type)
@@ -1152,6 +1162,8 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
 
 // MARK: - Default Properties Factory
 extension UIComponent {
+
+
     static func defaultProperties(for type: ComponentType) -> [ComponentProperty] {
         switch type {
         case .text:
@@ -1189,6 +1201,11 @@ extension UIComponent {
             return []
         case .roundedRectangle:
             return [
+                ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .number, value: 12.0, defaultValue: 12.0)
+            ]
+        case .shape:
+            return [
+                ComponentProperty(key: "shapeType", displayName: "Shape Type", type: .dropdown, value: "Rectangle", defaultValue: "Rectangle", options: ["Rectangle", "Circle", "Rounded Rectangle", "Capsule", "Ellipse"]),
                 ComponentProperty(key: "cornerRadius", displayName: "Corner Radius", type: .number, value: 12.0, defaultValue: 12.0)
             ]
         case .spacer:
@@ -1259,4 +1276,9 @@ extension UIComponent {
             return []
         }
     }
+}
+
+// MARK: - UserInfo Keys for Custom Encoding
+extension CodingUserInfoKey {
+    static let excludeIds = CodingUserInfoKey(rawValue: "excludeIds")!
 }

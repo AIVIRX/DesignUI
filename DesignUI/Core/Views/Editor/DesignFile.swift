@@ -64,23 +64,27 @@ class DesignFile: ObservableObject, Identifiable {
         pages.reduce(0) { $0 + $1.components.count }
     }
     
-    init(name: String, components: [UIComponent] = [], fileURL: URL, id: UUID? = nil) {
+    init(name: String, components: [UIComponent] = [], fileURL: URL, id: UUID? = nil, devicePreset: String? = nil, colorScheme: String? = nil) {
         self.id = id ?? UUID()
         self.name = name
+        let initialPreset = devicePreset ?? "iPhone 17 Pro Max"
+        let initialScheme = colorScheme ?? "light"
         // Create default page with provided components
-        self.pages = [DesignPage(name: "Page 1", components: components, devicePreset: "iPhone 17 Pro Max", colorScheme: "light")]
-        self.canvasColorScheme = "light"
-        self.selectedDevicePreset = "iPhone 17 Pro Max"
+        self.pages = [DesignPage(name: "Page 1", components: components, devicePreset: initialPreset, colorScheme: initialScheme)]
+        self.canvasColorScheme = initialScheme
+        self.selectedDevicePreset = initialPreset
+        self.devicePreset = initialPreset
         self.lastModified = Date()
         self.fileURL = fileURL
     }
     
-    init(name: String, pages: [DesignPage], fileURL: URL, id: UUID? = nil) {
+    init(name: String, pages: [DesignPage], fileURL: URL, id: UUID? = nil, devicePreset: String? = nil, colorScheme: String? = nil) {
         self.id = id ?? UUID()
         self.name = name
         self.pages = pages.isEmpty ? [DesignPage(name: "Page 1")] : pages
-        self.canvasColorScheme = "light"
-        self.selectedDevicePreset = "iPhone 17 Pro Max"
+        self.canvasColorScheme = colorScheme ?? "light"
+        self.selectedDevicePreset = devicePreset ?? "iPhone 17 Pro Max"
+        self.devicePreset = devicePreset ?? "iPhone 17 Pro Max"
         self.lastModified = Date()
         self.fileURL = fileURL
     }
@@ -348,12 +352,18 @@ class DesignFile: ObservableObject, Identifiable {
             } else {
                 // Legacy format: migrate components to single page
                 // Legacy files won't have an ID, so a new one is generated (acceptable for first migration)
-                designFile = DesignFile(name: designData.name, components: designData.components ?? [], fileURL: url)
+                designFile = DesignFile(
+                    name: designData.name,
+                    components: designData.components ?? [],
+                    fileURL: url,
+                    devicePreset: designData.selectedDevicePreset ?? designData.devicePreset,
+                    colorScheme: designData.canvasColorScheme
+                )
             }
-            designFile.lastModified = designData.lastModified
+            designFile.lastModified = designData.lastModified ?? Date()
             designFile.thumbnail = designData.thumbnail
-            designFile.devicePreset = designData.devicePreset
-            designFile.selectedDevicePreset = designData.selectedDevicePreset
+            designFile.devicePreset = designData.devicePreset ?? designFile.selectedDevicePreset
+            designFile.selectedDevicePreset = designData.selectedDevicePreset ?? designData.devicePreset ?? designFile.selectedDevicePreset
             designFile.canvasColorScheme = designData.canvasColorScheme ?? "light"
             designFile.statusBarVisible = designData.statusBarVisible ?? true
             return designFile
@@ -396,12 +406,67 @@ struct DesignFileData: Codable, Equatable {
     let pages: [DesignPage]?  // New: array of pages
     let currentPageIndex: Int?  // New: current page index
     let components: [UIComponent]?  // Legacy: kept for migration
-    let lastModified: Date
+    let lastModified: Date? // Now optional for robustness
     let thumbnail: Data?
     let devicePreset: String?
     let selectedDevicePreset: String?
     let canvasColorScheme: String?
     let statusBarVisible: Bool?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, pages, currentPageIndex, components, lastModified, thumbnail, devicePreset, selectedDevicePreset, canvasColorScheme, statusBarVisible
+    }
+    
+    init(from decoder: Decoder) throws {
+        // CASE 1: Decoded from a JSON String (common in double-encoded JSONB)
+        if let container = try? decoder.singleValueContainer(),
+           let jsonString = try? container.decode(String.self),
+           let data = jsonString.data(using: .utf8) {
+            // Check for placeholder
+            if jsonString == "__exists__" || jsonString == "blank" {
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Placeholder value")
+            }
+            
+            let subDecoder = JSONDecoder()
+            subDecoder.dateDecodingStrategy = .iso8601
+            let decoded = try subDecoder.decode(DesignFileData.self, from: data)
+            self.id = decoded.id
+            self.name = decoded.name
+            self.pages = decoded.pages
+            self.currentPageIndex = decoded.currentPageIndex
+            self.components = decoded.components
+            self.lastModified = decoded.lastModified
+            self.thumbnail = decoded.thumbnail
+            self.devicePreset = decoded.devicePreset
+            self.selectedDevicePreset = decoded.selectedDevicePreset
+            self.canvasColorScheme = decoded.canvasColorScheme
+            self.statusBarVisible = decoded.statusBarVisible
+            return
+        }
+        
+        // CASE 2: Decoded from a Dictionary (standard format)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        pages = try container.decodeIfPresent([DesignPage].self, forKey: .pages)
+        currentPageIndex = try container.decodeIfPresent(Int.self, forKey: .currentPageIndex)
+        components = try container.decodeIfPresent([UIComponent].self, forKey: .components)
+        
+        // Lenient date decoding
+        lastModified = try? container.decodeIfPresent(Date.self, forKey: .lastModified)
+        
+        // Robust thumbnail decoding (handles string placeholders like "blank")
+        if let data = try? container.decodeIfPresent(Data.self, forKey: .thumbnail) {
+            thumbnail = data
+        } else {
+            thumbnail = nil
+        }
+        
+        devicePreset = try container.decodeIfPresent(String.self, forKey: .devicePreset)
+        selectedDevicePreset = try container.decodeIfPresent(String.self, forKey: .selectedDevicePreset)
+        canvasColorScheme = try container.decodeIfPresent(String.self, forKey: .canvasColorScheme)
+        statusBarVisible = try container.decodeIfPresent(Bool.self, forKey: .statusBarVisible)
+    }
     
     // New format initializer (with pages)
     init(id: UUID? = nil, name: String, pages: [DesignPage], currentPageIndex: Int, lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
@@ -418,7 +483,7 @@ struct DesignFileData: Codable, Equatable {
         self.statusBarVisible = statusBarVisible
     }
     
-    // Legacy format initializer (for backwards compatibility when decoding)
+    // Legacy format initializer (for backwards compatibility)
     init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
         self.id = nil
         self.name = name
@@ -868,8 +933,8 @@ class DesignManager: ObservableObject {
     }
 
     func createDesignFromPost(post: DesignPost, name: String) -> DesignFile? {
-        // Ensure we have design data
-        guard let designData = post.design_json else { return nil }
+        // Ensure we have design data and convert from AnyCodable to DesignFileData
+        guard let designData = post.getDesignData() else { return nil }
         
         // Generate unique file name
         let uniqueFileName = generateUniqueFileName(baseName: name)
@@ -883,13 +948,20 @@ class DesignManager: ObservableObject {
             newDesign = DesignFile(name: displayName, pages: pages, fileURL: fileURL)
             newDesign.currentPageIndex = min(designData.currentPageIndex ?? 0, pages.count - 1)
         } else {
-            // Legacy fallback
-            newDesign = DesignFile(name: displayName, components: designData.components ?? [], fileURL: fileURL)
+            // Legacy fallback using the preset from DesignFileData
+            newDesign = DesignFile(
+                name: displayName,
+                components: designData.components ?? [],
+                fileURL: fileURL,
+                devicePreset: designData.selectedDevicePreset ?? designData.devicePreset,
+                colorScheme: designData.canvasColorScheme
+            )
         }
         
-        // Restore meta-settings
+        // Restore meta-settings with fallbacks
         newDesign.canvasColorScheme = designData.canvasColorScheme ?? "light"
-        newDesign.selectedDevicePreset = designData.selectedDevicePreset ?? "iPhone 17 Pro Max"
+        newDesign.selectedDevicePreset = designData.selectedDevicePreset ?? designData.devicePreset ?? "iPhone 17 Pro Max"
+        newDesign.devicePreset = designData.devicePreset ?? newDesign.selectedDevicePreset
         newDesign.statusBarVisible = designData.statusBarVisible ?? true
         
         // Save to disk

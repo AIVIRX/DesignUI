@@ -59,8 +59,7 @@
                 {
                   "type": "SF Symbol",
                   "properties": {
-                    "symbolName": "sparkles",
-                    "resizable": true
+                    "symbolName": "sparkles"
                   },
                   "modifiers": [
                     {
@@ -137,8 +136,7 @@
                 {
                   "type": "SF Symbol",
                   "properties": {
-                    "symbolName": "bolt.fill",
-                    "resizable": true
+                    "symbolName": "bolt.fill"
                   },
                   "modifiers": [
                     {
@@ -215,8 +213,7 @@
                 {
                   "type": "SF Symbol",
                   "properties": {
-                    "symbolName": "paintpalette.fill",
-                    "resizable": true
+                    "symbolName": "paintpalette.fill"
                   },
                   "modifiers": [
                     {
@@ -293,8 +290,7 @@
                 {
                   "type": "SF Symbol",
                   "properties": {
-                    "symbolName": "lock.shield.fill",
-                    "resizable": true
+                    "symbolName": "lock.shield.fill"
                   },
                   "modifiers": [
                     {

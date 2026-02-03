@@ -23,9 +23,6 @@ extension Notification.Name {
     static let dismissChildNavigation = Notification.Name("dismissChildNavigation") // Dismiss child views (add components, modifiers)
 }
 
-// MARK: - Undoable Slider
-/// A slider that properly handles undo state by only saving when editing starts,
-/// not on every intermediate value during dragging.
 struct UndoableSlider: View {
     @Binding var value: Double
     let range: ClosedRange<Double>
@@ -75,7 +72,6 @@ struct UndoableSlider: View {
 }
 
 enum DevicePreset: String, CaseIterable, Identifiable {
-    // iPhone 17 Series (Latest)
     case iphone17ProMax = "iPhone 17 Pro Max"
     
     // iPhone 16 Series
@@ -189,10 +185,8 @@ struct UIBuilderView: View {
     @State private var selectedSidebarTab: SidebarTab = .layers
 
     @State private var showCodePreview = false
-    // @State private var selectedDevice: DevicePreset = .iphone16Pro -- Moved to CanvasManager
     @State private var baseZoomLevel: CGFloat = 1.0
     @State private var statusBarHasBackground: Bool = false
-    // @State private var colorScheme: ColorScheme? = nil -- Moved to CanvasManager
     
     // Panel states
     @State private var layersPanelWidth: CGFloat = 300
@@ -200,11 +194,9 @@ struct UIBuilderView: View {
     @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
     
-    // Page state (for multi-page support)
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
 
-    
     // iOS half sheet states (iPhone only, iPad uses floating panels)
     @State private var showLayersSheet = false
     @State private var showPropertiesInPanel = false // For NavigationStack inside panel
@@ -215,21 +207,19 @@ struct UIBuilderView: View {
     @State private var showCommunitySubmission = false
     
     // Screenshot capture debouncing
-    // Screenshot capture debouncing
     @State private var lastScreenshotRequestTime: Date = Date()
-    private let screenshotDebounceInterval: TimeInterval = 3.0
+    private let screenshotDebounceInterval: TimeInterval = 2.0
     
     @Environment(\.dismiss) private var dismiss
     
     #if os(iOS)
     @State private var selection: PresentationDetent = .medium // Locked to medium
-    @State private var activeTab: AppTab? = .layers // Optional to allow closing
+    @State private var activeTab: AppTab? = nil // Optional to allow closing
     
     enum AppTab: String, CaseIterable, Identifiable {
         case layers = "Layers"
         case properties = "Properties"
         case canvas = "Canvas"
-        case ai = "AI"
         case code = "Code"
         
         var id: String { rawValue }
@@ -239,7 +229,6 @@ struct UIBuilderView: View {
             case .layers: return "square.3.layers.3d.top.filled"
             case .properties: return "slider.horizontal.3"
             case .canvas: return "iphone"
-            case .ai: return "sparkles"
             case .code: return "chevron.left.forwardslash.chevron.right"
             }
         }
@@ -455,16 +444,19 @@ struct UIBuilderView: View {
         }
         .onChange(of: canvasManager.undoStackVersion) { _, _ in
             // Trigger sync when undo stack changes (action performed, undo, or redo)
-            // Use async to ensure the change has propagated
-            DispatchQueue.main.async {
-                // Sync design changes (persist components)
-                designFile.components = canvasManager.components
-                designFile.objectWillChange.send()
-                designFile.markAsChanged()
-                
-                // Capture screenshot immediately for undo stack changes
-                // (bypassing debounce since these are discrete, important state changes)
-                performScreenshotCapture()
+            // This catches changes like Canvas Settings that aren't in the components array
+            if !isSwitchingPage {
+                // Use a slight delay to avoid the "multiple updates per frame" warning
+                DispatchQueue.main.async {
+                    // Sync design changes (persist components and settings)
+                    designFile.components = canvasManager.components
+                    designFile.objectWillChange.send()
+                    designFile.markAsChanged()
+                    
+                    // Capture screenshot immediately for undo stack changes
+                    // (Discrete, important state changes deserve a fresh thumbnail)
+                    performScreenshotCapture()
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
@@ -483,7 +475,6 @@ struct UIBuilderView: View {
     private var iOSCanvasContent: some View {
         ZStack {
             mainCanvasArea
-                .ignoresSafeArea()
             
             // Floating Tab Bar
             VStack {
@@ -807,7 +798,6 @@ struct UIBuilderView: View {
         ZStack(alignment: .top) {
             canvasView
         }
-        .ignoresSafeArea()
         .animation(.spring(), value: canvasManager.selectedComponentIds.count)
         .onReceive(NotificationCenter.default.publisher(for: .imageDownloadsCompleted)) { notification in
             // When images are downloaded, refresh the thumbnail
@@ -839,56 +829,6 @@ struct UIBuilderView: View {
         .gesture(magnificationGesture)
 #if os(macOS)
         .background(
-            // Hidden buttons to capture keyboard shortcuts without showing focus ring
-            Group {
-                // Delete key (not for status bar)
-                Button(action: {
-                    if let component = canvasManager.selectedComponent, component.type != .statusBar {
-                        canvasManager.removeComponent(component)
-                        canvasManager.deselectAll()
-                    }
-                }) {
-                    EmptyView()
-                }
-                .keyboardShortcut(.delete, modifiers: [])
-                .hidden()
-                .disabled(canvasManager.isAIInputFocused) // Disable when typing in AI
-                
-                // Copy (Cmd+C) - not for status bar
-                Button(action: {
-                    if let component = canvasManager.selectedComponent, component.type != .statusBar {
-                        canvasManager.copyComponent(component)
-                    }
-                }) {
-                    EmptyView()
-                }
-                .keyboardShortcut("c", modifiers: .command)
-                .hidden()
-                .disabled(canvasManager.isAIInputFocused) 
-                
-                // Paste (Cmd+V)
-                Button(action: {
-                    canvasManager.pasteComponent()
-                }) {
-                    EmptyView()
-                }
-                .keyboardShortcut("v", modifiers: .command)
-                .hidden()
-                .disabled(canvasManager.isAIInputFocused) // Critical for AI Paste
-                
-                // Duplicate (Cmd+D) - not for status bar
-                Button(action: {
-                    if let component = canvasManager.selectedComponent, component.type != .statusBar {
-                        canvasManager.duplicateComponent(component)
-                    }
-                }) {
-                    EmptyView()
-                }
-                .keyboardShortcut("d", modifiers: .command)
-                .hidden()
-                .disabled(canvasManager.isAIInputFocused)
-            }
-            .frame(width: 0, height: 0)
         )
 #endif
     }
@@ -1138,10 +1078,6 @@ struct UIBuilderView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .scrollContentBackground(.hidden)
             }
-            
-        case .ai:
-             AIChatView(canvasManager: canvasManager, mode: .fullScreen)
-                .presentationDragIndicator(.visible)
 
         case .code:
             NavigationStack {
@@ -1151,8 +1087,6 @@ struct UIBuilderView: View {
             }
         }
     }
-        
-
     
     private var devicePresetsList: some View {
         List {
@@ -1572,7 +1506,7 @@ struct UIBuilderView: View {
     
     private func restoreCanvasSettings() {
         // Restore selected device preset
-        if let savedDevicePreset = designFile.selectedDevicePreset,
+        if let savedDevicePreset = designFile.selectedDevicePreset ?? designFile.devicePreset,
            let devicePreset = DevicePreset.allCases.first(where: { $0.rawValue == savedDevicePreset }) {
             canvasManager.devicePreset = devicePreset
         }
@@ -1632,13 +1566,12 @@ struct UIBuilderView: View {
         }
     
     private func syncDesignChanges() {
+        // This is now predominantly handled by the observers to avoid loops
+        // but we keep it for explicit calls if any remain
+        if !isSwitchingPage {
             designFile.components = canvasManager.components
-            
-            // Note: Screenshot capture is now handled by undoStackVersion change handler
-            // to ensure captures happen at the right time (with each undo action)
-            
-            designFile.objectWillChange.send() // Force design file to recognize changes
             designFile.markAsChanged()
+        }
     }
     
     // MARK: - Screenshot Capture
@@ -1734,29 +1667,9 @@ struct ComponentView: View {
     
     var body: some View {
         ComponentRenderer(component: component, deviceSize: selectedDevice.size, colorScheme: colorScheme, onTap: onSelect, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
-            .overlay(
-                // AI Processing Visual Feedback
-                ZStack {
-                    if canvasManager.isAIProcessing && canvasManager.isComponentSelected(component) {
-                        RoundedRectangle(cornerRadius: 8) // Approximate corner radius
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [.purple, .blue],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 2
-                            )
-                            .shadow(color: .purple.opacity(0.5), radius: 8, x: 0, y: 0)
-                            .opacity(0.8)
-                            // Pulse animation handled by view transitions or repeatForever in onAppear
-                            // But since isAIProcessing toggles, simple transition might be enough or we need an explicit explicit animation modifier
-                    }
-                }
-            )
+
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.frame)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.isVisible)
-            .animation(.easeInOut(duration: 0.3), value: canvasManager.isAIProcessing) // Smooth fade in/out of border
             .animation(.easeInOut(duration: 0.15), value: isHovered)
             .onHover { hovering in
                 isHovered = hovering

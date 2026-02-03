@@ -142,8 +142,7 @@
                     {
                       "type": "SF Symbol",
                       "properties": {
-                        "symbolName": "airplane",
-                        "resizable": true
+                        "symbolName": "airplane"
                       },
                       "modifiers": [
                         {

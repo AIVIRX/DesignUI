@@ -163,14 +163,17 @@ struct DesignBrowserContent: View {
                                 ForEach(communityViewModel.posts) { post in
                                     CommunityCards(
                                         post: post,
-                                        onOpen: { postToOpen in
-                                            // Check subscription limits first
-                                            if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                                                showingLimitAlert = true
-                                                return
-                                            }
-                                            
-                                            Task {
+                                            onOpen: { postToOpen in
+                                                // Check subscription limits first
+                                                if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                                                    showingLimitAlert = true
+                                                    return
+                                                }
+                                                
+                                                // Show loading toast
+                                                ToastManager.shared.showToast(ToastData(title: "Loading Design...", icon: "clock.fill", duration: 5.0))
+                                                
+                                                Task {
                                                 // TODO: Show global loading indicator if possible
                                                 do {
                                                     // 1. Fetch full details (including design_json)
@@ -179,18 +182,25 @@ struct DesignBrowserContent: View {
                                                     // 2. Create DesignFile from post
                                                     if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
                                                         // 3. Open it
-                                                        await MainActor.run {
-                                                            #if os(macOS)
-                                                            openWindow(value: newDesign.id)
-                                                            #else
-                                                            designManager.openDesign(newDesign)
-                                                            #endif
-                                                        }
+                                                                await MainActor.run {
+                                                        ToastManager.shared.dismissToast()
+                                                        #if os(macOS)
+                                                        openWindow(value: newDesign.id)
+                                                        #else
+                                                        designManager.openDesign(newDesign)
+                                                        #endif
+                                                    }
                                                     } else {
                                                         print("Error: No design JSON found in post")
+                                                        await MainActor.run {
+                                                            ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
+                                                        }
                                                     }
                                                 } catch {
-                                                    print("Error opening community design: \(error)")
+                                                    print("Error opening post: \(error)")
+                                                    await MainActor.run {
+                                                        ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
+                                                    }
                                                 }
                                             }
                                         }

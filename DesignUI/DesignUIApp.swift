@@ -78,32 +78,21 @@ struct DesignUIApp: App {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
                 }
                 .onOpenURL { url in
-                    // Handle file import
                     guard url.isFileURL else { return }
-                    
-                    // Start accessing security scoped resource
-                    #if os(iOS)
-                        guard (url as NSURL).startAccessingSecurityScopedResource() else {
-                            print("❌ Failed to access security scoped resource: \(url)")
-                            return
-                        }
-                        defer { url.stopAccessingSecurityScopedResource() }
-                    #else
-                        _ = (url as NSURL).startAccessingSecurityScopedResource()
-                        defer { url.stopAccessingSecurityScopedResource() }
-                    #endif
-                    
-                    print("📂 Opening file: \(url.path)")
-                    
-                    // Import the file
-                    designManager.importDesign(from: url) { success in
-                        if success {
-                            toastManager.showToast(message: "Design imported successfully", type: .success)
-                        } else {
-                            toastManager.showToast(message: "Failed to import design", type: .error)
-                        }
+
+                    let success = url.startAccessingSecurityScopedResource()
+                    guard success else {
+                        print("❌ Failed to access security scoped resource")
+                        return
                     }
+
+                    defer {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+
+                    print("📂 Opening file: \(url.path)")
                 }
+
         }
     }
 }
@@ -200,10 +189,11 @@ struct MainWindow: View {
                 
                 // Start accessing security scoped resource
                 #if os(iOS)
-                    guard (url as NSURL).startAccessingSecurityScopedResource() else {
-                        print("❌ Failed to access security scoped resource: \(url)")
-                        return
-                    }
+                    
+                
+                
+                
+                
                     defer { url.stopAccessingSecurityScopedResource() }
                 #else
                     _ = (url as NSURL).startAccessingSecurityScopedResource()

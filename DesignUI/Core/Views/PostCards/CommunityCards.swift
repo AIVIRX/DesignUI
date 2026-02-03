@@ -99,8 +99,7 @@ struct CommunityCards: View {
                                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                             )
-                            .scaleEffect(isHovered ? 1.03 : 1.0)
-
+                            .scaleEffect(isHovered ? 1.02 : 1.0)
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -140,7 +139,7 @@ struct CommunityCards: View {
             }
             // Hover effect on the image
             .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
-            .scaleEffect(isHovered ? 1.03 : 1.0)
+            .scaleEffect(isHovered ? 1.02 : 1.0)
             .animation(.easeInOut(duration: 0.2), value: isHovered)
             .zIndex(isHovered ? 10 : 0)
 #else
@@ -190,18 +189,20 @@ struct CommunityCards: View {
                 
                 Spacer()
                 
-                if post.post_type == "design" {
+                if !post.isDesignEmpty {
                     Button(action: {
+                        print(" CommunityCards: Load button tapped for \(post.title)")
                         onOpen?(post)
                     }) {
-                        Image(systemName: "square.and.pencil")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.primary)
-                            .padding(8)
-                            .background(Color.secondary.opacity(0.1))
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.blue)
+                            .padding(12) // Slightly larger padding for better hit area
+                            .background(Color.blue.opacity(0.1))
                             .clipShape(Circle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ScaleButtonStyle())
+                    .contentShape(Circle())
                 }
             }
             .padding(.top, 2)
@@ -251,7 +252,15 @@ struct CommunityCards: View {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
-            .scaleEffect(isHovered ? 1.03 : 1.0)
+            .scaleEffect(isHovered ? 1.02 : 1.0)
 
+    }
+}
+
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .animation(.easeIn(duration: 0.1), value: configuration.isPressed)
     }
 }

@@ -288,7 +288,15 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
+        
+        // Conditionally encode ID based on userInfo
+        let excludeIdsKey = CodingUserInfoKey(rawValue: "excludeIds")!
+        let shouldExcludeIds = encoder.userInfo[excludeIdsKey] as? Bool ?? false
+        
+        if !shouldExcludeIds {
+            try container.encode(id, forKey: .id)
+        }
+        
         try container.encode(type, forKey: .type)
         
         // Encode properties as [String: AnyCodable]
@@ -402,139 +410,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
     }
 }
 
-// Helper for encoding/decoding Any values
-struct AnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else if let double = try? container.decode(Double.self) {
-            // Decode all numbers as Double for consistency with property types
-            // This ensures spacing: 24 becomes Double(24), not Int(24)
-            value = double
-        } else if let colorDict = try? container.decode([String: Double].self) {
-            // Decode Color from RGBA dictionary
-            if let red = colorDict["red"],
-               let green = colorDict["green"],
-               let blue = colorDict["blue"],
-               let alpha = colorDict["alpha"] {
-                value = Color(red: red, green: green, blue: blue, opacity: alpha)
-            } else {
-                throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Invalid color data"))
-            }
-        } else if let string = try? container.decode(String.self) {
-            // Preserve the string (including color: prefix if present)
-            value = string
-        } else if let array = try? container.decode([AnyCodable].self) {
-            value = array.map { $0.value }
-        } else if let dict = try? container.decode([String: AnyCodable].self) {
-            value = dict.mapValues { $0.value }
-        } else {
-            throw DecodingError.typeMismatch(Any.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        if let bool = value as? Bool {
-            try container.encode(bool)
-        } else if let int = value as? Int {
-            try container.encode(int)
-        } else if let double = value as? Double {
-            try container.encode(double)
-        } else if let cgFloat = value as? CGFloat {
-            try container.encode(Double(cgFloat))
-        } else if let color = value as? Color {
-            // First, try to identify semantic colors and store as named strings
-            let colorName = ComponentProperty.colorToColorString(color)
-            if colorName != "primary" { // colorToColorString returns "primary" for unknown colors too
-                // Check if it's a known semantic color by converting back
-                let testColor = ComponentProperty.colorStringToColor(colorName)
-                #if os(macOS)
-                let originalRGBA = NSColor(color).rgbaComponents
-                let testRGBA = NSColor(testColor).rgbaComponents
-                // If the round-trip produces similar results, use the name
-                if abs(originalRGBA.red - testRGBA.red) < 0.01 &&
-                   abs(originalRGBA.green - testRGBA.green) < 0.01 &&
-                   abs(originalRGBA.blue - testRGBA.blue) < 0.01 {
-                    try container.encode("color:\(colorName)")
-                    return
-                }
-                #endif
-            }
-            
-            // Also check for semantic colors that can't be converted to RGB
-            // Store these by name
-            #if os(macOS)
-            let uiColor = NSColor(color)
-            if uiColor.usingColorSpace(.sRGB) == nil {
-                // Can't convert to sRGB - likely a semantic color
-                // Use the color name from colorToColorString
-                try container.encode("color:\(colorName)")
-                return
-            }
-            
-            // Fallback: Encode as RGBA dictionary
-            let rgba = uiColor.rgbaComponents
-            try container.encode([
-                "red": Double(rgba.red),
-                "green": Double(rgba.green),
-                "blue": Double(rgba.blue),
-                "alpha": Double(rgba.alpha)
-            ])
-            #else
-            // Fallback for non-macOS platforms
-            try container.encode("color:\(colorName)")
-            #endif
-        } else if let string = value as? String {
-            try container.encode(string)
-        } else if let array = value as? [Any] {
-            try container.encode(array.map { AnyCodable($0) })
-        } else if let dict = value as? [String: Any] {
-            try container.encode(dict.mapValues { AnyCodable($0) })
-        } else if value is UIComponent {
-            // Special handling for UIComponent
-            // We can't directly encode UIComponent here if AnyCodable is used inside UIComponent (circular).
-            // But UIComponent is Codable, so we can try to encode it.
-            // However, AnyCodable is a wrapper.
-            // Let's encode it as a wrapper that uses the component's encoding.
-            // Actually, simpler: Encode it as a dictionary if possible, or just let it fail if we can't easily wrap it.
-            // Better approach: UIComponent conforms to Codable, so we can just encode it directly if the container supports it?
-            // No, AnyCodable needs to know how to encode it.
-            // Let's try to encode it using a nested encoder?
-            // For now, let's assume we store components as dictionaries in properties when using AnyCodable.
-            // If we pass a UIComponent instance, we might need to convert it to a dictionary first or handle it here.
-            
-            // Attempt to encode UIComponent by creating a new encoder? No.
-            // Let's just throw for now and ensure we convert UIComponent to a dictionary before storing in properties if needed,
-            // OR implement a specific case if we can.
-            
-            // Actually, we can try to encode it if we cast it to Encodable, but AnyCodable holds Any.
-            // Let's try to check if it's UIComponent (which we did) and then encode it.
-            // But we need to encode it into the container.
-            // Since UIComponent is a class, we might need to wrap it.
-            
-            // Workaround: Encode as a dictionary representation
-            // This is complex. Let's stick to storing simple types in properties for now.
-            // For overlay, we might need to store the component data as a dictionary.
-            
-            print("⚠️ AnyCodable: UIComponent encoding not fully supported directly. Convert to dictionary first.")
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "UIComponent direct encoding not supported in AnyCodable yet"))
-            
-        } else {
-            print("❌ AnyCodable encoding failed for unsupported type: \(Swift.type(of: value))")
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
-        }
-    }
-}
+
 
 // MARK: - NSColor Extension for RGBA Components
 #if os(macOS)

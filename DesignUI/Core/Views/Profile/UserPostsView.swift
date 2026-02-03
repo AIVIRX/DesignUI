@@ -11,6 +11,12 @@ struct UserPostsView: View {
     @StateObject private var viewModel = UserPostsViewModel()
     @State private var showDeleteAlert = false
     @State private var postToDelete: DesignPost?
+    @EnvironmentObject private var designManager: DesignManager
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @Environment(\.openWindow) private var openWindow
+    @State private var showingLimitAlert = false
+    @State private var showingPaywall = false
+    private let freeDesignLimit = 3
     
     var body: some View {
         ScrollView {
@@ -61,6 +67,19 @@ struct UserPostsView: View {
             }
         } message: {
             Text("Are you sure you want to delete this post? This action cannot be undone.")
+        }
+        .sheet(isPresented: $showingPaywall) {
+            CustomPaywallView()
+                .environmentObject(PaywallManager.shared)
+                .environmentObject(subscriptionManager)
+        }
+        .alert("Free Limit Reached", isPresented: $showingLimitAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Subscribe") {
+                showingPaywall = true
+            }
+        } message: {
+            Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
         }
     }
     
@@ -161,6 +180,41 @@ struct UserPostsView: View {
             CommunityCards(
                 post: post,
                 showDeleteButton: true,
+                onOpen: { postToOpen in
+                    // Check subscription limits first
+                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
+                        showingLimitAlert = true
+                        return
+                    }
+                    
+                    // Show loading toast
+                    ToastManager.shared.showToast(ToastData(title: "Loading Design...", icon: "clock.fill", duration: 5.0))
+                    
+                    Task {
+                        do {
+                            // 1. Fetch full details (including design_json)
+                            let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
+                            
+                            // 2. Create DesignFile from post
+                            if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
+                                // 3. Open it
+                                await MainActor.run {
+                                    ToastManager.shared.dismissToast()
+                                    #if os(macOS)
+                                    openWindow(value: newDesign.id)
+                                    #else
+                                    designManager.openDesign(newDesign)
+                                    #endif
+                                }
+                            }
+                        } catch {
+                            print("Error opening post: \(error)")
+                            await MainActor.run {
+                                ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
+                            }
+                        }
+                    }
+                },
                 onDelete: {
                     postToDelete = post
                     showDeleteAlert = true

@@ -4,7 +4,7 @@ import Charts
 
 // Helper for Chart Data
 private struct ChartDataPoint: Identifiable {
-    let id = UUID()
+    let id: Int
     let label: String
     let value: Double
 }
@@ -49,7 +49,7 @@ extension ComponentRenderer {
             }
             value = max(0, min(100, value))
             
-            return ChartDataPoint(label: "\(i + 1)", value: value)
+            return ChartDataPoint(id: i, label: "\(i + 1)", value: value)
         }
         
 

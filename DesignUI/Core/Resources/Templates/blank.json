@@ -1,8 +1,15 @@
 {
-    "name": "Blank",
-    "description": "Start with an empty canvas",
+    "name": "Hello World",
+    "description": "Start with a simple Hello World text",
     "thumbnail": "blank",
     "devicePreset": "iPhone 16 Pro",
     "canvasColorScheme": "light",
-    "components": []
+    "components": [
+        {
+            "type": "Text",
+            "properties": {
+                "text": "Hello World"
+            }
+        }
+    ]
 }

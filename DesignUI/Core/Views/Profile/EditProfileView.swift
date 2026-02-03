@@ -129,10 +129,6 @@ struct EditProfileView: View {
                 }
             }
             #endif
-            
-            Text("Change Photo")
-                .font(.footnote)
-                .foregroundColor(.accentColor)
         }
         .padding(.top)
     }
