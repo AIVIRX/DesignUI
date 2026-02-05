@@ -13,17 +13,9 @@ import AppKit
 import UIKit
 #endif
 
-struct DesignBrowserView: View {
-    @EnvironmentObject private var designManager: DesignManager
-    
-    var body: some View {
-        NavigationStack {
-            DesignBrowserContent()
-        }
-    }
-}
 
-struct DesignBrowserContent: View {
+
+struct DesignBrowserView: View {
     @EnvironmentObject private var designManager: DesignManager
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var communityViewModel = LatestPostsViewModel()
@@ -45,7 +37,9 @@ struct DesignBrowserContent: View {
     
     var body: some View {
         // Show browser content (editor opens in new window on macOS)
-        browserContent
+        NavigationStack {
+            browserContent
+        }
     }
     
     private var browserContent: some View {
@@ -54,7 +48,7 @@ struct DesignBrowserContent: View {
             ScrollView {
                 VStack(spacing: 32) {
                     // Hero Header
-                    HeroHeaderView(userName: "Designer", onCreateNew: {
+                    HeroHeaderView(onCreateNew: {
                         if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
                             showingLimitAlert = true
                         } else {
@@ -191,13 +185,13 @@ struct DesignBrowserContent: View {
                                                         #endif
                                                     }
                                                     } else {
-                                                        print("Error: No design JSON found in post")
+                                                        debugLog("Error: No design JSON found in post")
                                                         await MainActor.run {
                                                             ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
                                                         }
                                                     }
                                                 } catch {
-                                                    print("Error opening post: \(error)")
+                                                    debugLog("Error opening post: \(error)")
                                                     await MainActor.run {
                                                         ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
                                                     }
@@ -337,11 +331,8 @@ struct DesignBrowserContent: View {
 }
 
 struct HeroHeaderView: View {
-    let userName: String
     let onCreateNew: () -> Void
-    
-    
-    
+
     var body: some View {
         ZStack {
             // Fancy Background
@@ -697,13 +688,22 @@ struct TemplateCardView: View {
 struct CanvasPreviewView: View {
     @ObservedObject var designFile: DesignFile
     
+    /// Use first page's thumbnail for project preview (page 1 is the "home page")
+    private var previewThumbnail: Data? {
+        // Prefer first page's thumbnail, fallback to legacy designFile.thumbnail
+        if let firstPageThumbnail = designFile.pages.first?.thumbnail {
+            return firstPageThumbnail
+        }
+        return designFile.thumbnail
+    }
+    
     var body: some View {
         // Background rectangle (same as DetailView pattern)
         RoundedRectangle(cornerRadius: 20, style: .continuous)
             .fill(Color.secondary.opacity(0.05))
             .overlay(
                 Group {
-                    if let thumbnailData = designFile.thumbnail,
+                    if let thumbnailData = previewThumbnail,
                        let image = createImage(from: thumbnailData) {
 #if os(macOS)
                         Image(nsImage: image)

@@ -6,6 +6,11 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 // MARK: - Component Library for Modifier
 struct ComponentLibraryForModifierView: View {
@@ -100,6 +105,7 @@ struct BackgroundColorModifierEditor: View {
     @ObservedObject var component: UIComponent
     @State private var isPresented = false
     @State private var opacityText: String = ""
+    @FocusState private var isOpacityFocused: Bool
     
     private var currentColor: Color {
         modifier.getColor(key: "color", defaultValue: .blue)
@@ -182,7 +188,9 @@ struct BackgroundColorModifierEditor: View {
                     HStack {
                         TextField("100", text: $opacityText)
                             .textFieldStyle(.roundedBorder)
+                            .focused($isOpacityFocused)
                             .onChange(of: opacityText) { _, newValue in
+                                guard isOpacityFocused else { return }
                                 if newValue.isEmpty { return }
                                 if let percentage = Double(newValue), percentage >= 0 && percentage <= 100 {
                                     let opacity = percentage / 100.0
@@ -193,6 +201,20 @@ struct BackgroundColorModifierEditor: View {
                                 if opacityText.isEmpty || Double(opacityText) == nil {
                                     opacityText = "100"
                                 }
+                                commitOpacity()
+                            }
+                            .onChange(of: isOpacityFocused) { _, isFocused in
+                                if !isFocused {
+                                    commitOpacity()
+                                }
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+                                isOpacityFocused = false
+                                opacityText = String(format: "%.0f", currentOpacityPercent())
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+                                isOpacityFocused = false
+                                opacityText = String(format: "%.0f", currentOpacityPercent())
                             }
                         
                         Text("%")
@@ -221,11 +243,7 @@ struct BackgroundColorModifierEditor: View {
                                 // Disable gradient when picking color
                                 updatedModifier.properties["gradient"] = nil
                                 
-                                // Explicitly update component to trigger UI refresh
-                                component.updateModifier(updatedModifier)
                                 modifier = updatedModifier
-                                
-                                NotificationCenter.default.post(name: .designChanged, object: nil)
                             }
                             isPresented = false
                         }) {
@@ -260,7 +278,7 @@ struct BackgroundColorModifierEditor: View {
             .padding()
             .frame(width: 220)
             .onAppear {
-                opacityText = "100"
+                opacityText = String(format: "%.0f", currentOpacityPercent())
             }
         }
     }
@@ -299,12 +317,19 @@ struct BackgroundColorModifierEditor: View {
         let baseColor = findBaseColor(for: currentColor)
         var updatedModifier = modifier
         updatedModifier.properties["color"] = baseColor.opacity(newOpacity)
-        
-        // Explicitly update component
-        component.updateModifier(updatedModifier)
-        modifier = updatedModifier
-        
-        NotificationCenter.default.post(name: .designChanged, object: nil)
+        DispatchQueue.main.async {
+            component.updateModifierContinuous(updatedModifier)
+        }
+    }
+    
+    private func commitOpacity() {
+        if let percentage = Double(opacityText) {
+            let opacity = max(0, min(100, percentage)) / 100.0
+            let baseColor = findBaseColor(for: currentColor)
+            var updatedModifier = modifier
+            updatedModifier.properties["color"] = baseColor.opacity(opacity)
+            modifier = updatedModifier
+        }
     }
     
     private func findBaseColor(for color: Color) -> Color {
@@ -312,6 +337,24 @@ struct BackgroundColorModifierEditor: View {
             if color == baseColor { return baseColor }
         }
         return color
+    }
+    
+    private func currentOpacityPercent() -> Double {
+        #if os(macOS)
+        let nsColor = NSColor(currentColor)
+        let rgba = nsColor.usingColorSpace(.sRGB) ?? nsColor
+        return max(0, min(100, Double(rgba.alphaComponent * 100.0)))
+        #else
+        let uiColor = UIColor(currentColor)
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 1
+        if uiColor.getRed(&r, green: &g, blue: &b, alpha: &a) {
+            return max(0, min(100, Double(a * 100.0)))
+        }
+        return 100
+        #endif
     }
 }
 

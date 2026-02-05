@@ -285,11 +285,6 @@ struct ShadowModifierEditor: View {
         updatedModifier.properties["color"] = baseColor.opacity(opacity)
         
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     private func saveShadowContinuous() {
@@ -305,9 +300,6 @@ struct ShadowModifierEditor: View {
         // Also save the actual Color object with opacity applied for rendering
         let baseColor = colors.first(where: { $0.name == selectedColorName })?.color ?? .black
         updatedModifier.properties["color"] = baseColor.opacity(opacity)
-        
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }

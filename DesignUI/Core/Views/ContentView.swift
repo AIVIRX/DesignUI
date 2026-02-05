@@ -14,9 +14,9 @@ struct ContentView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
     @StateObject private var authViewModel = AuthViewModel()
-    let client = SupabaseManager.shared.client
     @State private var selectedTab: Tabs = .home
-    
+    let client = SupabaseManager.shared.client
+
     enum Tabs: Hashable {
         case home
         case news

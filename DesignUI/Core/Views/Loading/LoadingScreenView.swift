@@ -169,23 +169,3 @@ struct LoadingScreenView: View {
         }
     }
 }
-
-#Preview("Loading Screen - Dark") {
-    LoadingScreenView(loadingState: {
-        let state = AppLoadingState.shared
-        state.loadingProgress = 0.6
-        state.loadingMessage = "Loading designs..."
-        return state
-    }())
-    .preferredColorScheme(.dark)
-}
-
-#Preview("Loading Screen - Light") {
-    LoadingScreenView(loadingState: {
-        let state = AppLoadingState.shared
-        state.loadingProgress = 0.3
-        state.loadingMessage = "Preparing workspace..."
-        return state
-    }())
-    .preferredColorScheme(.light)
-}

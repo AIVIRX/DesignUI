@@ -78,6 +78,8 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case slider = "Slider"
     case chart = "Chart"
     case shape = "Shape"
+    case button = "Button"
+    case gauge = "Gauge"
     
     var id: String { rawValue }
     
@@ -104,6 +106,8 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .slider: return "slider.horizontal.3"
         case .chart: return "chart.bar.fill"
         case .shape: return "square.on.circle"
+        case .button: return "button.programmable"
+        case .gauge: return "gauge.medium"
         }
     }
     
@@ -847,7 +851,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                 NotificationCenter.default.post(name: .designChanged, object: nil)
             }
         } else {
-            print("⚠️ Modifier not found for update: \(modifier.id)")
+            debugLog("⚠️ Modifier not found for update: \(modifier.id)")
         }
     }
     
@@ -923,7 +927,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         // Only convert within same category
         guard currentCategory == newCategory else {
-            print("⚠️ Cannot convert between different component categories")
+            debugLog("⚠️ Cannot convert between different component categories")
             return
         }
         
@@ -1270,6 +1274,20 @@ extension UIComponent {
                 ComponentProperty(key: "color", displayName: "Color", type: .color, value: "blue", defaultValue: "blue"),
                 ComponentProperty(key: "showXAxis", displayName: "Show X Axis", type: .boolean, value: true, defaultValue: true),
                 ComponentProperty(key: "showYAxis", displayName: "Show Y Axis", type: .boolean, value: true, defaultValue: true)
+            ]
+        case .button:
+            return [
+                ComponentProperty(key: "buttonStyle", displayName: "Button Style", type: .dropdown, value: "borderedProminent", defaultValue: "borderedProminent", options: ["bordered", "borderedProminent", "borderless", "plain"])
+            ]
+        
+        case .gauge:
+            return [
+                ComponentProperty(key: "gaugeType", displayName: "Gauge Type", type: .dropdown, value: "circular", defaultValue: "circular", options: ["linear", "circular", "circular range"]),
+                ComponentProperty(key: "value", displayName: "Value", type: .number, value: 50.0, defaultValue: 50.0),
+                ComponentProperty(key: "min", displayName: "Min", type: .number, value: 0.0, defaultValue: 0.0),
+                ComponentProperty(key: "max", displayName: "Max", type: .number, value: 100.0, defaultValue: 100.0),
+                ComponentProperty(key: "showValue", displayName: "Show Value", type: .boolean, value: true, defaultValue: true),
+                ComponentProperty(key: "color", displayName: "Color", type: .color, value: "blue", defaultValue: "blue")
             ]
 
         default:

@@ -114,18 +114,11 @@ struct RotationModifierEditor: View {
         var updatedModifier = modifier
         updatedModifier.properties["angle"] = angle
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     private func saveAngleContinuous() {
         var updatedModifier = modifier
         updatedModifier.properties["angle"] = angle
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }
@@ -285,19 +278,12 @@ struct ScaleModifierEditor: View {
         updatedModifier.properties["x"] = scale
         updatedModifier.properties["y"] = scale
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     private func saveScaleContinuous() {
         var updatedModifier = modifier
         updatedModifier.properties["x"] = scale
         updatedModifier.properties["y"] = scale
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }
@@ -357,6 +343,8 @@ struct OffsetModifierEditor: View {
     
     @State private var offsetX: Double = 0
     @State private var offsetY: Double = 0
+    @FocusState private var isOffsetXFocused: Bool
+    @FocusState private var isOffsetYFocused: Bool
     
     var body: some View {
         ScrollView {
@@ -388,6 +376,7 @@ struct OffsetModifierEditor: View {
                         TextField("", value: $offsetX, format: .number)
                             .textFieldStyle(.roundedBorder)
                             .multilineTextAlignment(.trailing)
+                            .focused($isOffsetXFocused)
                             .onChange(of: offsetX) { _, _ in saveOffset() }
                             .onSubmit { saveOffset() }
                     }
@@ -402,6 +391,7 @@ struct OffsetModifierEditor: View {
                         TextField("", value: $offsetY, format: .number)
                             .textFieldStyle(.roundedBorder)
                             .multilineTextAlignment(.trailing)
+                            .focused($isOffsetYFocused)
                             .onChange(of: offsetY) { _, _ in saveOffset() }
                             .onSubmit { saveOffset() }
                     }
@@ -451,6 +441,16 @@ struct OffsetModifierEditor: View {
         .onChange(of: modifier) { _, _ in
             loadOffset()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+            isOffsetXFocused = false
+            isOffsetYFocused = false
+            loadOffset()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+            isOffsetXFocused = false
+            isOffsetYFocused = false
+            loadOffset()
+        }
     }
     
     private let presets: [(name: String, icon: String, value: (x: Double, y: Double))] = [
@@ -472,11 +472,6 @@ struct OffsetModifierEditor: View {
         updatedModifier.properties["x"] = offsetX
         updatedModifier.properties["y"] = offsetY
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
 }
 

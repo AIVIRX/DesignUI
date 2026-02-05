@@ -73,6 +73,14 @@ struct FontModifierEditor: View {
         .onChange(of: modifier) { _, _ in
             loadFont()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+            isCustomSizeFocused = false
+            loadFont()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+            isCustomSizeFocused = false
+            loadFont()
+        }
     }
     
     // MARK: - Subviews
@@ -392,11 +400,6 @@ struct FontModifierEditor: View {
         updatedModifier.properties["fontWeight"] = fontWeight
         updatedModifier.properties["fontDesign"] = fontDesign
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     private func saveFontContinuous() {
@@ -404,8 +407,6 @@ struct FontModifierEditor: View {
         updatedModifier.properties["fontSize"] = fontSize
         updatedModifier.properties["fontWeight"] = fontWeight
         updatedModifier.properties["fontDesign"] = fontDesign
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }

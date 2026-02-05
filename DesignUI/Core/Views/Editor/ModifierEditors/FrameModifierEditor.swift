@@ -50,7 +50,11 @@ struct FrameModifierEditor: View {
                                     widthType = type
                                     saveFrame()
                                 },
-                                onValueChange: { newValue in
+                                onValueChangeContinuous: { newValue in
+                                    widthValue = newValue
+                                    saveFrameContinuous()
+                                },
+                                onValueCommit: { newValue in
                                     widthValue = newValue
                                     saveFrame()
                                 }
@@ -85,7 +89,11 @@ struct FrameModifierEditor: View {
                                     heightType = type
                                     saveFrame()
                                 },
-                                onValueChange: { newValue in
+                                onValueChangeContinuous: { newValue in
+                                    heightValue = newValue
+                                    saveFrameContinuous()
+                                },
+                                onValueCommit: { newValue in
                                     heightValue = newValue
                                     saveFrame()
                                 }
@@ -134,10 +142,17 @@ struct FrameModifierEditor: View {
         updatedModifier.properties["width"] = widthValue
         updatedModifier.properties["height"] = heightValue
         modifier = updatedModifier
+    }
+
+    private func saveFrameContinuous() {
+        var updatedModifier = modifier
+        updatedModifier.properties["widthType"] = widthType.rawValue
+        updatedModifier.properties["heightType"] = heightType.rawValue
+        updatedModifier.properties["width"] = widthValue
+        updatedModifier.properties["height"] = heightValue
         
         DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
+            component.updateModifierContinuous(updatedModifier)
         }
     }
 }
@@ -148,10 +163,12 @@ struct FrameOptionRow: View {
     let isSelected: Bool
     let value: CGFloat?
     let onSelect: () -> Void
-    let onValueChange: (CGFloat) -> Void
+    let onValueChangeContinuous: (CGFloat) -> Void
+    let onValueCommit: (CGFloat) -> Void
     
     @State private var isHovered = false
     @State private var textValue: String = ""
+    @FocusState private var isTextFocused: Bool
     
     var body: some View {
         Button(action: onSelect) {
@@ -183,17 +200,43 @@ struct FrameOptionRow: View {
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(Color.secondary.opacity(0.15))
                         )
+                        .focused($isTextFocused)
                         .onAppear {
-                            textValue = String(format: "%.0f", val)
+                            syncText(from: val)
+                        }
+                        .onChange(of: value) { _, newValue in
+                            guard !isTextFocused, let newValue else { return }
+                            syncText(from: newValue)
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+                            isTextFocused = false
+                            if let val = value {
+                                syncText(from: val)
+                            }
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+                            isTextFocused = false
+                            if let val = value {
+                                syncText(from: val)
+                            }
                         }
                         .onChange(of: textValue) { _, newValue in
+                            guard isTextFocused else { return }
                             if let parsed = Double(newValue) {
-                                onValueChange(CGFloat(parsed))
+                                onValueChangeContinuous(CGFloat(parsed))
                             }
                         }
                         .onSubmit {
                             if textValue.isEmpty || Double(textValue) == nil {
                                 textValue = String(format: "%.0f", value ?? 100)
+                            }
+                            if let parsed = Double(textValue) {
+                                onValueCommit(CGFloat(parsed))
+                            }
+                        }
+                        .onChange(of: isTextFocused) { _, isFocused in
+                            if !isFocused, let parsed = Double(textValue) {
+                                onValueCommit(CGFloat(parsed))
                             }
                         }
                 } else if isSelected {
@@ -211,5 +254,9 @@ struct FrameOptionRow: View {
         .onHover { hovering in
             isHovered = hovering
         }
+    }
+    
+    private func syncText(from value: CGFloat) {
+        textValue = String(format: "%.0f", value)
     }
 }

@@ -298,7 +298,7 @@ struct ImageGalleryView: View {
                 }
             }
         case .failure(let error):
-            print("File import error: \(error.localizedDescription)")
+            debugLog("File import error: \(error.localizedDescription)")
         }
     }
 }

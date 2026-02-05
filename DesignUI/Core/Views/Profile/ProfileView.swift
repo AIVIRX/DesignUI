@@ -6,24 +6,19 @@ enum ProfileTab {
 }
 
 struct ProfileView: View {
-    @StateObject private var viewModel = ProfileViewModel()
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject var authViewModel: AuthViewModel
-    @State private var showEditProfile = false
-    @State private var showDeleteAlert = false
-
-    @State private var selectedTab: ProfileTab = .liked
     @StateObject private var likedViewModel = LikedPostsViewModel()
     @StateObject private var userViewModel = UserPostsViewModel()
+    @StateObject private var viewModel = ProfileViewModel()
+    @State private var showEditProfile = false
+    @State private var showDeleteAlert = false
     @State private var showDeletePostAlert = false
+    @State private var showingPaywall = false
+    @State private var selectedTab: ProfileTab = .liked
     @State private var postToDelete: DesignPost?
     @State private var hasLoadedLiked = false
     @State private var hasLoadedUserPosts = false
-    @EnvironmentObject private var designManager: DesignManager
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @Environment(\.openWindow) private var openWindow
-    @State private var showingLimitAlert = false
-    @State private var showingPaywall = false
-    private let freeDesignLimit = 3
     
     private var isLikedFilter: Bool {
         selectedTab == .liked
@@ -259,14 +254,6 @@ struct ProfileView: View {
                             .environmentObject(PaywallManager.shared)
                             .environmentObject(subscriptionManager)
                     }
-                    .alert("Free Limit Reached", isPresented: $showingLimitAlert) {
-                        Button("Cancel", role: .cancel) { }
-                        Button("Subscribe") {
-                            showingPaywall = true
-                        }
-                    } message: {
-                        Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
-                    }
                 }
                 .alert("Are you sure you want to delete your account?",
                        isPresented: $showDeleteAlert) {
@@ -447,41 +434,6 @@ struct ProfileView: View {
             CommunityCards(
                 post: post,
                 showDeleteButton: !isLikedFilter,
-                onOpen: { postToOpen in
-                    // Check subscription limits first
-                    if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
-                        showingLimitAlert = true
-                        return
-                    }
-                    
-                    // Show loading toast
-                    ToastManager.shared.showToast(ToastData(title: "Loading Design...", icon: "clock.fill", duration: 5.0))
-                    
-                    Task {
-                        do {
-                            // 1. Fetch full details (including design_json)
-                            let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
-                            
-                            // 2. Create DesignFile from post
-                            if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
-                                // 3. Open it
-                                await MainActor.run {
-                                    ToastManager.shared.dismissToast()
-                                    #if os(macOS)
-                                    openWindow(value: newDesign.id)
-                                    #else
-                                    designManager.openDesign(newDesign)
-                                    #endif
-                                }
-                            }
-                        } catch {
-                            print("Error opening post from profile: \(error)")
-                            await MainActor.run {
-                                ToastManager.shared.showToast(ToastData(title: "Load Failed", icon: "xmark.circle.fill"))
-                            }
-                        }
-                    }
-                },
                 onDelete: !isLikedFilter ? {
                     postToDelete = post
                     showDeletePostAlert = true

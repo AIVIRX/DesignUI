@@ -101,6 +101,9 @@ enum DevicePreset: String, CaseIterable, Identifiable {
     case widgetLarge = "Widget Large"
     case widgetExtraLarge = "Widget Extra Large"
     
+    // Custom (No frame)
+    case noSize = "No Size"
+    
     var id: String { rawValue }
     
     /// Category for grouping in UI
@@ -108,6 +111,7 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         case iphone = "iPhone"
         case ipad = "iPad"
         case widget = "Widgets"
+        case custom = "Custom"
     }
     
     var category: Category {
@@ -120,6 +124,8 @@ enum DevicePreset: String, CaseIterable, Identifiable {
             return .ipad
         case .widgetSmall, .widgetMedium, .widgetLarge, .widgetExtraLarge:
             return .widget
+        case .noSize:
+            return .custom
         }
     }
     
@@ -134,6 +140,10 @@ enum DevicePreset: String, CaseIterable, Identifiable {
     
     static var widgets: [DevicePreset] {
         allCases.filter { $0.category == .widget }
+    }
+    
+    static var custom: [DevicePreset] {
+        allCases.filter { $0.category == .custom }
     }
     
     var size: CGSize {
@@ -168,7 +178,15 @@ enum DevicePreset: String, CaseIterable, Identifiable {
         case .widgetMedium: return CGSize(width: 364, height: 170)
         case .widgetLarge: return CGSize(width: 364, height: 382)
         case .widgetExtraLarge: return CGSize(width: 795, height: 382) // iPad only
+        
+        // Custom - content-adaptive (zero signals dynamic sizing)
+        case .noSize: return .zero
         }
+    }
+    
+    /// Whether this preset uses content-adaptive sizing (no fixed frame)
+    var isContentAdaptive: Bool {
+        self == .noSize
     }
 }
 
@@ -209,6 +227,9 @@ struct UIBuilderView: View {
     // Screenshot capture debouncing
     @State private var lastScreenshotRequestTime: Date = Date()
     private let screenshotDebounceInterval: TimeInterval = 2.0
+    
+    // Debounced design sync to avoid redundant saves/snapshots
+    @State private var designSyncWorkItem: DispatchWorkItem?
     
     @Environment(\.dismiss) private var dismiss
     
@@ -408,21 +429,25 @@ struct UIBuilderView: View {
             if !isSwitchingPage {
                 saveCanvasSettings()
                 
-                // Auto-hide status bar for widgets, show for others
-                if newDevice.category == .widget {
+                // Auto-hide status bar for widgets and custom (noSize), show for others
+                if newDevice.category == .widget || newDevice.category == .custom {
                     designFile.statusBarVisible = false
                     canvasManager.statusBarComponent?.isVisible = false
                     NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
                     
-                    // Also disable Top Safe Area for widgets
-                    canvasManager.statusBarComponent?.setProperty(key: "topSafeArea", value: false)
+                    // Also disable Top Safe Area for widgets and custom
+                    if let statusBar = canvasManager.statusBarComponent {
+                        canvasManager.updateComponentProperty(for: statusBar, key: "topSafeArea", value: false)
+                    }
                 } else {
                     designFile.statusBarVisible = true
                     canvasManager.statusBarComponent?.isVisible = true
                     NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
                     
                     // Enable Top Safe Area for non-widgets
-                    canvasManager.statusBarComponent?.setProperty(key: "topSafeArea", value: true)
+                    if let statusBar = canvasManager.statusBarComponent {
+                        canvasManager.updateComponentProperty(for: statusBar, key: "topSafeArea", value: true)
+                    }
                 }
             }
         }
@@ -440,27 +465,13 @@ struct UIBuilderView: View {
         .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
             if !isSwitchingPage {
                 saveCanvasSettings()
+                scheduleDesignSync(captureScreenshot: false)
             }
         }
         .onChange(of: canvasManager.undoStackVersion) { _, _ in
             // Trigger sync when undo stack changes (action performed, undo, or redo)
             // This catches changes like Canvas Settings that aren't in the components array
-            if !isSwitchingPage {
-                // Use a slight delay to avoid the "multiple updates per frame" warning
-                DispatchQueue.main.async {
-                    // Sync design changes (persist components and settings)
-                    designFile.components = canvasManager.components
-                    designFile.objectWillChange.send()
-                    designFile.markAsChanged()
-                    
-                    // Capture screenshot immediately for undo stack changes
-                    // (Discrete, important state changes deserve a fresh thumbnail)
-                    performScreenshotCapture()
-                }
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
-            syncDesignChanges()
+            scheduleDesignSync(captureScreenshot: true)
         }
         .onReceive(NotificationCenter.default.publisher(for: .statusBarVisibilityChanged)) { notification in
             if let isVisible = notification.object as? Bool {
@@ -622,6 +633,22 @@ struct UIBuilderView: View {
                 // Widgets section
                 Section("Widgets") {
                     ForEach(DevicePreset.widgets) { preset in
+                        Button {
+                            canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Custom section
+                Section("Custom") {
+                    ForEach(DevicePreset.custom) { preset in
                         Button {
                             canvasManager.setDevicePreset(preset)
                         } label: {
@@ -803,7 +830,7 @@ struct UIBuilderView: View {
             // When images are downloaded, refresh the thumbnail
             if let design = notification.object as? DesignFile,
                design === designFile { // Check it's the current design
-                print("🖼️ Images downloaded, refreshing thumbnail for \(design.name)")
+                debugLog("🖼️ Images downloaded, refreshing thumbnail for \(design.name)")
                 // Capture screenshot to update thumbnail with actual images
                 captureScreenshot()
                 // Save to persist the thumbnail (wait shortly for capture)
@@ -1143,6 +1170,24 @@ struct UIBuilderView: View {
                     }
                 }
             }
+            
+            Section("Custom") {
+                ForEach(DevicePreset.custom) { preset in
+                    Button(action: {
+                        canvasManager.setDevicePreset(preset)
+                    }) {
+                        HStack {
+                            Text(preset.rawValue)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if canvasManager.devicePreset == preset {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                }
+            }
         }
         .listStyle(.insetGrouped)
     }
@@ -1202,6 +1247,24 @@ struct UIBuilderView: View {
                 }
             }
         }
+        
+        Section("Custom") {
+            ForEach(DevicePreset.custom) { preset in
+                Button(action: {
+                    canvasManager.setDevicePreset(preset)
+                }) {
+                    HStack {
+                        Text(preset.rawValue)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if canvasManager.devicePreset == preset {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -1237,6 +1300,17 @@ struct UIBuilderView: View {
                     // Widgets section
                     Section("Widgets") {
                         ForEach(DevicePreset.widgets) { preset in
+                            Button(preset.rawValue) {
+                                canvasManager.setDevicePreset(preset)
+                            }
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    // Custom section
+                    Section("Custom") {
+                        ForEach(DevicePreset.custom) { preset in
                             Button(preset.rawValue) {
                                 canvasManager.setDevicePreset(preset)
                             }
@@ -1305,6 +1379,7 @@ struct UIBuilderView: View {
                 .keyboardShortcut("z", modifiers: [.command, .shift])
                 .disabled(!canvasManager.canRedo)
                 .help("Redo")
+                
             }
             
             ToolbarItemGroup(placement: .primaryAction) {
@@ -1389,7 +1464,7 @@ struct UIBuilderView: View {
             size: canvasManager.devicePreset.size,
             colorScheme: canvasManager.colorScheme ?? .light
         ) else {
-            print("❌ Failed to capture screenshot for saving")
+            debugLog("❌ Failed to capture screenshot for saving")
             return
         }
         
@@ -1408,7 +1483,7 @@ struct UIBuilderView: View {
                     // Open in Finder
                     NSWorkspace.shared.activateFileViewerSelecting([url])
                 } catch {
-                    print("❌ Failed to save screenshot: \(error)")
+                    debugLog("❌ Failed to save screenshot: \(error)")
                 }
             }
         }
@@ -1455,7 +1530,23 @@ struct UIBuilderView: View {
         if currentPageIndex >= 0 && currentPageIndex < designFile.pages.count {
             let oldPage = designFile.pages[currentPageIndex]
             oldPage.components = canvasManager.components
-            oldPage.thumbnail = designFile.thumbnail
+            
+            // Capture fresh screenshot for page thumbnail
+            let screenshotView = CanvasScreenshotView(
+                components: canvasManager.components,
+                deviceSize: canvasManager.devicePreset.size,
+                colorScheme: canvasManager.colorScheme ?? .light,
+                statusBarComponent: canvasManager.statusBarComponent,
+                statusBarHasBackground: statusBarHasBackground
+            )
+            if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
+                of: screenshotView,
+                size: canvasManager.devicePreset.size,
+                colorScheme: canvasManager.colorScheme ?? .light
+            ) {
+                oldPage.thumbnail = thumbnailData
+            }
+            
             // Save canvas settings to old page
             oldPage.devicePreset = canvasManager.devicePreset.rawValue
             oldPage.colorScheme = canvasManager.colorScheme == .light ? "light" : (canvasManager.colorScheme == .dark ? "dark" : nil)
@@ -1501,7 +1592,7 @@ struct UIBuilderView: View {
         // Trigger save for the page switch
         designFile.markAsChanged()
         
-        print("📄 Switched to page \(pageIndex): \(newPage.name) with \(canvasManager.components.count) components")
+        debugLog("📄 Switched to page \(pageIndex): \(newPage.name) with \(canvasManager.components.count) components")
     }
     
     private func restoreCanvasSettings() {
@@ -1573,6 +1664,24 @@ struct UIBuilderView: View {
             designFile.markAsChanged()
         }
     }
+
+    private func scheduleDesignSync(captureScreenshot: Bool) {
+        // Coalesce rapid changes to avoid redundant saves/snapshots
+        designSyncWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [designFile, canvasManager] in
+            if !isSwitchingPage {
+                designFile.components = canvasManager.components
+                designFile.objectWillChange.send()
+                designFile.markAsChanged()
+                
+                if captureScreenshot {
+                    performScreenshotCapture()
+                }
+            }
+        }
+        designSyncWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12, execute: workItem)
+    }
     
     // MARK: - Screenshot Capture
     private func captureScreenshot() {
@@ -1626,9 +1735,9 @@ struct UIBuilderView: View {
             // Also save to current page for gallery preview
             self.designFile.currentPage?.thumbnail = thumbnailData
             
-            print("📸 Screenshot captured and set on design file and current page")
+            debugLog("📸 Screenshot captured and set on design file and current page")
         } else {
-            print("📸 Failed to capture screenshot")
+            debugLog("📸 Failed to capture screenshot")
         }
     }
     
@@ -1641,6 +1750,8 @@ struct UIBuilderView: View {
             return "ipad"
         case .widget:
             return "rectangle.grid.1x2"
+        case .custom:
+            return "aspectratio"
         }
     }
 }

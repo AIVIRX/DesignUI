@@ -335,6 +335,7 @@ struct PresetShapeRow: View {
 struct MaskModifierEditor: View {
     @Binding var modifier: ComponentModifier
     @ObservedObject var component: UIComponent
+    @FocusState private var isCornerRadiusFocused: Bool
     
     private let maskTypes = ["rectangle", "roundedRectangle", "circle", "capsule", "linearGradient"]
     
@@ -391,6 +392,13 @@ struct MaskModifierEditor: View {
             
             TextField("10", text: radiusBinding)
                 .textFieldStyle(.roundedBorder)
+                .focused($isCornerRadiusFocused)
+                .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+                    isCornerRadiusFocused = false
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+                    isCornerRadiusFocused = false
+                }
         }
     }
 }

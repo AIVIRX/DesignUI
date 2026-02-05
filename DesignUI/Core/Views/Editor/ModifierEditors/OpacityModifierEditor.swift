@@ -115,18 +115,12 @@ struct OpacityModifierEditor: View {
         var updatedModifier = modifier
         updatedModifier.properties["opacity"] = opacityValue
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-        }
     }
     
     /// Continuous save during slider drag - no undo state save
     private func saveOpacityContinuous() {
         var updatedModifier = modifier
         updatedModifier.properties["opacity"] = opacityValue
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }

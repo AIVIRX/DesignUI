@@ -13,6 +13,7 @@ struct OverlayModifierEditor: View {
     @ObservedObject var component: UIComponent
     @State private var overlayType: String = "color"
     @State private var showComponentLibrary = false
+    @FocusState private var isOverlayTextFocused: Bool
     
     private var color: Binding<Color> {
         Binding(
@@ -67,6 +68,13 @@ struct OverlayModifierEditor: View {
                     
                     TextField("Overlay", text: overlayText)
                         .textFieldStyle(.roundedBorder)
+                        .focused($isOverlayTextFocused)
+                        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+                            isOverlayTextFocused = false
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+                            isOverlayTextFocused = false
+                        }
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {

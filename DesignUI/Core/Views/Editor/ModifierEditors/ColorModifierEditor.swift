@@ -55,19 +55,12 @@ struct ColorModifierEditor: View {
         // Save in "colorname:opacity" format
         updatedModifier.properties["color"] = "\(selectedColorName):\(opacityValue)"
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     private func saveColorContinuous() {
         var updatedModifier = modifier
         // Save in "colorname:opacity" format
         updatedModifier.properties["color"] = "\(selectedColorName):\(opacityValue)"
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }
@@ -347,6 +340,14 @@ struct UniversalColorPickerView: View {
             updateHexFromSelection()
         }
         .onChange(of: selectedColorName) { _, _ in
+            updateHexFromSelection()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+            isHexFocused = false
+            updateHexFromSelection()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+            isHexFocused = false
             updateHexFromSelection()
         }
     }

@@ -7,6 +7,24 @@
 
 import SwiftUI
 
+// MARK: - Canvas Render Scale Environment Key
+/// Used to pass the current stable zoom level to child views for sharp text rendering
+struct CanvasRenderScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1.0
+}
+
+extension EnvironmentValues {
+    var canvasRenderScale: CGFloat {
+        get { self[CanvasRenderScaleKey.self] }
+        set { self[CanvasRenderScaleKey.self] = newValue }
+    }
+}
+
+// Stable identifier that also refreshes when undo replaces instances
+private func componentViewId(_ component: UIComponent) -> String {
+    return "\(component.id)-\(ObjectIdentifier(component))-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))"
+}
+
 // MARK: - Canvas View
 struct CanvasView: View {
     @ObservedObject var canvasManager: CanvasManager
@@ -32,6 +50,11 @@ struct CanvasView: View {
     @State private var localZoomLevel: CGFloat = 1.0
     // Debounce timer for syncing back to manager
     @State private var zoomSyncTask: Task<Void, Never>?
+    
+    // Stable zoom level for sharp rendering
+    // Content is rendered at this scale; scaleEffect handles the delta
+    @State private var stableZoomLevel: CGFloat = 1.0
+    @State private var isActivelyZooming: Bool = false
     
     // Force redraw on zoom end for sharp text
     @State private var zoomGeneration: Int = 0
@@ -73,16 +96,30 @@ struct CanvasView: View {
     }
     
     private func canvasContent(in geometry: GeometryProxy) -> some View {
-        ZStack {
+        // Calculate zoom values
+        let effectiveZoom = localZoomLevel * magnifyScale
+        let isActiveGesture = magnifyScale != 1.0
+        
+        return ZStack {
             canvasBackground
             
-            devicePreview(geometry: geometry)                
-                .scaleEffect(localZoomLevel * magnifyScale)
+            // When zooming is complete (magnifyScale == 1.0), we want sharp rendering
+            // The stableZoomLevel tracks the last completed zoom for reference
+            devicePreview(geometry: geometry)
+                .environment(\.canvasRenderScale, stableZoomLevel)
+                .scaleEffect(effectiveZoom)
                 .offset(
                     x: currentOffset.width + dragOffset.width,
                     y: currentOffset.height + dragOffset.height
                 )
-                .id("zoom-\(zoomGeneration)")
+                // Force view recreation when zoom completes for sharp rendering
+                .id("canvas-\(zoomGeneration)")
+                // Apply transaction to disable animation caching when stable
+                .transaction { transaction in
+                    if !isActiveGesture {
+                        transaction.disablesAnimations = true
+                    }
+                }
         }
     }
     
@@ -103,6 +140,8 @@ struct CanvasView: View {
                     localZoomLevel = min(max(newZoom, 0.1), 5.0)
                     baseZoomLevel = localZoomLevel
                     canvasManager.zoomLevel = localZoomLevel
+                    // Update stable zoom to trigger sharp re-render
+                    stableZoomLevel = localZoomLevel
                     zoomGeneration += 1
                 }
         )
@@ -123,12 +162,15 @@ struct CanvasView: View {
         localZoomLevel = newZoom
         baseZoomLevel = newZoom
         
+        // Debounce the sharp re-render until scrolling stops
         zoomSyncTask?.cancel()
         zoomSyncTask = Task {
-            try? await Task.sleep(nanoseconds: 500_000_000)
+            try? await Task.sleep(nanoseconds: 150_000_000) // 150ms debounce for sharp render
             if !Task.isCancelled {
                 await MainActor.run {
                     canvasManager.zoomLevel = localZoomLevel
+                    // Update stable zoom to trigger sharp re-render
+                    stableZoomLevel = localZoomLevel
                     zoomGeneration += 1
                 }
             }
@@ -138,10 +180,12 @@ struct CanvasView: View {
     private func initializeZoom(geometry: GeometryProxy) {
         localZoomLevel = canvasManager.zoomLevel
         baseZoomLevel = canvasManager.zoomLevel
+        stableZoomLevel = canvasManager.zoomLevel
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
             localZoomLevel = canvasManager.zoomLevel
             baseZoomLevel = canvasManager.zoomLevel
+            stableZoomLevel = canvasManager.zoomLevel
         }
     }
 
@@ -150,6 +194,7 @@ struct CanvasView: View {
         if abs(localZoomLevel - newZoom) > 0.001 {
             localZoomLevel = newZoom
             baseZoomLevel = newZoom
+            stableZoomLevel = newZoom
         }
     }
 
@@ -252,72 +297,93 @@ struct CanvasView: View {
     
     private func devicePreview(geometry: GeometryProxy) -> some View {
         ZStack {
+            // Check if this is a content-adaptive (noSize) preset
+            let isContentAdaptive = selectedDevice.isContentAdaptive
+            
             // Centered device frame
             let deviceSize = selectedDevice.size
             let isWidget = selectedDevice.category == .widget
-            // Corner radius: ~22pt for widgets, ~40-55pt for modern iPhones, 0 for Mac/older iPhones
+            // Corner radius: ~22pt for widgets, ~40-55pt for modern iPhones, 0 for Mac/older iPhones, 12pt for noSize
             let cornerRadius: CGFloat = {
+                if isContentAdaptive { return 12 } // Subtle rounded corners for no-size mode
                 if isWidget { return 22 }
                 if selectedDevice.category == .iphone && !selectedDevice.rawValue.contains("SE") { return 48 } // Modern iPhones
                 if selectedDevice.category == .ipad && !selectedDevice.rawValue.contains("Air") { return 18 } // iPads
                  return 0
             }()
             
+            let deviceBackgroundColor: Color = {
+                if colorScheme == .light {
+                    return Color.white // Light device background
+                } else {
+                    return Color.black // Dark device background
+                }
+            }()
+            
             VStack(spacing: 8) {
-                // Screen area
-                ZStack {
-                    let deviceBackgroundColor: Color = {
-                        if colorScheme == .light {
-                            return Color.white // Light device background
-                        } else {
-                            return Color.black // Dark device background
+                // Screen area - different structure for content-adaptive vs fixed size
+                if isContentAdaptive {
+                    // Content-adaptive mode: just show content, no visible canvas
+                    ContentAdaptiveComponentsView(
+                        components: canvasManager.components,
+                        selectedComponent: $selectedComponent,
+                        selectedDevice: selectedDevice,
+                        colorScheme: colorScheme,
+                        canvasManager: canvasManager
+                    )
+                    // Force full rebind after undo/redo to avoid stale component instances
+                    .id("content-adaptive-\(canvasManager.undoStackVersion)")
+                    .colorScheme(colorScheme ?? .light)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedDevice)
+                } else {
+                    // Fixed device size mode
+                    ZStack {
+                        Rectangle()
+                            .fill(deviceBackgroundColor)
+                            .overlay(Color.black.opacity(0.01))
+                            .animation(.easeInOut(duration: 0.3), value: colorScheme)
+                        
+                        GeometryReader { screenGeometry in
+                            ComponentsContainerView(
+                                components: canvasManager.components,
+                                selectedComponent: $selectedComponent,
+                                selectedDevice: selectedDevice,
+                                colorScheme: colorScheme,
+                                statusBarComponent: canvasManager.statusBarComponent,
+                                statusBarHasBackground: statusBarHasBackground,
+                                canvasManager: canvasManager,
+                                screenGeometry: screenGeometry
+                            )
+                            // Force full rebind after undo/redo to avoid stale component instances
+                            .id("components-\(canvasManager.undoStackVersion)")
                         }
-                    }()
-                    
-                    Rectangle()
-                        .fill(deviceBackgroundColor)
-                        .overlay(Color.black.opacity(0.01))
-                        .animation(.easeInOut(duration: 0.3), value: colorScheme)
-                    
-                    // Components inside screen - constrained to device bounds
-                    GeometryReader { screenGeometry in
-                        ComponentsContainerView(
-                            components: canvasManager.components,
-                            selectedComponent: $selectedComponent,
-                            selectedDevice: selectedDevice,
-                            colorScheme: colorScheme,
-                            statusBarComponent: canvasManager.statusBarComponent,
-                            statusBarHasBackground: statusBarHasBackground,
-                            canvasManager: canvasManager,
-                            screenGeometry: screenGeometry
-                        )
+                        .frame(width: deviceSize.width, height: deviceSize.height)
                     }
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                    .overlay(alignment: .top) {
+                        // Only show status bar if it exists AND it's not a widget
+                        if let statusBarComponent = canvasManager.statusBarComponent, !isWidget {
+                            StatusBarContainerView(
+                                statusBarComponent: statusBarComponent,
+                                deviceSize: deviceSize,
+                                isSelected: false,
+                                colorScheme: colorScheme,
+                                statusBarHasBackground: statusBarHasBackground,
+                                onSelect: { 
+                                    canvasManager.selectComponent(statusBarComponent)
+                                }
+                            )
+                        }
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
                     .frame(width: deviceSize.width, height: deviceSize.height)
+                    .background(Color.clear)
+                    .colorScheme(colorScheme ?? .light)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedDevice)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-                .overlay(alignment: .top) {
-                    // Only show status bar if it exists AND it's not a widget
-                    if let statusBarComponent = canvasManager.statusBarComponent, !isWidget {
-                        StatusBarContainerView(
-                            statusBarComponent: statusBarComponent,
-                            deviceSize: deviceSize,
-                            isSelected: false,
-                            colorScheme: colorScheme,
-                            statusBarHasBackground: statusBarHasBackground,
-                            onSelect: { 
-                                canvasManager.selectComponent(statusBarComponent)
-                            }
-                        )
-                    }
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                )
-                .frame(width: deviceSize.width, height: deviceSize.height)
-                .background(Color.clear) // Placeholder/Clear background
-                .colorScheme(colorScheme ?? .light)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedDevice)
             }
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }
@@ -334,351 +400,5 @@ struct CanvasView: View {
             }
         }
         return nil
-    }
-}
-
-// MARK: - Components Container View
-// Separate view to observe the status bar component's isVisible property for padding
-struct ComponentsContainerView: View {
-
-    let components: [UIComponent]
-    @Binding var selectedComponent: UIComponent?
-    let selectedDevice: DevicePreset
-    let colorScheme: ColorScheme?
-    let statusBarComponent: UIComponent?
-    let statusBarHasBackground: Bool
-    let canvasManager: CanvasManager
-    let screenGeometry: GeometryProxy
-    
-    var body: some View {
-        Group {
-            if let statusBarComponent = statusBarComponent {
-                ComponentsContainerWithStatusBar(
-                    components: components,
-                    selectedComponent: $selectedComponent,
-                    selectedDevice: selectedDevice,
-                    colorScheme: colorScheme,
-                    statusBarComponent: statusBarComponent,
-                    statusBarHasBackground: statusBarHasBackground,
-                    screenGeometry: screenGeometry,
-                    canvasManager: canvasManager
-                )
-            } else {
-                ComponentsContainerWithoutStatusBar(
-                    components: components,
-                    selectedComponent: $selectedComponent,
-                    selectedDevice: selectedDevice,
-                    colorScheme: colorScheme,
-                    screenGeometry: screenGeometry,
-                    canvasManager: canvasManager
-                )
-            }
-        }
-    }
-    
-    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
-        for component in components {
-            if component.id == componentId {
-                return component
-            }
-            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
-                return found
-            }
-        }
-        return nil
-    }
-}
-
-// MARK: - Components Container With Status Bar
-// Observes status bar component for visibility changes
-struct ComponentsContainerWithStatusBar: View {
-    let components: [UIComponent]
-    @Binding var selectedComponent: UIComponent?
-    let selectedDevice: DevicePreset
-    let colorScheme: ColorScheme?
-    @ObservedObject var statusBarComponent: UIComponent
-    let statusBarHasBackground: Bool
-    let screenGeometry: GeometryProxy
-    let canvasManager: CanvasManager
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            // Top padding (Safe Area)
-            if let topSafeArea = statusBarComponent.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool, topSafeArea {
-                Spacer()
-                    .frame(height: 50) // Top padding for status bar
-            }
-            
-            ForEach(components, id: \.id) { component in
-                ComponentView(
-                    component: component,
-                    onSelect: { additive in
-                        canvasManager.selectComponent(component, additive: additive)
-                    },
-                    selectedDevice: selectedDevice,
-                    colorScheme: colorScheme,
-                    selectedComponentIds: canvasManager.selectedComponentIds,
-                    onSelectChild: { childComponent, additive in
-                        // Find the component in the hierarchy and select it
-                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
-                            canvasManager.selectComponent(foundComponent, additive: additive)
-                        }
-                    },
-                    canvasManager: canvasManager
-                )
-                .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .scale(scale: 0.95)).combined(with: .move(edge: .top)),
-                    removal: .opacity.combined(with: .scale(scale: 0.95))
-                ))
-                .onAppear {
-                    // Force a refresh after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    }
-                }
-            }
-        }
-        .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
-        .clipped() // Prevent content from expanding beyond the screen bounds
-        .contentShape(Rectangle())
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarComponent.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool)
-        .onTapGesture {
-            // Deselect when clicking empty space
-            canvasManager.deselectAll()
-            // Dismiss keyboard/unfocus text fields
-            #if os(iOS)
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            // On iPhone, minimize the sheet
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                NotificationCenter.default.post(name: .minimizeSheet, object: nil)
-            }
-            #elseif os(macOS)
-            NSApp.keyWindow?.makeFirstResponder(nil)
-            #endif
-        }
-    }
-    
-    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
-        for component in components {
-            if component.id == componentId {
-                return component
-            }
-            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
-                return found
-            }
-        }
-        return nil
-    }
-}
-
-struct ComponentsContainerWithoutStatusBar: View {
-    let components: [UIComponent]
-    @Binding var selectedComponent: UIComponent?
-    let selectedDevice: DevicePreset 
-    let colorScheme: ColorScheme?
-    let screenGeometry: GeometryProxy
-    let canvasManager: CanvasManager
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            ForEach(components, id: \.id) { component in
-                ComponentView(
-                    component: component,
-                    onSelect: { additive in
-                        canvasManager.selectComponent(component, additive: additive)
-                    },
-                    selectedDevice: selectedDevice,
-                    colorScheme: colorScheme,
-                    selectedComponentIds: canvasManager.selectedComponentIds,
-                    onSelectChild: { childComponent, additive in
-                        // Find the component in the hierarchy and select it
-                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
-                            canvasManager.selectComponent(foundComponent, additive: additive)
-                        }
-                    },
-                    canvasManager: canvasManager
-                )
-                .id("\(component.id)-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))")
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .scale(scale: 0.95)).combined(with: .move(edge: .top)),
-                    removal: .opacity.combined(with: .scale(scale: 0.95))
-                ))
-                .onAppear {
-                    // Force a refresh after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    }
-                }
-            }
-        }
-        .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
-        .clipped() // Prevent content from expanding beyond the screen bounds
-        .contentShape(Rectangle())
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
-        .onTapGesture {
-            // Deselect when clicking empty space
-            canvasManager.deselectAll()
-            // Dismiss keyboard/unfocus text fields
-            #if os(iOS)
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            // On iPhone, minimize the sheet
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                NotificationCenter.default.post(name: .minimizeSheet, object: nil)
-            }
-            #elseif os(macOS)
-            NSApp.keyWindow?.makeFirstResponder(nil)
-            #endif
-        }
-    }
-    
-    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
-        for component in components {
-            if component.id == componentId {
-                return component
-            }
-            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
-                return found
-            }
-        }
-        return nil
-    }
-}
-
-// Separate view to observe the status bar component's isVisible property
-struct StatusBarContainerView: View {
-    @ObservedObject var statusBarComponent: UIComponent
-    let deviceSize: CGSize
-    let isSelected: Bool
-    let colorScheme: ColorScheme?
-    let statusBarHasBackground: Bool
-    let onSelect: () -> Void
-    var body: some View {
-        // Show status bar overlay if enabled
-        if let showStatusBar = statusBarComponent.properties.first(where: { $0.key == "showStatusBar" })?.value as? Bool, showStatusBar {
-            StatusBarView(
-                deviceSize: deviceSize,
-                isSelected: isSelected,
-                colorScheme: colorScheme,
-                onSelect: onSelect
-            )
-            .background(.clear)
-            .allowsHitTesting(false)
-        }
-    }
-}
-
-// MARK: - Scroll Handler for macOS
-#if os(macOS)
-/// NSViewRepresentable for trackpad scroll (pan) and Cmd+scroll (zoom)
-struct CanvasScrollHandler: NSViewRepresentable {
-    let isEnabled: Bool
-    var shouldPan: (() -> Bool)? = nil
-    let onPan: (CGFloat, CGFloat) -> Void
-    let onZoom: (CGFloat, CGPoint) -> Void
-    
-    func makeNSView(context: Context) -> CanvasScrollNSView {
-        let view = CanvasScrollNSView()
-        view.onPan = onPan
-        view.onZoom = onZoom
-        view.shouldPan = shouldPan
-        view.isEnabled = isEnabled
-        return view
-    }
-    
-    func updateNSView(_ nsView: CanvasScrollNSView, context: Context) {
-        nsView.onPan = onPan
-        nsView.onZoom = onZoom
-        nsView.shouldPan = shouldPan
-        nsView.isEnabled = isEnabled
-    }
-}
-
-/// NSView that captures scroll wheel and magnify events when enabled
-class CanvasScrollNSView: NSView {
-    var onPan: ((CGFloat, CGFloat) -> Void)?
-    var onZoom: ((CGFloat, CGPoint) -> Void)?
-    var shouldPan: (() -> Bool)?
-    var isEnabled: Bool = false
-    
-    private var scrollMonitor: Any?
-    private var magnifyMonitor: Any?
-    
-    override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        setupEventMonitors()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupEventMonitors()
-    }
-    
-    override var isFlipped: Bool {
-        return true
-    }
-
-    private func setupEventMonitors() {
-        // Monitor scroll wheel events
-        scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
-            guard let self = self, self.isEnabled else { return event }
-            
-            if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.option) {
-                // Zoom with Cmd/Option + scroll
-                let delta = event.scrollingDeltaY * 0.01
-                let locationInView = self.convert(event.locationInWindow, from: nil)
-                self.onZoom?(delta, locationInView)
-                return nil // Consume event
-            } else {
-                // Check if we should pan
-                if let shouldPan = self.shouldPan {
-                    if !shouldPan() {
-                        return event // Don't consume, let view handle it (e.g. ScrollView)
-                    }
-                }
-                
-                // Pan with normal two-finger scroll
-                self.onPan?(event.scrollingDeltaX, event.scrollingDeltaY)
-                return nil // Consume event
-            }
-        }
-        
-        // Monitor pinch/magnify gestures
-        magnifyMonitor = NSEvent.addLocalMonitorForEvents(matching: .magnify) { [weak self] event in
-            guard let self = self, self.isEnabled else { return event }
-            
-            let locationInView = self.convert(event.locationInWindow, from: nil)
-            self.onZoom?(event.magnification, locationInView)
-            return nil // Consume event
-        }
-    }
-    
-    deinit {
-        if let monitor = scrollMonitor {
-            NSEvent.removeMonitor(monitor)
-        }
-        if let monitor = magnifyMonitor {
-            NSEvent.removeMonitor(monitor)
-        }
-    }
-}
-
-struct ScrollableHoverPreferenceKey: PreferenceKey {
-    static var defaultValue: Bool = false
-    static func reduce(value: inout Bool, nextValue: () -> Bool) {
-        value = value || nextValue()
-    }
-}
-#endif
-
-// Helper modifier to conditionally apply drawingGroup
-struct ConditionalDrawingGroup: ViewModifier {
-    var shouldRasterize: Bool
-    
-    func body(content: Content) -> some View {
-        if shouldRasterize {
-            content.drawingGroup()
-        } else {
-            content
-        }
     }
 }

@@ -530,7 +530,7 @@ private func indexInParent(of targetId: UUID, in roots: [UIComponent]) -> Int {
 private func canAcceptChildren(_ component: UIComponent) -> Bool {
     // Check if component type can accept children
     switch component.type {
-    case .scrollView, .vstack, .hstack, .zstack:
+    case .scrollView, .vstack, .hstack, .zstack, .button:
         return true
     default:
         break
@@ -1366,7 +1366,7 @@ private struct BottomDropDelegate: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         guard let sourceId = draggingId else { return false }
         
-        print("📥 Dropping to bottom (root append)")
+        debugLog("📥 Dropping to bottom (root append)")
         // Move to the end of the root list
         canvasManager.moveComponentInHierarchy(
             componentId: sourceId,

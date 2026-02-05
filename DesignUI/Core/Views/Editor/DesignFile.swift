@@ -118,9 +118,11 @@ class DesignFile: ObservableObject, Identifiable {
         return (duplicated, newIndex)
     }
     
-    /// Delete a page at index (cannot delete the last page)
+    /// Delete a page at index (cannot delete the first page or the last page)
     func deletePage(at index: Int) -> Bool {
-        guard pages.count > 1, index >= 0 && index < pages.count else { return false }
+        // Cannot delete first page (index 0) - it's the home page
+        // Cannot delete if it's the only page
+        guard pages.count > 1, index > 0, index < pages.count else { return false }
         pages.remove(at: index)
         // Adjust current index if needed
         if currentPageIndex >= pages.count {
@@ -175,7 +177,7 @@ class DesignFile: ObservableObject, Identifiable {
         // Perform deletion on the save queue to ensure it runs AFTER any pending saves
         DesignFile.saveQueue.async {
             do {
-                print("🗑️ [Background] Deleting file: \(name)")
+                debugLog("🗑️ [Background] Deleting file: \(name)")
                 
                 // Use file coordination for iCloud files
                 let isiCloudFile = fileURL.path.contains("Mobile Documents") || fileURL.path.contains("iCloud~")
@@ -189,27 +191,27 @@ class DesignFile: ObservableObject, Identifiable {
                          do {
                              if FileManager.default.fileExists(atPath: writingURL.path) {
                                  try FileManager.default.removeItem(at: writingURL)
-                                 print("✅ [Background] Deleted from iCloud: \(name)")
+                                 debugLog("✅ [Background] Deleted from iCloud: \(name)")
                              } else {
-                                 print("⚠️ [Background] File already gone from iCloud: \(name)")
+                                 debugLog("⚠️ [Background] File already gone from iCloud: \(name)")
                              }
                          } catch {
-                             print("❌ [Background] Failed to delete iCloud file: \(error)")
+                             debugLog("❌ [Background] Failed to delete iCloud file: \(error)")
                              deleteError = error
                          }
                      }
                      
-                     if let error = coordinationError { print("❌ [Background] Coordination error during delete: \(error)") }
-                     if let error = deleteError { print("❌ [Background] Delete error: \(error)") }
+                     if let error = coordinationError { debugLog("❌ [Background] Coordination error during delete: \(error)") }
+                     if let error = deleteError { debugLog("❌ [Background] Delete error: \(error)") }
                 } else {
                     // Local deletion
                     if FileManager.default.fileExists(atPath: fileURL.path) {
                         try FileManager.default.removeItem(at: fileURL)
-                        print("✅ [Background] Deleted locally: \(name)")
+                        debugLog("✅ [Background] Deleted locally: \(name)")
                     }
                 }
             } catch {
-                print("❌ [Background] Failed to delete file: \(error)")
+                debugLog("❌ [Background] Failed to delete file: \(error)")
             }
         }
     }
@@ -240,7 +242,7 @@ class DesignFile: ObservableObject, Identifiable {
         
         DispatchQueue.main.async {
             self.isAutoSaving = true
-            print("💾 Auto-saving design: \(self.name)")
+            debugLog("💾 Auto-saving design: \(self.name)")
             
             // Save the design
             self.save()
@@ -257,7 +259,7 @@ class DesignFile: ObservableObject, Identifiable {
     func save() {
         // Don't save if marked for deletion
         if isDeleted {
-            print("🛑 Skipping save for deleted file: \(name)")
+            debugLog("🛑 Skipping save for deleted file: \(name)")
             return
         }
         
@@ -265,7 +267,7 @@ class DesignFile: ObservableObject, Identifiable {
         self.lastModified = Date()
         
         do {
-            print("💾 Saving design to \(fileURL.path)")
+            debugLog("💾 Saving design to \(fileURL.path)")
             
             // Encode data on calling thread (usually Main) to ensure thread safety of accessing @Published properties [Snapshotting]
             let encoder = JSONEncoder()
@@ -301,12 +303,12 @@ class DesignFile: ObservableObject, Identifiable {
                         coordinator.coordinate(writingItemAt: fileURL, options: .forReplacing, error: &coordinationError) { (writingURL) in
                             do {
                                 try data.write(to: writingURL, options: .atomic)
-                                print("✅ [Background] Saved to iCloud: \(name)")
+                                debugLog("✅ [Background] Saved to iCloud: \(name)")
                                 
                                 // Mark for iCloud upload
                                 try? (writingURL as NSURL).setResourceValue(true, forKey: .isUbiquitousItemKey)
                             } catch {
-                                print("❌ [Background] Failed to write iCloud file: \(error)")
+                                debugLog("❌ [Background] Failed to write iCloud file: \(error)")
                                 writeError = error
                             }
                         }
@@ -317,19 +319,19 @@ class DesignFile: ObservableObject, Identifiable {
                     } else {
                         // Local file write
                         try data.write(to: fileURL, options: .atomic)
-                        print("✅ [Background] Saved locally: \(name)")
+                        debugLog("✅ [Background] Saved locally: \(name)")
                     }
                     
                     // Hide extension (safely ignore error)
                     try? FileManager.default.setAttributes([.extensionHidden: true], ofItemAtPath: fileURL.path)
                     
                 } catch {
-                    print("❌ [Background] Failed to save design file: \(error)")
+                    debugLog("❌ [Background] Failed to save design file: \(error)")
                 }
             }
             
         } catch {
-            print("❌ Failed to encode design file: \(error)")
+            debugLog("❌ Failed to encode design file: \(error)")
         }
     }
     
@@ -341,7 +343,7 @@ class DesignFile: ObservableObject, Identifiable {
             decoder.dateDecodingStrategy = .iso8601
             let designData = try decoder.decode(DesignFileData.self, from: data)
             
-            print("📂 Loading design: \(designData.name)")
+            debugLog("📂 Loading design: \(designData.name)")
             
             // Handle migration: use pages if available, otherwise create from legacy components
             let designFile: DesignFile
@@ -369,18 +371,18 @@ class DesignFile: ObservableObject, Identifiable {
             return designFile
         } catch {
             // Catch decoding errors specific to data corruption or schema mismatch
-            print("❌ Failed to decode design file '\(url.lastPathComponent)': \(error)")
+            debugLog("❌ Failed to decode design file '\(url.lastPathComponent)': \(error)")
             
             // Log file attributes for debugging
             if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) {
-                print("📄 File size: \(attributes[.size] ?? 0) bytes")
-                print("📄 Permissions: \(attributes[.posixPermissions] ?? "unknown")")
+                debugLog("📄 File size: \(attributes[.size] ?? 0) bytes")
+                debugLog("📄 Permissions: \(attributes[.posixPermissions] ?? "unknown")")
             }
 
             // Check if file actually exists before creating fallback
             // If file doesn't exist, it was likely deleted, so don't resurrect it
             if !FileManager.default.fileExists(atPath: url.path) {
-                print("🗑️ File does not exist (likely deleted), skipping recovery: \(url.path)")
+                debugLog("🗑️ File does not exist (likely deleted), skipping recovery: \(url.path)")
                 return nil
             }
             
@@ -388,7 +390,7 @@ class DesignFile: ObservableObject, Identifiable {
             // Creating a fallback for a non-empty file risks data loss if the user overwrites it
             let fileSize = (try? Data(contentsOf: url).count) ?? 0
             if fileSize > 0 {
-                print("⚠️ File is not empty (\(fileSize) bytes) but failed to decode. Skipping fallback to prevent data loss.")
+                debugLog("⚠️ File is not empty (\(fileSize) bytes) but failed to decode. Skipping fallback to prevent data loss.")
                 return nil
             }
             
@@ -524,8 +526,8 @@ class DesignManager: ObservableObject {
         // Use the specific container identifier for better reliability
         let containerIdentifier = "iCloud.com.Maicol.Dockui"
         
-        print("🔍 Checking iCloud availability...")
-        print("🔍 Container identifier: \(containerIdentifier)")
+        debugLog("🔍 Checking iCloud availability...")
+        debugLog("🔍 Container identifier: \(containerIdentifier)")
         
         let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier)?
             .appendingPathComponent("Documents/DockUI")
@@ -538,24 +540,24 @@ class DesignManager: ObservableObject {
             do {
                 try FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
             } catch {
-                print("⚠️ Failed to create iCloud directory: \(error)")
+                debugLog("⚠️ Failed to create iCloud directory: \(error)")
             }
             
             finalDesignsDirectory = ubiquityURL
             finalStorageStatus = "☁️ iCloud Drive"
-            print("☁️ Using iCloud container: \(ubiquityURL.path)")
+            debugLog("☁️ Using iCloud container: \(ubiquityURL.path)")
         } else {
-            print("⚠️ iCloud container not available")
-            print("⚠️ This could be because:")
-            print("   - User is not signed in to iCloud")
-            print("   - iCloud Drive is not enabled")
-            print("   - App is not properly provisioned for iCloud")
-            print("   - Running in simulator without iCloud configured")
+            debugLog("⚠️ iCloud container not available")
+            debugLog("⚠️ This could be because:")
+            debugLog("   - User is not signed in to iCloud")
+            debugLog("   - iCloud Drive is not enabled")
+            debugLog("   - App is not properly provisioned for iCloud")
+            debugLog("   - Running in simulator without iCloud configured")
             
             let localDocuments = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
             finalDesignsDirectory = localDocuments.appendingPathComponent("DockUI")
             finalStorageStatus = "📁 Local Only"
-            print("📁 Falling back to local Documents: \(finalDesignsDirectory.path)")
+            debugLog("📁 Falling back to local Documents: \(finalDesignsDirectory.path)")
         }
         
         // Initialize all stored properties
@@ -563,7 +565,7 @@ class DesignManager: ObservableObject {
         self.storageStatus = finalStorageStatus
         self.documentsDirectory = finalDesignsDirectory.deletingLastPathComponent()
         
-        print("📁 Designs Directory: \(designsDirectory.path)")
+        debugLog("📁 Designs Directory: \(designsDirectory.path)")
         
         createDesignsDirectoryIfNeeded()
         migrateFromUserDocuments()
@@ -582,7 +584,7 @@ class DesignManager: ObservableObject {
     // MARK: - iCloud Retry
     private func retryICloudConnection() {
         #if os(iOS)
-        print("☁️ Scheduling iCloud retry for iOS...")
+        debugLog("☁️ Scheduling iCloud retry for iOS...")
         
         // Retry iCloud connection after a delay (iCloud may not be ready immediately on iOS)
         DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 2.0) {
@@ -596,13 +598,13 @@ class DesignManager: ObservableObject {
                 do {
                     try FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
                 } catch {
-                    print("⚠️ Failed to create iCloud directory: \(error)")
+                    debugLog("⚠️ Failed to create iCloud directory: \(error)")
                 }
                 
                 DispatchQueue.main.async {
                     self.designsDirectory = ubiquityURL
                     self.storageStatus = "☁️ iCloud Drive"
-                    print("☁️ Switched to iCloud: \(ubiquityURL.path)")
+                    debugLog("☁️ Switched to iCloud: \(ubiquityURL.path)")
                     
                     // Reload design files from iCloud
                     self.loadDesignFiles()
@@ -611,7 +613,7 @@ class DesignManager: ObservableObject {
                     self.startICloudQuery()
                 }
             } else {
-                print("⚠️ iCloud still not available after retry")
+                debugLog("⚠️ iCloud still not available after retry")
                 
                 // Try one more time after additional delay
                 DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 3.0) {
@@ -621,7 +623,7 @@ class DesignManager: ObservableObject {
                         do {
                             try FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
                         } catch {
-                            print("⚠️ Failed to create iCloud directory: \(error)")
+                            debugLog("⚠️ Failed to create iCloud directory: \(error)")
                         }
                         
                         DispatchQueue.main.async {
@@ -631,7 +633,7 @@ class DesignManager: ObservableObject {
                             self.startICloudQuery()
                         }
                     } else {
-                        print("⚠️ iCloud not available after multiple retries - staying local")
+                        debugLog("⚠️ iCloud not available after multiple retries - staying local")
                     }
                 }
             }
@@ -643,7 +645,7 @@ class DesignManager: ObservableObject {
         // Directory is already created in init, but ensure it exists
         if !FileManager.default.fileExists(atPath: designsDirectory.path) {
             try? FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
-            print("📁 Created designs directory: \(designsDirectory.path)")
+            debugLog("📁 Created designs directory: \(designsDirectory.path)")
         }
     }
     
@@ -718,13 +720,13 @@ class DesignManager: ObservableObject {
                     try FileManager.default.startDownloadingUbiquitousItem(at: fileURL)
                     foundNewFiles = true
                 } catch {
-                    print("❌ Failed to start download for \(fileName): \(error)")
+                    debugLog("❌ Failed to start download for \(fileName): \(error)")
                 }
             } else {
                 // File is downloaded, check if we already have it in our list
                 let alreadyLoaded = designFiles.contains { $0.fileURL == fileURL }
                 if !alreadyLoaded {
-                    print("☁️ Loading newly discovered iCloud file: \(fileName)")
+                    debugLog("☁️ Loading newly discovered iCloud file: \(fileName)")
                     if let designFile = DesignFile.load(from: fileURL) {
                         DispatchQueue.main.async {
                             // Check again on main thread to avoid duplicates
@@ -756,7 +758,7 @@ class DesignManager: ObservableObject {
         do {
             // Ensure directory exists before trying to read from it
             if !FileManager.default.fileExists(atPath: designsDirectory.path) {
-                print("📁 Directory doesn't exist, creating it...")
+                debugLog("📁 Directory doesn't exist, creating it...")
                 try FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
             }
             
@@ -784,11 +786,11 @@ class DesignManager: ObservableObject {
             
             // Print each design file name
             for design in designFiles {
-                print("  - \(design.name) (modified: \(design.lastModified))")
+                debugLog("  - \(design.name) (modified: \(design.lastModified))")
             }
             
         } catch {
-            print("❌ Failed to load design files: \(error)")
+            debugLog("❌ Failed to load design files: \(error)")
             // Try to create the directory if it doesn't exist
             createDesignsDirectoryIfNeeded()
         }
@@ -864,13 +866,13 @@ class DesignManager: ObservableObject {
                     DispatchQueue.main.async {
                         guard let self = self else { return }
                         self.designFiles = sortedFiles
-                        print("📁 [Async] Loaded \(sortedFiles.count) design files total")
+                        debugLog("📁 [Async] Loaded \(sortedFiles.count) design files total")
                         progressHandler(totalFiles, totalFiles)
                         continuation.resume()
                     }
                     
                 } catch {
-                    print("❌ [Async] Failed to load design files: \(error)")
+                    debugLog("❌ [Async] Failed to load design files: \(error)")
                     
                     // Try to create directory if needed (using local var)
                     try? FileManager.default.createDirectory(at: designsDir, withIntermediateDirectories: true)
@@ -1009,7 +1011,7 @@ class DesignManager: ObservableObject {
     func setDesignsDirectory(_ url: URL) {
         designsDirectory = url
         UserDefaults.standard.set(url.absoluteString, forKey: "designsDirectory")
-        print("📁 Designs directory changed to: \(url.path)")
+        debugLog("📁 Designs directory changed to: \(url.path)")
         
         // Reload design files from new directory
         loadDesignFiles()
@@ -1023,7 +1025,7 @@ class DesignManager: ObservableObject {
     func presentDocumentPicker() {
         // This would present a document picker for importing designs
         // For now, just print a message
-        print("📄 Document picker requested")
+        debugLog("📄 Document picker requested")
     }
     
     func refreshDesignFiles() {
@@ -1040,7 +1042,7 @@ class DesignManager: ObservableObject {
             startICloudQuery()
         }
         
-        print("📊 Loaded \(designFiles.count) design files")
+        debugLog("📊 Loaded \(designFiles.count) design files")
     }
     
     private func checkAndSwitchToICloud() {
@@ -1049,13 +1051,13 @@ class DesignManager: ObservableObject {
         if let ubiquityURL = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier)?
             .appendingPathComponent("Documents/DockUI") {
             
-            print("☁️ iCloud now available! Switching from local storage...")
+            debugLog("☁️ iCloud now available! Switching from local storage...")
             
             // Create directory if needed
             do {
                 try FileManager.default.createDirectory(at: ubiquityURL, withIntermediateDirectories: true)
             } catch {
-                print("⚠️ Failed to create iCloud directory: \(error)")
+                debugLog("⚠️ Failed to create iCloud directory: \(error)")
             }
             
             self.designsDirectory = ubiquityURL
@@ -1094,7 +1096,7 @@ class DesignManager: ObservableObject {
         let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
         let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
         
-        print("📄 Creating unique design file: \(uniqueFileName)")
+        debugLog("📄 Creating unique design file: \(uniqueFileName)")
         return DesignFile(name: displayName, fileURL: fileURL)
     }
     
@@ -1126,13 +1128,13 @@ class DesignManager: ObservableObject {
                     }
                     
                 } else {
-                    print("⚠️ Failed to reload design after rename, but file was moved")
+                    debugLog("⚠️ Failed to reload design after rename, but file was moved")
                 }
             }
             
-            print("✅ Renamed design to: \(displayName)")
+            debugLog("✅ Renamed design to: \(displayName)")
         } catch {
-            print("❌ Failed to rename design: \(error)")
+            debugLog("❌ Failed to rename design: \(error)")
         }
     }
 
@@ -1151,7 +1153,7 @@ class DesignManager: ObservableObject {
         let isInternalFile = standardURL.path.hasPrefix(standardDesignsDir.path)
         
         if isInternalFile {
-            print("📂 Opening existing internal file: \(url.lastPathComponent)")
+            debugLog("📂 Opening existing internal file: \(url.lastPathComponent)")
             
             // It's already our file, just find or load it
             // 1. Check if already loaded in memory
@@ -1173,13 +1175,13 @@ class DesignManager: ObservableObject {
                     }
                 }
             } else {
-                 print("❌ Failed to load existing internal file")
+                 debugLog("❌ Failed to load existing internal file")
                  completion(nil)
             }
             
         } else {
             // It's an external file - IMPORT IT
-            print("📥 Importing external file: \(url.lastPathComponent)")
+            debugLog("📥 Importing external file: \(url.lastPathComponent)")
             
             // 1. Generate unique filename in our container
             let originalName = url.deletingPathExtension().lastPathComponent
@@ -1193,7 +1195,7 @@ class DesignManager: ObservableObject {
                 }
                 
                 try FileManager.default.copyItem(at: url, to: destinationURL)
-                print("✅ Imported design to: \(destinationURL.path)")
+                debugLog("✅ Imported design to: \(destinationURL.path)")
                 
                 // 3. Load the new design
                 if let importedDesign = DesignFile.load(from: destinationURL) {
@@ -1204,13 +1206,13 @@ class DesignManager: ObservableObject {
                         completion(importedDesign)
                     }
                 } else {
-                    print("❌ Failed to load imported design")
+                    debugLog("❌ Failed to load imported design")
                     try? FileManager.default.removeItem(at: destinationURL)
                     completion(nil)
                 }
                 
             } catch {
-                print("❌ Failed to import design: \(error)")
+                debugLog("❌ Failed to import design: \(error)")
                 completion(nil)
             }
         }
@@ -1230,7 +1232,7 @@ class DesignManager: ObservableObject {
                 let designFiles = userFiles.filter { $0.pathExtension == "dockui" }
                 
                 if !designFiles.isEmpty {
-                    print("Found \(designFiles.count) design files in user Documents/DockUI folder")
+                    debugLog("Found \(designFiles.count) design files in user Documents/DockUI folder")
                     
                     // Create the Documents/DockUI directory if it doesn't exist
                     try? FileManager.default.createDirectory(at: designsDirectory, withIntermediateDirectories: true)
@@ -1244,21 +1246,21 @@ class DesignManager: ObservableObject {
                         do {
                             try FileManager.default.copyItem(at: file, to: destination)
                         } catch {
-                            print("❌ Failed to copy \(file.lastPathComponent): \(error)")
+                            debugLog("❌ Failed to copy \(file.lastPathComponent): \(error)")
                         }
                     }
                     
                     // Refresh the design files
                     refreshDesignFiles()
-                    print("Migration completed. Found files in Documents folder.")
+                    debugLog("Migration completed. Found files in Documents folder.")
                 } else {
-                    print("No design files found in user Documents/DockUI folder")
+                    debugLog("No design files found in user Documents/DockUI folder")
                 }
             } else {
-                print("No user Documents/DockUI folder found")
+                debugLog("No user Documents/DockUI folder found")
             }
         } catch {
-            print("Error accessing user Documents folder: \(error)")
+            debugLog("Error accessing user Documents folder: \(error)")
         }
     }
     
@@ -1297,9 +1299,9 @@ class ImageGalleryManager: ObservableObject {
         if !fileManager.fileExists(atPath: imagesDirectory.path) {
             do {
                 try fileManager.createDirectory(at: imagesDirectory, withIntermediateDirectories: true, attributes: nil)
-                print("✅ ImageGalleryManager: Created gallery directory")
+                debugLog("✅ ImageGalleryManager: Created gallery directory")
             } catch {
-                print("❌ ImageGalleryManager: Failed to create gallery directory: \(error)")
+                debugLog("❌ ImageGalleryManager: Failed to create gallery directory: \(error)")
             }
         }
     }
@@ -1309,7 +1311,7 @@ class ImageGalleryManager: ObservableObject {
         
         // Optimize the image data (Resize + Compress)
         guard let optimizedData = ImageGalleryManager.compressAndResizeImage(data: data) else {
-            print("ImageGalleryManager: Failed to optimize image, falling back to original data")
+            debugLog("ImageGalleryManager: Failed to optimize image, falling back to original data")
             return saveRawData(data: data, originalFilename: originalFilename)
         }
         
@@ -1319,10 +1321,10 @@ class ImageGalleryManager: ObservableObject {
         
         do {
             try optimizedData.write(to: fileURL)
-            print("ImageGalleryManager: Saved optimized image")
+            debugLog("ImageGalleryManager: Saved optimized image")
             return filename
         } catch {
-            print("ImageGalleryManager: Failed to save image: \(error)")
+            debugLog("ImageGalleryManager: Failed to save image: \(error)")
             // Fallback to raw if optimized write fails (unlikely, but safe)
             return saveRawData(data: data, originalFilename: originalFilename)
         }
@@ -1423,37 +1425,37 @@ class ImageGalleryManager: ObservableObject {
     
     func loadImage(filename: String) -> PlatformImage? {
         if bundledAssets.contains(filename) {
-            print("🎨 Loading bundled asset: \(filename)")
+            debugLog("🎨 Loading bundled asset: \(filename)")
             
             #if os(macOS)
             if let image = NSImage(named: filename) {
-                print("✅ Successfully loaded bundled asset from default bundle: \(filename)")
+                debugLog("✅ Successfully loaded bundled asset from default bundle: \(filename)")
                 return image
             }
             
             // Fallback: Search all bundles
             for bundle in Bundle.allBundles {
                 if let image = bundle.image(forResource: filename) {
-                    print("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
+                    debugLog("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
                     return image
                 }
             }
             #else
             if let image = UIImage(named: filename) {
-                print("✅ Successfully loaded bundled asset from default bundle: \(filename)")
+                debugLog("✅ Successfully loaded bundled asset from default bundle: \(filename)")
                 return image
             }
             
             // Fallback: Search all bundles
             for bundle in Bundle.allBundles {
                 if let image = UIImage(named: filename, in: bundle, compatibleWith: nil) {
-                    print("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
+                    debugLog("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
                     return image
                 }
             }
             #endif
             
-            print("❌ Failed to load bundled asset: \(filename)")
+            debugLog("❌ Failed to load bundled asset: \(filename)")
             return nil
         }
         
@@ -1512,7 +1514,7 @@ class ImageGalleryManager: ObservableObject {
                     
                     allImages.append(contentsOf: sortedLocalImages.map { $0.lastPathComponent })
                 } catch {
-                    print("❌ ImageGalleryManager: Failed to list images: \(error)")
+                    debugLog("❌ ImageGalleryManager: Failed to list images: \(error)")
                 }
             }
             
@@ -1525,7 +1527,7 @@ class ImageGalleryManager: ObservableObject {
     func deleteImage(filename: String) {
         // Prevent deletion of bundled assets
         if bundledAssets.contains(filename) {
-            print("⚠️ Cannot delete bundled asset: \(filename)")
+            debugLog("⚠️ Cannot delete bundled asset: \(filename)")
             return
         }
         
@@ -1534,7 +1536,7 @@ class ImageGalleryManager: ObservableObject {
         
         if fileManager.fileExists(atPath: fileURL.path) {
             try? fileManager.removeItem(at: fileURL)
-            print("🗑️ ImageGalleryManager: Deleted \(filename)")
+            debugLog("🗑️ ImageGalleryManager: Deleted \(filename)")
         }
     }
 }

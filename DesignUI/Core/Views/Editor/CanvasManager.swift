@@ -8,6 +8,13 @@
 import SwiftUI
 import Combine
 
+@inline(__always)
+func debugLog(_ message: @autoclosure () -> String) {
+    #if DEBUG
+    print(message())
+    #endif
+}
+
 enum LayoutAlignment {
     case left, centerHorizontally, right
     case top, centerVertically, bottom
@@ -209,7 +216,7 @@ class CanvasManager: ObservableObject {
     
     func canAcceptChildren(_ component: UIComponent) -> Bool {
         switch component.type {
-        case .scrollView, .vstack, .hstack, .zstack:
+        case .scrollView, .vstack, .hstack, .zstack, .button:
             return true
         default:
             return false
@@ -217,11 +224,11 @@ class CanvasManager: ObservableObject {
     }
     
     func removeComponent(_ component: UIComponent) {
-        print("🗑️ removeComponent: Removing component \(component.id.uuidString.prefix(8)), current count: \(components.count)")
+        debugLog("🗑️ removeComponent: Removing component \(component.id.uuidString.prefix(8)), current count: \(components.count)")
         
         // Find the actual component in the hierarchy to get its full children tree
         guard let actualComponent = findComponent(by: component.id) else {
-            print("⚠️ removeComponent: Component not found in hierarchy")
+            debugLog("⚠️ removeComponent: Component not found in hierarchy")
             return
         }
         
@@ -231,13 +238,13 @@ class CanvasManager: ObservableObject {
         // Check if this is a modifier-child (mask/background/overlay parent component)
         // If so, we need to also remove the modifier from the parent component
         if let modifierId = actualComponent.modifierId {
-            print("🔗 removeComponent: Component is a modifier child (modifierId: \(modifierId.uuidString.prefix(8)))")
+            debugLog("🔗 removeComponent: Component is a modifier child (modifierId: \(modifierId.uuidString.prefix(8)))")
             
             // Find the parent component that owns this modifier
             if let parent = findParentComponent(of: actualComponent.id) {
                 // Remove the modifier from the parent
                 if let modifierIndex = parent.modifiers.firstIndex(where: { $0.id == modifierId }) {
-                    print("🔗 removeComponent: Removing modifier at index \(modifierIndex) from parent")
+                    debugLog("🔗 removeComponent: Removing modifier at index \(modifierIndex) from parent")
                     parent.modifiers.remove(at: modifierIndex)
                     
                     // Force parent to notify observers and trigger UI refresh
@@ -254,7 +261,7 @@ class CanvasManager: ObservableObject {
         var idsToRemove: Set<UUID> = [actualComponent.id]
         collectDescendantIds(from: actualComponent, into: &idsToRemove)
         
-        print("🗑️ removeComponent: Removing \(idsToRemove.count) components (including \(idsToRemove.count - 1) children)")
+        debugLog("🗑️ removeComponent: Removing \(idsToRemove.count) components (including \(idsToRemove.count - 1) children)")
         
         // Remove from nested children recursively (this handles both top-level and nested components)
         removeComponentsRecursively(ids: idsToRemove, from: &components)
@@ -264,7 +271,7 @@ class CanvasManager: ObservableObject {
             selectedComponent = nil
         }
         
-        print("🗑️ removeComponent: After removal, count: \(components.count)")
+        debugLog("🗑️ removeComponent: After removal, count: \(components.count)")
     }
     
     /// Recursively collect all descendant IDs from a component
@@ -467,6 +474,7 @@ class CanvasManager: ObservableObject {
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
+    
     func updateDesign(with componentsToUpdate: [UIComponent]) {
         saveState(force: true)
         for updated in componentsToUpdate {
@@ -577,6 +585,12 @@ class CanvasManager: ObservableObject {
         for root in components {
             if let found = findComponentRecursively(in: root, id: id) { return found }
         }
+        
+        // Check status bar component
+        if let statusBar = statusBarComponent, statusBar.id == id {
+            return statusBar
+        }
+        
         return nil
     }
 
@@ -781,13 +795,13 @@ class CanvasManager: ObservableObject {
     func copyComponent(_ component: UIComponent) {
         // Store a deep copy of the component (without offset)
         clipboard = createDeepCopyForClipboard(of: component)
-        print("📋 copyComponent: Copied \(component.type.rawValue) to clipboard")
+        debugLog("📋 copyComponent: Copied \(component.type.rawValue) to clipboard")
     }
     
     /// Paste component from clipboard
     func pasteComponent() {
         guard let copiedComponent = clipboard else {
-            print("📋 pasteComponent: Clipboard is empty")
+            debugLog("📋 pasteComponent: Clipboard is empty")
             return
         }
         
@@ -805,7 +819,7 @@ class CanvasManager: ObservableObject {
         components.append(pastedComponent)
         selectedComponent = pastedComponent
         
-        print("📋 pasteComponent: Pasted \(pastedComponent.type.rawValue) from clipboard")
+        debugLog("📋 pasteComponent: Pasted \(pastedComponent.type.rawValue) from clipboard")
     }
     
     /// Cut the selected component (copy + delete)
@@ -816,7 +830,7 @@ class CanvasManager: ObservableObject {
         // Then remove the component
         removeComponent(component)
         
-        print("✂️ cutComponent: Cut \(component.type.rawValue)")
+        debugLog("✂️ cutComponent: Cut \(component.type.rawValue)")
     }
     
     /// Create a deep copy without position offset (for clipboard storage)
@@ -945,6 +959,14 @@ class CanvasManager: ObservableObject {
     }
     
     func zoomToFitDevice(_ deviceSize: CGSize, canvasSize: CGSize) {
+        // Handle content-adaptive (noSize) mode - use a reasonable default zoom
+        guard deviceSize.width > 0 && deviceSize.height > 0 else {
+            // For noSize mode, just use 1.0 zoom centered
+            zoomLevel = 1.0
+            canvasOffset = .zero
+            return
+        }
+        
         // Calculate zoom to fit device within canvas
         // Use reasonable padding for better visibility
         let padding: CGFloat = 100
@@ -994,7 +1016,7 @@ class CanvasManager: ObservableObject {
     func registerUndoAction(_ description: String, coalesceKey: String? = nil) {
         // Don't register while we're restoring (undo/redo in progress)
         guard !isRestoringState else {
-            print("🔄 registerUndoAction: Skipping - currently restoring state")
+            debugLog("🔄 registerUndoAction: Skipping - currently restoring state")
             return
         }
         
@@ -1003,7 +1025,7 @@ class CanvasManager: ObservableObject {
         if let key = coalesceKey, let lastAction = undoStack.last,
            lastAction.coalesceKey == key,
            Date().timeIntervalSince(lastAction.timestamp) < 1.0 { // 1.0 second threshold
-            print("🔄 registerUndoAction: Coalescing with previous action '\(key)'")
+            debugLog("🔄 registerUndoAction: Coalescing with previous action '\(key)'")
             // We update the description but KEEP the original stateBefore
             // This ensures undo reverts to the state BEFORE the *first* coalesced action
             
@@ -1043,7 +1065,7 @@ class CanvasManager: ObservableObject {
         // Clear redo stack when new action is performed
         redoStack.removeAll()
         
-        print("💾 registerUndoAction: '\(description)' - stack size: \(undoStack.count)")
+        debugLog("💾 registerUndoAction: '\(description)' - stack size: \(undoStack.count)")
         undoStackVersion += 1
     }
     
@@ -1078,20 +1100,20 @@ class CanvasManager: ObservableObject {
             
             return copiedComponents
         } catch {
-            print("⚠️ Failed to deep copy components: \(error)")
-            print("⚠️ Error details: \(error.localizedDescription)")
+            debugLog("⚠️ Failed to deep copy components: \(error)")
+            debugLog("⚠️ Error details: \(error.localizedDescription)")
             if let decodingError = error as? DecodingError {
                 switch decodingError {
                 case .dataCorrupted(let context):
-                    print("⚠️ Data corrupted: \(context.debugDescription)")
+                    debugLog("⚠️ Data corrupted: \(context.debugDescription)")
                 case .keyNotFound(let key, let context):
-                    print("⚠️ Key not found: \(key.stringValue) - \(context.debugDescription)")
+                    debugLog("⚠️ Key not found: \(key.stringValue) - \(context.debugDescription)")
                 case .typeMismatch(let type, let context):
-                    print("⚠️ Type mismatch: \(type) - \(context.debugDescription)")
+                    debugLog("⚠️ Type mismatch: \(type) - \(context.debugDescription)")
                 case .valueNotFound(let type, let context):
-                    print("⚠️ Value not found: \(type) - \(context.debugDescription)")
+                    debugLog("⚠️ Value not found: \(type) - \(context.debugDescription)")
                 @unknown default:
-                    print("⚠️ Unknown decoding error")
+                    debugLog("⚠️ Unknown decoding error")
                 }
             }
             // Fallback: return original components (not ideal but prevents crash)
@@ -1105,11 +1127,11 @@ class CanvasManager: ObservableObject {
     
     func undo() {
         guard let action = undoStack.popLast() else {
-            print("↩️ undo: Cannot undo - stack empty")
+            debugLog("↩️ undo: Cannot undo - stack empty")
             return
         }
         
-        print("↩️ undo: '\(action.description)' - stack has \(undoStack.count) remaining")
+        debugLog("↩️ undo: '\(action.description)' - stack has \(undoStack.count) remaining")
         
         // Save current state to redo stack BEFORE restoring (with the same description)
         let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
@@ -1138,11 +1160,11 @@ class CanvasManager: ObservableObject {
     
     func redo() {
         guard let action = redoStack.popLast() else {
-            print("↪️ redo: Cannot redo - stack empty")
+            debugLog("↪️ redo: Cannot redo - stack empty")
             return
         }
         
-        print("↪️ redo: '\(action.description)' - redo stack has \(redoStack.count) remaining")
+        debugLog("↪️ redo: '\(action.description)' - redo stack has \(redoStack.count) remaining")
         
         // Save current state to undo stack BEFORE restoring
         let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
@@ -1170,7 +1192,7 @@ class CanvasManager: ObservableObject {
     }
     
     private func restoreState(_ state: CanvasState) {
-        print("↩️ restoreState: Restoring state with \(state.components.count) components")
+        debugLog("↩️ restoreState: Restoring state with \(state.components.count) components")
         
         // Set flag to prevent undo state saving during restore
         isRestoringState = true
@@ -1232,7 +1254,7 @@ class CanvasManager: ObservableObject {
     func addModifier(to component: UIComponent, modifier: ComponentModifier) {
         // Find the actual component in the hierarchy
         guard let actualComponent = findComponent(by: component.id) else {
-            print("⚠️ addModifier: Component not found in hierarchy")
+            debugLog("⚠️ addModifier: Component not found in hierarchy")
             return
         }
         
@@ -1248,7 +1270,7 @@ class CanvasManager: ObservableObject {
     func removeModifier(from component: UIComponent, modifier: ComponentModifier) {
         // Find the actual component in the hierarchy
         guard let actualComponent = findComponent(by: component.id) else {
-            print("⚠️ removeModifier: Component not found in hierarchy")
+            debugLog("⚠️ removeModifier: Component not found in hierarchy")
             return
         }
         
@@ -1264,7 +1286,7 @@ class CanvasManager: ObservableObject {
     func duplicateModifier(for component: UIComponent, modifier: ComponentModifier) {
         // Find the actual component in the hierarchy
         guard let actualComponent = findComponent(by: component.id) else {
-            print("⚠️ duplicateModifier: Component not found in hierarchy")
+            debugLog("⚠️ duplicateModifier: Component not found in hierarchy")
             return
         }
         
@@ -1292,7 +1314,7 @@ class CanvasManager: ObservableObject {
     func moveModifier(for component: UIComponent, from source: IndexSet, to destination: Int) {
         // Find the actual component in the hierarchy
         guard let actualComponent = findComponent(by: component.id) else {
-            print("⚠️ moveModifier: Component not found in hierarchy")
+            debugLog("⚠️ moveModifier: Component not found in hierarchy")
             return
         }
         
@@ -1309,7 +1331,7 @@ class CanvasManager: ObservableObject {
     func updateModifier(for component: UIComponent, modifier: ComponentModifier) {
         // Find the actual component in the hierarchy
         guard let actualComponent = findComponent(by: component.id) else {
-            print("⚠️ updateModifier: Component not found in hierarchy")
+            debugLog("⚠️ updateModifier: Component not found in hierarchy")
             return
         }
         
@@ -1321,6 +1343,50 @@ class CanvasManager: ObservableObject {
         
         // Ensure UI updates
         actualComponent.objectWillChange.send()
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+    
+    func updateComponentProperty(for component: UIComponent, key: String, value: Any) {
+        // Find the actual component in the hierarchy (important after undo: component may be a stale reference)
+        guard let actualComponent = findComponent(by: component.id) else {
+            debugLog("⚠️ updateComponentProperty: Component not found in hierarchy")
+            return
+        }
+        
+        // Use a persistent key for coalescing based on component ID + property key
+        let coalesceKey = "update_property_\(component.id.uuidString)_\(key)"
+        registerUndoAction("Updated \(key)", coalesceKey: coalesceKey)
+        
+        actualComponent.setProperty(key: key, value: value)
+        
+        // Keep panel in sync: if caller passed a stale reference (e.g. after undo), point selection at the actual instance
+        if selectedComponent?.id == actualComponent.id && selectedComponent !== actualComponent {
+            selectedComponent = actualComponent
+        }
+        // Force canvas and any observers to re-render so property changes appear on canvas
+        actualComponent.objectWillChange.send()
+        objectWillChange.send()
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+
+    /// Update component property without registering undo (for continuous edits like typing)
+    func updateComponentPropertyContinuous(for component: UIComponent, key: String, value: Any) {
+        // Find the actual component in the hierarchy (important after undo: component may be a stale reference)
+        guard let actualComponent = findComponent(by: component.id) else {
+            debugLog("⚠️ updateComponentPropertyContinuous: Component not found in hierarchy")
+            return
+        }
+        
+        actualComponent.setPropertyContinuous(key: key, value: value)
+        
+        // Keep panel in sync if caller passed a stale reference
+        if selectedComponent?.id == actualComponent.id && selectedComponent !== actualComponent {
+            selectedComponent = actualComponent
+        }
+        
+        // Ensure observers update
+        actualComponent.objectWillChange.send()
+        objectWillChange.send()
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
 

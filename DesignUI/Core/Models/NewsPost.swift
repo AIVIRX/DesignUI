@@ -39,7 +39,7 @@ enum NewsBlockType: String, Codable {
 }
 
 struct NewsBlock: Codable, Identifiable {
-    var id: UUID { UUID() } // For SwiftUI ForEach
+    var id: UUID { UUID() }
     let type: NewsBlockType
     let text: String?
     let url: String?

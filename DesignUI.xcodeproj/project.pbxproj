@@ -22,7 +22,6 @@
 		EC37CE232F195EF3006CFD08 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE222F195EEC006CFD08 /* DetailView.swift */; };
 		EC37CE252F196758006CFD08 /* CommunityCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE242F196751006CFD08 /* CommunityCards.swift */; };
 		EC37CE512F19C1F6006CFD08 /* UndoToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE502F19C1F6006CFD08 /* UndoToastView.swift */; };
-		EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3D132D2E1DABCE00F659DB /* LargeHero.swift */; };
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
 		EC59829C2D56836B00633392 /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829B2D56836B00633392 /* Like.swift */; };
@@ -64,6 +63,15 @@
 		ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA62EB06B5D00420663 /* RevenueCatUI */; };
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB4F5CD2F2C433800D2AB65 /* GridConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB4F5CC2F2C433800D2AB65 /* GridConfiguration.swift */; };
+		ECB8955E2F34646900451A25 /* ColorPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB895562F34646900451A25 /* ColorPickers.swift */; };
+		ECB8955F2F34646900451A25 /* PropertiesSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB8955B2F34646900451A25 /* PropertiesSectionView.swift */; };
+		ECB895602F34646900451A25 /* ImagePickerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB8955A2F34646900451A25 /* ImagePickerEditor.swift */; };
+		ECB895612F34646900451A25 /* CanvasView+Containers.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB895552F34646900451A25 /* CanvasView+Containers.swift */; };
+		ECB895622F34646900451A25 /* ColorPropertyEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB895572F34646900451A25 /* ColorPropertyEditorView.swift */; };
+		ECB895632F34646900451A25 /* SFSymbolPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB8955D2F34646900451A25 /* SFSymbolPickerView.swift */; };
+		ECB895642F34646900451A25 /* ComponentActionsSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB895582F34646900451A25 /* ComponentActionsSectionView.swift */; };
+		ECB895652F34646900451A25 /* PropertyEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB8955C2F34646900451A25 /* PropertyEditorView.swift */; };
+		ECB895662F34646900451A25 /* ComponentRenderer+Renderers.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB895592F34646900451A25 /* ComponentRenderer+Renderers.swift */; };
 		ECB94C6C2EFB0C6F000AAF34 /* ComponentLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C5C2EFB0C6F000AAF34 /* ComponentLibraryView.swift */; };
 		ECB94C6D2EFB0C6F000AAF34 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C592EFB0C6F000AAF34 /* CanvasView.swift */; };
 		ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */; };
@@ -134,7 +142,6 @@
 		EC37CE222F195EEC006CFD08 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC37CE242F196751006CFD08 /* CommunityCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityCards.swift; sourceTree = "<group>"; };
 		EC37CE502F19C1F6006CFD08 /* UndoToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoToastView.swift; sourceTree = "<group>"; };
-		EC3D132D2E1DABCE00F659DB /* LargeHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHero.swift; sourceTree = "<group>"; };
 		EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollView.swift; sourceTree = "<group>"; };
 		EC419E5B2E85D6B60081C5D2 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
@@ -179,6 +186,15 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB4F5CC2F2C433800D2AB65 /* GridConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridConfiguration.swift; sourceTree = "<group>"; };
+		ECB895552F34646900451A25 /* CanvasView+Containers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CanvasView+Containers.swift"; sourceTree = "<group>"; };
+		ECB895562F34646900451A25 /* ColorPickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickers.swift; sourceTree = "<group>"; };
+		ECB895572F34646900451A25 /* ColorPropertyEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPropertyEditorView.swift; sourceTree = "<group>"; };
+		ECB895582F34646900451A25 /* ComponentActionsSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentActionsSectionView.swift; sourceTree = "<group>"; };
+		ECB895592F34646900451A25 /* ComponentRenderer+Renderers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ComponentRenderer+Renderers.swift"; sourceTree = "<group>"; };
+		ECB8955A2F34646900451A25 /* ImagePickerEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerEditor.swift; sourceTree = "<group>"; };
+		ECB8955B2F34646900451A25 /* PropertiesSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesSectionView.swift; sourceTree = "<group>"; };
+		ECB8955C2F34646900451A25 /* PropertyEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyEditorView.swift; sourceTree = "<group>"; };
+		ECB8955D2F34646900451A25 /* SFSymbolPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSymbolPickerView.swift; sourceTree = "<group>"; };
 		ECB94C572EFB0C6F000AAF34 /* CanvasManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasManager.swift; sourceTree = "<group>"; };
 		ECB94C582EFB0C6F000AAF34 /* CanvasScreenshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasScreenshotView.swift; sourceTree = "<group>"; };
 		ECB94C592EFB0C6F000AAF34 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
@@ -356,6 +372,15 @@
 		ECB94C542EFB0C19000AAF34 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				ECB895552F34646900451A25 /* CanvasView+Containers.swift */,
+				ECB895562F34646900451A25 /* ColorPickers.swift */,
+				ECB895572F34646900451A25 /* ColorPropertyEditorView.swift */,
+				ECB895582F34646900451A25 /* ComponentActionsSectionView.swift */,
+				ECB895592F34646900451A25 /* ComponentRenderer+Renderers.swift */,
+				ECB8955A2F34646900451A25 /* ImagePickerEditor.swift */,
+				ECB8955B2F34646900451A25 /* PropertiesSectionView.swift */,
+				ECB8955C2F34646900451A25 /* PropertyEditorView.swift */,
+				ECB8955D2F34646900451A25 /* SFSymbolPickerView.swift */,
 				ECCC83292F305EAB00D3C9CC /* CodeGenerator_Chart.swift */,
 				ECCC832A2F305EAB00D3C9CC /* ComponentRenderer_Chart.swift */,
 				EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */,
@@ -493,7 +518,6 @@
 			isa = PBXGroup;
 			children = (
 				EC1DCBA02E75417F0008FEC8 /* CodeSnippets.swift */,
-				EC3D132D2E1DABCE00F659DB /* LargeHero.swift */,
 				ECD12B362D8F487D001A73C7 /* Toast.swift */,
 			);
 			path = Components;
@@ -705,6 +729,15 @@
 				ECB94C7F2EFB0C6F000AAF34 /* ModifierEditorView.swift in Sources */,
 				ECB94C802EFB0C6F000AAF34 /* ScreenshotUtility.swift in Sources */,
 				EC96C2DD2F25891B00DA8459 /* CustomBottomSheet.swift in Sources */,
+				ECB8955E2F34646900451A25 /* ColorPickers.swift in Sources */,
+				ECB8955F2F34646900451A25 /* PropertiesSectionView.swift in Sources */,
+				ECB895602F34646900451A25 /* ImagePickerEditor.swift in Sources */,
+				ECB895612F34646900451A25 /* CanvasView+Containers.swift in Sources */,
+				ECB895622F34646900451A25 /* ColorPropertyEditorView.swift in Sources */,
+				ECB895632F34646900451A25 /* SFSymbolPickerView.swift in Sources */,
+				ECB895642F34646900451A25 /* ComponentActionsSectionView.swift in Sources */,
+				ECB895652F34646900451A25 /* PropertyEditorView.swift in Sources */,
+				ECB895662F34646900451A25 /* ComponentRenderer+Renderers.swift in Sources */,
 				ECB94C812EFB0C6F000AAF34 /* CodePreviewView.swift in Sources */,
 				EC59829C2D56836B00633392 /* Like.swift in Sources */,
 				ECCCBBE22F0DDC24001817C3 /* ImageGalleryView.swift in Sources */,
@@ -716,7 +749,6 @@
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */,
 				EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */,
-				EC3D132E2E1DABCE00F659DB /* LargeHero.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				ECB94C902EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift in Sources */,
 				ECB94C922EFB0D21000AAF34 /* FontModifierEditor.swift in Sources */,

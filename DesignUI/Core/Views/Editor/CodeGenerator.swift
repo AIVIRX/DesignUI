@@ -65,10 +65,16 @@ struct CodeGenerator {
             baseCode = generateToggleCode(component: component, indent: indent, nextIndent: nextIndent)
         case .slider:
             baseCode = generateSliderCode(component: component, indent: indent, nextIndent: nextIndent)
+        case .button:
+            baseCode = generateButtonCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
+        case .shape:
+            baseCode = generateShapeCode(component: component, indent: indent, nextIndent: nextIndent)
         case .linearGradient:
             baseCode = generateLinearGradientCode(component: component, indent: indent, nextIndent: nextIndent)
         case .chart:
             baseCode = generateChartCode(component: component, indent: indent, nextIndent: nextIndent)
+        case .gauge:
+            baseCode = generateGaugeCode(component: component, indent: indent, nextIndent: nextIndent)
             
         default:
             return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
@@ -132,9 +138,14 @@ struct CodeGenerator {
     
     // MARK: - Button Code Generation
     private static func generateButtonCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
-        // If button has children, use container approach
-        if !component.children.isEmpty {
-            var code = "\(indent)Button(action: {\n\(nextIndent)// Action here\n\(indent)}) {"
+        let buttonStyle = component.getProperty(key: "buttonStyle") as? String ?? "borderedProminent"
+        
+        // Button always has children in the new container pattern
+        var code = "\(indent)Button(action: {\n\(nextIndent)// Action here\n\(indent)}) {"
+        
+        if component.children.isEmpty {
+            code += "\n\(nextIndent)// Add components here"
+        } else {
             for (index, child) in component.children.enumerated() {
                 code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
                 // Add empty line between siblings (but not after the last one)
@@ -142,19 +153,12 @@ struct CodeGenerator {
                     code += "\n"
                 }
             }
-            code += "\n\(indent)}"
-            return code
         }
         
-        // No children: Use default SwiftUI button with title
-        let title = component.getProperty(key: "title") as? String ?? "Button"
-        let escapedTitle = title.replacingOccurrences(of: "\"", with: "\\\"")
+        code += "\n\(indent)}"
         
-        var code = "\(indent)Button(\"\(escapedTitle)\") {}"
-        
-        if let bgColor = component.properties.first(where: { $0.key == "backgroundColor" })?.value {
-            code += "\n\(nextIndent).background(\(colorToString(bgColor)))"
-        }
+        // Apply button style
+        code += "\n\(nextIndent).buttonStyle(.\(buttonStyle))"
         
         return code
     }
@@ -276,6 +280,27 @@ struct CodeGenerator {
         return "\(indent)Ellipse()"
     }
     
+    // MARK: - Unified Shape Code Generation
+    private static func generateShapeCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+        let shapeType = component.getProperty(key: "shapeType") as? String ?? "Rectangle"
+        
+        switch shapeType {
+        case "Rectangle":
+            return "\(indent)Rectangle()"
+        case "Circle":
+            return "\(indent)Circle()"
+        case "Rounded Rectangle":
+            let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
+            return "\(indent)RoundedRectangle(cornerRadius: \(formatNumber(cornerRadius)))"
+        case "Capsule":
+            return "\(indent)Capsule()"
+        case "Ellipse":
+            return "\(indent)Ellipse()"
+        default:
+            return "\(indent)Rectangle()"
+        }
+    }
+    
     // MARK: - ScrollView Code Generation
     private static func generateScrollViewCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         let axis = component.getProperty(key: "axis") as? String ?? "vertical"
@@ -331,6 +356,63 @@ struct CodeGenerator {
         let min = component.getProperty(key: "min") as? Double ?? 0.0
         let max = component.getProperty(key: "max") as? Double ?? 1.0
         return "\(indent)Slider(value: .constant(\(value)), in: \(min)...\(max))"
+    }
+    
+    // MARK: - Gauge Code Generation
+    private static func generateGaugeCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+        let gaugeType = component.getProperty(key: "gaugeType") as? String ?? "circular"
+        let value = component.getProperty(key: "value") as? Double ?? 50
+        let min = component.getProperty(key: "min") as? Double ?? 0
+        let max = component.getProperty(key: "max") as? Double ?? 100
+        let showValue = component.getProperty(key: "showValue") as? Bool ?? true
+        let colorString = component.getProperty(key: "color") as? String ?? "blue"
+        
+        var code = ""
+        
+        switch gaugeType {
+        case "linear":
+            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {"
+            if showValue {
+                code += "\n\(nextIndent)Text(\"\(Int(value))\")"
+            }
+            code += "\n\(indent)}"
+            code += "\n\(nextIndent).gaugeStyle(.linearCapacity)"
+            
+        case "circular":
+            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {"
+            if showValue {
+                code += "\n\(nextIndent)Text(\"\(Int(value))\")"
+            } else {
+                code += "\n\(nextIndent)EmptyView()"
+            }
+            code += "\n\(indent)}"
+            code += "\n\(nextIndent).gaugeStyle(.accessoryCircularCapacity)"
+            
+        case "circular range":
+            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {"
+            code += "\n\(nextIndent)EmptyView()"
+            code += "\n\(indent)} currentValueLabel: {"
+            if showValue {
+                code += "\n\(nextIndent)Text(\"\(Int(value))\")"
+            } else {
+                code += "\n\(nextIndent)EmptyView()"
+            }
+            code += "\n\(indent)} minimumValueLabel: {"
+            code += "\n\(nextIndent)Text(\"\(Int(min))\")"
+            code += "\n\(indent)} maximumValueLabel: {"
+            code += "\n\(nextIndent)Text(\"\(Int(max))\")"
+            code += "\n\(indent)}"
+            code += "\n\(nextIndent).gaugeStyle(.accessoryCircular)"
+            
+        default:
+            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {}"
+            code += "\n\(nextIndent).gaugeStyle(.accessoryCircularCapacity)"
+        }
+        
+        // Add color tint
+        code += "\n\(nextIndent).tint(\(colorToString(colorString)))"
+        
+        return code
     }
     
     // MARK: - Linear Gradient Code Generation

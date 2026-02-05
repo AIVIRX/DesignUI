@@ -8,78 +8,18 @@
 import SwiftUI
 import StoreKit
 import RevenueCatUI
-#if os(iOS)
-import MessageUI
-#endif
-
-#if os(iOS)
-struct MailView: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) var presentationMode
-    @Binding var result: Result<MFMailComposeResult, Error>?
-
-    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-        @Binding var presentationMode: PresentationMode
-        @Binding var result: Result<MFMailComposeResult, Error>?
-
-        init(presentationMode: Binding<PresentationMode>, result: Binding<Result<MFMailComposeResult, Error>?>) {
-            _presentationMode = presentationMode
-            _result = result
-        }
-
-        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-            defer {
-                $presentationMode.wrappedValue.dismiss()
-            }
-            guard error == nil else {
-                self.result = .failure(error!)
-                return
-            }
-            self.result = .success(result)
-        }
-    }
-
-    func makeCoordinator() -> Coordinator {
-        return Coordinator(presentationMode: presentationMode, result: $result)
-    }
-
-    func makeUIViewController(context: UIViewControllerRepresentableContext<MailView>) -> MFMailComposeViewController {
-        let vc = MFMailComposeViewController()
-        vc.mailComposeDelegate = context.coordinator
-        vc.setToRecipients(["support@aivirx.com"])
-        vc.setSubject("DockUI")
-        return vc
-    }
-
-    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: UIViewControllerRepresentableContext<MailView>) {}
-}
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    @Environment(\.presentationMode) var presentationMode
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        controller.completionWithItemsHandler = { _, _, _, _ in
-            presentationMode.wrappedValue.dismiss()
-        }
-        return controller
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
-#endif
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @StateObject private var purchases = PurchasesService.shared
     @State private var showPaywall = false
-#if os(iOS)
-    @State private var result: Result<MFMailComposeResult, Error>? = nil
-    @State private var showShareSheet = false
-#endif
-    @State private var isShowingMailView = false
     @AppStorage("appearanceMode") private var appearanceMode: String = "auto"
+    @Environment(\.openURL) var openURL
+
+    let email = "support@dockui.com"
+        let subject = "App Feedback"
+        let emailText = "Hello, "
     
     // App Store URL - Update with your actual App Store ID
     private var appStoreURL: String {
@@ -87,12 +27,11 @@ struct SettingsView: View {
     }
     
     private var shareText: String {
-        "Check out DockUI - A great app for SwiftUI templates and components!"
+        "DockUI - Design For SwiftUI"
     }
     
     var body: some View {
 #if os(macOS)
-        // macOS: Modern card-style layout
         // macOS: Modifier-style layout
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -269,6 +208,22 @@ struct SettingsView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        
+                        Divider().padding(.leading, 12)
+                        
+                        Button(action: sendEmail) {
+                            HStack {
+                                Text("Send Feedback")
+                                Spacer()
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 12)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
                         
                         Divider().padding(.leading, 12)
                         
@@ -626,5 +581,15 @@ struct SettingsView: View {
         }
 #endif
     }
+    
+    func sendEmail() {
+            // Construct the mailto URL with encoded parameters
+            let mailtoString = "mailto:\(email)?subject=\(subject)&body=\(emailText)"
+                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            
+            if let url = URL(string: mailtoString) {
+                openURL(url)
+            }
+        }
 }
 

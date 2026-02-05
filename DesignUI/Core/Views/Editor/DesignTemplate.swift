@@ -71,7 +71,7 @@ class DesignTemplateManager {
             if let template = loadTemplate(named: filename) {
                 templates.append(template)
             } else {
-                print("⚠️ Failed to load template: \(filename)")
+                debugLog("⚠️ Failed to load template: \(filename)")
             }
         }
         
@@ -96,29 +96,29 @@ class DesignTemplateManager {
         }
         
         guard let fileUrl = url else {
-            print("⚠️ Template file not found: \(filename).json")
+            debugLog("⚠️ Template file not found: \(filename).json")
             return nil
         }
         
         do {
             let data = try Data(contentsOf: fileUrl)
             let template = try JSONDecoder().decode(DesignTemplate.self, from: data)
-            print("✅ Loaded template: \(filename)")
+            debugLog("✅ Loaded template: \(filename)")
             return template
         } catch let DecodingError.keyNotFound(key, context) {
-            print("⚠️ Template \(filename): Key '\(key.stringValue)' not found at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            debugLog("⚠️ Template \(filename): Key '\(key.stringValue)' not found at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
             return nil
         } catch let DecodingError.typeMismatch(type, context) {
-            print("⚠️ Template \(filename): Type mismatch for \(type) at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            debugLog("⚠️ Template \(filename): Type mismatch for \(type) at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
             return nil
         } catch let DecodingError.valueNotFound(type, context) {
-            print("⚠️ Template \(filename): Value not found for \(type) at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            debugLog("⚠️ Template \(filename): Value not found for \(type) at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
             return nil
         } catch let DecodingError.dataCorrupted(context) {
-            print("⚠️ Template \(filename): Data corrupted at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            debugLog("⚠️ Template \(filename): Data corrupted at \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
             return nil
         } catch {
-            print("⚠️ Error decoding template \(filename): \(error)")
+            debugLog("⚠️ Error decoding template \(filename): \(error)")
             return nil
         }
     }

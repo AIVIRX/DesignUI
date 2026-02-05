@@ -340,7 +340,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         } else if let int = value as? Int {
             return CGFloat(int)
         } else {
-            print("⚠️ Could not convert \(key) to CGFloat, value: \(value), type: \(Swift.type(of: value))")
+            debugLog("⚠️ Could not convert \(key) to CGFloat, value: \(value), type: \(Swift.type(of: value))")
             return defaultValue
         }
     }
@@ -356,7 +356,7 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         } else if let int = value as? Int {
             return Double(int)
         } else {
-            print("⚠️ Could not convert \(key) to Double, value: \(value), type: \(Swift.type(of: value))")
+            debugLog("⚠️ Could not convert \(key) to Double, value: \(value), type: \(Swift.type(of: value))")
             return defaultValue
         }
     }

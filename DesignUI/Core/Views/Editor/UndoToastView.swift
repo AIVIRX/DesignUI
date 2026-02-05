@@ -25,11 +25,3 @@ struct UndoToastView: View {
             .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
-
-#Preview {
-    VStack {
-        UndoToastView(message: "Undo: Deleted Text")
-        UndoToastView(message: "Redo: Added VStack")
-    }
-    .padding()
-}

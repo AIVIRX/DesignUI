@@ -21,7 +21,6 @@ struct NewsListView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .center, spacing: 16) {
-                    heroView
                     
                     let gridPosts = Array(viewModel.posts)
                     if !gridPosts.isEmpty {
@@ -57,15 +56,6 @@ struct NewsListView: View {
 #endif
             .task { await viewModel.fetchNews() }
         }
-    }
-    
-    private var heroView: some View {
-        LargeHero(
-            name: "Newsroom",
-            description: "Read the latest stories, guides, and news. Stay connected with designers worldwide.",
-            height: 400,
-            cornerRadius: 0
-        )
     }
 }
 

@@ -18,7 +18,7 @@ struct ComponentLibraryView: View {
         .vstack, .hstack, .zstack, .scrollView, .spacer, .divider, // Layout
         .shape, // Shapes
         .linearGradient, // Styles
-        .textField, .toggle, .slider // Controls
+        .button, .textField, .toggle, .slider, .gauge // Controls
     ]
     
     private var filteredComponents: [ComponentType] {
@@ -212,6 +212,19 @@ struct ComponentLibraryItem: View {
                 properties: UIComponent.defaultProperties(for: componentType),
                 frame: CGRect(origin: defaultOrigin, size: .zero)
             )
+            
+            // Special case: Add default Text child to Button
+            if componentType == .button {
+                let textChild = UIComponent(
+                    type: .text,
+                    properties: [
+                        ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Continue", defaultValue: "Continue")
+                    ],
+                    frame: .zero
+                )
+                component.addChild(textChild)
+            }
+            
             onAdd(component)
             
             // Reset press state after delay

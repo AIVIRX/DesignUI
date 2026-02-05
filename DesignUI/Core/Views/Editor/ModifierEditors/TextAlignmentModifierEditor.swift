@@ -151,18 +151,11 @@ struct TextAlignmentModifierEditor: View {
         var updatedModifier = modifier
         updatedModifier.properties["alignment"] = alignment
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     private func saveAlignmentContinuous() {
         var updatedModifier = modifier
         updatedModifier.properties["alignment"] = alignment
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }
@@ -211,4 +204,3 @@ struct AlignmentOptionRow: View {
         }
     }
 }
-

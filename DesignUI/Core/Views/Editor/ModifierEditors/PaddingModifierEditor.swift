@@ -137,11 +137,6 @@ struct PaddingModifierEditor: View {
         updatedModifier.properties["amount"] = paddingAmount
         updatedModifier.properties["location"] = selectedLocation
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     /// Continuous save during slider drag - no undo state save
@@ -149,8 +144,6 @@ struct PaddingModifierEditor: View {
         var updatedModifier = modifier
         updatedModifier.properties["amount"] = paddingAmount
         updatedModifier.properties["location"] = selectedLocation
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }

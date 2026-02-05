@@ -119,18 +119,11 @@ struct CornerRadiusModifierEditor: View {
         var updatedModifier = modifier
         updatedModifier.properties["radius"] = radius
         modifier = updatedModifier
-        
-        DispatchQueue.main.async {
-            component.updateModifier(updatedModifier)
-            NotificationCenter.default.post(name: .designChanged, object: nil)
-        }
     }
     
     private func saveRadiusContinuous() {
         var updatedModifier = modifier
         updatedModifier.properties["radius"] = radius
-        modifier = updatedModifier
-        
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }
