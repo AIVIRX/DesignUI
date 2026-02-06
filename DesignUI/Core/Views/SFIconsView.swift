@@ -43,13 +43,6 @@ struct SFIconsView: View {
         }
         .navigationTitle("SF Symbols")
         .searchable(text: $searchText, prompt: "Search SF Symbols")
-        .onChange(of: searchText) { _, newValue in
-            searchTask?.cancel()
-            searchTask = Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 180_000_000)
-                debouncedSearch = newValue
-            }
-        }
     }
 }
 

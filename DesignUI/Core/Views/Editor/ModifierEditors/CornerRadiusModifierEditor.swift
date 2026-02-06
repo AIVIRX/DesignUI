@@ -44,9 +44,10 @@ struct CornerRadiusModifierEditor: View {
                         UndoableSlider(
                             value: Binding(
                                 get: { Double(radius) },
-                                set: { radius = CGFloat($0) }
+                                set: { radius = CGFloat($0.rounded()) }
                             ),
                             range: 0...100,
+                            step: 1,
                             onValueChanged: { _ in
                                 saveRadiusContinuous()
                             },
@@ -112,18 +113,18 @@ struct CornerRadiusModifierEditor: View {
     }
     
     private func loadRadius() {
-        radius = modifier.getCGFloat(key: "radius", defaultValue: 8)
+        radius = modifier.getCGFloat(key: "radius", defaultValue: 8).rounded()
     }
     
     private func saveRadius() {
         var updatedModifier = modifier
-        updatedModifier.properties["radius"] = radius
+        updatedModifier.properties["radius"] = radius.rounded()
         modifier = updatedModifier
     }
     
     private func saveRadiusContinuous() {
         var updatedModifier = modifier
-        updatedModifier.properties["radius"] = radius
+        updatedModifier.properties["radius"] = radius.rounded()
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
         }

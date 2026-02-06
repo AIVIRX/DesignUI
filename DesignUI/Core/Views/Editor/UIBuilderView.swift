@@ -206,6 +206,7 @@ struct UIBuilderView: View {
     @State private var showCodePreview = false
     @State private var baseZoomLevel: CGFloat = 1.0
     @State private var statusBarHasBackground: Bool = false
+    @State private var canvasViewportSize: CGSize = .zero
     
     // Panel states
     @State private var layersPanelWidth: CGFloat = 300
@@ -379,14 +380,7 @@ struct UIBuilderView: View {
         .sheet(isPresented: $showCommunitySubmission) {
             SubmitToCommunityView(designFile: designFile)
         }
-        // Undo/Redo Toast Overlay
-        .overlay(alignment: .top) {
-            if let message = canvasManager.undoMessage {
-                UndoToastView(message: message)
-                    .padding(.top, 60)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: canvasManager.undoMessage)
-            }
-        }
+        // Undo/Redo Toast Overlay handled by ToastManager
 
         .onAppear {
             setupCanvas()
@@ -823,6 +817,15 @@ struct UIBuilderView: View {
             canvasView
         }
         .animation(.spring(), value: canvasManager.selectedComponentIds.count)
+        .background(
+            GeometryReader { geometry in
+                Color.clear
+                    .onAppear { canvasViewportSize = geometry.size }
+                    .onChange(of: geometry.size) { _, newSize in
+                        canvasViewportSize = newSize
+                    }
+            }
+        )
         .onReceive(NotificationCenter.default.publisher(for: .imageDownloadsCompleted)) { notification in
             // When images are downloaded, refresh the thumbnail
             if let design = notification.object as? DesignFile,
@@ -1342,8 +1345,11 @@ struct UIBuilderView: View {
                 // Center canvas button
                 Button(action: {
                     // Reset zoom and trigger canvas centering with animation
+                    let targetCanvasSize = canvasViewportSize == .zero
+                        ? CGSize(width: 800, height: 600)
+                        : canvasViewportSize
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        canvasManager.zoomToFitDevice(canvasManager.devicePreset.size, canvasSize: CGSize(width: 800, height: 600))
+                        canvasManager.zoomToFitDevice(canvasManager.devicePreset.size, canvasSize: targetCanvasSize)
                     }
                     // Update base zoom level after animation starts (no visual impact, just for state)
                     baseZoomLevel = canvasManager.zoomLevel
@@ -1842,6 +1848,7 @@ struct ResizablePanel<Content: View>: View {
                 alignment: handlePosition == .left ? .leading : .trailing
             )
             .frame(maxHeight: .infinity)
+            .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
     }
     
     private var handleColor: Color {
@@ -1972,6 +1979,7 @@ struct AICommandBar: View {
     @ObservedObject var canvasManager: CanvasManager
     @State private var prompt: String = ""
     @State private var isGenerating: Bool = false
+    @FocusState private var isPromptFocused: Bool
     
     private let maxCharacters = 200
     
@@ -1989,6 +1997,7 @@ struct AICommandBar: View {
             TextField("What would you like to do?", text: $prompt, axis: .vertical)
                 .textFieldStyle(.plain)
                 .lineLimit(2...4)
+                .focused($isPromptFocused)
                 .onChange(of: prompt) { _, newValue in
                     // Enforce character limit
                     if newValue.count > maxCharacters {
@@ -2034,18 +2043,24 @@ struct AICommandBar: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(.background)
         )
+        .contentShape(RoundedRectangle(cornerRadius: 12))
+        .onTapGesture {
+            isPromptFocused = true
+        }
         .overlay(
             FluidGradient(
-                blobs: [.indigo, .blue, .purple],
-                speed: 0.8,
+                blobs: [.indigo, .blue, .indigo, .pink],
+                speed: 1.0,
                 blur: 0.5
             )
             .mask(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(lineWidth: 2)
             )
+            .allowsHitTesting(false)
         )
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
     }
     
     private func generate() {

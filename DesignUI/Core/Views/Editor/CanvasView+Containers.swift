@@ -223,18 +223,14 @@ struct ComponentsContainerWithoutStatusBar: View {
 struct StatusBarContainerView: View {
     @ObservedObject var statusBarComponent: UIComponent
     let deviceSize: CGSize
-    let isSelected: Bool
     let colorScheme: ColorScheme?
     let statusBarHasBackground: Bool
-    let onSelect: () -> Void
     var body: some View {
         // Show status bar overlay if enabled
         if let showStatusBar = statusBarComponent.properties.first(where: { $0.key == "showStatusBar" })?.value as? Bool, showStatusBar {
             StatusBarView(
                 deviceSize: deviceSize,
-                isSelected: isSelected,
-                colorScheme: colorScheme,
-                onSelect: onSelect
+                colorScheme: colorScheme
             )
             .background(.clear)
             .allowsHitTesting(false)

@@ -366,12 +366,8 @@ struct CanvasView: View {
                             StatusBarContainerView(
                                 statusBarComponent: statusBarComponent,
                                 deviceSize: deviceSize,
-                                isSelected: false,
                                 colorScheme: colorScheme,
                                 statusBarHasBackground: statusBarHasBackground,
-                                onSelect: { 
-                                    canvasManager.selectComponent(statusBarComponent)
-                                }
                             )
                         }
                     }

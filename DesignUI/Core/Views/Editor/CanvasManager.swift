@@ -74,10 +74,10 @@ class CanvasManager: ObservableObject {
     private let maxUndoSteps = 50
     private var saveStateWorkItem: DispatchWorkItem?
     private var lastSavedState: CanvasState? // Track last saved state to prevent duplicates
-    
+
     // Toast message for undo/redo feedback
     @Published var undoMessage: String? = nil
-    
+        
     // Current action description (set before making changes)
     private var pendingActionDescription: String? = nil
     
@@ -1182,7 +1182,7 @@ class CanvasManager: ObservableObject {
         
         // Show toast message
         undoMessage = "Undo: \(action.description)"
-        
+
         // Auto-dismiss toast after 2 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             if self?.undoMessage == "Undo: \(action.description)" {
@@ -1215,7 +1215,7 @@ class CanvasManager: ObservableObject {
         
         // Show toast message
         undoMessage = "Redo: \(action.description)"
-        
+
         // Auto-dismiss toast after 2 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             if self?.undoMessage == "Redo: \(action.description)" {

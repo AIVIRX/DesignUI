@@ -193,10 +193,8 @@ struct LayersPanelView: View {
                 // When drag ends (draggingId becomes nil), immediately clear drop indicators
                 .onChange(of: draggingId) { _, newValue in
                     if newValue == nil {
-                        withAnimation(.easeOut(duration: 0.15)) {
-                            dragOverTarget = nil
-                            dragOverPosition = .none
-                        }
+                        dragOverTarget = nil
+                        dragOverPosition = .none
                     }
                 }
                 .onAppear {
@@ -1096,10 +1094,8 @@ private struct RowDropDelegate: DropDelegate {
     func dropExited(info: DropInfo) {
         // Only clear if this was the target we were hovering over
         if dragOverTarget == target.id {
-            withAnimation(.easeOut(duration: 0.15)) {
-                dragOverTarget = nil
-                dragOverPosition = .none
-            }
+            dragOverTarget = nil
+            dragOverPosition = .none
         }
     }
 
@@ -1115,28 +1111,24 @@ private struct RowDropDelegate: DropDelegate {
         let y = info.location.y
         let height = 36.0 // Approximate row height
         
-        withAnimation(.easeOut(duration: 0.1)) {
-            if y < height * 0.25 {
-                dragOverPosition = .above
-            } else if y > height * 0.75 {
-                dragOverPosition = .below
+        if y < height * 0.25 {
+            dragOverPosition = .above
+        } else if y > height * 0.75 {
+            dragOverPosition = .below
+        } else {
+            // Inside drop zone - only allow for containers
+            if canAcceptChildren(target) {
+                dragOverPosition = .inside
             } else {
-                // Inside drop zone - only allow for containers
-                if canAcceptChildren(target) {
-                    dragOverPosition = .inside
-                } else {
-                    // For non-containers, default to below
-                    dragOverPosition = .below
-                }
+                // For non-containers, default to below
+                dragOverPosition = .below
             }
         }
     }
     
     private func clearDropIndicators() {
-        withAnimation(.easeOut(duration: 0.15)) {
-            dragOverTarget = nil
-            dragOverPosition = .none
-        }
+        dragOverTarget = nil
+        dragOverPosition = .none
     }
 }
 

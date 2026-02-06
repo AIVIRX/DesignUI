@@ -14,8 +14,6 @@ import AppKit
 import UniformTypeIdentifiers
 #endif
 
-
-
 struct ImagePickerEditor: View {
     var property: ComponentProperty
     @ObservedObject var component: UIComponent

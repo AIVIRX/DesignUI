@@ -447,16 +447,17 @@ struct CodeGenerator {
     
     // MARK: - Modifier Code Generation
     private static func applyModifiersToCode(baseCode: String, modifiers: [ComponentModifier], component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
-        var code = baseCode
+        let code = baseCode.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
+        var result = code
         
         for modifier in modifiers {
             let modifierCode = generateModifierCode(modifier: modifier, component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
             if !modifierCode.isEmpty {
-                code += "\n" + modifierCode
+                result += "\n" + modifierCode
             }
         }
         
-        return code
+        return result
     }
     
     private static func generateModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
@@ -535,7 +536,7 @@ struct CodeGenerator {
         }
         
         if !frameParts.isEmpty {
-            return "\(nextIndent).frame(\(frameParts.joined(separator: ", ")))"
+            return "\(indent).frame(\(frameParts.joined(separator: ", ")))"
         }
         
         return ""
@@ -547,67 +548,67 @@ struct CodeGenerator {
         
         switch location {
         case "all":
-            return "\(nextIndent).padding(\(formatNumber(Double(amount))))"
+            return "\(indent).padding(\(formatNumber(Double(amount))))"
         case "leading":
-            return "\(nextIndent).padding(.leading, \(formatNumber(Double(amount))))"
+            return "\(indent).padding(.leading, \(formatNumber(Double(amount))))"
         case "trailing":
-            return "\(nextIndent).padding(.trailing, \(formatNumber(Double(amount))))"
+            return "\(indent).padding(.trailing, \(formatNumber(Double(amount))))"
         case "top":
-            return "\(nextIndent).padding(.top, \(formatNumber(Double(amount))))"
+            return "\(indent).padding(.top, \(formatNumber(Double(amount))))"
         case "bottom":
-            return "\(nextIndent).padding(.bottom, \(formatNumber(Double(amount))))"
+            return "\(indent).padding(.bottom, \(formatNumber(Double(amount))))"
         case "horizontal":
-            return "\(nextIndent).padding(.horizontal, \(formatNumber(Double(amount))))"
+            return "\(indent).padding(.horizontal, \(formatNumber(Double(amount))))"
         case "vertical":
-            return "\(nextIndent).padding(.vertical, \(formatNumber(Double(amount))))"
+            return "\(indent).padding(.vertical, \(formatNumber(Double(amount))))"
         default:
-            return "\(nextIndent).padding(\(formatNumber(Double(amount))))"
+            return "\(indent).padding(\(formatNumber(Double(amount))))"
         }
     }
     
     private static func generateBackgroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         // Check for gradient
         if let gradientCode = generateGradientCode(modifier: modifier) {
-            return "\(nextIndent).background(\(gradientCode))"
+            return "\(indent).background(\(gradientCode))"
         }
         
         // Parse unified "colorname:opacity" format
         let colorCode = parseColorWithOpacity(modifier: modifier)
-        return "\(nextIndent).background(\(colorCode))"
+        return "\(indent).background(\(colorCode))"
     }
     
     private static func generateBackgroundModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         // Check if there's a parent component for this modifier (background with children)
         if let parentComponent = component.getParentComponentForModifier(modifier.id) {
             let childCode = generateCode(for: parentComponent, indentLevel: indentLevel + 1)
-            return "\(nextIndent).background(\n\(childCode)\n\(indent))"
+            return "\(indent).background(\n\(childCode)\n\(indent))"
         }
         
         // Check for gradient
         if let gradientCode = generateGradientCode(modifier: modifier) {
-            return "\(nextIndent).background(\(gradientCode))"
+            return "\(indent).background(\(gradientCode))"
         }
         
         // Parse unified "colorname:opacity" format
         let colorCode = parseColorWithOpacity(modifier: modifier)
-        return "\(nextIndent).background(\(colorCode))"
+        return "\(indent).background(\(colorCode))"
     }
     
     private static func generateFillModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         // Check for gradient
         if let gradientCode = generateGradientCode(modifier: modifier) {
-            return "\(nextIndent).fill(\(gradientCode))"
+            return "\(indent).fill(\(gradientCode))"
         }
         
         // Parse unified "colorname:opacity" format
         let colorCode = parseColorWithOpacity(modifier: modifier)
-        return "\(nextIndent).fill(\(colorCode))"
+        return "\(indent).fill(\(colorCode))"
     }
     
     private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         // Parse unified "colorname:opacity" format
         let colorCode = parseColorWithOpacity(modifier: modifier)
-        return "\(nextIndent).foregroundStyle(\(colorCode))"
+        return "\(indent).foregroundStyle(\(colorCode))"
     }
     
     /// Parse "colorname:opacity" format
@@ -662,32 +663,32 @@ struct CodeGenerator {
         
         // Check for custom size (number)
         if let _ = Double(size) {
-            return "\(nextIndent).font(.system(size: \(size), weight: .\(weight)\(designCode)))"
+            return "\(indent).font(.system(size: \(size), weight: .\(weight)\(designCode)))"
         }
         
         // Preset size
         // If we have design or non-regular weight, utilize .system(style, design, weight)
         if !designCode.isEmpty || weight != "regular" {
-             return "\(nextIndent).font(.system(.\(size)\(designCode), weight: .\(weight)))"
+             return "\(indent).font(.system(.\(size)\(designCode), weight: .\(weight)))"
         }
         
         // Simple case: just size (regular weight, default design)
-        return "\(nextIndent).font(.\(size))"
+        return "\(indent).font(.\(size))"
     }
     
     private static func generateCornerRadiusModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let radius = modifier.getCGFloat(key: "radius", defaultValue: 8)
-        return "\(nextIndent).cornerRadius(\(formatNumber(Double(radius))))"
+        return "\(indent).cornerRadius(\(formatNumber(Double(radius))))"
     }
     
     private static func generateOpacityModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let opacity = modifier.getDouble(key: "opacity", defaultValue: 1.0)
-        return "\(nextIndent).opacity(\(formatNumber(opacity)))"
+        return "\(indent).opacity(\(formatNumber(opacity)))"
     }
     
     private static func generateTextAlignmentModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let alignment = modifier.properties["alignment"] as? String ?? "leading"
-        return "\(nextIndent).multilineTextAlignment(.\(alignment))"
+        return "\(indent).multilineTextAlignment(.\(alignment))"
     }
     
     private static func generateShadowModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
@@ -722,15 +723,15 @@ struct CodeGenerator {
         // Generate shadow code - note: SwiftUI's standard shadow doesn't support x/y offsets
         // This code requires a custom View extension: func shadow(color: Color, radius: CGFloat, x: CGFloat, y: CGFloat)
         if x != 0 || y != 0 {
-            return "\(nextIndent).shadow(color: \(colorCode), radius: \(formatNumber(Double(radius))), x: \(formatNumber(Double(x))), y: \(formatNumber(Double(y))))"
+            return "\(indent).shadow(color: \(colorCode), radius: \(formatNumber(Double(radius))), x: \(formatNumber(Double(x))), y: \(formatNumber(Double(y))))"
         } else {
-            return "\(nextIndent).shadow(color: \(colorCode), radius: \(formatNumber(Double(radius))))"
+            return "\(indent).shadow(color: \(colorCode), radius: \(formatNumber(Double(radius))))"
         }
     }
     
     private static func generateRotationModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let angle = modifier.getDouble(key: "angle", defaultValue: 0)
-        return "\(nextIndent).rotationEffect(.degrees(\(formatNumber(angle))))"
+        return "\(indent).rotationEffect(.degrees(\(formatNumber(angle))))"
     }
     
     private static func generateScaleModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
@@ -749,9 +750,9 @@ struct CodeGenerator {
         }
         
         if x == y {
-            return "\(nextIndent).scaleEffect(\(formatNumber(x)))"
+            return "\(indent).scaleEffect(\(formatNumber(x)))"
         } else {
-            return "\(nextIndent).scaleEffect(x: \(formatNumber(x)), y: \(formatNumber(y)))"
+            return "\(indent).scaleEffect(x: \(formatNumber(x)), y: \(formatNumber(y)))"
         }
     }
     
@@ -774,12 +775,12 @@ struct CodeGenerator {
             y = modifier.getCGFloat(key: "y", defaultValue: 0)
         }
         
-        return "\(nextIndent).offset(x: \(formatNumber(Double(x))), y: \(formatNumber(Double(y))))"
+        return "\(indent).offset(x: \(formatNumber(Double(x))), y: \(formatNumber(Double(y))))"
     }
     
     private static func generateBlurModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let radius = modifier.getCGFloat(key: "radius", defaultValue: 0)
-        return "\(nextIndent).blur(radius: \(formatNumber(Double(radius))))"
+        return "\(indent).blur(radius: \(formatNumber(Double(radius))))"
     }
     
     private static func generateOverlayModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
@@ -788,7 +789,7 @@ struct CodeGenerator {
             let alignment = modifier.properties["alignment"] as? String ?? "center"
             let alignmentCode = alignmentFromString(alignment)
             let childCode = generateCode(for: parentComponent, indentLevel: indentLevel + 1)
-            return "\(nextIndent).overlay(\n\(childCode)\n\(indent), alignment: .\(alignmentCode))"
+            return "\(indent).overlay(\n\(childCode)\n\(indent), alignment: .\(alignmentCode))"
         }
         
         return ""
@@ -797,7 +798,7 @@ struct CodeGenerator {
     private static func generateBorderModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let width = modifier.getCGFloat(key: "width", defaultValue: 1)
         let color = modifier.properties["color"]
-        return "\(nextIndent).border(\(colorToString(color)), width: \(formatNumber(Double(width))))"
+        return "\(indent).border(\(colorToString(color)), width: \(formatNumber(Double(width))))"
     }
     
     private static func generateClipShapeModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
@@ -818,16 +819,16 @@ struct CodeGenerator {
         
         switch shapeName {
         case "Circle":
-            return "\(nextIndent).clipShape(Circle())"
+            return "\(indent).clipShape(Circle())"
         case "Capsule":
-            return "\(nextIndent).clipShape(Capsule())"
+            return "\(indent).clipShape(Capsule())"
         case "RoundedRectangle":
             let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 8)
-            return "\(nextIndent).clipShape(RoundedRectangle(cornerRadius: \(formatNumber(Double(radius)))))"
+            return "\(indent).clipShape(RoundedRectangle(cornerRadius: \(formatNumber(Double(radius)))))"
         case "Ellipse":
-            return "\(nextIndent).clipShape(Ellipse())"
+            return "\(indent).clipShape(Ellipse())"
         default:
-            return "\(nextIndent).clipShape(Rectangle())"
+            return "\(indent).clipShape(Rectangle())"
         }
     }
     
@@ -835,33 +836,33 @@ struct CodeGenerator {
         // Check if there's a parent component for this modifier (mask with children)
         if let parentComponent = component.getParentComponentForModifier(modifier.id) {
             let childCode = generateCode(for: parentComponent, indentLevel: indentLevel + 1)
-            return "\(nextIndent).mask(\n\(childCode)\n\(indent))"
+            return "\(indent).mask(\n\(childCode)\n\(indent))"
         }
         
         // Fallback to shape mask
         let shapeName = modifier.properties["shape"] as? String ?? "Rectangle"
         switch shapeName {
         case "Circle":
-            return "\(nextIndent).mask(Circle())"
+            return "\(indent).mask(Circle())"
         case "Capsule":
-            return "\(nextIndent).mask(Capsule())"
+            return "\(indent).mask(Capsule())"
         case "RoundedRectangle":
             let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 8)
-            return "\(nextIndent).mask(RoundedRectangle(cornerRadius: \(radius)))"
+            return "\(indent).mask(RoundedRectangle(cornerRadius: \(radius)))"
         default:
-            return "\(nextIndent).mask(Rectangle())"
+            return "\(indent).mask(Rectangle())"
         }
     }
     
     private static func generateAspectRatioModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let mode = modifier.properties["aspectRatio"] as? String ?? "fit"
         let contentMode = mode == "fill" ? ".fill" : ".fit"
-        return "\(nextIndent).aspectRatio(contentMode: \(contentMode))"
+        return "\(indent).aspectRatio(contentMode: \(contentMode))"
     }
     
     private static func generateZIndexModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
         let index = modifier.getDouble(key: "index", defaultValue: 0)
-        return "\(nextIndent).zIndex(\(index))"
+        return "\(indent).zIndex(\(index))"
     }
     
     // MARK: - Helper Functions

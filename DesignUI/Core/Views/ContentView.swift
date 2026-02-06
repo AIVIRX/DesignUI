@@ -16,7 +16,7 @@ struct ContentView: View {
     @StateObject private var authViewModel = AuthViewModel()
     @State private var selectedTab: Tabs = .home
     let client = SupabaseManager.shared.client
-
+    
     enum Tabs: Hashable {
         case home
         case news

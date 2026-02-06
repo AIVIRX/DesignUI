@@ -100,7 +100,7 @@ struct DesignUIApp: App {
         // Enable auto-cleanup when memory warning
         SDImageCache.shared.config.shouldUseWeakMemoryCache = true
         // Set disk cache limit to 200MB
-        SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 7 // 7 days
+        SDImageCache.shared.config.maxDiskAge = 3600 * 24 * 3 // 3 days
         SDImageCache.shared.config.maxDiskSize = 200 * 1024 * 1024 // 200MB
     }
     
@@ -161,13 +161,8 @@ struct MainWindow: View {
                 // Handle file import
                 guard url.isFileURL else { return }
                 
-                // Start accessing security scoped resource
-                #if os(iOS)
-                    defer { url.stopAccessingSecurityScopedResource() }
-                #else
                     _ = (url as NSURL).startAccessingSecurityScopedResource()
                     defer { url.stopAccessingSecurityScopedResource() }
-                #endif
                 
                 print("📂 Opening file: \(url.path)")
                 

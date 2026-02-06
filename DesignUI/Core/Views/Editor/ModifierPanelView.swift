@@ -171,6 +171,7 @@ struct ModifierReorderableList: View {
     enum ModifierDropPosition { case none, above, below }
     
     var body: some View {
+        let modifierOrder = component.modifiers.map { $0.id }
         LazyVStack(spacing: 8) {
             ForEach(Array(component.modifiers.enumerated()), id: \.element.id) { index, modifier in
                 ModifierItemView(
@@ -190,13 +191,12 @@ struct ModifierReorderableList: View {
                 )
             }
         }
+        .animation(nil, value: modifierOrder)
         .onChange(of: draggingId) { _, newValue in
             // When drag ends (draggingId becomes nil), immediately clear drop indicators
             if newValue == nil {
-                withAnimation(.easeOut(duration: 0.15)) {
-                    dragOverTarget = nil
-                    dragOverPosition = .none
-                }
+                dragOverTarget = nil
+                dragOverPosition = .none
             }
         }
     }
@@ -449,7 +449,9 @@ struct ModifierDropDelegate: DropDelegate {
         
         // Clear indicators immediately before performing move
         clearDropIndicators()
-        onMove(sourceIndex, targetIndex)
+        withAnimation(.none) {
+            onMove(sourceIndex, targetIndex)
+        }
         
         // Clear draggingId to signal drag is complete
         DispatchQueue.main.async {
@@ -480,21 +482,17 @@ struct ModifierDropDelegate: DropDelegate {
     private func updatePosition(info: DropInfo) {
         let y = info.location.y
         let height = 32.0 // Approximate row height
-        
-        withAnimation(.easeOut(duration: 0.1)) {
-            if y < height * 0.5 {
-                dragOverPosition = .above
-            } else {
-                dragOverPosition = .below
-            }
+
+        if y < height * 0.5 {
+            dragOverPosition = .above
+        } else {
+            dragOverPosition = .below
         }
     }
     
     private func clearDropIndicators() {
-        withAnimation(.easeOut(duration: 0.15)) {
-            dragOverTarget = nil
-            dragOverPosition = .none
-        }
+        dragOverTarget = nil
+        dragOverPosition = .none
     }
     
     private func findModifierIndex(id: UUID) -> Int? {

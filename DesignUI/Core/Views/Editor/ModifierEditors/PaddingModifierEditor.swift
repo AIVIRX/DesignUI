@@ -55,6 +55,7 @@ struct PaddingModifierEditor: View {
                         UndoableSlider(
                             value: $paddingAmount,
                             range: 0...100,
+                            step: 1,
                             onValueChanged: { _ in
                                 // Continuous update during drag - no undo save
                                 savePaddingContinuous()
@@ -128,13 +129,13 @@ struct PaddingModifierEditor: View {
     }
     
     private func loadPadding() {
-        paddingAmount = modifier.getCGFloat(key: "amount", defaultValue: 10)
+        paddingAmount = round(modifier.getCGFloat(key: "amount", defaultValue: 10))
         selectedLocation = modifier.properties["location"] as? String ?? "all"
     }
     
     private func savePadding() {
         var updatedModifier = modifier
-        updatedModifier.properties["amount"] = paddingAmount
+        updatedModifier.properties["amount"] = round(paddingAmount)
         updatedModifier.properties["location"] = selectedLocation
         modifier = updatedModifier
     }
@@ -142,7 +143,7 @@ struct PaddingModifierEditor: View {
     /// Continuous save during slider drag - no undo state save
     private func savePaddingContinuous() {
         var updatedModifier = modifier
-        updatedModifier.properties["amount"] = paddingAmount
+        updatedModifier.properties["amount"] = round(paddingAmount)
         updatedModifier.properties["location"] = selectedLocation
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)

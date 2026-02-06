@@ -1,4 +1,5 @@
 import SwiftUI
+import SDWebImageSwiftUI
 
 enum ProfileTab {
     case liked
@@ -45,15 +46,13 @@ struct ProfileView: View {
                         // Avatar
                         ZStack(alignment: .bottomTrailing) {
                             if let avatarUrl = viewModel.profile?.avatarUrl, let url = URL(string: avatarUrl) {
-                                AsyncImage(url: url) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                } placeholder: {
-                                    ProgressView()
-                                }
-                                .frame(width: 80, height: 80)
-                                .clipShape(Circle())
+                                WebImage(url: url)
+                                    .resizable()
+                                    .indicator(.activity)
+                                    .transition(.fade(duration: 0.2))
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 80)
+                                    .clipShape(Circle())
                             } else {
                                 ZStack {
                                     Circle()

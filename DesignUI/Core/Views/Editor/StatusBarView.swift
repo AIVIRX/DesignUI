@@ -9,9 +9,7 @@ import SwiftUI
 
 struct StatusBarView: View {
     let deviceSize: CGSize
-    let isSelected: Bool
     let colorScheme: ColorScheme?
-    let onSelect: () -> Void
     
     private var statusBarHeight: CGFloat {
         return 50.0
@@ -57,12 +55,5 @@ struct StatusBarView: View {
         .padding(.horizontal, 15)
         .frame(width: deviceSize.width, height: statusBarHeight)
         .contentShape(Rectangle())
-        .onTapGesture {
-            onSelect()
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: 0)
-                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
-        )
     }
 }
