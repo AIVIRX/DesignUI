@@ -236,6 +236,8 @@ struct LayersPanelView: View {
                         .frame(width: 500, height: 400)
                 }
         #endif
+                
+
             }
         }
     }
@@ -546,6 +548,8 @@ private func canAcceptChildren(_ component: UIComponent) -> Bool {
 }
 
 private enum DropPosition { case none, above, inside, below }
+
+
 
 private struct EmptyLayersState: View {
     var body: some View {

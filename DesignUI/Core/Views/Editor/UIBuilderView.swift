@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FluidGradient
 #if os(macOS)
 import AppKit
 #else
@@ -341,15 +342,8 @@ struct UIBuilderView: View {
                         .padding()
                     }
                     
-                    // Center Canvas Area with AI Bar
-                    ZStack(alignment: .bottom) {
-                        // Spacer to fill the remaining width between panels (acting like the original Spacer)
-                        Color.clear
-                        
-                        // AI Command Bar constrained to the center area
-
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    // Center Canvas Area (just a spacer)
+                    Spacer()
                     
                     if showPropertiesPanel && canvasManager.selectedComponent != nil {
                         ResizablePanel(
@@ -810,6 +804,9 @@ struct UIBuilderView: View {
                 Spacer(minLength: 0) // Ensure panel stretches if content is short
             }
             .editorPanelStyle()
+            
+            // AI Command Bar below the layers panel
+            AICommandBar(canvasManager: canvasManager)
         }
     }
     
@@ -1968,5 +1965,99 @@ struct EditorPanelStyle: ViewModifier {
 extension View {
     func editorPanelStyle() -> some View {
         modifier(EditorPanelStyle())
+    }
+}
+
+struct AICommandBar: View {
+    @ObservedObject var canvasManager: CanvasManager
+    @State private var prompt: String = ""
+    @State private var isGenerating: Bool = false
+    
+    private let maxCharacters = 200
+    
+    private var characterCount: Int {
+        prompt.count
+    }
+    
+    private var isOverLimit: Bool {
+        characterCount > maxCharacters
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Text input area
+            TextField("What would you like to do?", text: $prompt, axis: .vertical)
+                .textFieldStyle(.plain)
+                .lineLimit(2...4)
+                .onChange(of: prompt) { _, newValue in
+                    // Enforce character limit
+                    if newValue.count > maxCharacters {
+                        prompt = String(newValue.prefix(maxCharacters))
+                    }
+                }
+                .onSubmit {
+                    generate()
+                }
+            
+            // Bottom row: @ Component, character count, send button
+            HStack {
+                Text("@ Component")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                // Character count: current / limit
+                Text("\(characterCount) / \(maxCharacters)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(characterCount >= maxCharacters ? .red : .primary)
+                
+                // Send button
+                Button(action: generate) {
+                    if isGenerating {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Circle().fill(prompt.isEmpty ? Color.gray : Color.indigo))
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(prompt.isEmpty || isGenerating)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.background)
+        )
+        .overlay(
+            FluidGradient(
+                blobs: [.indigo, .blue, .purple],
+                speed: 0.8,
+                blur: 0.5
+            )
+            .mask(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(lineWidth: 2)
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    
+    private func generate() {
+        guard !prompt.isEmpty && !isGenerating && !isOverLimit else { return }
+        
+        isGenerating = true
+        let currentPrompt = prompt
+        prompt = ""
+        
+        Task {
+            await canvasManager.generateAIContent(prompt: currentPrompt)
+            isGenerating = false
+        }
     }
 }

@@ -474,6 +474,40 @@ class CanvasManager: ObservableObject {
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
+    @MainActor
+    func generateAIContent(prompt: String) async {
+        // Prepare context
+        let context: [String: String] = [
+            "current_components_count": "\(components.count)",
+            "selected_component": selectedComponent?.type.rawValue ?? "none"
+        ]
+        
+        do {
+            let newComponents = try await AIService.shared.generateUI(prompt: prompt, context: context)
+            
+            if !newComponents.isEmpty {
+                registerUndoAction("AI Generation: \(prompt)")
+                
+                // If it's a full screen/page, we might want to replace or append
+                // For now, let's append to the end or add to selected container
+                if let selected = selectedComponent, canAcceptChildren(selected) {
+                    for component in newComponents {
+                        selected.addChild(component)
+                    }
+                } else {
+                    for component in newComponents {
+                        components.append(component)
+                    }
+                }
+                
+                NotificationCenter.default.post(name: .designChanged, object: nil)
+                undoMessage = "AI generated new content"
+            }
+        } catch {
+            print("❌ AI Generation failed: \(error.localizedDescription)")
+            undoMessage = "AI Generation failed"
+        }
+    }
     
     func updateDesign(with componentsToUpdate: [UIComponent]) {
         saveState(force: true)
@@ -1512,6 +1546,8 @@ class CanvasManager: ObservableObject {
         
         return code
     }
+    
+
 }
 
 // MARK: - Canvas State

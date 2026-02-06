@@ -260,6 +260,9 @@
         }
       }
     },
+    "@ Component" : {
+
+    },
     "@%@" : {
       "localizations" : {
         "ar" : {
@@ -1515,6 +1518,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld"
+          }
+        }
+      }
+    },
+    "%lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld"
           }
         }
       }
@@ -13777,6 +13790,9 @@
           }
         }
       }
+    },
+    "Clear" : {
+
     },
     "Clip Shape" : {
       "localizations" : {
@@ -53631,6 +53647,9 @@
       }
     },
     "Welcome" : {
+
+    },
+    "What would you like to do?" : {
 
     },
     "Widgets" : {
