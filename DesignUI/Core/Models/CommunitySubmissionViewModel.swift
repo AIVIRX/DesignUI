@@ -233,7 +233,6 @@ class CommunitySubmissionViewModel: ObservableObject {
             deviceSize: devicePreset.size,
             colorScheme: colorScheme,
             statusBarComponent: nil,
-            statusBarHasBackground: false
         )
         
         return ScreenshotUtility.shared.captureThumbnail(

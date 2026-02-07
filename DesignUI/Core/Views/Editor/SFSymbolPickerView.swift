@@ -108,6 +108,3 @@ struct SFSymbolPickerView: View {
         .frame(width: 400, height: 500) // Fixed width and height for popover to support scrolling
     }
 }
-
-// MARK: - Image Picker Editor
-

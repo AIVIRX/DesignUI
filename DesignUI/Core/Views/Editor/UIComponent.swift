@@ -1041,10 +1041,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         self.isOverlay = try container.decodeIfPresent(Bool.self, forKey: .isOverlay) ?? false
         self.modifierId = try container.decodeIfPresent(UUID.self, forKey: .modifierId)
         self.modifierType = try container.decodeIfPresent(ModifierType.self, forKey: .modifierType)
-        
-        // RESTORE OPTIONS FROM CODE DEFAULTS AND ADD MISSING PROPERTIES
-        // Since we use diff-only saving, properties at their default value are not in JSON.
-        // We must re-hydrate ALL default properties, using saved values where available.
+
         let defaultProps = UIComponent.defaultProperties(for: self.type)
         var restoredProperties: [ComponentProperty] = []
         
@@ -1166,8 +1163,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
 
 // MARK: - Default Properties Factory
 extension UIComponent {
-
-
     static func defaultProperties(for type: ComponentType) -> [ComponentProperty] {
         switch type {
         case .text:
@@ -1242,7 +1237,6 @@ extension UIComponent {
                 ComponentProperty(key: "value", displayName: "Value", type: .number, value: 0.5, defaultValue: 0.5),
                 ComponentProperty(key: "min", displayName: "Minimum", type: .number, value: 0.0, defaultValue: 0.0),
                 ComponentProperty(key: "max", displayName: "Maximum", type: .number, value: 1.0, defaultValue: 1.0)
-
             ]
         case .chart:
             return [
@@ -1250,26 +1244,6 @@ extension UIComponent {
                 ComponentProperty(key: "dataPreset", displayName: "Data Pattern", type: .dropdown, value: "Increasing", defaultValue: "Increasing", options: ["Increasing", "Decreasing", "Stable", "Volatile"]),
 
                 ComponentProperty(key: "pointCount", displayName: "Point Count", type: .slider, value: 20.0, defaultValue: 20.0, options: [5.0, 30.0]),
-                // Wait, .slider type usually has separate "min" and "max" component properties if it's a dedicated slider component.
-                // But this is a PROPERTY editor. The PropertyEditor for .number usually is a text field.
-                // Do we have a .slider property type?
-                // Checking PropertyType enum in UIComponent (Line 112).
-                // It has `case number`. It doesn't seem to have `.range` or `.slider` as a property type for the EDITOR.
-                // It has `case slider` as a COMPONENT TYPE.
-                // The Editor UI (`PropertiesPanelView`) handles `PropertyType`.
-                // Looking at `UIComponent.swift` lines 112-135:
-                // `case number`
-                // `case opacity` (likely slider 0-1)
-                // `case cornerRadius` (likely slider)
-                // `case padding` (number)
-                
-                // If I want a slider for "Point Count", I might need to reuse an existing type that renders as slider, OR update `PropertiesPanelView` to support general sliders.
-                // `opacity` renders as slider 0-1.
-                // `cornerRadius` renders as number input (usually).
-                
-                // Let's create a NEW property type `.slider` or re-examine `PropertiesPanelView` to see what renders as a slider.
-                // Step 1 check PropertiesPanelView.
-
 
                 ComponentProperty(key: "color", displayName: "Color", type: .color, value: "blue", defaultValue: "blue"),
                 ComponentProperty(key: "showXAxis", displayName: "Show X Axis", type: .boolean, value: true, defaultValue: true),

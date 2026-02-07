@@ -26,7 +26,6 @@ enum LayoutDistribution {
 
 class CanvasManager: ObservableObject {
     @Published var components: [UIComponent] = []
-    // Simple flag to track if mouse is hovering over any scrollable component
     @Published var isHoveringScrollable: Bool = false
     
     @Published var selectedComponent: UIComponent? {
@@ -39,11 +38,6 @@ class CanvasManager: ObservableObject {
                     selectedComponentIds = [component.id]
                 }
             } else {
-                // If set to nil (deselect), and we aren't handling a toggle operation that managed ids,
-                // we should clear ids.
-                // Note: DeselectAll sets nil, so this is redundant but safe.
-                // Toggle removal sets nil ONLY if ids is empty.
-                // So if ids is NOT empty here, implies external deselect.
                 if !selectedComponentIds.isEmpty {
                     selectedComponentIds.removeAll()
                 }
@@ -67,19 +61,25 @@ class CanvasManager: ObservableObject {
     @Published var colorScheme: ColorScheme? = nil
     @Published var devicePreset: DevicePreset = .iphone16Pro
     
+    // Status bar settings (source of truth going forward)
+    @Published var statusBarVisible: Bool = true {
+        didSet { updateStatusBarComponentFromSettings() }
+    }
+    @Published var statusBarTopSafeArea: Bool = true {
+        didSet { updateStatusBarComponentFromSettings() }
+    }
+    private var isSyncingStatusBarSettings: Bool = false
+    
     // Undo/Redo with action descriptions
     @Published var undoStackVersion: Int = 0 
     private var undoStack: [UndoableAction] = []
     private var redoStack: [UndoableAction] = []
     private let maxUndoSteps = 50
-    private var saveStateWorkItem: DispatchWorkItem?
-    private var lastSavedState: CanvasState? // Track last saved state to prevent duplicates
 
     // Toast message for undo/redo feedback
     @Published var undoMessage: String? = nil
         
     // Current action description (set before making changes)
-    private var pendingActionDescription: String? = nil
     
     // Clipboard for copy/paste
     private var clipboard: UIComponent?
@@ -87,7 +87,7 @@ class CanvasManager: ObservableObject {
     var hasClipboardContent: Bool { clipboard != nil }
     
     // Check if design contains a map component (to disable rasterization)
-    // Check if design contains a map component (to disable rasterization)
+    // Map component is not currently supported in ComponentType.
     var hasMapComponent: Bool {
         return false
     }
@@ -104,18 +104,9 @@ class CanvasManager: ObservableObject {
         selectedComponent = nil
         colorScheme = nil
         statusBarComponent = createStatusBarComponent()
+        syncStatusBarSettingsFromComponent()
         observeStatusBarChanges()
         // Don't save state in init - wait until design is loaded
-        
-        // Listen for AFTER changes - persist to file (debounced)
-        NotificationCenter.default.addObserver(
-            forName: .designChanged,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            // Debounced persistence - don't save undo state here anymore
-            self?.markDesignDirty()
-        }
         
         // Listen for selection requests
         NotificationCenter.default.addObserver(
@@ -150,12 +141,35 @@ class CanvasManager: ObservableObject {
             self.registerUndoAction("Updated Canvas Settings")
         }
     }
+
+    private func syncStatusBarSettingsFromComponent() {
+        guard !isSyncingStatusBarSettings else { return }
+        isSyncingStatusBarSettings = true
+        defer { isSyncingStatusBarSettings = false }
+        guard let statusBar = statusBarComponent else { return }
+        if let show = statusBar.properties.first(where: { $0.key == "showStatusBar" })?.value as? Bool {
+            statusBarVisible = show
+        }
+        if let topSafeArea = statusBar.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool {
+            statusBarTopSafeArea = topSafeArea
+        }
+    }
+
+    private func updateStatusBarComponentFromSettings() {
+        guard !isSyncingStatusBarSettings else { return }
+        isSyncingStatusBarSettings = true
+        defer { isSyncingStatusBarSettings = false }
+        guard let statusBar = statusBarComponent else { return }
+        updateComponentProperty(for: statusBar, key: "showStatusBar", value: statusBarVisible)
+        updateComponentProperty(for: statusBar, key: "topSafeArea", value: statusBarTopSafeArea)
+    }
     
     /// Ensures status bar component has all required properties (migration/hotfix)
     func validateStatusBarProperties() {
         guard let statusBar = statusBarComponent else {
             statusBarComponent = createStatusBarComponent()
             observeStatusBarChanges()
+            syncStatusBarSettingsFromComponent()
             return
         }
         
@@ -185,8 +199,12 @@ class CanvasManager: ObservableObject {
             statusBar.properties = currentProps
             objectWillChange.send()
         }
+        // Always re-observe the current component instance (important after cloning)
+        observeStatusBarChanges()
+        syncStatusBarSettingsFromComponent()
     }
     
+
     // MARK: - Component Management
     func addComponent(_ component: UIComponent) {
         // Register undo action with description BEFORE making the change
@@ -350,7 +368,6 @@ class CanvasManager: ObservableObject {
         let midX = (minX + maxX) / 2
         let midY = (minY + maxY) / 2
         
-        saveState(force: true)
         
         for component in selected {
             switch alignment {
@@ -376,7 +393,6 @@ class CanvasManager: ObservableObject {
         let selected = selectedComponentIds.compactMap { findComponent(by: $0) }
         guard selected.count >= 3 else { return }
         
-        saveState(force: true)
         
         if distribution == .horizontally {
             let sorted = selected.sorted { $0.frame.minX < $1.frame.minX }
@@ -435,7 +451,6 @@ class CanvasManager: ObservableObject {
         
         let groupFrame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
         
-        saveState(force: true)
         
         // Create the group component
         let group = UIComponent(
@@ -469,7 +484,6 @@ class CanvasManager: ObservableObject {
     }
     
     func replaceDesign(with newComponents: [UIComponent]) {
-        saveState(force: true)
         self.components = newComponents
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
@@ -510,7 +524,6 @@ class CanvasManager: ObservableObject {
     }
     
     func updateDesign(with componentsToUpdate: [UIComponent]) {
-        saveState(force: true)
         for updated in componentsToUpdate {
             if let existing = findComponent(by: updated.id) {
                 // Update properties
@@ -686,8 +699,6 @@ class CanvasManager: ObservableObject {
             // For root components, find the index and insert after
             if let originalIndex = components.firstIndex(where: { $0.id == component.id }) {
                 // Cancel any pending debounced saves
-                saveStateWorkItem?.cancel()
-                saveStateWorkItem = nil
                 
                 // Save state BEFORE making the change
                 registerUndoAction("Duplicated \(component.type.rawValue)")
@@ -706,7 +717,6 @@ class CanvasManager: ObservableObject {
         }
         
         // Save state after duplication
-        saveState()
     }
     
     /// Wraps a component in a container (VStack, HStack, ZStack, ScrollView)
@@ -724,9 +734,6 @@ class CanvasManager: ObservableObject {
         if let parentId = findParentId(of: component.id), let parentComponent = findComponent(by: parentId) {
             if let index = parentComponent.children.firstIndex(where: { $0.id == component.id }) {
                 // Cancel any pending debounced saves
-                saveStateWorkItem?.cancel()
-                saveStateWorkItem = nil
-                saveState(force: true)
                 
                 // Remove original from parent
                 parentComponent.children.remove(at: index)
@@ -739,20 +746,15 @@ class CanvasManager: ObservableObject {
                 
                 // Select container
                 selectedComponent = container
-                saveState()
             }
         } else if let index = components.firstIndex(where: { $0.id == component.id }) {
             // Root component
-            saveStateWorkItem?.cancel()
-            saveStateWorkItem = nil
-            saveState(force: true)
             
             components.remove(at: index)
             container.addChild(component)
             components.insert(container, at: index)
             
             selectedComponent = container
-            saveState()
         }
     }
     
@@ -843,11 +845,8 @@ class CanvasManager: ObservableObject {
         let pastedComponent = createDeepCopy(of: copiedComponent)
         
         // Cancel any pending debounced saves
-        saveStateWorkItem?.cancel()
-        saveStateWorkItem = nil
         
         // Save state BEFORE making the change
-        saveState(force: true)
         
         // Add to canvas
         components.append(pastedComponent)
@@ -1028,18 +1027,11 @@ class CanvasManager: ObservableObject {
     /// Save the initial state when loading a design file
     /// This clears undo history for a fresh start
     func saveInitialState() {
-        // Cancel any pending work
-        saveStateWorkItem?.cancel()
-        saveStateWorkItem = nil
         isRestoringState = false
         
         // Clear undo/redo stacks for fresh start
         undoStack.removeAll()
         redoStack.removeAll()
-        
-        let state = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
-        lastSavedState = state
-        
     }
     
     /// Register an undoable action with a description
@@ -1101,23 +1093,6 @@ class CanvasManager: ObservableObject {
         
         debugLog("💾 registerUndoAction: '\(description)' - stack size: \(undoStack.count)")
         undoStackVersion += 1
-    }
-    
-    /// Legacy method - now a no-op, use registerUndoAction instead
-    func saveState(force: Bool = false) {
-        // No-op - use registerUndoAction with explicit description instead
-    }
-    
-    /// Legacy method - no-op
-    private func saveStateForUndo() {
-        // No-op - use registerUndoAction with explicit description instead
-    }
-    
-    /// Mark design as needing to be persisted (but don't save undo state)
-    /// Called via .designChanged notification
-    private func markDesignDirty() {
-        // This is just for file persistence, not undo tracking
-        // The actual persistence is handled by DesignManager listening to .designChanged
     }
     
     /// Create deep copies of components to ensure undo/redo works correctly
@@ -1232,8 +1207,6 @@ class CanvasManager: ObservableObject {
         isRestoringState = true
         
         // Cancel any pending work
-        saveStateWorkItem?.cancel()
-        saveStateWorkItem = nil
         
         // Restore components
         components = deepCopyComponents(state.components)
@@ -1271,8 +1244,6 @@ class CanvasManager: ObservableObject {
             }
         }
         
-        // Update lastSavedState to match restored state
-        lastSavedState = state
         
         // Clear restore flag BEFORE posting notifications
         isRestoringState = false
@@ -1393,6 +1364,14 @@ class CanvasManager: ObservableObject {
         
         actualComponent.setProperty(key: key, value: value)
         
+        if actualComponent.type == .statusBar {
+            if key == "showStatusBar", let boolValue = value as? Bool {
+                statusBarVisible = boolValue
+            } else if key == "topSafeArea", let boolValue = value as? Bool {
+                statusBarTopSafeArea = boolValue
+            }
+        }
+        
         // Keep panel in sync: if caller passed a stale reference (e.g. after undo), point selection at the actual instance
         if selectedComponent?.id == actualComponent.id && selectedComponent !== actualComponent {
             selectedComponent = actualComponent
@@ -1412,6 +1391,14 @@ class CanvasManager: ObservableObject {
         }
         
         actualComponent.setPropertyContinuous(key: key, value: value)
+        
+        if actualComponent.type == .statusBar {
+            if key == "showStatusBar", let boolValue = value as? Bool {
+                statusBarVisible = boolValue
+            } else if key == "topSafeArea", let boolValue = value as? Bool {
+                statusBarTopSafeArea = boolValue
+            }
+        }
         
         // Keep panel in sync if caller passed a stale reference
         if selectedComponent?.id == actualComponent.id && selectedComponent !== actualComponent {
@@ -1441,7 +1428,6 @@ class CanvasManager: ObservableObject {
         
         component.addOverlayChild(overlayComponent)
         selectedComponent = overlayComponent
-        saveState()
     }
     
     // MARK: - Design Management
@@ -1501,7 +1487,6 @@ class CanvasManager: ObservableObject {
         
         code += """
         
-        
         struct \(viewName): View {
             var body: some View {
         """
@@ -1539,15 +1524,10 @@ class CanvasManager: ObservableObject {
         }
         
         code += "\n" + bodyContent
-        
-
-        
         code += "\n    }\n}\n\n#Preview {\n    \(viewName)()\n}"
         
         return code
     }
-    
-
 }
 
 // MARK: - Canvas State

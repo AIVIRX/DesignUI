@@ -32,6 +32,7 @@ class DesignFile: ObservableObject, Identifiable {
     @Published var selectedDevicePreset: String? // Store selected device preset for canvas
     @Published var canvasColorScheme: String? // Store canvas color scheme (light/dark)
     @Published var statusBarVisible: Bool = true // Store status bar visibility
+    @Published var statusBarTopSafeArea: Bool = true // Store top safe area setting
     @Published var isDeleted: Bool = false // Flag to prevent saving after deletion
     let fileURL: URL
     
@@ -282,7 +283,8 @@ class DesignFile: ObservableObject, Identifiable {
                 devicePreset: devicePreset,
                 selectedDevicePreset: selectedDevicePreset,
                 canvasColorScheme: canvasColorScheme,
-                statusBarVisible: statusBarVisible
+                statusBarVisible: statusBarVisible,
+                statusBarTopSafeArea: statusBarTopSafeArea
             ))
             
             // Capture immutable values for background block
@@ -368,6 +370,7 @@ class DesignFile: ObservableObject, Identifiable {
             designFile.selectedDevicePreset = designData.selectedDevicePreset ?? designData.devicePreset ?? designFile.selectedDevicePreset
             designFile.canvasColorScheme = designData.canvasColorScheme ?? "light"
             designFile.statusBarVisible = designData.statusBarVisible ?? true
+            designFile.statusBarTopSafeArea = designData.statusBarTopSafeArea ?? true
             return designFile
         } catch {
             // Catch decoding errors specific to data corruption or schema mismatch
@@ -414,9 +417,10 @@ struct DesignFileData: Codable, Equatable {
     let selectedDevicePreset: String?
     let canvasColorScheme: String?
     let statusBarVisible: Bool?
+    let statusBarTopSafeArea: Bool?
     
     enum CodingKeys: String, CodingKey {
-        case id, name, pages, currentPageIndex, components, lastModified, thumbnail, devicePreset, selectedDevicePreset, canvasColorScheme, statusBarVisible
+        case id, name, pages, currentPageIndex, components, lastModified, thumbnail, devicePreset, selectedDevicePreset, canvasColorScheme, statusBarVisible, statusBarTopSafeArea
     }
     
     init(from decoder: Decoder) throws {
@@ -443,6 +447,7 @@ struct DesignFileData: Codable, Equatable {
             self.selectedDevicePreset = decoded.selectedDevicePreset
             self.canvasColorScheme = decoded.canvasColorScheme
             self.statusBarVisible = decoded.statusBarVisible
+            self.statusBarTopSafeArea = decoded.statusBarTopSafeArea
             return
         }
         
@@ -468,10 +473,11 @@ struct DesignFileData: Codable, Equatable {
         selectedDevicePreset = try container.decodeIfPresent(String.self, forKey: .selectedDevicePreset)
         canvasColorScheme = try container.decodeIfPresent(String.self, forKey: .canvasColorScheme)
         statusBarVisible = try container.decodeIfPresent(Bool.self, forKey: .statusBarVisible)
+        statusBarTopSafeArea = try container.decodeIfPresent(Bool.self, forKey: .statusBarTopSafeArea)
     }
     
     // New format initializer (with pages)
-    init(id: UUID? = nil, name: String, pages: [DesignPage], currentPageIndex: Int, lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
+    init(id: UUID? = nil, name: String, pages: [DesignPage], currentPageIndex: Int, lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true, statusBarTopSafeArea: Bool = true) {
         self.id = id
         self.name = name
         self.pages = pages
@@ -483,10 +489,11 @@ struct DesignFileData: Codable, Equatable {
         self.selectedDevicePreset = selectedDevicePreset
         self.canvasColorScheme = canvasColorScheme
         self.statusBarVisible = statusBarVisible
+        self.statusBarTopSafeArea = statusBarTopSafeArea
     }
     
     // Legacy format initializer (for backwards compatibility)
-    init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true) {
+    init(name: String, components: [UIComponent], lastModified: Date, thumbnail: Data? = nil, devicePreset: String? = nil, selectedDevicePreset: String? = nil, canvasColorScheme: String? = nil, statusBarVisible: Bool = true, statusBarTopSafeArea: Bool = true) {
         self.id = nil
         self.name = name
         self.pages = nil
@@ -498,6 +505,7 @@ struct DesignFileData: Codable, Equatable {
         self.selectedDevicePreset = selectedDevicePreset
         self.canvasColorScheme = canvasColorScheme
         self.statusBarVisible = statusBarVisible
+        self.statusBarTopSafeArea = statusBarTopSafeArea
     }
 }
 
@@ -965,6 +973,7 @@ class DesignManager: ObservableObject {
         newDesign.selectedDevicePreset = designData.selectedDevicePreset ?? designData.devicePreset ?? "iPhone 17 Pro Max"
         newDesign.devicePreset = designData.devicePreset ?? newDesign.selectedDevicePreset
         newDesign.statusBarVisible = designData.statusBarVisible ?? true
+        newDesign.statusBarTopSafeArea = designData.statusBarTopSafeArea ?? true
         
         // Save to disk
         newDesign.save()

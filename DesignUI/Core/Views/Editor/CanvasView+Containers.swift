@@ -21,7 +21,6 @@ struct ComponentsContainerView: View {
     let selectedDevice: DevicePreset
     let colorScheme: ColorScheme?
     let statusBarComponent: UIComponent?
-    let statusBarHasBackground: Bool
     let canvasManager: CanvasManager
     let screenGeometry: GeometryProxy
     
@@ -34,7 +33,7 @@ struct ComponentsContainerView: View {
                     selectedDevice: selectedDevice,
                     colorScheme: colorScheme,
                     statusBarComponent: statusBarComponent,
-                    statusBarHasBackground: statusBarHasBackground,
+                    statusBarTopSafeArea: canvasManager.statusBarTopSafeArea,
                     screenGeometry: screenGeometry,
                     canvasManager: canvasManager
                 )
@@ -72,14 +71,14 @@ struct ComponentsContainerWithStatusBar: View {
     let selectedDevice: DevicePreset
     let colorScheme: ColorScheme?
     @ObservedObject var statusBarComponent: UIComponent
-    let statusBarHasBackground: Bool
+    let statusBarTopSafeArea: Bool
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
     
     var body: some View {
         VStack(spacing: 0) {
             // Top padding (Safe Area)
-            if let topSafeArea = statusBarComponent.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool, topSafeArea {
+            if statusBarTopSafeArea {
                 Spacer()
                     .frame(height: 50) // Top padding for status bar
             }
@@ -117,7 +116,7 @@ struct ComponentsContainerWithStatusBar: View {
         .clipped() // Prevent content from expanding beyond the screen bounds
         .contentShape(Rectangle())
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarComponent.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarTopSafeArea)
         .onTapGesture {
             // Deselect when clicking empty space
             canvasManager.deselectAll()
@@ -224,7 +223,6 @@ struct StatusBarContainerView: View {
     @ObservedObject var statusBarComponent: UIComponent
     let deviceSize: CGSize
     let colorScheme: ColorScheme?
-    let statusBarHasBackground: Bool
     var body: some View {
         // Show status bar overlay if enabled
         if let showStatusBar = statusBarComponent.properties.first(where: { $0.key == "showStatusBar" })?.value as? Bool, showStatusBar {

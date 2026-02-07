@@ -205,7 +205,6 @@ struct UIBuilderView: View {
 
     @State private var showCodePreview = false
     @State private var baseZoomLevel: CGFloat = 1.0
-    @State private var statusBarHasBackground: Bool = false
     @State private var canvasViewportSize: CGSize = .zero
     
     // Panel states
@@ -217,12 +216,6 @@ struct UIBuilderView: View {
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
 
-    // iOS half sheet states (iPhone only, iPad uses floating panels)
-    @State private var showLayersSheet = false
-    @State private var showPropertiesInPanel = false // For NavigationStack inside panel
-    @State private var layersSheetHeight: CGFloat = 0.5 // Half open by default
-    @State private var propertiesSheetHeight: CGFloat = 0.5 // Half open by default
-    
     @State private var showComponentLibrary = false
     @State private var showCommunitySubmission = false
     
@@ -847,7 +840,6 @@ struct UIBuilderView: View {
             selectedComponent: $canvasManager.selectedComponent,
             selectedDevice: canvasManager.devicePreset,
             baseZoomLevel: $baseZoomLevel,
-            statusBarHasBackground: $statusBarHasBackground,
             colorScheme: $canvasManager.colorScheme
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1115,83 +1107,6 @@ struct UIBuilderView: View {
         }
     }
     
-    private var devicePresetsList: some View {
-        List {
-            Section("iPhone") {
-                ForEach(DevicePreset.iphones) { preset in
-                    Button(action: {
-                        canvasManager.setDevicePreset(preset)
-                    }) {
-                        HStack {
-                            Text(preset.rawValue)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if canvasManager.devicePreset == preset {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                }
-            }
-            
-            Section("iPad") {
-                ForEach(DevicePreset.ipads) { preset in
-                    Button(action: {
-                        canvasManager.setDevicePreset(preset)
-                    }) {
-                        HStack {
-                            Text(preset.rawValue)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if canvasManager.devicePreset == preset {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                }
-            }
-            
-            Section("Widgets") {
-                ForEach(DevicePreset.widgets) { preset in
-                    Button(action: {
-                        canvasManager.setDevicePreset(preset)
-                    }) {
-                        HStack {
-                            Text(preset.rawValue)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if canvasManager.devicePreset == preset {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                }
-            }
-            
-            Section("Custom") {
-                ForEach(DevicePreset.custom) { preset in
-                    Button(action: {
-                        canvasManager.setDevicePreset(preset)
-                    }) {
-                        HStack {
-                            Text(preset.rawValue)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if canvasManager.devicePreset == preset {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        .listStyle(.insetGrouped)
-    }
-    
     @ViewBuilder
     private var devicePresetsListSections: some View {
         Section("iPhone") {
@@ -1450,16 +1365,12 @@ struct UIBuilderView: View {
             }
     }
     
-    
-    // MARK: - Actions
-    
     private func saveAsScreenshot() {
         let screenshotView = CanvasScreenshotView(
             components: canvasManager.components,
             deviceSize: canvasManager.devicePreset.size,
             colorScheme: canvasManager.colorScheme ?? .light,
             statusBarComponent: canvasManager.statusBarComponent,
-            statusBarHasBackground: statusBarHasBackground
         )
         
         guard let imageData = ScreenshotUtility.shared.captureThumbnail(
@@ -1498,8 +1409,6 @@ struct UIBuilderView: View {
         #endif
     }
     
-
-    
     private func setupCanvas() {
         // Initialize page index from design file
         currentPageIndex = designFile.currentPageIndex
@@ -1513,7 +1422,6 @@ struct UIBuilderView: View {
         canvasManager.saveInitialState()
     }
     
-    /// Switch to a different page
     private func switchToPage(_ pageIndex: Int) {
         // Guard against same page or invalid index
         guard pageIndex != currentPageIndex,
@@ -1540,7 +1448,6 @@ struct UIBuilderView: View {
                 deviceSize: canvasManager.devicePreset.size,
                 colorScheme: canvasManager.colorScheme ?? .light,
                 statusBarComponent: canvasManager.statusBarComponent,
-                statusBarHasBackground: statusBarHasBackground
             )
             if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
                 of: screenshotView,
@@ -1554,6 +1461,7 @@ struct UIBuilderView: View {
             oldPage.devicePreset = canvasManager.devicePreset.rawValue
             oldPage.colorScheme = canvasManager.colorScheme == .light ? "light" : (canvasManager.colorScheme == .dark ? "dark" : nil)
             oldPage.statusBarVisible = designFile.statusBarVisible
+            oldPage.statusBarTopSafeArea = canvasManager.statusBarTopSafeArea
             oldPage.statusBarComponent = canvasManager.statusBarComponent?.clone()
         }
         
@@ -1583,9 +1491,11 @@ struct UIBuilderView: View {
         if let savedStatusBar = newPage.statusBarComponent {
             canvasManager.statusBarComponent = savedStatusBar.clone()
         } else {
-            // Legacy/Default fallback
+            // Legacy/Default fallback (no saved component, use page's boolean fields)
             canvasManager.statusBarComponent?.isVisible = newPage.statusBarVisible
+            canvasManager.statusBarTopSafeArea = newPage.statusBarTopSafeArea
         }
+        // Sync settings from the loaded component (source of truth)
         canvasManager.validateStatusBarProperties()
         designFile.statusBarVisible = newPage.statusBarVisible
         
@@ -1618,8 +1528,15 @@ struct UIBuilderView: View {
         if let savedStatusBar = designFile.currentPage?.statusBarComponent {
             canvasManager.statusBarComponent = savedStatusBar.clone()
         } else {
-             canvasManager.statusBarComponent?.isVisible = designFile.statusBarVisible
+            // Legacy/Default fallback (no saved component, use page's/file's boolean fields)
+            canvasManager.statusBarComponent?.isVisible = designFile.statusBarVisible
+            if let page = designFile.currentPage {
+                canvasManager.statusBarTopSafeArea = page.statusBarTopSafeArea
+            } else {
+                canvasManager.statusBarTopSafeArea = designFile.statusBarTopSafeArea
+            }
         }
+        // Sync settings from the loaded component (source of truth)
         canvasManager.validateStatusBarProperties()
     }
     
@@ -1636,6 +1553,10 @@ struct UIBuilderView: View {
         
         // Save status bar settings to current page
         designFile.currentPage?.statusBarComponent = canvasManager.statusBarComponent?.clone()
+        if let page = designFile.currentPage {
+            page.statusBarTopSafeArea = canvasManager.statusBarTopSafeArea
+        }
+        designFile.statusBarTopSafeArea = canvasManager.statusBarTopSafeArea
         
         // Trigger save
         designFile.markAsChanged()
@@ -1693,22 +1614,6 @@ struct UIBuilderView: View {
         
         // Schedule capture check
         DispatchQueue.main.asyncAfter(deadline: .now() + screenshotDebounceInterval) {
-            // Check if this request is still the latest one (or close enough)
-            // If a newer request came in significantly later, we skip this one
-
-            
-            // If the time since the last request is less than the interval (meaning a new request 
-            // happened recently and reset the timer), we assume the new request's scheduled block 
-            // will handle it. 
-            // Wait... actually, we want to run ONLY if we are the last one.
-            // But checking timeSinceLastRequest is tricky because it grows.
-            
-            // Better logic: The async block runs after N seconds.
-            // When it runs, we verify if (Now - LastRequestTime) >= N.
-            // If I request at t=0, LastReq=0. Block runs at t=0.5.
-            // If I request at t=0.2, LastReq=0.2. 
-            // At t=0.5 (first block), Now=0.5. diff = 0.3. 0.3 < 0.5. Skip.
-            // At t=0.7 (second block), Now=0.7. diff = 0.5. Run.
             
             guard Date().timeIntervalSince(self.lastScreenshotRequestTime) >= self.screenshotDebounceInterval - 0.1 else {
                 return
@@ -1724,7 +1629,6 @@ struct UIBuilderView: View {
             deviceSize: self.canvasManager.devicePreset.size,
             colorScheme: self.canvasManager.colorScheme ?? .light,
             statusBarComponent: self.canvasManager.statusBarComponent,
-            statusBarHasBackground: self.statusBarHasBackground
         )
         
         if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
@@ -1945,8 +1849,6 @@ struct CodeTabView: View {
 }
 #endif
 
-import SwiftUI
-
 struct EditorPanelStyle: ViewModifier {
     @Environment(\.colorScheme) var colorScheme
     
@@ -2010,8 +1912,8 @@ struct AICommandBar: View {
             
             // Bottom row: @ Component, character count, send button
             HStack {
-                Text("@ Component")
-                    .font(.system(size: 12))
+                Text("@")
+                    .font(.largeTitle)
                     .foregroundColor(.secondary)
                 
                 Spacer()

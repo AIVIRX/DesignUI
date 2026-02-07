@@ -410,8 +410,6 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
     }
 }
 
-
-
 // MARK: - NSColor Extension for RGBA Components
 #if os(macOS)
 extension NSColor {

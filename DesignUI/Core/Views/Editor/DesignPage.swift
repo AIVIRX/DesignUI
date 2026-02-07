@@ -20,9 +20,10 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
     @Published var devicePreset: String?  // e.g., "iPhone 16 Pro"
     @Published var colorScheme: String?   // "light", "dark", or nil for system
     @Published var statusBarVisible: Bool
+    @Published var statusBarTopSafeArea: Bool
     @Published var statusBarComponent: UIComponent? // Persisted Canvas Settings
     
-    init(id: UUID = UUID(), name: String = "Page 1", components: [UIComponent] = [], thumbnail: Data? = nil, devicePreset: String? = nil, colorScheme: String? = nil, statusBarVisible: Bool = true, statusBarComponent: UIComponent? = nil) {
+    init(id: UUID = UUID(), name: String = "Page 1", components: [UIComponent] = [], thumbnail: Data? = nil, devicePreset: String? = nil, colorScheme: String? = nil, statusBarVisible: Bool = true, statusBarTopSafeArea: Bool = true, statusBarComponent: UIComponent? = nil) {
         self.id = id
         self.name = name
         self.components = components
@@ -30,13 +31,14 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
         self.devicePreset = devicePreset
         self.colorScheme = colorScheme
         self.statusBarVisible = statusBarVisible
+        self.statusBarTopSafeArea = statusBarTopSafeArea
         self.statusBarComponent = statusBarComponent
     }
     
     // MARK: - Codable
     
     enum CodingKeys: String, CodingKey {
-        case id, name, components, thumbnail, devicePreset, colorScheme, statusBarVisible, statusBarComponent
+        case id, name, components, thumbnail, devicePreset, colorScheme, statusBarVisible, statusBarTopSafeArea, statusBarComponent
     }
     
     required init(from decoder: Decoder) throws {
@@ -48,6 +50,7 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
         devicePreset = try container.decodeIfPresent(String.self, forKey: .devicePreset)
         colorScheme = try container.decodeIfPresent(String.self, forKey: .colorScheme)
         statusBarVisible = try container.decodeIfPresent(Bool.self, forKey: .statusBarVisible) ?? true
+        statusBarTopSafeArea = try container.decodeIfPresent(Bool.self, forKey: .statusBarTopSafeArea) ?? true
         statusBarComponent = try container.decodeIfPresent(UIComponent.self, forKey: .statusBarComponent)
     }
     
@@ -60,6 +63,7 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
         try container.encodeIfPresent(devicePreset, forKey: .devicePreset)
         try container.encodeIfPresent(colorScheme, forKey: .colorScheme)
         try container.encode(statusBarVisible, forKey: .statusBarVisible)
+        try container.encode(statusBarTopSafeArea, forKey: .statusBarTopSafeArea)
         try container.encodeIfPresent(statusBarComponent, forKey: .statusBarComponent)
     }
     
@@ -73,6 +77,7 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
                lhs.devicePreset == rhs.devicePreset &&
                lhs.colorScheme == rhs.colorScheme &&
                lhs.statusBarVisible == rhs.statusBarVisible &&
+               lhs.statusBarTopSafeArea == rhs.statusBarTopSafeArea &&
                lhs.statusBarComponent?.id == rhs.statusBarComponent?.id &&
                lhs.statusBarComponent?.properties.count == rhs.statusBarComponent?.properties.count // Shallow check
     }
@@ -93,6 +98,7 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
             devicePreset: devicePreset,
             colorScheme: colorScheme,
             statusBarVisible: statusBarVisible,
+            statusBarTopSafeArea: statusBarTopSafeArea,
             statusBarComponent: clonedStatusBar
         )
     }

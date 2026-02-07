@@ -6,14 +6,20 @@
 //
 
 import SwiftUI
+import MessageUI
 import StoreKit
 import RevenueCatUI
+#if os(iOS)
+import UIKit
+#endif
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @StateObject private var purchases = PurchasesService.shared
     @State private var showPaywall = false
+    @State private var showShareSheet = false
+    @State private var isShowingMailView = false
     @AppStorage("appearanceMode") private var appearanceMode: String = "auto"
     @Environment(\.openURL) var openURL
 
@@ -309,7 +315,6 @@ struct SettingsView: View {
             }
             .padding()
         }
-
 #if os(iOS)
         .fullScreenCover(isPresented: $showPaywall) {
             CustomPaywallView()
@@ -593,3 +598,19 @@ struct SettingsView: View {
         }
 }
 
+#if os(iOS)
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+#else
+struct ShareSheet: View {
+    let items: [Any]
+    var body: some View { EmptyView() }
+}
+#endif

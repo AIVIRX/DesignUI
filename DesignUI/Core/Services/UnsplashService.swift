@@ -81,9 +81,9 @@ enum UnsplashError: Error {
 
 class UnsplashService: ObservableObject {
     static let shared = UnsplashService()
-    
-    // TODO: Replace with your Supabase Project details
-    private let supabaseUrl = "https://dwxfipenxnqkhgtwggrv.supabase.co/functions/v1/Unsplash-service"
+
+    // Supabase Edge Function proxy
+    private let supabaseUrl = "https://dwxfipenxnqkhgtwggrv.supabase.co/functions/v1/unsplash"
     private let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3eGZpcGVueG5xa2hndHdnZ3J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgwNjU4OTMsImV4cCI6MjA0MzY0MTg5M30.0mg37FPNXhj0drM0TFSlSzpl2Ofc7nyaHqOTnobvjac"
     
     // Common request helper

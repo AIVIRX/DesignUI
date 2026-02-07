@@ -31,9 +31,9 @@ struct CanvasView: View {
     @Binding var selectedComponent: UIComponent?
     let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
-    @Binding var statusBarHasBackground: Bool
     @Binding var colorScheme: ColorScheme?
     @Environment(\.colorScheme) private var appColorScheme
+    @Environment(\.displayScale) private var displayScale
     
     // State for pan gesture
     @State private var currentOffset: CGSize = .zero
@@ -99,6 +99,10 @@ struct CanvasView: View {
         // Calculate zoom values
         let effectiveZoom = localZoomLevel * magnifyScale
         let isActiveGesture = magnifyScale != 1.0
+        // Render at higher backing scale when zoomed in to keep text sharp.
+        // Clamp to avoid extreme memory use.
+        let maxRenderScale = displayScale * 128.0
+        let renderScale = min(max(displayScale, displayScale * stableZoomLevel), maxRenderScale)
         
         return ZStack {
             canvasBackground
@@ -107,11 +111,13 @@ struct CanvasView: View {
             // The stableZoomLevel tracks the last completed zoom for reference
             devicePreview(geometry: geometry)
                 .environment(\.canvasRenderScale, stableZoomLevel)
+                .environment(\.displayScale, renderScale)
                 .scaleEffect(effectiveZoom)
                 .offset(
                     x: currentOffset.width + dragOffset.width,
                     y: currentOffset.height + dragOffset.height
                 )
+                .modifier(ConditionalDrawingGroup(shouldRasterize: !canvasManager.hasMapComponent))
                 // Force view recreation when zoom completes for sharp rendering
                 .id("canvas-\(zoomGeneration)")
                 // Apply transaction to disable animation caching when stable
@@ -350,7 +356,6 @@ struct CanvasView: View {
                                 selectedDevice: selectedDevice,
                                 colorScheme: colorScheme,
                                 statusBarComponent: canvasManager.statusBarComponent,
-                                statusBarHasBackground: statusBarHasBackground,
                                 canvasManager: canvasManager,
                                 screenGeometry: screenGeometry
                             )
@@ -367,7 +372,6 @@ struct CanvasView: View {
                                 statusBarComponent: statusBarComponent,
                                 deviceSize: deviceSize,
                                 colorScheme: colorScheme,
-                                statusBarHasBackground: statusBarHasBackground,
                             )
                         }
                     }
