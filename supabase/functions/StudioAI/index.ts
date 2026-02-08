@@ -7,9 +7,21 @@ const corsHeaders = {
 };
 
 const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+const RATE_LIMIT_SECONDS = 5;
+const FREE_DAILY_LIMIT = 30;
+const PRO_DAILY_LIMIT = 120;
 
 const SYSTEM_PROMPT = `
 You are an expert SwiftUI developer and UI designer creating BEAUTIFUL, MODERN, PREMIUM designs.
+
+### DESIGN REQUIREMENTS (MANDATORY):
+1. COLORS: Use vibrant colors like "purple", "teal", "coral", "indigo", "#FF6B6B". Never just "primary" or "gray".
+2. CORNER RADIUS: Cards (12-20), buttons (8-12). No sharp corners.
+3. BUTTONS: Style with Background, Corner Radius, Padding.
+4. BACKGROUNDS: Use Background modifier with colored shapes for cards/sections.
 
 ### LAYOUT:
 1. USE SPACERS: Add { "type": "Spacer", "properties": {}, "modifiers": [] } to push content:
@@ -102,6 +114,94 @@ serve(async (req) => {
     }
 
     try {
+        if (!supabaseUrl || !supabaseServiceKey) {
+            return new Response(JSON.stringify({ error: "Supabase server configuration missing" }), {
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
+
+        const authHeader = req.headers.get("Authorization") ?? "";
+        const jwt = authHeader.replace("Bearer ", "");
+        if (!jwt) {
+            return new Response(JSON.stringify({ error: "Missing Authorization token" }), {
+                status: 401,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
+
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+        const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(jwt);
+        if (userError || !userData?.user) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), {
+                status: 401,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
+
+        const userId = userData.user.id;
+
+        // Determine subscription status from profiles (best-effort)
+        let isSubscribed = false;
+        try {
+            const { data: profile } = await supabaseAdmin
+                .from("profiles")
+                .select("is_subscribed, is_premium")
+                .eq("id", userId)
+                .maybeSingle();
+            isSubscribed = Boolean(profile?.is_subscribed || profile?.is_premium);
+        } catch (_err) {
+            isSubscribed = false;
+        }
+
+        const dailyLimit = isSubscribed ? PRO_DAILY_LIMIT : FREE_DAILY_LIMIT;
+        const now = new Date();
+        const day = now.toISOString().slice(0, 10); // UTC date
+
+        const { data: usage } = await supabaseAdmin
+            .from("ai_usage")
+            .select("count,last_request_at")
+            .eq("user_id", userId)
+            .eq("day", day)
+            .maybeSingle();
+
+        const currentCount = usage?.count ?? 0;
+        const lastRequestAt = usage?.last_request_at ? new Date(usage.last_request_at) : null;
+        if (lastRequestAt) {
+            const secondsSince = (now.getTime() - lastRequestAt.getTime()) / 1000;
+            if (secondsSince < RATE_LIMIT_SECONDS) {
+                const remainingSeconds = Math.ceil(RATE_LIMIT_SECONDS - secondsSince);
+                return new Response(JSON.stringify({
+                    error: `Rate limit: 1 request every ${RATE_LIMIT_SECONDS}s`,
+                    retry_after: remainingSeconds,
+                    quota: {
+                        remaining: Math.max(0, dailyLimit - currentCount),
+                        limit: dailyLimit,
+                        reset: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString(),
+                        rate_limit_seconds: RATE_LIMIT_SECONDS,
+                    },
+                }), {
+                    status: 429,
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                });
+            }
+        }
+
+        if (currentCount >= dailyLimit) {
+            return new Response(JSON.stringify({
+                error: "Daily AI limit reached",
+                quota: {
+                    remaining: 0,
+                    limit: dailyLimit,
+                    reset: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString(),
+                    rate_limit_seconds: RATE_LIMIT_SECONDS,
+                },
+            }), {
+                status: 429,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
+
         const { prompt, context } = await req.json();
 
         if (!openaiApiKey) {
@@ -170,7 +270,25 @@ serve(async (req) => {
             });
         }
 
-        return new Response(JSON.stringify(parsed), {
+        const newCount = currentCount + 1;
+        await supabaseAdmin
+            .from("ai_usage")
+            .upsert({
+                user_id: userId,
+                day,
+                count: newCount,
+                last_request_at: now.toISOString(),
+                updated_at: now.toISOString(),
+            }, { onConflict: "user_id,day" });
+
+        const quota = {
+            remaining: Math.max(0, dailyLimit - newCount),
+            limit: dailyLimit,
+            reset: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString(),
+            rate_limit_seconds: RATE_LIMIT_SECONDS,
+        };
+
+        return new Response(JSON.stringify({ ...parsed, quota }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
     } catch (err) {

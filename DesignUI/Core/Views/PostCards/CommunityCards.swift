@@ -14,6 +14,7 @@ struct CommunityCards: View {
     var showDeleteButton: Bool = false
     var onOpen: ((DesignPost) -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     private var id: String { post.id }
     private var slug: String { post.slug }
@@ -28,7 +29,7 @@ struct CommunityCards: View {
         return postType == "component"
     }
     
-    @State private var isHovered: Bool = false
+    @State private var isImageHovered: Bool = false
     
     init(
         post: DesignPost,
@@ -91,12 +92,15 @@ struct CommunityCards: View {
                                 .indicator(.activity)
                                 .transition(.fade(duration: 0.3))
                             )
-                            .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
+                            .shadow(color: .black.opacity(isImageHovered ? 0.15 : 0.05), radius: isImageHovered ? 8 : 4, y: isImageHovered ? 4 : 2)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                             )
-                            .scaleEffect(isHovered ? 1.02 : 1.0)
+                            .scaleEffect(isImageHovered ? 1.02 : 1.0)
+                            .onHover { hovering in
+                                isImageHovered = hovering
+                            }
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -135,10 +139,8 @@ struct CommunityCards: View {
                 }
             }
             // Hover effect on the image
-            .shadow(color: .black.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
-            .scaleEffect(isHovered ? 1.02 : 1.0)
-            .animation(.easeInOut(duration: 0.2), value: isHovered)
-            .zIndex(isHovered ? 10 : 0)
+            .animation(.easeInOut(duration: 0.2), value: isImageHovered)
+            .zIndex(isImageHovered ? 10 : 0)
 #else
             NavigationLink(destination: DetailView(
                 id: id,
@@ -165,7 +167,8 @@ struct CommunityCards: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline)
-                        .lineLimit(1)
+                        .lineLimit(horizontalSizeClass == .compact ? 2 : 1)
+                        .minimumScaleFactor(0.85)
                         .foregroundColor(.primary)
                     
                     HStack(spacing: 4) {
@@ -189,30 +192,29 @@ struct CommunityCards: View {
                         print(" CommunityCards: Load button tapped for \(post.title)")
                         onOpen?(post)
                     }) {
-                        Image(systemName: "arrow.down.circle.fill")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.blue)
-                            .padding(12) // Slightly larger padding for better hit area
-                            .background(Color.blue.opacity(0.1))
-                            .clipShape(Circle())
+                        Text("Open")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Color.blue, in: Capsule())
                     }
                     .buttonStyle(ScaleButtonStyle())
-                    .contentShape(Circle())
+                    .contentShape(Capsule())
                 }
             }
             .padding(.top, 2)
         }
-        .contentShape(Rectangle()) // Make the whole area hoverable/tappable
+        .contentShape(Rectangle()) // Keep the whole card clickable
+        #if os(macOS)
         .onHover { hovering in
-            isHovered = hovering
-            #if os(macOS)
             if hovering {
                 NSCursor.pointingHand.push()
             } else {
                 NSCursor.pop()
             }
-            #endif
         }
+        #endif
     }
     
     @ViewBuilder
@@ -238,16 +240,21 @@ struct CommunityCards: View {
                 .transition(.fade(duration: 0.3))
             )
             .shadow(
-                color: .black.opacity(isHovered ? 0.2 : 0.1),
-                radius: isHovered ? 16 : 8,
+                color: .black.opacity(isImageHovered ? 0.2 : 0.1),
+                radius: isImageHovered ? 16 : 8,
                 x: 0,
-                y: isHovered ? 8 : 4
+                y: isImageHovered ? 8 : 4
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
-            .scaleEffect(isHovered ? 1.02 : 1.0)
+            .scaleEffect(isImageHovered ? 1.02 : 1.0)
+            #if os(macOS)
+            .onHover { hovering in
+                isImageHovered = hovering
+            }
+            #endif
 
     }
 }

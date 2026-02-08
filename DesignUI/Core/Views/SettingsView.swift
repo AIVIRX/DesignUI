@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
-import MessageUI
 import StoreKit
 import RevenueCatUI
 #if os(iOS)
+import MessageUI
 import UIKit
 #endif
 

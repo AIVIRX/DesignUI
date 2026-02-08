@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Foundation
+import CryptoKit
 #if os(macOS)
 import AppKit
 public typealias PlatformImage = NSImage
@@ -942,7 +943,7 @@ class DesignManager: ObservableObject {
         return designFile
     }
 
-    func createDesignFromPost(post: DesignPost, name: String) -> DesignFile? {
+    func createDesignFromPost(post: DesignPost, name: String) async -> DesignFile? {
         // Ensure we have design data and convert from AnyCodable to DesignFileData
         guard let designData = post.getDesignData() else { return nil }
         
@@ -975,12 +976,104 @@ class DesignManager: ObservableObject {
         newDesign.statusBarVisible = designData.statusBarVisible ?? true
         newDesign.statusBarTopSafeArea = designData.statusBarTopSafeArea ?? true
         
+        // Download any remote image assets referenced by the design JSON
+        await hydrateRemoteImagesIfNeeded(in: newDesign)
+        
         // Save to disk
         newDesign.save()
         
         // Add to manager
         designFiles.insert(newDesign, at: 0)
         return newDesign
+    }
+
+    private func hydrateRemoteImagesIfNeeded(in design: DesignFile) async {
+        var urlCache: [String: String] = [:]
+        var didUpdate = false
+        
+        func isRemoteURL(_ value: String) -> Bool {
+            let lower = value.lowercased()
+            return lower.hasPrefix("http://") || lower.hasPrefix("https://")
+        }
+        
+        func processComponents(_ components: [UIComponent]) async {
+            for component in components {
+                if component.type == .image {
+                    let imageName = component.getProperty(key: "imageName") as? String ?? ""
+                    let imageDataString = component.getProperty(key: "imageData") as? String ?? ""
+                    
+                    // Prefer imageName if it is a remote URL
+                    if isRemoteURL(imageName) {
+                        if let cached = urlCache[imageName] {
+                            await MainActor.run {
+                                component.setProperty(key: "imageName", value: cached)
+                                component.setProperty(key: "imageData", value: "")
+                            }
+                            didUpdate = true
+                        } else if let filename = await downloadAndStoreRemoteImage(urlString: imageName) {
+                            urlCache[imageName] = filename
+                            await MainActor.run {
+                                component.setProperty(key: "imageName", value: filename)
+                                component.setProperty(key: "imageData", value: "")
+                            }
+                            didUpdate = true
+                        }
+                    } else if isRemoteURL(imageDataString) {
+                        if let cached = urlCache[imageDataString] {
+                            await MainActor.run {
+                                component.setProperty(key: "imageName", value: cached)
+                                component.setProperty(key: "imageData", value: "")
+                            }
+                            didUpdate = true
+                        } else if let filename = await downloadAndStoreRemoteImage(urlString: imageDataString) {
+                            urlCache[imageDataString] = filename
+                            await MainActor.run {
+                                component.setProperty(key: "imageName", value: filename)
+                                component.setProperty(key: "imageData", value: "")
+                            }
+                            didUpdate = true
+                        }
+                    }
+                }
+                
+                if !component.children.isEmpty {
+                    await processComponents(component.children)
+                }
+            }
+        }
+        
+        if !design.pages.isEmpty {
+            for page in design.pages {
+                await processComponents(page.components)
+            }
+        } else {
+            await processComponents(design.components)
+        }
+        
+        if didUpdate {
+            await MainActor.run {
+                design.markAsChanged()
+            }
+        }
+    }
+
+    private func downloadAndStoreRemoteImage(urlString: String) async -> String? {
+        guard let url = URL(string: urlString) else { return nil }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let hash = sha256Hex(urlString)
+            let preferredFilename = "remote-\(hash).jpg"
+            return ImageGalleryManager.shared.saveImage(data: data, preferredFilename: preferredFilename)
+        } catch {
+            debugLog("❌ Failed to download remote image: \(error)")
+            return nil
+        }
+    }
+
+    private func sha256Hex(_ input: String) -> String {
+        let data = Data(input.utf8)
+        let digest = SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
     
     private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {
@@ -1336,6 +1429,29 @@ class ImageGalleryManager: ObservableObject {
             debugLog("ImageGalleryManager: Failed to save image: \(error)")
             // Fallback to raw if optimized write fails (unlikely, but safe)
             return saveRawData(data: data, originalFilename: originalFilename)
+        }
+    }
+
+    func saveImage(data: Data, preferredFilename: String) -> String? {
+        guard let imagesDirectory = imagesDirectory else { return nil }
+        let fileURL = imagesDirectory.appendingPathComponent(preferredFilename)
+        
+        if fileManager.fileExists(atPath: fileURL.path) {
+            return preferredFilename
+        }
+        
+        guard let optimizedData = ImageGalleryManager.compressAndResizeImage(data: data) else {
+            debugLog("ImageGalleryManager: Failed to optimize image, falling back to original data")
+            return saveRawData(data: data, originalFilename: preferredFilename)
+        }
+        
+        do {
+            try optimizedData.write(to: fileURL)
+            debugLog("ImageGalleryManager: Saved optimized image (preferred filename)")
+            return preferredFilename
+        } catch {
+            debugLog("ImageGalleryManager: Failed to save image: \(error)")
+            return saveRawData(data: data, originalFilename: preferredFilename)
         }
     }
     

@@ -183,7 +183,7 @@ struct LikedPostsView: View {
                        let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
                        
                        // 2. Create DesignFile from post
-                       if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
+                       if let newDesign = await designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
                            // 3. Open it
                            await MainActor.run {
                                ToastManager.shared.dismissToast()

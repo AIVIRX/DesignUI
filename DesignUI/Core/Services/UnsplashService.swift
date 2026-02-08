@@ -83,7 +83,7 @@ class UnsplashService: ObservableObject {
     static let shared = UnsplashService()
 
     // Supabase Edge Function proxy
-    private let supabaseUrl = "https://dwxfipenxnqkhgtwggrv.supabase.co/functions/v1/unsplash"
+    private let supabaseUrl = "https://dwxfipenxnqkhgtwggrv.supabase.co/functions/v1/Unsplash-service"
     private let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3eGZpcGVueG5xa2hndHdnZ3J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgwNjU4OTMsImV4cCI6MjA0MzY0MTg5M30.0mg37FPNXhj0drM0TFSlSzpl2Ofc7nyaHqOTnobvjac"
     
     // Common request helper

@@ -208,7 +208,8 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
                 "radius": CGFloat(2),
                 "x": CGFloat(0),
                 "y": CGFloat(2),
-                "color": Color.black
+                "color": "black",
+                "opacity": Double(0.3)
             ]
         case .blur:
             defaultProperties = [
@@ -299,8 +300,16 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         
         try container.encode(type, forKey: .type)
         
-        // Encode properties as [String: AnyCodable]
-        let propertiesDict = properties.mapValues { AnyCodable($0) }
+        // Encode properties as [String: AnyCodable], coercing non-encodable values
+        var propertiesDict: [String: AnyCodable] = [:]
+        for (key, value) in properties {
+            if let color = value as? Color {
+                let colorString = ComponentProperty.colorToColorString(color)
+                propertiesDict[key] = AnyCodable(colorString)
+            } else {
+                propertiesDict[key] = AnyCodable(value)
+            }
+        }
         try container.encode(propertiesDict, forKey: .properties)
     }
     
@@ -409,29 +418,3 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         }
     }
 }
-
-// MARK: - NSColor Extension for RGBA Components
-#if os(macOS)
-extension NSColor {
-    var rgbaComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-        
-        // Convert to RGB color space first to avoid color space issues
-        if let rgbColor = self.usingColorSpace(.sRGB) {
-            rgbColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        } else {
-            // Fallback for colors that can't be converted to RGB
-            // Use a default color (gray) to avoid crashes
-            red = 0.5
-            green = 0.5
-            blue = 0.5
-            alpha = 1.0
-        }
-        
-        return (red: red, green: green, blue: blue, alpha: alpha)
-    }
-}
-#endif

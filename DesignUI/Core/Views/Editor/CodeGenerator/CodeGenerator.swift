@@ -1027,3 +1027,25 @@ struct CodeGenerator {
         }
     }
 }
+
+#if os(macOS)
+extension NSColor {
+    var rgbaComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        
+        if let rgbColor = self.usingColorSpace(.sRGB) {
+            rgbColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        } else {
+            red = 0.5
+            green = 0.5
+            blue = 0.5
+            alpha = 1.0
+        }
+        
+        return (red: red, green: green, blue: blue, alpha: alpha)
+    }
+}
+#endif

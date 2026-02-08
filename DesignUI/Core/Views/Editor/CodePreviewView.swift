@@ -23,6 +23,7 @@ struct CodePreviewView: View {
             .frame(minWidth: 1000, idealWidth: 1400, minHeight: 600, idealHeight: 900)
             .background(Color.gray.opacity(0.1))
             .cornerRadius(20)
+            .preferredColorScheme(.dark)
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(
@@ -36,6 +37,7 @@ struct CodePreviewView: View {
         return content
             .background(Color.gray.opacity(0.1))
             .cornerRadius(20)
+            .preferredColorScheme(.dark)
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(

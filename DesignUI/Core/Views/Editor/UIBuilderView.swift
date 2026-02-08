@@ -22,6 +22,7 @@ extension Notification.Name {
     static let selectComponent = Notification.Name("selectComponent")
     static let minimizeSheet = Notification.Name("minimizeSheet") // Minimize iOS sheet to height 80
     static let dismissChildNavigation = Notification.Name("dismissChildNavigation") // Dismiss child views (add components, modifiers)
+    static let dismissAIPromptFocus = Notification.Name("dismissAIPromptFocus")
 }
 
 struct UndoableSlider: View {
@@ -215,6 +216,7 @@ struct UIBuilderView: View {
     
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
+    @State private var isRestoringCanvasSettings: Bool = false
 
     @State private var showComponentLibrary = false
     @State private var showCommunitySubmission = false
@@ -362,9 +364,15 @@ struct UIBuilderView: View {
 
 #endif
             }
+            .simultaneousGesture(TapGesture().onEnded {
+                NotificationCenter.default.post(name: .dismissAIPromptFocus, object: nil)
+            })
         }
-        .navigationTitle("Studio")
+        .navigationTitle(designFile.name)
         .toolbar { toolbarButtons }
+#if os(macOS)
+        .toolbarBackground(.hidden, for: .windowToolbar)
+#endif
         #if os(macOS)
         .sheet(isPresented: $showCodePreview) {
             CodePreviewView(canvasManager: canvasManager)
@@ -407,7 +415,7 @@ struct UIBuilderView: View {
             }
         }
         .onChange(of: canvasManager.devicePreset) { _, newDevice in
-            if !isSwitchingPage {
+            if !isSwitchingPage && !isRestoringCanvasSettings {
                 saveCanvasSettings()
                 
                 // Auto-hide status bar for widgets and custom (noSize), show for others
@@ -439,9 +447,15 @@ struct UIBuilderView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
             canvasManager.undo()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                captureScreenshot()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
             canvasManager.redo()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                captureScreenshot()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
             if !isSwitchingPage {
@@ -452,7 +466,8 @@ struct UIBuilderView: View {
         .onChange(of: canvasManager.undoStackVersion) { _, _ in
             // Trigger sync when undo stack changes (action performed, undo, or redo)
             // This catches changes like Canvas Settings that aren't in the components array
-            scheduleDesignSync(captureScreenshot: true)
+            scheduleDesignSync(captureScreenshot: false)
+            captureScreenshot()
         }
         .onReceive(NotificationCenter.default.publisher(for: .statusBarVisibilityChanged)) { notification in
             if let isVisible = notification.object as? Bool {
@@ -468,10 +483,10 @@ struct UIBuilderView: View {
         ZStack {
             mainCanvasArea
             
-            // Floating Tab Bar
+            // AI Hub + Panel Controls
             VStack {
                 Spacer()
-                floatingTabBar
+                aiHubBar
             }
         }
         .sheet(isPresented: Binding(
@@ -589,6 +604,7 @@ struct UIBuilderView: View {
                                     Image(systemName: "checkmark")
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                 }
@@ -607,6 +623,7 @@ struct UIBuilderView: View {
                                     Image(systemName: "checkmark")
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                 }
@@ -623,6 +640,7 @@ struct UIBuilderView: View {
                                     Image(systemName: "checkmark")
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                 }
@@ -639,6 +657,7 @@ struct UIBuilderView: View {
                                     Image(systemName: "checkmark")
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                 }
@@ -665,6 +684,7 @@ struct UIBuilderView: View {
                             Image(systemName: "checkmark")
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
                 Button {
@@ -676,6 +696,7 @@ struct UIBuilderView: View {
                             Image(systemName: "checkmark")
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } label: {
                 Image(systemName: canvasManager.colorScheme == .light ? "sun.max.fill" : "moon.fill")
@@ -809,6 +830,10 @@ struct UIBuilderView: View {
         ZStack(alignment: .top) {
             canvasView
         }
+        .ignoresSafeArea()
+        .simultaneousGesture(TapGesture().onEnded {
+            NotificationCenter.default.post(name: .dismissAIPromptFocus, object: nil)
+        })
         .animation(.spring(), value: canvasManager.selectedComponentIds.count)
         .background(
             GeometryReader { geometry in
@@ -913,6 +938,53 @@ struct UIBuilderView: View {
                 .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 5)
                 .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 0)
         )
+        .padding(.bottom, 8)
+    }
+
+    @ViewBuilder
+    private var aiHubBar: some View {
+        VStack(spacing: 10) {
+            AICommandBar(canvasManager: canvasManager)
+            
+            HStack(spacing: 10) {
+                ForEach(AppTab.allCases) { tab in
+                    Button(action: {
+                        if activeTab == tab {
+                            activeTab = nil
+                        } else {
+                            activeTab = tab
+                            selection = .medium
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 12, weight: .semibold))
+                            if activeTab == tab {
+                                Text(tab.rawValue)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .fixedSize()
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, activeTab == tab ? 14 : 10)
+                        .background(
+                            Capsule()
+                                .fill(activeTab == tab ? Color.blue : Color.secondary.opacity(0.12))
+                        )
+                        .foregroundColor(activeTab == tab ? .white : .primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color(uiColor: .systemBackground))
+                    .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 5)
+                    .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 0)
+            )
+        }
+        .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }
     
@@ -1193,8 +1265,17 @@ struct UIBuilderView: View {
                     // iPhones section
                     Section("iPhone") {
                         ForEach(DevicePreset.iphones) { preset in
-                            Button(preset.rawValue) {
+                            Button {
                                 canvasManager.setDevicePreset(preset)
+                            } label: {
+                                HStack {
+                                    Text(preset.rawValue)
+                                    Spacer()
+                                    if canvasManager.devicePreset == preset {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
                     }
@@ -1204,8 +1285,17 @@ struct UIBuilderView: View {
                     // iPads section
                     Section("iPad") {
                         ForEach(DevicePreset.ipads) { preset in
-                            Button(preset.rawValue) {
+                            Button {
                                 canvasManager.setDevicePreset(preset)
+                            } label: {
+                                HStack {
+                                    Text(preset.rawValue)
+                                    Spacer()
+                                    if canvasManager.devicePreset == preset {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
                     }
@@ -1215,8 +1305,17 @@ struct UIBuilderView: View {
                     // Widgets section
                     Section("Widgets") {
                         ForEach(DevicePreset.widgets) { preset in
-                            Button(preset.rawValue) {
+                            Button {
                                 canvasManager.setDevicePreset(preset)
+                            } label: {
+                                HStack {
+                                    Text(preset.rawValue)
+                                    Spacer()
+                                    if canvasManager.devicePreset == preset {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
                     }
@@ -1226,8 +1325,17 @@ struct UIBuilderView: View {
                     // Custom section
                     Section("Custom") {
                         ForEach(DevicePreset.custom) { preset in
-                            Button(preset.rawValue) {
+                            Button {
                                 canvasManager.setDevicePreset(preset)
+                            } label: {
+                                HStack {
+                                    Text(preset.rawValue)
+                                    Spacer()
+                                    if canvasManager.devicePreset == preset {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
                     }
@@ -1245,11 +1353,29 @@ struct UIBuilderView: View {
                 
                 // Color Scheme Picker
                 Menu {
-                    Button("Light") {
+                    Button {
                         canvasManager.setColorScheme(.light)
+                    } label: {
+                        HStack {
+                            Text("Light")
+                            Spacer()
+                            if canvasManager.colorScheme == .light {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    Button("Dark") {
+                    Button {
                         canvasManager.setColorScheme(.dark)
+                    } label: {
+                        HStack {
+                            Text("Dark")
+                            Spacer()
+                            if canvasManager.colorScheme == .dark {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 } label: {
                     Image(systemName: canvasManager.colorScheme == .light ? "sun.max" : "moon")
@@ -1370,7 +1496,8 @@ struct UIBuilderView: View {
             components: canvasManager.components,
             deviceSize: canvasManager.devicePreset.size,
             colorScheme: canvasManager.colorScheme ?? .light,
-            statusBarComponent: canvasManager.statusBarComponent,
+            statusBarVisible: canvasManager.statusBarVisible,
+            statusBarTopSafeArea: canvasManager.statusBarTopSafeArea
         )
         
         guard let imageData = ScreenshotUtility.shared.captureThumbnail(
@@ -1447,7 +1574,8 @@ struct UIBuilderView: View {
                 components: canvasManager.components,
                 deviceSize: canvasManager.devicePreset.size,
                 colorScheme: canvasManager.colorScheme ?? .light,
-                statusBarComponent: canvasManager.statusBarComponent,
+                statusBarVisible: canvasManager.statusBarVisible,
+                statusBarTopSafeArea: canvasManager.statusBarTopSafeArea
             )
             if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
                 of: screenshotView,
@@ -1509,6 +1637,9 @@ struct UIBuilderView: View {
     }
     
     private func restoreCanvasSettings() {
+        isRestoringCanvasSettings = true
+        defer { DispatchQueue.main.async { self.isRestoringCanvasSettings = false } }
+
         // Restore selected device preset
         if let savedDevicePreset = designFile.selectedDevicePreset ?? designFile.devicePreset,
            let devicePreset = DevicePreset.allCases.first(where: { $0.rawValue == savedDevicePreset }) {
@@ -1628,7 +1759,8 @@ struct UIBuilderView: View {
             components: self.canvasManager.components,
             deviceSize: self.canvasManager.devicePreset.size,
             colorScheme: self.canvasManager.colorScheme ?? .light,
-            statusBarComponent: self.canvasManager.statusBarComponent,
+            statusBarVisible: self.canvasManager.statusBarVisible,
+            statusBarTopSafeArea: self.canvasManager.statusBarTopSafeArea
         )
         
         if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
@@ -1882,8 +2014,11 @@ struct AICommandBar: View {
     @State private var prompt: String = ""
     @State private var isGenerating: Bool = false
     @FocusState private var isPromptFocused: Bool
+    @State private var lastSubmitAt: Date? = nil
+    @State private var cooldownEndAt: Date? = nil
     
     private let maxCharacters = 200
+    private let cooldownSeconds: Double = 4.0
     
     private var characterCount: Int {
         prompt.count
@@ -1891,6 +2026,17 @@ struct AICommandBar: View {
     
     private var isOverLimit: Bool {
         characterCount > maxCharacters
+    }
+    
+    private func cooldownRemaining(now: Date) -> Int {
+        guard let cooldownEndAt else { return 0 }
+        let remaining = max(0, cooldownEndAt.timeIntervalSince(now))
+        return Int(ceil(remaining))
+    }
+    
+    private var quotaText: String? {
+        guard let quota = canvasManager.aiQuota else { return nil }
+        return "\(quota.remaining)/\(quota.limit)"
     }
     
     var body: some View {
@@ -1910,55 +2056,86 @@ struct AICommandBar: View {
                     generate()
                 }
             
-            // Bottom row: @ Component, character count, send button
-            HStack {
-                Text("@")
-                    .font(.largeTitle)
-                    .foregroundColor(.secondary)
+            // Bottom row: quota, character count, send button
+            TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
+                let remaining = cooldownRemaining(now: timeline.date)
+                let isCooldownActive = remaining > 0
                 
-                Spacer()
-                
-                // Character count: current / limit
-                Text("\(characterCount) / \(maxCharacters)")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(characterCount >= maxCharacters ? .red : .primary)
-                
-                // Send button
-                Button(action: generate) {
-                    if isGenerating {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else {
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(6)
-                            .background(Circle().fill(prompt.isEmpty ? Color.gray : Color.indigo))
+                HStack {
+                    if let quotaText {
+                        Text(quotaText)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(red: 0.76, green: 0.56, blue: 0.05))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(red: 0.76, green: 0.56, blue: 0.05).opacity(0.18), in: Capsule())
+                            .contentShape(Capsule())
+                            #if os(macOS)
+                            .help("Requests remaining")
+                            #endif
                     }
+                    
+                    Spacer()
+                    
+                    // Characters remaining
+                    Text("\(max(0, maxCharacters - characterCount))")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(characterCount >= maxCharacters ? .red : .secondary)
+                    
+                    // Send button
+                    Button(action: generate) {
+                        if isGenerating {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            ZStack {
+                                if isCooldownActive {
+                                    Text("\(remaining)")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(.white)
+                                } else {
+                                    Image(systemName: "arrow.up")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .padding(6)
+                            .background(
+                                Circle().fill((prompt.isEmpty || isCooldownActive) ? Color.gray : Color.blue)
+                            )
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(prompt.isEmpty || isGenerating || isCooldownActive)
                 }
-                .buttonStyle(.plain)
-                .disabled(prompt.isEmpty || isGenerating)
             }
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.background)
-        )
+        .editorPanelStyle()
         .contentShape(RoundedRectangle(cornerRadius: 12))
         .onTapGesture {
             isPromptFocused = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .dismissAIPromptFocus)) { _ in
+            isPromptFocused = false
+        }
         .overlay(
-            FluidGradient(
-                blobs: [.indigo, .blue, .indigo, .pink],
-                speed: 1.0,
-                blur: 0.5
-            )
-            .mask(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(lineWidth: 2)
-            )
+            Group {
+                if isPromptFocused {
+                    FluidGradient(
+                        blobs: [.indigo, .blue, .indigo, .pink],
+                        speed: 1.0,
+                        blur: 0.5
+                    )
+                    .mask(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(lineWidth: 2)
+                    )
+                } else {
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.secondary.opacity(0.35), lineWidth: 1)
+                }
+            }
             .allowsHitTesting(false)
         )
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -1966,9 +2143,13 @@ struct AICommandBar: View {
     }
     
     private func generate() {
-        guard !prompt.isEmpty && !isGenerating && !isOverLimit else { return }
+        let remaining = cooldownRemaining(now: Date())
+        let isCooldownActive = remaining > 0
+        guard !prompt.isEmpty && !isGenerating && !isOverLimit && !isCooldownActive else { return }
         
         isGenerating = true
+        lastSubmitAt = Date()
+        cooldownEndAt = lastSubmitAt?.addingTimeInterval(cooldownSeconds)
         let currentPrompt = prompt
         prompt = ""
         

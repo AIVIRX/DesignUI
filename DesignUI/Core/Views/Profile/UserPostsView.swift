@@ -196,7 +196,7 @@ struct UserPostsView: View {
                             let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
                             
                             // 2. Create DesignFile from post
-                            if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
+                            if let newDesign = await designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
                                 // 3. Open it
                                 await MainActor.run {
                                     ToastManager.shared.dismissToast()
@@ -221,7 +221,7 @@ struct UserPostsView: View {
                 }
             )
             
-            // Status Badge - positioned at bottom left
+            // Status Badge - positioned at top left
             if isPending {
                 HStack(spacing: 4) {
                     Image(systemName: "clock.fill")
@@ -235,7 +235,7 @@ struct UserPostsView: View {
                 .background(Color.orange.opacity(0.15))
                 .cornerRadius(8)
                 .padding(8)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else if isDenied {
                 HStack(spacing: 4) {
                     Image(systemName: "xmark.circle.fill")
@@ -249,9 +249,8 @@ struct UserPostsView: View {
                 .background(Color.red.opacity(0.15))
                 .cornerRadius(8)
                 .padding(8)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
     }
 }
-

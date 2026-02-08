@@ -69,6 +69,9 @@ class CanvasManager: ObservableObject {
         didSet { updateStatusBarComponentFromSettings() }
     }
     private var isSyncingStatusBarSettings: Bool = false
+
+    // AI quota tracking
+    @Published var aiQuota: AIQuota? = nil
     
     // Undo/Redo with action descriptions
     @Published var undoStackVersion: Int = 0 
@@ -497,19 +500,20 @@ class CanvasManager: ObservableObject {
         ]
         
         do {
-            let newComponents = try await AIService.shared.generateUI(prompt: prompt, context: context)
+            let result = try await AIService.shared.generateUI(prompt: prompt, context: context)
+            aiQuota = result.quota
             
-            if !newComponents.isEmpty {
+            if !result.components.isEmpty {
                 registerUndoAction("AI Generation: \(prompt)")
                 
                 // If it's a full screen/page, we might want to replace or append
                 // For now, let's append to the end or add to selected container
                 if let selected = selectedComponent, canAcceptChildren(selected) {
-                    for component in newComponents {
+                    for component in result.components {
                         selected.addChild(component)
                     }
                 } else {
-                    for component in newComponents {
+                    for component in result.components {
                         components.append(component)
                     }
                 }
@@ -518,8 +522,41 @@ class CanvasManager: ObservableObject {
                 undoMessage = "AI generated new content"
             }
         } catch {
+            if let aiError = error as? AIServiceError {
+                switch aiError {
+                case .rateLimited(_, _, let quota):
+                    aiQuota = quota
+                    undoMessage = aiError.localizedDescription
+                    ToastManager.shared.showToast(ToastData(
+                        title: aiError.localizedDescription,
+                        icon: "clock.fill",
+                        duration: 3.0
+                    ))
+                case .server(_, let quota):
+                    aiQuota = quota
+                    undoMessage = aiError.localizedDescription
+                    ToastManager.shared.showToast(ToastData(
+                        title: aiError.localizedDescription,
+                        icon: "xmark.circle.fill",
+                        duration: 3.0
+                    ))
+                case .decode:
+                    undoMessage = aiError.localizedDescription
+                    ToastManager.shared.showToast(ToastData(
+                        title: aiError.localizedDescription,
+                        icon: "xmark.circle.fill",
+                        duration: 3.0
+                    ))
+                }
+            } else {
+                undoMessage = "AI Generation failed"
+                ToastManager.shared.showToast(ToastData(
+                    title: "AI Generation failed",
+                    icon: "xmark.circle.fill",
+                    duration: 3.0
+                ))
+            }
             print("❌ AI Generation failed: \(error.localizedDescription)")
-            undoMessage = "AI Generation failed"
         }
     }
     

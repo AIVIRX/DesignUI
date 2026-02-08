@@ -86,7 +86,7 @@ struct DesignBrowserView: View {
                             .padding(.horizontal)
                         } else {
                             ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack(spacing: 24) {
+                            LazyHStack(spacing: 16) {
                                     ForEach(designManager.designFiles) { designFile in
                                         DesignCardView(
                                             designFile: designFile,
@@ -174,7 +174,7 @@ struct DesignBrowserView: View {
                                                     let fullPost = try await PostFetcher.fetchPostDetails(id: postToOpen.id)
                                                     
                                                     // 2. Create DesignFile from post
-                                                    if let newDesign = designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
+                                                    if let newDesign = await designManager.createDesignFromPost(post: fullPost, name: fullPost.title) {
                                                         // 3. Open it
                                                                 await MainActor.run {
                                                         ToastManager.shared.dismissToast()
@@ -332,8 +332,11 @@ struct DesignBrowserView: View {
 
 struct HeroHeaderView: View {
     let onCreateNew: () -> Void
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
+        let isCompact = horizontalSizeClass == .compact
+        
         ZStack {
             // Fancy Background
             // Fancy Background
@@ -347,45 +350,85 @@ struct HeroHeaderView: View {
                 )
             
             // Content
-            HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Welcome")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(.secondary)
-                    
-                    Text("Let's Create\nSomething Amazing")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.primary, .primary.opacity(0.7)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .lineLimit(2)
-                }
-                
-                Spacer()
-                
-                Button(action: onCreateNew) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .bold))
-                        Text("Create")
-                            .font(.system(size: 16, weight: .bold))
+            Group {
+                if isCompact {
+                    VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Welcome")
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.secondary)
+                            
+                            Text("Let's Create\nSomething Amazing")
+                                .font(.system(size: 26, weight: .bold, design: .rounded))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.primary, .primary.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                        }
+                        
+                        Button(action: onCreateNew) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 14, weight: .bold))
+                                Text("Create")
+                                    .font(.system(size: 14, weight: .bold))
+                            }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 18)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .clipShape(Capsule())
+                            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.vertical, 14)
-                    .padding(.horizontal, 24)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .clipShape(Capsule())
-                    .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                } else {
+                    HStack(alignment: .bottom) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Welcome")
+                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                .foregroundColor(.secondary)
+                            
+                            Text("Let's Create\nSomething Amazing")
+                                .font(.system(size: 36, weight: .bold, design: .rounded))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.primary, .primary.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .lineLimit(2)
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: onCreateNew) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 16, weight: .bold))
+                                Text("Create")
+                                    .font(.system(size: 16, weight: .bold))
+                            }
+                            .padding(.vertical, 14)
+                            .padding(.horizontal, 24)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .clipShape(Capsule())
+                            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .buttonStyle(.plain)
             }
-            .padding(32)
+            .padding(isCompact ? 20 : 32)
         }
-        .frame(height: 220)
+        .frame(height: isCompact ? 190 : 220)
     }
 }
 
@@ -396,6 +439,7 @@ struct DesignCardView: View {
     let onRename: () -> Void
     
     @State private var isHovered = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -420,7 +464,8 @@ struct DesignCardView: View {
             HStack {
                 Text(designFile.name)
                     .font(.headline)
-                    .lineLimit(1)
+                    .lineLimit(horizontalSizeClass == .compact ? 2 : 1)
+                    .minimumScaleFactor(0.85)
                 
                 Spacer()
                 

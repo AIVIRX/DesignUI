@@ -16,29 +16,7 @@ struct ShadowModifierEditor: View {
     @State private var offsetX: CGFloat = 0
     @State private var offsetY: CGFloat = 2
     @State private var opacity: Double = 0.3
-    @State private var selectedColorName: String = "Black"
-    @State private var isColorExpanded: Bool = false
-    
-    // Using consistent color list from ColorModifierEditor
-    private let colors: [(name: String, color: Color)] = [
-        ("Black", .black),
-        ("White", .white),
-        ("Gray", .gray),
-        ("Red", .red),
-        ("Orange", .orange),
-        ("Yellow", .yellow),
-        ("Green", .green),
-        ("Mint", .mint),
-        ("Teal", .teal),
-        ("Cyan", .cyan),
-        ("Blue", .blue),
-        ("Indigo", .indigo),
-        ("Purple", .purple),
-        ("Pink", .pink),
-        ("Brown", .brown),
-        ("Primary", .primary),
-        ("Secondary", .secondary)
-    ]
+    @State private var selectedColorName: String = "black"
     
     var body: some View {
         ScrollView {
@@ -61,96 +39,14 @@ struct ShadowModifierEditor: View {
                         .foregroundColor(.primary)
                 }
                 
-                // Color Section
-                VStack(alignment: .leading, spacing: 8) {
-                    Button(action: { withAnimation { isColorExpanded.toggle() } }) {
-                        HStack {
-                            Text("Color")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Spacer()
-                            
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(currentColor)
-                                    .frame(width: 16, height: 16)
-                                    .overlay(Circle().stroke(Color.primary.opacity(0.1)))
-                                
-                                Text(selectedColorName)
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.primary)
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .rotationEffect(.degrees(isColorExpanded ? 90 : 0))
-                            }
-                        }
-                        .padding(8)
-                        .background(Color.secondary.opacity(0.05))
-                        .cornerRadius(8)
-                    }
-                    .buttonStyle(.plain)
-                    
-                    if isColorExpanded {
-                        VStack(spacing: 0) {
-                            ForEach(colors, id: \.name) { colorOption in
-                                ShadowColorRow(
-                                    name: colorOption.name,
-                                    color: colorOption.color,
-                                    isSelected: selectedColorName == colorOption.name,
-                                    onSelect: {
-                                        selectedColorName = colorOption.name
-                                        saveShadow()
-                                    }
-                                )
-                                
-                                if colorOption.name != colors.last?.name {
-                                    Divider()
-                                        .padding(.leading, 44)
-                                }
-                            }
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                }
-                
-                // Opacity Slider
-                VStack(spacing: 8) {
-                    HStack {
-                        Text("Opacity")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(Int(opacity * 100))%")
-                            .font(.caption)
-                            .monospacedDigit()
-                    }
-                    
-                    HStack(spacing: 12) {
-                        Image(systemName: "sun.min")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                        
-                        UndoableSlider(
-                            value: $opacity,
-                            range: 0...1,
-                            onValueChanged: { _ in saveShadowContinuous() },
-                            onEditingEnded: { _ in saveShadow() }
-                        )
-                        
-                        Image(systemName: "sun.max")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding(12)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.05)))
+                // Color Section (re-use universal picker)
+                UniversalColorPickerView(
+                    selectedColorName: $selectedColorName,
+                    opacityValue: $opacity,
+                    title: "Color",
+                    onColorChanged: { saveShadowContinuous() },
+                    onColorConfirmed: { saveShadow() }
+                )
                 
                 // Radius Slider
                 VStack(spacing: 8) {
@@ -175,6 +71,7 @@ struct ShadowModifierEditor: View {
                                 set: { radius = CGFloat($0) }
                             ),
                             range: 0...50,
+                            step: 1.0,
                             onValueChanged: { _ in saveShadowContinuous() },
                             onEditingEnded: { _ in saveShadow() }
                         )
@@ -203,6 +100,7 @@ struct ShadowModifierEditor: View {
                                 set: { offsetX = CGFloat($0) }
                             ),
                             range: -50...50,
+                            step: 1.0,
                             onValueChanged: { _ in saveShadowContinuous() },
                             onEditingEnded: { _ in saveShadow() }
                         )
@@ -226,6 +124,7 @@ struct ShadowModifierEditor: View {
                                 set: { offsetY = CGFloat($0) }
                             ),
                             range: -50...50,
+                            step: 1.0,
                             onValueChanged: { _ in saveShadowContinuous() },
                             onEditingEnded: { _ in saveShadow() }
                         )
@@ -244,9 +143,9 @@ struct ShadowModifierEditor: View {
             loadShadow()
         }
     }
-    
+
     private var currentColor: Color {
-        colors.first(where: { $0.name == selectedColorName })?.color ?? .black
+        UniversalColorPickerView.swiftUIColors.first(where: { $0.name == selectedColorName })?.color ?? .black
     }
     
     private func loadShadow() {
@@ -262,93 +161,56 @@ struct ShadowModifierEditor: View {
         
         // Load color
         if let colorString = modifier.properties["colorString"] as? String {
-             selectedColorName = colorString
-        } else if let colorObj = modifier.properties["color"] as? Color {
-             selectedColorName = colors.first(where: { $0.color == colorObj })?.name ?? "Black"
+            let parts = colorString.split(separator: ":")
+            selectedColorName = String(parts.first ?? "black").lowercased()
+            if parts.count >= 2, let parsedOpacity = Double(parts[1]) {
+                opacity = parsedOpacity
+            }
+        } else if let colorValue = modifier.properties["color"] as? String {
+            let parts = colorValue.split(separator: ":")
+            selectedColorName = String(parts.first ?? "black").lowercased()
+            if parts.count >= 2, let parsedOpacity = Double(parts[1]) {
+                opacity = parsedOpacity
+            }
         } else {
-             selectedColorName = "Black" // Default
+            selectedColorName = "black"
         }
     }
     
     private func saveShadow() {
         var updatedModifier = modifier
+        radius = CGFloat(radius.rounded())
+        offsetX = CGFloat(offsetX.rounded())
+        offsetY = CGFloat(offsetY.rounded())
         updatedModifier.properties["radius"] = radius
         updatedModifier.properties["opacity"] = opacity
         updatedModifier.properties["x"] = offsetX
         updatedModifier.properties["y"] = offsetY
         
         // Save the color name as string for better consistency
-        updatedModifier.properties["colorString"] = selectedColorName
-        
-        // Also save the actual Color object with opacity applied for rendering
-        let baseColor = colors.first(where: { $0.name == selectedColorName })?.color ?? .black
-        updatedModifier.properties["color"] = baseColor.opacity(opacity)
+        let colorName = selectedColorName.lowercased()
+        updatedModifier.properties["colorString"] = "\(colorName):\(opacity)"
+        updatedModifier.properties["color"] = colorName
         
         modifier = updatedModifier
     }
     
     private func saveShadowContinuous() {
         var updatedModifier = modifier
+        radius = CGFloat(radius.rounded())
+        offsetX = CGFloat(offsetX.rounded())
+        offsetY = CGFloat(offsetY.rounded())
         updatedModifier.properties["radius"] = radius
         updatedModifier.properties["opacity"] = opacity
         updatedModifier.properties["x"] = offsetX
         updatedModifier.properties["y"] = offsetY
         
         // Save the color name as string for better consistency
-        updatedModifier.properties["colorString"] = selectedColorName
-        
-        // Also save the actual Color object with opacity applied for rendering
-        let baseColor = colors.first(where: { $0.name == selectedColorName })?.color ?? .black
-        updatedModifier.properties["color"] = baseColor.opacity(opacity)
+        let colorName = selectedColorName.lowercased()
+        updatedModifier.properties["colorString"] = "\(colorName):\(opacity)"
+        updatedModifier.properties["color"] = colorName
         DispatchQueue.main.async {
             component.updateModifierContinuous(updatedModifier)
-        }
-    }
-}
-
-// MARK: - Shadow Color Row
-struct ShadowColorRow: View {
-    let name: String
-    let color: Color
-    let isSelected: Bool
-    let onSelect: () -> Void
-    
-    @State private var isHovered = false
-    
-    var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 12) {
-                // Color Circle
-                Circle()
-                    .fill(color)
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                    )
-                
-                // Color Name
-                Text(name)
-                    .font(.system(size: 14))
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                // Checkmark for selected
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.blue)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            isHovered = hovering
         }
     }
 }

@@ -11,7 +11,8 @@ struct CanvasScreenshotView: View {
     let components: [UIComponent]
     let deviceSize: CGSize
     let colorScheme: ColorScheme
-    let statusBarComponent: UIComponent?
+    let statusBarVisible: Bool
+    let statusBarTopSafeArea: Bool
     
     /// Whether this is a content-adaptive (No Size) screenshot
     var isContentAdaptive: Bool {
@@ -75,10 +76,10 @@ struct CanvasScreenshotView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.top, (statusBarComponent?.isVisible ?? false) ? 50 : 0) // Safe area for status bar
+            .padding(.top, statusBarTopSafeArea ? 50 : 0) // Safe area for status bar
             
             // Status bar if needed and visible
-            if let statusBarComponent = statusBarComponent, statusBarComponent.isVisible {
+            if statusBarVisible {
                 VStack {
                     StatusBarView(
                         deviceSize: deviceSize,
@@ -94,5 +95,4 @@ struct CanvasScreenshotView: View {
         .colorScheme(colorScheme)
     }
 }
-
 

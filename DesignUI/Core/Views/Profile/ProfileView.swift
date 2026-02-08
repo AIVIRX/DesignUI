@@ -439,7 +439,7 @@ struct ProfileView: View {
                 } : nil
             )
             
-            // Status Badge - positioned at bottom left (only for my posts)
+            // Status Badge - positioned at top left (only for my posts)
             if !isLikedFilter {
                 if isPending {
                     HStack(spacing: 4) {
@@ -454,7 +454,7 @@ struct ProfileView: View {
                     .background(Color.orange.opacity(0.15))
                     .cornerRadius(8)
                     .padding(8)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 } else if isDenied {
                     HStack(spacing: 4) {
                         Image(systemName: "xmark.circle.fill")
@@ -468,7 +468,7 @@ struct ProfileView: View {
                     .background(Color.red.opacity(0.15))
                     .cornerRadius(8)
                     .padding(8)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
             }
         }

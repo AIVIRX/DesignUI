@@ -68,9 +68,13 @@ struct ComponentLibraryView: View {
             
             Divider()
             
-            // Components List
+            // Components Grid
             ScrollView {
-                LazyVStack(spacing: 4) {
+                let columns = [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ]
+                LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(filteredComponents) { componentType in
                         ComponentLibraryItem(
                             componentType: componentType,
