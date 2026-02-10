@@ -94,6 +94,23 @@ class CanvasManager: ObservableObject {
     var hasMapComponent: Bool {
         return false
     }
+
+    // Check if design contains any ScrollView component (drawingGroup can hide ScrollView content)
+    var hasScrollableComponent: Bool {
+        return containsComponent(ofType: .scrollView, in: components)
+    }
+
+    private func containsComponent(ofType type: ComponentType, in components: [UIComponent]) -> Bool {
+        for component in components {
+            if component.type == type {
+                return true
+            }
+            if containsComponent(ofType: type, in: component.children) {
+                return true
+            }
+        }
+        return false
+    }
     
     var canUndo: Bool { 
         // Can undo if we have at least one action
@@ -493,6 +510,16 @@ class CanvasManager: ObservableObject {
     
     @MainActor
     func generateAIContent(prompt: String) async {
+        guard SupabaseManager.shared.client.auth.currentUser != nil else {
+            undoMessage = "Sign in required"
+            ToastManager.shared.showToast(ToastData(
+                title: "Sign in to use AI",
+                icon: "person.crop.circle.badge.exclamationmark",
+                duration: 3.0
+            ))
+            return
+        }
+
         // Prepare context
         let context: [String: String] = [
             "current_components_count": "\(components.count)",
@@ -1128,7 +1155,7 @@ class CanvasManager: ObservableObject {
         // Clear redo stack when new action is performed
         redoStack.removeAll()
         
-        debugLog("💾 registerUndoAction: '\(description)' - stack size: \(undoStack.count)")
+        debugLog("💾 registerUndoAction: '\(description)'")
         undoStackVersion += 1
     }
     

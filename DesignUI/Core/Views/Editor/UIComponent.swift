@@ -1091,6 +1091,41 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
         
         self.properties = restoredProperties
+
+        // Fix orphaned modifier children when modifier IDs are missing in JSON
+        reconcileModifierChildren()
+    }
+
+    // MARK: - Modifier Child Reconciliation (import fix)
+    private func reconcileModifierChildren() {
+        let modifierIds = Set(modifiers.map { $0.id })
+        let modifierTypes: [ModifierType] = [.background, .overlay, .mask]
+        
+        for type in modifierTypes {
+            let modifiersOfType = modifiers.enumerated().filter { $0.element.type == type }
+            if modifiersOfType.isEmpty { continue }
+            
+            let childrenOfType = children.enumerated().filter { $0.element.modifierType == type }
+            if childrenOfType.isEmpty { continue }
+            
+            // Reassign orphaned children to modifiers in order
+            let orphanChildren = childrenOfType.filter { (_, child) in
+                guard let id = child.modifierId else { return true }
+                return !modifierIds.contains(id)
+            }
+            
+            if orphanChildren.isEmpty { continue }
+            
+            for (idx, (childIndex, child)) in orphanChildren.enumerated() {
+                let targetModifier = modifiersOfType[min(idx, modifiersOfType.count - 1)]
+                children[childIndex].modifierId = targetModifier.element.id
+                
+                // Keep parentComponentId in sync if present/needed
+                if modifiers[targetModifier.offset].properties["parentComponentId"] as? String != child.id.uuidString {
+                    modifiers[targetModifier.offset].properties["parentComponentId"] = child.id.uuidString
+                }
+            }
+        }
     }
     
     func encode(to encoder: Encoder) throws {

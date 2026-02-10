@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct CodePreviewView: View {
     @ObservedObject var canvasManager: CanvasManager
     @Environment(\.dismiss) private var dismiss
@@ -35,18 +34,10 @@ struct CodePreviewView: View {
             )
         #else
         return content
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(Color.gray.opacity(0.1))
-            .cornerRadius(20)
             .preferredColorScheme(.dark)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        colorScheme == .dark
-                            ? Color(red: 0.3, green: 0.3, blue: 0.3)
-                            : Color(red: 0.8, green: 0.8, blue: 0.8),
-                        lineWidth: 1
-                    )
-            )
+            .ignoresSafeArea(.container, edges: .bottom)
         #endif
     }
     
@@ -96,17 +87,13 @@ struct CodePreviewView: View {
         VStack(alignment: .leading, spacing: 0) {
             CompleteFileCode(canvasManager: canvasManager)
         }
-        .padding(0)
         .background(Color.gray.opacity(0.1))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var completeFileCode: String {
         let viewCode = canvasManager.exportCode()
         return """
-        //
-        //
-        //  Generated in DockUI
-        //
 
         \(viewCode)
 
@@ -123,10 +110,6 @@ struct CompleteFileCode: View {
     private var completeFileCode: String {
         let viewCode = canvasManager.exportCode()
         return """
-        //
-        //
-        //  Generated in DockUI
-        //
 
         \(viewCode)
 

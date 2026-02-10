@@ -11,6 +11,7 @@ struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
     @State private var searchText = ""
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     // Define the custom sort order for prioritization
     private let componentOrder: [ComponentType] = [
@@ -70,10 +71,9 @@ struct ComponentLibraryView: View {
             
             // Components Grid
             ScrollView {
-                let columns = [
-                    GridItem(.flexible(), spacing: 12),
-                    GridItem(.flexible(), spacing: 12)
-                ]
+                let columns = horizontalSizeClass == .compact
+                    ? [GridItem(.flexible(), spacing: 12)]
+                    : [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(filteredComponents) { componentType in
                         ComponentLibraryItem(
@@ -90,6 +90,7 @@ struct ComponentLibraryView: View {
         }
         #if os(iOS)
         .background(Color(uiColor: .systemBackground))
+        .environment(\.layoutDirection, .leftToRight)
         #else
         .background(Color(nsColor: .windowBackgroundColor))
         #endif
@@ -181,6 +182,11 @@ struct ComponentLibraryItem: View {
             Text(componentType.rawValue)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.primary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .minimumScaleFactor(0.85)
+                .layoutPriority(1)
+                .multilineTextAlignment(.leading)
             
             Spacer()
             
@@ -199,6 +205,7 @@ struct ComponentLibraryItem: View {
                 .fill(isPressed ? Color.accentColor.opacity(0.15) : (isHovering ? Color.secondary.opacity(0.1) : Color.clear))
         )
         .contentShape(Rectangle()) // Ensure entire row is tappable
+        .frame(maxWidth: .infinity, alignment: .leading)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isPressed)
         .onHover { isHovering = $0 }

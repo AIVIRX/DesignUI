@@ -230,253 +230,328 @@ struct UIBuilderView: View {
     
     @Environment(\.dismiss) private var dismiss
     
-    #if os(iOS)
+#if os(iOS)
     @State private var selection: PresentationDetent = .medium // Locked to medium
     @State private var activeTab: AppTab? = nil // Optional to allow closing
+    @State private var showPropertiesSheet = false
+    @State private var showCanvasSettingsSheet = false
     
     enum AppTab: String, CaseIterable, Identifiable {
         case layers = "Layers"
-        case properties = "Properties"
-        case canvas = "Canvas"
-        case code = "Code"
         
         var id: String { rawValue }
         
         var icon: String {
             switch self {
             case .layers: return "square.3.layers.3d.top.filled"
-            case .properties: return "slider.horizontal.3"
-            case .canvas: return "iphone"
-            case .code: return "chevron.left.forwardslash.chevron.right"
             }
         }
     }
     #endif
 
-    var body: some View {
+#if os(iOS)
+    private func closeAllSheets() {
+        activeTab = nil
+        showPropertiesSheet = false
+        showCanvasSettingsSheet = false
+        showCodePreview = false
+        selection = .medium
+    }
+    
+    private func openLayersSheet() {
+        closeAllSheets()
+        selection = .medium
+        activeTab = .layers
+    }
+    
+    private func openPropertiesSheet() {
+        closeAllSheets()
+        selection = .medium
+        showPropertiesSheet = true
+    }
+    
+    private func openCanvasSettingsSheet() {
+        closeAllSheets()
+        selection = .medium
+        showCanvasSettingsSheet = true
+    }
+    
+    private func openCodePreviewSheet() {
+        closeAllSheets()
+        selection = .medium
+        showCodePreview = true
+    }
+    
+    private func openCommunitySubmissionSheet() {
+        closeAllSheets()
+        showCommunitySubmission = true
+    }
+#endif
 
-        NavigationStack {
+    var body: some View {
+        let baseContent = NavigationStack {
             ZStack(alignment: .top) {
                 Color.clear
-                .onAppear {
-                    // Ensure status bar properties are valid (migration/hotfix)
-                    canvasManager.validateStatusBarProperties()
-                }
-
-#if os(iOS)
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                // iPhone: Full screen canvas with bottom sheet
-                iOSCanvasContent
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { iOSToolbarContent }
-            } else {
-                // iPad: macOS-style floating panels
-                ZStack {
-                    mainCanvasArea
-                    
-                    // Floating panels with proper margins
-                    HStack(spacing: 0) {
-                        // Left side: Layers panel
-                        if showLayersPanel {
-                            ResizablePanel(
-                                width: $layersPanelWidth,
-                                minWidth: 250,
-                                maxWidth: 500,
-                                isVisible: $showLayersPanel,
-                                handlePosition: .right
-                            ) {
-                                layersPanel
-                            }
-                            .transition(.move(edge: .leading).combined(with: .opacity))
-                            .padding()
-                        }
-                        
-                        Spacer()
-                        
-                        if showPropertiesPanel && canvasManager.selectedComponent != nil {
-                            ResizablePanel(
-                                width: $propertiesPanelWidth,
-                                minWidth: 250,
-                                maxWidth: 500,
-                                isVisible: $showPropertiesPanel,
-                                handlePosition: .left
-                            ) {
-                                propertiesPanel
-                            }
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .trailing).combined(with: .opacity),
-                                removal: .move(edge: .trailing).combined(with: .opacity)
-                            ))
-                            .padding()
-                            .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
-                            .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
-                        }
+                    .onAppear {
+                        // Ensure status bar properties are valid (migration/hotfix)
+                        canvasManager.validateStatusBarProperties()
                     }
-                }
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { iPadToolbarContent }
+
+                platformSpecificContent
+            }
+            .modifier(AIPromptDismissModifier())
+        }
+
+        let withToolbar = baseContent
+            .navigationTitle(designFile.name)
+            .toolbar { toolbarButtons }
+#if os(macOS)
+            .toolbarBackground(.hidden, for: .windowToolbar)
+#endif
+
+#if os(macOS)
+        let withSheets = withToolbar
+            .sheet(isPresented: $showCodePreview) {
+                CodePreviewView(canvasManager: canvasManager)
             }
 #else
-            // macOS: Normal canvas layout with overlaid panels
-            ZStack(alignment: .top) {
-                mainCanvasArea
-                
-                // Floating panels with proper margins
-                HStack(spacing: 0) {
-                    // Left side: Layers panel
-                    if showLayersPanel {
-                        ResizablePanel(
-                            width: $layersPanelWidth,
-                            minWidth: 250,
-                            maxWidth: 500,
-                            isVisible: $showLayersPanel,
-                            handlePosition: .right
-                        ) {
-                            sidebarPanel
-                        }
-                        .transition(.move(edge: .leading).combined(with: .opacity))
-                        .padding()
-                    }
-                    
-                    // Center Canvas Area (just a spacer)
-                    Spacer()
-                    
-                    if showPropertiesPanel && canvasManager.selectedComponent != nil {
-                        ResizablePanel(
-                            width: $propertiesPanelWidth,
-                            minWidth: 250,
-                            maxWidth: 500,
-                            isVisible: $showPropertiesPanel,
-                            handlePosition: .left
-                        ) {
-                            propertiesPanel
-                        }
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .trailing).combined(with: .opacity)
-                        ))
-                        .padding()
-                        .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
-                    }
-                }
+        let withSheets = withToolbar
+            .sheet(isPresented: $showCodePreview) {
+                CodePreviewView(canvasManager: canvasManager)
+                    .presentationDetents([.medium], selection: $selection)
+                    .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+                    .presentationDragIndicator(.visible)
             }
-
-
 #endif
+
+        let withCommunitySheet = withSheets
+            .sheet(isPresented: $showCommunitySubmission) {
+                SubmitToCommunityView(designFile: designFile)
             }
-            .simultaneousGesture(TapGesture().onEnded {
-                NotificationCenter.default.post(name: .dismissAIPromptFocus, object: nil)
-            })
-        }
-        .navigationTitle(designFile.name)
-        .toolbar { toolbarButtons }
-#if os(macOS)
-        .toolbarBackground(.hidden, for: .windowToolbar)
-#endif
-        #if os(macOS)
-        .sheet(isPresented: $showCodePreview) {
-            CodePreviewView(canvasManager: canvasManager)
-        }
-        #endif
-        .sheet(isPresented: $showCommunitySubmission) {
-            SubmitToCommunityView(designFile: designFile)
-        }
         // Undo/Redo Toast Overlay handled by ToastManager
 
-        .onAppear {
-            setupCanvas()
-            
-            // Restore saved device preset and color scheme
-            restoreCanvasSettings()
-            
-            // Capture initial screenshot IMMEDIATELY (no debounce) on open
-            performScreenshotCapture()
-        }
-        .onChange(of: selectedSidebarTab) { tab, _ in
-            if tab == .pages {
-                // Force immediate capture when opening pages tab to ensure thumbnail is fresh
+        let withOnAppear = withCommunitySheet
+            .onAppear {
+                setupCanvas()
+                
+                // Restore saved device preset and color scheme
+                restoreCanvasSettings()
+                
+                // Capture initial screenshot IMMEDIATELY (no debounce) on open
                 performScreenshotCapture()
             }
-        }
-        .onChange(of: canvasManager.components) { _, _ in
-            // Skip sync if we are just switching pages (loading data)
-            if !isSwitchingPage {
-                syncComponents()
-            }
-        }
-        .onChange(of: canvasManager.selectedComponent) { _, newSelection in
-            if !isSwitchingPage {
-                syncSelection()
-                #if os(iOS)
-                if UIDevice.current.userInterfaceIdiom == .phone && newSelection != nil {
-                     activeTab = .properties
-                }
-                #endif
-            }
-        }
-        .onChange(of: canvasManager.devicePreset) { _, newDevice in
-            if !isSwitchingPage && !isRestoringCanvasSettings {
-                saveCanvasSettings()
-                
-                // Auto-hide status bar for widgets and custom (noSize), show for others
-                if newDevice.category == .widget || newDevice.category == .custom {
-                    designFile.statusBarVisible = false
-                    canvasManager.statusBarComponent?.isVisible = false
-                    NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
-                    
-                    // Also disable Top Safe Area for widgets and custom
-                    if let statusBar = canvasManager.statusBarComponent {
-                        canvasManager.updateComponentProperty(for: statusBar, key: "topSafeArea", value: false)
-                    }
-                } else {
-                    designFile.statusBarVisible = true
-                    canvasManager.statusBarComponent?.isVisible = true
-                    NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
-                    
-                    // Enable Top Safe Area for non-widgets
-                    if let statusBar = canvasManager.statusBarComponent {
-                        canvasManager.updateComponentProperty(for: statusBar, key: "topSafeArea", value: true)
-                    }
-                }
-            }
-        }
-        .onChange(of: canvasManager.colorScheme) { _, _ in
-            if !isSwitchingPage {
-                saveCanvasSettings()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
-            canvasManager.undo()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                captureScreenshot()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
-            canvasManager.redo()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                captureScreenshot()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
-            if !isSwitchingPage {
-                saveCanvasSettings()
-                scheduleDesignSync(captureScreenshot: false)
-            }
-        }
-        .onChange(of: canvasManager.undoStackVersion) { _, _ in
-            // Trigger sync when undo stack changes (action performed, undo, or redo)
-            // This catches changes like Canvas Settings that aren't in the components array
-            scheduleDesignSync(captureScreenshot: false)
-            captureScreenshot()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .statusBarVisibilityChanged)) { notification in
-            if let isVisible = notification.object as? Bool {
-                designFile.statusBarVisible = isVisible
-                designFile.markAsChanged()
-            }
-        }
 
+        let withSidebarChange = withOnAppear
+            .onChange(of: selectedSidebarTab) { tab, _ in
+                if tab == .pages {
+                    // Force immediate capture when opening pages tab to ensure thumbnail is fresh
+                    performScreenshotCapture()
+                }
+            }
+
+        let withComponentChanges = withSidebarChange
+            .onChange(of: canvasManager.components) { _, _ in
+                // Skip sync if we are just switching pages (loading data)
+                if !isSwitchingPage {
+                    syncComponents()
+                }
+            }
+            .onChange(of: canvasManager.selectedComponent) { _, newSelection in
+                if !isSwitchingPage {
+                    syncSelection()
+                    #if os(iOS)
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        if newSelection != nil {
+                            openPropertiesSheet()
+                        } else {
+                            showPropertiesSheet = false
+                        }
+                    }
+                    #endif
+                }
+            }
+
+        let withDeviceChanges = withComponentChanges
+            .onChange(of: canvasManager.devicePreset) { _, newDevice in
+                if !isSwitchingPage && !isRestoringCanvasSettings {
+                    saveCanvasSettings()
+                    
+                    // Auto-hide status bar for widgets and custom (noSize), show for others
+                    if newDevice.category == .widget || newDevice.category == .custom {
+                        designFile.statusBarVisible = false
+                        canvasManager.statusBarComponent?.isVisible = false
+                        NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: false)
+                        
+                        // Also disable Top Safe Area for widgets and custom
+                        if let statusBar = canvasManager.statusBarComponent {
+                            canvasManager.updateComponentProperty(for: statusBar, key: "topSafeArea", value: false)
+                        }
+                    } else {
+                        designFile.statusBarVisible = true
+                        canvasManager.statusBarComponent?.isVisible = true
+                        NotificationCenter.default.post(name: .statusBarVisibilityChanged, object: true)
+                        
+                        // Enable Top Safe Area for non-widgets
+                        if let statusBar = canvasManager.statusBarComponent {
+                            canvasManager.updateComponentProperty(for: statusBar, key: "topSafeArea", value: true)
+                        }
+                    }
+                }
+            }
+            .onChange(of: canvasManager.colorScheme) { _, _ in
+                if !isSwitchingPage {
+                    saveCanvasSettings()
+                }
+            }
+
+        let withUndoRedoHandlers = withDeviceChanges
+            .onReceive(NotificationCenter.default.publisher(for: .canvasUndo)) { _ in
+                canvasManager.undo()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    captureScreenshot()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .canvasRedo)) { _ in
+                canvasManager.redo()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    captureScreenshot()
+                }
+            }
+
+        let withDesignChangeHandlers = withUndoRedoHandlers
+            .onReceive(NotificationCenter.default.publisher(for: .designChanged)) { _ in
+                if !isSwitchingPage {
+                    saveCanvasSettings()
+                    scheduleDesignSync(captureScreenshot: false)
+                }
+            }
+            .onChange(of: canvasManager.undoStackVersion) { _, _ in
+                // Trigger sync when undo stack changes (action performed, undo, or redo)
+                // This catches changes like Canvas Settings that aren't in the components array
+                scheduleDesignSync(captureScreenshot: false)
+                captureScreenshot()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .statusBarVisibilityChanged)) { notification in
+                if let isVisible = notification.object as? Bool {
+                    designFile.statusBarVisible = isVisible
+                    designFile.markAsChanged()
+                }
+            }
+
+        return withDesignChangeHandlers
     }
+    
+    @ViewBuilder
+    private var platformSpecificContent: some View {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            // iPhone: Full screen canvas with bottom sheet
+            iOSCanvasContent
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { iOSToolbarContent }
+        } else {
+            // iPad: macOS-style floating panels
+            iPadCanvasContent
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { iPadToolbarContent }
+        }
+        #else
+        // macOS: Normal canvas layout with overlaid panels
+        macOSCanvasContent
+        #endif
+    }
+    
+    private var iPadCanvasContent: some View {
+        ZStack {
+            mainCanvasArea
+            
+            // Floating panels with proper margins
+            HStack(spacing: 0) {
+                // Left side: Layers panel
+                if showLayersPanel {
+                    ResizablePanel(
+                        width: $layersPanelWidth,
+                        minWidth: 250,
+                        maxWidth: 500,
+                        isVisible: $showLayersPanel,
+                        handlePosition: .right
+                    ) {
+                        sidebarPanel
+                    }
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+                    .padding()
+                }
+                
+                Spacer()
+                
+                if showPropertiesPanel && canvasManager.selectedComponent != nil {
+                    ResizablePanel(
+                        width: $propertiesPanelWidth,
+                        minWidth: 250,
+                        maxWidth: 500,
+                        isVisible: $showPropertiesPanel,
+                        handlePosition: .left
+                    ) {
+                        propertiesPanel
+                    }
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .trailing).combined(with: .opacity)
+                    ))
+                    .padding()
+                    .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
+                    .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
+                }
+            }
+        }
+    }
+    
+    #if os(macOS)
+    private var macOSCanvasContent: some View {
+        ZStack(alignment: .top) {
+            mainCanvasArea
+            
+            // Floating panels with proper margins
+            HStack(spacing: 0) {
+                // Left side: Layers panel
+                if showLayersPanel {
+                    ResizablePanel(
+                        width: $layersPanelWidth,
+                        minWidth: 250,
+                        maxWidth: 500,
+                        isVisible: $showLayersPanel,
+                        handlePosition: .right
+                    ) {
+                        sidebarPanel
+                    }
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+                    .padding()
+                }
+                
+                // Center Canvas Area (just a spacer)
+                Spacer()
+                
+                if showPropertiesPanel && canvasManager.selectedComponent != nil {
+                    ResizablePanel(
+                        width: $propertiesPanelWidth,
+                        minWidth: 250,
+                        maxWidth: 500,
+                        isVisible: $showPropertiesPanel,
+                        handlePosition: .left
+                    ) {
+                        propertiesPanel
+                    }
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .trailing).combined(with: .opacity)
+                    ))
+                    .padding()
+                    .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
+                }
+            }
+        }
+    }
+    #endif
     
 #if os(iOS)
     private var iOSCanvasContent: some View {
@@ -495,12 +570,35 @@ struct UIBuilderView: View {
         )) {
             if let tab = activeTab {
                 sheetContent(for: tab)
-                    .presentationDetents(tab == .code ? [.medium, .large] : [.medium], selection: $selection)
+                    .presentationDetents([.medium], selection: $selection)
                     .presentationBackgroundInteraction(.enabled(upThrough: .medium))
                     .presentationBackground(.regularMaterial)
                     .presentationDragIndicator(.visible)
             }
         }
+        .sheet(isPresented: $showCanvasSettingsSheet) {
+            canvasSettingsSheet
+                .presentationDetents([.medium], selection: $selection)
+                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+                .presentationBackground(.regularMaterial)
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showPropertiesSheet) {
+            propertiesPanel
+                .ignoresSafeArea(.container, edges: .bottom)
+                .presentationDetents(propertiesSheetDetents, selection: $selection)
+                .presentationBackgroundInteraction(.enabled(upThrough: propertiesSheetMaxDetent))
+                .presentationBackground(.regularMaterial)
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    private var propertiesSheetDetents: Set<PresentationDetent> {
+        UIDevice.current.userInterfaceIdiom == .phone ? [.medium] : [.medium, .large]
+    }
+
+    private var propertiesSheetMaxDetent: PresentationDetent {
+        UIDevice.current.userInterfaceIdiom == .phone ? .medium : .large
     }
     
     @ToolbarContentBuilder
@@ -515,13 +613,12 @@ struct UIBuilderView: View {
         }
         
         ToolbarItemGroup(placement: .primaryAction) {
-            // Color scheme toggle - iPad only
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                Button(action: {
-                    canvasManager.setColorScheme(canvasManager.colorScheme == .light ? .dark : .light)
-                }) {
-                    Image(systemName: canvasManager.colorScheme == .light ? "sun.max.fill" : "moon.fill")
-                }
+            Button(action: { openLayersSheet() }) {
+                Image(systemName: AppTab.layers.icon)
+            }
+            
+            Button(action: { openCanvasSettingsSheet() }) {
+                Image(systemName: "iphone")
             }
             
             // Recenter button
@@ -532,10 +629,7 @@ struct UIBuilderView: View {
             }) {
                 Image(systemName: "arrow.down.right.and.arrow.up.left")
             }
-        }
-        
-        ToolbarItemGroup(placement: .primaryAction){
-            // Grouped Undo/Redo
+            
             Button(action: { canvasManager.undo() }) {
                 Image(systemName: "arrow.uturn.backward")
             }
@@ -552,15 +646,7 @@ struct UIBuilderView: View {
 
                 
                 Button(action: { 
-                    #if os(iOS)
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        activeTab = .code
-                    } else {
-                        showCodePreview = true
-                    }
-                    #else
-                    showCodePreview = true 
-                    #endif
+                    openCodePreviewSheet()
                 }) {
                     Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
@@ -570,6 +656,10 @@ struct UIBuilderView: View {
                 Button(action: { saveAsScreenshot() }) {
                     Label("Save as Screenshot", systemImage: "photo")
                 }
+                
+                Divider()
+                
+                // Submit to Community hidden for now
             } label: {
                  Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 14, weight: .medium))
@@ -747,6 +837,97 @@ struct UIBuilderView: View {
     }
 #endif
 
+#if os(iOS)
+    private var canvasSettingsSheet: some View {
+        NavigationStack {
+            List {
+                Section("Canvas Scheme") {
+                    Picker("Canvas Scheme", selection: Binding(
+                        get: { canvasManager.colorScheme ?? .light },
+                        set: { canvasManager.setColorScheme($0) }
+                    )) {
+                        Text("Light").tag(ColorScheme.light)
+                        Text("Dark").tag(ColorScheme.dark)
+                    }
+                    .pickerStyle(.palette)
+                }
+                
+                Section("IPhone") {
+                    ForEach(DevicePreset.iphones) { preset in
+                        Button {
+                            canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                Spacer()
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Section("iPad") {
+                    ForEach(DevicePreset.ipads) { preset in
+                        Button {
+                            canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                Spacer()
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Section("Widgets") {
+                    ForEach(DevicePreset.widgets) { preset in
+                        Button {
+                            canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                Spacer()
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Section("Custom") {
+                    ForEach(DevicePreset.custom) { preset in
+                        Button {
+                            canvasManager.setDevicePreset(preset)
+                        } label: {
+                            HStack {
+                                Text(preset.rawValue)
+                                Spacer()
+                                if canvasManager.devicePreset == preset {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .tint(.primary)
+            .navigationTitle("Canvas Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showCanvasSettingsSheet = false }
+                }
+            }
+        }
+    }
+#endif
+
     
     private var sidebarPanel: some View {
         VStack(spacing: 16) {
@@ -813,8 +994,6 @@ struct UIBuilderView: View {
             }
             .editorPanelStyle()
             
-            // AI Command Bar below the layers panel
-            AICommandBar(canvasManager: canvasManager)
         }
     }
     
@@ -878,11 +1057,21 @@ struct UIBuilderView: View {
     }
     
     private var propertiesPanel: some View {
+        #if os(iOS)
+        NavigationStack {
+            PropertiesPanelView(
+                selectedComponent: $canvasManager.selectedComponent,
+                canvasManager: canvasManager
+            )
+        }
+        .editorPanelStyle()
+        #else
         PropertiesPanelView(
             selectedComponent: $canvasManager.selectedComponent,
             canvasManager: canvasManager
         )
         .editorPanelStyle()
+        #endif
     }
     
 #if os(iOS)
@@ -944,45 +1133,11 @@ struct UIBuilderView: View {
     @ViewBuilder
     private var aiHubBar: some View {
         VStack(spacing: 10) {
-            AICommandBar(canvasManager: canvasManager)
+            let isPhone = UIDevice.current.userInterfaceIdiom == .phone
             
-            HStack(spacing: 10) {
-                ForEach(AppTab.allCases) { tab in
-                    Button(action: {
-                        if activeTab == tab {
-                            activeTab = nil
-                        } else {
-                            activeTab = tab
-                            selection = .medium
-                        }
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 12, weight: .semibold))
-                            if activeTab == tab {
-                                Text(tab.rawValue)
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .fixedSize()
-                            }
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, activeTab == tab ? 14 : 10)
-                        .background(
-                            Capsule()
-                                .fill(activeTab == tab ? Color.blue : Color.secondary.opacity(0.12))
-                        )
-                        .foregroundColor(activeTab == tab ? .white : .primary)
-                    }
-                    .buttonStyle(.plain)
-                }
+            if isPhone {
+                EmptyView()
             }
-            .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color(uiColor: .systemBackground))
-                    .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 5)
-                    .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 0)
-            )
         }
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
@@ -1056,125 +1211,6 @@ struct UIBuilderView: View {
                 // Background removed to allow material to show
                 // .background(Color(uiColor: .systemBackground))
                 .toolbar(.hidden, for: .navigationBar)
-            }
-            
-        case .properties:
-            NavigationStack {
-                VStack(spacing: 0) {
-                    // Custom Header
-                    HStack {
-                        Button(action: {
-                            canvasManager.deselectAll()
-                            activeTab = .layers
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 16, weight: .semibold))
-                                Text("Back")
-                                    .font(.system(size: 16))
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        
-                        Spacer()
-                        
-                        Text("Properties")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            activeTab = nil // Close sheet
-                        }) {
-                            Text("Done")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    // .background(Color(uiColor: .systemBackground))
-                    
-                    Divider()
-                    
-                    PropertiesPanelView(
-                        selectedComponent: $canvasManager.selectedComponent,
-                        canvasManager: canvasManager
-                    )
-                }
-                .toolbar(.hidden, for: .navigationBar)
-            }
-            .id(canvasManager.selectedComponent?.id)
-            .onChange(of: canvasManager.selectedComponent?.id) { oldValue, newValue in
-                // On iPhone, when selection changes and we are in properties view, scroll to it
-                if newValue != nil {
-                    #if os(iOS)
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        // Small delay to ensure view is ready
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            canvasManager.scrollToSelectionTrigger.toggle()
-                        }
-                    }
-                    #endif
-                }
-            }
-            
-        case .canvas:
-            NavigationStack {
-                List {
-                    // Color Scheme Section
-                    Section("Appearance") {
-                        HStack(spacing: 12) {
-                            Button {
-                                canvasManager.colorScheme = .light
-                            } label: {
-                                HStack {
-                                    Image(systemName: "sun.max.fill")
-                                    Text("Light")
-                                    Spacer()
-                                    if canvasManager.colorScheme == .light {
-                                        Image(systemName: "checkmark").foregroundColor(.blue)
-                                    }
-                                }
-                                .padding(.vertical, 4)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            
-                            Divider()
-                            
-                            Button {
-                                canvasManager.colorScheme = .dark
-                            } label: {
-                                HStack {
-                                    Image(systemName: "moon.fill")
-                                    Text("Dark")
-                                    Spacer()
-                                    if canvasManager.colorScheme == .dark {
-                                        Image(systemName: "checkmark").foregroundColor(.blue)
-                                    }
-                                }
-                                .padding(.vertical, 4)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    
-                    // Device Presets
-                    devicePresetsListSections
-                }
-                .navigationTitle("Canvas Settings")
-                .navigationBarTitleDisplayMode(.inline)
-                .scrollContentBackground(.hidden)
-            }
-
-        case .code:
-            NavigationStack {
-                CodePreviewView(canvasManager: canvasManager)
-                    .navigationTitle("Code Preview")
-                    .navigationBarTitleDisplayMode(.inline)
             }
         }
     }
@@ -1257,226 +1293,222 @@ struct UIBuilderView: View {
 
 #endif
     
+    @ToolbarContentBuilder
     private var toolbarButtons: some ToolbarContent {
-        Group{
-            ToolbarItemGroup(placement: .primaryAction) {
-                // Device Picker
-                Menu {
-                    // iPhones section
-                    Section("iPhone") {
-                        ForEach(DevicePreset.iphones) { preset in
-                            Button {
-                                canvasManager.setDevicePreset(preset)
-                            } label: {
-                                HStack {
-                                    Text(preset.rawValue)
-                                    Spacer()
-                                    if canvasManager.devicePreset == preset {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-                    }
-                    
-                    Divider()
-                    
-                    // iPads section
-                    Section("iPad") {
-                        ForEach(DevicePreset.ipads) { preset in
-                            Button {
-                                canvasManager.setDevicePreset(preset)
-                            } label: {
-                                HStack {
-                                    Text(preset.rawValue)
-                                    Spacer()
-                                    if canvasManager.devicePreset == preset {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-                    }
-                    
-                    Divider()
-                    
-                    // Widgets section
-                    Section("Widgets") {
-                        ForEach(DevicePreset.widgets) { preset in
-                            Button {
-                                canvasManager.setDevicePreset(preset)
-                            } label: {
-                                HStack {
-                                    Text(preset.rawValue)
-                                    Spacer()
-                                    if canvasManager.devicePreset == preset {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-                    }
-                    
-                    Divider()
-                    
-                    // Custom section
-                    Section("Custom") {
-                        ForEach(DevicePreset.custom) { preset in
-                            Button {
-                                canvasManager.setDevicePreset(preset)
-                            } label: {
-                                HStack {
-                                    Text(preset.rawValue)
-                                    Spacer()
-                                    if canvasManager.devicePreset == preset {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-                    }
+        ToolbarItemGroup(placement: .primaryAction) {
+            devicePresetMenu
+            colorSchemeMenu
+            centerCanvasButton
+            undoToolbarButton
+            redoToolbarButton
+        }
+        
+        ToolbarItemGroup(placement: .primaryAction) {
+            exportMenu
+        }
+    }
+    
+    private var devicePresetMenu: some View {
+        Menu {
+            devicePresetMenuContent
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: deviceIcon)
+                    .font(.system(size: 11))
+                Text(canvasManager.devicePreset.rawValue)
+                    .font(.system(size: 11, weight: .medium))
+                    .frame(maxWidth: 100)
+                    .lineLimit(1)
+            }
+        }
+        .help("Choose Device")
+    }
+    
+    @ViewBuilder
+    private var devicePresetMenuContent: some View {
+        Section("iPhone") {
+            ForEach(DevicePreset.iphones) { preset in
+                Button {
+                    canvasManager.setDevicePreset(preset)
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: deviceIcon)
-                            .font(.system(size: 11))
-                        Text(canvasManager.devicePreset.rawValue)
-                            .font(.system(size: 11, weight: .medium))
-                            .frame(maxWidth: 100) // Limit width
-                            .lineLimit(1)
+                    HStack {
+                        Text(preset.rawValue)
+                        Spacer()
+                        if canvasManager.devicePreset == preset {
+                            Image(systemName: "checkmark")
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .help("Choose Device")
-                
-                // Color Scheme Picker
-                Menu {
-                    Button {
-                        canvasManager.setColorScheme(.light)
-                    } label: {
-                        HStack {
-                            Text("Light")
-                            Spacer()
-                            if canvasManager.colorScheme == .light {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    Button {
-                        canvasManager.setColorScheme(.dark)
-                    } label: {
-                        HStack {
-                            Text("Dark")
-                            Spacer()
-                            if canvasManager.colorScheme == .dark {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+            }
+        }
+        
+        Divider()
+        
+        Section("iPad") {
+            ForEach(DevicePreset.ipads) { preset in
+                Button {
+                    canvasManager.setDevicePreset(preset)
                 } label: {
-                    Image(systemName: canvasManager.colorScheme == .light ? "sun.max" : "moon")
-                        .font(.system(size: 12))
-                }
-                .help("Color Scheme")
-                
-                // Center canvas button
-                Button(action: {
-                    // Reset zoom and trigger canvas centering with animation
-                    let targetCanvasSize = canvasViewportSize == .zero
-                        ? CGSize(width: 800, height: 600)
-                        : canvasViewportSize
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        canvasManager.zoomToFitDevice(canvasManager.devicePreset.size, canvasSize: targetCanvasSize)
+                    HStack {
+                        Text(preset.rawValue)
+                        Spacer()
+                        if canvasManager.devicePreset == preset {
+                            Image(systemName: "checkmark")
+                        }
                     }
-                    // Update base zoom level after animation starts (no visual impact, just for state)
-                    baseZoomLevel = canvasManager.zoomLevel
-                    canvasManager.centerCanvasTrigger.toggle()
-                }) {
-                    Image(systemName: "arrow.down.right.and.arrow.up.left")
-                        .font(.system(size: 14, weight: .medium))
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .keyboardShortcut("1", modifiers: .command)
-                .help("Center Canvas")
-                
-                // Undo button
-                Button(action: {
-                    canvasManager.undo()
-                }) {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 14, weight: .medium))
+            }
+        }
+        
+        Divider()
+        
+        Section("Widgets") {
+            ForEach(DevicePreset.widgets) { preset in
+                Button {
+                    canvasManager.setDevicePreset(preset)
+                } label: {
+                    HStack {
+                        Text(preset.rawValue)
+                        Spacer()
+                        if canvasManager.devicePreset == preset {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .keyboardShortcut("z", modifiers: .command)
-                .disabled(!canvasManager.canUndo)
-                .help("Undo")
-                
-                // Redo button
-                Button(action: {
-                    canvasManager.redo()
-                }) {
-                    Image(systemName: "arrow.uturn.forward")
-                        .font(.system(size: 14, weight: .medium))
+            }
+        }
+        
+        Divider()
+        
+        Section("Custom") {
+            ForEach(DevicePreset.custom) { preset in
+                Button {
+                    canvasManager.setDevicePreset(preset)
+                } label: {
+                    HStack {
+                        Text(preset.rawValue)
+                        Spacer()
+                        if canvasManager.devicePreset == preset {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .keyboardShortcut("z", modifiers: [.command, .shift])
-                .disabled(!canvasManager.canRedo)
-                .help("Redo")
-                
+            }
+        }
+    }
+    
+    private var colorSchemeMenu: some View {
+        Menu {
+            Button {
+                canvasManager.setColorScheme(.light)
+            } label: {
+                HStack {
+                    Text("Light")
+                    Spacer()
+                    if canvasManager.colorScheme == .light {
+                        Image(systemName: "checkmark")
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Button {
+                canvasManager.setColorScheme(.dark)
+            } label: {
+                HStack {
+                    Text("Dark")
+                    Spacer()
+                    if canvasManager.colorScheme == .dark {
+                        Image(systemName: "checkmark")
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        } label: {
+            Image(systemName: canvasManager.colorScheme == .light ? "sun.max" : "moon")
+                .font(.system(size: 12))
+        }
+        .help("Color Scheme")
+    }
+    
+    private var centerCanvasButton: some View {
+        Button(action: {
+            let targetCanvasSize = canvasViewportSize == .zero
+                ? CGSize(width: 800, height: 600)
+                : canvasViewportSize
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                canvasManager.zoomToFitDevice(canvasManager.devicePreset.size, canvasSize: targetCanvasSize)
+            }
+            baseZoomLevel = canvasManager.zoomLevel
+            canvasManager.centerCanvasTrigger.toggle()
+        }) {
+            Image(systemName: "arrow.down.right.and.arrow.up.left")
+                .font(.system(size: 14, weight: .medium))
+        }
+        .keyboardShortcut("1", modifiers: .command)
+        .help("Center Canvas")
+    }
+    
+    private var undoToolbarButton: some View {
+        Button(action: {
+            canvasManager.undo()
+        }) {
+            Image(systemName: "arrow.uturn.backward")
+                .font(.system(size: 14, weight: .medium))
+        }
+        .keyboardShortcut("z", modifiers: .command)
+        .disabled(!canvasManager.canUndo)
+        .help("Undo")
+    }
+    
+    private var redoToolbarButton: some View {
+        Button(action: {
+            canvasManager.redo()
+        }) {
+            Image(systemName: "arrow.uturn.forward")
+                .font(.system(size: 14, weight: .medium))
+        }
+        .keyboardShortcut("z", modifiers: [.command, .shift])
+        .disabled(!canvasManager.canRedo)
+        .help("Redo")
+    }
+    
+    private var exportMenu: some View {
+        Menu {
+            Button(action: { showCodePreview = true }) {
+                Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
             }
             
-            ToolbarItemGroup(placement: .primaryAction) {
-                Menu {
-                    #if os(iOS)
-                    Button(action: { 
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                            activeTab = .code
-                        } else {
-                            showCodePreview = true
-                        }
-                    }) {
-                        Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
-                    }
-                    
-                    #else
-                    Button(action: { showCodePreview = true }) {
-                        Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
-                    }
-                    #endif
-                    
-                    Button(action: { saveAsScreenshot() }) {
-                        Label("Save as Screenshot", systemImage: "photo")
-                    }
-                    
-                    Divider()
-                    
-                    Button(action: { showCommunitySubmission = true }) {
-                        Label("Submit to Community", systemImage: "globe")
-                    }
-
-                    Divider()
-
-                    Button(action: {
-                        let json = canvasManager.getDesignAsJSON()
-                        #if os(iOS)
-                        UIPasteboard.general.string = json
-                        #elseif os(macOS)
-                        let pasteboard = NSPasteboard.general
-                        pasteboard.clearContents()
-                        pasteboard.setString(json, forType: .string)
-                        #endif
-                    }) {
-                        Label("Copy JSON", systemImage: "doc.on.clipboard")
-                    }
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .help("Export")
+            Button(action: { saveAsScreenshot() }) {
+                Label("Save as Screenshot", systemImage: "photo")
             }
-
+            
+            Divider()
+            
+            // Submit to Community hidden for now
+            
+            Divider()
+            
+            Button(action: {
+                let json = canvasManager.getDesignAsJSON()
+                #if os(iOS)
+                UIPasteboard.general.string = json
+                #elseif os(macOS)
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(json, forType: .string)
+                #endif
+            }) {
+                Label("Copy JSON", systemImage: "doc.on.clipboard")
+            }
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+                .font(.system(size: 14, weight: .medium))
         }
+        .help("Export")
     }
         
     private var magnificationGesture: some Gesture {
@@ -1826,20 +1858,6 @@ struct ComponentView: View {
             }
     }
     
-    private func handlePosition(for index: Int) -> CGPoint {
-        let frame = component.frame
-        switch index {
-        case 0: return CGPoint(x: frame.minX, y: frame.minY) // Top-left
-        case 1: return CGPoint(x: frame.midX, y: frame.minY) // Top-center
-        case 2: return CGPoint(x: frame.maxX, y: frame.minY) // Top-right
-        case 3: return CGPoint(x: frame.maxX, y: frame.midY) // Right-center
-        case 4: return CGPoint(x: frame.maxX, y: frame.maxY) // Bottom-right
-        case 5: return CGPoint(x: frame.midX, y: frame.maxY) // Bottom-center
-        case 6: return CGPoint(x: frame.minX, y: frame.maxY) // Bottom-left
-        case 7: return CGPoint(x: frame.minX, y: frame.midY) // Left-center
-        default: return CGPoint.zero
-        }
-    }
 }
 
 struct ResizablePanel<Content: View>: View {
@@ -1932,55 +1950,6 @@ struct ResizablePanel<Content: View>: View {
     }
 }
 
-#if os(iOS)
-struct CodeTabView: View {
-    @ObservedObject var canvasManager: CanvasManager
-    @State private var highlightedText: AttributedString = AttributedString()
-    @Environment(\.colorScheme) private var colorScheme
-    
-    var body: some View {
-        ScrollView([.horizontal, .vertical]) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(highlightedText)
-                    .font(.system(.caption, design: .monospaced))
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .padding(12)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    UIPasteboard.general.string = canvasManager.exportCode()
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                }
-            }
-        }
-        .onAppear {
-            highlightCode()
-        }
-        .onChange(of: canvasManager.components) { _, _ in
-            highlightCode()
-        }
-        .onChange(of: colorScheme) { _, _ in
-            highlightCode()
-        }
-    }
-    
-    private func highlightCode() {
-        let code = canvasManager.exportCode()
-        Task {
-            let result = await SyntaxHighlighter.shared.highlight(code, colorScheme: colorScheme)
-            await MainActor.run {
-                highlightedText = result
-            }
-        }
-    }
-}
-#endif
-
 struct EditorPanelStyle: ViewModifier {
     @Environment(\.colorScheme) var colorScheme
     
@@ -2003,6 +1972,24 @@ struct EditorPanelStyle: ViewModifier {
     }
 }
 
+struct AIPromptDismissModifier: ViewModifier {
+    func body(content: Content) -> some View {
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            content
+        } else {
+            content.simultaneousGesture(TapGesture().onEnded {
+                NotificationCenter.default.post(name: .dismissAIPromptFocus, object: nil)
+            })
+        }
+#else
+        content.simultaneousGesture(TapGesture().onEnded {
+            NotificationCenter.default.post(name: .dismissAIPromptFocus, object: nil)
+        })
+#endif
+    }
+}
+
 extension View {
     func editorPanelStyle() -> some View {
         modifier(EditorPanelStyle())
@@ -2016,6 +2003,7 @@ struct AICommandBar: View {
     @FocusState private var isPromptFocused: Bool
     @State private var lastSubmitAt: Date? = nil
     @State private var cooldownEndAt: Date? = nil
+    @State private var showSignInRequired: Bool = false
     
     private let maxCharacters = 200
     private let cooldownSeconds: Double = 4.0
@@ -2038,6 +2026,10 @@ struct AICommandBar: View {
         guard let quota = canvasManager.aiQuota else { return nil }
         return "\(quota.remaining)/\(quota.limit)"
     }
+
+    private var isSignedIn: Bool {
+        SupabaseManager.shared.client.auth.currentUser != nil
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -2055,6 +2047,12 @@ struct AICommandBar: View {
                 .onSubmit {
                     generate()
                 }
+
+            if showSignInRequired && !isSignedIn {
+                Text("Sign in required")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.red)
+            }
             
             // Bottom row: quota, character count, send button
             TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
@@ -2143,6 +2141,10 @@ struct AICommandBar: View {
     }
     
     private func generate() {
+        guard isSignedIn else {
+            showSignInRequired = true
+            return
+        }
         let remaining = cooldownRemaining(now: Date())
         let isCooldownActive = remaining > 0
         guard !prompt.isEmpty && !isGenerating && !isOverLimit && !isCooldownActive else { return }

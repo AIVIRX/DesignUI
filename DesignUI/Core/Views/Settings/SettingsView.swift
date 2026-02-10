@@ -20,6 +20,7 @@ struct SettingsView: View {
     @State private var showPaywall = false
     @State private var showShareSheet = false
     @State private var isShowingMailView = false
+    @State private var showSFSymbolsSheet = false
     @AppStorage("appearanceMode") private var appearanceMode: String = "auto"
     @Environment(\.openURL) var openURL
 
@@ -106,7 +107,9 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                     
                     VStack(spacing: 0) {
-                        NavigationLink(destination: SFIconsView()) {
+                        Button {
+                            showSFSymbolsSheet = true
+                        } label: {
                             HStack {
                                 Text("SF Symbols")
                                     .foregroundColor(.primary)
@@ -331,6 +334,10 @@ struct SettingsView: View {
                         .fontWeight(.semibold)
                 }
             }
+        }
+        .sheet(isPresented: $showSFSymbolsSheet) {
+            SFIconsView()
+                .frame(minWidth: 700, minHeight: 600)
         }
 #else
         // iOS: Keep List-based layout

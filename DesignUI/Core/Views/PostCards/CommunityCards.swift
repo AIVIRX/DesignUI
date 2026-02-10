@@ -14,7 +14,6 @@ struct CommunityCards: View {
     var showDeleteButton: Bool = false
     var onOpen: ((DesignPost) -> Void)? = nil
     var onDelete: (() -> Void)? = nil
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     private var id: String { post.id }
     private var slug: String { post.slug }
@@ -57,7 +56,6 @@ struct CommunityCards: View {
                     creationDate: published,
                     isAuthorVerified: isVerified,
                     isPremium: isPremium,
-                    isComponent: isComponent
                 )) {
                     VStack(alignment: .leading, spacing: 8) {
                         // Template Preview
@@ -71,7 +69,7 @@ struct CommunityCards: View {
                                             .renderingMode(.original)
                                             .resizable()
                                             .aspectRatio(contentMode: .fit)
-                                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                                             .clipped()
                                             .padding()
@@ -80,7 +78,7 @@ struct CommunityCards: View {
                                             .renderingMode(.original)
                                             .resizable()
                                             .aspectRatio(contentMode: .fit)
-                                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                                             .clipped()
                                             .padding()
@@ -151,7 +149,6 @@ struct CommunityCards: View {
                 creationDate: published,
                 isAuthorVerified: isVerified,
                 isPremium: isPremium,
-                isComponent: isComponent
             )) {
                 VStack(alignment: .leading, spacing: 8) {
                     imageView
@@ -167,7 +164,7 @@ struct CommunityCards: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline)
-                        .lineLimit(horizontalSizeClass == .compact ? 2 : 1)
+                        .lineLimit(1)
                         .minimumScaleFactor(0.85)
                         .foregroundColor(.primary)
                     
@@ -220,7 +217,7 @@ struct CommunityCards: View {
     @ViewBuilder
     private var imageView: some View {
         RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(Color.secondary.opacity(0.05))
+            .fill(Color.secondary.opacity(0.15))
             .frame(height: 220)
             .overlay(
                 WebImage(url: URL(string: media)) { image in
@@ -228,7 +225,7 @@ struct CommunityCards: View {
                         .renderingMode(.original)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipped()
                         .padding()
@@ -249,6 +246,38 @@ struct CommunityCards: View {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
+            .overlay(alignment: .topTrailing) {
+                if isPremium || showDeleteButton {
+                    HStack(spacing: 6) {
+                        if isPremium {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.clear)
+                                .overlay(
+                                    LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
+                                        .mask(
+                                            Image(systemName: "crown.fill")
+                                                .font(.system(size: 14, weight: .semibold))
+                                        )
+                                )
+                        }
+                        if showDeleteButton, let onDelete = onDelete {
+                            Button(action: onDelete) {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(6)
+                    .background(.black.opacity(0.8), in: Capsule())
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+                    .contentShape(Capsule())
+                    .allowsHitTesting(true)
+                    .offset(x: -6, y: 6)
+                }
+            }
             .scaleEffect(isImageHovered ? 1.02 : 1.0)
             #if os(macOS)
             .onHover { hovering in

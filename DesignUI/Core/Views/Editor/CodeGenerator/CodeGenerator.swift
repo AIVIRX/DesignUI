@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct CodeGenerator {
-    
     /// Formats a number cleanly: removes .0 for whole numbers, keeps decimals when needed
     static func formatNumber(_ value: Double) -> String {
         if value.truncatingRemainder(dividingBy: 1) == 0 {

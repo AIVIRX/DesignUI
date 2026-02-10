@@ -117,7 +117,7 @@ struct CanvasView: View {
                     x: currentOffset.width + dragOffset.width,
                     y: currentOffset.height + dragOffset.height
                 )
-                .modifier(ConditionalDrawingGroup(shouldRasterize: !canvasManager.hasMapComponent))
+                .modifier(ConditionalDrawingGroup(shouldRasterize: !canvasManager.hasMapComponent && !canvasManager.hasScrollableComponent))
                 // Force view recreation when zoom completes for sharp rendering
                 .id("canvas-\(zoomGeneration)")
                 // Apply transaction to disable animation caching when stable
@@ -252,7 +252,7 @@ struct CanvasView: View {
     
     // Computed property to simplify body expression for compiler
     private var shouldRasterize: Bool {
-        if canvasManager.hasMapComponent { return false }
+        if canvasManager.hasMapComponent || canvasManager.hasScrollableComponent { return false }
         
         let isZooming = abs(magnifyScale - 1.0) > 0.001
         let isPanning = abs(dragOffset.width) > 0.5 || abs(dragOffset.height) > 0.5

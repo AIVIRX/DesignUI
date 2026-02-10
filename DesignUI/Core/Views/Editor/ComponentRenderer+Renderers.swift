@@ -495,41 +495,53 @@ extension ComponentRenderer {
     
     // MARK: - ScrollView Renderer
     func renderScrollView() -> some View {
-        let axesString = component.getProperty(key: "axes") as? String ?? "vertical"
+        let axesString = component.getProperty(key: "axis") as? String ?? "vertical"
         let showsIndicators = component.getProperty(key: "showsIndicators") as? Bool ?? true
         
         let axes: Axis.Set = axesString == "horizontal" ? .horizontal : .vertical
+        let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
         
         // Filter out modifier children (masks, overlays, backgrounds)
         let contentChildren = component.children.filter { $0.modifierId == nil }
         
-        return AnyView(
-            ScrollView(axes, showsIndicators: showsIndicators) {
-                if axes == .horizontal {
-                    HStack(spacing: 8) {
-                        ForEach(contentChildren, id: \.id) { child in
-                            ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                                onSelectChild?(child, additive)
-                            }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
-                        }
-                    }
-                } else {
-                    VStack(spacing: 8) {
-                        ForEach(contentChildren, id: \.id) { child in
-                            ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                                onSelectChild?(child, additive)
-                            }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
-                        }
+        let base = ScrollView(axes, showsIndicators: showsIndicators) {
+            if axes == .horizontal {
+                HStack(spacing: 8) {
+                    ForEach(contentChildren, id: \.id) { child in
+                        ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
+                            onSelectChild?(child, additive)
+                        }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
                     }
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
+            } else {
+                VStack(alignment: .center, spacing: 8) {
+                    ForEach(contentChildren, id: \.id) { child in
+                        ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
+                            onSelectChild?(child, additive)
+                        }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            #if os(macOS)
-            .onHover { isHovering in
-                // Simply track if we're hovering over this scrollable component
-                canvasManager?.isHoveringScrollable = isHovering
-            }
-            #endif
-        )
+        }
+        #if os(macOS)
+        .onHover { isHovering in
+            // Simply track if we're hovering over this scrollable component
+            canvasManager?.isHoveringScrollable = isHovering
+        }
+        #endif
+        
+        if hasExplicitFrame {
+            return AnyView(base.frame(width: component.frame.width, height: component.frame.height))
+        }
+        
+        // ScrollView has no intrinsic size, so give it a sensible minimum in the editor.
+        if axes == .horizontal {
+            return AnyView(base.frame(minWidth: 160, minHeight: 80))
+        } else {
+            return AnyView(base.frame(minWidth: 120, minHeight: 160))
+        }
     }
     
 

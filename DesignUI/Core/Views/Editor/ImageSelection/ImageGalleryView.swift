@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import UniformTypeIdentifiers
 
 struct ImageGalleryView: View {
     @Environment(\.dismiss) private var dismiss
@@ -20,6 +21,9 @@ struct ImageGalleryView: View {
     @State private var isEditing = false
     @State private var selectionToDelete = Set<String>()
     @State private var showFileImporter = false
+    @State private var showPhotosPicker = false
+    @State private var showPhotosPickerScreen = false
+    @State private var showLegacyImagePicker = false
     
     @State private var showUnsplashGallery = false
     @State private var searchText = ""
@@ -90,7 +94,9 @@ struct ImageGalleryView: View {
                         .buttonStyle(.plain)
                         
                         Menu {
-                            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            Button {
+                                presentPhotosPicker()
+                            } label: {
                                 Label("From Photos", systemImage: "photo")
                             }
                             
@@ -162,20 +168,6 @@ struct ImageGalleryView: View {
             .navigationTitle(isEditing ? "\(selectionToDelete.count) Selected" : "Gallery")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // Leading Items
-                ToolbarItem(placement: .cancellationAction) {
-                    if isEditing {
-                        Button("Done") {
-                            isEditing = false
-                            selectionToDelete.removeAll()
-                        }
-                    } else {
-                        Button(action: { dismiss() }) {
-                            Image(systemName: "chevron.down")
-                        }
-                    }
-                }
-                
                 // Trailing Items
                 ToolbarItem(placement: .primaryAction) {
                     HStack {
@@ -191,8 +183,57 @@ struct ImageGalleryView: View {
                                 isEditing = true
                             }
                             
+                            #if os(iOS)
+                            if UIDevice.current.userInterfaceIdiom == .pad {
+                                Menu {
+                                    Button {
+                                        presentPhotosPicker()
+                                    } label: {
+                                        Label("From Photos", systemImage: "photo")
+                                    }
+                                    
+                                    Button {
+                                        showFileImporter = true
+                                    } label: {
+                                        Label("Select File", systemImage: "folder")
+                                    }
+                                    
+                                    Button {
+                                        showUnsplashGallery = true
+                                    } label: {
+                                        Label("Unsplash", systemImage: "globe")
+                                    }
+                                } label: {
+                                    Image(systemName: "plus")
+                                }
+                            } else {
+                                Menu {
+                                    Button {
+                                        presentPhotosPicker()
+                                    } label: {
+                                        Label("From Photos", systemImage: "photo")
+                                    }
+                                    
+                                    Button {
+                                        showFileImporter = true
+                                    } label: {
+                                        Label("Select File", systemImage: "folder")
+                                    }
+                                    
+                                    Button {
+                                        showUnsplashGallery = true
+                                    } label: {
+                                        Label("Unsplash", systemImage: "globe")
+                                    }
+                                } label: {
+                                    Image(systemName: "plus")
+                                }
+                            }
+                            #else
                             Menu {
-                                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                                Button {
+                                    presentPhotosPicker()
+                                } label: {
                                     Label("From Photos", systemImage: "photo")
                                 }
                                 
@@ -210,6 +251,7 @@ struct ImageGalleryView: View {
                             } label: {
                                 Image(systemName: "plus")
                             }
+                            #endif
                         }
                     }
                 }
@@ -222,6 +264,32 @@ struct ImageGalleryView: View {
             ) { result in
                 handleFileImport(result)
             }
+#if os(iOS)
+            .photosPicker(
+                isPresented: $showPhotosPicker,
+                selection: $selectedPhotoItem,
+                matching: .images
+            )
+#endif
+#if os(iOS)
+            .navigationDestination(isPresented: $showPhotosPickerScreen) {
+                PhotosPickerScreen { data in
+                    if let data {
+                        saveAndReload(data: data)
+                    }
+                }
+            }
+#endif
+#if os(iOS)
+            .fullScreenCover(isPresented: $showLegacyImagePicker) {
+                LegacyImagePicker { data in
+                    if let data {
+                        saveAndReload(data: data)
+                    }
+                    showLegacyImagePicker = false
+                }
+            }
+#endif
             .onAppear {
                 loadImages()
             }
@@ -301,7 +369,117 @@ struct ImageGalleryView: View {
             debugLog("File import error: \(error.localizedDescription)")
         }
     }
+
+    private func presentPhotosPicker() {
+#if os(iOS)
+        showLegacyImagePicker = true
+#endif
+    }
 }
+
+#if os(iOS)
+private struct PhotosPickerScreen: View {
+    @Environment(\.dismiss) private var dismiss
+    let onComplete: (Data?) -> Void
+    
+    var body: some View {
+        SystemPhotosPicker { data in
+            onComplete(data)
+            dismiss()
+        }
+        .navigationTitle("Photos")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct SystemPhotosPicker: UIViewControllerRepresentable {
+    let onComplete: (Data?) -> Void
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onComplete: onComplete)
+    }
+    
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var configuration = PHPickerConfiguration(photoLibrary: .shared())
+        configuration.selectionLimit = 1
+        configuration.filter = .images
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = context.coordinator
+        picker.modalPresentationStyle = .fullScreen
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+    
+    final class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        private let onComplete: (Data?) -> Void
+        
+        init(onComplete: @escaping (Data?) -> Void) {
+            self.onComplete = onComplete
+        }
+        
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            guard let itemProvider = results.first?.itemProvider else {
+                onComplete(nil)
+                return
+            }
+            
+            let imageIdentifier = UTType.image.identifier
+            if itemProvider.hasItemConformingToTypeIdentifier(imageIdentifier) {
+                itemProvider.loadDataRepresentation(forTypeIdentifier: imageIdentifier) { data, _ in
+                    DispatchQueue.main.async {
+                        self.onComplete(data)
+                    }
+                }
+            } else {
+                itemProvider.loadObject(ofClass: UIImage.self) { object, _ in
+                    let data = (object as? UIImage)?.jpegData(compressionQuality: 0.9)
+                    DispatchQueue.main.async {
+                        self.onComplete(data)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct LegacyImagePicker: UIViewControllerRepresentable {
+    let onComplete: (Data?) -> Void
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onComplete: onComplete)
+    }
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .photoLibrary
+        picker.allowsEditing = false
+        picker.modalPresentationStyle = .formSheet
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        private let onComplete: (Data?) -> Void
+        
+        init(onComplete: @escaping (Data?) -> Void) {
+            self.onComplete = onComplete
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            onComplete(nil)
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            let image = info[.originalImage] as? UIImage
+            let data = image?.jpegData(compressionQuality: 0.9)
+            onComplete(data)
+        }
+    }
+}
+#endif
 
 // Helper View for individual cells
 private struct GalleryImageCell: View {

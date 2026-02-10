@@ -58,6 +58,17 @@ struct DesignBrowserView: View {
                     .padding(.horizontal)
                     .padding(.top, 16)
                     
+                    if communityViewModel.isRefreshing {
+                        HStack(spacing: 10) {
+                            ProgressView()
+                            Text("Refreshing...")
+                                .foregroundColor(.secondary)
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                    }
+                    
                     // User's Designs Section
                     VStack(alignment: .leading) {
                         HStack {
@@ -158,6 +169,13 @@ struct DesignBrowserView: View {
                                     CommunityCards(
                                         post: post,
                                             onOpen: { postToOpen in
+                                                // Premium gate for community designs
+                                                if postToOpen.isPremium && !subscriptionManager.isSubscribed {
+                                                    ToastManager.shared.showToast(ToastData(title: "Premium Required", icon: "lock.fill"))
+                                                    showingPaywall = true
+                                                    return
+                                                }
+
                                                 // Check subscription limits first
                                                 if !subscriptionManager.isSubscribed && designManager.designFiles.count >= freeDesignLimit {
                                                     showingLimitAlert = true
@@ -210,6 +228,9 @@ struct DesignBrowserView: View {
                     }
                 }
                 .padding(.vertical)
+            }
+            .refreshable {
+                await refreshHomeContent()
             }
         }
         .task {
@@ -327,6 +348,16 @@ struct DesignBrowserView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+    }
+    
+    @MainActor
+    private func refreshHomeContent() async {
+#if os(iOS)
+        let generator = UIImpactFeedbackGenerator(style: .soft)
+        generator.impactOccurred()
+#endif
+        designManager.refreshDesignFiles()
+        await communityViewModel.refreshPosts(filterType: nil, isAllPosts: true)
     }
 }
 
@@ -447,7 +478,7 @@ struct DesignCardView: View {
             CanvasPreviewView(designFile: designFile)
                 .frame(width: 280, height: 220)
                 .background(Color.secondary.opacity(0.05))
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                 .shadow(
                     color: .black.opacity(isHovered ? 0.2 : 0.1),
                     radius: isHovered ? 16 : 8,
@@ -505,7 +536,7 @@ struct DesignCardView: View {
                         .background(Color.secondary.opacity(0.15))
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PlainButtonStyle())
 #if os(macOS)
                 .pointerStyle(.link)
 #endif
@@ -710,7 +741,7 @@ struct TemplateCardView: View {
                 .renderingMode(.original)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
                 .padding()
@@ -755,7 +786,7 @@ struct CanvasPreviewView: View {
                             .renderingMode(.original)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped()
                             .padding()
@@ -764,7 +795,7 @@ struct CanvasPreviewView: View {
                             .renderingMode(.original)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped()
                             .padding()

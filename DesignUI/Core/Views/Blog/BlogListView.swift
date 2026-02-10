@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FluidGradient
 import SDWebImage
 import SDWebImageSwiftUI
 
@@ -21,7 +22,9 @@ struct NewsListView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .center, spacing: 16) {
-                    
+                    NewsHeroHeaderView()
+                        .padding(.horizontal)
+                        .padding(.top, 16)
                     let gridPosts = Array(viewModel.posts)
                     if !gridPosts.isEmpty {
                         LazyVGrid(columns: columns) {
@@ -43,9 +46,6 @@ struct NewsListView: View {
                 .navigationBarTitleDisplayMode(.inline)
 #endif
             }
-            .scrollClipDisabled()
-            .contentMargins(.top, -100, for: .scrollContent)
-            .ignoresSafeArea(edges: .top)
             .refreshable {
                 await viewModel.fetchNews()
             }
@@ -56,6 +56,37 @@ struct NewsListView: View {
 #endif
             .task { await viewModel.fetchNews() }
         }
+    }
+}
+
+struct NewsHeroHeaderView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    
+    var body: some View {
+        let isCompact = horizontalSizeClass == .compact
+        
+        ZStack {
+            FluidGradient(blobs: [.purple, .blue, .cyan],
+                          speed: 0.4,
+                          blur: 0.75)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+                )
+            
+            Text("Newsroom")
+                .font(.system(size: isCompact ? 32 : 44, weight: .bold, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.primary, .primary.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        .frame(height: isCompact ? 190 : 220)
     }
 }
 
@@ -152,3 +183,4 @@ struct BlogGridCard: View {
         }
     }
 }
+

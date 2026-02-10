@@ -53,6 +53,10 @@ struct DesignUIApp: App {
                     print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
                 }
                 .onOpenURL { url in
+                    // Handle custom URL scheme (app open)
+                    if url.scheme == "dockui" {
+                        return
+                    }
                     guard url.isFileURL else { return }
                     
                     let success = url.startAccessingSecurityScopedResource()
@@ -158,6 +162,10 @@ struct MainWindow: View {
     var body: some View {
         ContentView()
             .onOpenURL { url in
+                // Handle custom URL scheme (app open)
+                if url.scheme == "dockui" {
+                    return
+                }
                 // Handle file import
                 guard url.isFileURL else { return }
                 

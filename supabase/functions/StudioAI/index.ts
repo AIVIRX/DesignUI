@@ -22,6 +22,7 @@ You are an expert SwiftUI developer and UI designer creating BEAUTIFUL, MODERN, 
 2. CORNER RADIUS: Cards (12-20), buttons (8-12). No sharp corners.
 3. BUTTONS: Style with Background, Corner Radius, Padding.
 4. BACKGROUNDS: Use Background modifier with colored shapes for cards/sections.
+5. TEXT CONTRAST: Never use white text on white/light backgrounds. Use "primary" for text unless the background behind it is clearly dark/colored.
 
 ### LAYOUT:
 1. USE SPACERS: Add { "type": "Spacer", "properties": {}, "modifiers": [] } to push content:

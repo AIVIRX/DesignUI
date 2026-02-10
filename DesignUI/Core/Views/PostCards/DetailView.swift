@@ -4,16 +4,13 @@ import SDWebImageSwiftUI
 
 struct DetailWebImage: View {
     let url: String
-    let isComponent: Bool
     
-    init(url: String, isComponent: Bool) {
+    init(url: String) {
         self.url = url
-        self.isComponent = isComponent
     }
     
     var body: some View {
         WebImage(url: URL(string: url)) { image in
-            if !isComponent{
                 image
                     .renderingMode(.original)
                     .resizable()
@@ -22,15 +19,6 @@ struct DetailWebImage: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
                     .padding()
-            } else {
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .clipped()
-                    .cornerRadius(15)
-                    .shadow(radius: 4)
-            }
         } placeholder: {
             ProgressView()
                 .frame(width: 30, height: 30)
@@ -51,7 +39,6 @@ struct DetailView: View {
     let creationDate: String
     let isAuthorVerified: Bool
     let isPremium: Bool
-    let isComponent: Bool
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var toastManager: ToastManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
@@ -67,18 +54,6 @@ struct DetailView: View {
         ScrollView {
             VStack{
                 VStack{
-                    if isComponent {
-                        DetailWebImage(
-                            url: mediaURL,
-                            isComponent: isComponent
-                        )
-                        .overlay(alignment: .bottomTrailing) {
-                            LikeButton(postId: id)
-                                .padding(8)
-                                .background(.ultraThinMaterial, in: Circle())
-                                .padding(12)
-                        }
-                    } else {
                         RoundedRectangle(cornerRadius: 15)
                             .fill(Color.gray.opacity(0.2))
                             .frame(maxWidth: .infinity)
@@ -89,8 +64,7 @@ struct DetailView: View {
 #endif
                             .overlay(
                                 DetailWebImage(
-                                    url: mediaURL,
-                                    isComponent: isComponent
+                                    url: mediaURL
                                 )
                             )
                             .overlay(alignment: .bottomTrailing) {
@@ -99,7 +73,7 @@ struct DetailView: View {
                                     .background(.ultraThinMaterial, in: Circle())
                                     .padding(12)
                             }
-                    }
+                    
                     
                     Text(loadedDescription ?? description)
 #if os(iOS)

@@ -23,6 +23,7 @@ extension View {
 struct ModifierPanelView: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
+    @Binding var activeSheet: ModifierSheet?
     @State private var showingAddModifier = false
     @State private var editingModifier: ComponentModifier?
     
@@ -38,7 +39,15 @@ struct ModifierPanelView: View {
                 Spacer()
                 
                 Button {
+#if os(iOS)
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        activeSheet = .add
+                    } else {
+                        showingAddModifier = true
+                    }
+#else
                     showingAddModifier = true
+#endif
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill")
@@ -72,18 +81,10 @@ struct ModifierPanelView: View {
                             .fill(Color.secondary.opacity(0.1))
                     )
             } else {
-                ModifierReorderableList(component: component, canvasManager: canvasManager, editingModifier: $editingModifier)
+                ModifierReorderableList(component: component, canvasManager: canvasManager, editingModifier: $editingModifier, activeSheet: $activeSheet)
             }
         }
 #if os(iOS)
-        .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
-            view.sheet(isPresented: $showingAddModifier) {
-                AddModifierView(component: component, canvasManager: canvasManager)
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
-                    .presentationBackground(Color(uiColor: .systemBackground))
-            }
-        }
         .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
             view.popover(isPresented: $showingAddModifier) {
                 AddModifierView(component: component, canvasManager: canvasManager)
@@ -93,27 +94,15 @@ struct ModifierPanelView: View {
         .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
             showingAddModifier = false
             editingModifier = nil
+            activeSheet = nil
         }
 #else
         .popover(isPresented: $showingAddModifier) {
             AddModifierView(component: component, canvasManager: canvasManager)
         }
 #endif
-        // iPhone: Use Navigation Stack
-        #if os(iOS)
-        .if(UIDevice.current.userInterfaceIdiom == .phone) { view in
-            view.navigationDestination(isPresented: Binding(
-                get: { editingModifier != nil },
-                set: { if !$0 { editingModifier = nil } }
-            )) {
-                if let modifier = editingModifier {
-                    modifierEditor(for: modifier)
-                        .navigationTitle(modifier.type.rawValue)
-                        .navigationBarTitleDisplayMode(.inline)
-                }
-            }
-        }
         // iPad: Use Popover
+        #if os(iOS)
         .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
             view.popover(isPresented: Binding(
                 get: { editingModifier != nil },
@@ -164,6 +153,7 @@ struct ModifierReorderableList: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
     @Binding var editingModifier: ComponentModifier?
+    @Binding var activeSheet: ModifierSheet?
     @State private var dragOverTarget: UUID? 
     @State private var dragOverPosition: ModifierDropPosition = .none
     @State private var draggingId: UUID?
@@ -186,7 +176,15 @@ struct ModifierReorderableList: View {
                     },
                     canvasManager: canvasManager,
                     onEdit: {
+#if os(iOS)
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            activeSheet = .edit(modifier)
+                        } else {
+                            editingModifier = modifier
+                        }
+#else
                         editingModifier = modifier
+#endif
                     }
                 )
             }
@@ -198,6 +196,41 @@ struct ModifierReorderableList: View {
                 dragOverTarget = nil
                 dragOverPosition = .none
             }
+        }
+    }
+}
+
+enum ModifierSheet: Identifiable, Hashable {
+    case add
+    case edit(ComponentModifier)
+    
+    var id: String {
+        switch self {
+        case .add:
+            return "add"
+        case .edit(let modifier):
+            return "edit-\(modifier.id)"
+        }
+    }
+
+    static func == (lhs: ModifierSheet, rhs: ModifierSheet) -> Bool {
+        switch (lhs, rhs) {
+        case (.add, .add):
+            return true
+        case let (.edit(lhsModifier), .edit(rhsModifier)):
+            return lhsModifier.id == rhsModifier.id
+        default:
+            return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .add:
+            hasher.combine("add")
+        case .edit(let modifier):
+            hasher.combine("edit")
+            hasher.combine(modifier.id)
         }
     }
 }

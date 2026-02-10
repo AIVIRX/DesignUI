@@ -24,19 +24,17 @@ struct ContentView: View {
     }
     
     var body: some View {
-        VStack{
-            TabView(selection: $selectedTab) {
-                Tab("Home", systemImage: "house", value: .home) {
-                    DesignBrowserView()
-                }
-                
-                Tab("News", systemImage: "newspaper", value: .news) {
-                    NewsListView()
-                }
-                
-                Tab("Account", systemImage: "person", value: .profile) {
-                    ProfileContainerView()
-                }
+        TabView(selection: $selectedTab) {
+            Tab("Home", systemImage: "house", value: .home) {
+                DesignBrowserView()
+            }
+            
+            Tab("News", systemImage: "newspaper", value: .news) {
+                NewsListView()
+            }
+            
+            Tab("Account", systemImage: "person", value: .profile) {
+                ProfileContainerView()
             }
         }
         .toast($toastManager.currentToast)

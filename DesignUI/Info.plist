@@ -25,6 +25,16 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.Maicol.Dockui</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>dockui</string>
+			</array>
+		</dict>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
@@ -36,6 +46,8 @@
 			</array>
 			<key>UTTypeDescription</key>
 			<string>DockUI Design</string>
+			<key>UTTypeIcons</key>
+			<dict/>
 			<key>UTTypeIdentifier</key>
 			<string>com.maicol.dockui.design</string>
 			<key>UTTypeTagSpecification</key>

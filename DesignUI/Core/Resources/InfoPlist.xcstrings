@@ -520,7 +520,27 @@
       "shouldTranslate" : false
     },
     "DockUI Design" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تصميم واجهة المستخدم لقاعدة الشحن"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disseny de la interfície d'usuari de Dock"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Design DockUI"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "NSPhotoLibraryAddUsageDescription" : {
       "comment" : "Privacy - Photo Library Additions Usage Description",

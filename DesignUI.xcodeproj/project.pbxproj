@@ -348,6 +348,22 @@
 			path = Community;
 			sourceTree = "<group>";
 		};
+		EC9519EF2F392A7400D2AAC7 /* SFIcons */ = {
+			isa = PBXGroup;
+			children = (
+				EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */,
+			);
+			path = SFIcons;
+			sourceTree = "<group>";
+		};
+		EC9519F02F392B5800D2AAC7 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				EC7D7BF02C19E520003134B1 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		EC96C2DC2F25891B00DA8459 /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -507,6 +523,7 @@
 				ECA67B0A2F2899A50021941D /* Services */,
 				ECD13FD72C18BBB900105B3E /* Utilities */,
 				ECD13FDF2C18BCCF00105B3E /* Views */,
+				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -543,9 +560,8 @@
 		ECD13FDF2C18BCCF00105B3E /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				EC240CFF2C72B8B600956AB4 /* ContentView.swift */,
-				EC7D7BF02C19E520003134B1 /* SettingsView.swift */,
-				EC7D7BFA2C19E57D003134B1 /* SFIconsView.swift */,
+				EC9519F02F392B5800D2AAC7 /* Settings */,
+				EC9519EF2F392A7400D2AAC7 /* SFIcons */,
 				EC86A0FC2F29E03A00FD74CA /* Community */,
 				EC96C2DC2F25891B00DA8459 /* Components */,
 				EC9F546F2E187F8E00AAE9EC /* Blog */,
@@ -998,7 +1014,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 902;
+				CURRENT_PROJECT_VERSION = 903;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1044,7 +1060,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 32;
+				MARKETING_VERSION = 33;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
@@ -1076,7 +1092,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 902;
+				CURRENT_PROJECT_VERSION = 903;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1122,7 +1138,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 32;
+				MARKETING_VERSION = 33;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";

@@ -24,24 +24,18 @@ struct ImagePickerEditor: View {
     @Binding var showGallery: Bool
     @Binding var activePropertyKey: String?
     
-    @State private var selectedImage: Data?
-    #if os(iOS)
-    @State private var selectedItem: PhotosPickerItem?
-    #endif
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Image preview or placeholder - tappable to open picker
             let imageDataKey = useImageData ? "imageData" : property.key
             #if os(iOS)
-            // iOS: Use PhotosPicker directly as the tappable area
-            PhotosPicker(
-                selection: $selectedItem,
-                matching: .images,
-                photoLibrary: .shared()
-            ) {
-                imagePreviewView(imageDataKey: imageDataKey)
-            }
+            // iOS: Open gallery sheet (Photos or Unsplash)
+            imagePreviewView(imageDataKey: imageDataKey)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    activePropertyKey = property.key
+                    showGallery = true
+                }
             #else
             // macOS: Tappable view that opens gallery
             imagePreviewView(imageDataKey: imageDataKey)
@@ -54,77 +48,6 @@ struct ImagePickerEditor: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        #if os(iOS)
-        .onChange(of: selectedItem) { oldItem, newItem in
-            debugLog("🖼️ PhotosPicker item changed: \(newItem != nil ? "selected" : "nil")")
-            guard let item = newItem else {
-                selectedImage = nil
-                return
-            }
-            Task {
-                debugLog("🖼️ Loading image data from PhotosPicker...")
-                // Load as Data since UIImage doesn't conform to Transferable
-                if let data = try? await item.loadTransferable(type: Data.self) {
-                    debugLog("🖼️ Successfully loaded image data: \(data.count) bytes")
-                    // Verify it's a valid image and compress if needed
-                    if let image = UIImage(data: data) {
-                        if let compressedData = image.jpegData(compressionQuality: 0.8) {
-                            debugLog("🖼️ Compressed to JPEG: \(compressedData.count) bytes")
-                            await MainActor.run {
-                                selectedImage = compressedData
-                            }
-                        } else {
-                            // Use original data if compression fails
-                            await MainActor.run {
-                                selectedImage = data
-                            }
-                        }
-                    } else {
-                        debugLog("⚠️ Data is not a valid image")
-                    }
-                } else {
-                    debugLog("⚠️ Failed to load image data from PhotosPicker")
-                }
-            }
-        }
-        #endif
-        .onChange(of: selectedImage) { _, newImageData in
-            if let imageData = newImageData {
-                debugLog("🖼️ Image selected, original size: \(imageData.count) bytes")
-                
-                // Aggressively compress and resize BEFORE base64 encoding to prevent lag
-                // This converts 4K images to tiny 512px thumbnails
-                let finalData: Data
-                if let compressed = ImageGalleryManager.compressAndResizeImage(data: imageData) {
-                    finalData = compressed
-                    debugLog("🖼️ Compressed to: \(finalData.count) bytes")
-                } else {
-                    finalData = imageData
-                    debugLog("⚠️ Compression failed, using original data")
-                }
-                
-                // Auto-save to Library (Syncs to iCloud)
-                if let filename = ImageGalleryManager.shared.saveImage(data: finalData) {
-                    debugLog("✅ Saved to Image Library: \(filename)")
-                    // Update imageName so it uses the synced file (Priority 1)
-                    canvasManager.updateComponentProperty(for: component, key: "imageName", value: filename)
-                }
-                
-                // Convert to base64 and store (Portable Backup)
-                let base64String = finalData.base64EncodedString()
-                debugLog("🖼️ Base64 string length: \(base64String.count)")
-                
-                if useImageData {
-                    // Store in imageData property
-                    canvasManager.updateComponentProperty(for: component, key: "imageData", value: base64String)
-                    debugLog("✅ Stored image in imageData property")
-                } else {
-                    // Store in the current property
-                    canvasManager.updateComponentProperty(for: component, key: property.key, value: base64String)
-                    debugLog("✅ Stored image in \(property.key) property")
-                }
-            }
-        }
     }
     
     @ViewBuilder
@@ -368,7 +291,10 @@ struct ImagePickerEditor: View {
         if panel.runModal() == .OK {
             if let url = panel.url,
                let imageData = try? Data(contentsOf: url) {
-                selectedImage = imageData
+                // Persist as gallery image and store filename for image rendering
+                if let filename = ImageGalleryManager.shared.saveImage(data: imageData) {
+                    canvasManager.updateComponentProperty(for: component, key: "imageName", value: filename)
+                }
                 // Extract filename without extension
                 let filename = url.deletingPathExtension().lastPathComponent
                 canvasManager.updateComponentProperty(for: component, key: "imageName", value: filename)
@@ -444,7 +370,3 @@ struct ImagePicker: View {
         }
     }
 }
-
-
-// MARK: - Simple Color Picker (For Arrays)
-

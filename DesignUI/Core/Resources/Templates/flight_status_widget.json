@@ -4,6 +4,8 @@
   "thumbnail": "flightInfoWidget",
   "devicePreset": "Widget Medium",
   "canvasColorScheme": "dark",
+  "statusBarVisible": false,
+  "statusBarTopSafeArea": false,
   "components": [
     {
       "type": "VStack",
