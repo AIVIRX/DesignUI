@@ -18,12 +18,6 @@ struct CodeGenerator {
         }
     }
     
-    static func generateCode(for component: UIComponent) -> String {
-        // Reset counters at the start of each new code generation
-        imageCounter = 0
-        return generateCode(for: component, indentLevel: 0)
-    }
-    
     static func generateCode(for component: UIComponent, indentLevel: Int) -> String {
         let indent = String(repeating: "    ", count: indentLevel)
         let nextIndent = String(repeating: "    ", count: indentLevel + 1)
@@ -84,7 +78,7 @@ struct CodeGenerator {
     }
     
     // MARK: - Text Code Generation
-    private static func generateTextCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateTextCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
         // Escape quotes in text
         let escapedText = text.replacingOccurrences(of: "\"", with: "\\\"")
@@ -248,39 +242,39 @@ struct CodeGenerator {
     }
     
     // MARK: - Spacer Code Generation
-    private static func generateSpacerCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateSpacerCode(component _: UIComponent, indent: String, nextIndent _: String) -> String {
         return "\(indent)Spacer()"
     }
     
     // MARK: - Divider Code Generation
-    private static func generateDividerCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateDividerCode(component _: UIComponent, indent: String, nextIndent _: String) -> String {
         return "\(indent)Divider()"
     }
     
     // MARK: - Shape Code Generation
-    private static func generateRectangleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateRectangleCode(component _: UIComponent, indent: String, nextIndent _: String) -> String {
         return "\(indent)Rectangle()"
     }
     
-    private static func generateCircleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateCircleCode(component _: UIComponent, indent: String, nextIndent _: String) -> String {
         return "\(indent)Circle()"
     }
     
-    private static func generateRoundedRectangleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateRoundedRectangleCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let cornerRadius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
         return "\(indent)RoundedRectangle(cornerRadius: \(formatNumber(cornerRadius)))"
     }
     
-    private static func generateCapsuleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateCapsuleCode(component _: UIComponent, indent: String, nextIndent _: String) -> String {
         return "\(indent)Capsule()"
     }
     
-    private static func generateEllipseCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateEllipseCode(component _: UIComponent, indent: String, nextIndent _: String) -> String {
         return "\(indent)Ellipse()"
     }
     
     // MARK: - Unified Shape Code Generation
-    private static func generateShapeCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateShapeCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let shapeType = component.getProperty(key: "shapeType") as? String ?? "Rectangle"
         
         switch shapeType {
@@ -328,14 +322,14 @@ struct CodeGenerator {
     }
     
     // MARK: - SF Symbol Code Generation
-    private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
         
         return "\(indent)Image(systemName: \"\(symbolName)\")"
     }
 
     // MARK: - Text Field Code Generation
-    private static func generateTextFieldCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateTextFieldCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let text = component.getProperty(key: "text") as? String ?? ""
         let placeholder = component.getProperty(key: "placeholder") as? String ?? "Placeholder"
         // Use constant binding for generated code preview
@@ -350,7 +344,7 @@ struct CodeGenerator {
     }
     
     // MARK: - Slider Code Generation
-    private static func generateSliderCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateSliderCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let value = component.getProperty(key: "value") as? Double ?? 0.5
         let min = component.getProperty(key: "min") as? Double ?? 0.0
         let max = component.getProperty(key: "max") as? Double ?? 1.0
@@ -415,7 +409,7 @@ struct CodeGenerator {
     }
     
     // MARK: - Linear Gradient Code Generation
-    private static func generateLinearGradientCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+    private static func generateLinearGradientCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let colors = component.getProperty(key: "colors") as? [String] ?? ["blue", "green"]
         let startPoint = component.getProperty(key: "startPoint") as? String ?? "top"
         let endPoint = component.getProperty(key: "endPoint") as? String ?? "bottom"
@@ -510,7 +504,7 @@ struct CodeGenerator {
         }
     }
     
-    private static func generateFrameModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateFrameModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let widthType = modifier.properties["widthType"] as? String ?? "Default"
         let heightType = modifier.properties["heightType"] as? String ?? "Default"
         let width = modifier.getCGFloat(key: "width", defaultValue: 100)
@@ -541,7 +535,7 @@ struct CodeGenerator {
         return ""
     }
     
-    private static func generatePaddingModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generatePaddingModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let amount = modifier.getCGFloat(key: "amount", defaultValue: 0)
         let location = modifier.properties["location"] as? String ?? "all"
         
@@ -565,7 +559,7 @@ struct CodeGenerator {
         }
     }
     
-    private static func generateBackgroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateBackgroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         // Check for gradient
         if let gradientCode = generateGradientCode(modifier: modifier) {
             return "\(indent).background(\(gradientCode))"
@@ -576,7 +570,7 @@ struct CodeGenerator {
         return "\(indent).background(\(colorCode))"
     }
     
-    private static func generateBackgroundModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
+    private static func generateBackgroundModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent _: String, indentLevel: Int) -> String {
         // Check if there's a parent component for this modifier (background with children)
         if let parentComponent = component.getParentComponentForModifier(modifier.id) {
             let childCode = generateCode(for: parentComponent, indentLevel: indentLevel + 1)
@@ -593,7 +587,7 @@ struct CodeGenerator {
         return "\(indent).background(\(colorCode))"
     }
     
-    private static func generateFillModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateFillModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         // Check for gradient
         if let gradientCode = generateGradientCode(modifier: modifier) {
             return "\(indent).fill(\(gradientCode))"
@@ -604,7 +598,7 @@ struct CodeGenerator {
         return "\(indent).fill(\(colorCode))"
     }
     
-    private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         // Parse unified "colorname:opacity" format
         let colorCode = parseColorWithOpacity(modifier: modifier)
         return "\(indent).foregroundStyle(\(colorCode))"
@@ -629,23 +623,7 @@ struct CodeGenerator {
         return ".primary"
     }
     
-    /// Converts color value and opacity to a SwiftUI code string like `.red.opacity(0.73)` or just `.red`
-    private static func colorWithOpacityToString(_ value: Any?, opacity: Double) -> String {
-        let baseColor = colorToString(value)
-        
-        // If opacity is 1.0 (or very close), don't add opacity modifier
-        if opacity >= 0.99 {
-            return baseColor
-        }
-        
-        // Format opacity with 2 decimal places, removing trailing zeros
-        let opacityString = String(format: "%.2f", opacity)
-            .replacingOccurrences(of: "\\.?0+$", with: "", options: .regularExpression)
-        
-        return "\(baseColor).opacity(\(opacityString))"
-    }
-    
-    private static func generateFontModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateFontModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let size = modifier.properties["fontSize"] as? String ?? "body"
         let weight = modifier.properties["fontWeight"] as? String ?? "regular"
         let design = modifier.properties["fontDesign"] as? String
@@ -675,22 +653,22 @@ struct CodeGenerator {
         return "\(indent).font(.\(size))"
     }
     
-    private static func generateCornerRadiusModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateCornerRadiusModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let radius = modifier.getCGFloat(key: "radius", defaultValue: 8)
         return "\(indent).cornerRadius(\(formatNumber(Double(radius))))"
     }
     
-    private static func generateOpacityModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateOpacityModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let opacity = modifier.getDouble(key: "opacity", defaultValue: 1.0)
         return "\(indent).opacity(\(formatNumber(opacity)))"
     }
     
-    private static func generateTextAlignmentModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateTextAlignmentModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let alignment = modifier.properties["alignment"] as? String ?? "leading"
         return "\(indent).multilineTextAlignment(.\(alignment))"
     }
     
-    private static func generateShadowModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateShadowModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let radius = modifier.getCGFloat(key: "radius", defaultValue: 2)
         
         let x: CGFloat
@@ -728,12 +706,12 @@ struct CodeGenerator {
         }
     }
     
-    private static func generateRotationModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateRotationModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let angle = modifier.getDouble(key: "angle", defaultValue: 0)
         return "\(indent).rotationEffect(.degrees(\(formatNumber(angle))))"
     }
     
-    private static func generateScaleModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateScaleModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let x: Double
         if let scaleX = modifier.properties["scaleX"] as? Double {
             x = scaleX
@@ -755,7 +733,7 @@ struct CodeGenerator {
         }
     }
     
-    private static func generateOffsetModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateOffsetModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let x: CGFloat
         if let offsetX = modifier.properties["offsetX"] as? CGFloat {
             x = offsetX
@@ -777,12 +755,12 @@ struct CodeGenerator {
         return "\(indent).offset(x: \(formatNumber(Double(x))), y: \(formatNumber(Double(y))))"
     }
     
-    private static func generateBlurModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateBlurModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let radius = modifier.getCGFloat(key: "radius", defaultValue: 0)
         return "\(indent).blur(radius: \(formatNumber(Double(radius))))"
     }
     
-    private static func generateOverlayModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
+    private static func generateOverlayModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent _: String, indentLevel: Int) -> String {
         // Check if there's a parent component for this modifier (overlay with children)
         if let parentComponent = component.getParentComponentForModifier(modifier.id) {
             let alignment = modifier.properties["alignment"] as? String ?? "center"
@@ -794,13 +772,13 @@ struct CodeGenerator {
         return ""
     }
     
-    private static func generateBorderModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateBorderModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let width = modifier.getCGFloat(key: "width", defaultValue: 1)
         let color = modifier.properties["color"]
         return "\(indent).border(\(colorToString(color)), width: \(formatNumber(Double(width))))"
     }
     
-    private static func generateClipShapeModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateClipShapeModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         var shapeName: String = "Rectangle"
         
         if let shape = modifier.properties["shape"] as? String {
@@ -831,7 +809,7 @@ struct CodeGenerator {
         }
     }
     
-    private static func generateMaskModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
+    private static func generateMaskModifierCode(modifier: ComponentModifier, component: UIComponent, indent: String, nextIndent _: String, indentLevel: Int) -> String {
         // Check if there's a parent component for this modifier (mask with children)
         if let parentComponent = component.getParentComponentForModifier(modifier.id) {
             let childCode = generateCode(for: parentComponent, indentLevel: indentLevel + 1)
@@ -853,13 +831,13 @@ struct CodeGenerator {
         }
     }
     
-    private static func generateAspectRatioModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateAspectRatioModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let mode = modifier.properties["aspectRatio"] as? String ?? "fit"
         let contentMode = mode == "fill" ? ".fill" : ".fit"
         return "\(indent).aspectRatio(contentMode: \(contentMode))"
     }
     
-    private static func generateZIndexModifierCode(modifier: ComponentModifier, indent: String, nextIndent: String) -> String {
+    private static func generateZIndexModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         let index = modifier.getDouble(key: "index", defaultValue: 0)
         return "\(indent).zIndex(\(index))"
     }
@@ -973,42 +951,6 @@ struct CodeGenerator {
             return "Color(red: \(cleanR), green: \(cleanG), blue: \(cleanB), opacity: \(cleanA))"
         }
         return "Color(red: \(cleanR), green: \(cleanG), blue: \(cleanB))"
-    }
-    
-    private static func colorFromString(_ colorString: String) -> Color? {
-        switch colorString.lowercased() {
-        case "primary": return Color.primary
-        case "secondary": return Color.secondary
-        case "blue": return Color.blue
-        case "red": return Color.red
-        case "green": return Color.green
-        case "orange": return Color.orange
-        case "purple": return Color.purple
-        case "pink": return Color.pink
-        case "yellow": return Color.yellow
-        case "gray", "grey": return Color.gray
-        case "white": return Color.white
-        case "black": return Color.black
-        case "clear": return Color.clear
-        default: return nil
-        }
-    }
-    
-    private static func fontStyleString(for size: String) -> String {
-        switch size {
-        case "largeTitle": return ".largeTitle"
-        case "title": return ".title"
-        case "title2": return ".title2"
-        case "title3": return ".title3"
-        case "headline": return ".headline"
-        case "body": return ".body"
-        case "callout": return ".callout"
-        case "subheadline": return ".subheadline"
-        case "footnote": return ".footnote"
-        case "caption": return ".caption"
-        case "caption2": return ".caption2"
-        default: return ".body"
-        }
     }
     
     private static func alignmentFromString(_ alignment: String) -> String {

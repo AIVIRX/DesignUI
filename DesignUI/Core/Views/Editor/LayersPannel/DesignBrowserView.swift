@@ -97,7 +97,7 @@ struct DesignBrowserView: View {
                             .padding(.horizontal)
                         } else {
                             ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 16) {
+                                HStack(spacing: 16) {
                                     ForEach(designManager.designFiles) { designFile in
                                         DesignCardView(
                                             designFile: designFile,
@@ -668,7 +668,6 @@ struct TemplatesGridView: View {
                 ForEach(templateManager.templates) { template in
                     TemplateCardView(
                         template: template,
-                        isSelected: false,
                         onSelect: {
                             onSelectTemplate(template)
                         }
@@ -683,7 +682,6 @@ struct TemplatesGridView: View {
 
 struct TemplateCardView: View {
     let template: DesignTemplate
-    let isSelected: Bool
     let onSelect: () -> Void
     
     @State private var isHovered = false

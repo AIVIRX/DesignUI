@@ -5,12 +5,12 @@
 //  Created by Maicol Cabreja on 3/24/25.
 //
 
+#if os(iOS)
 import SwiftUI
 
 final class HapticManager {
     static let shared = HapticManager()
 
-#if os(iOS)
     private let lightImpact = UIImpactFeedbackGenerator(style: .light)
     private let mediumImpact = UIImpactFeedbackGenerator(style: .medium)
     private let heavyImpact = UIImpactFeedbackGenerator(style: .heavy)
@@ -30,5 +30,5 @@ final class HapticManager {
         generator.prepare()
         generator.impactOccurred()
     }
-#endif
 }
+#endif

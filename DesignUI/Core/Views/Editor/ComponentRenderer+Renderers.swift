@@ -691,26 +691,6 @@ private extension Image {
 }
 
 extension View {
-    func applyOptionalFrame(hasExplicitFrame: Bool, frame: CGRect) -> some View {
-        if hasExplicitFrame {
-            return AnyView(self.frame(width: frame.width, height: frame.height))
-        } else {
-            return AnyView(self)
-        }
-    }
-    func applyAspectRatio(mode: String) -> some View {
-        switch mode {
-        case "fit": 
-            return AnyView(self.aspectRatio(contentMode: .fit))
-        case "fill": 
-            return AnyView(self.aspectRatio(contentMode: .fill))
-        case "none":
-            return AnyView(self)
-        default: 
-            return AnyView(self.aspectRatio(contentMode: .fit))
-        }
-    }
-    
     func applyOverlayChildren(_ overlayChildren: [UIComponent], deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent, Bool) -> Void)?, selectedComponentIds: Set<UUID>) -> some View {
         var view = AnyView(self)
         
@@ -1145,15 +1125,6 @@ fileprivate func alignmentFromString(_ alignment: String) -> Alignment {
     case "bottom": return .bottom
     case "bottomTrailing": return .bottomTrailing
     default: return .center
-    }
-}
-
-fileprivate func textAlignmentFromString(_ alignment: String) -> TextAlignment {
-    switch alignment {
-    case "leading": return .leading
-    case "trailing": return .trailing
-    case "center": return .center
-    default: return .leading
     }
 }
 

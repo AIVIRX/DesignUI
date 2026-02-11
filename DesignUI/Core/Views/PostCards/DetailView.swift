@@ -36,11 +36,8 @@ struct DetailView: View {
     var description: String = ""  // Optional - will be fetched if empty
     let author: String
     var codeSnippet: String = "" // Optional - will be fetched if empty
-    let creationDate: String
-    let isAuthorVerified: Bool
     let isPremium: Bool
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject private var toastManager: ToastManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
     @State private var authorProfile: Profile?

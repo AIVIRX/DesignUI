@@ -17,16 +17,15 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var colorSchemeManager: ColorSchemeManager
     @StateObject private var purchases = PurchasesService.shared
+#if os(iOS)
     @State private var showPaywall = false
     @State private var showShareSheet = false
-    @State private var isShowingMailView = false
-    @State private var showSFSymbolsSheet = false
-    @AppStorage("appearanceMode") private var appearanceMode: String = "auto"
+#endif
     @Environment(\.openURL) var openURL
-
+    
     let email = "support@dockui.com"
-        let subject = "App Feedback"
-        let emailText = "Hello, "
+    let subject = "App Feedback"
+    let emailText = ""
     
     // App Store URL - Update with your actual App Store ID
     private var appStoreURL: String {
@@ -40,10 +39,11 @@ struct SettingsView: View {
     var body: some View {
 #if os(macOS)
         // macOS: Modifier-style layout
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Subscription Section
-                VStack(alignment: .leading, spacing: 8) {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Subscription Section
+                    VStack(alignment: .leading, spacing: 8) {
                     Text("SUBSCRIPTION")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -100,33 +100,31 @@ struct SettingsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 
-                // Features Section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("FEATURES")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    VStack(spacing: 0) {
-                        Button {
-                            showSFSymbolsSheet = true
-                        } label: {
-                            HStack {
-                                Text("SF Symbols")
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                    // Features Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("FEATURES")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        VStack(spacing: 0) {
+                            NavigationLink(destination: SFIconsView()) {
+                                HStack {
+                                    Text("SF Symbols")
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 12)
+                                .contentShape(Rectangle())
                             }
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 12)
-                            .contentShape(Rectangle())
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.1)))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.1)))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
                 
                 // Community Section
                 VStack(alignment: .leading, spacing: 8) {
@@ -333,11 +331,8 @@ struct SettingsView: View {
                     Text("Done")
                         .fontWeight(.semibold)
                 }
+                }
             }
-        }
-        .sheet(isPresented: $showSFSymbolsSheet) {
-            SFIconsView()
-                .frame(minWidth: 700, minHeight: 600)
         }
 #else
         // iOS: Keep List-based layout
@@ -435,7 +430,7 @@ struct SettingsView: View {
                     .foregroundColor(.primary)
                     
                     Button {
-                         if let url = URL(string: "https://dockui.com") { UIApplication.shared.open(url) }
+                        if let url = URL(string: "https://dockui.com") { UIApplication.shared.open(url) }
                     } label: {
                         HStack {
                             Image(systemName: "globe")
@@ -489,7 +484,7 @@ struct SettingsView: View {
                     .foregroundColor(.primary)
                     .buttonStyle(PlainButtonStyle())
                     
-                    Button(action: { showShareSheet = true }) {
+                    ShareLink(item: URL(string: "https://www.example.com")!) {
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 10)
@@ -511,7 +506,7 @@ struct SettingsView: View {
                 
                 // Support Section
                 Section("Support") {
-                    Button(action: { isShowingMailView.toggle() }) {
+                    Button(action: { sendEmail() }) {
                         HStack {
                             HStack {
                                 Image(systemName: "envelope.fill")
@@ -588,36 +583,16 @@ struct SettingsView: View {
         .onAppear {
             Task { await purchases.loadCustomerInfo() }
         }
-        .sheet(isPresented: $showShareSheet) {
-            ShareSheet(items: [shareText, appStoreURL])
-        }
 #endif
     }
     
     func sendEmail() {
-            // Construct the mailto URL with encoded parameters
-            let mailtoString = "mailto:\(email)?subject=\(subject)&body=\(emailText)"
-                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            
-            if let url = URL(string: mailtoString) {
-                openURL(url)
-            }
+        // Construct the mailto URL with encoded parameters
+        let mailtoString = "mailto:\(email)?subject=\(subject)&body=\(emailText)"
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        
+        if let url = URL(string: mailtoString) {
+            openURL(url)
         }
-}
-
-#if os(iOS)
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
     }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
-#else
-struct ShareSheet: View {
-    let items: [Any]
-    var body: some View { EmptyView() }
-}
-#endif

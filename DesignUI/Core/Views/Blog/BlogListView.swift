@@ -12,7 +12,6 @@ import SDWebImageSwiftUI
 
 struct NewsListView: View {
     @StateObject var viewModel = NewsViewModel()
-    @State private var selectedPost: NewsPost?
     
     var columns: [GridItem] {
         return [GridItem(.adaptive(minimum: 300, maximum: 300))]
@@ -38,6 +37,19 @@ struct NewsListView: View {
                             }
                         }
                         .frame(maxWidth: 1800)
+                    } else if viewModel.isLoading {
+                        ProgressView()
+                            .padding(.top, 24)
+                    } else {
+                        VStack(spacing: 8) {
+                            Text("No posts found")
+                                .font(.headline)
+                            Text(viewModel.errorMessage ?? "Check back soon for updates.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.top, 24)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -49,12 +61,11 @@ struct NewsListView: View {
             .refreshable {
                 await viewModel.fetchNews()
             }
-#if os(iOS)
-            .sheet(item: $selectedPost) { post in
-                NewsDetailView(post: post)
+            .task {
+                if viewModel.posts.isEmpty && !viewModel.isLoading {
+                    await viewModel.fetchNews()
+                }
             }
-#endif
-            .task { await viewModel.fetchNews() }
         }
     }
 }
@@ -183,4 +194,3 @@ struct BlogGridCard: View {
         }
     }
 }
-

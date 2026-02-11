@@ -17,12 +17,7 @@ struct PropertyEditor: View {
     @State private var numberValue: Double = 0.0
     @State private var showSFSymbolPicker: Bool = false
     @FocusState private var isTextFieldFocused: Bool
-    @State private var showImagePicker: Bool = false
     @State private var hasRegisteredUndo: Bool = false
-
-    private let fontStyles = [
-        "largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"
-    ]
     
     private var displayName: String {
         return property.displayName
@@ -668,6 +663,3 @@ struct PropertyEditor: View {
 #endif
     }
 }
-
-// MARK: - Color Property Editor
-

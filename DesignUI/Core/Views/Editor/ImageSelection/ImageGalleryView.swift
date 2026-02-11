@@ -15,18 +15,12 @@ struct ImageGalleryView: View {
     
     @State private var imageFilenames: [String] = []
     @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var importError: String?
-    
     // Multi-select & Import state
     @State private var isEditing = false
     @State private var selectionToDelete = Set<String>()
     @State private var showFileImporter = false
     @State private var showPhotosPicker = false
-    @State private var showPhotosPickerScreen = false
-    @State private var showLegacyImagePicker = false
-    
     @State private var showUnsplashGallery = false
-    @State private var searchText = ""
     
     // Grid layout
     private let columns = [
@@ -34,8 +28,9 @@ struct ImageGalleryView: View {
     ]
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
+        applyPhotosPicker(
+            NavigationStack {
+                VStack(spacing: 0) {
                 #if os(macOS)
                 // Custom Header for macOS (to force top placement)
                 HStack {
@@ -264,32 +259,6 @@ struct ImageGalleryView: View {
             ) { result in
                 handleFileImport(result)
             }
-#if os(iOS)
-            .photosPicker(
-                isPresented: $showPhotosPicker,
-                selection: $selectedPhotoItem,
-                matching: .images
-            )
-#endif
-#if os(iOS)
-            .navigationDestination(isPresented: $showPhotosPickerScreen) {
-                PhotosPickerScreen { data in
-                    if let data {
-                        saveAndReload(data: data)
-                    }
-                }
-            }
-#endif
-#if os(iOS)
-            .fullScreenCover(isPresented: $showLegacyImagePicker) {
-                LegacyImagePicker { data in
-                    if let data {
-                        saveAndReload(data: data)
-                    }
-                    showLegacyImagePicker = false
-                }
-            }
-#endif
             .onAppear {
                 loadImages()
             }
@@ -310,6 +279,7 @@ struct ImageGalleryView: View {
                 })
             }
         }
+        )
         #if os(macOS)
         .frame(width: 500, height: 600)
         #endif
@@ -372,114 +342,33 @@ struct ImageGalleryView: View {
 
     private func presentPhotosPicker() {
 #if os(iOS)
-        showLegacyImagePicker = true
+        showPhotosPicker = true
+#elseif os(macOS)
+        if #available(macOS 13.0, *) {
+            showPhotosPicker = true
+        } else {
+            showFileImporter = true
+        }
+#endif
+    }
+
+    @ViewBuilder
+    private func applyPhotosPicker<Content: View>(_ content: Content) -> some View {
+#if os(iOS) || os(macOS)
+        if #available(iOS 16.0, macOS 13.0, *) {
+            content.photosPicker(
+                isPresented: $showPhotosPicker,
+                selection: $selectedPhotoItem,
+                matching: .images
+            )
+        } else {
+            content
+        }
+#else
+        content
 #endif
     }
 }
-
-#if os(iOS)
-private struct PhotosPickerScreen: View {
-    @Environment(\.dismiss) private var dismiss
-    let onComplete: (Data?) -> Void
-    
-    var body: some View {
-        SystemPhotosPicker { data in
-            onComplete(data)
-            dismiss()
-        }
-        .navigationTitle("Photos")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-private struct SystemPhotosPicker: UIViewControllerRepresentable {
-    let onComplete: (Data?) -> Void
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onComplete: onComplete)
-    }
-    
-    func makeUIViewController(context: Context) -> PHPickerViewController {
-        var configuration = PHPickerConfiguration(photoLibrary: .shared())
-        configuration.selectionLimit = 1
-        configuration.filter = .images
-        let picker = PHPickerViewController(configuration: configuration)
-        picker.delegate = context.coordinator
-        picker.modalPresentationStyle = .fullScreen
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
-    
-    final class Coordinator: NSObject, PHPickerViewControllerDelegate {
-        private let onComplete: (Data?) -> Void
-        
-        init(onComplete: @escaping (Data?) -> Void) {
-            self.onComplete = onComplete
-        }
-        
-        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-            guard let itemProvider = results.first?.itemProvider else {
-                onComplete(nil)
-                return
-            }
-            
-            let imageIdentifier = UTType.image.identifier
-            if itemProvider.hasItemConformingToTypeIdentifier(imageIdentifier) {
-                itemProvider.loadDataRepresentation(forTypeIdentifier: imageIdentifier) { data, _ in
-                    DispatchQueue.main.async {
-                        self.onComplete(data)
-                    }
-                }
-            } else {
-                itemProvider.loadObject(ofClass: UIImage.self) { object, _ in
-                    let data = (object as? UIImage)?.jpegData(compressionQuality: 0.9)
-                    DispatchQueue.main.async {
-                        self.onComplete(data)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct LegacyImagePicker: UIViewControllerRepresentable {
-    let onComplete: (Data?) -> Void
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onComplete: onComplete)
-    }
-    
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.sourceType = .photoLibrary
-        picker.allowsEditing = false
-        picker.modalPresentationStyle = .formSheet
-        picker.delegate = context.coordinator
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
-    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        private let onComplete: (Data?) -> Void
-        
-        init(onComplete: @escaping (Data?) -> Void) {
-            self.onComplete = onComplete
-        }
-        
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            onComplete(nil)
-        }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            let image = info[.originalImage] as? UIImage
-            let data = image?.jpegData(compressionQuality: 0.9)
-            onComplete(data)
-        }
-    }
-}
-#endif
 
 // Helper View for individual cells
 private struct GalleryImageCell: View {

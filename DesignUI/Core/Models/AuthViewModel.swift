@@ -106,42 +106,6 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func signIn(email: String, password: String) async {
-        isLoading = true
-        
-        do {
-            let response = try await supabase.auth.signIn(
-                email: email,
-                password: password
-            )
-            currentUser = response.user
-            isAuthenticated = true
-        } catch {
-            showError = true
-            errorMessage = error.localizedDescription
-        }
-        
-        isLoading = false
-    }
-    
-    func signUp(email: String, password: String) async {
-        isLoading = true
-        
-        do {
-            let response = try await supabase.auth.signUp(
-                email: email,
-                password: password
-            )
-            currentUser = response.user
-            isAuthenticated = true
-        } catch {
-            showError = true
-            errorMessage = error.localizedDescription
-        }
-        
-        isLoading = false
-    }
-    
     func handleSignInWithApple(_ result: Result<ASAuthorization, Error>) async {
         isLoading = true
         

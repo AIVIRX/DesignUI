@@ -11,9 +11,13 @@ import Supabase
 class NewsViewModel: ObservableObject {
     @Published var posts: [NewsPost] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
 
     func fetchNews() async {
-        await MainActor.run { self.isLoading = true }
+        await MainActor.run {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
         do {
             let response: [NewsPost] = try await SupabaseManager.shared.client
                 .from("news")
@@ -31,6 +35,7 @@ class NewsViewModel: ObservableObject {
             print("Error fetching news:", error)
             await MainActor.run {
                 self.isLoading = false
+                self.errorMessage = "Can’t load posts right now. Check your connection and try again."
             }
         }
     }

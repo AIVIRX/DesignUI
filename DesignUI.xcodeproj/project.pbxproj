@@ -13,12 +13,9 @@
 		6E9E4C66047942559A4C838B /* MaskModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9173008177C242689ADE1922 /* MaskModifierEditor.swift */; };
 		8F8357C19C6449BC94943443 /* AspectRatioModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 875BF2F11EA84F92A0AE1C33 /* AspectRatioModifierEditor.swift */; };
 		91246875AC78466CB15A90B9 /* ClipShapeModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CF6932F317457D9CBFA815 /* ClipShapeModifierEditor.swift */; };
-		AA000001AAAA000100000001 /* AppLoadingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002AAAA000100000001 /* AppLoadingState.swift */; };
-		AA000003AAAA000100000001 /* LoadingScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004AAAA000100000001 /* LoadingScreenView.swift */; };
 		AA000005AAAA000100000001 /* AppLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000006AAAA000100000001 /* AppLoadingView.swift */; };
 		B94BF3488F40454F80B2348EA864EC8D /* UserPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94BF3478F40454F80B2348EA864EC8C /* UserPostsViewModel.swift */; };
-		E5848CC5CC9440AE8630CC9BF787CD37 /* UserPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5848CC4CC9440AE8630CC9BF787CD36 /* UserPostsView.swift */; };
-		EC08787C2F3693D9004C6C73 /* UndoToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC08787B2F3693D9004C6C73 /* UndoToastView.swift */; };
+		C0DEXVWC0ND1T10NAL000002 /* View+Conditional.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEXVWC0ND1T10NAL000001 /* View+Conditional.swift */; };
 		EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95BD2EB29F1200AA6A84 /* Constants.swift */; };
 		EC0C95C72EB2A18F00AA6A84 /* CustomPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */; };
 		EC1A03B32F1D52100084FF52 /* DesignPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1A03B12F1D52100084FF52 /* DesignPage.swift */; };
@@ -30,13 +27,10 @@
 		EC37CE252F196758006CFD08 /* CommunityCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE242F196751006CFD08 /* CommunityCards.swift */; };
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC50CFB62D1393B9006586DA /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC50CFB52D1393B9006586DA /* Profile.swift */; };
-		EC59829C2D56836B00633392 /* Like.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829B2D56836B00633392 /* Like.swift */; };
 		EC5982A02D568E5500633392 /* LikeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59829F2D568E5500633392 /* LikeButton.swift */; };
-		EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A12D57F4A600633392 /* LikedPostsView.swift */; };
 		EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */; };
 		EC62CF652F09F0DB00D7EFF8 /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
-		EC7281322F356241003319F0 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7281312F356241003319F0 /* AIService.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
 		EC7D7BE52C19E4CD003134B1 /* DesignPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */; };
@@ -46,7 +40,6 @@
 		EC86A0FD2F29E03A00FD74CA /* SubmitToCommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC86A0FB2F29E03A00FD74CA /* SubmitToCommunityView.swift */; };
 		EC8D7B2B2F20711F008E4AB3 /* UnsplashGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
-		EC96C2DD2F25891B00DA8459 /* CustomBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC96C2DB2F25891B00DA8459 /* CustomBottomSheet.swift */; };
 		EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9B43382D639B5500B5DBCB /* SignInView.swift */; };
 		EC9C2D492E859C4800B8EF30 /* CopyClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */; };
 		EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9F54692E187D7D00AAE9EC /* NewsPost.swift */; };
@@ -136,14 +129,11 @@
 		800F3B87CC1B46BF88A67398 /* BorderModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderModifierEditor.swift; sourceTree = "<group>"; };
 		875BF2F11EA84F92A0AE1C33 /* AspectRatioModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectRatioModifierEditor.swift; sourceTree = "<group>"; };
 		9173008177C242689ADE1922 /* MaskModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaskModifierEditor.swift; sourceTree = "<group>"; };
-		AA000002AAAA000100000001 /* AppLoadingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingState.swift; sourceTree = "<group>"; };
-		AA000004AAAA000100000001 /* LoadingScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingScreenView.swift; sourceTree = "<group>"; };
 		AA000006AAAA000100000001 /* AppLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoadingView.swift; sourceTree = "<group>"; };
 		B94BF3478F40454F80B2348EA864EC8C /* UserPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPostsViewModel.swift; sourceTree = "<group>"; };
+		C0DEXVWC0ND1T10NAL000001 /* View+Conditional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Conditional.swift"; sourceTree = "<group>"; };
 		CA14852B8F53415E9ECEF774 /* ZIndexModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIndexModifierEditor.swift; sourceTree = "<group>"; };
 		D6CF6932F317457D9CBFA815 /* ClipShapeModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipShapeModifierEditor.swift; sourceTree = "<group>"; };
-		E5848CC4CC9440AE8630CC9BF787CD36 /* UserPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPostsView.swift; sourceTree = "<group>"; };
-		EC08787B2F3693D9004C6C73 /* UndoToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoToastView.swift; sourceTree = "<group>"; };
 		EC0C95BD2EB29F1200AA6A84 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPaywallView.swift; sourceTree = "<group>"; };
 		EC1A03B12F1D52100084FF52 /* DesignPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignPage.swift; sourceTree = "<group>"; };
@@ -158,13 +148,10 @@
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2D2D03FB4F002EA494 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC50CFB52D1393B9006586DA /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
-		EC59829B2D56836B00633392 /* Like.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Like.swift; sourceTree = "<group>"; };
 		EC59829F2D568E5500633392 /* LikeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeButton.swift; sourceTree = "<group>"; };
-		EC5982A12D57F4A600633392 /* LikedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsView.swift; sourceTree = "<group>"; };
 		EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsViewModel.swift; sourceTree = "<group>"; };
 		EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
-		EC7281312F356241003319F0 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesignPost.swift; sourceTree = "<group>"; };
@@ -175,7 +162,6 @@
 		EC8B7AA52EBD4EF0006FE323 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.1.sdk/System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = DEVELOPER_DIR; };
 		EC8D7B2A2F20711F008E4AB3 /* UnsplashGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashGalleryView.swift; sourceTree = "<group>"; };
 		EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
-		EC96C2DB2F25891B00DA8459 /* CustomBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomBottomSheet.swift; sourceTree = "<group>"; };
 		EC9B43382D639B5500B5DBCB /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyClipboard.swift; sourceTree = "<group>"; };
 		EC9F54692E187D7D00AAE9EC /* NewsPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsPost.swift; sourceTree = "<group>"; };
@@ -278,7 +264,6 @@
 			isa = PBXGroup;
 			children = (
 				AA000006AAAA000100000001 /* AppLoadingView.swift */,
-				AA000004AAAA000100000001 /* LoadingScreenView.swift */,
 			);
 			path = Loading;
 			sourceTree = "<group>";
@@ -368,7 +353,6 @@
 			isa = PBXGroup;
 			children = (
 				ECA67B152F289E520021941D /* LazyMasonryView.swift */,
-				EC96C2DB2F25891B00DA8459 /* CustomBottomSheet.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -400,7 +384,6 @@
 		ECA67B0A2F2899A50021941D /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				EC7281312F356241003319F0 /* AIService.swift */,
 				ECA67B082F2899A50021941D /* PurchasesService.swift */,
 				ECA67B092F2899A50021941D /* UnsplashService.swift */,
 			);
@@ -467,7 +450,6 @@
 				ECB94C682EFB0C6F000AAF34 /* StatusBarView.swift */,
 				ECB94C692EFB0C6F000AAF34 /* UIBuilderView.swift */,
 				ECB94C6A2EFB0C6F000AAF34 /* UIComponent.swift */,
-				EC08787B2F3693D9004C6C73 /* UndoToastView.swift */,
 				EC6B3E6B2F36FD22001E70E8 /* CodeGenerator */,
 				EC6B3E6C2F36FD7C001E70E8 /* ImageSelection */,
 				EC6B3E6E2F37139C001E70E8 /* LayersPannel */,
@@ -532,10 +514,10 @@
 			isa = PBXGroup;
 			children = (
 				ECB4F5CC2F2C433800D2AB65 /* GridConfiguration.swift */,
-				AA000002AAAA000100000001 /* AppLoadingState.swift */,
 				EC0C95BD2EB29F1200AA6A84 /* Constants.swift */,
 				EC9C2D482E859C3C00B8EF30 /* CopyClipboard.swift */,
 				EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */,
+				C0DEXVWC0ND1T10NAL000001 /* View+Conditional.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -548,7 +530,6 @@
 				EC9F546D2E187F4700AAE9EC /* BlogViewModel.swift */,
 				EC7D7BE42C19E4CD003134B1 /* DesignPost.swift */,
 				ECFDEA112F0F805C00540DD3 /* LatestPostsViewModel.swift */,
-				EC59829B2D56836B00633392 /* Like.swift */,
 				EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */,
 				EC9F54692E187D7D00AAE9EC /* NewsPost.swift */,
 				EC50CFB52D1393B9006586DA /* Profile.swift */,
@@ -612,13 +593,11 @@
 			children = (
 				EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */,
 				EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */,
-				EC5982A12D57F4A600633392 /* LikedPostsView.swift */,
 				ECFF2C7A2D5594B1006A7FE6 /* ProfileContainerView.swift */,
 				ECFF2C782D55936B006A7FE6 /* ProfileView.swift */,
 				ECFF2C802D55961D006A7FE6 /* ProfileViewModel.swift */,
 				EC9B43382D639B5500B5DBCB /* SignInView.swift */,
 				ECDE7C9D2EB405AB00E80823 /* UsernameSetupView.swift */,
-				E5848CC4CC9440AE8630CC9BF787CD36 /* UserPostsView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -771,11 +750,8 @@
 				ECFDEA122F0F805C00540DD3 /* LatestPostsViewModel.swift in Sources */,
 				EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */,
 				B94BF3488F40454F80B2348EA864EC8D /* UserPostsViewModel.swift in Sources */,
-				EC5982A22D57F4A600633392 /* LikedPostsView.swift in Sources */,
-				E5848CC5CC9440AE8630CC9BF787CD37 /* UserPostsView.swift in Sources */,
 				EC9F54752E1889B700AAE9EC /* NewsContentView.swift in Sources */,
 				ECB94C6C2EFB0C6F000AAF34 /* ComponentLibraryView.swift in Sources */,
-				EC08787C2F3693D9004C6C73 /* UndoToastView.swift in Sources */,
 				ECB94C6D2EFB0C6F000AAF34 /* CanvasView.swift in Sources */,
 				ECB94C6E2EFB0C6F000AAF34 /* CanvasManager.swift in Sources */,
 				ECB94C6F2EFB0C6F000AAF34 /* DesignFile.swift in Sources */,
@@ -799,7 +775,6 @@
 				ECB94C7E2EFB0C6F000AAF34 /* StatusBarView.swift in Sources */,
 				ECB94C7F2EFB0C6F000AAF34 /* ModifierEditorView.swift in Sources */,
 				ECB94C802EFB0C6F000AAF34 /* ScreenshotUtility.swift in Sources */,
-				EC96C2DD2F25891B00DA8459 /* CustomBottomSheet.swift in Sources */,
 				ECB8955E2F34646900451A25 /* ColorPickers.swift in Sources */,
 				ECB8955F2F34646900451A25 /* PropertiesSectionView.swift in Sources */,
 				ECB895602F34646900451A25 /* ImagePickerEditor.swift in Sources */,
@@ -810,7 +785,6 @@
 				ECB895652F34646900451A25 /* PropertyEditorView.swift in Sources */,
 				ECB895662F34646900451A25 /* ComponentRenderer+Renderers.swift in Sources */,
 				ECB94C812EFB0C6F000AAF34 /* CodePreviewView.swift in Sources */,
-				EC59829C2D56836B00633392 /* Like.swift in Sources */,
 				ECCCBBE22F0DDC24001817C3 /* ImageGalleryView.swift in Sources */,
 				EC240D002C72B8B600956AB4 /* ContentView.swift in Sources */,
 				EC9F546A2E187D7D00AAE9EC /* NewsPost.swift in Sources */,
@@ -820,7 +794,6 @@
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
 				EC9B43392D639B5500B5DBCB /* SignInView.swift in Sources */,
 				EC0C95BE2EB29F1200AA6A84 /* Constants.swift in Sources */,
-				EC7281322F356241003319F0 /* AIService.swift in Sources */,
 				EC1DCBA12E75417F0008FEC8 /* CodeSnippets.swift in Sources */,
 				ECB94C902EFB0D21000AAF34 /* TextAlignmentModifierEditor.swift in Sources */,
 				ECB94C922EFB0D21000AAF34 /* FontModifierEditor.swift in Sources */,
@@ -851,8 +824,6 @@
 				EC8D7B2B2F20711F008E4AB3 /* UnsplashGalleryView.swift in Sources */,
 				ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */,
 				EC62CF652F09F0DB00D7EFF8 /* SyntaxHighlighter.swift in Sources */,
-				AA000001AAAA000100000001 /* AppLoadingState.swift in Sources */,
-				AA000003AAAA000100000001 /* LoadingScreenView.swift in Sources */,
 				ECB4F5CD2F2C433800D2AB65 /* GridConfiguration.swift in Sources */,
 				AA000005AAAA000100000001 /* AppLoadingView.swift in Sources */,
 				8F8357C19C6449BC94943443 /* AspectRatioModifierEditor.swift in Sources */,
@@ -861,6 +832,7 @@
 				91246875AC78466CB15A90B9 /* ClipShapeModifierEditor.swift in Sources */,
 				6E9E4C66047942559A4C838B /* MaskModifierEditor.swift in Sources */,
 				413EB05B692845FF954E8979 /* ZIndexModifierEditor.swift in Sources */,
+				C0DEXVWC0ND1T10NAL000002 /* View+Conditional.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1014,7 +986,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 903;
+				CURRENT_PROJECT_VERSION = 909;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1092,7 +1064,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 903;
+				CURRENT_PROJECT_VERSION = 909;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;

@@ -13,47 +13,6 @@ import AppKit
 import UIKit
 #endif
 
-// MARK: - ComponentAnyCodable Helper
-struct ComponentAnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let string = try? container.decode(String.self) {
-            value = string
-        } else if let int = try? container.decode(Int.self) {
-            value = int
-        } else if let double = try? container.decode(Double.self) {
-            value = double
-        } else if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else {
-            throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        if let string = value as? String {
-            try container.encode(string)
-        } else if let int = value as? Int {
-            try container.encode(int)
-        } else if let double = value as? Double {
-            try container.encode(double)
-        } else if let bool = value as? Bool {
-            try container.encode(bool)
-        } else {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
-        }
-    }
-}
-
 // MARK: - Component Types
 enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case text = "Text"
@@ -284,34 +243,6 @@ extension ComponentProperty: Codable {
              } else {
                  try container.encode("center", forKey: key) // Fallback
              }
-        }
-    }
-    
-    private static func decodeAnyValue(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys, type: PropertyType) throws -> Any {
-        switch type {
-        case .string:
-            return try container.decode(String.self, forKey: key)
-        case .number:
-            return try container.decode(Double.self, forKey: key)
-        case .boolean:
-            return try container.decode(Bool.self, forKey: key)
-        case .color:
-            let colorString = try container.decode(String.self, forKey: key)
-            // Convert stored string back to Color
-            return colorStringToColor(colorString)
-        case .font, .alignment, .segmentedControl, .dropdown:
-            return try container.decode(String.self, forKey: key)
-        case .spacing, .cornerRadius, .padding, .frame, .offset, .rotation, .scale, .opacity, .shadow, .border, .gradient, .animation, .slider:
-            // Try to decode as Double first, fallback to String
-            if let doubleValue = try? container.decode(Double.self, forKey: key) {
-                return doubleValue
-            } else {
-                return try container.decode(String.self, forKey: key)
-            }
-        case .colorArray:
-            return try container.decode([String].self, forKey: key)
-        case .unitPoint:
-            return try container.decode(String.self, forKey: key)
         }
     }
     
@@ -627,12 +558,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
             }
         }
     }
-    // MARK: - Frame Management
-    func updateFrame(_ newFrame: CGRect) {
-        // The frame setter automatically handles objectWillChange and save notification
-        frame = newFrame
-    }
-    
     func getProperty(key: String) -> Any? {
         guard let property = properties.first(where: { $0.key == key }) else {
             return nil
@@ -686,10 +611,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         return children.filter { $0.isOverlay }
     }
     
-    func getRegularChildren() -> [UIComponent] {
-        return children.filter { !$0.isOverlay && $0.modifierId == nil }
-    }
-    
     func getChildrenForModifier(_ modifierId: UUID) -> [UIComponent] {
         return children.filter { $0.modifierId == modifierId }
     }
@@ -709,10 +630,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         children.removeAll { $0.id == child.id }
     }
     
-    func removeChild(at index: Int) {
-        guard index < children.count else { return }
-        children.remove(at: index)
-    }
     
     // MARK: - Modifier Management
     func addModifier(_ modifier: ComponentModifier) {
@@ -811,31 +728,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
     }
     
-    func removeModifier(at index: Int) {
-        guard index < modifiers.count else { return }
-        
-        // Save state for undo BEFORE making changes
-        NotificationCenter.default.post(name: .designWillChange, object: nil)
-        
-        let removedModifier = modifiers[index]
-        
-        // For overlay, mask, and background modifiers, remove the parent component
-        if removedModifier.type == .overlay || removedModifier.type == .mask || removedModifier.type == .background {
-            let modifierChildren = getChildrenForModifier(removedModifier.id)
-            for child in modifierChildren {
-                removeChild(child)
-            }
-            // Trigger UI update after removing children
-            objectWillChange.send()
-        }
-        
-        modifiers.remove(at: index)
-        objectWillChange.send()
-        
-        // Post notification to trigger design file saving
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
-    
     /// Update modifier and save undo state - use for discrete changes or when editing ends
     func updateModifier(_ modifier: ComponentModifier) {
         if let index = modifiers.firstIndex(where: { $0.id == modifier.id }) {
@@ -884,10 +776,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     func clone() -> UIComponent {
         // Deep copy children recursively
         let clonedChildren = children.map { $0.clone() }
-        
-        // Properties and modifiers are structs, so they are value types and copied automatically
-        // However, we need to ensure any reference types inside them (if any) are handled
-        // Currently Property and Modifier only contain value types or immutable standard types
         
         return UIComponent(
             type: type,
@@ -987,11 +875,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
-    // MARK: - Code Generation
-    func generateSwiftCode() -> String {
-        return CodeGenerator.generateCode(for: self)
-    }
-    
     // MARK: - Codable Implementation
     enum CodingKeys: String, CodingKey {
         case id, type, properties, children, frame, isVisible, zIndex, modifiers, isOverlay, modifierId, modifierType
@@ -1051,15 +934,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                 // Property exists in JSON - use saved value with restored metadata
                 var correctValue = savedProp.value
                 
-                // Convert types if needed (e.g., String -> Color, Int -> Double)
-                // Removed automatic conversion for .color type.
-                // We want to keep the value as String so the Editor binding works correctly.
-                // Renderers are now updated to handle String resolution to Color on demand.
-                /*
-                if defaultProp.type == .color, let stringVal = correctValue as? String {
-                    correctValue = ComponentProperty.colorStringToColor(stringVal)
-                }
-                */
                 if defaultProp.type == .number {
                     // JSON numbers can decode as Int or Double, normalize to Double
                     if let intVal = correctValue as? Int {
@@ -1190,7 +1064,6 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         try container.encodeIfPresent(modifierType, forKey: .modifierType)
     }
     
-    // MARK: - Equatable Implementation
     static func == (lhs: UIComponent, rhs: UIComponent) -> Bool {
         return lhs.id == rhs.id
     }
@@ -1303,9 +1176,4 @@ extension UIComponent {
             return []
         }
     }
-}
-
-// MARK: - UserInfo Keys for Custom Encoding
-extension CodingUserInfoKey {
-    static let excludeIds = CodingUserInfoKey(rawValue: "excludeIds")!
 }

@@ -23,6 +23,10 @@ struct PropertiesPanelView: View {
     @State private var galleryImageName = ""
     @State private var activeImagePropertyKey: String?
     @State private var activeModifierSheet: ModifierSheet?
+
+    private var componentForModifierSheet: UIComponent? {
+        selectedComponent ?? canvasManager.statusBarComponent
+    }
     
     var body: some View {
         #if os(iOS)
@@ -174,9 +178,4 @@ struct PropertiesPanelView: View {
         
         component.objectWillChange.send()
     }
-
-    private var componentForModifierSheet: UIComponent? {
-        selectedComponent ?? canvasManager.statusBarComponent
-    }
-
 }

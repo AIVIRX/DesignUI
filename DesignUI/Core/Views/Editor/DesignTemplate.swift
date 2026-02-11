@@ -15,19 +15,23 @@ struct DesignTemplate: Identifiable, Codable {
     let thumbnail: String // Image name for image
     let devicePreset: String? // Optional device preset for initial canvas size
     let canvasColorScheme: String? // Optional color scheme preference (light/dark)
+    let statusBarVisible: Bool? // Optional status bar visibility
+    let statusBarTopSafeArea: Bool? // Optional top safe area setting
     let components: [UIComponent]
     
     enum CodingKeys: String, CodingKey {
-        case name, description, thumbnail, devicePreset, canvasColorScheme, components
+        case name, description, thumbnail, devicePreset, canvasColorScheme, statusBarVisible, statusBarTopSafeArea, components
     }
     
-    init(name: String, description: String, thumbnail: String, devicePreset: String?, canvasColorScheme: String? = nil, components: [UIComponent]) {
+    init(name: String, description: String, thumbnail: String, devicePreset: String?, canvasColorScheme: String? = nil, statusBarVisible: Bool? = nil, statusBarTopSafeArea: Bool? = nil, components: [UIComponent]) {
         self.id = UUID()
         self.name = name
         self.description = description
         self.thumbnail = thumbnail
         self.devicePreset = devicePreset
         self.canvasColorScheme = canvasColorScheme
+        self.statusBarVisible = statusBarVisible
+        self.statusBarTopSafeArea = statusBarTopSafeArea
         self.components = components
     }
     
@@ -39,7 +43,21 @@ struct DesignTemplate: Identifiable, Codable {
         self.thumbnail = try container.decode(String.self, forKey: .thumbnail)
         self.devicePreset = try container.decodeIfPresent(String.self, forKey: .devicePreset)
         self.canvasColorScheme = try container.decodeIfPresent(String.self, forKey: .canvasColorScheme)
+        self.statusBarVisible = try container.decodeIfPresent(Bool.self, forKey: .statusBarVisible)
+        self.statusBarTopSafeArea = try container.decodeIfPresent(Bool.self, forKey: .statusBarTopSafeArea)
         self.components = try container.decode([UIComponent].self, forKey: .components)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(description, forKey: .description)
+        try container.encode(thumbnail, forKey: .thumbnail)
+        try container.encodeIfPresent(devicePreset, forKey: .devicePreset)
+        try container.encodeIfPresent(canvasColorScheme, forKey: .canvasColorScheme)
+        try container.encodeIfPresent(statusBarVisible, forKey: .statusBarVisible)
+        try container.encodeIfPresent(statusBarTopSafeArea, forKey: .statusBarTopSafeArea)
+        try container.encode(components, forKey: .components)
     }
 }
 
@@ -123,7 +141,4 @@ class DesignTemplateManager {
         }
     }
     
-    func templates(for category: DesignTemplate) -> [DesignTemplate] {
-        return templates
-    }
 }

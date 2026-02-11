@@ -8,32 +8,6 @@
 import SwiftUI
 import Supabase
 
-/// Represents a user's community submission with moderation status
-struct CommunitySubmission: Identifiable, Codable {
-    let id: String
-    let title: String
-    let description: String?
-    let preview_image_url: String?
-    private let status_raw: String
-    let created_at: String
-    let original_post_id: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case id, title, description, preview_image_url, created_at, original_post_id
-        case status_raw = "status"
-    }
-    
-    enum SubmissionStatus: String {
-        case pending = "pending"
-        case approved = "approved"
-        case rejected = "rejected"
-    }
-    
-    var status: SubmissionStatus {
-        SubmissionStatus(rawValue: status_raw) ?? .pending
-    }
-}
-
 /// Payload for creating a new community submission
 private struct SubmissionPayload: Encodable {
     let id: String
@@ -48,6 +22,35 @@ private struct SubmissionPayload: Encodable {
     let post_type: String
     // New posts start as not public until approved
     let `public`: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case description
+        case preview_image_url
+        case design_json
+        case author_id
+        case status
+        case original_post_id
+        case slug
+        case post_type
+        case `public`
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(description, forKey: .description)
+        try container.encode(preview_image_url, forKey: .preview_image_url)
+        try container.encode(design_json, forKey: .design_json)
+        try container.encode(author_id, forKey: .author_id)
+        try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(original_post_id, forKey: .original_post_id)
+        try container.encode(slug, forKey: .slug)
+        try container.encode(post_type, forKey: .post_type)
+        try container.encode(`public`, forKey: .public)
+    }
 }
 
 @MainActor
@@ -55,7 +58,6 @@ class CommunitySubmissionViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var isUploading = false
     @Published var uploadProgress: String = ""
-    @Published var mySubmissions: [CommunitySubmission] = []
     @Published var showError = false
     @Published var errorMessage = ""
     @Published var submissionSuccess = false
@@ -163,33 +165,6 @@ class CommunitySubmissionViewModel: ObservableObject {
             isUploading = false
             return false
         }
-    }
-    
-    // MARK: - Fetch My Submissions
-    
-    /// Fetch the current user's submissions
-    func fetchMySubmissions() async {
-        guard let userId = client.auth.currentUser?.id else { return }
-        
-        isLoading = true
-        
-        do {
-            let response = try await client
-                .from("posts")
-                .select("id, title, description, preview_image_url, status, created_at, original_post_id")
-                .eq("author_id", value: userId.uuidString)
-                .order("created_at", ascending: false)
-                .execute()
-            
-            let submissions = try JSONDecoder().decode([CommunitySubmission].self, from: response.data)
-            mySubmissions = submissions
-            
-        } catch {
-            print("❌ Failed to fetch submissions: \(error)")
-            errorMessage = "Failed to load submissions"
-        }
-        
-        isLoading = false
     }
     
     // MARK: - Image Upload

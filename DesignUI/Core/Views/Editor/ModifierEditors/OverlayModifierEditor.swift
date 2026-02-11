@@ -150,7 +150,6 @@ struct OverlayModifierEditor: View {
         }
         .sheet(isPresented: $showComponentLibrary) {
             ComponentLibraryForModifierView(
-                modifier: modifier,
                 component: component,
                 onAdd: { newComponent in
                     // Remove existing children first (overlay only supports one)

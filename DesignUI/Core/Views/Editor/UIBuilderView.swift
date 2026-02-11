@@ -20,7 +20,9 @@ extension Notification.Name {
     static let designChanged = Notification.Name("design.changed")
     static let statusBarVisibilityChanged = Notification.Name("statusBar.visibilityChanged")
     static let selectComponent = Notification.Name("selectComponent")
+    #if os(iOS)
     static let minimizeSheet = Notification.Name("minimizeSheet") // Minimize iOS sheet to height 80
+    #endif
     static let dismissChildNavigation = Notification.Name("dismissChildNavigation") // Dismiss child views (add components, modifiers)
     static let dismissAIPromptFocus = Notification.Name("dismissAIPromptFocus")
 }
@@ -194,7 +196,9 @@ enum DevicePreset: String, CaseIterable, Identifiable {
 
 struct UIBuilderView: View {
     @ObservedObject var designFile: DesignFile
+    #if os(iOS)
     @EnvironmentObject private var designManager: DesignManager
+    #endif
     @StateObject private var canvasManager = CanvasManager()
 
     enum SidebarTab {
@@ -227,8 +231,6 @@ struct UIBuilderView: View {
     
     // Debounced design sync to avoid redundant saves/snapshots
     @State private var designSyncWorkItem: DispatchWorkItem?
-    
-    @Environment(\.dismiss) private var dismiss
     
 #if os(iOS)
     @State private var selection: PresentationDetent = .medium // Locked to medium
@@ -281,12 +283,14 @@ struct UIBuilderView: View {
         selection = .medium
         showCodePreview = true
     }
+#endif
     
     private func openCommunitySubmissionSheet() {
+        #if os(iOS)
         closeAllSheets()
+        #endif
         showCommunitySubmission = true
     }
-#endif
 
     var body: some View {
         let baseContent = NavigationStack {
@@ -461,6 +465,7 @@ struct UIBuilderView: View {
         #endif
     }
     
+    #if os(iOS)
     private var iPadCanvasContent: some View {
         ZStack {
             mainCanvasArea
@@ -505,6 +510,7 @@ struct UIBuilderView: View {
             }
         }
     }
+    #endif
     
     #if os(macOS)
     private var macOSCanvasContent: some View {
@@ -658,8 +664,9 @@ struct UIBuilderView: View {
                 }
                 
                 Divider()
-                
-                // Submit to Community hidden for now
+                Button(action: { openCommunitySubmissionSheet() }) {
+                    Label("Post to Community", systemImage: "paperplane")
+                }
             } label: {
                  Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 14, weight: .medium))
@@ -827,6 +834,11 @@ struct UIBuilderView: View {
                     Label("Save as Screenshot", systemImage: "photo")
                 }
                 
+                Divider()
+                
+                Button(action: { openCommunitySubmissionSheet() }) {
+                    Label("Submit to Community", systemImage: "paperplane")
+                }
 
             } label: {
                  Image(systemName: "square.and.arrow.up")
@@ -1488,22 +1500,24 @@ struct UIBuilderView: View {
             
             Divider()
             
-            // Submit to Community hidden for now
+            Button(action: { openCommunitySubmissionSheet() }) {
+                Label("Submit to Community", systemImage: "paperplane")
+            }
             
             Divider()
             
-            Button(action: {
-                let json = canvasManager.getDesignAsJSON()
-                #if os(iOS)
-                UIPasteboard.general.string = json
-                #elseif os(macOS)
-                let pasteboard = NSPasteboard.general
-                pasteboard.clearContents()
-                pasteboard.setString(json, forType: .string)
-                #endif
-            }) {
-                Label("Copy JSON", systemImage: "doc.on.clipboard")
-            }
+//            Button(action: {
+//                let json = canvasManager.getDesignAsJSON()
+//                #if os(iOS)
+//                UIPasteboard.general.string = json
+//                #elseif os(macOS)
+//                let pasteboard = NSPasteboard.general
+//                pasteboard.clearContents()
+//                pasteboard.setString(json, forType: .string)
+//                #endif
+//            }) {
+//                Label("Copy JSON", systemImage: "doc.on.clipboard")
+//            }
         } label: {
             Image(systemName: "square.and.arrow.up")
                 .font(.system(size: 14, weight: .medium))
@@ -1743,15 +1757,6 @@ struct UIBuilderView: View {
             NotificationCenter.default.post(name: .designChanged, object: nil)
         }
     
-    private func syncDesignChanges() {
-        // This is now predominantly handled by the observers to avoid loops
-        // but we keep it for explicit calls if any remain
-        if !isSwitchingPage {
-            designFile.components = canvasManager.components
-            designFile.markAsChanged()
-        }
-    }
-
     private func scheduleDesignSync(captureScreenshot: Bool) {
         // Coalesce rapid changes to avoid redundant saves/snapshots
         designSyncWorkItem?.cancel()
@@ -1897,10 +1902,12 @@ struct ResizablePanel<Content: View>: View {
             .frame(width: width)
             .padding(.vertical, 8)
             .padding(.horizontal, 4)
-            .overlay(
-                resizeHandle,
-                alignment: handlePosition == .left ? .leading : .trailing
-            )
+            .overlay(alignment: handlePosition == .left ? .leading : .trailing) {
+                resizeHandle
+                    .padding(.vertical, 8)
+                    .padding(handlePosition == .left ? .leading : .trailing, 10)
+                    .offset(x: handlePosition == .left ? 6 : -6)
+            }
             .frame(maxHeight: .infinity)
             .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
     }
@@ -1993,171 +2000,5 @@ struct AIPromptDismissModifier: ViewModifier {
 extension View {
     func editorPanelStyle() -> some View {
         modifier(EditorPanelStyle())
-    }
-}
-
-struct AICommandBar: View {
-    @ObservedObject var canvasManager: CanvasManager
-    @State private var prompt: String = ""
-    @State private var isGenerating: Bool = false
-    @FocusState private var isPromptFocused: Bool
-    @State private var lastSubmitAt: Date? = nil
-    @State private var cooldownEndAt: Date? = nil
-    @State private var showSignInRequired: Bool = false
-    
-    private let maxCharacters = 200
-    private let cooldownSeconds: Double = 4.0
-    
-    private var characterCount: Int {
-        prompt.count
-    }
-    
-    private var isOverLimit: Bool {
-        characterCount > maxCharacters
-    }
-    
-    private func cooldownRemaining(now: Date) -> Int {
-        guard let cooldownEndAt else { return 0 }
-        let remaining = max(0, cooldownEndAt.timeIntervalSince(now))
-        return Int(ceil(remaining))
-    }
-    
-    private var quotaText: String? {
-        guard let quota = canvasManager.aiQuota else { return nil }
-        return "\(quota.remaining)/\(quota.limit)"
-    }
-
-    private var isSignedIn: Bool {
-        SupabaseManager.shared.client.auth.currentUser != nil
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Text input area
-            TextField("What would you like to do?", text: $prompt, axis: .vertical)
-                .textFieldStyle(.plain)
-                .lineLimit(2...4)
-                .focused($isPromptFocused)
-                .onChange(of: prompt) { _, newValue in
-                    // Enforce character limit
-                    if newValue.count > maxCharacters {
-                        prompt = String(newValue.prefix(maxCharacters))
-                    }
-                }
-                .onSubmit {
-                    generate()
-                }
-
-            if showSignInRequired && !isSignedIn {
-                Text("Sign in required")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.red)
-            }
-            
-            // Bottom row: quota, character count, send button
-            TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
-                let remaining = cooldownRemaining(now: timeline.date)
-                let isCooldownActive = remaining > 0
-                
-                HStack {
-                    if let quotaText {
-                        Text(quotaText)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(red: 0.76, green: 0.56, blue: 0.05))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color(red: 0.76, green: 0.56, blue: 0.05).opacity(0.18), in: Capsule())
-                            .contentShape(Capsule())
-                            #if os(macOS)
-                            .help("Requests remaining")
-                            #endif
-                    }
-                    
-                    Spacer()
-                    
-                    // Characters remaining
-                    Text("\(max(0, maxCharacters - characterCount))")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(characterCount >= maxCharacters ? .red : .secondary)
-                    
-                    // Send button
-                    Button(action: generate) {
-                        if isGenerating {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            ZStack {
-                                if isCooldownActive {
-                                    Text("\(remaining)")
-                                        .font(.system(size: 11, weight: .bold))
-                                        .foregroundColor(.white)
-                                } else {
-                                    Image(systemName: "arrow.up")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.white)
-                                }
-                            }
-                            .padding(6)
-                            .background(
-                                Circle().fill((prompt.isEmpty || isCooldownActive) ? Color.gray : Color.blue)
-                            )
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(prompt.isEmpty || isGenerating || isCooldownActive)
-                }
-            }
-        }
-        .padding(12)
-        .editorPanelStyle()
-        .contentShape(RoundedRectangle(cornerRadius: 12))
-        .onTapGesture {
-            isPromptFocused = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .dismissAIPromptFocus)) { _ in
-            isPromptFocused = false
-        }
-        .overlay(
-            Group {
-                if isPromptFocused {
-                    FluidGradient(
-                        blobs: [.indigo, .blue, .indigo, .pink],
-                        speed: 1.0,
-                        blur: 0.5
-                    )
-                    .mask(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(lineWidth: 2)
-                    )
-                } else {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.secondary.opacity(0.35), lineWidth: 1)
-                }
-            }
-            .allowsHitTesting(false)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-    }
-    
-    private func generate() {
-        guard isSignedIn else {
-            showSignInRequired = true
-            return
-        }
-        let remaining = cooldownRemaining(now: Date())
-        let isCooldownActive = remaining > 0
-        guard !prompt.isEmpty && !isGenerating && !isOverLimit && !isCooldownActive else { return }
-        
-        isGenerating = true
-        lastSubmitAt = Date()
-        cooldownEndAt = lastSubmitAt?.addingTimeInterval(cooldownSeconds)
-        let currentPrompt = prompt
-        prompt = ""
-        
-        Task {
-            await canvasManager.generateAIContent(prompt: currentPrompt)
-            isGenerating = false
-        }
     }
 }

@@ -7,67 +7,26 @@ struct UnsplashPhoto: Codable, Identifiable {
     let id: String
     let width: Int
     let height: Int
-    let color: String?
-    let blur_hash: String?
-    let description: String?
-    let alt_description: String?
     let urls: UnsplashUrls
-    let links: UnsplashLinks
     let user: UnsplashUser
 }
 
-struct UnsplashLinks: Codable {
-    let selfLink: String
-    let html: String
-    let download: String
-    let download_location: String
-    
-    enum CodingKeys: String, CodingKey {
-        case selfLink = "self"
-        case html, download, download_location
-    }
-}
-
 struct UnsplashUrls: Codable {
-    let raw: String
-    let full: String
     let regular: String
     let small: String
-    let thumb: String
-    let small_s3: String?
+    
 }
 
-struct UnsplashUser: Codable, Identifiable {
-    let id: String
-    let username: String
+struct UnsplashUser: Codable {
     let name: String
-    let portfolio_url: String?
-    let profile_image: UnsplashProfileImage?
     let links: UnsplashUserLinks
 }
 
 struct UnsplashUserLinks: Codable {
-    let selfLink: String
     let html: String
-    let photos: String
-    let likes: String
-    let portfolio: String
-    
-    enum CodingKeys: String, CodingKey {
-        case selfLink = "self"
-        case html, photos, likes, portfolio
-    }
-}
-
-struct UnsplashProfileImage: Codable {
-    let small: String
-    let medium: String
-    let large: String
 }
 
 struct UnsplashSearchResults: Codable {
-    let total: Int
-    let total_pages: Int
     let results: [UnsplashPhoto]
 }
 
@@ -75,7 +34,6 @@ struct UnsplashSearchResults: Codable {
 
 enum UnsplashError: Error {
     case invalidURL
-    case noData
     case apiError(String)
 }
 

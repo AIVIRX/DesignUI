@@ -185,7 +185,6 @@ struct FontModifierEditor: View {
                 
                 ForEach(fontSizes, id: \.name) { sizeInfo in
                     FontOptionRow(
-                        name: sizeInfo.name,
                         displayName: sizeInfo.displayName,
                         isSelected: fontSize == sizeInfo.name, // Will be false if fontSize is a number string
                         font: getPreviewFont(for: sizeInfo.name), // Show preview with current design
@@ -265,14 +264,6 @@ struct FontModifierEditor: View {
     }
 
     
-    private var previewFont: Font {
-        getFont(for: fontSize)
-    }
-    
-    private var previewWeight: Font.Weight {
-        getWeight(for: fontWeight)
-    }
-    
     private func getDisplayName(for weight: String) -> String {
         fontWeights.first(where: { $0.name == weight })?.displayName ?? "Regular"
     }
@@ -312,12 +303,6 @@ struct FontModifierEditor: View {
         }
     }
     
-    private func getFont(for name: String) -> Font {
-       // This was used for legacy preview, we now use getPreviewFont for rows
-       // Keeping for safety if used elsewhere, but redirecting to standard logic
-       return getPreviewFont(for: name)
-    }
-
     private func getWeight(for name: String) -> Font.Weight {
         switch name {
         case "ultraLight": return .ultraLight
@@ -437,7 +422,6 @@ struct FontModifierEditor: View {
 
 // MARK: - Font Option Row
 struct FontOptionRow: View {
-    let name: String
     let displayName: String
     let isSelected: Bool
     var font: Font = .body

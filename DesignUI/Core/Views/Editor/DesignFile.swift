@@ -10,10 +10,10 @@ import Foundation
 import CryptoKit
 #if os(macOS)
 import AppKit
-public typealias PlatformImage = NSImage
+typealias PlatformImage = NSImage
 #else
 import UIKit
-public typealias PlatformImage = UIImage
+typealias PlatformImage = UIImage
 #endif
 
 // MARK: - Notifications
@@ -139,24 +139,7 @@ class DesignFile: ObservableObject, Identifiable {
         pages[index].name = newName
     }
     
-    /// Move a page from one index to another
-    func movePage(from sourceIndex: Int, to destinationIndex: Int) {
-        guard sourceIndex != destinationIndex,
-              sourceIndex >= 0 && sourceIndex < pages.count,
-              destinationIndex >= 0 && destinationIndex < pages.count else { return }
-        
-        let page = pages.remove(at: sourceIndex)
-        pages.insert(page, at: destinationIndex)
-        
-        // Update current page index if the current page was moved
-        if currentPageIndex == sourceIndex {
-            currentPageIndex = destinationIndex
-        } else if sourceIndex < currentPageIndex && destinationIndex >= currentPageIndex {
-            currentPageIndex -= 1
-        } else if sourceIndex > currentPageIndex && destinationIndex <= currentPageIndex {
-            currentPageIndex += 1
-        }
-    }
+    // (Removed unused movePage method)
     
     // MARK: - Thumbnail Management
     func setThumbnail(_ thumbnailData: Data?, devicePreset: String? = nil) {
@@ -517,14 +500,10 @@ class DesignManager: ObservableObject {
     
     @Published var designFiles: [DesignFile] = []
     @Published var currentDesign: DesignFile?
-    @Published var isAutoSaving = false
     @Published var designsDirectory: URL
-    @Published var showingDirectoryPicker = false
     
     // Storage status
     @Published var storageStatus: String = "Using Documents folder"
-    
-    private let documentsDirectory: URL
     
     // iCloud file discovery
     private var metadataQuery: NSMetadataQuery?
@@ -572,8 +551,6 @@ class DesignManager: ObservableObject {
         // Initialize all stored properties
         self.designsDirectory = finalDesignsDirectory
         self.storageStatus = finalStorageStatus
-        self.documentsDirectory = finalDesignsDirectory.deletingLastPathComponent()
-        
         debugLog("📁 Designs Directory: \(designsDirectory.path)")
         
         createDesignsDirectoryIfNeeded()
@@ -757,11 +734,7 @@ class DesignManager: ObservableObject {
         }
     }
     
-    func stopICloudQuery() {
-        metadataQuery?.stop()
-        metadataQuery = nil
-        isQueryRunning = false
-    }
+    // (Removed unused stopICloudQuery)
     
     func loadDesignFiles() {
         do {
@@ -807,98 +780,7 @@ class DesignManager: ObservableObject {
     
     /// Async version of loadDesignFiles with progress callbacks for loading screen
     /// - Parameter progressHandler: Called with (completedCount, totalCount) as files are loaded
-    func loadDesignFilesAsync(progressHandler: @escaping (Int, Int) -> Void) async {
-        await withCheckedContinuation { continuation in
-            let designsDir = self.designsDirectory
-            
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                do {
-                    // Ensure directory exists
-                    if !FileManager.default.fileExists(atPath: designsDir.path) {
-                        try FileManager.default.createDirectory(at: designsDir, withIntermediateDirectories: true)
-                    }
-                    
-                    let fileURLs = try FileManager.default.contentsOfDirectory(
-                        at: designsDir,
-                        includingPropertiesForKeys: [.contentModificationDateKey]
-                    )
-                    
-                    // Filter to only .dockui files
-                    let designFileURLs = fileURLs.filter { $0.pathExtension == "dockui" }
-                    let backupFileURLs = fileURLs.filter { $0.pathExtension == "dockui.backup" }
-                    let totalFiles = designFileURLs.count + backupFileURLs.count
-                    
-                    // Report initial progress
-                    DispatchQueue.main.async {
-                        progressHandler(0, max(1, totalFiles))
-                    }
-                    
-                    var loadedFiles: [DesignFile] = []
-                    var loadedCount = 0
-                    
-                    // Load regular design files
-                    for (index, url) in designFileURLs.enumerated() {
-                        if let designFile = DesignFile.load(from: url) {
-                            loadedFiles.append(designFile)
-                        }
-                        loadedCount = index + 1
-                        
-                        // Report progress
-                        DispatchQueue.main.async {
-                            progressHandler(loadedCount, totalFiles)
-                        }
-                        
-                        // Small delay to make progress visible for fast loads
-                        if totalFiles <= 5 {
-                            Thread.sleep(forTimeInterval: 0.1)
-                        }
-                    }
-                    
-                    // Load backup files
-                    for (index, url) in backupFileURLs.enumerated() {
-                        if let backupFile = DesignFile.load(from: url) {
-                            // Only add if not already loaded
-                            if !loadedFiles.contains(where: { $0.name == backupFile.name }) {
-                                loadedFiles.append(backupFile)
-                            }
-                        }
-                        loadedCount = designFileURLs.count + index + 1
-                        
-                        DispatchQueue.main.async {
-                            progressHandler(loadedCount, totalFiles)
-                        }
-                    }
-                    
-                    // Sort by modification date and update on main thread
-                    let sortedFiles = loadedFiles.sorted { $0.lastModified > $1.lastModified }
-                    
-                    DispatchQueue.main.async {
-                        guard let self = self else { return }
-                        self.designFiles = sortedFiles
-                        debugLog("📁 [Async] Loaded \(sortedFiles.count) design files total")
-                        progressHandler(totalFiles, totalFiles)
-                        continuation.resume()
-                    }
-                    
-                } catch {
-                    debugLog("❌ [Async] Failed to load design files: \(error)")
-                    
-                    // Try to create directory if needed (using local var)
-                    try? FileManager.default.createDirectory(at: designsDir, withIntermediateDirectories: true)
-                    
-                    DispatchQueue.main.async {
-                        progressHandler(1, 1)
-                        continuation.resume()
-                    }
-                }
-            }
-        }
-        
-        // Start iCloud query after initial load
-        if storageStatus.contains("iCloud") && !isQueryRunning {
-            startICloudQuery()
-        }
-    }
+    // (Removed unused loadDesignFilesAsync)
     
     func createNewDesign(name: String) -> DesignFile {
         // Use unique file name generation to preventing overwriting
@@ -935,6 +817,50 @@ class DesignManager: ObservableObject {
         // Apply template color scheme if available
         if let scheme = template.canvasColorScheme {
             designFile.canvasColorScheme = scheme
+        }
+
+        // Apply template status bar settings if available
+        if let statusBarVisible = template.statusBarVisible {
+            designFile.statusBarVisible = statusBarVisible
+            designFile.currentPage?.statusBarVisible = statusBarVisible
+        }
+        if let statusBarTopSafeArea = template.statusBarTopSafeArea {
+            designFile.statusBarTopSafeArea = statusBarTopSafeArea
+            designFile.currentPage?.statusBarTopSafeArea = statusBarTopSafeArea
+        }
+        if template.statusBarVisible != nil || template.statusBarTopSafeArea != nil {
+            var props = UIComponent.defaultProperties(for: .statusBar)
+            for index in props.indices {
+                switch props[index].key {
+                case "showStatusBar":
+                    if let statusBarVisible = template.statusBarVisible {
+                        let prop = props[index]
+                        props[index] = ComponentProperty(
+                            key: prop.key,
+                            displayName: prop.displayName,
+                            type: prop.type,
+                            value: statusBarVisible,
+                            defaultValue: statusBarVisible,
+                            options: prop.options
+                        )
+                    }
+                case "topSafeArea":
+                    if let statusBarTopSafeArea = template.statusBarTopSafeArea {
+                        let prop = props[index]
+                        props[index] = ComponentProperty(
+                            key: prop.key,
+                            displayName: prop.displayName,
+                            type: prop.type,
+                            value: statusBarTopSafeArea,
+                            defaultValue: statusBarTopSafeArea,
+                            options: prop.options
+                        )
+                    }
+                default:
+                    break
+                }
+            }
+            designFile.currentPage?.statusBarComponent = UIComponent(type: .statusBar, properties: props)
         }
         
         designFile.save()
@@ -1093,6 +1019,7 @@ class DesignManager: ObservableObject {
         }
     }
     
+    #if os(iOS)
     func openDesign(_ designFile: DesignFile) {
         currentDesign = designFile
     }
@@ -1104,32 +1031,9 @@ class DesignManager: ObservableObject {
         }
         currentDesign = nil
     }
+    #endif
     
     // MARK: - Directory Management
-    func selectDesignsDirectory() {
-        showingDirectoryPicker = true
-    }
-    
-    func setDesignsDirectory(_ url: URL) {
-        designsDirectory = url
-        UserDefaults.standard.set(url.absoluteString, forKey: "designsDirectory")
-        debugLog("📁 Designs directory changed to: \(url.path)")
-        
-        // Reload design files from new directory
-        loadDesignFiles()
-    }
-    
-    func resetToDefaultDirectory() {
-        let defaultDirectory = documentsDirectory.appendingPathComponent("DockUI")
-        setDesignsDirectory(defaultDirectory)
-    }
-    
-    func presentDocumentPicker() {
-        // This would present a document picker for importing designs
-        // For now, just print a message
-        debugLog("📄 Document picker requested")
-    }
-    
     func refreshDesignFiles() {
         
         // If currently local, try to connect to iCloud again
@@ -1191,15 +1095,6 @@ class DesignManager: ObservableObject {
         }
         
         return "\(fileName).\(fileExtension)"
-    }
-    
-    func createUniqueDesignFile(name: String) -> DesignFile {
-        let uniqueFileName = generateUniqueFileName(baseName: name)
-        let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
-        let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
-        
-        debugLog("📄 Creating unique design file: \(uniqueFileName)")
-        return DesignFile(name: displayName, fileURL: fileURL)
     }
     
     func renameDesign(_ design: DesignFile, to newName: String) {

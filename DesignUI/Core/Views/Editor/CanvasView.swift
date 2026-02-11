@@ -20,11 +20,6 @@ extension EnvironmentValues {
     }
 }
 
-// Stable identifier that also refreshes when undo replaces instances
-private func componentViewId(_ component: UIComponent) -> String {
-    return "\(component.id)-\(ObjectIdentifier(component))-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))"
-}
-
 // MARK: - Canvas View
 struct CanvasView: View {
     @ObservedObject var canvasManager: CanvasManager
@@ -54,10 +49,9 @@ struct CanvasView: View {
     // Stable zoom level for sharp rendering
     // Content is rendered at this scale; scaleEffect handles the delta
     @State private var stableZoomLevel: CGFloat = 1.0
-    @State private var isActivelyZooming: Bool = false
-    
     // Force redraw on zoom end for sharp text
     @State private var zoomGeneration: Int = 0
+    @State private var isCanvasTransitioning: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -87,7 +81,13 @@ struct CanvasView: View {
                      initializeZoom(geometry: geometry)
                 }
                 .onChange(of: canvasManager.zoomLevel) { syncLocalZoom() }
-                .onChange(of: selectedDevice) { updateDeviceLayout(geometry: geometry) }
+                .onChange(of: selectedDevice) { _, _ in
+                    beginCanvasTransition()
+                    updateDeviceLayout(geometry: geometry)
+                }
+                .onChange(of: colorScheme) { _, _ in
+                    beginCanvasTransition()
+                }
                 .onChange(of: geometry.size) { updateLayoutForSizeChange(geometry: geometry) }
                 .onChange(of: canvasManager.centerCanvasTrigger) { centerCanvas() }
                 .onChange(of: canvasManager.scrollToSelectionTrigger) { scrollToSelection() }
@@ -122,7 +122,9 @@ struct CanvasView: View {
                 .id("canvas-\(zoomGeneration)")
                 // Apply transaction to disable animation caching when stable
                 .transaction { transaction in
-                    if !isActiveGesture {
+                    // Allow animations if we are in a transition managed by CanvasManager (device switch)
+                    // or local transition (zoom gesture, centering)
+                    if !isActiveGesture && !isCanvasTransitioning && !canvasManager.isLayoutTransitioning {
                         transaction.disablesAnimations = true
                     }
                 }
@@ -183,12 +185,12 @@ struct CanvasView: View {
         }
     }
 
-    private func initializeZoom(geometry: GeometryProxy) {
+    private func initializeZoom(geometry _: GeometryProxy) {
         localZoomLevel = canvasManager.zoomLevel
         baseZoomLevel = canvasManager.zoomLevel
         stableZoomLevel = canvasManager.zoomLevel
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
+            // Respect user's current zoom preference or default, don't auto-fit
             localZoomLevel = canvasManager.zoomLevel
             baseZoomLevel = canvasManager.zoomLevel
             stableZoomLevel = canvasManager.zoomLevel
@@ -196,6 +198,10 @@ struct CanvasView: View {
     }
 
     private func syncLocalZoom() {
+        // Don't sync when canvas layout is transitioning (e.g. device switch)
+        // to avoid clashing with the animated zoom update
+        guard !isCanvasTransitioning else { return }
+        
         let newZoom = canvasManager.zoomLevel
         if abs(localZoomLevel - newZoom) > 0.001 {
             localZoomLevel = newZoom
@@ -204,12 +210,10 @@ struct CanvasView: View {
         }
     }
 
-    private func updateDeviceLayout(geometry: GeometryProxy) {
+    private func updateDeviceLayout(geometry _: GeometryProxy) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
-                localZoomLevel = canvasManager.zoomLevel
-                baseZoomLevel = canvasManager.zoomLevel
+            withAnimation(.interpolatingSpring(stiffness: 170, damping: 15)) {
+                // Don't auto-zoom to fit
                 currentOffset = .zero
             }
         }
@@ -220,25 +224,31 @@ struct CanvasView: View {
         }
     }
 
-    private func updateLayoutForSizeChange(geometry: GeometryProxy) {
+    private func updateLayoutForSizeChange(geometry _: GeometryProxy) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                canvasManager.zoomToFitDevice(selectedDevice.size, canvasSize: geometry.size)
-                localZoomLevel = canvasManager.zoomLevel
-                baseZoomLevel = canvasManager.zoomLevel
-            }
+            // Keep current zoom level on resize
+            // No action needed for zoom
+        }
+    }
+
+    private func beginCanvasTransition() {
+        isCanvasTransitioning = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            isCanvasTransitioning = false
         }
     }
 
     private func centerCanvas() {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+        beginCanvasTransition()
+        withAnimation(.interpolatingSpring(stiffness: 170, damping: 15)) {
             currentOffset = .zero
         }
     }
 
     private func scrollToSelection() {
         if let selected = canvasManager.selectedComponent {
-             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            beginCanvasTransition()
+            withAnimation(.interpolatingSpring(stiffness: 170, damping: 15)) {
                 let absoluteFrame = canvasManager.getAbsoluteFrame(for: selected)
                 let center = CGPoint(x: absoluteFrame.midX, y: absoluteFrame.midY)
                 let deviceSize = selectedDevice.size
@@ -248,16 +258,6 @@ struct CanvasView: View {
                 currentOffset = CGSize(width: targetOffsetX, height: targetOffsetY)
             }
         }
-    }
-    
-    // Computed property to simplify body expression for compiler
-    private var shouldRasterize: Bool {
-        if canvasManager.hasMapComponent || canvasManager.hasScrollableComponent { return false }
-        
-        let isZooming = abs(magnifyScale - 1.0) > 0.001
-        let isPanning = abs(dragOffset.width) > 0.5 || abs(dragOffset.height) > 0.5
-        
-        return isZooming || isPanning
     }
     
     private var canvasBackground: some View {
@@ -277,28 +277,6 @@ struct CanvasView: View {
                 NSApp.keyWindow?.makeFirstResponder(nil)
                 #endif
             }
-    }
-    
-    private var aiProcessingOverlay: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .controlSize(.large)
-                .tint(.purple)
-            
-            Text("Dreaming up designs...")
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundStyle(.secondary)
-        }
-        .padding(32)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.2), lineWidth: 1)
-        )
-        .transition(.opacity.combined(with: .scale(scale: 0.95)))
-        .zIndex(100) // Ensure it's on top
     }
     
     private func devicePreview(geometry: GeometryProxy) -> some View {
@@ -340,7 +318,7 @@ struct CanvasView: View {
                     // Force full rebind after undo/redo to avoid stale component instances
                     .id("content-adaptive-\(canvasManager.undoStackVersion)")
                     .colorScheme(colorScheme ?? .light)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedDevice)
+                    .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: selectedDevice)
                 } else {
                     // Fixed device size mode
                     ZStack {
@@ -382,23 +360,11 @@ struct CanvasView: View {
                     .frame(width: deviceSize.width, height: deviceSize.height)
                     .background(Color.clear)
                     .colorScheme(colorScheme ?? .light)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: selectedDevice)
+                    .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: selectedDevice)
                 }
             }
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }
     }
     
-    // MARK: - Helper Functions
-    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
-        for component in components {
-            if component.id == componentId {
-                return component
-            }
-            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
-                return found
-            }
-        }
-        return nil
-    }
 }

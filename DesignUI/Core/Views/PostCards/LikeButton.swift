@@ -16,7 +16,6 @@ struct LikeButton: View {
     @State private var isLiked: Bool = false
     @State private var isLoading = false
     @State private var showAlert = false
-    @EnvironmentObject var authViewModel: AuthViewModel
     private let supabase = SupabaseManager.shared.client
     @Environment(\.requestReview) private var requestReview
     init(postId: String) {

@@ -17,7 +17,9 @@ struct EditProfileView: View {
     @State private var usernameError: String = ""
     
     // Photo Selection
+    #if os(iOS)
     @State private var selectedItem: PhotosPickerItem?
+    #endif
     @State private var selectedImageData: Data?
     @State private var avatarUrl: String?
     @State private var isImporting = false
@@ -568,4 +570,23 @@ private struct ProfileUpdatePayload: Encodable {
     let bio: String
     let avatar_url: String?
     let updated_at: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case display_name
+        case username
+        case bio
+        case avatar_url
+        case updated_at
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(display_name, forKey: .display_name)
+        try container.encode(username, forKey: .username)
+        try container.encode(bio, forKey: .bio)
+        try container.encodeIfPresent(avatar_url, forKey: .avatar_url)
+        try container.encode(updated_at, forKey: .updated_at)
+    }
 }

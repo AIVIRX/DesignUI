@@ -12,7 +12,6 @@ struct NewsPost: Identifiable, Codable {
     let title: String
     let description: String?
     let image_url: String?
-    let created_at: String
     let content: String
     let slug: String
 }
@@ -45,7 +44,4 @@ struct NewsBlock: Codable, Identifiable {
     let url: String?
     let code: String?
     let items: [String]?
-    let level: Int?
-    let language: String?
-    let title: String?
 }

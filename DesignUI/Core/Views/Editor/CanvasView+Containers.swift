@@ -12,6 +12,18 @@ private func componentViewId(_ component: UIComponent) -> String {
     return "\(component.id)-\(ObjectIdentifier(component))-\(component.modifiers.count)-\(component.modifiers.map { "\($0.type.rawValue)-\($0.properties.count)" }.joined(separator: "-"))"
 }
 
+private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
+    for component in components {
+        if component.id == componentId {
+            return component
+        }
+        if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
+            return found
+        }
+    }
+    return nil
+}
+
 // MARK: - Components Container View
 // Separate view to observe the status bar component's isVisible property for padding
 struct ComponentsContainerView: View {
@@ -50,17 +62,6 @@ struct ComponentsContainerView: View {
         }
     }
     
-    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
-        for component in components {
-            if component.id == componentId {
-                return component
-            }
-            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
-                return found
-            }
-        }
-        return nil
-    }
 }
 
 // MARK: - Components Container With Status Bar
@@ -133,17 +134,6 @@ struct ComponentsContainerWithStatusBar: View {
         }
     }
     
-    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
-        for component in components {
-            if component.id == componentId {
-                return component
-            }
-            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
-                return found
-            }
-        }
-        return nil
-    }
 }
 
 struct ComponentsContainerWithoutStatusBar: View {
@@ -205,17 +195,6 @@ struct ComponentsContainerWithoutStatusBar: View {
         }
     }
     
-    private func findComponentInHierarchy(componentId: UUID, in components: [UIComponent]) -> UIComponent? {
-        for component in components {
-            if component.id == componentId {
-                return component
-            }
-            if let found = findComponentInHierarchy(componentId: componentId, in: component.children) {
-                return found
-            }
-        }
-        return nil
-    }
 }
 
 // Separate view to observe the status bar component's isVisible property
@@ -348,24 +327,6 @@ struct ConditionalDrawingGroup: ViewModifier {
             content.drawingGroup()
         } else {
             content
-        }
-    }
-}
-
-// MARK: - Content Adaptive Frame Modifier
-/// Conditionally applies fixed frame for device presets, or uses intrinsic sizing for noSize mode
-struct ContentAdaptiveFrameModifier: ViewModifier {
-    let isContentAdaptive: Bool
-    let deviceSize: CGSize
-    
-    func body(content: Content) -> some View {
-        if isContentAdaptive {
-            // In content-adaptive mode, don't constrain the frame
-            // Let the content (and its explicit frame modifiers) determine size
-            content
-        } else {
-            content
-                .frame(width: deviceSize.width, height: deviceSize.height)
         }
     }
 }

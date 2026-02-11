@@ -5,8 +5,6 @@ struct SimilarPostsView: View {
     var currentPostId: String
     @State private var similarPosts: [DesignPost] = []
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @EnvironmentObject private var paywallManager: PaywallManager
-    @EnvironmentObject private var designManager: DesignManager
     @State private var showingPaywall = false
     var body: some View {
         VStack(alignment: .leading) {

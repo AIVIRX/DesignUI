@@ -18,8 +18,6 @@ class ScreenshotUtility {
     
     private init() {}
     
-    /// Captures a screenshot of a SwiftUI view at true size, saves as PNG
-    /// If size is .zero, the view will be rendered at its intrinsic/content size
     @MainActor
     func captureThumbnail<Content: View>(
         of view: Content,
@@ -51,11 +49,6 @@ class ScreenshotUtility {
         renderer.scale = 2.0 // Retina quality
         
         #if os(macOS)
-        // detailed crash fix: ImageRenderer on some macOS versions/configurations crashes with
-        // "unable to load binary archive for shader library" when rendering SF Symbols (IconRendering).
-        // specificially: /System/Library/PrivateFrameworks/IconRendering.framework/Resources/binary.metallib
-        // We fallback to the legacy NSHostingView rasterization which is more robust.
-        
         let hostingView = NSHostingView(rootView: contentView)
         
         if isContentAdaptive {
@@ -80,9 +73,6 @@ class ScreenshotUtility {
             return nil
         }
         
-        // Clear background if needed, though usually SwiftUI views handles it. 
-        // hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep) caused issues in some contexts, 
-        // but let's try standard layer rendering first.
         hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
         
         guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {

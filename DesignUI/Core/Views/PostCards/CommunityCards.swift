@@ -22,7 +22,6 @@ struct CommunityCards: View {
     private var authorName: String { post.profiles.username }
     private var isVerified: Bool { post.profiles.verified }
     private var isPremium: Bool { post.isPremium == true }
-    private var published: String { post.created_at }
     private var isComponent: Bool {
         let postType = post.post_type?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return postType == "component"
@@ -53,8 +52,6 @@ struct CommunityCards: View {
                     mediaURL: media,
                     title: title,
                     author: authorName,
-                    creationDate: published,
-                    isAuthorVerified: isVerified,
                     isPremium: isPremium,
                 )) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -146,8 +143,6 @@ struct CommunityCards: View {
                 mediaURL: media,
                 title: title,
                 author: authorName,
-                creationDate: published,
-                isAuthorVerified: isVerified,
                 isPremium: isPremium,
             )) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -213,12 +208,11 @@ struct CommunityCards: View {
         }
         #endif
     }
-    
-    @ViewBuilder
+
     private var imageView: some View {
         RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(Color.secondary.opacity(0.15))
-            .frame(height: 220)
+            .fill(Color.secondary.opacity(0.05))
+            .frame(height: 240)
             .overlay(
                 WebImage(url: URL(string: media)) { image in
                     image
@@ -236,55 +230,29 @@ struct CommunityCards: View {
                 .indicator(.activity)
                 .transition(.fade(duration: 0.3))
             )
-            .shadow(
-                color: .black.opacity(isImageHovered ? 0.2 : 0.1),
-                radius: isImageHovered ? 16 : 8,
-                x: 0,
-                y: isImageHovered ? 8 : 4
-            )
+            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
             .overlay(alignment: .topTrailing) {
-                if isPremium || showDeleteButton {
-                    HStack(spacing: 6) {
-                        if isPremium {
-                            Image(systemName: "crown.fill")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.clear)
-                                .overlay(
-                                    LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
-                                        .mask(
-                                            Image(systemName: "crown.fill")
-                                                .font(.system(size: 14, weight: .semibold))
-                                        )
+                if isPremium {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.clear)
+                        .overlay(
+                            LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
+                                .mask(
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 14, weight: .semibold))
                                 )
-                        }
-                        if showDeleteButton, let onDelete = onDelete {
-                            Button(action: onDelete) {
-                                Image(systemName: "trash")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(6)
-                    .background(.black.opacity(0.8), in: Capsule())
-                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-                    .contentShape(Capsule())
-                    .allowsHitTesting(true)
-                    .offset(x: -6, y: 6)
+                        )
+                        .padding(6)
+                        .background(.black.opacity(0.8), in: Capsule())
+                        .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 2)
+                        .offset(x: -6, y: 6)
                 }
             }
-            .scaleEffect(isImageHovered ? 1.02 : 1.0)
-            #if os(macOS)
-            .onHover { hovering in
-                isImageHovered = hovering
-            }
-            #endif
-
     }
 }
 

@@ -13,10 +13,6 @@ struct UnsplashGalleryView: View {
     // Callback when an image is selected and downloaded
     var onImageSelected: (String) -> Void
     
-    let columns = [
-        GridItem(.adaptive(minimum: 150), spacing: 10)
-    ]
-    
     var body: some View {
         VStack {
             if let error = errorMessage {

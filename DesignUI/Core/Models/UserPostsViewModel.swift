@@ -17,7 +17,6 @@ class UserPostsViewModel: ObservableObject {
     private var currentPage: Int = 0
     private let pageSize: Int = 6
     private let client = SupabaseManager.shared.client
-    private let refreshCooldown: TimeInterval = 1
     private var isRefreshing = false
     
     // Memory management: Keep max 150 items, remove oldest when limit reached

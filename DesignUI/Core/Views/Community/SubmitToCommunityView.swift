@@ -9,14 +9,13 @@ import SwiftUI
 
 struct SubmitToCommunityView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var viewModel = CommunitySubmissionViewModel()
     
     let designFile: DesignFile
     
     @State private var title: String = ""
     @State private var description: String = ""
-    @State private var showLoginPrompt = false
+    @State private var showAccountRequiredAlert = false
     
     init(designFile: DesignFile) {
         self.designFile = designFile
@@ -25,13 +24,7 @@ struct SubmitToCommunityView: View {
     
     var body: some View {
         NavigationStack {
-            Group {
-                if !authViewModel.isAuthenticated {
-                    loginRequiredView
-                } else {
-                    submissionForm
-                }
-            }
+            submissionForm
             .navigationTitle("Submit to Community")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -64,6 +57,11 @@ struct SubmitToCommunityView: View {
             } message: {
                 Text(viewModel.errorMessage)
             }
+            .alert("Account Required", isPresented: $showAccountRequiredAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("You need an account to submit designs to the community.")
+            }
             .onChange(of: viewModel.submissionSuccess) { _, success in
                 if success {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -72,40 +70,6 @@ struct SubmitToCommunityView: View {
                 }
             }
         }
-    }
-    
-    // MARK: - Login Required View
-    
-    private var loginRequiredView: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "person.crop.circle.badge.exclamationmark")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            
-            Text("Sign In Required")
-                .font(.title2)
-                .fontWeight(.semibold)
-            
-            Text("You need to be signed in to submit designs to the community.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-            
-            Button {
-                showLoginPrompt = true
-            } label: {
-                Text("Sign In")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-            }
-            .padding(.horizontal, 48)
-        }
-        .padding()
     }
     
     // MARK: - Submission Form
@@ -227,6 +191,10 @@ struct SubmitToCommunityView: View {
     }
     
     private func submitAction() {
+        guard SupabaseManager.shared.client.auth.currentUser != nil else {
+            showAccountRequiredAlert = true
+            return
+        }
         Task {
             await viewModel.submitDesign(
                 designFile: designFile,
@@ -236,6 +204,7 @@ struct SubmitToCommunityView: View {
         }
     }
     
+    #if os(iOS)
     private var submitButton: some View {
         Button {
             submitAction()
@@ -265,6 +234,7 @@ struct SubmitToCommunityView: View {
         }
         .disabled(title.isEmpty || viewModel.isLoading)
     }
+    #endif
     
     private var fieldBackground: Color {
         #if os(iOS)

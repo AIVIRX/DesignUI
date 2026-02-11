@@ -15,15 +15,6 @@ func debugLog(_ message: @autoclosure () -> String) {
     #endif
 }
 
-enum LayoutAlignment {
-    case left, centerHorizontally, right
-    case top, centerVertically, bottom
-}
-
-enum LayoutDistribution {
-    case horizontally, vertically
-}
-
 class CanvasManager: ObservableObject {
     @Published var components: [UIComponent] = []
     @Published var isHoveringScrollable: Bool = false
@@ -54,6 +45,9 @@ class CanvasManager: ObservableObject {
     // Special status bar component
     @Published var statusBarComponent: UIComponent?
     
+    // Flag to signal layout transitions (for animations)
+    @Published var isLayoutTransitioning: Bool = false
+    
     // Design name for code generation
     @Published var designName: String = "GeneratedView"
     
@@ -70,9 +64,6 @@ class CanvasManager: ObservableObject {
     }
     private var isSyncingStatusBarSettings: Bool = false
 
-    // AI quota tracking
-    @Published var aiQuota: AIQuota? = nil
-    
     // Undo/Redo with action descriptions
     @Published var undoStackVersion: Int = 0 
     private var undoStack: [UndoableAction] = []
@@ -84,10 +75,7 @@ class CanvasManager: ObservableObject {
         
     // Current action description (set before making changes)
     
-    // Clipboard for copy/paste
-    private var clipboard: UIComponent?
     private var statusBarCancellable: AnyCancellable?
-    var hasClipboardContent: Bool { clipboard != nil }
     
     // Check if design contains a map component (to disable rasterization)
     // Map component is not currently supported in ComponentType.
@@ -234,24 +222,6 @@ class CanvasManager: ObservableObject {
         selectedComponent = component
     }
     
-    func addComponentToContainer(_ component: UIComponent, container: UIComponent) {
-        // Check if the container can accept children (like ScrollView, VStack, etc.)
-        if canAcceptChildren(container) {
-            // Register undo action with description BEFORE making the change
-            registerUndoAction("Added \(component.type.rawValue) to \(container.type.rawValue)")
-            
-            // Remove component from root level if it exists there
-            components.removeAll { $0.id == component.id }
-            
-            // Add to container
-            container.addChild(component)
-            selectedComponent = component
-        } else {
-            // Fallback to adding to main canvas
-            addComponent(component)
-        }
-    }
-    
     func canAcceptChildren(_ component: UIComponent) -> Bool {
         switch component.type {
         case .scrollView, .vstack, .hstack, .zstack, .button:
@@ -353,251 +323,11 @@ class CanvasManager: ObservableObject {
         }
     }
     
-    func toggleComponentSelection(_ component: UIComponent) {
-        if selectedComponentIds.contains(component.id) {
-            selectedComponentIds.remove(component.id)
-            if selectedComponent?.id == component.id {
-                selectedComponent = selectedComponentIds.isEmpty ? nil : findComponent(by: selectedComponentIds.first!)
-            }
-        } else {
-            selectedComponentIds.insert(component.id)
-            selectedComponent = component
-        }
-    }
-    
-    func isComponentSelected(_ component: UIComponent) -> Bool {
-        return selectedComponentIds.contains(component.id)
-    }
-    
     func deselectAll() {
         selectedComponent = nil
         selectedComponentIds.removeAll()
     }
     
-    // MARK: - Layout Utilities
-    
-    func alignSelected(_ alignment: LayoutAlignment) {
-        let selected = selectedComponentIds.compactMap { findComponent(by: $0) }
-        guard selected.count >= 2 else { return }
-        
-        let frames = selected.map { $0.frame }
-        let minX = frames.map { $0.minX }.min() ?? 0
-        let maxX = frames.map { $0.maxX }.max() ?? 0
-        let minY = frames.map { $0.minY }.min() ?? 0
-        let maxY = frames.map { $0.maxY }.max() ?? 0
-        let midX = (minX + maxX) / 2
-        let midY = (minY + maxY) / 2
-        
-        
-        for component in selected {
-            switch alignment {
-            case .left:
-                component.frame.origin.x = minX
-            case .centerHorizontally:
-                component.frame.origin.x = midX - component.frame.width / 2
-            case .right:
-                component.frame.origin.x = maxX - component.frame.width
-            case .top:
-                component.frame.origin.y = minY
-            case .centerVertically:
-                component.frame.origin.y = midY - component.frame.height / 2
-            case .bottom:
-                component.frame.origin.y = maxY - component.frame.height
-            }
-        }
-        
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
-    
-    func distributeSelected(_ distribution: LayoutDistribution) {
-        let selected = selectedComponentIds.compactMap { findComponent(by: $0) }
-        guard selected.count >= 3 else { return }
-        
-        
-        if distribution == .horizontally {
-            let sorted = selected.sorted { $0.frame.minX < $1.frame.minX }
-            let first = sorted.first!
-            let last = sorted.last!
-            
-            // Total span between centers or origins? Usually origins or centers.
-            // Let's do even spacing between centers.
-            let firstCenter = first.frame.midX
-            let lastCenter = last.frame.midX
-            let totalSpan = lastCenter - firstCenter
-            let spacing = totalSpan / CGFloat(sorted.count - 1)
-            
-            for i in 1..<(sorted.count - 1) {
-                sorted[i].frame.origin.x = (firstCenter + CGFloat(i) * spacing) - sorted[i].frame.width / 2
-            }
-        } else {
-            let sorted = selected.sorted { $0.frame.minY < $1.frame.minY }
-            let first = sorted.first!
-            let last = sorted.last!
-            
-            let firstCenter = first.frame.midY
-            let lastCenter = last.frame.midY
-            let totalSpan = lastCenter - firstCenter
-            let spacing = totalSpan / CGFloat(sorted.count - 1)
-            
-            for i in 1..<(sorted.count - 1) {
-                sorted[i].frame.origin.y = (firstCenter + CGFloat(i) * spacing) - sorted[i].frame.height / 2
-            }
-        }
-        
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
-    
-    func groupSelected(into type: ComponentType) {
-        let selected = selectedComponentIds.compactMap { findComponent(by: $0) }
-        guard !selected.isEmpty else { return }
-        
-        // Find common parent and insertion index based on the first selected item
-        let firstId = selected[0].id
-        let parentId = findParentId(of: firstId)
-        
-        var insertionIndex = 0
-        if let pId = parentId, let parent = findComponent(by: pId) {
-            insertionIndex = parent.children.firstIndex(where: { $0.id == firstId }) ?? parent.children.count
-        } else {
-            insertionIndex = components.firstIndex(where: { $0.id == firstId }) ?? components.count
-        }
-        
-        // Calculate bounding box
-        let frames = selected.map { $0.frame }
-        let minX = frames.map { $0.minX }.min() ?? 0
-        let maxX = frames.map { $0.maxX }.max() ?? 0
-        let minY = frames.map { $0.minY }.min() ?? 0
-        let maxY = frames.map { $0.maxY }.max() ?? 0
-        
-        let groupFrame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
-        
-        
-        // Create the group component
-        let group = UIComponent(
-            type: type,
-            properties: UIComponent.defaultProperties(for: type),
-            frame: groupFrame
-        )
-        
-        // Add children to group and adjust their frames
-        for component in selected {
-            _ = removeComponentRecursively(id: component.id)
-            component.frame.origin.x -= groupFrame.origin.x
-            component.frame.origin.y -= groupFrame.origin.y
-            group.children.append(component)
-        }
-        
-        // Add group to the original parent at the correct index
-        if let pId = parentId, let parent = findComponent(by: pId) {
-            let safeIndex = min(insertionIndex, parent.children.count)
-            parent.children.insert(group, at: safeIndex)
-        } else {
-            let safeIndex = min(insertionIndex, components.count)
-            components.insert(group, at: safeIndex)
-        }
-        
-        // Select the new group
-        selectedComponentIds = [group.id]
-        selectedComponent = group
-        
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
-    
-    func replaceDesign(with newComponents: [UIComponent]) {
-        self.components = newComponents
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
-    
-    @MainActor
-    func generateAIContent(prompt: String) async {
-        guard SupabaseManager.shared.client.auth.currentUser != nil else {
-            undoMessage = "Sign in required"
-            ToastManager.shared.showToast(ToastData(
-                title: "Sign in to use AI",
-                icon: "person.crop.circle.badge.exclamationmark",
-                duration: 3.0
-            ))
-            return
-        }
-
-        // Prepare context
-        let context: [String: String] = [
-            "current_components_count": "\(components.count)",
-            "selected_component": selectedComponent?.type.rawValue ?? "none"
-        ]
-        
-        do {
-            let result = try await AIService.shared.generateUI(prompt: prompt, context: context)
-            aiQuota = result.quota
-            
-            if !result.components.isEmpty {
-                registerUndoAction("AI Generation: \(prompt)")
-                
-                // If it's a full screen/page, we might want to replace or append
-                // For now, let's append to the end or add to selected container
-                if let selected = selectedComponent, canAcceptChildren(selected) {
-                    for component in result.components {
-                        selected.addChild(component)
-                    }
-                } else {
-                    for component in result.components {
-                        components.append(component)
-                    }
-                }
-                
-                NotificationCenter.default.post(name: .designChanged, object: nil)
-                undoMessage = "AI generated new content"
-            }
-        } catch {
-            if let aiError = error as? AIServiceError {
-                switch aiError {
-                case .rateLimited(_, _, let quota):
-                    aiQuota = quota
-                    undoMessage = aiError.localizedDescription
-                    ToastManager.shared.showToast(ToastData(
-                        title: aiError.localizedDescription,
-                        icon: "clock.fill",
-                        duration: 3.0
-                    ))
-                case .server(_, let quota):
-                    aiQuota = quota
-                    undoMessage = aiError.localizedDescription
-                    ToastManager.shared.showToast(ToastData(
-                        title: aiError.localizedDescription,
-                        icon: "xmark.circle.fill",
-                        duration: 3.0
-                    ))
-                case .decode:
-                    undoMessage = aiError.localizedDescription
-                    ToastManager.shared.showToast(ToastData(
-                        title: aiError.localizedDescription,
-                        icon: "xmark.circle.fill",
-                        duration: 3.0
-                    ))
-                }
-            } else {
-                undoMessage = "AI Generation failed"
-                ToastManager.shared.showToast(ToastData(
-                    title: "AI Generation failed",
-                    icon: "xmark.circle.fill",
-                    duration: 3.0
-                ))
-            }
-            print("❌ AI Generation failed: \(error.localizedDescription)")
-        }
-    }
-    
-    func updateDesign(with componentsToUpdate: [UIComponent]) {
-        for updated in componentsToUpdate {
-            if let existing = findComponent(by: updated.id) {
-                // Update properties
-                existing.properties = updated.properties
-                existing.modifiers = updated.modifiers
-                existing.frame = updated.frame
-            }
-        }
-        NotificationCenter.default.post(name: .designChanged, object: nil)
-    }
     
     func getDesignAsJSON() -> String {
         let encoder = JSONEncoder()
@@ -623,14 +353,6 @@ class CanvasManager: ObservableObject {
         return "{}"
     }
     
-    // MARK: - Component Manipulation
-    func moveComponent(_ component: UIComponent, by offset: CGSize) {
-        if let index = components.firstIndex(where: { $0.id == component.id }) {
-            components[index].frame.origin.x += offset.width
-            components[index].frame.origin.y += offset.height
-        }
-    }
-
     // MARK: - Hierarchy Manipulation
     /// Move a component in the hierarchy to a new parent and position
     /// Move a component in the hierarchy to a new parent and position
@@ -889,89 +611,6 @@ class CanvasManager: ObservableObject {
         }
     }
     
-    // MARK: - Copy/Paste/Cut
-    
-    /// Copy the selected component to clipboard
-    func copyComponent(_ component: UIComponent) {
-        // Store a deep copy of the component (without offset)
-        clipboard = createDeepCopyForClipboard(of: component)
-        debugLog("📋 copyComponent: Copied \(component.type.rawValue) to clipboard")
-    }
-    
-    /// Paste component from clipboard
-    func pasteComponent() {
-        guard let copiedComponent = clipboard else {
-            debugLog("📋 pasteComponent: Clipboard is empty")
-            return
-        }
-        
-        // Create a new copy with offset so it's visible
-        let pastedComponent = createDeepCopy(of: copiedComponent)
-        
-        // Cancel any pending debounced saves
-        
-        // Save state BEFORE making the change
-        
-        // Add to canvas
-        components.append(pastedComponent)
-        selectedComponent = pastedComponent
-        
-        debugLog("📋 pasteComponent: Pasted \(pastedComponent.type.rawValue) from clipboard")
-    }
-    
-    /// Cut the selected component (copy + delete)
-    func cutComponent(_ component: UIComponent) {
-        // First copy to clipboard
-        copyComponent(component)
-        
-        // Then remove the component
-        removeComponent(component)
-        
-        debugLog("✂️ cutComponent: Cut \(component.type.rawValue)")
-    }
-    
-    /// Create a deep copy without position offset (for clipboard storage)
-    private func createDeepCopyForClipboard(of component: UIComponent) -> UIComponent {
-        let duplicatedModifiers = component.modifiers.map { modifier in
-            ComponentModifier(
-                type: modifier.type,
-                properties: deepCopyDictionary(modifier.properties)
-            )
-        }
-        
-        let duplicatedChildren = component.children.map { child in
-            createDeepCopyForClipboard(of: child)
-        }
-        
-        // Deep copy properties array
-        let duplicatedProperties = component.properties.map { prop in
-            ComponentProperty(
-                key: prop.key,
-                displayName: prop.displayName,
-                type: prop.type,
-                value: deepCopyValue(prop.value),
-                defaultValue: deepCopyValue(prop.defaultValue),
-                options: prop.options,
-            )
-        }
-        
-        let duplicatedComponent = UIComponent(
-            type: component.type,
-            properties: duplicatedProperties,
-            children: duplicatedChildren,
-            frame: component.frame, // Keep original frame for clipboard
-            modifiers: duplicatedModifiers,
-            isOverlay: component.isOverlay,
-            modifierId: component.modifierId,
-            modifierType: component.modifierType
-        )
-        return duplicatedComponent
-    }
-    
-    // MARK: - Canvas Controls
-    func zoomIn() {
-        zoomLevel = min(zoomLevel * 1.2, 5.0)
-    }
     
     // MARK: - Frame Calculations
     
@@ -991,69 +630,11 @@ class CanvasManager: ObservableObject {
         return frame
     }
     
-    func zoomOut() {
-        zoomLevel = max(zoomLevel / 1.2, 0.1)
-    }
-    
-    func resetZoom() {
-        zoomLevel = 1.0
-        canvasOffset = .zero
-    }
-    
-    func resetZoomAndCenter() {
-        // Reset to 1.0 zoom and center
-        zoomLevel = 1.0
-        canvasOffset = .zero
-    }
-    
-    func resetZoomToFit() {
-        // Reset zoom but ensure content fits
-        zoomLevel = 1.0
-        canvasOffset = .zero
-        // Force a zoom to fit to ensure everything is visible
-        zoomToFit()
-    }
-    
-    func centerView() {
-        canvasOffset = .zero
-    }
     
     func setZoomLevel(_ level: CGFloat) {
         zoomLevel = min(max(level, 0.1), 3.0)
     }
     
-    func zoomToFit() {
-        // If there are components, fit to components
-        if !components.isEmpty {
-            let minX = components.map { $0.frame.minX }.min() ?? 0
-            let minY = components.map { $0.frame.minY }.min() ?? 0
-            let maxX = components.map { $0.frame.maxX }.max() ?? 0
-            let maxY = components.map { $0.frame.maxY }.max() ?? 0
-            
-            let contentWidth = maxX - minX
-            let contentHeight = maxY - minY
-            
-            // Add some padding
-            let padding: CGFloat = 50
-            let targetWidth = contentWidth + padding * 2
-            let targetHeight = contentHeight + padding * 2
-            
-            // Calculate zoom level to fit content
-            let zoomX = 1.0 / (targetWidth / 800) // Assuming 800pt canvas width
-            let zoomY = 1.0 / (targetHeight / 600) // Assuming 600pt canvas height
-            zoomLevel = min(zoomX, zoomY, 1.0)
-            
-            // Center the content
-            canvasOffset = CGSize(
-                width: -minX + padding,
-                height: -minY + padding
-            )
-        } else {
-            // If no components, just center and reset zoom
-            zoomLevel = 1.0
-            canvasOffset = .zero
-        }
-    }
     
     func zoomToFitDevice(_ deviceSize: CGSize, canvasSize: CGSize) {
         // Handle content-adaptive (noSize) mode - use a reasonable default zoom
@@ -1196,7 +777,6 @@ class CanvasManager: ObservableObject {
     
     // Track if we're currently restoring state (to avoid saving during undo/redo)
     private var isRestoringState: Bool = false
-    private var lastUndoSaveTime: Date?
     
     func undo() {
         guard let action = undoStack.popLast() else {
@@ -1510,7 +1090,14 @@ class CanvasManager: ObservableObject {
         guard preset != devicePreset else { return }
         
         registerUndoAction("Change Canvas Size")
+        self.isLayoutTransitioning = true
         self.devicePreset = preset
+        centerCanvasTrigger.toggle()
+        
+        // Reset flag after a short delay to allow animation to start
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.isLayoutTransitioning = false
+        }
         
         // Notify design changed immediately for this setting
         NotificationCenter.default.post(name: .designChanged, object: nil)

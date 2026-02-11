@@ -91,7 +91,6 @@ struct PaddingModifierEditor: View {
                     VStack(spacing: 0) {
                         ForEach(paddingLocations, id: \.key) { location in
                             PaddingLocationRow(
-                                key: location.key,
                                 displayName: location.displayName,
                                 icon: location.icon,
                                 isSelected: selectedLocation == location.key,
@@ -153,7 +152,6 @@ struct PaddingModifierEditor: View {
 
 // MARK: - Padding Location Row
 struct PaddingLocationRow: View {
-    let key: String
     let displayName: String
     let icon: String
     let isSelected: Bool

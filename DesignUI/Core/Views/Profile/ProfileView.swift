@@ -320,7 +320,6 @@ struct ProfileView: View {
     private var postsGridView: some View {
 #if os(iOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
-            if #available(iOS 16.0, *) {
                 LazyMasonryView(
                     items: posts,
                     columns: 2,
@@ -345,39 +344,33 @@ struct ProfileView: View {
                 .id("masonry-\(selectedTab)")
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
-            } else {
-                gridView(spacing: 8, horizontalPadding: 8)
-            }
+            
         } else {
             // iPad: Use LazyMasonryView with 5 columns like Mac
-            if #available(iOS 16.0, *) {
-                LazyMasonryView(
-                    items: posts,
-                    columns: 5,
-                    spacing: 16,
-                    hasMorePosts: hasMorePosts,
-                    isLoading: isLoading,
-                    loadMoreHandler: { post in
-                        guard let post = post else { return }
-                        // Prevent multiple simultaneous loads
-                        guard hasMorePosts && !isLoading else { return }
-                        Task {
-                            if isLikedFilter {
-                                await likedViewModel.loadMoreLikedPostsIfNeeded(currentItem: post)
-                            } else {
-                                await userViewModel.loadMoreUserPostsIfNeeded(currentItem: post)
-                            }
+            LazyMasonryView(
+                items: posts,
+                columns: 5,
+                spacing: 16,
+                hasMorePosts: hasMorePosts,
+                isLoading: isLoading,
+                loadMoreHandler: { post in
+                    guard let post = post else { return }
+                    // Prevent multiple simultaneous loads
+                    guard hasMorePosts && !isLoading else { return }
+                    Task {
+                        if isLikedFilter {
+                            await likedViewModel.loadMoreLikedPostsIfNeeded(currentItem: post)
+                        } else {
+                            await userViewModel.loadMoreUserPostsIfNeeded(currentItem: post)
                         }
                     }
-                ) { post in
-                    postCell(for: post)
                 }
-                .id("masonry-\(selectedTab)")
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-            } else {
-                gridView(spacing: 16, horizontalPadding: 16)
+            ) { post in
+                postCell(for: post)
             }
+            .id("masonry-\(selectedTab)")
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
         }
 #else
         LazyMasonryView(
@@ -403,24 +396,6 @@ struct ProfileView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
 #endif
-    }
-    
-    private func gridView(spacing: CGFloat, horizontalPadding: CGFloat) -> some View {
-        let columns = GridConfiguration.shared.columns
-        
-        return LazyVGrid(columns: columns, spacing: spacing) {
-            ForEach(posts) { post in
-                postCell(for: post)
-                    .task {
-                        if isLikedFilter {
-                            await likedViewModel.loadMoreLikedPostsIfNeeded(currentItem: post)
-                        } else {
-                            await userViewModel.loadMoreUserPostsIfNeeded(currentItem: post)
-                        }
-                    }
-            }
-        }
-        .padding(.horizontal, horizontalPadding)
     }
     
     @ViewBuilder

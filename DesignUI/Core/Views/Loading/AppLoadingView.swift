@@ -16,7 +16,6 @@ struct EditorLoadingView: View {
     @State private var isLoading = true
     @State private var loadingProgress: Double = 0.0
     @State private var loadingMessage = "Loading design..."
-    @State private var canvasReady = false
     @StateObject private var canvasManager = CanvasManager()
     
     var body: some View {

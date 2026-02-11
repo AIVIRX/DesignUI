@@ -19,11 +19,7 @@ struct ComponentRenderer: View {
     // Optional CanvasManager for scroll frame reporting
     var canvasManager: CanvasManager? = nil
     
-    // Canvas render scale for resolution-independent zoom
-    @Environment(\.canvasRenderScale) private var canvasRenderScale: CGFloat
-    
     @State private var isHovered: Bool = false
-    @State private var forceRefresh: Int = 0
     @State private var hasAppliedModifiers: Bool = false
     
     init(component: UIComponent, deviceSize: CGSize? = nil, colorScheme: ColorScheme? = nil, onTap: ((Bool) -> Void)? = nil, onSelectChild: ((UIComponent, Bool) -> Void)? = nil, selectedComponentIds: Set<UUID> = [], canvasManager: CanvasManager? = nil) {
@@ -179,14 +175,6 @@ struct ComponentRenderer: View {
         default:
             // Standard rectangular bounds for everything else
             return AnyView(RoundedRectangle(cornerRadius: 4).stroke(color, lineWidth: lineWidth))
-        }
-    }
-    private func isContainerComponent(_ type: ComponentType) -> Bool {
-        switch type {
-        case .vstack, .hstack, .zstack, .scrollView:
-            return true
-        default:
-            return false
         }
     }
 }

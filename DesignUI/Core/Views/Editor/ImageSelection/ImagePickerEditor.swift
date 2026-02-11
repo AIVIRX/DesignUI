@@ -279,35 +279,6 @@ struct ImagePickerEditor: View {
         }
     }
     
-    private func openImagePicker() {
-        #if os(macOS)
-        // Open NSOpenPanel directly for macOS (Finder)
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.image, .png, .jpeg, .tiff, .gif]
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        
-        if panel.runModal() == .OK {
-            if let url = panel.url,
-               let imageData = try? Data(contentsOf: url) {
-                // Persist as gallery image and store filename for image rendering
-                if let filename = ImageGalleryManager.shared.saveImage(data: imageData) {
-                    canvasManager.updateComponentProperty(for: component, key: "imageName", value: filename)
-                }
-                // Extract filename without extension
-                let filename = url.deletingPathExtension().lastPathComponent
-                canvasManager.updateComponentProperty(for: component, key: "imageName", value: filename)
-            }
-        }
-        #else
-        // For iOS, PhotosPicker will be triggered by the binding
-        // The picker is already attached to the view, so we just need to programmatically trigger it
-        // Since PhotosPicker doesn't support programmatic triggering easily,
-        // we'll use a workaround with a button that's always present but hidden
-        #endif
-    }
-    
     #if os(macOS)
     private func createImage(from data: Data) -> NSImage? {
         return NSImage(data: data)
@@ -317,56 +288,4 @@ struct ImagePickerEditor: View {
         return UIImage(data: data)
     }
     #endif
-}
-
-import PhotosUI
-import UniformTypeIdentifiers
-
-struct ImagePicker: View {
-    @Binding var selectedImage: Data?
-    @State private var selectedItem: PhotosPickerItem?
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Select Image")
-                    .font(.headline)
-                    .padding(.top)
-                
-                // Use PhotosPicker which shows native iOS picker with Photos, Files, etc.
-                PhotosPicker(
-                    selection: $selectedItem,
-                    matching: .images,
-                    photoLibrary: .shared()
-                ) {
-                    Label("Choose from Photos", systemImage: "photo.on.rectangle")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .onChange(of: selectedItem) { _, newItem in
-                    Task {
-                        if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                            selectedImage = data
-                            dismiss()
-                        }
-                    }
-                }
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Select Image")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
 }

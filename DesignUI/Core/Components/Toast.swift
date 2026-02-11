@@ -123,7 +123,6 @@ struct ToastView: View {
 
 struct ToastModifier: ViewModifier {
     @Binding var toast: ToastData?
-    @State private var workItem: DispatchWorkItem?
     
     func body(content: Content) -> some View {
         content

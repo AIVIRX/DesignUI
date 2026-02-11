@@ -104,6 +104,3 @@ struct ColorPropertyEditor: View {
         colorString = "\(selectedColorName):\(opacityValue)"
     }
 }
-
-// MARK: - Component Actions Section
-

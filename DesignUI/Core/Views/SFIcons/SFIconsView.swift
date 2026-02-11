@@ -10,7 +10,6 @@ import SwiftUI
 struct SFIconsView: View {
     @State private var searchText = ""
     @State private var debouncedSearch = ""
-    @State private var searchTask: Task<Void, Never>?
     @EnvironmentObject private var toastManager: ToastManager
     
     private var filteredSymbols: [String] {
@@ -91,25 +90,6 @@ struct SymbolButton: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(symbol.replacingOccurrences(of: ".", with: " ").replacingOccurrences(of: "-", with: " ")))
         .accessibilityAddTraits(.isButton)
-    }
-}
-
-struct SymbolRow: View {
-    let symbol: String
-    let onCopy: (String) -> Void
-    var body: some View {
-        HStack {
-            Image(systemName: symbol)
-                .font(.system(size: 40))
-            Text(symbol)
-            Spacer()
-            Button(action: {
-                onCopy(symbol)
-            }) {
-                Image(systemName: "doc.on.doc")
-                    .foregroundColor(.blue)
-            }
-        }
     }
 }
 

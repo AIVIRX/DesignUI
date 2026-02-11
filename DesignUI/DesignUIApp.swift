@@ -70,6 +70,17 @@ struct DesignUIApp: App {
                     }
                     
                     print("📂 Opening file: \(url.path)")
+
+                    designManager.handleOpenURL(url) { design in
+                        DispatchQueue.main.async {
+                            if let design = design {
+                                toastManager.showToast(ToastData(title: "Opened", icon: "checkmark.circle.fill"))
+                                designManager.openDesign(design)
+                            } else {
+                                toastManager.showToast(ToastData(title: "Failed", icon: "xmark.circle.fill"))
+                            }
+                        }
+                    }
                 }
         }
     }
@@ -82,7 +93,6 @@ import Foundation
 
 @main
 struct DesignUIApp: App {
-    @Environment(\.openWindow) private var openWindow
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared

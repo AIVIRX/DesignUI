@@ -9,28 +9,30 @@ import SwiftUI
 import AuthenticationServices
 import FluidGradient
 
-struct Card: Identifiable, Hashable {
-    var id: String = UUID().uuidString
-    var image: String
-}
-
-let cards: [Card] = [
-    .init(image: "image1"),
-    .init(image: "image2"),
-    .init(image: "image3"),
-    .init(image: "image4"),
-]
-
 struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.colorScheme) var colorScheme
     @State private var signInAppleButtonId = UUID().uuidString
-    @State private var activeCard: Card? = cards.first
+    #if os(iOS)
+    private struct Card: Identifiable, Hashable {
+        var id: String = UUID().uuidString
+        var image: String
+    }
+    
+    private let cards: [Card] = [
+        .init(image: "image1"),
+        .init(image: "image2"),
+        .init(image: "image3"),
+        .init(image: "image4"),
+    ]
+    
+    @State private var activeCard: Card? = nil
     @State private var timer = Timer.publish(every: 0.01, on: .current, in: .default).autoconnect()
     @State private var initialAnimation: Bool = false
     @State private var titleProgress: CGFloat = 0
     #if os(iOS)
     @State private var scrollView: UIScrollView?
+    #endif
     #endif
     var body: some View {
         NavigationStack {
@@ -164,15 +166,6 @@ struct SignInView: View {
                 #endif
             }
         }
-        .toolbar {
-#if os(macOS)
-            ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: SettingsView()) {
-                    Image(systemName: "gear")
-                }
-            }
-#endif
-        }
         .alert("Error", isPresented: $authViewModel.showError) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -188,7 +181,7 @@ struct SignInView: View {
             activeCard = cards[activeIndex]
         }
     }
-    #endif
+    
     @ViewBuilder
     private func AmbientBackground() -> some View {
         GeometryReader {
@@ -233,8 +226,10 @@ struct SignInView: View {
                 .rotationEffect(.degrees(phase.value * 5), anchor: .bottom)
         }
     }
+    #endif
 }
 
+#if os(iOS)
 extension View {
     func blurOpacityEffect(_ show: Bool) -> some View {
         self
@@ -243,13 +238,4 @@ extension View {
             .scaleEffect(show ? 1 : 0.9)
     }
 }
-
-fileprivate extension View {
-    @ViewBuilder
-    func blurOpacity(_ status: Bool) -> some View {
-        self
-            .compositingGroup()
-            .opacity(status ? 1 : 0)
-            .blur(radius: status ? 0 : 10)
-    }
-}
+#endif

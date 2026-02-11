@@ -8,18 +8,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - Conditional View Modifier Extension
-extension View {
-    /// Applies a transform if condition is true
-    @ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
-        if condition {
-            transform(self)
-        } else {
-            self
-        }
-    }
-}
-
 struct ModifierPanelView: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
@@ -504,14 +492,6 @@ struct ModifierDropDelegate: DropDelegate {
         }
     }
     
-    func dropEnded(info: DropInfo) {
-        // Clear everything immediately when drag ends
-        clearDropIndicators()
-        DispatchQueue.main.async {
-            draggingId = nil
-        }
-    }
-    
     private func updatePosition(info: DropInfo) {
         let y = info.location.y
         let height = 32.0 // Approximate row height
@@ -576,14 +556,14 @@ struct AddModifierView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            VStack{
+        VStack(spacing: 0) {
+            VStack(spacing: 12) {
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     
-                    TextField("Search modifiers...", text: $searchText)
+                    TextField("Search components...", text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                 }
                 .padding(.horizontal, 12)
@@ -591,7 +571,9 @@ struct AddModifierView: View {
                 .background(Color.secondary.opacity(0.1))
                 .cornerRadius(8)
             }
-            .padding(16)
+            .padding()
+            
+            Divider()
                         
             // Modifiers list
             ScrollView {
@@ -628,7 +610,6 @@ struct AddModifierView: View {
                         }
                     }
                 }
-                .padding(12)
             }
         }
 #if os(macOS)
@@ -641,7 +622,9 @@ struct AddModifierView: View {
         }
 #endif
 #if os(iOS)
-        .background(Color(uiColor: .systemBackground))
+.background(Color(uiColor: .systemBackground))
+#else
+.background(Color(nsColor: .windowBackgroundColor))
 #endif
 #if os(macOS)
         .frame(width: 400, height: 600)

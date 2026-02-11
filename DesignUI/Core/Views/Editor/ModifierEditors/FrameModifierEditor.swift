@@ -122,12 +122,6 @@ struct FrameModifierEditor: View {
         }
     }
     
-    private var previewText: String {
-        let w = widthType == .custom ? "\(Int(widthValue))" : widthType.rawValue
-        let h = heightType == .custom ? "\(Int(heightValue))" : heightType.rawValue
-        return "\(w) × \(h)"
-    }
-    
     private func loadFrame() {
         widthType = (modifier.properties["widthType"] as? String).flatMap(FrameSizeType.init) ?? .default
         heightType = (modifier.properties["heightType"] as? String).flatMap(FrameSizeType.init) ?? .default
