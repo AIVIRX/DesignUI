@@ -27,6 +27,8 @@ struct CanvasView: View {
     let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
     @Binding var colorScheme: ColorScheme?
+    let pushScale: CGFloat
+    let pushOffset: CGSize
     @Environment(\.colorScheme) private var appColorScheme
     @Environment(\.displayScale) private var displayScale
     
@@ -52,6 +54,24 @@ struct CanvasView: View {
     // Force redraw on zoom end for sharp text
     @State private var zoomGeneration: Int = 0
     @State private var isCanvasTransitioning: Bool = false
+    
+    init(
+        canvasManager: CanvasManager,
+        selectedComponent: Binding<UIComponent?>,
+        selectedDevice: DevicePreset,
+        baseZoomLevel: Binding<CGFloat>,
+        colorScheme: Binding<ColorScheme?>,
+        pushScale: CGFloat = 1.0,
+        pushOffset: CGSize = .zero
+    ) {
+        self.canvasManager = canvasManager
+        self._selectedComponent = selectedComponent
+        self.selectedDevice = selectedDevice
+        self._baseZoomLevel = baseZoomLevel
+        self._colorScheme = colorScheme
+        self.pushScale = pushScale
+        self.pushOffset = pushOffset
+    }
     
     var body: some View {
         GeometryReader { geometry in
@@ -98,6 +118,7 @@ struct CanvasView: View {
     private func canvasContent(in geometry: GeometryProxy) -> some View {
         // Calculate zoom values
         let effectiveZoom = localZoomLevel * magnifyScale
+        let combinedZoom = effectiveZoom * pushScale
         let isActiveGesture = magnifyScale != 1.0
         // Render at higher backing scale when zoomed in to keep text sharp.
         // Clamp to avoid extreme memory use.
@@ -112,10 +133,10 @@ struct CanvasView: View {
             devicePreview(geometry: geometry)
                 .environment(\.canvasRenderScale, stableZoomLevel)
                 .environment(\.displayScale, renderScale)
-                .scaleEffect(effectiveZoom)
+                .scaleEffect(combinedZoom)
                 .offset(
-                    x: currentOffset.width + dragOffset.width,
-                    y: currentOffset.height + dragOffset.height
+                    x: currentOffset.width + dragOffset.width + pushOffset.width,
+                    y: currentOffset.height + dragOffset.height + pushOffset.height
                 )
                 .modifier(ConditionalDrawingGroup(shouldRasterize: !canvasManager.hasMapComponent && !canvasManager.hasScrollableComponent))
                 // Force view recreation when zoom completes for sharp rendering
@@ -134,8 +155,12 @@ struct CanvasView: View {
     private var canvasGestures: some Gesture {
         SimultaneousGesture(
             DragGesture()
-                .updating($dragOffset) { value, state, _ in state = value.translation }
+                .updating($dragOffset) { value, state, _ in
+                    guard !canvasManager.isOverlayPanelOpen else { return }
+                    state = value.translation
+                }
                 .onEnded { value in
+                    guard !canvasManager.isOverlayPanelOpen else { return }
                     currentOffset = CGSize(
                         width: currentOffset.width + value.translation.width,
                         height: currentOffset.height + value.translation.height
@@ -266,6 +291,8 @@ struct CanvasView: View {
             .contentShape(Rectangle())
             .onTapGesture {
                 // Deselect components and dismiss keyboard
+                guard !canvasManager.isTextInputActive else { return }
+                canvasManager.didUserDeselect = true
                 canvasManager.deselectAll()
                 #if os(iOS)
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)

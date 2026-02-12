@@ -12,19 +12,13 @@ extension ComponentRenderer {
 // MARK: - Text Renderer
     func renderText() -> some View {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
-        // Don't set a default font - let fontSize modifier handle it
-        // This allows parent stack's fontSize to propagate to text children
         return Text(text)
     }
     
     // MARK: - Platform Font Helper
-    // Returns platform-specific font sizes per Apple Human Interface Guidelines
-    // Reference: https://developer.apple.com/design/human-interface-guidelines/typography
     private func iosFont(for fontSize: String, weight: Font.Weight, deviceSize: CGSize? = nil) -> Font {
         return createIOSFont(for: fontSize, weight: weight, design: .default, deviceSize: deviceSize ?? self.deviceSize)
     }
-    
-
     
     // MARK: - Shape Renderer
     func renderShape() -> some View {
@@ -491,8 +485,6 @@ extension ComponentRenderer {
         return LinearGradient(gradient: Gradient(colors: gradientColors), startPoint: startPoint, endPoint: endPoint)
     }
     
-
-    
     // MARK: - ScrollView Renderer
     func renderScrollView() -> some View {
         let axesString = component.getProperty(key: "axis") as? String ?? "vertical"
@@ -544,7 +536,6 @@ extension ComponentRenderer {
         }
     }
     
-
     // MARK: - SF Symbol Renderer
     func renderSFSymbol() -> some View {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
@@ -650,7 +641,6 @@ extension ComponentRenderer {
             .padding(.horizontal)
     }
 
-    
     // MARK: - Placeholder Renderer
     func renderPlaceholder() -> some View {
         RoundedRectangle(cornerRadius: 8)
@@ -1096,7 +1086,6 @@ extension View {
     
 }
 
-// MARK: - Helper Functions
 // MARK: - Helper Functions
 fileprivate func fontWeightFromString(_ weight: String) -> Font.Weight {
     switch weight {

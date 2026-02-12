@@ -138,9 +138,7 @@ class DesignFile: ObservableObject, Identifiable {
         guard index >= 0 && index < pages.count else { return }
         pages[index].name = newName
     }
-    
-    // (Removed unused movePage method)
-    
+        
     // MARK: - Thumbnail Management
     func setThumbnail(_ thumbnailData: Data?, devicePreset: String? = nil) {
         // Explicitly clear old thumbnail data to free memory before setting new one
@@ -202,7 +200,6 @@ class DesignFile: ObservableObject, Identifiable {
     }
     
     // MARK: - Auto-save functionality
-    
     func markAsChanged() {
         hasUnsavedChanges = true
         // Debounce auto-save to prevent UI freezing on every change/switch
@@ -320,7 +317,6 @@ class DesignFile: ObservableObject, Identifiable {
             debugLog("❌ Failed to encode design file: \(error)")
         }
     }
-    
     
     static func load(from url: URL) -> DesignFile? {
         do {

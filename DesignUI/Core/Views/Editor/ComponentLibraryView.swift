@@ -10,7 +10,6 @@ import SwiftUI
 struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
-    @State private var searchText = ""
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     // Define the custom sort order for prioritization
@@ -22,16 +21,15 @@ struct ComponentLibraryView: View {
         .button, .textField, .toggle, .slider, .gauge // Controls
     ]
     
-    private var filteredComponents: [ComponentType] {
-        // First filter by availability (excluding internal types like statusBar) and search text
+    private var availableComponents: [ComponentType] {
+        // Filter by availability (excluding internal types like statusBar)
         let filtered = ComponentType.allCases.filter { type in
             guard type != .statusBar else { return false }
             // Filter out legacy individual shape types
             if type == .rectangle || type == .circle || type == .roundedRectangle || type == .capsule || type == .ellipse {
                 return false
             }
-            if searchText.isEmpty { return true }
-            return type.rawValue.localizedCaseInsensitiveContains(searchText)
+            return true
         }
         
         // Then sort based on the defined order
@@ -50,32 +48,13 @@ struct ComponentLibraryView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            VStack(spacing: 12) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    
-                    TextField("Search components...", text: $searchText)
-                        .textFieldStyle(PlainTextFieldStyle())
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(8)
-            }
-            .padding()
-            
-            Divider()
-            
             // Components Grid
             ScrollView {
                 let columns = horizontalSizeClass == .compact
                     ? [GridItem(.flexible(), spacing: 12)]
                     : [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
                 LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(filteredComponents) { componentType in
+                    ForEach(availableComponents) { componentType in
                         ComponentLibraryItem(
                             componentType: componentType,
                             isFirstComponent: canvasManager.components.isEmpty,

@@ -7682,6 +7682,9 @@
         }
       }
     },
+    "Add Modifier" : {
+
+    },
     "Add Overlay Component" : {
       "localizations" : {
         "ar" : {
@@ -17153,6 +17156,9 @@
           }
         }
       }
+    },
+    "Copy JSON" : {
+
     },
     "Corner Radius" : {
       "localizations" : {
@@ -40195,6 +40201,7 @@
       }
     },
     "Post to Community" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

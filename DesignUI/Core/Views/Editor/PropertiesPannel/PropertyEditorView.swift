@@ -48,31 +48,33 @@ struct PropertyEditor: View {
                     ImagePickerEditor(property: property, component: component, canvasManager: canvasManager, useImageData: property.key == "imageData", showGallery: $showGallery, activePropertyKey: $activePropertyKey)
                 } else if property.key == "symbolName" {
                     // Special SF Symbol picker
-                    Button(action: {
-                        showSFSymbolPicker = true
-                    }) {
-                        HStack {
-                            Text(displayName)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.primary)
-                            
-                            Spacer()
-                            
-                            HStack {
-                                Image(systemName: textValue.isEmpty ? "star" : textValue)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.blue)
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(.secondary)
+                    Group {
+#if os(iOS)
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            NavigationLink(isActive: $showSFSymbolPicker) {
+                                SFSymbolPickerView(selectedSymbol: $textValue) { selectedSymbol in
+                                    canvasManager.updateComponentProperty(for: component, key: property.key, value: selectedSymbol)
+                                    textValue = selectedSymbol
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+                                    showSFSymbolPicker = false
+                                }
+                            } label: {
+                                symbolRow
                             }
+                        } else {
+                            Button(action: { showSFSymbolPicker = true }) {
+                                symbolRow
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .contentShape(Rectangle())
+#else
+                        Button(action: { showSFSymbolPicker = true }) {
+                            symbolRow
+                        }
+                        .buttonStyle(.plain)
+#endif
                     }
-                    .buttonStyle(.plain)
                     .onAppear {
                         // Read from component to get the latest value
                         if let currentValue = component.getProperty(key: property.key) as? String {
@@ -134,6 +136,7 @@ struct PropertyEditor: View {
                                 hasRegisteredUndo = false
                                 canvasManager.updateComponentPropertyContinuous(for: component, key: property.key, value: textValue)
                             }
+                            canvasManager.isTextInputActive = newValue
                         }
                         .onSubmit {
                             canvasManager.updateComponentPropertyContinuous(for: component, key: property.key, value: textValue)
@@ -189,6 +192,7 @@ struct PropertyEditor: View {
                                     hasRegisteredUndo = false
                                     canvasManager.updateComponentPropertyContinuous(for: component, key: property.key, value: textValue)
                                 }
+                                canvasManager.isTextInputActive = newValue
                             }
                             .onSubmit {
                                 // Commit the final value when Enter is pressed
@@ -640,15 +644,17 @@ struct PropertyEditor: View {
             }
         }
 #if os(iOS)
-        .sheet(isPresented: $showSFSymbolPicker) {
-            SFSymbolPickerView(selectedSymbol: $textValue) { selectedSymbol in
-                canvasManager.updateComponentProperty(for: component, key: property.key, value: selectedSymbol)
-                textValue = selectedSymbol
+        .if(UIDevice.current.userInterfaceIdiom != .phone) { view in
+            view.sheet(isPresented: $showSFSymbolPicker) {
+                SFSymbolPickerView(selectedSymbol: $textValue) { selectedSymbol in
+                    canvasManager.updateComponentProperty(for: component, key: property.key, value: selectedSymbol)
+                    textValue = selectedSymbol
+                }
+                 .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
+                    showSFSymbolPicker = false
+                }
+                .presentationDetents([.medium, .large])
             }
-             .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
-                showSFSymbolPicker = false
-            }
-            .presentationDetents([.medium, .large])
         }
 #else
         .popover(isPresented: $showSFSymbolPicker) {
@@ -661,5 +667,31 @@ struct PropertyEditor: View {
             }
         }
 #endif
+        .onDisappear {
+            canvasManager.isTextInputActive = false
+        }
+    }
+
+    private var symbolRow: some View {
+        HStack {
+            Text(displayName)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.primary)
+            
+            Spacer()
+            
+            HStack {
+                Image(systemName: textValue.isEmpty ? "star" : textValue)
+                    .font(.system(size: 16))
+                    .foregroundColor(.blue)
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
     }
 }

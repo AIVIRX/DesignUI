@@ -21,10 +21,7 @@ class CanvasManager: ObservableObject {
     
     @Published var selectedComponent: UIComponent? {
         didSet {
-            // Ensure consistency with selectedComponentIds for external binding updates
             if let component = selectedComponent {
-                // If setting a component that isn't in the set (e.g. from Layers panel or Properties),
-                // assume single selection and update the set
                 if !selectedComponentIds.contains(component.id) {
                     selectedComponentIds = [component.id]
                 }
@@ -36,26 +33,25 @@ class CanvasManager: ObservableObject {
         }
     }
     
-    @Published var selectedComponentIds: Set<UUID> = [] // Multi-selection support
+    @Published var selectedComponentIds: Set<UUID> = []
     @Published var zoomLevel: CGFloat = 1.0
     @Published var canvasOffset: CGSize = .zero
-    @Published var centerCanvasTrigger: Bool = false // Triggers canvas centering when toggled
-    @Published var scrollToSelectionTrigger: Bool = false // Triggers scrolling to selection
+    @Published var centerCanvasTrigger: Bool = false
+    @Published var scrollToSelectionTrigger: Bool = false
+    @Published var isTextInputActive: Bool = false
+    @Published var isPropertiesSheetPresented: Bool = false
+    @Published var didUserDeselect: Bool = false
+    @Published var isOverlayPanelOpen: Bool = false
     
-    // Special status bar component
     @Published var statusBarComponent: UIComponent?
     
-    // Flag to signal layout transitions (for animations)
     @Published var isLayoutTransitioning: Bool = false
     
-    // Design name for code generation
     @Published var designName: String = "GeneratedView"
     
-    // Canvas settings
     @Published var colorScheme: ColorScheme? = nil
     @Published var devicePreset: DevicePreset = .iphone16Pro
     
-    // Status bar settings (source of truth going forward)
     @Published var statusBarVisible: Bool = true {
         didSet { updateStatusBarComponentFromSettings() }
     }
@@ -64,26 +60,19 @@ class CanvasManager: ObservableObject {
     }
     private var isSyncingStatusBarSettings: Bool = false
 
-    // Undo/Redo with action descriptions
     @Published var undoStackVersion: Int = 0 
     private var undoStack: [UndoableAction] = []
     private var redoStack: [UndoableAction] = []
     private let maxUndoSteps = 50
 
-    // Toast message for undo/redo feedback
     @Published var undoMessage: String? = nil
-        
-    // Current action description (set before making changes)
     
     private var statusBarCancellable: AnyCancellable?
     
-    // Check if design contains a map component (to disable rasterization)
-    // Map component is not currently supported in ComponentType.
     var hasMapComponent: Bool {
         return false
     }
 
-    // Check if design contains any ScrollView component (drawingGroup can hide ScrollView content)
     var hasScrollableComponent: Bool {
         return containsComponent(ofType: .scrollView, in: components)
     }
@@ -107,16 +96,13 @@ class CanvasManager: ObservableObject {
     var canRedo: Bool { !redoStack.isEmpty }
     
     init() {
-        // Start with an empty canvas; no predefined root container
         components = []
         selectedComponent = nil
         colorScheme = nil
         statusBarComponent = createStatusBarComponent()
         syncStatusBarSettingsFromComponent()
         observeStatusBarChanges()
-        // Don't save state in init - wait until design is loaded
         
-        // Listen for selection requests
         NotificationCenter.default.addObserver(
             forName: .selectComponent,
             object: nil,
@@ -145,7 +131,6 @@ class CanvasManager: ObservableObject {
         statusBarCancellable?.cancel()
         statusBarCancellable = statusBarComponent?.objectWillChange.sink { [weak self] _ in
             guard let self = self else { return }
-            // Capture state BEFORE change for Undo
             self.registerUndoAction("Updated Canvas Settings")
         }
     }
@@ -155,12 +140,8 @@ class CanvasManager: ObservableObject {
         isSyncingStatusBarSettings = true
         defer { isSyncingStatusBarSettings = false }
         guard let statusBar = statusBarComponent else { return }
-        if let show = statusBar.properties.first(where: { $0.key == "showStatusBar" })?.value as? Bool {
-            statusBarVisible = show
-        }
-        if let topSafeArea = statusBar.properties.first(where: { $0.key == "topSafeArea" })?.value as? Bool {
-            statusBarTopSafeArea = topSafeArea
-        }
+        if let show = boolProperty(from: statusBar, key: "showStatusBar") { statusBarVisible = show }
+        if let topSafeArea = boolProperty(from: statusBar, key: "topSafeArea") { statusBarTopSafeArea = topSafeArea }
     }
 
     private func updateStatusBarComponentFromSettings() {
@@ -171,8 +152,11 @@ class CanvasManager: ObservableObject {
         updateComponentProperty(for: statusBar, key: "showStatusBar", value: statusBarVisible)
         updateComponentProperty(for: statusBar, key: "topSafeArea", value: statusBarTopSafeArea)
     }
+
+    private func boolProperty(from component: UIComponent, key: String) -> Bool? {
+        component.properties.first(where: { $0.key == key })?.value as? Bool
+    }
     
-    /// Ensures status bar component has all required properties (migration/hotfix)
     func validateStatusBarProperties() {
         guard let statusBar = statusBarComponent else {
             statusBarComponent = createStatusBarComponent()
@@ -181,21 +165,18 @@ class CanvasManager: ObservableObject {
             return
         }
         
-        // Check for missing properties AND remove deprecated ones
         let defaults = UIComponent.defaultProperties(for: .statusBar)
         let defaultKeys = Set(defaults.map { $0.key })
         
         var currentProps = statusBar.properties
         var changed = false
         
-        // 1. Remove deprecated properties (keys not in defaults)
         let filteredProps = currentProps.filter { defaultKeys.contains($0.key) }
         if filteredProps.count != currentProps.count {
             currentProps = filteredProps
             changed = true
         }
         
-        // 2. Add missing properties
         for defaultProp in defaults {
             if !currentProps.contains(where: { $0.key == defaultProp.key }) {
                 currentProps.append(defaultProp)
@@ -207,11 +188,9 @@ class CanvasManager: ObservableObject {
             statusBar.properties = currentProps
             objectWillChange.send()
         }
-        // Always re-observe the current component instance (important after cloning)
         observeStatusBarChanges()
         syncStatusBarSettingsFromComponent()
     }
-    
 
     // MARK: - Component Management
     func addComponent(_ component: UIComponent) {
@@ -257,9 +236,7 @@ class CanvasManager: ObservableObject {
                     
                     // Force parent to notify observers and trigger UI refresh
                     DispatchQueue.main.async {
-                        parent.objectWillChange.send()
-                        // Post notification to ensure all views refresh
-                        NotificationCenter.default.post(name: .designChanged, object: nil)
+                        self.notifyChange(for: parent)
                     }
                 }
             }
@@ -328,7 +305,6 @@ class CanvasManager: ObservableObject {
         selectedComponentIds.removeAll()
     }
     
-    
     func getDesignAsJSON() -> String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
@@ -354,7 +330,6 @@ class CanvasManager: ObservableObject {
     }
     
     // MARK: - Hierarchy Manipulation
-    /// Move a component in the hierarchy to a new parent and position
     /// Move a component in the hierarchy to a new parent and position
     func moveComponentInHierarchy(componentId: UUID, newParentId: UUID?, toIndex: Int) {
         // Register undo before making changes
@@ -423,7 +398,6 @@ class CanvasManager: ObservableObject {
         if let statusBar = statusBarComponent, statusBar.id == id {
             return statusBar
         }
-        
         return nil
     }
 
@@ -501,8 +475,6 @@ class CanvasManager: ObservableObject {
         if selectedComponent?.id != duplicatedComponent.id {
             selectedComponent = duplicatedComponent
         }
-        
-        // Save state after duplication
     }
     
     /// Wraps a component in a container (VStack, HStack, ZStack, ScrollView)
@@ -589,7 +561,6 @@ class CanvasManager: ObservableObject {
         return duplicatedComponent
     }
     
-
     /// Deep copy a dictionary with Any values
     private func deepCopyDictionary(_ dict: [String: Any]) -> [String: Any] {
         var result: [String: Any] = [:]
@@ -606,13 +577,9 @@ class CanvasManager: ObservableObject {
         } else if let dict = value as? [String: Any] {
             return deepCopyDictionary(dict)
         } else {
-            // Primitive types (String, Int, Double, Bool, etc.) are value types
             return value
         }
     }
-    
-    
-    // MARK: - Frame Calculations
     
     /// Calculate absolute frame of a component including all parent offsets
     func getAbsoluteFrame(for component: UIComponent) -> CGRect {
@@ -630,11 +597,9 @@ class CanvasManager: ObservableObject {
         return frame
     }
     
-    
     func setZoomLevel(_ level: CGFloat) {
         zoomLevel = min(max(level, 0.1), 3.0)
     }
-    
     
     func zoomToFitDevice(_ deviceSize: CGSize, canvasSize: CGSize) {
         // Handle content-adaptive (noSize) mode - use a reasonable default zoom
@@ -668,9 +633,6 @@ class CanvasManager: ObservableObject {
     }
     
     // MARK: - Undo/Redo
-    
-    /// Save the initial state when loading a design file
-    /// This clears undo history for a fresh start
     func saveInitialState() {
         isRestoringState = false
         
@@ -679,11 +641,6 @@ class CanvasManager: ObservableObject {
         redoStack.removeAll()
     }
     
-    /// Register an undoable action with a description
-    /// Call this BEFORE making the change, and the state will be captured
-    /// - Parameters:
-    ///   - description: Human readable description of the action
-    ///   - coalesceKey: Optional key to group rapid updates (e.g., continuous slider movement)
     func registerUndoAction(_ description: String, coalesceKey: String? = nil) {
         // Don't register while we're restoring (undo/redo in progress)
         guard !isRestoringState else {
@@ -714,12 +671,7 @@ class CanvasManager: ObservableObject {
         }
         
         // Capture the current state BEFORE the change
-        let stateBefore = CanvasState(
-            components: deepCopyComponents(components),
-            colorScheme: colorScheme,
-            devicePreset: devicePreset,
-            statusBarComponent: statusBarComponent?.clone()
-        )
+        let stateBefore = currentCanvasState()
         
         let action = UndoableAction(
             description: description,
@@ -738,6 +690,15 @@ class CanvasManager: ObservableObject {
         
         debugLog("💾 registerUndoAction: '\(description)'")
         undoStackVersion += 1
+    }
+
+    private func currentCanvasState() -> CanvasState {
+        CanvasState(
+            components: deepCopyComponents(components),
+            colorScheme: colorScheme,
+            devicePreset: devicePreset,
+            statusBarComponent: statusBarComponent?.clone()
+        )
     }
     
     /// Create deep copies of components to ensure undo/redo works correctly
@@ -787,7 +748,7 @@ class CanvasManager: ObservableObject {
         debugLog("↩️ undo: '\(action.description)' - stack has \(undoStack.count) remaining")
         
         // Save current state to redo stack BEFORE restoring (with the same description)
-        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
+        let currentState = currentCanvasState()
         let redoAction = UndoableAction(
             description: action.description,
             stateBefore: currentState,
@@ -800,14 +761,7 @@ class CanvasManager: ObservableObject {
         restoreState(action.stateBefore)
         
         // Show toast message
-        undoMessage = "Undo: \(action.description)"
-
-        // Auto-dismiss toast after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            if self?.undoMessage == "Undo: \(action.description)" {
-                self?.undoMessage = nil
-            }
-        }
+        showUndoMessage(prefix: "Undo", description: action.description)
         undoStackVersion += 1
     }
     
@@ -820,7 +774,7 @@ class CanvasManager: ObservableObject {
         debugLog("↪️ redo: '\(action.description)' - redo stack has \(redoStack.count) remaining")
         
         // Save current state to undo stack BEFORE restoring
-        let currentState = CanvasState(components: deepCopyComponents(components), colorScheme: colorScheme, devicePreset: devicePreset, statusBarComponent: statusBarComponent?.clone())
+        let currentState = currentCanvasState()
         let undoAction = UndoableAction(
             description: action.description,
             stateBefore: currentState,
@@ -833,15 +787,17 @@ class CanvasManager: ObservableObject {
         restoreState(action.stateBefore)
         
         // Show toast message
-        undoMessage = "Redo: \(action.description)"
+        showUndoMessage(prefix: "Redo", description: action.description)
+        undoStackVersion += 1
+    }
 
-        // Auto-dismiss toast after 2 seconds
+    private func showUndoMessage(prefix: String, description: String) {
+        undoMessage = "\(prefix): \(description)"
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            if self?.undoMessage == "Redo: \(action.description)" {
+            if self?.undoMessage == "\(prefix): \(description)" {
                 self?.undoMessage = nil
             }
         }
-        undoStackVersion += 1
     }
     
     private func restoreState(_ state: CanvasState) {
@@ -849,9 +805,7 @@ class CanvasManager: ObservableObject {
         
         // Set flag to prevent undo state saving during restore
         isRestoringState = true
-        
-        // Cancel any pending work
-        
+                
         // Restore components
         components = deepCopyComponents(state.components)
         
@@ -871,7 +825,6 @@ class CanvasManager: ObservableObject {
         self.devicePreset = state.devicePreset
         
         // If selected component no longer exists, clear selection
-        // Update selectedComponent to point to the new instance in the restored components
         if let selectedId = selectedComponent?.id {
             if let restoredComponent = findComponent(by: selectedId) {
                 // Force the new component to notify observers
@@ -888,7 +841,6 @@ class CanvasManager: ObservableObject {
             }
         }
         
-        
         // Clear restore flag BEFORE posting notifications
         isRestoringState = false
         
@@ -901,158 +853,67 @@ class CanvasManager: ObservableObject {
     
     // MARK: - Modifier Management
     func addModifier(to component: UIComponent, modifier: ComponentModifier) {
-        // Find the actual component in the hierarchy
-        guard let actualComponent = findComponent(by: component.id) else {
-            debugLog("⚠️ addModifier: Component not found in hierarchy")
-            return
+        withActualComponent(component, log: "addModifier") { actualComponent in
+            registerUndoAction("Added \(modifier.type.rawValue) modifier")
+            actualComponent.addModifier(modifier)
+            notifyChange(for: actualComponent)
         }
-        
-        registerUndoAction("Added \(modifier.type.rawValue) modifier")
-        
-        actualComponent.addModifier(modifier)
-        
-        // Ensure UI updates
-        actualComponent.objectWillChange.send()
-        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func removeModifier(from component: UIComponent, modifier: ComponentModifier) {
-        // Find the actual component in the hierarchy
-        guard let actualComponent = findComponent(by: component.id) else {
-            debugLog("⚠️ removeModifier: Component not found in hierarchy")
-            return
+        withActualComponent(component, log: "removeModifier") { actualComponent in
+            registerUndoAction("Deleted \(modifier.type.rawValue) modifier")
+            actualComponent.removeModifier(modifier)
+            notifyChange(for: actualComponent)
         }
-        
-        registerUndoAction("Deleted \(modifier.type.rawValue) modifier")
-        
-        actualComponent.removeModifier(modifier)
-        
-        // Ensure UI updates
-        actualComponent.objectWillChange.send()
-        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func duplicateModifier(for component: UIComponent, modifier: ComponentModifier) {
-        // Find the actual component in the hierarchy
-        guard let actualComponent = findComponent(by: component.id) else {
-            debugLog("⚠️ duplicateModifier: Component not found in hierarchy")
-            return
+        withActualComponent(component, log: "duplicateModifier") { actualComponent in
+            guard let index = actualComponent.modifiers.firstIndex(where: { $0.id == modifier.id }) else { return }
+            registerUndoAction("Duplicated \(modifier.type.rawValue) modifier")
+            let duplicatedModifier = ComponentModifier(type: modifier.type, properties: modifier.properties)
+            actualComponent.modifiers.insert(duplicatedModifier, at: index + 1)
+            notifyChange(for: actualComponent)
         }
-        
-        // Find the index of the original modifier
-        guard let index = actualComponent.modifiers.firstIndex(where: { $0.id == modifier.id }) else {
-            return
-        }
-
-        registerUndoAction("Duplicated \(modifier.type.rawValue) modifier")
-        
-        // Create a new modifier with the same type and properties
-        let duplicatedModifier = ComponentModifier(
-            type: modifier.type,
-            properties: modifier.properties
-        )
-        
-        // Insert the duplicate right after the current modifier
-        actualComponent.modifiers.insert(duplicatedModifier, at: index + 1)
-        
-        // Ensure UI updates
-        actualComponent.objectWillChange.send()
-        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func moveModifier(for component: UIComponent, from source: IndexSet, to destination: Int) {
-        // Find the actual component in the hierarchy
-        guard let actualComponent = findComponent(by: component.id) else {
-            debugLog("⚠️ moveModifier: Component not found in hierarchy")
-            return
+        withActualComponent(component, log: "moveModifier") { actualComponent in
+            registerUndoAction("Reorder Modifiers")
+            actualComponent.moveModifier(from: source, to: destination)
+            notifyChange(for: actualComponent)
         }
-        
-        registerUndoAction("Reorder Modifiers")
-        
-        // Perform the move
-        actualComponent.moveModifier(from: source, to: destination)
-        
-        // Ensure UI updates
-        actualComponent.objectWillChange.send()
-        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func updateModifier(for component: UIComponent, modifier: ComponentModifier) {
-        // Find the actual component in the hierarchy
-        guard let actualComponent = findComponent(by: component.id) else {
-            debugLog("⚠️ updateModifier: Component not found in hierarchy")
-            return
+        withActualComponent(component, log: "updateModifier") { actualComponent in
+            let coalesceKey = "update_modifier_\(modifier.id.uuidString)"
+            registerUndoAction("Updated \(modifier.type.rawValue)", coalesceKey: coalesceKey)
+            actualComponent.updateModifier(modifier)
+            notifyChange(for: actualComponent)
         }
-        
-        // Use a persistent key for coalescing based on modifier ID
-        let coalesceKey = "update_modifier_\(modifier.id.uuidString)"
-        registerUndoAction("Updated \(modifier.type.rawValue)", coalesceKey: coalesceKey)
-        
-        actualComponent.updateModifier(modifier)
-        
-        // Ensure UI updates
-        actualComponent.objectWillChange.send()
-        NotificationCenter.default.post(name: .designChanged, object: nil)
     }
     
     func updateComponentProperty(for component: UIComponent, key: String, value: Any) {
-        // Find the actual component in the hierarchy (important after undo: component may be a stale reference)
-        guard let actualComponent = findComponent(by: component.id) else {
-            debugLog("⚠️ updateComponentProperty: Component not found in hierarchy")
-            return
-        }
-        
-        // Use a persistent key for coalescing based on component ID + property key
-        let coalesceKey = "update_property_\(component.id.uuidString)_\(key)"
-        registerUndoAction("Updated \(key)", coalesceKey: coalesceKey)
-        
-        actualComponent.setProperty(key: key, value: value)
-        
-        if actualComponent.type == .statusBar {
-            if key == "showStatusBar", let boolValue = value as? Bool {
-                statusBarVisible = boolValue
-            } else if key == "topSafeArea", let boolValue = value as? Bool {
-                statusBarTopSafeArea = boolValue
-            }
-        }
-        
-        // Keep panel in sync: if caller passed a stale reference (e.g. after undo), point selection at the actual instance
-        if selectedComponent?.id == actualComponent.id && selectedComponent !== actualComponent {
-            selectedComponent = actualComponent
-        }
-        // Force canvas and any observers to re-render so property changes appear on canvas
-        actualComponent.objectWillChange.send()
-        objectWillChange.send()
-        NotificationCenter.default.post(name: .designChanged, object: nil)
+        updateComponentPropertyInternal(
+            component,
+            key: key,
+            value: value,
+            registerUndo: true,
+            continuous: false
+        )
     }
 
     /// Update component property without registering undo (for continuous edits like typing)
     func updateComponentPropertyContinuous(for component: UIComponent, key: String, value: Any) {
-        // Find the actual component in the hierarchy (important after undo: component may be a stale reference)
-        guard let actualComponent = findComponent(by: component.id) else {
-            debugLog("⚠️ updateComponentPropertyContinuous: Component not found in hierarchy")
-            return
-        }
-        
-        actualComponent.setPropertyContinuous(key: key, value: value)
-        
-        if actualComponent.type == .statusBar {
-            if key == "showStatusBar", let boolValue = value as? Bool {
-                statusBarVisible = boolValue
-            } else if key == "topSafeArea", let boolValue = value as? Bool {
-                statusBarTopSafeArea = boolValue
-            }
-        }
-        
-        // Keep panel in sync if caller passed a stale reference
-        if selectedComponent?.id == actualComponent.id && selectedComponent !== actualComponent {
-            selectedComponent = actualComponent
-        }
-        
-        // Ensure observers update
-        actualComponent.objectWillChange.send()
-        objectWillChange.send()
-        NotificationCenter.default.post(name: .designChanged, object: nil)
+        updateComponentPropertyInternal(
+            component,
+            key: key,
+            value: value,
+            registerUndo: false,
+            continuous: true
+        )
     }
 
     // MARK: - Overlay Management
@@ -1074,7 +935,6 @@ class CanvasManager: ObservableObject {
         selectedComponent = overlayComponent
     }
     
-    // MARK: - Design Management
     func setColorScheme(_ scheme: ColorScheme?) {
         guard colorScheme != scheme else { return }
         
@@ -1107,7 +967,6 @@ class CanvasManager: ObservableObject {
         designName = name
     }
     
-    // MARK: - Export
     func exportCode() -> String {
         // Reset image counter to ensure deterministic variable naming
         CodeGenerator.resetImageCounter()
@@ -1119,20 +978,7 @@ class CanvasManager: ObservableObject {
         
         var code = "import SwiftUI"
         
-        // Scan for Chart components to conditionally import Charts
-        var hasChart = false
-        // Helper to recursively check for chart
-        func checkForChart(_ comps: [UIComponent]) {
-            for comp in comps {
-                if comp.type == .chart {
-                    hasChart = true
-                }
-                checkForChart(comp.children)
-            }
-        }
-        checkForChart(components)
-        
-        if hasChart {
+        if containsComponent(ofType: .chart, in: components) {
             code += "\nimport Charts"
         }
         
@@ -1179,9 +1025,60 @@ class CanvasManager: ObservableObject {
         
         return code
     }
+
+    private func withActualComponent(_ component: UIComponent, log: String, _ body: (UIComponent) -> Void) {
+        guard let actualComponent = findComponent(by: component.id) else {
+            debugLog("⚠️ \(log): Component not found in hierarchy")
+            return
+        }
+        body(actualComponent)
+    }
+
+    private func notifyChange(for component: UIComponent, notifyManager: Bool = false) {
+        component.objectWillChange.send()
+        if notifyManager { objectWillChange.send() }
+        NotificationCenter.default.post(name: .designChanged, object: nil)
+    }
+
+    private func syncStatusBarFlags(for component: UIComponent, key: String, value: Any) {
+        guard component.type == .statusBar else { return }
+        if key == "showStatusBar", let boolValue = value as? Bool {
+            statusBarVisible = boolValue
+        } else if key == "topSafeArea", let boolValue = value as? Bool {
+            statusBarTopSafeArea = boolValue
+        }
+    }
+
+    private func syncSelectionIfNeeded(_ component: UIComponent) {
+        if selectedComponent?.id == component.id && selectedComponent !== component {
+            selectedComponent = component
+        }
+    }
+
+    private func updateComponentPropertyInternal(
+        _ component: UIComponent,
+        key: String,
+        value: Any,
+        registerUndo: Bool,
+        continuous: Bool
+    ) {
+        withActualComponent(component, log: "updateComponentProperty") { actualComponent in
+            if registerUndo {
+                let coalesceKey = "update_property_\(component.id.uuidString)_\(key)"
+                registerUndoAction("Updated \(key)", coalesceKey: coalesceKey)
+            }
+            if continuous {
+                actualComponent.setPropertyContinuous(key: key, value: value)
+            } else {
+                actualComponent.setProperty(key: key, value: value)
+            }
+            syncStatusBarFlags(for: actualComponent, key: key, value: value)
+            syncSelectionIfNeeded(actualComponent)
+            notifyChange(for: actualComponent, notifyManager: true)
+        }
+    }
 }
 
-// MARK: - Canvas State
 struct CanvasState {
     let components: [UIComponent]
     let colorScheme: ColorScheme?
@@ -1189,7 +1086,6 @@ struct CanvasState {
     let statusBarComponent: UIComponent?
 }
 
-// MARK: - Undoable Action
 /// Combines a human-readable description with a full state snapshot
 struct UndoableAction {
     let description: String  // e.g., "Deleted Text component"

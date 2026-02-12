@@ -237,6 +237,7 @@ struct UIBuilderView: View {
     @State private var activeTab: AppTab? = nil // Optional to allow closing
     @State private var showPropertiesSheet = false
     @State private var showCanvasSettingsSheet = false
+    @State private var iOSCarouselIndex: Int = 1
     
     enum AppTab: String, CaseIterable, Identifiable {
         case layers = "Layers"
@@ -366,9 +367,9 @@ struct UIBuilderView: View {
                     #if os(iOS)
                     if UIDevice.current.userInterfaceIdiom == .phone {
                         if newSelection != nil {
-                            openPropertiesSheet()
+                            iOSCarouselIndex = 2
                         } else {
-                            showPropertiesSheet = false
+                            iOSCarouselIndex = 1
                         }
                     }
                     #endif
@@ -468,7 +469,7 @@ struct UIBuilderView: View {
     #if os(iOS)
     private var iPadCanvasContent: some View {
         ZStack {
-            mainCanvasArea
+            mainCanvasArea()
             
             // Floating panels with proper margins
             HStack(spacing: 0) {
@@ -515,7 +516,7 @@ struct UIBuilderView: View {
     #if os(macOS)
     private var macOSCanvasContent: some View {
         ZStack(alignment: .top) {
-            mainCanvasArea
+            mainCanvasArea()
             
             // Floating panels with proper margins
             HStack(spacing: 0) {
@@ -561,25 +562,53 @@ struct UIBuilderView: View {
     
 #if os(iOS)
     private var iOSCanvasContent: some View {
-        ZStack {
-            mainCanvasArea
+        GeometryReader { geometry in
+            let panelWidth = geometry.size.width * 0.3
+            let canvasScale = (geometry.size.width - panelWidth) / geometry.size.width
+            let canvasOffset: CGFloat = {
+                switch iOSCarouselIndex {
+                case 0: return panelWidth / 2
+                case 2: return -panelWidth / 2
+                default: return 0
+                }
+            }()
             
-            // AI Hub + Panel Controls
-            VStack {
-                Spacer()
-                aiHubBar
+            ZStack {
+                mainCanvasArea(
+                    pushScale: iOSCarouselIndex == 1 ? 1.0 : canvasScale,
+                    pushOffset: CGSize(width: canvasOffset, height: 0)
+                )
+                
+                TabView(selection: $iOSCarouselIndex) {
+                    HStack(spacing: 0) {
+                        sheetContent(for: .layers)
+                            .frame(width: panelWidth)
+                        Spacer()
+                    }
+                    .tag(0)
+                    
+                    Color.clear
+                        .tag(1)
+                    
+                    HStack(spacing: 0) {
+                        Spacer()
+                        propertiesPanel
+                            .frame(width: panelWidth)
+                    }
+                    .tag(2)
+                }
+            .tabViewStyle(.page(indexDisplayMode: .automatic))
+            .indexViewStyle(.page(backgroundDisplayMode: .always))
+            .allowsHitTesting(iOSCarouselIndex != 1)
+            .onChange(of: iOSCarouselIndex) { _, newValue in
+                canvasManager.isOverlayPanelOpen = newValue != 1
             }
-        }
-        .sheet(isPresented: Binding(
-            get: { activeTab != nil },
-            set: { if !$0 { activeTab = nil } }
-        )) {
-            if let tab = activeTab {
-                sheetContent(for: tab)
-                    .presentationDetents([.medium], selection: $selection)
-                    .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-                    .presentationBackground(.regularMaterial)
-                    .presentationDragIndicator(.visible)
+                
+                // AI Hub + Panel Controls
+                VStack {
+                    Spacer()
+                    aiHubBar
+                }
             }
         }
         .sheet(isPresented: $showCanvasSettingsSheet) {
@@ -589,15 +618,11 @@ struct UIBuilderView: View {
                 .presentationBackground(.regularMaterial)
                 .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $showPropertiesSheet) {
-            propertiesPanel
-                .ignoresSafeArea(.container, edges: .bottom)
-                .presentationDetents(propertiesSheetDetents, selection: $selection)
-                .presentationBackgroundInteraction(.enabled(upThrough: propertiesSheetMaxDetent))
-                .presentationBackground(.regularMaterial)
-                .presentationDragIndicator(.visible)
+        .onChange(of: showPropertiesSheet) { _, isPresented in
+            canvasManager.isPropertiesSheetPresented = isPresented
         }
     }
+
 
     private var propertiesSheetDetents: Set<PresentationDetent> {
         UIDevice.current.userInterfaceIdiom == .phone ? [.medium] : [.medium, .large]
@@ -647,32 +672,7 @@ struct UIBuilderView: View {
             .disabled(!canvasManager.canRedo)
         }
         
-        ToolbarItemGroup(placement: .primaryAction) {
-            Menu {
-
-                
-                Button(action: { 
-                    openCodePreviewSheet()
-                }) {
-                    Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
-                }
-                
-                Divider()
-                
-                Button(action: { saveAsScreenshot() }) {
-                    Label("Save as Screenshot", systemImage: "photo")
-                }
-                
-                Divider()
-                Button(action: { openCommunitySubmissionSheet() }) {
-                    Label("Post to Community", systemImage: "paperplane")
-                }
-            } label: {
-                 Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 14, weight: .medium))
-            }
-            .help("Export")
-        }
+        ToolbarItemGroup(placement: .primaryAction) {}
     }
     
     @ToolbarContentBuilder
@@ -1017,9 +1017,9 @@ struct UIBuilderView: View {
         )
     }
     
-    private var mainCanvasArea: some View {
+    private func mainCanvasArea(pushScale: CGFloat = 1.0, pushOffset: CGSize = .zero) -> some View {
         ZStack(alignment: .top) {
-            canvasView
+            canvasView(pushScale: pushScale, pushOffset: pushOffset)
         }
         .ignoresSafeArea()
         .simultaneousGesture(TapGesture().onEnded {
@@ -1050,13 +1050,15 @@ struct UIBuilderView: View {
         }
     }
     
-    private var canvasView: some View {
+    private func canvasView(pushScale: CGFloat = 1.0, pushOffset: CGSize = .zero) -> some View {
         CanvasView(
             canvasManager: canvasManager,
             selectedComponent: $canvasManager.selectedComponent,
             selectedDevice: canvasManager.devicePreset,
             baseZoomLevel: $baseZoomLevel,
-            colorScheme: $canvasManager.colorScheme
+            colorScheme: $canvasManager.colorScheme,
+            pushScale: pushScale,
+            pushOffset: pushOffset
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
@@ -1506,18 +1508,18 @@ struct UIBuilderView: View {
             
             Divider()
             
-//            Button(action: {
-//                let json = canvasManager.getDesignAsJSON()
-//                #if os(iOS)
-//                UIPasteboard.general.string = json
-//                #elseif os(macOS)
-//                let pasteboard = NSPasteboard.general
-//                pasteboard.clearContents()
-//                pasteboard.setString(json, forType: .string)
-//                #endif
-//            }) {
-//                Label("Copy JSON", systemImage: "doc.on.clipboard")
-//            }
+            Button(action: {
+                let json = canvasManager.getDesignAsJSON()
+                #if os(iOS)
+                UIPasteboard.general.string = json
+                #elseif os(macOS)
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(json, forType: .string)
+                #endif
+            }) {
+                Label("Copy JSON", systemImage: "doc.on.clipboard")
+            }
         } label: {
             Image(systemName: "square.and.arrow.up")
                 .font(.system(size: 14, weight: .medium))

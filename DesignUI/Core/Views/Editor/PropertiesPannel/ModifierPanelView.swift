@@ -517,7 +517,6 @@ struct AddModifierView: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
     @Environment(\.dismiss) private var dismiss
-    @State private var searchText = ""
     
     // Define categories
     private struct ModifierCategory: Identifiable {
@@ -546,39 +545,12 @@ struct AddModifierView: View {
         ]
     }
     
-    private var filteredCategories: [ModifierCategory] {
-        if searchText.isEmpty {
-            return categories
-        } else {
-            let filtered = ModifierType.allCases.filter { $0.rawValue.localizedCaseInsensitiveContains(searchText) }
-            return [ModifierCategory(name: "Search Results", modifiers: filtered)]
-        }
-    }
-    
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 12) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    
-                    TextField("Search components...", text: $searchText)
-                        .textFieldStyle(PlainTextFieldStyle())
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(8)
-            }
-            .padding()
-            
-            Divider()
-                        
             // Modifiers list
             ScrollView {
                 LazyVStack(spacing: 4, pinnedViews: [.sectionHeaders]) {
-                    ForEach(filteredCategories) { category in
+                    ForEach(categories) { category in
                         if !category.modifiers.isEmpty {
                             Section(header:
                                         HStack {
@@ -632,6 +604,10 @@ struct AddModifierView: View {
         .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
             dismiss()
         }
+#if os(iOS)
+        .navigationTitle("Add Modifier")
+        .navigationBarTitleDisplayMode(.inline)
+#endif
     }
 }
 
