@@ -1,6 +1,5 @@
 //
 //  AuthViewModel.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 2/6/25.
 //

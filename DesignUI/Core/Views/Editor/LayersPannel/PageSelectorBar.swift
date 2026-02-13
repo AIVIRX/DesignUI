@@ -1,6 +1,5 @@
 //
 //  PageSelectorBar.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 1/18/26.
 //

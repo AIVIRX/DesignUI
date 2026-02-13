@@ -1,6 +1,5 @@
 //
 //  DesignBrowserView.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //
@@ -74,6 +73,22 @@ struct DesignBrowserView: View {
                         HStack {
                             Text("Recent Designs")
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
+                            
+                            Spacer()
+                            
+                            if !subscriptionManager.isSubscribed {
+                                let remaining = max(0, freeDesignLimit - designManager.designFiles.count)
+                                Text("\(remaining) left")
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.secondary.opacity(0.12))
+                                    )
+                                    .accessibilityLabel("\(remaining) designs remaining for free users")
+                            }
                         }
                         .padding(.horizontal)
                         

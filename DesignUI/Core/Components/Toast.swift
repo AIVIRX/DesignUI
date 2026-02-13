@@ -1,6 +1,5 @@
 //
 //  Toast.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 3/22/25.
 //

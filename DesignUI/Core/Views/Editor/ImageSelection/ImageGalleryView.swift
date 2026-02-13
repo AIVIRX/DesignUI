@@ -1,6 +1,5 @@
 //
 //  ImageGalleryView.swift
-//  DesignUI
 //
 //  Created for Local Image Gallery architecture.
 //

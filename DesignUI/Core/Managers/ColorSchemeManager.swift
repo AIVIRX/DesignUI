@@ -1,6 +1,5 @@
 //
 //  ColorSchemeManager.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 8/18/24.
 //

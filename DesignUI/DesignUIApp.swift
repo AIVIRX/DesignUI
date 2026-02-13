@@ -1,6 +1,5 @@
 //
 //  DesignUIApp.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 6/12/24.
 //

@@ -1,6 +1,5 @@
 //
 //  SFIconsView.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 6/11/24.
 //

@@ -37,24 +37,3 @@ struct ContinueButton: View {
         .cornerRadius(.infinity)
     }
 }
-
-#Preview {
-    @Previewable @State var state: FieldState = .idle
-    
-    ContinueButton(
-        title: "Continue",
-        icon: "faceid",
-        action: {
-            Task {
-                print("Pressed continue")
-                
-                state = .loading
-                
-                try await Task.sleep(nanoseconds: 1_000_000_000)
-                
-                state = .success
-            }
-        },
-        state: state
-    )
-}

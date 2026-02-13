@@ -1,6 +1,5 @@
 //
 //  CommunitySubmissionViewModel.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 1/28/25.
 //

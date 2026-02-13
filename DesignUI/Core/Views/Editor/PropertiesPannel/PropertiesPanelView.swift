@@ -1,6 +1,5 @@
 //
 //  PropertiesPanelView.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //
@@ -17,6 +16,7 @@ import UniformTypeIdentifiers
 struct PropertiesPanelView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
+    var useNavigationStack: Bool = true
     
     // Gallery Sheet State
     @State private var showImageGallery = false
@@ -30,34 +30,12 @@ struct PropertiesPanelView: View {
     
     var body: some View {
         #if os(iOS)
-        NavigationStack {
-            content
-                .navigationDestination(isPresented: $showImageGallery) {
-                    ImageGalleryView(selectedImageName: $galleryImageName)
-                }
-                .navigationDestination(item: $activeModifierSheet) { sheet in
-                    if let componentForModifierSheet {
-                        switch sheet {
-                        case .add:
-                            AddModifierView(component: componentForModifierSheet, canvasManager: canvasManager)
-                        case .edit(let modifier):
-                            ModifierEditorView(component: componentForModifierSheet, modifier: Binding(
-                                get: {
-                                    componentForModifierSheet.modifiers.first(where: { $0.id == modifier.id }) ?? modifier
-                                },
-                                set: { newModifier in
-                                    DispatchQueue.main.async {
-                                        canvasManager.updateModifier(for: componentForModifierSheet, modifier: newModifier)
-                                    }
-                                }
-                            ))
-                            .navigationTitle(modifier.type.rawValue)
-                            .navigationBarTitleDisplayMode(.inline)
-                        }
-                    } else {
-                        EmptyView()
-                    }
-                }
+        if useNavigationStack {
+            NavigationStack {
+                navigationContent
+            }
+        } else {
+            navigationContent
         }
         #else
         content
@@ -71,8 +49,47 @@ struct PropertiesPanelView: View {
         #endif
     }
     
+    private var navigationContent: some View {
+        content
+            .navigationTitle(propertiesTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $showImageGallery) {
+                ImageGalleryView(selectedImageName: $galleryImageName)
+            }
+            .navigationDestination(item: $activeModifierSheet) { sheet in
+                if let componentForModifierSheet {
+                    switch sheet {
+                    case .add:
+                        AddModifierView(component: componentForModifierSheet, canvasManager: canvasManager)
+                    case .edit(let modifier):
+                        ModifierEditorView(component: componentForModifierSheet, modifier: Binding(
+                            get: {
+                                componentForModifierSheet.modifiers.first(where: { $0.id == modifier.id }) ?? modifier
+                            },
+                            set: { newModifier in
+                                DispatchQueue.main.async {
+                                    canvasManager.updateModifier(for: componentForModifierSheet, modifier: newModifier)
+                                }
+                            }
+                        ))
+                        .navigationTitle(modifier.type.rawValue)
+                        .navigationBarTitleDisplayMode(.inline)
+                    }
+                } else {
+                    EmptyView()
+                }
+            }
+    }
+    
     private var content: some View {
         VStack(alignment: .leading) {
+            let contentPadding: CGFloat = {
+#if os(iOS)
+                return UIDevice.current.userInterfaceIdiom == .phone ? 10 : 16
+#else
+                return 16
+#endif
+            }()
             // Properties content
             if let component = selectedComponent {
                 ScrollView {
@@ -96,7 +113,7 @@ struct PropertiesPanelView: View {
                             ComponentActionsSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
                         }
                     }
-                    .padding()
+                    .padding(contentPadding)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 // Force entire view to update when component INSTANCE changes (not just ID)
@@ -108,20 +125,6 @@ struct PropertiesPanelView: View {
                 }
 #if os(iOS)
 #endif
-            } else if let statusBar = canvasManager.statusBarComponent {
-                 // No selection: Show Canvas Settings
-                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        PropertiesSection(
-                            component: statusBar,
-                            canvasManager: canvasManager,
-                            showGallery: $showImageGallery,
-                            activePropertyKey: $activeImagePropertyKey
-                        )
-                    }
-                    .padding()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else {
                 // Fallback No selection state
                 VStack(spacing: 12) {
@@ -145,6 +148,18 @@ struct PropertiesPanelView: View {
     }
     
     // MARK: - Helper Methods
+    
+    private var propertiesTitle: String {
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return "Properties"
+        }
+#endif
+        if let component = selectedComponent {
+            return component.type.rawValue
+        }
+        return "Properties"
+    }
     
     private func updateImageProperty(with name: String) {
         guard let component = selectedComponent else { return }

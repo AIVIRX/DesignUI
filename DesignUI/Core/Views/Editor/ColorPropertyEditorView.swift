@@ -1,6 +1,5 @@
 //
 //  ColorPropertyEditorView.swift
-//  DesignUI
 //
 //  Split from PropertiesPanelView.swift
 //

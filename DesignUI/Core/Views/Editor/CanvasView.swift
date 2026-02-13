@@ -1,6 +1,5 @@
 //
 //  CanvasView.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //
@@ -156,11 +155,21 @@ struct CanvasView: View {
         SimultaneousGesture(
             DragGesture()
                 .updating($dragOffset) { value, state, _ in
-                    guard !canvasManager.isOverlayPanelOpen else { return }
+#if os(iOS)
+                    let canPan = UIDevice.current.userInterfaceIdiom == .phone || !canvasManager.isOverlayPanelOpen
+#else
+                    let canPan = !canvasManager.isOverlayPanelOpen
+#endif
+                    guard canPan else { return }
                     state = value.translation
                 }
                 .onEnded { value in
-                    guard !canvasManager.isOverlayPanelOpen else { return }
+#if os(iOS)
+                    let canPan = UIDevice.current.userInterfaceIdiom == .phone || !canvasManager.isOverlayPanelOpen
+#else
+                    let canPan = !canvasManager.isOverlayPanelOpen
+#endif
+                    guard canPan else { return }
                     currentOffset = CGSize(
                         width: currentOffset.width + value.translation.width,
                         height: currentOffset.height + value.translation.height

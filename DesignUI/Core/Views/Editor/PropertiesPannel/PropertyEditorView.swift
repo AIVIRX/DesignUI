@@ -1,6 +1,5 @@
 //
 //  PropertyEditorView.swift
-//  DesignUI
 //
 //  Split from PropertiesPanelView.swift
 //
@@ -51,7 +50,10 @@ struct PropertyEditor: View {
                     Group {
 #if os(iOS)
                         if UIDevice.current.userInterfaceIdiom == .phone {
-                            NavigationLink(isActive: $showSFSymbolPicker) {
+                            Button(action: { showSFSymbolPicker = true }) {
+                                symbolRow
+                            }
+                            .navigationDestination(isPresented: $showSFSymbolPicker) {
                                 SFSymbolPickerView(selectedSymbol: $textValue) { selectedSymbol in
                                     canvasManager.updateComponentProperty(for: component, key: property.key, value: selectedSymbol)
                                     textValue = selectedSymbol
@@ -59,8 +61,6 @@ struct PropertyEditor: View {
                                 .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
                                     showSFSymbolPicker = false
                                 }
-                            } label: {
-                                symbolRow
                             }
                         } else {
                             Button(action: { showSFSymbolPicker = true }) {
@@ -653,7 +653,7 @@ struct PropertyEditor: View {
                  .onReceive(NotificationCenter.default.publisher(for: .dismissChildNavigation)) { _ in
                     showSFSymbolPicker = false
                 }
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.medium])
             }
         }
 #else

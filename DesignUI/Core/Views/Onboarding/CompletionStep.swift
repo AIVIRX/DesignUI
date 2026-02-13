@@ -10,10 +10,8 @@ import SwiftUI
 struct CompletionStep: View {
     let title: String
     let description: String
-    
     let completionTitle: String
     let completionDescription: String
-    
     let onSubmit: () async -> Void
     let onComplete: () -> Void
     
@@ -74,22 +72,4 @@ struct CompletionStep: View {
             }
         }
     }
-}
-
-#Preview {
-    VStack(alignment: .leading) {
-        CompletionStep(
-            title: "Setting up your wallet",
-            description: "Hold tight while we're getting your wallet ready",
-            completionTitle: "Your wallet is ready",
-            completionDescription: "You now have a safe place for your money",
-            onSubmit: {
-                print("Submitting")
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
-            }, onComplete: {
-                print("Completed")
-            }
-        )
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 }

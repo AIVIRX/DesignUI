@@ -50,33 +50,3 @@ struct Step: View {
         }
     }
 }
-
-#Preview {
-    @Previewable @State var selected = 0
-    
-    var steps = [0, 1, 2]
-    
-    var e = Array(steps.enumerated())
-    
-    VStack(spacing: 64) {
-        VStack(alignment: .leading, spacing: 32) {
-            ForEach(e, id: \.offset) { index, elem in
-                Step(
-                    icon: "faceid",
-                    iconColour: .blue,
-                    title: "Device Key",
-                    description: "Your Device Key is protected by biometric verification – encrypted and stored on your phone.",
-                    isExpanded: selected == index
-                )
-            }
-        }
-        
-        Button("Toggle") {
-            withAnimation(.smooth(duration: 1)) {
-                selected = selected == 2 ? 0 : (selected + 1)
-            }
-        }
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-    .padding(42)
-}

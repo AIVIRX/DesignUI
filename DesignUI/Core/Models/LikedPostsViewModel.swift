@@ -1,6 +1,5 @@
 //
 //  LikedPostsViewModel.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 2/8/25.
 //

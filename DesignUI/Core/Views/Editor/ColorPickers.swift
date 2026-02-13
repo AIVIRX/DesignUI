@@ -1,6 +1,5 @@
 //
 //  ColorPickers.swift
-//  DesignUI
 //
 //  Split from PropertiesPanelView.swift
 //

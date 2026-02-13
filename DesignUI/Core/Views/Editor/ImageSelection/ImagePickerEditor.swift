@@ -1,6 +1,5 @@
 //
 //  ImagePickerEditor.swift
-//  DesignUI
 //
 //  Split from PropertiesPanelView.swift
 //

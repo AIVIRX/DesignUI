@@ -1,6 +1,5 @@
 //
 //  CanvasView+Containers.swift
-//  DesignUI
 //
 //  Split from CanvasView.swift
 //

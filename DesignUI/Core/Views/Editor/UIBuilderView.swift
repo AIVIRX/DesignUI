@@ -1,6 +1,5 @@
 //
 //  UIBuilderView.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //
@@ -235,9 +234,8 @@ struct UIBuilderView: View {
 #if os(iOS)
     @State private var selection: PresentationDetent = .medium // Locked to medium
     @State private var activeTab: AppTab? = nil // Optional to allow closing
-    @State private var showPropertiesSheet = false
-    @State private var showCanvasSettingsSheet = false
-    @State private var iOSCarouselIndex: Int = 1
+    @State private var activeSheet: IOSSheet?
+    @State private var showLayerPropertiesNavigation = false
     
     enum AppTab: String, CaseIterable, Identifiable {
         case layers = "Layers"
@@ -250,46 +248,56 @@ struct UIBuilderView: View {
             }
         }
     }
+
+    enum IOSSheet: Identifiable {
+        case layers
+        case properties
+        case canvasSettings
+
+        var id: Int {
+            switch self {
+            case .layers: return 0
+            case .properties: return 1
+            case .canvasSettings: return 2
+            }
+        }
+    }
     #endif
 
 #if os(iOS)
-    private func closeAllSheets() {
-        activeTab = nil
-        showPropertiesSheet = false
-        showCanvasSettingsSheet = false
-        showCodePreview = false
-        selection = .medium
-    }
+
     
     private func openLayersSheet() {
-        closeAllSheets()
         selection = .medium
-        activeTab = .layers
+        activeSheet = .layers
     }
     
     private func openPropertiesSheet() {
-        closeAllSheets()
         selection = .medium
-        showPropertiesSheet = true
+        activeSheet = .properties
     }
     
     private func openCanvasSettingsSheet() {
-        closeAllSheets()
         selection = .medium
-        showCanvasSettingsSheet = true
+        activeSheet = .canvasSettings
     }
     
     private func openCodePreviewSheet() {
-        closeAllSheets()
         selection = .medium
         showCodePreview = true
     }
 #endif
+
+    private var defaultCanvasZoom: CGFloat {
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return 0.75
+        }
+#endif
+        return 1.0
+    }
     
     private func openCommunitySubmissionSheet() {
-        #if os(iOS)
-        closeAllSheets()
-        #endif
         showCommunitySubmission = true
     }
 
@@ -333,9 +341,18 @@ struct UIBuilderView: View {
             .sheet(isPresented: $showCommunitySubmission) {
                 SubmitToCommunityView(designFile: designFile)
             }
+
+#if os(iOS)
+        let withEditorSheets = withCommunitySheet
+            .sheet(item: $activeSheet) { sheet in
+                iOSActiveSheetContent(sheet)
+            }
+#else
+        let withEditorSheets = withCommunitySheet
+#endif
         // Undo/Redo Toast Overlay handled by ToastManager
 
-        let withOnAppear = withCommunitySheet
+        let withOnAppear = withEditorSheets
             .onAppear {
                 setupCanvas()
                 
@@ -367,9 +384,12 @@ struct UIBuilderView: View {
                     #if os(iOS)
                     if UIDevice.current.userInterfaceIdiom == .phone {
                         if newSelection != nil {
-                            iOSCarouselIndex = 2
+                            selectedSidebarTab = .layers
+                            activeSheet = .layers
+                            showLayerPropertiesNavigation = true
                         } else {
-                            iOSCarouselIndex = 1
+                            showLayerPropertiesNavigation = false
+                            activeSheet = nil
                         }
                     }
                     #endif
@@ -562,47 +582,12 @@ struct UIBuilderView: View {
     
 #if os(iOS)
     private var iOSCanvasContent: some View {
-        GeometryReader { geometry in
-            let panelWidth = geometry.size.width * 0.3
-            let canvasScale = (geometry.size.width - panelWidth) / geometry.size.width
-            let canvasOffset: CGFloat = {
-                switch iOSCarouselIndex {
-                case 0: return panelWidth / 2
-                case 2: return -panelWidth / 2
-                default: return 0
-                }
-            }()
-            
+        GeometryReader { _ in
             ZStack {
                 mainCanvasArea(
-                    pushScale: iOSCarouselIndex == 1 ? 1.0 : canvasScale,
-                    pushOffset: CGSize(width: canvasOffset, height: 0)
+                    pushScale: 1.0,
+                    pushOffset: .zero
                 )
-                
-                TabView(selection: $iOSCarouselIndex) {
-                    HStack(spacing: 0) {
-                        sheetContent(for: .layers)
-                            .frame(width: panelWidth)
-                        Spacer()
-                    }
-                    .tag(0)
-                    
-                    Color.clear
-                        .tag(1)
-                    
-                    HStack(spacing: 0) {
-                        Spacer()
-                        propertiesPanel
-                            .frame(width: panelWidth)
-                    }
-                    .tag(2)
-                }
-            .tabViewStyle(.page(indexDisplayMode: .automatic))
-            .indexViewStyle(.page(backgroundDisplayMode: .always))
-            .allowsHitTesting(iOSCarouselIndex != 1)
-            .onChange(of: iOSCarouselIndex) { _, newValue in
-                canvasManager.isOverlayPanelOpen = newValue != 1
-            }
                 
                 // AI Hub + Panel Controls
                 VStack {
@@ -611,25 +596,14 @@ struct UIBuilderView: View {
                 }
             }
         }
-        .sheet(isPresented: $showCanvasSettingsSheet) {
-            canvasSettingsSheet
-                .presentationDetents([.medium], selection: $selection)
-                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-                .presentationBackground(.regularMaterial)
-                .presentationDragIndicator(.visible)
+        .onChange(of: activeSheet) { _, newValue in
+            let isOverlayOpen = newValue == .layers || newValue == .properties
+            canvasManager.isOverlayPanelOpen = isOverlayOpen
+            canvasManager.isPropertiesSheetPresented = newValue == .properties
+            if newValue != .layers {
+                showLayerPropertiesNavigation = false
+            }
         }
-        .onChange(of: showPropertiesSheet) { _, isPresented in
-            canvasManager.isPropertiesSheetPresented = isPresented
-        }
-    }
-
-
-    private var propertiesSheetDetents: Set<PresentationDetent> {
-        UIDevice.current.userInterfaceIdiom == .phone ? [.medium] : [.medium, .large]
-    }
-
-    private var propertiesSheetMaxDetent: PresentationDetent {
-        UIDevice.current.userInterfaceIdiom == .phone ? .medium : .large
     }
     
     @ToolbarContentBuilder
@@ -647,16 +621,19 @@ struct UIBuilderView: View {
             Button(action: { openLayersSheet() }) {
                 Image(systemName: AppTab.layers.icon)
             }
-            
+
             Button(action: { openCanvasSettingsSheet() }) {
                 Image(systemName: "iphone")
             }
             
             // Recenter button
             Button(action: {
-                canvasManager.canvasOffset = .zero
-                canvasManager.zoomLevel = 1.0
-                canvasManager.centerCanvasTrigger.toggle()
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    canvasManager.canvasOffset = .zero
+                    canvasManager.zoomLevel = defaultCanvasZoom
+                    baseZoomLevel = defaultCanvasZoom
+                    canvasManager.centerCanvasTrigger.toggle()
+                }
             }) {
                 Image(systemName: "arrow.down.right.and.arrow.up.left")
             }
@@ -674,7 +651,7 @@ struct UIBuilderView: View {
         
         ToolbarItemGroup(placement: .primaryAction) {}
     }
-    
+
     @ToolbarContentBuilder
     private var iPadToolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
@@ -801,9 +778,12 @@ struct UIBuilderView: View {
             
             // Recenter button
             Button(action: {
-                canvasManager.canvasOffset = .zero
-                canvasManager.zoomLevel = 1.0
-                canvasManager.centerCanvasTrigger.toggle()
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    canvasManager.canvasOffset = .zero
+                    canvasManager.zoomLevel = defaultCanvasZoom
+                    baseZoomLevel = defaultCanvasZoom
+                    canvasManager.centerCanvasTrigger.toggle()
+                }
             }) {
                 Image(systemName: "arrow.down.right.and.arrow.up.left")
             }
@@ -845,6 +825,41 @@ struct UIBuilderView: View {
                     .font(.system(size: 14, weight: .medium))
             }
             .help("Export")
+        }
+    }
+
+    @ViewBuilder
+    private func iOSActiveSheetContent(_ sheet: IOSSheet) -> some View {
+        switch sheet {
+        case .canvasSettings:
+            canvasSettingsSheet
+                .presentationDetents([.height(400)])
+                .presentationBackgroundInteraction(.enabled)
+                .presentationBackground(.regularMaterial)
+                .presentationDragIndicator(.visible)
+        case .layers:
+            NavigationStack {
+                sheetContent(for: .layers)
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .presentationDetents([.height(400)])
+            .presentationBackgroundInteraction(.enabled)
+            .presentationBackground(.regularMaterial)
+            .presentationDragIndicator(.visible)
+        case .properties:
+            ZStack {
+                Color(uiColor: .systemBackground)
+                    .ignoresSafeArea()
+                propertiesPanel
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .interactiveDismissDisabled(true)
+            .presentationDetents([.height(400)])
+            .presentationBackgroundInteraction(.enabled)
+            .presentationBackground(.regularMaterial)
+            .presentationDragIndicator(.visible)
         }
     }
 #endif
@@ -933,7 +948,7 @@ struct UIBuilderView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { showCanvasSettingsSheet = false }
+                    Button("Done") { activeSheet = nil }
                 }
             }
         }
@@ -1072,12 +1087,11 @@ struct UIBuilderView: View {
     
     private var propertiesPanel: some View {
         #if os(iOS)
-        NavigationStack {
-            PropertiesPanelView(
-                selectedComponent: $canvasManager.selectedComponent,
-                canvasManager: canvasManager
-            )
-        }
+        PropertiesPanelView(
+            selectedComponent: $canvasManager.selectedComponent,
+            canvasManager: canvasManager,
+            useNavigationStack: true
+        )
         .editorPanelStyle()
         #else
         PropertiesPanelView(
@@ -1092,56 +1106,6 @@ struct UIBuilderView: View {
     private var editorPanelSheet: some View {
         // Reduced to just the sheet modifier on the main canvas
         EmptyView()
-    }
-    
-    @ViewBuilder
-    private var floatingTabBar: some View {
-        HStack(spacing: 8) {
-            ForEach(AppTab.allCases) { tab in
-                Button(action: {
-                    if activeTab == tab {
-                        activeTab = nil // Close if tapping active
-                    } else {
-                        activeTab = tab
-                        selection = .medium // Reset detent
-                    }
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 14))
-                        
-                        if activeTab == tab {
-                            Text(tab.rawValue)
-                                .font(.system(size: 14, weight: .semibold))
-                                .fixedSize()
-                        }
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, activeTab == tab ? 16 : 12)
-                    .background(
-                        Capsule()
-                            .fill(activeTab == tab ? Color.blue : Color.clear)
-                    )
-                    .foregroundColor(activeTab == tab ? .white : .primary)
-                    .background(
-                        // Hover effect background for non-active
-                        Capsule()
-                            .fill(Color.secondary.opacity(0.1))
-                            .opacity(activeTab == tab ? 0 : 1)
-                    )
-                }
-                .buttonStyle(.plain)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: activeTab)
-            }
-        }
-        .padding(6)
-        .background(
-            Capsule()
-                .fill(Color(uiColor: .systemBackground))
-                .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 5)
-                .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 0)
-        )
-        .padding(.bottom, 8)
     }
 
     @ViewBuilder
@@ -1163,53 +1127,14 @@ struct UIBuilderView: View {
         case .layers:
             NavigationStack {
                 VStack(spacing: 0) {
-                    // Header with Dropdown and Add Button
-                    HStack {
-                        Menu {
-                            Button(action: { selectedSidebarTab = .layers }) {
-                                Label("Layers", systemImage: "square.3.layers.3d")
-                            }
-                            Button(action: { selectedSidebarTab = .pages }) {
-                                Label("Pages", systemImage: "doc.on.doc")
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.primary)
-                                Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
-                                    .font(.headline).fontWeight(.semibold)
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            if selectedSidebarTab == .layers {
-                                showComponentLibrary = true
-                            } else {
-                                let (_, newIndex) = designFile.addPage()
-                                switchToPage(newIndex)
-                            }
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 18, weight: .medium))
-                        }
-                        .buttonStyle(.bordered)
-                        .frame(width: 36, height: 36)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    
                     // Content Switching
                     if selectedSidebarTab == .layers {
                         LayersPanelView(
                             canvasManager: canvasManager,
                             selectedComponent: $canvasManager.selectedComponent,
+                            onLayerTapped: { _ in
+                                showLayerPropertiesNavigation = true
+                            },
                             showComponentLibrary: $showComponentLibrary
                         )
                     } else {
@@ -1224,7 +1149,53 @@ struct UIBuilderView: View {
                 }
                 // Background removed to allow material to show
                 // .background(Color(uiColor: .systemBackground))
-                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Menu {
+                            Button(action: { selectedSidebarTab = .layers }) {
+                                Label("Layers", systemImage: "square.3.layers.3d")
+                            }
+                            Button(action: { selectedSidebarTab = .pages }) {
+                                Label("Pages", systemImage: "doc.on.doc")
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: selectedSidebarTab == .layers ? "square.3.layers.3d.top.filled" : "doc.on.doc.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.primary)
+                                Text(selectedSidebarTab == .layers ? "Layers" : "Pages")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: {
+                            if selectedSidebarTab == .layers {
+                                showComponentLibrary = true
+                            } else {
+                                let (_, newIndex) = designFile.addPage()
+                                switchToPage(newIndex)
+                            }
+                        }) {
+                            Image(systemName: "plus")
+                        }
+                    }
+                }
+                .navigationDestination(isPresented: $showLayerPropertiesNavigation) {
+                    PropertiesPanelView(
+                        selectedComponent: $canvasManager.selectedComponent,
+                        canvasManager: canvasManager,
+                        useNavigationStack: false
+                    )
+                    .editorPanelStyle()
+                }
             }
         }
     }
@@ -1591,6 +1562,13 @@ struct UIBuilderView: View {
         // Load components from current page
         canvasManager.components = designFile.components
         canvasManager.setDesignName(designFile.name)
+
+#if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            canvasManager.zoomLevel = defaultCanvasZoom
+            baseZoomLevel = defaultCanvasZoom
+        }
+#endif
         
         // Save the initial loaded state as the base state (but don't allow undo to this)
         // This ensures we can undo back to the loaded state, but undo is disabled until we make a change

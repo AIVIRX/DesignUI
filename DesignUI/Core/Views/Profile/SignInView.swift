@@ -1,6 +1,5 @@
 //
 //  InfiniteBackground.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 2/17/25.
 //
@@ -14,25 +13,6 @@ struct SignInView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var signInAppleButtonId = UUID().uuidString
     #if os(iOS)
-    private struct Card: Identifiable, Hashable {
-        var id: String = UUID().uuidString
-        var image: String
-    }
-    
-    private let cards: [Card] = [
-        .init(image: "image1"),
-        .init(image: "image2"),
-        .init(image: "image3"),
-        .init(image: "image4"),
-    ]
-    
-    @State private var activeCard: Card? = nil
-    @State private var timer = Timer.publish(every: 0.01, on: .current, in: .default).autoconnect()
-    @State private var initialAnimation: Bool = false
-    @State private var titleProgress: CGFloat = 0
-    #if os(iOS)
-    @State private var scrollView: UIScrollView?
-    #endif
     #endif
     var body: some View {
         NavigationStack {
@@ -75,94 +55,46 @@ struct SignInView: View {
                 .frame(maxWidth: 520)
                 .shadow(color: .black.opacity(0.12), radius: 18, x: 0, y: 8)
                 #else
-                // iOS layout
-                AmbientBackground()
-                    .animation(.easeInOut(duration: 1), value: activeCard)
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 40) {
-                        ZStack {
-                            VStack(spacing: 40) {
-                                InfiniteScrollView(collection: cards) { card in
-                                    CarouselCardView(card)
-                                } uiScrollView: {
-                                    scrollView = $0
-                                } onScroll: {
-                                    updateActiveCard()
-                                }
-                                .scrollIndicators(.hidden)
-                                .scrollClipDisabled()
-                                .containerRelativeFrame(.vertical) { value, _ in
-                                    value * 0.45
-                                }
-                                .visualEffect { [initialAnimation] content, proxy in
-                                    content
-                                        .offset(y: !initialAnimation ? -(proxy.size.height + 200) : 0)
-                                }
-                                .padding(.top, 20)
-                                
-                                // title & description
-                                VStack(spacing: 4) {
-                                    Text("Introducing")
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.secondary)
-                                        .blurOpacityEffect(initialAnimation)
-                                    
-                                    Text("Accounts")
-                                        .font(.largeTitle.bold())
-                                        .foregroundStyle(.white)
-                                        .padding(.bottom)
-                                    
-                                    Text("Create your account to save favorites,\nsync across devices, and access\nexclusive features.")
-                                        .multilineTextAlignment(.center)
-                                        .foregroundStyle(.secondary)
-                                        .blurOpacityEffect(initialAnimation)
-                                    
-                                    Spacer()
-                                    
-                                    // Sign in with Apple button
-                                    VStack(spacing: 16) {
-                                        SignInWithAppleButton { request in
-                                            request.requestedScopes = [.email, .fullName]
-                                        } onCompletion: { result in
-                                            Task {
-                                                await authViewModel.handleSignInWithApple(result)
-                                            }
-                                        }
-                                        .id(signInAppleButtonId)
-                                        .signInWithAppleButtonStyle(colorScheme == .light ? .black : .white)
-                                        .onChange(of: colorScheme, { _, _ in
-                                            signInAppleButtonId = UUID().uuidString
-                                        })
-                                        .frame(height: 50)
-                                        .frame(maxWidth: 500)
-                                        .cornerRadius(12)
-                                    }
-                                    .padding()
-                                }
-                                .padding()
-                                
-                                Spacer()
+                // iOS layout (match onboarding welcome style, no images)
+                ZStack {
+                    Color.white.ignoresSafeArea()
+                    signInGradientBackground
+                    
+                    VStack(alignment: .leading, spacing: 20) {
+                        Image("AppLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50)
+                        
+                        Text("Sign In")
+                            .font(.largeTitle).bold()
+                            .foregroundStyle(.white)
+                        
+                        Text("Create your account to save favorites, sync across devices, and access exclusive features.")
+                            .foregroundStyle(.white.opacity(0.7))
+                        
+                        Spacer()
+                        
+                        SignInWithAppleButton { request in
+                            request.requestedScopes = [.email, .fullName]
+                        } onCompletion: { result in
+                            Task {
+                                await authViewModel.handleSignInWithApple(result)
                             }
                         }
-                        .onReceive(timer) { _ in
-                            if let scrollView = scrollView {
-                                scrollView.contentOffset.x += 0.35
-                            }
-                        }
-                        .task {
-                            try? await Task.sleep(for: .seconds(0.35))
-                            
-                            withAnimation(.smooth(duration: 0.75, extraBounce: 0)) {
-                                initialAnimation = true
-                            }
-                            
-                            withAnimation(.smooth(duration: 2.5, extraBounce: 0).delay(0.3)) {
-                                titleProgress = 1
-                            }
-                        }
+                        .id(signInAppleButtonId)
+                        .signInWithAppleButtonStyle(.black)
+                        .onChange(of: colorScheme, { _, _ in
+                            signInAppleButtonId = UUID().uuidString
+                        })
+                        .frame(height: 50)
+                        .frame(maxWidth: .infinity)
+                        .cornerRadius(12)
                     }
-                    .padding(.bottom, 40)
+                    .padding(42)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
+                .ignoresSafeArea(edges: .top)
                 #endif
             }
         }
@@ -174,56 +106,28 @@ struct SignInView: View {
     }
     
     #if os(iOS)
-    func updateActiveCard() {
-        if let currentScrollOffset = scrollView?.contentOffset.x {
-            let activeIndex = Int((currentScrollOffset / 200).rounded()) % cards.count
-            guard activeCard?.id != cards[activeIndex].id else { return }
-            activeCard = cards[activeIndex]
-        }
-    }
-    
-    @ViewBuilder
-    private func AmbientBackground() -> some View {
-        GeometryReader {
-            let size = $0.size
+    private var signInGradientBackground: some View {
+        ZStack {
+            RadialGradient(
+                colors: [Color(red: 0.004, green: 0.373, blue: 1, opacity: 1), .clear],
+                center: .top,
+                startRadius: 0,
+                endRadius: 500
+            )
             
-            ZStack {
-                ForEach(cards) { card in
-                    /// Programmatically downsized for better performance
-                    Image(card.image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .ignoresSafeArea()
-                        .frame(width: size.width, height: size.height)
-                        .opacity(activeCard?.id == card.id ? 1 : 0)
-                }
-                
-                Rectangle()
-                    .fill(.black.opacity(0.45))
-                    .ignoresSafeArea()
-            }
-            .compositingGroup()
-            .blur(radius: 90, opaque: true)
-            .ignoresSafeArea()
-        }
-    }
-    
-    /// Carousel Card View
-    @ViewBuilder
-    private func CarouselCardView(_ card: Card) -> some View {
-        GeometryReader {_ in
-            Image(card.image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 160,height: 360)
-                .clipShape(.rect(cornerRadius: 20))
-                .shadow(color: .black.opacity(0.4), radius: 10, x: 1, y: 0)
-        }
-        .frame(width: 160) // Match image width
-        .scrollTransition(.interactive.threshold(.centered), axis: .horizontal) { content, phase in
-            content
-                .offset(y: phase == .identity ? -10 : 0)
-                .rotationEffect(.degrees(phase.value * 5), anchor: .bottom)
+            RadialGradient(
+                colors: [Color(red: 0, green: 0.875, blue: 1, opacity: 1), .clear],
+                center: .top,
+                startRadius: 50,
+                endRadius: 450
+            )
+            
+            RadialGradient(
+                colors: [Color(red: 0.004, green: 0.678, blue: 1, opacity: 1), .clear],
+                center: .init(x: 0.5, y: -0.2),
+                startRadius: 0,
+                endRadius: 350
+            )
         }
     }
     #endif

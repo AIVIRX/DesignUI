@@ -1,6 +1,5 @@
 //
 //  ComponentRenderer+Renderers.swift
-//  DesignUI
 //
 //  Split from ComponentRenderer.swift
 //

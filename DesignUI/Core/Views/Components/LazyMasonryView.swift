@@ -1,6 +1,5 @@
 //
 //  LazyMasonryView.swift
-//  DockUI
 //
 //  Created by Assistant on 1/10/25.
 //

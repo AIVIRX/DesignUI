@@ -1,6 +1,5 @@
 //
 //  PropertiesSectionView.swift
-//  DesignUI
 //
 //  Split from PropertiesPanelView.swift
 //

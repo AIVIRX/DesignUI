@@ -1,6 +1,5 @@
 //
 //  UserPostsViewModel.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 1/15/25.
 //

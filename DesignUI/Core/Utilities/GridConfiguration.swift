@@ -1,6 +1,5 @@
 //
 //  GridConfiguration.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 2/8/25.
 //

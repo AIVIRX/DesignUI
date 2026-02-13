@@ -1,6 +1,5 @@
 //
 //  SupabaseInit.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 10/12/24.
 //

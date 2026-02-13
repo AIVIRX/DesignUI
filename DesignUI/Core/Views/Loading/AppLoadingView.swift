@@ -1,6 +1,5 @@
 //
 //  EditorLoadingView.swift
-//  DesignUI
 //
 //  Created by Claude on 12/30/24.
 //

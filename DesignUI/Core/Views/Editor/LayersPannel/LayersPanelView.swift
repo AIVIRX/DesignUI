@@ -1,6 +1,5 @@
 //
 //  LayersPanelView.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 12/19/24.
 //
@@ -27,15 +26,6 @@ struct LayersPanelView: View {
             regularSizeView
         } else {
             PhoneSizeView
-                .toolbar{
-                    ToolbarItem {
-                        Button(action: { showComponentLibrary = true }) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 12))
-                        }
-                        .help("Add Component")
-                    }
-                }
         }
     }
     

@@ -1,6 +1,5 @@
 //
 //  SyntaxHighlighter.swift
-//  DesignUI
 //
 //  Created by Maicol Cabreja on 1/4/25.
 //

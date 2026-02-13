@@ -1,6 +1,5 @@
 //
 //  NewsPost.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 7/4/25.
 //

@@ -1,6 +1,5 @@
 //
 //  CopyClipboard.swift
-//  DockUI
 //
 //  Created by Maicol Cabreja on 9/25/25.
 //

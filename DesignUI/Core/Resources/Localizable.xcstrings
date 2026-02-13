@@ -2050,6 +2050,12 @@
         }
       }
     },
+    "%lld designs remaining for free users" : {
+
+    },
+    "%lld left" : {
+
+    },
     "%lld pt" : {
       "localizations" : {
         "ar" : {
@@ -17929,6 +17935,7 @@
       }
     },
     "Create your account to save favorites,\nsync across devices, and access\nexclusive features." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18183,6 +18190,9 @@
           }
         }
       }
+    },
+    "Create your account to save favorites, sync across devices, and access exclusive features." : {
+
     },
     "Create your first design to get started" : {
       "localizations" : {
@@ -28681,6 +28691,7 @@
       }
     },
     "Introducing" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -48650,6 +48661,7 @@
       }
     },
     "Select SF Symbol" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -48904,6 +48916,9 @@
           }
         }
       }
+    },
+    "Select SF Symbols" : {
+
     },
     "Send Feedback" : {
       "localizations" : {
@@ -51208,6 +51223,9 @@
           }
         }
       }
+    },
+    "Sign In" : {
+
     },
     "Sign In Required" : {
       "localizations" : {
