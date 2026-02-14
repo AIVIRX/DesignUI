@@ -198,6 +198,7 @@ struct UIBuilderView: View {
     #if os(iOS)
     @EnvironmentObject private var designManager: DesignManager
     #endif
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @StateObject private var canvasManager = CanvasManager()
 
     enum SidebarTab {
@@ -223,6 +224,9 @@ struct UIBuilderView: View {
 
     @State private var showComponentLibrary = false
     @State private var showCommunitySubmission = false
+    
+    // Free tier limit
+    private let freePageLimit = 3
     
     // Screenshot capture debouncing
     @State private var lastScreenshotRequestTime: Date = Date()
@@ -288,13 +292,42 @@ struct UIBuilderView: View {
     }
 #endif
 
-    private var defaultCanvasZoom: CGFloat {
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return 0.75
+    private func attemptAddPage() {
+        if !subscriptionManager.isSubscribed && designFile.pages.count >= freePageLimit {
+            ToastManager.shared.showToast(
+                ToastData(title: "Page Limit Reached", icon: "lock.fill")
+            )
+            PaywallManager.shared.present()
+            return
         }
-#endif
+        let (_, newIndex) = designFile.addPage()
+        switchToPage(newIndex)
+    }
+
+    private var defaultCanvasZoom: CGFloat {
+#if os(macOS)
+        return 0.75
+#else
         return 1.0
+#endif
+    }
+
+    private var targetCanvasViewportSize: CGSize {
+        canvasViewportSize == .zero
+            ? CGSize(width: 800, height: 600)
+            : canvasViewportSize
+    }
+
+    private func applyInitialCanvasView() {
+        canvasManager.canvasOffset = .zero
+#if os(macOS)
+        canvasManager.zoomLevel = defaultCanvasZoom
+        baseZoomLevel = defaultCanvasZoom
+#else
+        let targetCanvasSize = targetCanvasViewportSize
+        canvasManager.zoomToFitDevice(canvasManager.devicePreset.size, canvasSize: targetCanvasSize)
+        baseZoomLevel = canvasManager.zoomLevel
+#endif
     }
     
     private func openCommunitySubmissionSheet() {
@@ -629,9 +662,7 @@ struct UIBuilderView: View {
             // Recenter button
             Button(action: {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    canvasManager.canvasOffset = .zero
-                    canvasManager.zoomLevel = defaultCanvasZoom
-                    baseZoomLevel = defaultCanvasZoom
+                    applyInitialCanvasView()
                     canvasManager.centerCanvasTrigger.toggle()
                 }
             }) {
@@ -779,9 +810,7 @@ struct UIBuilderView: View {
             // Recenter button
             Button(action: {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    canvasManager.canvasOffset = .zero
-                    canvasManager.zoomLevel = defaultCanvasZoom
-                    baseZoomLevel = defaultCanvasZoom
+                    applyInitialCanvasView()
                     canvasManager.centerCanvasTrigger.toggle()
                 }
             }) {
@@ -847,19 +876,11 @@ struct UIBuilderView: View {
             .presentationBackground(.regularMaterial)
             .presentationDragIndicator(.visible)
         case .properties:
-            ZStack {
-                Color(uiColor: .systemBackground)
-                    .ignoresSafeArea()
-                propertiesPanel
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
-            .interactiveDismissDisabled(true)
-            .presentationDetents([.height(400)])
-            .presentationBackgroundInteraction(.enabled)
-            .presentationBackground(.regularMaterial)
-            .presentationDragIndicator(.visible)
+            propertiesPanel
+                .presentationDetents([.height(400)])
+                .presentationBackgroundInteraction(.enabled)
+                .presentationBackground(.regularMaterial)
+                .presentationDragIndicator(.visible)
         }
     }
 #endif
@@ -989,8 +1010,7 @@ struct UIBuilderView: View {
                         if selectedSidebarTab == .layers {
                             showComponentLibrary = true
                         } else {
-                            let (_, newIndex) = designFile.addPage()
-                            switchToPage(newIndex)
+                            attemptAddPage()
                         }
                     }) {
                         Image(systemName: "plus")
@@ -1085,14 +1105,19 @@ struct UIBuilderView: View {
 #endif
     }
     
+    @ViewBuilder
     private var propertiesPanel: some View {
         #if os(iOS)
-        PropertiesPanelView(
+        let panel = PropertiesPanelView(
             selectedComponent: $canvasManager.selectedComponent,
             canvasManager: canvasManager,
             useNavigationStack: true
         )
-        .editorPanelStyle()
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            panel
+        } else {
+            panel.editorPanelStyle()
+        }
         #else
         PropertiesPanelView(
             selectedComponent: $canvasManager.selectedComponent,
@@ -1180,8 +1205,7 @@ struct UIBuilderView: View {
                             if selectedSidebarTab == .layers {
                                 showComponentLibrary = true
                             } else {
-                                let (_, newIndex) = designFile.addPage()
-                                switchToPage(newIndex)
+                                attemptAddPage()
                             }
                         }) {
                             Image(systemName: "plus")
@@ -1189,12 +1213,16 @@ struct UIBuilderView: View {
                     }
                 }
                 .navigationDestination(isPresented: $showLayerPropertiesNavigation) {
-                    PropertiesPanelView(
+                    let panel = PropertiesPanelView(
                         selectedComponent: $canvasManager.selectedComponent,
                         canvasManager: canvasManager,
                         useNavigationStack: false
                     )
-                    .editorPanelStyle()
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        panel
+                    } else {
+                        panel.editorPanelStyle()
+                    }
                 }
             }
         }
@@ -1421,11 +1449,8 @@ struct UIBuilderView: View {
     
     private var centerCanvasButton: some View {
         Button(action: {
-            let targetCanvasSize = canvasViewportSize == .zero
-                ? CGSize(width: 800, height: 600)
-                : canvasViewportSize
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                canvasManager.zoomToFitDevice(canvasManager.devicePreset.size, canvasSize: targetCanvasSize)
+                applyInitialCanvasView()
             }
             baseZoomLevel = canvasManager.zoomLevel
             canvasManager.centerCanvasTrigger.toggle()
@@ -1563,12 +1588,7 @@ struct UIBuilderView: View {
         canvasManager.components = designFile.components
         canvasManager.setDesignName(designFile.name)
 
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            canvasManager.zoomLevel = defaultCanvasZoom
-            baseZoomLevel = defaultCanvasZoom
-        }
-#endif
+        applyInitialCanvasView()
         
         // Save the initial loaded state as the base state (but don't allow undo to this)
         // This ensures we can undo back to the loaded state, but undo is disabled until we make a change

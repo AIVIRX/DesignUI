@@ -74,28 +74,24 @@ class LatestPostsViewModel: ObservableObject {
         
         currentTask = Task {
             do {
-                var query = client
+                let query = client
                     .from("posts")
                     .select(feedSelectQuery)
                     .eq("public", value: true)
                 
-                // Apply filter based on current mode
-                let filterType = postType ?? currentFilterType
-                if isAllPostsMode {
-                    // No filter - fetch all posts
-                } else if let filterType = filterType {
-                    query = query.eq("post_type", value: filterType)
-                } else {
-                    // Templates: exclude components
-                    query = query.or("post_type.neq.component,post_type.is.null")
-                }
+                // No filter - fetch all posts
                 
                 let response = try await query
                     .order("created_at", ascending: false)
                     .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
                     .execute()
                 
-                let newPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
+                try Task.checkCancellation()
+                
+                let fetchedPosts = try JSONDecoder().decode([DesignPost].self, from: response.data)
+                
+                let existingIds = Set(posts.map { $0.id })
+                let newPosts = fetchedPosts.filter { !existingIds.contains($0.id) }
                 
                 posts.append(contentsOf: newPosts)
                 
@@ -106,7 +102,7 @@ class LatestPostsViewModel: ObservableObject {
                 }
                 
                 currentPage += 1
-                hasMorePosts = newPosts.count == pageSize
+                hasMorePosts = fetchedPosts.count == pageSize
             } catch {
                 self.error = error
                 // Only log non-cancelled errors
@@ -133,10 +129,10 @@ class LatestPostsViewModel: ObservableObject {
         currentPage = 0
         posts.removeAll()
         hasMorePosts = true
-        currentFilterType = postType
-        isAllPostsMode = isAllPosts
+        currentFilterType = nil
+        isAllPostsMode = true
         
-        await fetchFilteredPosts(filterType: postType, isAllPosts: isAllPosts)
+        await fetchFilteredPosts(filterType: nil, isAllPosts: true)
     }
     
     @MainActor
@@ -153,21 +149,12 @@ class LatestPostsViewModel: ObservableObject {
         }
         
         do {
-            var query = client
+            let query = client
                 .from("posts")
                 .select(feedSelectQuery)
                 .eq("public", value: true)
             
-            if isAllPosts {
-                // Fetch all posts - no post_type filter
-                // Don't add any post_type filter
-            } else if let filterType = filterType {
-                // Filter for specific post_type (e.g., "component")
-                query = query.eq("post_type", value: filterType)
-            } else {
-                // For templates: exclude components (post_type is NOT "component" or is null)
-                query = query.or("post_type.neq.component,post_type.is.null")
-            }
+            // No filter - fetch all posts
             
             let response = try await query
                 .order("created_at", ascending: false)
@@ -218,17 +205,15 @@ class LatestPostsViewModel: ObservableObject {
         
         // Cancel any in-flight fetch
         currentTask?.cancel()
+        currentTask = nil
+        isLoading = false
         
         // Reset pagination state completely
         currentPage = 0
         hasMorePosts = true
         
-        if let filterType = filterType {
-            currentFilterType = filterType
-        }
-        if let isAllPosts = isAllPosts {
-            isAllPostsMode = isAllPosts
-        }
+        currentFilterType = nil
+        isAllPostsMode = true
         error = nil
         
         // Store current posts as backup

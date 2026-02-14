@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import Foundation
 import RevenueCat
 import RevenueCatUI
 import StoreKit
@@ -14,8 +15,7 @@ struct ContentView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
     @State private var selectedTab: Tabs = .home
-    @AppStorage("hasSeenOnboardingpoppy") private var hasSeenOnboarding = false
-    @Environment(\.requestReview) private var requestReview
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     enum Tabs: Hashable {
         case home
         case news
@@ -40,7 +40,9 @@ struct ContentView: View {
 #if os(iOS)
         .fullScreenCover(
             isPresented: Binding(
-                get: { !hasSeenOnboarding },
+                get: {
+                    UIDevice.current.userInterfaceIdiom == .phone && !hasSeenOnboarding
+                },
                 set: { newValue in
                     if !newValue { hasSeenOnboarding = true }
                 }
@@ -82,16 +84,6 @@ struct ContentView: View {
                         gradient: (.green, .green, .green),
                         onSubmit: { _ in }
                     ),
-                    FormStep(
-                        icon: "star.fill",
-                        title: "Leave a Review",
-                        description: "If you enjoy DesignUI, a quick review helps a lot.",
-                        type: .button(title: "Continue", icon: "arrow.right"),
-                        gradient: (.yellow, .yellow, .yellow),
-                        onSubmit: { _ in
-requestReview()
-                        }
-                    )
                 ],
                 completion: CompletionStep(
                     title: "Setting things up",
@@ -103,6 +95,9 @@ requestReview()
                     },
                     onComplete: {
                         hasSeenOnboarding = true
+                        DispatchQueue.main.async {
+                            paywallManager.present()
+                        }
                     }
                 )
             )

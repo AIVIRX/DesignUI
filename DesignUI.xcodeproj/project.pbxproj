@@ -117,7 +117,6 @@
 		ECD228C02C63B1C400525FC5 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ECD228BF2C63B1C400525FC5 /* InfoPlist.xcstrings */; };
 		ECD803C02F3EAABE0022D533 /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803BF2F3EAABE0022D533 /* WelcomeScreen.swift */; };
 		ECD803C22F3EAB080022D533 /* TextCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803C12F3EAB080022D533 /* TextCarousel.swift */; };
-		ECD803C72F3EAD930022D533 /* InputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803C42F3EAD930022D533 /* InputField.swift */; };
 		ECD803C82F3EAD930022D533 /* MultiStepForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803C52F3EAD930022D533 /* MultiStepForm.swift */; };
 		ECD803C92F3EAD930022D533 /* CompletionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803C32F3EAD930022D533 /* CompletionStep.swift */; };
 		ECD803CA2F3EAD930022D533 /* Step.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803C62F3EAD930022D533 /* Step.swift */; };
@@ -241,7 +240,6 @@
 		ECD803BF2F3EAABE0022D533 /* WelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeScreen.swift; sourceTree = "<group>"; };
 		ECD803C12F3EAB080022D533 /* TextCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextCarousel.swift; sourceTree = "<group>"; };
 		ECD803C32F3EAD930022D533 /* CompletionStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionStep.swift; sourceTree = "<group>"; };
-		ECD803C42F3EAD930022D533 /* InputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputField.swift; sourceTree = "<group>"; };
 		ECD803C52F3EAD930022D533 /* MultiStepForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiStepForm.swift; sourceTree = "<group>"; };
 		ECD803C62F3EAD930022D533 /* Step.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Step.swift; sourceTree = "<group>"; };
 		ECD803CC2F3EB0580022D533 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
@@ -611,7 +609,6 @@
 				ECD803CC2F3EB0580022D533 /* OnboardingFlow.swift */,
 				ECD803BF2F3EAABE0022D533 /* WelcomeScreen.swift */,
 				ECD803C32F3EAD930022D533 /* CompletionStep.swift */,
-				ECD803C42F3EAD930022D533 /* InputField.swift */,
 				ECD803C52F3EAD930022D533 /* MultiStepForm.swift */,
 				ECD803CE2F3EB20D0022D533 /* ContinueButton.swift */,
 				ECD803C62F3EAD930022D533 /* Step.swift */,
@@ -825,7 +822,6 @@
 				ECFF2C7B2D5594B1006A7FE6 /* ProfileContainerView.swift in Sources */,
 				EC0C95C72EB2A18F00AA6A84 /* CustomPaywallView.swift in Sources */,
 				ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */,
-				ECD803C72F3EAD930022D533 /* InputField.swift in Sources */,
 				ECD803C82F3EAD930022D533 /* MultiStepForm.swift in Sources */,
 				ECD803C92F3EAD930022D533 /* CompletionStep.swift in Sources */,
 				ECD803CA2F3EAD930022D533 /* Step.swift in Sources */,
@@ -1026,7 +1022,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 909;
+				CURRENT_PROJECT_VERSION = 910;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1072,7 +1068,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 33;
+				MARKETING_VERSION = 33.1;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";
@@ -1104,7 +1100,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 909;
+				CURRENT_PROJECT_VERSION = 910;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1150,7 +1146,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 33;
+				MARKETING_VERSION = 33.1;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
 				PRODUCT_NAME = "Dock UI";

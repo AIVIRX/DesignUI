@@ -31,9 +31,8 @@ struct PropertiesPanelView: View {
     var body: some View {
         #if os(iOS)
         if useNavigationStack {
-            NavigationStack {
                 navigationContent
-            }
+            
         } else {
             navigationContent
         }
@@ -52,7 +51,9 @@ struct PropertiesPanelView: View {
     private var navigationContent: some View {
         content
             .navigationTitle(propertiesTitle)
+        #if (iOS)
             .navigationBarTitleDisplayMode(.inline)
+        #endif
             .navigationDestination(isPresented: $showImageGallery) {
                 ImageGalleryView(selectedImageName: $galleryImageName)
             }
@@ -73,7 +74,9 @@ struct PropertiesPanelView: View {
                             }
                         ))
                         .navigationTitle(modifier.type.rawValue)
+#if (iOS)
                         .navigationBarTitleDisplayMode(.inline)
+                        #endif
                     }
                 } else {
                     EmptyView()
@@ -83,13 +86,7 @@ struct PropertiesPanelView: View {
     
     private var content: some View {
         VStack(alignment: .leading) {
-            let contentPadding: CGFloat = {
-#if os(iOS)
-                return UIDevice.current.userInterfaceIdiom == .phone ? 10 : 16
-#else
-                return 16
-#endif
-            }()
+
             // Properties content
             if let component = selectedComponent {
                 ScrollView {
@@ -113,7 +110,7 @@ struct PropertiesPanelView: View {
                             ComponentActionsSection(component: component, canvasManager: canvasManager, selectedComponent: $selectedComponent)
                         }
                     }
-                    .padding(contentPadding)
+                    .padding()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 // Force entire view to update when component INSTANCE changes (not just ID)

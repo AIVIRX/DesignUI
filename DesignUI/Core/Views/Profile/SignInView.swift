@@ -17,63 +17,25 @@ struct SignInView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                #if os(macOS)
-                // macOS modern sign-in layout
-                FluidGradient(blobs: [.purple, Color(red: 0.11, green: 0.01, blue: 0.2), .blue],
-                              speed: 0.5,
-                                      blur: 0.75)
-                          .ignoresSafeArea()
-                VStack(spacing: 24) {
-                    VStack(spacing: 8) {
-                        Image("AppLogo")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                            .padding()
-                        Text("Accounts")
-                            .font(.system(size: 30, weight: .bold))
-                        Text("Sign in to sync favorites and access exclusive features.")
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    SignInWithAppleButton { request in
-                        request.requestedScopes = [.email, .fullName]
-                    } onCompletion: { result in
-                        Task {
-                            await authViewModel.handleSignInWithApple(result)
-                        }
-                    }
-                    .id(signInAppleButtonId)
-                    .signInWithAppleButtonStyle(colorScheme == .light ? .black : .white)
-                    .onChange(of: colorScheme, { _, _ in
-                        signInAppleButtonId = UUID().uuidString
-                    })
-                    .frame(height: 44)
-                    .frame(maxWidth: 360)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                }
-                .padding(32)
-                .frame(maxWidth: 520)
-                .shadow(color: .black.opacity(0.12), radius: 18, x: 0, y: 8)
-                #else
-                // iOS layout (match onboarding welcome style, no images)
                 ZStack {
                     Color.white.ignoresSafeArea()
                     signInGradientBackground
                     
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(spacing: 20) {
                         Image("AppLogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 50)
+                            .frame(width: 90)
                         
                         Text("Sign In")
                             .font(.largeTitle).bold()
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.black)
+                            .multilineTextAlignment(.center)
                         
                         Text("Create your account to save favorites, sync across devices, and access exclusive features.")
-                            .foregroundStyle(.white.opacity(0.7))
-                        
-                        Spacer()
+                            .foregroundStyle(.black.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 8)
                         
                         SignInWithAppleButton { request in
                             request.requestedScopes = [.email, .fullName]
@@ -88,14 +50,13 @@ struct SignInView: View {
                             signInAppleButtonId = UUID().uuidString
                         })
                         .frame(height: 50)
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: 500)
                         .cornerRadius(12)
                     }
                     .padding(42)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
                 .ignoresSafeArea(edges: .top)
-                #endif
             }
         }
         .alert("Error", isPresented: $authViewModel.showError) {
@@ -105,7 +66,6 @@ struct SignInView: View {
         }
     }
     
-    #if os(iOS)
     private var signInGradientBackground: some View {
         ZStack {
             RadialGradient(
@@ -130,10 +90,8 @@ struct SignInView: View {
             )
         }
     }
-    #endif
 }
 
-#if os(iOS)
 extension View {
     func blurOpacityEffect(_ show: Bool) -> some View {
         self
@@ -142,4 +100,3 @@ extension View {
             .scaleEffect(show ? 1 : 0.9)
     }
 }
-#endif

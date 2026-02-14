@@ -61,8 +61,10 @@ struct SFSymbolPickerView: View {
             .padding(.vertical, 12)
         }
         .navigationTitle("Select SF Symbols")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+        #endif
         .onChange(of: searchText) { _, newValue in
             searchTask?.cancel()
             searchTask = Task { @MainActor in

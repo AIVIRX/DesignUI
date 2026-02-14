@@ -29,11 +29,11 @@ struct UnsplashGalleryView: View {
                     LazyMasonryView(
                         items: photos,
                         columns: {
-                            #if os(macOS)
+#if os(macOS)
                             return 3
-                            #else
+#else
                             return 2
-                            #endif
+#endif
                         }(),
                         spacing: 12,
                         hasMorePosts: true, // Infinite scroll
@@ -53,9 +53,14 @@ struct UnsplashGalleryView: View {
             }
         }
         .navigationTitle("Unsplash")
-        #if !os(macOS)
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
+        .searchable(text: $searchText)
+        .onSubmit(of: .search) {
+            performSearch()
+        }
+#endif
+#if os(macOS)
         .overlay(alignment: .top) {
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
@@ -83,6 +88,7 @@ struct UnsplashGalleryView: View {
             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
             .padding()
         }
+#endif
         .onChange(of: searchText) { _, newValue in
             if newValue.isEmpty {
                 resetAndLoadInitial()

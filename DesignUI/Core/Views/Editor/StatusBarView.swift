@@ -11,7 +11,7 @@ struct StatusBarView: View {
     let colorScheme: ColorScheme?
     
     private var statusBarHeight: CGFloat {
-        return 50.0
+        return 55.0
     }
     
     private var statusBarTextColor: Color {
@@ -45,7 +45,7 @@ struct StatusBarView: View {
                     .foregroundColor(statusBarTextColor)
                 
                 // Battery
-                Image(systemName: "battery.75percent")
+                Image(systemName: "battery.100percent")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(statusBarTextColor)
             }

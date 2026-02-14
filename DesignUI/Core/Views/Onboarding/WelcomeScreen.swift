@@ -53,8 +53,10 @@ struct WelcomeScreen: View {
                         .frame(maxWidth: .infinity)
                         .padding(16)
                         .background(.white)
-                        .cornerRadius(.infinity)
+                        .clipShape(Capsule())
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(42)

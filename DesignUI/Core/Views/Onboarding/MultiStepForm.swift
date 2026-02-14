@@ -15,7 +15,6 @@ enum FieldState {
 }
 
 enum StepType {
-    case inputField(placeholder: String, keyboardType: UIKeyboardType)
     case button(title: String, icon: String)
 }
 
@@ -86,15 +85,7 @@ struct MultiStepForm: View {
                         state: steps[currentStep].state
                     )
                     .animation(.none, value: currentStep)
-                case .inputField(let placeholder, let keyboardType):
-                    InputField(
-                        label: placeholder,
-                        value: $steps[currentStep].answer,
-                        keyboardType: keyboardType,
-                        state: steps[currentStep].state,
-                        action: submitCurrentStep,
-                        keyboardShown: $keyboardShown
-                    )
+                
                 }
             }
         }

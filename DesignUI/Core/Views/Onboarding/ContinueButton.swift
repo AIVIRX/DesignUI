@@ -19,21 +19,25 @@ struct ContinueButton: View {
                 action()
             }
         }) {
-            if state == .loading {
-                ProgressView()
-                    .tint(.white)
-            } else {
-                Image(systemName: icon)
+            HStack(spacing: 10) {
+                if state == .loading {
+                    ProgressView()
+                        .tint(.white)
+                } else {
+                    Image(systemName: icon)
+                }
+                
+                Text(title)
             }
-            
-            Text(title)
-                .font(.headline)
-                .bold()
+            .font(.headline)
+            .bold()
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(16)
+            .background(.black)
+            .clipShape(Capsule())
+            .contentShape(Rectangle())
         }
-        .foregroundStyle(.white)
-        .frame(maxWidth: .infinity)
-        .padding(16)
-        .background(.black)
-        .cornerRadius(.infinity)
+        .buttonStyle(.plain)
     }
 }

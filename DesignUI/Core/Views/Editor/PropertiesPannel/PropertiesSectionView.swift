@@ -19,7 +19,6 @@ struct PropertiesSection: View {
                 .fontWeight(.semibold)
             
             // For status bar, only show isVisible
-            // For status bar, we now fall through to generic properties
             if component.type == .image {
                 // Explicit Schema for Image
                 VStack(alignment: .leading, spacing: 0) {
