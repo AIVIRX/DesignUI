@@ -33,7 +33,7 @@ class SubscriptionManager: ObservableObject {
                     self.customerInfo = customerInfo
                     self.offerings = offerings
                     // Check for specific entitlement using shared constant
-                    self.isSubscribed = customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true
+                    self.isSubscribed = customerInfo.entitlements["Premium"]?.isActive == true
                     self.isLoading = false
                 }
             } catch {

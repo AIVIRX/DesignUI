@@ -39,7 +39,8 @@ struct CanvasScreenshotView: View {
                     colorScheme: colorScheme,
                     onTap: nil,
                     onSelectChild: nil,
-                    selectedComponentIds: []
+                    selectedComponentIds: [],
+                    isScreenshotCapture: true
                 )
             }
         }
@@ -70,7 +71,8 @@ struct CanvasScreenshotView: View {
                         colorScheme: colorScheme,
                         onTap: nil,
                         onSelectChild: nil,
-                        selectedComponentIds: []
+                        selectedComponentIds: [],
+                        isScreenshotCapture: true
                     )
                 }
             }

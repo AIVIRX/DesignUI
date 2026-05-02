@@ -12,8 +12,7 @@ struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.colorScheme) var colorScheme
     @State private var signInAppleButtonId = UUID().uuidString
-    #if os(iOS)
-    #endif
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -89,14 +88,5 @@ struct SignInView: View {
                 endRadius: 350
             )
         }
-    }
-}
-
-extension View {
-    func blurOpacityEffect(_ show: Bool) -> some View {
-        self
-            .blur(radius: show ? 0 : 2)
-            .opacity(show ? 1 : 0)
-            .scaleEffect(show ? 1 : 0.9)
     }
 }

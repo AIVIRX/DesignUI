@@ -45,34 +45,19 @@ class ScreenshotUtility {
         
         // Use ImageRenderer for modern iOS/macOS to properly capture blur effects
         let renderer = ImageRenderer(content: contentView)
-        renderer.scale = 2.0 // Retina quality
+        renderer.scale = 3.0 // Super Retina quality
         
         #if os(macOS)
-        let hostingView = NSHostingView(rootView: contentView)
-        
-        if isContentAdaptive {
-            // For content-adaptive, let the hosting view determine its size
-            hostingView.frame = CGRect(origin: .zero, size: hostingView.intrinsicContentSize)
-            
-            // If intrinsic size is not valid, use fitting size
-            if hostingView.frame.width <= 0 || hostingView.frame.height <= 0 {
-                let fittingSize = hostingView.fittingSize
-                hostingView.frame = CGRect(origin: .zero, size: fittingSize)
-            }
-        } else {
-            hostingView.frame = CGRect(origin: .zero, size: size)
-        }
-        
-        // Force layout
-        hostingView.layout()
-        
-        // Render to bitmap
-        guard let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) else {
-            debugLog("❌ Failed to create bitmap rep")
+        guard let cgImage = renderer.cgImage else {
+            debugLog("❌ Failed to render image with ImageRenderer")
             return nil
         }
         
-        hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
+        // Convert to NSBitmapImageRep
+        let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
+        
+        // Ensure accurate scaling by setting the size and bits appropriately
+        bitmapRep.size = size
         
         guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
             debugLog("❌ Failed to convert to PNG")

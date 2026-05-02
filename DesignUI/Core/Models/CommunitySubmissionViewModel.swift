@@ -64,9 +64,7 @@ class CommunitySubmissionViewModel: ObservableObject {
     private let client = SupabaseManager.shared.client
     private let storageBucket = "preview-images"
     private let designAssetsFolder = "design-assets"
-    
-    // MARK: - Submit Design
-    
+        
     /// Submit a design to the community
     /// - Parameters:
     ///   - designFile: The DesignFile to submit
@@ -165,9 +163,7 @@ class CommunitySubmissionViewModel: ObservableObject {
             return false
         }
     }
-    
-    // MARK: - Image Upload
-    
+        
     /// Upload an image to Supabase storage
     private func uploadImage(data: Data, path: String) async throws -> String {
 
@@ -190,9 +186,7 @@ class CommunitySubmissionViewModel: ObservableObject {
         
         return publicUrl.absoluteString
     }
-    
-    // MARK: - Design Processing
-    
+        
     /// Capture a preview screenshot of the design
     private func captureDesignPreview(designFile: DesignFile) -> Data? {
         // Get device preset from saved settings or default
@@ -406,8 +400,6 @@ class CommunitySubmissionViewModel: ObservableObject {
         return "\(slug)-\(UUID().uuidString.prefix(8))"
     }
 }
-
-// MARK: - Errors
 
 enum SubmissionError: LocalizedError {
     case previewCaptureFailed

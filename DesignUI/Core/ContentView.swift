@@ -14,6 +14,7 @@ struct ContentView: View {
     @EnvironmentObject private var toastManager: ToastManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
+    @EnvironmentObject private var designManager: DesignManager
     @State private var selectedTab: Tabs = .home
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     enum Tabs: Hashable {
@@ -101,6 +102,15 @@ struct ContentView: View {
                     }
                 )
             )
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { designManager.currentDesign != nil },
+            set: { if !$0 { designManager.closeCurrentDesign() } }
+        )) {
+            if let currentDesign = designManager.currentDesign {
+                EditorLoadingView(designFile: currentDesign)
+                    .environmentObject(designManager)
+            }
         }
 #endif
         .sheet(isPresented: $paywallManager.isPresenting) {

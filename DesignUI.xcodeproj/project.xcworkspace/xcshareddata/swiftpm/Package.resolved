@@ -1,5 +1,5 @@
 {
-  "originHash" : "0aab573f1242316ac4a95a828cc24559e64d94f5943fe65524d375f34a9c1354",
+  "originHash" : "a36ad9a39b6a9082c8fad79a13f02b8391e47d25b974137849ea6333fa442dfb",
   "pins" : [
     {
       "identity" : "fluidgradient",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "9ddda4cf23671ef0228e88681ec6210cb3e0d7f7",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "notchmyproblem",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Aeastr/NotchMyProblem.git",
+      "state" : {
+        "revision" : "0e9cda20a47f461ad74fbb346dc64bd87fafe458",
+        "version" : "2.0.2"
       }
     },
     {

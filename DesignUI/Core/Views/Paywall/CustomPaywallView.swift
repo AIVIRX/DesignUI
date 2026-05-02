@@ -3,6 +3,9 @@ import RevenueCat
 import RevenueCatUI
 
 struct CustomPaywallView: View {
+    #if os(macOS)
+    private static let macPaywallSize = CGSize(width: 560, height: 760)
+    #endif
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var paywallManager: PaywallManager
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
@@ -72,7 +75,15 @@ struct CustomPaywallView: View {
                 await purchases.loadCustomerInfo()
             }
         }
+#if os(macOS)
+        .frame(
+            minWidth: Self.macPaywallSize.width,
+            idealWidth: Self.macPaywallSize.width,
+            maxWidth: Self.macPaywallSize.width,
+            minHeight: Self.macPaywallSize.height,
+            idealHeight: Self.macPaywallSize.height,
+            maxHeight: Self.macPaywallSize.height
+        )
+#endif
     }
 }
-
-

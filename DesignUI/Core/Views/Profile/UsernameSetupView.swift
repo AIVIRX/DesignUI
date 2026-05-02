@@ -118,53 +118,8 @@ struct UsernameSetupView: View {
     
     private var usernameField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Username")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Text("\(username.count)/15")
-                    .font(.caption)
-                    .foregroundColor(username.count > 15 || !usernameError.isEmpty ? .red : .secondary)
-            }
-            
-            TextField("johndoe", text: $username)
-                .autocorrectionDisabled()
-                #if os(iOS)
-                .textInputAutocapitalization(.never)
-                #endif
-                .focused($focusedField, equals: .username)
-                .submitLabel(.next)
-                .onSubmit {
-                    validateUsername()
-                    if usernameError.isEmpty {
-                        focusedField = .bio
-                    }
-                }
-                .textFieldStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(backgroundColor)
-                .cornerRadius(12)
-                .overlay(usernameFieldBorder)
-                .shadow(color: focusedField == .username ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
-                .onChange(of: username) { _, newValue in
-                    // Filter to only alphanumeric characters
-                    let filtered = newValue.filter { $0.isLetter || $0.isNumber }
-                    if filtered != newValue {
-                        username = filtered
-                    }
-                    
-                    // Limit to 15 characters
-                    if username.count > 15 {
-                        username = String(username.prefix(15))
-                    }
-                    
-                    validateUsername()
-                }
+            usernameHeader
+            usernameInput
             
             if !usernameError.isEmpty {
                 Text(usernameError)
@@ -174,6 +129,72 @@ struct UsernameSetupView: View {
             }
         }
         .padding(.horizontal)
+    }
+
+    private var usernameHeader: some View {
+        HStack {
+            Text("Username")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+
+            Spacer()
+
+            Text("\(username.count)/15")
+                .font(.caption)
+                .foregroundColor(usernameCountColor)
+        }
+    }
+
+    private var usernameInput: some View {
+        TextField("johndoe", text: $username)
+            .autocorrectionDisabled()
+            #if os(iOS)
+            .textInputAutocapitalization(.never)
+            #endif
+            .focused($focusedField, equals: .username)
+            .submitLabel(.next)
+            .onSubmit {
+                handleUsernameSubmit()
+            }
+            .textFieldStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(backgroundColor)
+            .cornerRadius(12)
+            .overlay(usernameFieldBorder)
+            .shadow(color: usernameShadowColor, radius: 4, x: 0, y: 2)
+            .onChange(of: username) { _, newValue in
+                sanitizeUsername(newValue)
+            }
+    }
+
+    private var usernameCountColor: Color {
+        (username.count > 15 || !usernameError.isEmpty) ? .red : .secondary
+    }
+
+    private var usernameShadowColor: Color {
+        focusedField == .username ? Color.black.opacity(0.1) : .clear
+    }
+
+    private func handleUsernameSubmit() {
+        validateUsername()
+        if usernameError.isEmpty {
+            focusedField = .bio
+        }
+    }
+
+    private func sanitizeUsername(_ newValue: String) {
+        let filtered = newValue.filter { $0.isLetter || $0.isNumber }
+        if filtered != newValue {
+            username = filtered
+        }
+
+        if username.count > 15 {
+            username = String(username.prefix(15))
+        }
+
+        validateUsername()
     }
     
     private var bioField: some View {
@@ -394,11 +415,12 @@ struct UsernameSetupView: View {
                 let display_name: String
                 let bio: String?
             }
+            let cleanedBio = sanitizeBio(bio)
             let payload = ProfileUpsertPayload(
                 id: userId,
                 username: trimmedUsername,
                 display_name: trimmedDisplayName,
-                bio: bio.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : bio.trimmingCharacters(in: .whitespacesAndNewlines)
+                bio: cleanedBio.isEmpty ? nil : cleanedBio
             )
             _ = try await authViewModel.supabase
                 .from("profiles")
@@ -437,4 +459,13 @@ struct UsernameSetupView: View {
             print("Error saving profile: \(error)")
         }
     }
+}
+
+private func sanitizeBio(_ value: String) -> String {
+    let nonEmptyLines = value
+        .components(separatedBy: .newlines)
+        .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    return nonEmptyLines
+        .joined(separator: "\n")
+        .trimmingCharacters(in: .whitespacesAndNewlines)
 }

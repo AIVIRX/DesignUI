@@ -14,6 +14,7 @@ struct LiveSyntaxHighlightedCode: View {
     @State private var highlightedText: AttributedString = AttributedString()
     @State private var isHighlighting = false
     @State private var highlightCache: [String: AttributedString] = [:]
+    @State private var highlightTask: Task<Void, Never>?
     @EnvironmentObject private var toastManager: ToastManager
     @Environment(\.colorScheme) private var colorScheme
         
@@ -25,68 +26,68 @@ struct LiveSyntaxHighlightedCode: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Modern header with title and copy button
-            HStack {
-                Text("Code Snippet")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Button(action: {
-                    copyToClipboard(code)
-                    toastManager.showCopyToast()
-                    #if os(iOS)
-            HapticManager.shared.triggerImpact(style: .soft)
-                    #endif
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 12, weight: .medium))
-                        Text("Copy code")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .foregroundColor(.primary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.gray.opacity(0.2))
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-            )
-            
-            // Code content area
-            ScrollView(.vertical, showsIndicators: true) {
-                Text(highlightedText)
-                    .font(.system(size: fontSize, design: .monospaced))
-                    .textSelection(.enabled)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxWidth: .infinity, maxHeight: maxHeight)
-            .overlay(loadingOverlay)
+            header
+            codeContent
         }
         .background(Color.gray.opacity(0.1))
         .cornerRadius(20)
         .overlay(borderOverlay)
         .onAppear {
-            generateHighlightedText()
+            scheduleHighlight(for: colorScheme)
         }
-        .onChange(of: code) {
-            generateHighlightedText()
+        .onChange(of: code) { _, _ in
+            scheduleHighlight(for: colorScheme)
         }
-        .onChange(of: colorScheme) {
+        .onChange(of: colorScheme) { _, newColorScheme in
             highlightCache.removeAll()
-            generateHighlightedText()
+            scheduleHighlight(for: newColorScheme)
         }
+        .onDisappear { highlightTask?.cancel() }
+    }
+
+    private var header: some View {
+        HStack {
+            Text("Code Snippet")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.primary)
+
+            Spacer()
+            copyButton
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Rectangle().fill(Color.gray.opacity(0.2)))
+    }
+
+    private var copyButton: some View {
+        Button(action: copyCode) {
+            HStack(spacing: 4) {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 12, weight: .medium))
+                Text("Copy code")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundColor(.primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.2))
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    private var codeContent: some View {
+        ScrollView(.vertical, showsIndicators: true) {
+            Text(highlightedText)
+                .font(.system(size: fontSize, design: .monospaced))
+                .textSelection(.enabled)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: maxHeight)
+        .overlay(loadingOverlay)
     }
     
     private var borderOverlay: some View {
@@ -128,8 +129,16 @@ struct LiveSyntaxHighlightedCode: View {
             }
         }
     }
+
+    private func copyCode() {
+        copyToClipboard(code)
+        toastManager.showCopyToast()
+#if os(iOS)
+        HapticManager.shared.triggerImpact(style: .soft)
+#endif
+    }
     
-    private func performHighlight(_ code: String) async {
+    private func performHighlight(_ code: String, colorScheme: ColorScheme) async {
         // Check cache first
         if let cached = highlightCache[code] {
             await MainActor.run {
@@ -156,15 +165,17 @@ struct LiveSyntaxHighlightedCode: View {
         }
     }
     
-    private func generateHighlightedText() {
+    private func scheduleHighlight(for colorScheme: ColorScheme) {
+        highlightTask?.cancel()
+        
         // Show loading indicator for large code
         if code.count > 1000 {
             isHighlighting = true
         }
         
         // Start highlighting immediately in background
-        Task {
-            await performHighlight(code)
+        highlightTask = Task {
+            await performHighlight(code, colorScheme: colorScheme)
         }
     }
 }

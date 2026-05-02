@@ -32,7 +32,7 @@ struct LikeButton: View {
             }
         } label: {
             Image(systemName: isLiked ? "heart.fill" : "heart")
-                .foregroundColor(isLiked ? .red : .white)
+                .foregroundColor(isLiked ? .red : .primary)
                 .font(.system(size: 16))
         }
         .disabled(isLoading)
@@ -51,6 +51,7 @@ struct LikeButton: View {
 #endif
 #if os(macOS)
         .buttonStyle(BorderlessButtonStyle())
+        .pointerStyle(.link)
 #endif
     }
     

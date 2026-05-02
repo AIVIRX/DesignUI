@@ -13,7 +13,6 @@ import SDWebImage
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        //        Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: "appl_NcISLizYLMfgkTRcyMMCXrbTBFC")
         
         return true
@@ -25,7 +24,7 @@ struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let client = SupabaseManager.shared.client
     @StateObject private var colorSchemeManager = ColorSchemeManager()
-    @StateObject private var toastManager = ToastManager.shared
+    @StateObject private var toastManager = ToastManager()
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
     @StateObject private var designManager = DesignManager.shared
@@ -48,9 +47,6 @@ struct DesignUIApp: App {
                 .environmentObject(paywallManager)
                 .environmentObject(designManager)
                 .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
-                .onAppear {
-                    print("App launched with color scheme: \(colorSchemeManager.currentScheme.displayName)")
-                }
                 .onOpenURL { url in
                     // Handle custom URL scheme (app open)
                     if url.scheme == "dockui" {
@@ -93,7 +89,6 @@ import Foundation
 @main
 struct DesignUIApp: App {
     @StateObject private var colorSchemeManager = ColorSchemeManager()
-    @StateObject private var toastManager = ToastManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var paywallManager = PaywallManager.shared
     @StateObject private var designManager = DesignManager.shared
@@ -121,14 +116,15 @@ struct DesignUIApp: App {
         // Main app window
             // Main app window
             WindowGroup {
-                MainWindow()
-                    .environmentObject(colorSchemeManager)
-                    .environmentObject(toastManager)
-                    .environmentObject(subscriptionManager)
-                    .environmentObject(paywallManager)
-                    .environmentObject(designManager)
-                    .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
-                    .frame(minWidth: 1200, minHeight: 750)
+                WindowToastContainer {
+                    MainWindow()
+                        .environmentObject(colorSchemeManager)
+                        .environmentObject(subscriptionManager)
+                        .environmentObject(paywallManager)
+                        .environmentObject(designManager)
+                        .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
+                        .frame(minWidth: 1200, minHeight: 750)
+                }
             }
             .windowResizability(.automatic)
             .defaultSize(width: 1200, height: 750)
@@ -138,19 +134,20 @@ struct DesignUIApp: App {
             
             // Editor Window Group
             WindowGroup(for: DesignFile.ID.self) { $designId in
-                if let id = $designId.wrappedValue,
-                   let design = designManager.designFiles.first(where: { $0.id == id }) {
-                    EditorLoadingView(designFile: design)
-                        .environmentObject(colorSchemeManager)
-                        .environmentObject(toastManager)
-                        .environmentObject(subscriptionManager)
-                        .environmentObject(paywallManager)
-                        .environmentObject(designManager)
-                        .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
-                        .frame(minWidth: 1200, minHeight: 750)
-                } else {
-                    Text("Design not found")
-                        .frame(width: 300, height: 200)
+                WindowToastContainer {
+                    if let id = $designId.wrappedValue,
+                       let design = designManager.designFiles.first(where: { $0.id == id }) {
+                        EditorLoadingView(designFile: design)
+                            .environmentObject(colorSchemeManager)
+                            .environmentObject(subscriptionManager)
+                            .environmentObject(paywallManager)
+                            .environmentObject(designManager)
+                            .preferredColorScheme(colorSchemeManager.currentScheme.colorScheme)
+                            .frame(minWidth: 1200, minHeight: 750)
+                    } else {
+                        Text("Design not found")
+                            .frame(width: 300, height: 200)
+                    }
                 }
             }
             .windowResizability(.automatic)
@@ -199,6 +196,19 @@ struct MainWindow: View {
                     }
                 }
             }
+    }
+}
+
+private struct WindowToastContainer<Content: View>: View {
+    @StateObject private var toastManager = ToastManager()
+    private let content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    var body: some View {
+        content.environmentObject(toastManager)
     }
 }
 #endif

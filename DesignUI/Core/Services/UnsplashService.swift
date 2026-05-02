@@ -1,8 +1,6 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Models
-
 struct UnsplashPhoto: Codable, Identifiable {
     let id: String
     let width: Int
@@ -29,8 +27,6 @@ struct UnsplashUserLinks: Codable {
 struct UnsplashSearchResults: Codable {
     let results: [UnsplashPhoto]
 }
-
-// MARK: - Service
 
 enum UnsplashError: Error {
     case invalidURL

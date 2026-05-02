@@ -12,7 +12,6 @@ struct OnboardingFlowView: View {
     let description: String
     let logo: String
     var startGradient: (Color, Color, Color)?
-    
     let carousel: [Carousel]
     let form: [FormStep]
     let completion: CompletionStep

@@ -9,7 +9,7 @@ import SwiftUI
 struct SFIconsView: View {
     @State private var searchText = ""
     @State private var debouncedSearch = ""
-    @EnvironmentObject private var toastManager: ToastManager
+    @State private var localToast: ToastData?
     
     private var filteredSymbols: [String] {
         guard !debouncedSearch.isEmpty else { return symbols }
@@ -29,7 +29,7 @@ struct SFIconsView: View {
                             symbol: symbol,
                             onCopy: { copied in
                                 copyToClipboard(copied)
-                                toastManager.showCopyToast()
+                                localToast = ToastData(title: "Copied to clipboard", icon: "checkmark.circle.fill")
                             }
                         )
                     }
@@ -41,6 +41,7 @@ struct SFIconsView: View {
         }
         .navigationTitle("SF Symbols")
         .searchable(text: $searchText, prompt: "Search SF Symbols")
+        .toast($localToast)
     }
 }
 

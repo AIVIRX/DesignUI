@@ -41,57 +41,16 @@ struct EditorLoadingView: View {
     }
     
     private func loadDesign() async {
-        // Phase 1: Loading components from file
+        // Load components immediately without artificial delays
         loadingMessage = "Loading components..."
         loadingProgress = 0.1
-        
-        // Actually load the components into canvas manager
         await MainActor.run {
             canvasManager.components = designFile.components
             canvasManager.setDesignName(designFile.name)
         }
-        
-        // Wait a frame for components to be processed
-        try? await Task.sleep(nanoseconds: 50_000_000) // 0.05s
-        loadingProgress = 0.3
-        
-        // Phase 2: Preparing canvas
-        loadingMessage = "Preparing canvas..."
-        
-        // Calculate how long to wait based on component count
-        let componentCount = designFile.components.count
-        let hasComponents = componentCount > 0
-        
-        // More components = longer wait
-        let waitTime: UInt64 = hasComponents ? 
-            UInt64(min(componentCount * 20_000_000, 200_000_000)) : // 20ms per component, max 200ms
-            50_000_000 // 50ms minimum
-        
-        try? await Task.sleep(nanoseconds: waitTime)
-        loadingProgress = 0.6
-        
-        // Phase 3: Rendering preview
-        loadingMessage = "Rendering preview..."
-        
-        // Wait for any images or heavy assets
-        let hasImages = designFile.components.contains { $0.type == .image }
-        if hasImages {
-            try? await Task.sleep(nanoseconds: 150_000_000) // 0.15s for images
-        } else {
-            try? await Task.sleep(nanoseconds: 50_000_000) // 0.05s
-        }
-        
-        loadingProgress = 0.9
-        
-        // Phase 4: Finalizing
         loadingMessage = "Almost ready..."
-        try? await Task.sleep(nanoseconds: 50_000_000) // 0.05s
-        
         loadingProgress = 1.0
-        
-        // Small delay to show completion
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s
-        
+
         withAnimation(.easeInOut(duration: 0.4)) {
             isLoading = false
         }

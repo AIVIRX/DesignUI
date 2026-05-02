@@ -1,0 +1,1285 @@
+{
+  "thumbnail": "blank",
+  "description": "High-quality wallet home test",
+  "statusBarVisible": true,
+  "statusBarTopSafeArea": true,
+  "canvasColorScheme": "dark",
+  "name": "Pulse Wallet Home",
+  "devicePreset": "iPhone 16 Pro",
+  "thumbnail": "blank2",
+  "components": [
+    {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 0
+      },
+      "modifiers": [
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "black:1.0"
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Full"
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "HStack",
+          "properties": {
+            "spacing": 10,
+            "alignment": "center"
+          },
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "amount": 16,
+                "location": "all"
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 2
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Portfolio"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "title2",
+                        "fontWeight": "bold"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.97"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Updated 2m ago"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.65"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "bell"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "regular"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "white:0.9"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "ScrollView",
+          "properties": {
+            "showsIndicators": false
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 16
+              },
+              "modifiers": [
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "amount": 16,
+                    "location": "all"
+                  }
+                },
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "ZStack",
+                  "properties": {
+                    "alignment": "topLeading"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Custom",
+                        "height": 220
+                      }
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "RoundedRectangle",
+                      "properties": {
+                        "cornerRadius": 18
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Fill",
+                          "properties": {
+                            "color": "blue:0.88"
+                          }
+                        },
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full",
+                            "heightType": "Custom",
+                            "height": 220
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "VStack",
+                      "properties": {
+                        "alignment": "leading",
+                        "spacing": 10
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Padding",
+                          "properties": {
+                            "amount": 16,
+                            "location": "all"
+                          }
+                        },
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full",
+                            "heightType": "Full"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "Total Balance"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "caption",
+                                "fontWeight": "regular"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "white:0.86"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "$42,890.15"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "title",
+                                "fontWeight": "bold"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "white:1.0"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "HStack",
+                          "properties": {
+                            "spacing": 8,
+                            "alignment": "center"
+                          },
+                          "children": [
+                            {
+                              "type": "SF Symbol",
+                              "properties": {
+                                "symbolName": "arrow.up.right"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "green:1.0"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "+2.7% today"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "green:1.0"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Spacer"
+                        },
+                        {
+                          "type": "HStack",
+                          "properties": {
+                            "spacing": 12,
+                            "alignment": "center"
+                          },
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "BTC 41%"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.9"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "ETH 29%"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.9"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "SOL 18%"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.9"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "HStack",
+                  "properties": {
+                    "spacing": 10
+                  },
+                  "children": [
+                    {
+                      "type": "Button",
+                      "properties": {
+                        "buttonStyle": "plain"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "Send"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "subheadline",
+                                "fontWeight": "semibold"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "white:1.0"
+                              }
+                            },
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 12,
+                                "location": "all"
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "gray:0.22"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 12
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Button",
+                      "properties": {
+                        "buttonStyle": "plain"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "Receive"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "subheadline",
+                                "fontWeight": "semibold"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "white:1.0"
+                              }
+                            },
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 12,
+                                "location": "all"
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "gray:0.22"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 12
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Button",
+                      "properties": {
+                        "buttonStyle": "plain"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "Swap"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "subheadline",
+                                "fontWeight": "semibold"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "white:1.0"
+                              }
+                            },
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 12,
+                                "location": "all"
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "gray:0.22"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 12
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 10
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Performance"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "white:0.96"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "VStack",
+                      "properties": {
+                        "alignment": "leading",
+                        "spacing": 10
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Padding",
+                          "properties": {
+                            "amount": 14,
+                            "location": "all"
+                          }
+                        },
+                        {
+                          "type": "Background Color",
+                          "properties": {
+                            "color": "gray:0.16"
+                          }
+                        },
+                        {
+                          "type": "Corner Radius",
+                          "properties": {
+                            "radius": 14
+                          }
+                        },
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "Chart",
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Custom",
+                                "height": 150
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "HStack",
+                          "properties": {
+                            "spacing": 8,
+                            "alignment": "center"
+                          },
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "1D"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.65"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "1W"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "blue:1.0"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "1M"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.65"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "1Y"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.65"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 10
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Top Assets"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "white:0.96"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "HStack",
+                      "properties": {
+                        "spacing": 10,
+                        "alignment": "center"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Padding",
+                          "properties": {
+                            "amount": 12,
+                            "location": "all"
+                          }
+                        },
+                        {
+                          "type": "Background Color",
+                          "properties": {
+                            "color": "gray:0.16"
+                          }
+                        },
+                        {
+                          "type": "Corner Radius",
+                          "properties": {
+                            "radius": 12
+                          }
+                        },
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "ZStack",
+                          "properties": {
+                            "alignment": "center"
+                          },
+                          "children": [
+                            {
+                              "type": "RoundedRectangle",
+                              "properties": {
+                                "cornerRadius": 9
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Fill",
+                                  "properties": {
+                                    "color": "orange:0.95"
+                                  }
+                                },
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Custom",
+                                    "heightType": "Custom",
+                                    "width": 34,
+                                    "height": 34
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "SF Symbol",
+                              "properties": {
+                                "symbolName": "bitcoinsign.circle.fill"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:1.0"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "VStack",
+                          "properties": {
+                            "alignment": "leading",
+                            "spacing": 2
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full"
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Bitcoin"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "semibold"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "BTC"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "regular"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.65"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "$29,930.41"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "subheadline",
+                                "fontWeight": "semibold"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "HStack",
+                      "properties": {
+                        "spacing": 10,
+                        "alignment": "center"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Padding",
+                          "properties": {
+                            "amount": 12,
+                            "location": "all"
+                          }
+                        },
+                        {
+                          "type": "Background Color",
+                          "properties": {
+                            "color": "gray:0.16"
+                          }
+                        },
+                        {
+                          "type": "Corner Radius",
+                          "properties": {
+                            "radius": 12
+                          }
+                        },
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "ZStack",
+                          "properties": {
+                            "alignment": "center"
+                          },
+                          "children": [
+                            {
+                              "type": "RoundedRectangle",
+                              "properties": {
+                                "cornerRadius": 9
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Fill",
+                                  "properties": {
+                                    "color": "purple:0.95"
+                                  }
+                                },
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Custom",
+                                    "heightType": "Custom",
+                                    "width": 34,
+                                    "height": 34
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "SF Symbol",
+                              "properties": {
+                                "symbolName": "diamond.fill"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:1.0"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "VStack",
+                          "properties": {
+                            "alignment": "leading",
+                            "spacing": 2
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full"
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Ethereum"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "semibold"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "ETH"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "caption",
+                                    "fontWeight": "regular"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.65"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "$1,980.77"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "subheadline",
+                                "fontWeight": "semibold"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "spacing": 18,
+            "alignment": "center"
+          },
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "amount": 12,
+                "location": "all"
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "gray:0.2"
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "spacing": 4
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "house.fill"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "semibold"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.95"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Home"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "semibold"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.95"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "spacing": 4
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "arrow.left.arrow.right"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "regular"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.6"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Swap"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.6"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "spacing": 4
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "person.crop.circle"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "regular"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.6"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Profile"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "white:0.6"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

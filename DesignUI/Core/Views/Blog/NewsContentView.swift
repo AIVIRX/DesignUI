@@ -11,6 +11,12 @@ import SDWebImageSwiftUI
 struct NewsContentView: View {
     let blocks: [NewsBlock]
     
+    private struct MarkdownLinkMatch {
+        let range: NSRange
+        let linkText: String
+        let url: URL
+    }
+    
     // Parse markdown links in text and render them as clickable links
     @ViewBuilder
     private func parseMarkdownLinks(text: String) -> some View {
@@ -25,61 +31,15 @@ struct NewsContentView: View {
     @available(iOS 15.0, macOS 12.0, *)
     private func parseMarkdownLinksAttributed(text: String) -> AttributedString {
         var attributedString = AttributedString(text)
-        var allMatches: [(range: NSRange, linkText: String, url: URL)] = []
-        
-        // Find all matches from both patterns
-        // Pattern 1: [text](url)
-        let pattern1 = #"\[([^\]]+)\]\(([^)]+)\)"#
-        if let regex1 = try? NSRegularExpression(pattern: pattern1, options: []) {
-            let matches = regex1.matches(in: text, options: [], range: NSRange(text.startIndex..., in: text))
-            for match in matches {
-                if match.numberOfRanges >= 3,
-                   let linkTextRange = Range(match.range(at: 1), in: text),
-                   let urlRange = Range(match.range(at: 2), in: text),
-                   let url = URL(string: String(text[urlRange])) {
-                    let linkText = String(text[linkTextRange])
-                    allMatches.append((match.range, linkText, url))
-                }
-            }
-        }
-        
-        // Pattern 2: [text][url]
-        let pattern2 = #"\[([^\]]+)\]\[([^\]]+)\]"#
-        if let regex2 = try? NSRegularExpression(pattern: pattern2, options: []) {
-            let matches = regex2.matches(in: text, options: [], range: NSRange(text.startIndex..., in: text))
-            for match in matches {
-                // Only add if not already matched by pattern1
-                let isDuplicate = allMatches.contains { $0.range.location == match.range.location }
-                if !isDuplicate,
-                   match.numberOfRanges >= 3,
-                   let linkTextRange = Range(match.range(at: 1), in: text),
-                   let urlRange = Range(match.range(at: 2), in: text),
-                   let url = URL(string: String(text[urlRange])) {
-                    let linkText = String(text[linkTextRange])
-                    allMatches.append((match.range, linkText, url))
-                }
-            }
-        }
-        
-        // Sort matches by position (reverse order for replacement)
-        allMatches.sort { $0.range.location > $1.range.location }
+        let allMatches = collectMarkdownLinkMatches(in: text)
+            .sorted { $0.range.location > $1.range.location }
         
         // Replace matches in reverse order to preserve indices
         for match in allMatches {
             if let fullRange = Range(match.range, in: text),
                let attributedRange = Range(fullRange, in: attributedString) {
-                // Create NSAttributedString with attributes, then convert to AttributedString
-                let nsAttributedString = NSMutableAttributedString(string: match.linkText)
-                nsAttributedString.addAttribute(.link, value: match.url, range: NSRange(location: 0, length: match.linkText.count))
-                #if os(iOS)
-                nsAttributedString.addAttribute(.foregroundColor, value: UIColor.white, range: NSRange(location: 0, length: match.linkText.count))
-                #elseif os(macOS)
-                nsAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: NSRange(location: 0, length: match.linkText.count))
-                #endif
-                nsAttributedString.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 0, length: match.linkText.count))
-                
-                var linkText = AttributedString(nsAttributedString)
-                attributedString.replaceSubrange(attributedRange, with: linkText)
+                let replacement = makeAttributedLinkText(text: match.linkText, url: match.url)
+                attributedString.replaceSubrange(attributedRange, with: replacement)
             }
         }
         
@@ -117,45 +77,8 @@ struct NewsContentView: View {
     
     private func parseMarkdownLinksIntoParts(_ text: String) -> [TextPart] {
         var parts: [TextPart] = []
-        var matches: [(range: NSRange, linkText: String, url: URL, pattern: Int)] = []
-        
-        // Find all matches from both patterns
-        // Pattern 1: [text](url)
-        let pattern1 = #"\[([^\]]+)\]\(([^)]+)\)"#
-        if let regex1 = try? NSRegularExpression(pattern: pattern1, options: []) {
-            let regexMatches = regex1.matches(in: text, options: [], range: NSRange(text.startIndex..., in: text))
-            for match in regexMatches {
-                if match.numberOfRanges >= 3,
-                   let linkTextRange = Range(match.range(at: 1), in: text),
-                   let urlRange = Range(match.range(at: 2), in: text),
-                   let url = URL(string: String(text[urlRange])) {
-                    let linkText = String(text[linkTextRange])
-                    matches.append((match.range, linkText, url, 1))
-                }
-            }
-        }
-        
-        // Pattern 2: [text][url]
-        let pattern2 = #"\[([^\]]+)\]\[([^\]]+)\]"#
-        if let regex2 = try? NSRegularExpression(pattern: pattern2, options: []) {
-            let regexMatches = regex2.matches(in: text, options: [], range: NSRange(text.startIndex..., in: text))
-            for match in regexMatches {
-                if match.numberOfRanges >= 3,
-                   let linkTextRange = Range(match.range(at: 1), in: text),
-                   let urlRange = Range(match.range(at: 2), in: text),
-                   let url = URL(string: String(text[urlRange])) {
-                    let linkText = String(text[linkTextRange])
-                    // Only add if not already matched by pattern1 (avoid duplicates)
-                    let isDuplicate = matches.contains { $0.range.location == match.range.location }
-                    if !isDuplicate {
-                        matches.append((match.range, linkText, url, 2))
-                    }
-                }
-            }
-        }
-        
-        // Sort matches by position
-        matches.sort { $0.range.location < $1.range.location }
+        let matches = collectMarkdownLinkMatches(in: text)
+            .sorted { $0.range.location < $1.range.location }
         
         // Build parts
         var currentLocation = 0
@@ -185,6 +108,66 @@ struct NewsContentView: View {
         }
         
         return parts.isEmpty ? [TextPart(text: text, url: nil)] : parts
+    }
+    
+    private func collectMarkdownLinkMatches(in text: String) -> [MarkdownLinkMatch] {
+        var matches: [MarkdownLinkMatch] = []
+        let fullRange = NSRange(text.startIndex..., in: text)
+
+        appendMarkdownLinkMatches(
+            pattern: #"\[([^\]]+)\]\(([^)]+)\)"#,
+            in: text,
+            fullRange: fullRange,
+            matches: &matches
+        )
+
+        appendMarkdownLinkMatches(
+            pattern: #"\[([^\]]+)\]\[([^\]]+)\]"#,
+            in: text,
+            fullRange: fullRange,
+            matches: &matches,
+            skipDuplicateLocations: true
+        )
+
+        return matches
+    }
+    
+    private func appendMarkdownLinkMatches(
+        pattern: String,
+        in text: String,
+        fullRange: NSRange,
+        matches: inout [MarkdownLinkMatch],
+        skipDuplicateLocations: Bool = false
+    ) {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
+        let regexMatches = regex.matches(in: text, options: [], range: fullRange)
+
+        for match in regexMatches {
+            if skipDuplicateLocations && matches.contains(where: { $0.range.location == match.range.location }) {
+                continue
+            }
+            guard match.numberOfRanges >= 3,
+                  let linkTextRange = Range(match.range(at: 1), in: text),
+                  let urlRange = Range(match.range(at: 2), in: text),
+                  let url = URL(string: String(text[urlRange])) else { continue }
+
+            let linkText = String(text[linkTextRange])
+            matches.append(MarkdownLinkMatch(range: match.range, linkText: linkText, url: url))
+        }
+    }
+    
+    @available(iOS 15.0, macOS 12.0, *)
+    private func makeAttributedLinkText(text: String, url: URL) -> AttributedString {
+        let length = text.count
+        let nsAttributedString = NSMutableAttributedString(string: text)
+        nsAttributedString.addAttribute(.link, value: url, range: NSRange(location: 0, length: length))
+        #if os(iOS)
+        nsAttributedString.addAttribute(.foregroundColor, value: UIColor.white, range: NSRange(location: 0, length: length))
+        #elseif os(macOS)
+        nsAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: NSRange(location: 0, length: length))
+        #endif
+        nsAttributedString.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 0, length: length))
+        return AttributedString(nsAttributedString)
     }
     
     var body: some View {

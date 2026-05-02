@@ -46,107 +46,124 @@ struct DetailView: View {
     @State private var loadedCodeSnippet: String?
     @State private var isLoadingDetails = false
     private let supabase = SupabaseManager.shared.client
+
+    private var shareURL: URL {
+        URL(string: "https://dockui.com/templates/\(slug)")!
+    }
+
+    private var currentDescription: String {
+        loadedDescription ?? description
+    }
+
+    private var currentCodeSnippet: String {
+        loadedCodeSnippet ?? codeSnippet
+    }
     
     var body: some View {
         ScrollView {
-            VStack{
-                VStack{
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(maxWidth: .infinity)
-#if os(iOS)
-                            .frame(height: 300)
-#else
-                            .frame(height: 450)
-#endif
-                            .overlay(
-                                DetailWebImage(
-                                    url: mediaURL
-                                )
-                            )
-                            .overlay(alignment: .bottomTrailing) {
-                                LikeButton(postId: id)
-                                    .padding(8)
-                                    .background(.ultraThinMaterial, in: Circle())
-                                    .padding(12)
-                            }
-                    
-                    
-                    Text(loadedDescription ?? description)
-#if os(iOS)
-                        .font(.body)
-#else
-                        .font(.title2)
-#endif
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    Divider().padding(.vertical,5)
-                    
-                    // Show loading indicator or code snippet
-                    if isLoadingDetails {
-                        HStack {
-                            ProgressView()
-                            Text("Loading code...")
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 100)
-                    } else {
-                        LiveSyntaxHighlightedCode(
-                            code: loadedCodeSnippet ?? codeSnippet,
-                            fontSize: 20,
-                            maxHeight: 300
-                        )
-                    }
-                    
-                    SimilarPostsView(currentPostId: id)
-                        .padding(.vertical)
-                }
-                .frame(maxWidth: 900, alignment: .leading)
-                .padding(.horizontal)
-                .padding(.vertical, 40)
-                .task {
-                    await fetchAuthorProfile()
-                    await fetchPostDetailsIfNeeded()
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .navigationTitle(title)
+            content
         }
+        .navigationTitle(title)
         .toolbar {
             ToolbarItem {
-                HStack {
-                    ShareLink(item: URL(string: "https://dockui.com/templates/\(slug)")!) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
+                ShareLink(item: shareURL) {
+                    Image(systemName: "square.and.arrow.up")
                 }
-                .padding(.horizontal,3)
-
+                .padding(.horizontal, 3)
             }
         }
-        .overlay(
-            Group {
-                if isPremium && !subscriptionManager.isSubscribed {
-                    ZStack {
-                        Color.black.opacity(0.25).ignoresSafeArea()
-                        VStack(spacing: 16) {
-                            Text("Premium Template")
-                                .font(.title2).bold()
-                            Text("Subscribe to access this template.")
-                                .foregroundColor(.secondary)
-                            Button("Subscribe") {
-                                paywallManager.present()
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                        .padding()
-                        .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
+        .overlay { premiumOverlay }
+        .task {
+            await fetchAuthorProfile()
+            await fetchPostDetailsIfNeeded()
+        }
+    }
+
+    private var content: some View {
+        VStack {
+            VStack {
+                headerPreview
+                descriptionView
+                Divider().padding(.vertical, 5)
+                codeSection
+                SimilarPostsView(currentPostId: id)
+                    .padding(.vertical)
             }
-        )
+            .frame(maxWidth: 900, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.vertical, 40)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var headerPreview: some View {
+        RoundedRectangle(cornerRadius: 15)
+            .fill(Color.gray.opacity(0.2))
+            .frame(maxWidth: .infinity)
+#if os(iOS)
+            .frame(height: 300)
+#else
+            .frame(height: 450)
+#endif
+            .overlay(DetailWebImage(url: mediaURL))
+            .overlay(alignment: .bottomTrailing) {
+                LikeButton(postId: id)
+                    .padding(8)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .padding(12)
+            }
+    }
+
+    private var descriptionView: some View {
+        Text(currentDescription)
+#if os(iOS)
+            .font(.body)
+#else
+            .font(.title2)
+#endif
+            .foregroundStyle(.secondary)
+            .padding(.bottom)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var codeSection: some View {
+        if isLoadingDetails {
+            HStack {
+                ProgressView()
+                Text("Loading code...")
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 100)
+        } else {
+            LiveSyntaxHighlightedCode(
+                code: currentCodeSnippet,
+                fontSize: 20,
+                maxHeight: 300
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var premiumOverlay: some View {
+        if isPremium && !subscriptionManager.isSubscribed {
+            ZStack {
+                Color.black.opacity(0.25).ignoresSafeArea()
+                VStack(spacing: 16) {
+                    Text("Premium Template")
+                        .font(.title2).bold()
+                    Text("Subscribe to access this template.")
+                        .foregroundColor(.secondary)
+                    Button("Subscribe") {
+                        paywallManager.present()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding()
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
     }
     
     private func fetchAuthorProfile() async {

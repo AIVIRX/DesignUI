@@ -33,7 +33,7 @@ final class PurchasesService: NSObject, ObservableObject {
     @MainActor
     private func handleCustomerInfo(_ info: CustomerInfo) {
         customerInfo = info
-        hasPremium = info.entitlements.active.keys.contains(Constants.ENTITLEMENT_ID)
+        hasPremium = info.entitlements.active.keys.contains("Premium")
     }
 }
 

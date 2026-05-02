@@ -1,0 +1,688 @@
+{
+  "schemaVersion": "1.0",
+  "generatedFrom": {
+    "componentsSource": "DesignUI/Core/Views/Editor/UIComponent.swift",
+    "modifiersSource": "DesignUI/Core/Views/Editor/Modifier.swift",
+    "designFileSource": "DesignUI/Core/Views/Editor/DesignFile.swift",
+    "designPageSource": "DesignUI/Core/Views/Editor/DesignPage.swift"
+  },
+  "propertyTypes": [
+    "string",
+    "number",
+    "boolean",
+    "color",
+    "font",
+    "alignment",
+    "spacing",
+    "cornerRadius",
+    "padding",
+    "frame",
+    "offset",
+    "rotation",
+    "scale",
+    "opacity",
+    "shadow",
+    "border",
+    "gradient",
+    "animation",
+    "segmentedControl",
+    "dropdown",
+    "colorArray",
+    "unitPoint",
+    "slider"
+  ],
+  "componentTypes": [
+    {
+      "type": "Text",
+      "properties": [
+        {
+          "key": "text",
+          "displayName": "Text",
+          "type": "string",
+          "defaultValue": "Hello World",
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Image",
+      "properties": [
+        {
+          "key": "imageName",
+          "displayName": "Image Name",
+          "type": "string",
+          "defaultValue": "",
+          "options": null
+        },
+        {
+          "key": "imageData",
+          "displayName": "Image Data",
+          "type": "string",
+          "defaultValue": "",
+          "options": null
+        },
+        {
+          "key": "resizable",
+          "displayName": "Resizable",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        },
+        {
+          "key": "aspectRatio",
+          "displayName": "Aspect Ratio",
+          "type": "dropdown",
+          "defaultValue": "fit",
+          "options": ["fit", "fill", "none"]
+        }
+      ]
+    },
+    {
+      "type": "SF Symbol",
+      "properties": [
+        {
+          "key": "symbolName",
+          "displayName": "Symbol",
+          "type": "string",
+          "defaultValue": "star",
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "VStack",
+      "properties": [
+        {
+          "key": "alignment",
+          "displayName": "Alignment",
+          "type": "segmentedControl",
+          "defaultValue": "center",
+          "options": ["leading", "center", "trailing"]
+        },
+        {
+          "key": "spacing",
+          "displayName": "Spacing",
+          "type": "number",
+          "defaultValue": 8.0,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "HStack",
+      "properties": [
+        {
+          "key": "alignment",
+          "displayName": "Alignment",
+          "type": "segmentedControl",
+          "defaultValue": "center",
+          "options": ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]
+        },
+        {
+          "key": "spacing",
+          "displayName": "Spacing",
+          "type": "number",
+          "defaultValue": 8.0,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "ZStack",
+      "properties": [
+        {
+          "key": "alignment",
+          "displayName": "Alignment",
+          "type": "segmentedControl",
+          "defaultValue": "center",
+          "options": [
+            "topLeading",
+            "top",
+            "topTrailing",
+            "leading",
+            "center",
+            "trailing",
+            "bottomLeading",
+            "bottom",
+            "bottomTrailing"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Spacer",
+      "properties": []
+    },
+    {
+      "type": "Divider",
+      "properties": []
+    },
+    {
+      "type": "Rectangle",
+      "properties": []
+    },
+    {
+      "type": "Circle",
+      "properties": []
+    },
+    {
+      "type": "RoundedRectangle",
+      "properties": [
+        {
+          "key": "cornerRadius",
+          "displayName": "Corner Radius",
+          "type": "number",
+          "defaultValue": 12.0,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Capsule",
+      "properties": []
+    },
+    {
+      "type": "Ellipse",
+      "properties": []
+    },
+    {
+      "type": "Linear Gradient",
+      "properties": [
+        {
+          "key": "colors",
+          "displayName": "Colors",
+          "type": "colorArray",
+          "defaultValue": ["blue", "green"],
+          "options": null
+        },
+        {
+          "key": "startPoint",
+          "displayName": "Start Point",
+          "type": "unitPoint",
+          "defaultValue": "top",
+          "options": [
+            "top",
+            "bottom",
+            "leading",
+            "trailing",
+            "center",
+            "topLeading",
+            "topTrailing",
+            "bottomLeading",
+            "bottomTrailing"
+          ]
+        },
+        {
+          "key": "endPoint",
+          "displayName": "End Point",
+          "type": "unitPoint",
+          "defaultValue": "bottom",
+          "options": [
+            "top",
+            "bottom",
+            "leading",
+            "trailing",
+            "center",
+            "topLeading",
+            "topTrailing",
+            "bottomLeading",
+            "bottomTrailing"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ScrollView",
+      "properties": [
+        {
+          "key": "axis",
+          "displayName": "Axis",
+          "type": "segmentedControl",
+          "defaultValue": "vertical",
+          "options": ["vertical", "horizontal"]
+        },
+        {
+          "key": "showsIndicators",
+          "displayName": "Shows Indicators",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Status Bar",
+      "properties": [
+        {
+          "key": "showStatusBar",
+          "displayName": "Show Status Bar",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        },
+        {
+          "key": "topSafeArea",
+          "displayName": "Top Safe Area",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Text Field",
+      "properties": [
+        {
+          "key": "text",
+          "displayName": "Text",
+          "type": "string",
+          "defaultValue": "Text Value",
+          "options": null
+        },
+        {
+          "key": "placeholder",
+          "displayName": "Placeholder",
+          "type": "string",
+          "defaultValue": "Placeholder",
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Switch",
+      "properties": [
+        {
+          "key": "isOn",
+          "displayName": "Is On",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Slider",
+      "properties": [
+        {
+          "key": "value",
+          "displayName": "Value",
+          "type": "number",
+          "defaultValue": 0.5,
+          "options": null
+        },
+        {
+          "key": "min",
+          "displayName": "Minimum",
+          "type": "number",
+          "defaultValue": 0.0,
+          "options": null
+        },
+        {
+          "key": "max",
+          "displayName": "Maximum",
+          "type": "number",
+          "defaultValue": 1.0,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Progress View",
+      "properties": [
+        {
+          "key": "value",
+          "displayName": "Value",
+          "type": "number",
+          "defaultValue": 0.6,
+          "options": null
+        },
+        {
+          "key": "total",
+          "displayName": "Total",
+          "type": "number",
+          "defaultValue": 1.0,
+          "options": null
+        },
+        {
+          "key": "color",
+          "displayName": "Color",
+          "type": "color",
+          "defaultValue": "blue",
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Chart",
+      "properties": [
+        {
+          "key": "chartStyle",
+          "displayName": "Chart Style",
+          "type": "dropdown",
+          "defaultValue": "Line + Area",
+          "options": ["Line + Area", "Line", "Area", "Bar"]
+        },
+        {
+          "key": "dataPreset",
+          "displayName": "Data Pattern",
+          "type": "dropdown",
+          "defaultValue": "Increasing",
+          "options": ["Increasing", "Decreasing", "Stable", "Volatile"]
+        },
+        {
+          "key": "pointCount",
+          "displayName": "Point Count",
+          "type": "slider",
+          "defaultValue": 20.0,
+          "options": [5.0, 30.0]
+        },
+        {
+          "key": "color",
+          "displayName": "Color",
+          "type": "color",
+          "defaultValue": "blue",
+          "options": null
+        },
+        {
+          "key": "showXAxis",
+          "displayName": "Show X Axis",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        },
+        {
+          "key": "showYAxis",
+          "displayName": "Show Y Axis",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Shape",
+      "properties": [
+        {
+          "key": "shapeType",
+          "displayName": "Shape Type",
+          "type": "dropdown",
+          "defaultValue": "Rectangle",
+          "options": ["Rectangle", "Circle", "Rounded Rectangle", "Capsule", "Ellipse"]
+        },
+        {
+          "key": "cornerRadius",
+          "displayName": "Corner Radius",
+          "type": "number",
+          "defaultValue": 12.0,
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "Button",
+      "properties": [
+        {
+          "key": "buttonStyle",
+          "displayName": "Button Style",
+          "type": "dropdown",
+          "defaultValue": "borderedProminent",
+          "options": ["bordered", "borderedProminent", "borderless", "plain"]
+        }
+      ]
+    },
+    {
+      "type": "Gauge",
+      "properties": [
+        {
+          "key": "gaugeType",
+          "displayName": "Gauge Type",
+          "type": "dropdown",
+          "defaultValue": "circular",
+          "options": ["linear", "circular", "circular range"]
+        },
+        {
+          "key": "value",
+          "displayName": "Value",
+          "type": "number",
+          "defaultValue": 50.0,
+          "options": null
+        },
+        {
+          "key": "min",
+          "displayName": "Min",
+          "type": "number",
+          "defaultValue": 0.0,
+          "options": null
+        },
+        {
+          "key": "max",
+          "displayName": "Max",
+          "type": "number",
+          "defaultValue": 100.0,
+          "options": null
+        },
+        {
+          "key": "showValue",
+          "displayName": "Show Value",
+          "type": "boolean",
+          "defaultValue": true,
+          "options": null
+        },
+        {
+          "key": "color",
+          "displayName": "Color",
+          "type": "color",
+          "defaultValue": "blue",
+          "options": null
+        }
+      ]
+    }
+  ],
+  "modifierTypes": [
+    {
+      "type": "Frame",
+      "defaultProperties": {
+        "widthType": "Default",
+        "heightType": "Default",
+        "width": 100.0,
+        "height": 100.0
+      }
+    },
+    {
+      "type": "Padding",
+      "defaultProperties": {
+        "amount": 10.0,
+        "location": "all"
+      }
+    },
+    {
+      "type": "Background Color",
+      "defaultProperties": {
+        "color": "primary:1.0"
+      }
+    },
+    {
+      "type": "Background",
+      "defaultProperties": {
+        "alignment": "center"
+      },
+      "notes": "Creates a parent component and adds a default child component at add-time"
+    },
+    {
+      "type": "Foreground Color",
+      "defaultProperties": {
+        "color": "primary:1.0"
+      }
+    },
+    {
+      "type": "Font",
+      "defaultProperties": {
+        "fontSize": "body",
+        "fontWeight": "regular"
+      }
+    },
+    {
+      "type": "Corner Radius",
+      "defaultProperties": {
+        "radius": 8.0
+      }
+    },
+    {
+      "type": "Clipped",
+      "defaultProperties": {}
+    },
+    {
+      "type": "Shadow",
+      "defaultProperties": {
+        "radius": 2.0,
+        "x": 0.0,
+        "y": 2.0,
+        "color": "black",
+        "opacity": 0.3
+      }
+    },
+    {
+      "type": "Opacity",
+      "defaultProperties": {
+        "opacity": 1.0
+      }
+    },
+    {
+      "type": "Rotation",
+      "defaultProperties": {
+        "angle": 0.0
+      }
+    },
+    {
+      "type": "Scale",
+      "defaultProperties": {
+        "x": 1.0,
+        "y": 1.0
+      }
+    },
+    {
+      "type": "Offset",
+      "defaultProperties": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "type": "Clip Shape",
+      "defaultProperties": {
+        "shape": "Rectangle"
+      }
+    },
+    {
+      "type": "Mask",
+      "defaultProperties": {
+        "opacity": 1.0
+      },
+      "notes": "Creates a parent component and adds a default child component at add-time"
+    },
+    {
+      "type": "Blur",
+      "defaultProperties": {
+        "radius": 0.0
+      }
+    },
+    {
+      "type": "Overlay",
+      "defaultProperties": {
+        "alignment": "center"
+      },
+      "notes": "Creates a parent component and adds a default child component at add-time"
+    },
+    {
+      "type": "Border",
+      "defaultProperties": {
+        "width": 1.0
+      }
+    },
+    {
+      "type": "Stroke",
+      "defaultProperties": {
+        "lineWidth": 1.0,
+        "color": "color:gray"
+      }
+    },
+    {
+      "type": "Text Alignment",
+      "defaultProperties": {
+        "alignment": "leading"
+      }
+    },
+    {
+      "type": "Fill",
+      "defaultProperties": {
+        "color": "blue:1.0"
+      }
+    },
+    {
+      "type": "Aspect Ratio",
+      "defaultProperties": {
+        "aspectRatio": "fit"
+      }
+    },
+    {
+      "type": "Z Index",
+      "defaultProperties": {
+        "index": 1.0
+      }
+    }
+  ],
+  "designFileSchema": {
+    "DesignFileData": {
+      "id": "UUID?",
+      "name": "String",
+      "pages": "[DesignPage]?",
+      "currentPageIndex": "Int?",
+      "components": "[UIComponent]? (legacy)",
+      "lastModified": "Date?",
+      "thumbnail": "Data?",
+      "devicePreset": "String?",
+      "selectedDevicePreset": "String?",
+      "canvasColorScheme": "String?",
+      "statusBarVisible": "Bool?",
+      "statusBarTopSafeArea": "Bool?"
+    },
+    "DesignPage": {
+      "id": "UUID",
+      "name": "String",
+      "components": "[UIComponent]",
+      "thumbnail": "Data?",
+      "devicePreset": "String?",
+      "colorScheme": "String?",
+      "statusBarVisible": "Bool",
+      "statusBarTopSafeArea": "Bool",
+      "statusBarComponent": "UIComponent?"
+    },
+    "UIComponent": {
+      "id": "UUID",
+      "type": "ComponentType",
+      "properties": "[ComponentProperty] (stored as dictionary in JSON)",
+      "children": "[UIComponent]",
+      "frame": "CGRect (or [[x,y],[width,height]])",
+      "isVisible": "Bool",
+      "zIndex": "Int",
+      "modifiers": "[ComponentModifier]",
+      "isOverlay": "Bool",
+      "modifierId": "UUID?",
+      "modifierType": "ModifierType?"
+    },
+    "ComponentProperty": {
+      "id": "UUID (runtime only)",
+      "key": "String",
+      "displayName": "String (derived)",
+      "type": "PropertyType (derived)",
+      "value": "Any",
+      "defaultValue": "Any (code defaults)",
+      "options": "[Any]? (code defaults)"
+    },
+    "ComponentModifier": {
+      "id": "UUID",
+      "type": "ModifierType",
+      "properties": "[String: Any]"
+    }
+  }
+}

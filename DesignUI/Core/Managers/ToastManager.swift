@@ -8,11 +8,7 @@ import SwiftUI
 
 class ToastManager: ObservableObject {
     @Published var currentToast: ToastData?
-    
-    static let shared = ToastManager()
-    
-    private init() {}
-    
+
     func showToast(_ toast: ToastData) {
         currentToast = toast
     }
