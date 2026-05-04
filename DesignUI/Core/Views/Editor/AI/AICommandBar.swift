@@ -51,7 +51,7 @@ struct AICommandBar: View {
 
     private var promptField: some View {
         HStack {
-            TextField("Ask AI to generate anything...", text: $prompt)
+            TextField("Ask AI to perform edits...", text: $prompt)
                 .textFieldStyle(.plain)
                 .tint(.primary)
                 .foregroundColor(.primary)

@@ -67,7 +67,7 @@ class CanvasManager: ObservableObject {
     private let layoutAnimation = Animation.spring(response: 0.35, dampingFraction: 0.85)
     
     var hasMapComponent: Bool {
-        return false
+        return containsComponent(ofType: .map, in: components)
     }
 
     var hasScrollableComponent: Bool {
@@ -1055,6 +1055,9 @@ class CanvasManager: ObservableObject {
         var imports = ["import SwiftUI"]
         if containsComponent(ofType: .chart, in: components) {
             imports.append("import Charts")
+        }
+        if containsComponent(ofType: .map, in: components) {
+            imports.append("import MapKit")
         }
         
         var code = imports.joined(separator: "\n")

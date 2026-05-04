@@ -216,10 +216,12 @@ struct UIBuilderView: View {
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
     @State private var showRenamePageSheet: Bool = false
+    @State private var showPageViewerNavigation: Bool = false
     @State private var renamePageText: String = ""
     @State private var isRestoringCanvasSettings: Bool = false
 
     @State private var showComponentLibrary = false
+    @State private var componentLibraryMode: ComponentLibraryMode = .add
     @State private var showCommunitySubmission = false
     
     // Free tier limit
@@ -425,6 +427,10 @@ struct UIBuilderView: View {
             }
             
             Divider()
+
+            Button(action: { showPageViewerNavigation = true }) {
+                Label("Page Viewer", systemImage: "square.grid.2x2")
+            }
             
             Button(action: { attemptAddPage() }) {
                 Label("Add Page", systemImage: "plus")
@@ -629,6 +635,73 @@ struct UIBuilderView: View {
 
     private func withRenamePageSheet<Content: View>(_ content: Content) -> some View {
         content
+            #if os(macOS)
+            .sheet(isPresented: $showPageViewerNavigation) {
+                NavigationStack {
+                    PageViewerSheet(
+                        designFile: designFile,
+                        currentPageIndex: $currentPageIndex,
+                        onSelectPage: { index in
+                            switchToPage(index)
+                            showPageViewerNavigation = false
+                        },
+                        onAddPage: { attemptAddPage() },
+                        onDuplicatePage: { index in
+                            if let (_, newIndex) = designFile.duplicatePage(at: index) {
+                                switchToPage(newIndex)
+                            }
+                        },
+                        onRenamePage: { index, name in
+                            designFile.renamePage(at: index, to: name)
+                            designFile.markAsChanged()
+                            NotificationCenter.default.post(name: .designChanged, object: nil)
+                        },
+                        onDeletePage: { index in
+                            guard index > 0 else { return }
+                            if designFile.deletePage(at: index) {
+                                switchToPage(designFile.currentPageIndex)
+                            }
+                        }
+                    )
+                    .navigationTitle("Page Viewer")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showPageViewerNavigation = false }
+                        }
+                    }
+                }
+                .frame(minWidth: 1100, minHeight: 760)
+            }
+            #else
+            .navigationDestination(isPresented: $showPageViewerNavigation) {
+                PageViewerSheet(
+                    designFile: designFile,
+                    currentPageIndex: $currentPageIndex,
+                    onSelectPage: { index in
+                        switchToPage(index)
+                        showPageViewerNavigation = false
+                    },
+                    onAddPage: { attemptAddPage() },
+                    onDuplicatePage: { index in
+                        if let (_, newIndex) = designFile.duplicatePage(at: index) {
+                            switchToPage(newIndex)
+                        }
+                    },
+                    onRenamePage: { index, name in
+                        designFile.renamePage(at: index, to: name)
+                        designFile.markAsChanged()
+                        NotificationCenter.default.post(name: .designChanged, object: nil)
+                    },
+                    onDeletePage: { index in
+                        guard index > 0 else { return }
+                        if designFile.deletePage(at: index) {
+                            switchToPage(designFile.currentPageIndex)
+                        }
+                    }
+                )
+                .navigationTitle("Page Viewer")
+            }
+            #endif
             .sheet(isPresented: $showRenamePageSheet) {
                 NavigationStack {
                     Form {
@@ -1247,6 +1320,7 @@ struct UIBuilderView: View {
                     Spacer()
                     
                     Button(action: {
+                        componentLibraryMode = .add
                         showComponentLibrary = true
                     }) {
                         Image(systemName: "plus")
@@ -1273,7 +1347,13 @@ struct UIBuilderView: View {
         LayersPanelView(
             canvasManager: canvasManager,
             selectedComponent: $canvasManager.selectedComponent,
-            showComponentLibrary: $showComponentLibrary
+            showComponentLibrary: $showComponentLibrary,
+            componentLibraryMode: $componentLibraryMode,
+            onReplaceRequested: { component in
+                canvasManager.selectedComponent = component
+                componentLibraryMode = .replace
+                showComponentLibrary = true
+            }
         )
     }
     
@@ -1412,7 +1492,13 @@ struct UIBuilderView: View {
                         onLayerTapped: { _ in
                             showLayerPropertiesNavigation = true
                         },
-                        showComponentLibrary: $showComponentLibrary
+                        showComponentLibrary: $showComponentLibrary,
+                        componentLibraryMode: $componentLibraryMode,
+                        onReplaceRequested: { component in
+                            canvasManager.selectedComponent = component
+                            componentLibraryMode = .replace
+                            showComponentLibrary = true
+                        }
                     )
                 }
                 // Background removed to allow material to show
@@ -1432,6 +1518,7 @@ struct UIBuilderView: View {
                     
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: {
+                            componentLibraryMode = .add
                             showComponentLibrary = true
                         }) {
                             Image(systemName: "plus")
@@ -1818,6 +1905,11 @@ struct UIBuilderView: View {
     }
     
     private func saveAsScreenshot() {
+        MapSnapshotCache.shared.prewarmSnapshots(
+            for: canvasManager.components,
+            colorScheme: canvasManager.colorScheme ?? .light
+        )
+
         let isWidget = canvasManager.devicePreset.category == .widget
         let screenshotView = CanvasScreenshotView(
             components: canvasManager.components,
@@ -1916,6 +2008,10 @@ struct UIBuilderView: View {
                 statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
                 statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
             )
+            MapSnapshotCache.shared.prewarmSnapshots(
+                for: canvasManager.components,
+                colorScheme: canvasManager.colorScheme ?? .light
+            )
             if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
                 of: screenshotView,
                 size: canvasManager.devicePreset.size,
@@ -1953,6 +2049,10 @@ struct UIBuilderView: View {
         } else {
             canvasManager.colorScheme = nil  // System default
         }
+        MapSnapshotCache.shared.prune(
+            to: newPage.components,
+            colorScheme: canvasManager.colorScheme ?? .light
+        )
         
         // Restore status bar visibility and component
         if let savedStatusBar = newPage.statusBarComponent {
@@ -2194,12 +2294,12 @@ struct UIBuilderView: View {
 
         if let selected = canvasManager.selectedComponent, sanitizedComponents.count == 1 {
             let candidate: UIComponent
-            var operationResult: AIOperationReducer.ApplyResult?
+            var appliedAIEditOperations = false
             if let operations, !operations.isEmpty {
                 do {
                     let result = try AIOperationReducer.shared.applyWithInverse(to: selected, operations: operations)
                     candidate = result.component
-                    operationResult = result
+                    appliedAIEditOperations = true
                 } catch {
                     print("AIOperationReducer failed: \(error.localizedDescription)")
                     candidate = sanitizedComponents[0]
@@ -2216,18 +2316,12 @@ struct UIBuilderView: View {
                     candidate.setProperty(key: "text", value: existingText)
                 }
             }
-            if let operations, let operationResult, !operations.isEmpty {
-                canvasManager.replaceComponent(selected, with: candidate, registerUndo: false)
-                if let updatedSelection = canvasManager.selectedComponent {
-                    aiOperationUndoStack.append(
-                        AIOperationHistoryEntry(
-                            componentId: updatedSelection.id,
-                            forward: operations,
-                            inverse: operationResult.inverse
-                        )
-                    )
-                    aiOperationRedoStack.removeAll()
-                }
+            if let operations, !operations.isEmpty, appliedAIEditOperations {
+                // Use the primary canvas undo/redo stack so AI edits behave exactly
+                // like manual edits and remain reliably undoable.
+                canvasManager.replaceComponent(selected, with: candidate, registerUndo: true, undoDescription: "AI Edit")
+                aiOperationUndoStack.removeAll()
+                aiOperationRedoStack.removeAll()
             } else {
                 canvasManager.replaceComponent(selected, with: candidate)
                 aiOperationUndoStack.removeAll()
@@ -2236,6 +2330,21 @@ struct UIBuilderView: View {
             persistAIGeneratedPreview()
             toastManager.showToast(ToastData(title: "AI updated component", icon: "sparkles"))
             return
+        }
+
+        if let selected = canvasManager.selectedComponent, sanitizedComponents.count > 1 {
+            if let replacement = composeFilledSelectionReplacement(
+                selected: selected,
+                generated: sanitizedComponents,
+                prompt: prompt
+            ) {
+                canvasManager.replaceComponent(selected, with: replacement, registerUndo: true, undoDescription: "AI Fill Selection")
+                aiOperationUndoStack.removeAll()
+                aiOperationRedoStack.removeAll()
+                persistAIGeneratedPreview()
+                toastManager.showToast(ToastData(title: "AI filled selected component", icon: "sparkles"))
+                return
+            }
         }
 
         if canvasManager.selectedComponent == nil, sanitizedComponents.count == 1 {
@@ -2307,6 +2416,108 @@ struct UIBuilderView: View {
             return "Featured"
         }
         return text
+    }
+
+    private func composeFilledSelectionReplacement(selected: UIComponent, generated: [UIComponent], prompt: String) -> UIComponent? {
+        guard isCardLikeComponent(selected) else { return nil }
+
+        let contentChildren = enrichedCardContent(from: generated, prompt: prompt)
+        guard !contentChildren.isEmpty else { return nil }
+
+        let background = selected.clone()
+        background.children = []
+
+        let contentStack = UIComponent(
+            type: .stack,
+            properties: UIComponent.defaultProperties(for: .stack),
+            children: contentChildren.map { $0.clone() },
+            modifiers: [
+                ComponentModifier(type: .frame, properties: ["widthType": "Full", "heightType": "Full"]),
+                ComponentModifier(type: .padding, properties: ["location": "all", "amount": 16]),
+            ]
+        )
+        contentStack.setProperty(key: "stackType", value: "vertical")
+        contentStack.setProperty(key: "alignment", value: "leading")
+        contentStack.setProperty(key: "spacing", value: 8.0)
+
+        let wrapper = UIComponent(
+            type: .stack,
+            properties: UIComponent.defaultProperties(for: .stack),
+            children: [background, contentStack],
+            modifiers: selected.modifiers
+        )
+        wrapper.setProperty(key: "stackType", value: "z")
+        wrapper.setProperty(key: "alignment", value: "topLeading")
+        wrapper.setProperty(key: "spacing", value: 0.0)
+
+        return wrapper
+    }
+
+    private func isCardLikeComponent(_ component: UIComponent) -> Bool {
+        switch component.type {
+        case .shape, .rectangle, .roundedRectangle, .capsule, .circle, .ellipse:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func enrichedCardContent(from generated: [UIComponent], prompt: String) -> [UIComponent] {
+        let hasMeaningfulText = generated.contains { component in
+            component.type == .text && !isPlaceholderText(component.getProperty(key: "text") as? String ?? "")
+        }
+        if hasMeaningfulText {
+            return generated
+        }
+        return fallbackInfoComponents(for: prompt)
+    }
+
+    private func isPlaceholderText(_ text: String) -> Bool {
+        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return normalized.isEmpty || normalized == "text" || normalized == "title" || normalized == "subtitle"
+    }
+
+    private func fallbackInfoComponents(for prompt: String) -> [UIComponent] {
+        let lower = prompt.lowercased()
+        let topic = inferredTopic(from: prompt)
+
+        if lower.contains("nyc") || lower.contains("new york") {
+            return [
+                makeText("New York City", fontSize: "title3", weight: "bold"),
+                makeText("Population: 8,804,190 (2020 Census)", fontSize: "subheadline", weight: "semibold"),
+                makeText("Boroughs: Manhattan, Brooklyn, Queens, Bronx, Staten Island", fontSize: "caption", weight: "regular"),
+                makeText("Known for: finance, media, arts, and iconic landmarks.", fontSize: "caption", weight: "regular")
+            ]
+        }
+
+        return [
+            makeText(topic, fontSize: "title3", weight: "bold"),
+            makeText("Overview", fontSize: "subheadline", weight: "semibold"),
+            makeText("Add key facts, highlights, and context here.", fontSize: "caption", weight: "regular")
+        ]
+    }
+
+    private func inferredTopic(from prompt: String) -> String {
+        let lower = prompt.lowercased()
+        if let range = lower.range(of: "about ") {
+            let start = prompt.index(prompt.startIndex, offsetBy: lower.distance(from: lower.startIndex, to: range.upperBound))
+            let tail = String(prompt[start...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !tail.isEmpty { return tail }
+        }
+        return "Card Details"
+    }
+
+    private func makeText(_ value: String, fontSize: String, weight: String) -> UIComponent {
+        let component = UIComponent(
+            type: .text,
+            properties: [
+                ComponentProperty(key: "text", displayName: "Text", type: .string, value: value, defaultValue: value)
+            ],
+            modifiers: [
+                ComponentModifier(type: .font, properties: ["fontSize": fontSize, "fontWeight": weight])
+            ]
+        )
+        return component
     }
 
     private func enforceStickyBottomCTAIfNeeded(_ components: [UIComponent], prompt: String) -> [UIComponent] {
@@ -2624,6 +2835,11 @@ struct UIBuilderView: View {
     }
     
     private func performScreenshotCapture() {
+        MapSnapshotCache.shared.prewarmSnapshots(
+            for: self.canvasManager.components,
+            colorScheme: self.canvasManager.colorScheme ?? .light
+        )
+
         let isWidget = self.canvasManager.devicePreset.category == .widget
         let screenshotView = CanvasScreenshotView(
             components: self.canvasManager.components,
@@ -2722,5 +2938,128 @@ struct EditorPanelStyle: ViewModifier {
 extension View {
     func editorPanelStyle() -> some View {
         modifier(EditorPanelStyle())
+    }
+}
+
+private struct PageViewerSheet: View {
+    @ObservedObject var designFile: DesignFile
+    @Binding var currentPageIndex: Int
+    var onSelectPage: (Int) -> Void
+    var onAddPage: () -> Void
+    var onDuplicatePage: (Int) -> Void
+    var onRenamePage: (Int, String) -> Void
+    var onDeletePage: (Int) -> Void
+
+    @State private var renamingPageId: UUID?
+    @State private var renameText: String = ""
+    private let phoneAspectRatio: CGFloat = 393.0 / 852.0 // iPhone 16 Pro portrait
+    private let phonePreviewWidth: CGFloat = 196.0 // ~50% scale of 16 Pro canvas width
+
+    var body: some View {
+        GeometryReader { proxy in
+            let availableWidth = max(360, proxy.size.width - 24)
+            let gridSpacing: CGFloat = 28
+            let tileWidthWithSpacing = phonePreviewWidth + gridSpacing
+            let targetColumns = max(1, min(4, Int((availableWidth + 14) / tileWidthWithSpacing)))
+            let columns = Array(repeating: GridItem(.fixed(phonePreviewWidth), spacing: gridSpacing), count: targetColumns)
+
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: gridSpacing) {
+                    ForEach(Array(designFile.pages.enumerated()), id: \.element.id) { index, page in
+                        pageCard(index: index, page: page)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            HStack {
+                Spacer()
+                Button {
+                    onAddPage()
+                } label: {
+                    Label("Add Page", systemImage: "plus")
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding()
+            .background(.thinMaterial)
+        }
+    }
+
+    private func pageCard(index: Int, page: DesignPage) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Group {
+                if let thumbnail = page.thumbnail,
+                   let image = thumbnailImage(from: thumbnail) {
+                    image
+                        .resizable()
+                        .aspectRatio(phoneAspectRatio, contentMode: .fill)
+                        .frame(width: phonePreviewWidth, height: phonePreviewWidth / phoneAspectRatio)
+                        .clipped()
+                } else {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.06))
+                        .frame(width: phonePreviewWidth, height: phonePreviewWidth / phoneAspectRatio)
+                        .overlay(Image(systemName: "doc").foregroundColor(.secondary))
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(Color.primary.opacity(0.14), lineWidth: 1)
+            )
+
+            if renamingPageId == page.id {
+                TextField("Page Name", text: $renameText, onCommit: {
+                    let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty { onRenamePage(index, trimmed) }
+                    renamingPageId = nil
+                })
+                .textFieldStyle(.roundedBorder)
+                .font(.caption)
+            } else {
+                Text(page.name)
+                    .font(.subheadline.weight(index == currentPageIndex ? .bold : .regular))
+                    .lineLimit(1)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(index == currentPageIndex ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.08))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(index == currentPageIndex ? Color.accentColor : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture { onSelectPage(index) }
+        .contextMenu {
+            Button("Rename") {
+                renamingPageId = page.id
+                renameText = page.name
+            }
+            Button("Duplicate") {
+                onDuplicatePage(index)
+            }
+            if index > 0 {
+                Divider()
+                Button("Delete", role: .destructive) {
+                    onDeletePage(index)
+                }
+            }
+        }
+    }
+
+    private func thumbnailImage(from data: Data) -> Image? {
+        #if os(macOS)
+        if let nsImage = NSImage(data: data) { return Image(nsImage: nsImage) }
+        #else
+        if let uiImage = UIImage(data: data) { return Image(uiImage: uiImage) }
+        #endif
+        return nil
     }
 }

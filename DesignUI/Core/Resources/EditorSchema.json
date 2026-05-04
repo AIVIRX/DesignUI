@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0",
   "generatedFrom": {
-    "componentsSource": "DesignUI/Core/Views/Editor/UIComponent.swift",
-    "modifiersSource": "DesignUI/Core/Views/Editor/Modifier.swift",
-    "designFileSource": "DesignUI/Core/Views/Editor/DesignFile.swift",
-    "designPageSource": "DesignUI/Core/Views/Editor/DesignPage.swift"
+    "componentsSource": "DesignUI/Core/Views/Editor/Models/UIComponent.swift",
+    "modifiersSource": "DesignUI/Core/Views/Editor/Models/Modifier.swift",
+    "designFileSource": "DesignUI/Core/Views/Editor/Models/DesignFile.swift",
+    "designPageSource": "DesignUI/Core/Views/Editor/Models/DesignPage.swift"
   },
   "propertyTypes": [
     "string",
@@ -73,7 +73,11 @@
           "displayName": "Aspect Ratio",
           "type": "dropdown",
           "defaultValue": "fit",
-          "options": ["fit", "fill", "none"]
+          "options": [
+            "fit",
+            "fill",
+            "none"
+          ]
         }
       ]
     },
@@ -90,6 +94,40 @@
       ]
     },
     {
+      "type": "Stack",
+      "properties": [
+        {
+          "key": "stackType",
+          "displayName": "Stack Type",
+          "type": "segmentedControl",
+          "defaultValue": "vertical",
+          "options": [
+            "vertical",
+            "horizontal",
+            "z"
+          ]
+        },
+        {
+          "key": "alignment",
+          "displayName": "Alignment",
+          "type": "segmentedControl",
+          "defaultValue": "center",
+          "options": [
+            "leading",
+            "center",
+            "trailing"
+          ]
+        },
+        {
+          "key": "spacing",
+          "displayName": "Spacing",
+          "type": "number",
+          "defaultValue": 8.0,
+          "options": null
+        }
+      ]
+    },
+    {
       "type": "VStack",
       "properties": [
         {
@@ -97,7 +135,11 @@
           "displayName": "Alignment",
           "type": "segmentedControl",
           "defaultValue": "center",
-          "options": ["leading", "center", "trailing"]
+          "options": [
+            "leading",
+            "center",
+            "trailing"
+          ]
         },
         {
           "key": "spacing",
@@ -116,7 +158,13 @@
           "displayName": "Alignment",
           "type": "segmentedControl",
           "defaultValue": "center",
-          "options": ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]
+          "options": [
+            "top",
+            "center",
+            "bottom",
+            "firstTextBaseline",
+            "lastTextBaseline"
+          ]
         },
         {
           "key": "spacing",
@@ -151,19 +199,27 @@
     },
     {
       "type": "Spacer",
-      "properties": []
+      "properties": [
+
+      ]
     },
     {
       "type": "Divider",
-      "properties": []
+      "properties": [
+
+      ]
     },
     {
       "type": "Rectangle",
-      "properties": []
+      "properties": [
+
+      ]
     },
     {
       "type": "Circle",
-      "properties": []
+      "properties": [
+
+      ]
     },
     {
       "type": "RoundedRectangle",
@@ -179,11 +235,15 @@
     },
     {
       "type": "Capsule",
-      "properties": []
+      "properties": [
+
+      ]
     },
     {
       "type": "Ellipse",
-      "properties": []
+      "properties": [
+
+      ]
     },
     {
       "type": "Linear Gradient",
@@ -192,7 +252,10 @@
           "key": "colors",
           "displayName": "Colors",
           "type": "colorArray",
-          "defaultValue": ["blue", "green"],
+          "defaultValue": [
+            "blue",
+            "green"
+          ],
           "options": null
         },
         {
@@ -239,7 +302,10 @@
           "displayName": "Axis",
           "type": "segmentedControl",
           "defaultValue": "vertical",
-          "options": ["vertical", "horizontal"]
+          "options": [
+            "vertical",
+            "horizontal"
+          ]
         },
         {
           "key": "showsIndicators",
@@ -360,21 +426,34 @@
           "displayName": "Chart Style",
           "type": "dropdown",
           "defaultValue": "Line + Area",
-          "options": ["Line + Area", "Line", "Area", "Bar"]
+          "options": [
+            "Line + Area",
+            "Line",
+            "Area",
+            "Bar"
+          ]
         },
         {
           "key": "dataPreset",
           "displayName": "Data Pattern",
           "type": "dropdown",
           "defaultValue": "Increasing",
-          "options": ["Increasing", "Decreasing", "Stable", "Volatile"]
+          "options": [
+            "Increasing",
+            "Decreasing",
+            "Stable",
+            "Volatile"
+          ]
         },
         {
           "key": "pointCount",
           "displayName": "Point Count",
           "type": "slider",
           "defaultValue": 20.0,
-          "options": [5.0, 30.0]
+          "options": [
+            5.0,
+            30.0
+          ]
         },
         {
           "key": "color",
@@ -407,7 +486,13 @@
           "displayName": "Shape Type",
           "type": "dropdown",
           "defaultValue": "Rectangle",
-          "options": ["Rectangle", "Circle", "Rounded Rectangle", "Capsule", "Ellipse"]
+          "options": [
+            "Rectangle",
+            "Circle",
+            "Rounded Rectangle",
+            "Capsule",
+            "Ellipse"
+          ]
         },
         {
           "key": "cornerRadius",
@@ -426,7 +511,12 @@
           "displayName": "Button Style",
           "type": "dropdown",
           "defaultValue": "borderedProminent",
-          "options": ["bordered", "borderedProminent", "borderless", "plain"]
+          "options": [
+            "bordered",
+            "borderedProminent",
+            "borderless",
+            "plain"
+          ]
         }
       ]
     },
@@ -438,7 +528,11 @@
           "displayName": "Gauge Type",
           "type": "dropdown",
           "defaultValue": "circular",
-          "options": ["linear", "circular", "circular range"]
+          "options": [
+            "linear",
+            "circular",
+            "circular range"
+          ]
         },
         {
           "key": "value",
@@ -528,10 +622,6 @@
       }
     },
     {
-      "type": "Clipped",
-      "defaultProperties": {}
-    },
-    {
       "type": "Shadow",
       "defaultProperties": {
         "radius": 2.0,
@@ -551,13 +641,6 @@
       "type": "Rotation",
       "defaultProperties": {
         "angle": 0.0
-      }
-    },
-    {
-      "type": "Scale",
-      "defaultProperties": {
-        "x": 1.0,
-        "y": 1.0
       }
     },
     {
@@ -615,19 +698,20 @@
     {
       "type": "Fill",
       "defaultProperties": {
+        "color": "primary:1.0"
+      }
+    },
+    {
+      "type": "Tint",
+      "defaultProperties": {
         "color": "blue:1.0"
       }
     },
     {
-      "type": "Aspect Ratio",
+      "type": "Glass Effect",
       "defaultProperties": {
-        "aspectRatio": "fit"
-      }
-    },
-    {
-      "type": "Z Index",
-      "defaultProperties": {
-        "index": 1.0
+        "shape": "RoundedRectangle",
+        "cornerRadius": 10.0
       }
     }
   ],

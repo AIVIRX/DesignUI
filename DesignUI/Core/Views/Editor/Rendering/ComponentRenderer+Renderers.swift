@@ -1,6 +1,9 @@
 
 import SwiftUI
 import Charts
+import MapKit
+import CoreLocation
+import Combine
 
 extension ComponentRenderer {
     func renderText() -> some View {
@@ -163,6 +166,66 @@ extension ComponentRenderer {
         .frame(width: defaultSize, height: defaultSize)
         
         return AnyView(placeholderView)
+    }
+
+    func renderMap() -> some View {
+        let locationPreset = (component.getProperty(key: "locationPreset") as? String) ?? "San Francisco"
+        let rawZoom = (component.getProperty(key: "zoom") as? Double)
+            ?? (component.getProperty(key: "zoom") as? Int).map(Double.init)
+            ?? 12.0
+        let rawPitch = (component.getProperty(key: "pitch") as? Double)
+            ?? (component.getProperty(key: "pitch") as? Int).map(Double.init)
+            ?? 0.0
+        let showsUserLocation = component.getProperty(key: "showsUserLocation") as? Bool ?? false
+        let mapColorScheme = colorScheme ?? .light
+
+        let (latitude, longitude) = mapPresetCoordinate(for: locationPreset)
+        let zoom = rawZoom.isFinite ? min(max(rawZoom, 1.0), 20.0) : 12.0
+        let pitch = rawPitch.isFinite ? min(max(rawPitch, 0.0), 75.0) : 0.0
+
+        if isScreenshotCapture {
+            return AnyView(mapScreenshotPreview(componentID: component.id, colorScheme: mapColorScheme))
+        }
+
+        return AnyView(
+            StatefulMapView(
+                componentID: component.id,
+                locationPreset: locationPreset,
+                latitude: latitude,
+                longitude: longitude,
+                zoom: zoom,
+                pitch: pitch,
+                showsUserLocation: showsUserLocation,
+                colorScheme: mapColorScheme
+            )
+        )
+    }
+
+    @ViewBuilder
+    private func mapScreenshotPreview(componentID: UUID, colorScheme: ColorScheme) -> some View {
+        if let cached = MapSnapshotCache.shared.image(for: componentID, colorScheme: colorScheme) {
+            #if os(macOS)
+            Image(nsImage: cached)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+            #else
+            Image(uiImage: cached)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+            #endif
+        } else {
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.16, green: 0.27, blue: 0.22),
+                        Color(red: 0.12, green: 0.18, blue: 0.20),
+                        Color(red: 0.08, green: 0.12, blue: 0.16)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
     }
     
     #if os(macOS)
@@ -475,25 +538,16 @@ extension ComponentRenderer {
             }
         }
         
-        let base: AnyView
-        if isScreenshotCapture {
-            if axes == .horizontal {
-                base = AnyView(content.frame(maxWidth: .infinity, alignment: .leading))
-            } else {
-                base = AnyView(content)
+        let base: AnyView = AnyView(
+            ScrollView(axes, showsIndicators: showsIndicators) {
+                content
             }
-        } else {
-            base = AnyView(
-                ScrollView(axes, showsIndicators: showsIndicators) {
-                    content
-                }
-                #if os(macOS)
-                .onHover { isHovering in
-                    canvasManager?.isHoveringScrollable = isHovering
-                }
-                #endif
-            )
-        }
+            #if os(macOS)
+            .onHover { isHovering in
+                canvasManager?.isHoveringScrollable = isHovering
+            }
+            #endif
+        )
         
         if hasExplicitFrame {
             return AnyView(base.frame(width: component.frame.width, height: component.frame.height))
@@ -611,6 +665,7 @@ extension ComponentRenderer {
 
         return AnyView(
             ProgressView(value: safeValue, total: safeTotal)
+                .progressViewStyle(.linear)
                 .frame(minWidth: 120)
                 .padding(.horizontal, 4)
         )
@@ -645,6 +700,410 @@ extension ComponentRenderer {
         default: return .top
         }
     }
+
+    private func mapPresetCoordinate(for preset: String) -> (Double, Double) {
+        switch preset {
+        case "Current Location":
+            // Fallback center; map will still show user dot when permission is granted.
+            return (37.7749, -122.4194)
+        case "New York":
+            return (40.7128, -74.0060)
+        case "Los Angeles":
+            return (34.0522, -118.2437)
+        case "Chicago":
+            return (41.8781, -87.6298)
+        case "London":
+            return (51.5074, -0.1278)
+        case "Tokyo":
+            return (35.6762, 139.6503)
+        case "Paris":
+            return (48.8566, 2.3522)
+        default:
+            return (37.7749, -122.4194)
+        }
+    }
+}
+
+private struct StatefulMapView: View {
+    let componentID: UUID
+    let locationPreset: String
+    let latitude: Double
+    let longitude: Double
+    let zoom: Double
+    let pitch: Double
+    let showsUserLocation: Bool
+    let colorScheme: ColorScheme
+
+    @State private var cameraPosition: MapCameraPosition
+    @ObservedObject private var locationPermissionManager = LocationPermissionManager.shared
+
+    init(componentID: UUID, locationPreset: String, latitude: Double, longitude: Double, zoom: Double, pitch: Double, showsUserLocation: Bool, colorScheme: ColorScheme) {
+        self.componentID = componentID
+        self.locationPreset = locationPreset
+        self.latitude = latitude
+        self.longitude = longitude
+        self.zoom = zoom
+        self.pitch = pitch
+        self.showsUserLocation = showsUserLocation
+        self.colorScheme = colorScheme
+
+        let camera = Self.camera(
+            center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+            zoom: zoom,
+            pitch: pitch
+        )
+        _cameraPosition = State(initialValue: .camera(camera))
+    }
+
+    var body: some View {
+        realisticMap
+        .id(componentID)
+        .onAppear {
+            if showsUserLocation {
+                locationPermissionManager.requestWhenInUseIfNeeded()
+            }
+            syncCameraFromProperties()
+            refreshSnapshot()
+        }
+        .onChange(of: showsUserLocation) { _, enabled in
+            if enabled {
+                locationPermissionManager.requestWhenInUseIfNeeded()
+            }
+            syncCameraFromProperties()
+        }
+        .onChange(of: latitude) { _, _ in syncCameraFromProperties() }
+        .onChange(of: longitude) { _, _ in syncCameraFromProperties() }
+        .onChange(of: zoom) { _, _ in syncCameraFromProperties() }
+        .onChange(of: pitch) { _, _ in syncCameraFromProperties() }
+        .onChange(of: locationPreset) { _, _ in syncCameraFromProperties() }
+        .onReceive(locationPermissionManager.$authorizationStatus) { _ in
+            syncCameraFromProperties()
+            refreshSnapshot()
+        }
+        .onReceive(locationPermissionManager.$currentCoordinate) { _ in
+            syncCameraFromProperties()
+            refreshSnapshot()
+        }
+        .onChange(of: latitude) { _, _ in refreshSnapshot() }
+        .onChange(of: longitude) { _, _ in refreshSnapshot() }
+        .onChange(of: zoom) { _, _ in refreshSnapshot() }
+        .onChange(of: pitch) { _, _ in refreshSnapshot() }
+        .onChange(of: locationPreset) { _, _ in refreshSnapshot() }
+    }
+
+    private var baseMap: some View {
+        Map(position: $cameraPosition, interactionModes: .all) {
+            if showsUserLocation {
+                UserAnnotation()
+            }
+        }
+    }
+
+    private var realisticMap: some View {
+        baseMap.mapStyle(.standard(elevation: .realistic))
+    }
+
+    private func syncCameraFromProperties() {
+        let center: CLLocationCoordinate2D = {
+            if locationPreset == "Current Location",
+               locationPermissionManager.isAuthorizedForLocation,
+               let coord = locationPermissionManager.currentCoordinate {
+                return coord
+            }
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }()
+        cameraPosition = .camera(
+            Self.camera(center: center, zoom: zoom, pitch: pitch)
+        )
+    }
+
+    private static func camera(center: CLLocationCoordinate2D, zoom: Double, pitch: Double) -> MapCamera {
+        // Approximate zoom-to-distance mapping suitable for editor previews.
+        let distance = max(30, min(20_000_000, 20_000_000 / pow(2.0, zoom)))
+        return MapCamera(centerCoordinate: center, distance: distance, heading: 0, pitch: pitch)
+    }
+
+    private func refreshSnapshot() {
+        let center: CLLocationCoordinate2D = {
+            if locationPreset == "Current Location",
+               locationPermissionManager.isAuthorizedForLocation,
+               let coord = locationPermissionManager.currentCoordinate {
+                return coord
+            }
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }()
+        MapSnapshotCache.shared.requestSnapshot(
+            componentID: componentID,
+            center: center,
+            zoom: zoom,
+            pitch: pitch,
+            realistic: true,
+            colorScheme: colorScheme
+        )
+    }
+}
+
+final class LocationPermissionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    static let shared = LocationPermissionManager()
+
+    @Published private(set) var authorizationStatus: CLAuthorizationStatus
+    @Published private(set) var currentCoordinate: CLLocationCoordinate2D?
+
+    private let manager = CLLocationManager()
+    private var hasRequestedInSession = false
+
+    private override init() {
+        authorizationStatus = manager.authorizationStatus
+        super.init()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    }
+
+    func requestWhenInUseIfNeeded() {
+        let status = manager.authorizationStatus
+        authorizationStatus = status
+
+        switch status {
+        case .notDetermined:
+            guard !hasRequestedInSession else { return }
+            hasRequestedInSession = true
+            manager.requestWhenInUseAuthorization()
+        case .authorizedWhenInUse, .authorizedAlways:
+            manager.startUpdatingLocation()
+        default:
+            return
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        authorizationStatus = manager.authorizationStatus
+        switch authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            manager.startUpdatingLocation()
+        default:
+            manager.stopUpdatingLocation()
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let latest = locations.last else { return }
+        currentCoordinate = latest.coordinate
+    }
+
+    var isAuthorizedForLocation: Bool {
+        switch authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+#if os(macOS)
+typealias PlatformMapImage = NSImage
+#else
+typealias PlatformMapImage = UIImage
+#endif
+
+final class MapSnapshotCache {
+    static let shared = MapSnapshotCache()
+    private struct CacheKey: Hashable {
+        let id: UUID
+        let style: String
+    }
+
+    private let maxEntries = 12
+    private var storage: [CacheKey: PlatformMapImage] = [:]
+    private var inFlight: Set<CacheKey> = []
+    private var lruOrder: [CacheKey] = []
+    private init() {}
+
+    func image(for id: UUID, colorScheme: ColorScheme) -> PlatformMapImage? {
+        let key = cacheKey(componentID: id, colorScheme: colorScheme)
+        guard let image = storage[key] else { return nil }
+        touch(key)
+        return image
+    }
+
+    func requestSnapshot(componentID: UUID, center: CLLocationCoordinate2D, zoom: Double, pitch: Double, realistic: Bool, colorScheme: ColorScheme) {
+        purgeNonMatchingStyle(keeping: colorScheme)
+        let key = cacheKey(componentID: componentID, colorScheme: colorScheme)
+        if inFlight.contains(key) { return }
+        inFlight.insert(key)
+
+        let options = MKMapSnapshotter.Options()
+        options.size = CGSize(width: 393, height: 852)
+        options.showsBuildings = realistic
+        options.mapType = .standard
+        #if os(iOS)
+        options.traitCollection = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
+        #endif
+        let distance = max(30, min(20_000_000, 20_000_000 / pow(2.0, zoom)))
+        options.camera = MKMapCamera(lookingAtCenter: center, fromDistance: distance, pitch: pitch, heading: 0)
+
+        MKMapSnapshotter(options: options).start { [weak self] snapshot, _ in
+            guard let self else { return }
+            defer { self.inFlight.remove(key) }
+            guard let snapshot else { return }
+            self.insert(snapshot.image, for: key)
+        }
+    }
+
+    func prewarmSnapshots(for components: [UIComponent], colorScheme: ColorScheme, timeout: TimeInterval = 1.0) {
+        purgeNonMatchingStyle(keeping: colorScheme)
+        let maps = collectMapComponents(from: components)
+        guard !maps.isEmpty else { return }
+
+        let group = DispatchGroup()
+        for mapComponent in maps {
+            let key = cacheKey(componentID: mapComponent.id, colorScheme: colorScheme)
+            if storage[key] != nil { continue }
+
+            let locationPreset = (mapComponent.getProperty(key: "locationPreset") as? String) ?? "San Francisco"
+            let rawZoom = (mapComponent.getProperty(key: "zoom") as? Double)
+                ?? (mapComponent.getProperty(key: "zoom") as? Int).map(Double.init)
+                ?? 12.0
+            let rawPitch = (mapComponent.getProperty(key: "pitch") as? Double)
+                ?? (mapComponent.getProperty(key: "pitch") as? Int).map(Double.init)
+                ?? 0.0
+            let zoom = rawZoom.isFinite ? min(max(rawZoom, 1.0), 20.0) : 12.0
+            let pitch = rawPitch.isFinite ? min(max(rawPitch, 0.0), 75.0) : 0.0
+            let center = mapPresetCoordinate(for: locationPreset)
+
+            group.enter()
+            requestSnapshotBlocking(
+                componentID: mapComponent.id,
+                center: center,
+                zoom: zoom,
+                pitch: pitch,
+                realistic: true,
+                colorScheme: colorScheme
+            ) {
+                group.leave()
+            }
+        }
+
+        _ = group.wait(timeout: .now() + timeout)
+    }
+
+    private func requestSnapshotBlocking(
+        componentID: UUID,
+        center: CLLocationCoordinate2D,
+        zoom: Double,
+        pitch: Double,
+        realistic: Bool,
+        colorScheme: ColorScheme,
+        completion: @escaping () -> Void
+    ) {
+        let key = cacheKey(componentID: componentID, colorScheme: colorScheme)
+        if inFlight.contains(key) {
+            completion()
+            return
+        }
+        inFlight.insert(key)
+
+        let options = MKMapSnapshotter.Options()
+        options.size = CGSize(width: 393, height: 852)
+        options.showsBuildings = realistic
+        options.mapType = .standard
+        #if os(iOS)
+        options.traitCollection = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
+        #endif
+        let distance = max(30, min(20_000_000, 20_000_000 / pow(2.0, zoom)))
+        options.camera = MKMapCamera(lookingAtCenter: center, fromDistance: distance, pitch: pitch, heading: 0)
+
+        MKMapSnapshotter(options: options).start(with: DispatchQueue.global(qos: .userInitiated)) { [weak self] snapshot, _ in
+            guard let self else {
+                completion()
+                return
+            }
+            defer {
+                self.inFlight.remove(key)
+                completion()
+            }
+            guard let snapshot else { return }
+            self.insert(snapshot.image, for: key)
+        }
+    }
+
+    func prune(to components: [UIComponent], colorScheme: ColorScheme) {
+        let mapIDs = Set(collectMapComponents(from: components).map(\.id))
+        storage = storage.filter { key, _ in
+            key.style == styleString(for: colorScheme) && mapIDs.contains(key.id)
+        }
+        lruOrder = lruOrder.filter { storage[$0] != nil }
+        inFlight = inFlight.filter { key in
+            key.style == styleString(for: colorScheme) && mapIDs.contains(key.id)
+        }
+    }
+
+    private func purgeNonMatchingStyle(keeping colorScheme: ColorScheme) {
+        let keepStyle = styleString(for: colorScheme)
+        storage = storage.filter { $0.key.style == keepStyle }
+        lruOrder = lruOrder.filter { storage[$0] != nil }
+        inFlight = inFlight.filter { $0.style == keepStyle }
+    }
+
+    private func insert(_ image: PlatformMapImage, for key: CacheKey) {
+        storage[key] = image
+        touch(key)
+        trimIfNeeded()
+    }
+
+    private func touch(_ key: CacheKey) {
+        lruOrder.removeAll { $0 == key }
+        lruOrder.append(key)
+    }
+
+    private func trimIfNeeded() {
+        while storage.count > maxEntries, let oldest = lruOrder.first {
+            lruOrder.removeFirst()
+            storage.removeValue(forKey: oldest)
+        }
+    }
+
+    private func cacheKey(componentID: UUID, colorScheme: ColorScheme) -> CacheKey {
+        CacheKey(id: componentID, style: styleString(for: colorScheme))
+    }
+
+    private func styleString(for colorScheme: ColorScheme) -> String {
+        colorScheme == .dark ? "dark" : "light"
+    }
+
+    private func collectMapComponents(from components: [UIComponent]) -> [UIComponent] {
+        var results: [UIComponent] = []
+        for component in components {
+            if component.type == .map {
+                results.append(component)
+            }
+            if !component.children.isEmpty {
+                results.append(contentsOf: collectMapComponents(from: component.children))
+            }
+        }
+        return results
+    }
+
+    private func mapPresetCoordinate(for preset: String) -> CLLocationCoordinate2D {
+        switch preset {
+        case "Current Location":
+            return CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+        case "New York":
+            return CLLocationCoordinate2D(latitude: 40.7128, longitude: -74.0060)
+        case "Los Angeles":
+            return CLLocationCoordinate2D(latitude: 34.0522, longitude: -118.2437)
+        case "Chicago":
+            return CLLocationCoordinate2D(latitude: 41.8781, longitude: -87.6298)
+        case "London":
+            return CLLocationCoordinate2D(latitude: 51.5074, longitude: -0.1278)
+        case "Tokyo":
+            return CLLocationCoordinate2D(latitude: 35.6762, longitude: 139.6503)
+        case "Paris":
+            return CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522)
+        default:
+            return CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+        }
+    }
 }
 
 private extension Image {
@@ -676,11 +1135,11 @@ extension View {
         return view
     }
     
-    func applyModifiers(_ modifiers: [ComponentModifier], component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent, Bool) -> Void)?, selectedComponentIds: Set<UUID>) -> some View {
+    func applyModifiers(_ modifiers: [ComponentModifier], component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent, Bool) -> Void)?, selectedComponentIds: Set<UUID>, isScreenshotCapture: Bool = false) -> some View {
         var view = AnyView(self)
 
         for modifier in orderedModifiersForRendering(modifiers) {
-            view = AnyView(applyModifier(modifier, to: view, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds))
+            view = AnyView(applyModifier(modifier, to: view, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture))
         }
         
         return view
@@ -781,7 +1240,7 @@ extension View {
         }
     }
     
-    private func applyModifier(_ modifier: ComponentModifier, to view: AnyView, component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent, Bool) -> Void)?, selectedComponentIds: Set<UUID>) -> AnyView {
+    private func applyModifier(_ modifier: ComponentModifier, to view: AnyView, component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent, Bool) -> Void)?, selectedComponentIds: Set<UUID>, isScreenshotCapture: Bool = false) -> AnyView {
         switch modifier.type {
         case .frame:
             return applyFrameModifier(modifier, to: view, component: component, deviceSize: deviceSize)
@@ -883,6 +1342,10 @@ extension View {
                 }
 
                 let shapeName = normalizedGlassShapeName(from: modifier)
+                if isScreenshotCapture, component.type == .shape {
+                    let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 10)
+                    return AnyView(screenshotGlassShapeFallback(baseView: baseView, shapeName: shapeName, radius: radius))
+                }
                 switch shapeName {
                 case "Circle":
                     return AnyView(baseView.glassEffect(.regular, in: Circle()))
@@ -900,6 +1363,45 @@ extension View {
                 }
             }
             return view
+        }
+    }
+
+    @available(iOS 26.0, macOS 26.0, *)
+    private func screenshotGlassShapeFallback(baseView: AnyView, shapeName: String, radius: CGFloat) -> some View {
+        let fillColor = Color.white.opacity(0.16)
+        let strokeColor = Color.white.opacity(0.35)
+
+        switch shapeName {
+        case "Circle":
+            return AnyView(
+                baseView
+                    .background(Circle().fill(fillColor))
+                    .overlay(Circle().stroke(strokeColor, lineWidth: 1))
+            )
+        case "Capsule":
+            return AnyView(
+                baseView
+                    .background(Capsule().fill(fillColor))
+                    .overlay(Capsule().stroke(strokeColor, lineWidth: 1))
+            )
+        case "RoundedRectangle":
+            return AnyView(
+                baseView
+                    .background(RoundedRectangle(cornerRadius: radius).fill(fillColor))
+                    .overlay(RoundedRectangle(cornerRadius: radius).stroke(strokeColor, lineWidth: 1))
+            )
+        case "Ellipse":
+            return AnyView(
+                baseView
+                    .background(Ellipse().fill(fillColor))
+                    .overlay(Ellipse().stroke(strokeColor, lineWidth: 1))
+            )
+        default:
+            return AnyView(
+                baseView
+                    .background(Rectangle().fill(fillColor))
+                    .overlay(Rectangle().stroke(strokeColor, lineWidth: 1))
+            )
         }
     }
 

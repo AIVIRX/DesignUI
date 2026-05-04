@@ -6,14 +6,20 @@
 
 import SwiftUI
 
+enum ComponentLibraryMode {
+    case add
+    case replace
+}
+
 struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
+    var mode: ComponentLibraryMode = .add
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     // Define the custom sort order for prioritization
     private let componentOrder: [ComponentType] = [
-        .text, .image, .sfSymbol, // Core Content
+        .text, .image, .map, .sfSymbol, // Core Content
         .stack, .scrollView, .spacer, .divider, // Layout
         .shape, // Shapes
         .button, .textField, .toggle, .slider, .progressView, .gauge // Controls
@@ -88,6 +94,15 @@ struct ComponentLibraryView: View {
     }
     
     private func addComponent(_ component: UIComponent) {
+        if mode == .replace {
+            guard let selected = selectedComponent else {
+                canvasManager.addComponent(component)
+                return
+            }
+            canvasManager.replaceComponent(selected, with: component, registerUndo: true, undoDescription: "Replace Component")
+            return
+        }
+
         if let selected = selectedComponent {
             if canvasManager.canAcceptChildren(selected) {
                 // Selected is a container - add as child

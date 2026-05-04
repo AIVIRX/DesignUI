@@ -43,29 +43,40 @@ class ScreenshotUtility {
             )
         }
         
-        // Use ImageRenderer for modern iOS/macOS to properly capture blur effects
-        let renderer = ImageRenderer(content: contentView)
-        renderer.scale = 3.0 // Super Retina quality
-        
         #if os(macOS)
-        guard let cgImage = renderer.cgImage else {
-            debugLog("❌ Failed to render image with ImageRenderer")
+        let hostingView = NSHostingView(rootView: contentView)
+        let targetSize: CGSize
+        if isContentAdaptive {
+            targetSize = hostingView.fittingSize
+        } else {
+            targetSize = size
+        }
+        guard targetSize.width > 0, targetSize.height > 0 else {
+            debugLog("❌ Invalid screenshot target size: \(targetSize)")
             return nil
         }
-        
-        // Convert to NSBitmapImageRep
-        let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
-        
-        // Ensure accurate scaling by setting the size and bits appropriately
-        bitmapRep.size = size
-        
+
+        hostingView.frame = CGRect(origin: .zero, size: targetSize)
+        hostingView.layoutSubtreeIfNeeded()
+        hostingView.displayIfNeeded()
+
+        guard let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) else {
+            debugLog("❌ Failed to create bitmap image rep for screenshot capture")
+            return nil
+        }
+        bitmapRep.size = targetSize
+        hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep)
+
         guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
             debugLog("❌ Failed to convert to PNG")
             return nil
         }
-
         return pngData
         #else
+        // Use ImageRenderer for iOS capture.
+        let renderer = ImageRenderer(content: contentView)
+        renderer.scale = 3.0 // Super Retina quality
+
         guard let uiImage = renderer.uiImage else {
             debugLog("❌ Failed to render image with ImageRenderer")
             return nil

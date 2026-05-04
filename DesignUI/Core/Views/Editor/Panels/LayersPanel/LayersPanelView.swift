@@ -12,6 +12,8 @@ struct LayersPanelView: View {
     @Binding var selectedComponent: UIComponent?
     var onLayerTapped: ((UIComponent) -> Void)? = nil // Callback for iOS navigation
     @Binding var showComponentLibrary: Bool
+    @Binding var componentLibraryMode: ComponentLibraryMode
+    var onReplaceRequested: ((UIComponent) -> Void)? = nil
     @State private var expanded: Set<UUID> = []
     @State private var expandedOverlayFolders: Set<UUID> = [] // Track overlay folder expansion separately
     @State private var dragOverTarget: UUID?
@@ -91,7 +93,7 @@ struct LayersPanelView: View {
     }
     
     private var phoneComponentLibraryView: some View {
-        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager, mode: componentLibraryMode)
             .navigationTitle("Components")
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -99,7 +101,7 @@ struct LayersPanelView: View {
     }
     
     private func componentLibraryPopoverView(width: CGFloat, height: CGFloat) -> some View {
-        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager)
+        ComponentLibraryView(selectedComponent: $selectedComponent, canvasManager: canvasManager, mode: componentLibraryMode)
             .frame(width: width, height: height)
     }
     
@@ -166,6 +168,9 @@ struct LayersPanelView: View {
             expandedOverlayFolders: $expandedOverlayFolders,
             onSelect: handleLayerSelection,
             onWrap: wrapComponent,
+            onReplace: { component in
+                onReplaceRequested?(component)
+            },
             canvasManager: canvasManager
         )
     }
@@ -193,6 +198,9 @@ struct LayersPanelView: View {
             getIndexInParent: indexInParentForComponent,
             onSelect: handleLayerSelection,
             onWrap: wrapComponent,
+            onReplace: { component in
+                onReplaceRequested?(component)
+            },
             canvasManager: canvasManager
         )
         .id(component.id)
@@ -472,10 +480,11 @@ private struct OutlineRow: View {
     let getIndexInParent: (UUID) -> Int
     let onSelect: (UIComponent) -> Void
     let onWrap: (UIComponent, ComponentType) -> Void
+    let onReplace: (UIComponent) -> Void
     let canvasManager: CanvasManager
     @State private var isHovered = false
     
-    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int, onSelect: @escaping (UIComponent) -> Void, onWrap: @escaping (UIComponent, ComponentType) -> Void, canvasManager: CanvasManager) {
+    init(component: UIComponent, level: Int, expanded: Binding<Set<UUID>>, selectedComponent: Binding<UIComponent?>, dragOverTarget: Binding<UUID?>, dragOverPosition: Binding<DropPosition>, draggingId: Binding<UUID?>, onDelete: @escaping () -> Void, onDuplicate: @escaping () -> Void, onMove: @escaping (_ sourceId: UUID, _ newParentId: UUID?, _ index: Int) -> Void, getParentOf: @escaping (UUID) -> UUID?, getIndexInParent: @escaping (UUID) -> Int, onSelect: @escaping (UIComponent) -> Void, onWrap: @escaping (UIComponent, ComponentType) -> Void, onReplace: @escaping (UIComponent) -> Void, canvasManager: CanvasManager) {
         self.component = component
         self.level = level
         self._expanded = expanded
@@ -490,6 +499,7 @@ private struct OutlineRow: View {
         self.getIndexInParent = getIndexInParent
         self.onSelect = onSelect
         self.onWrap = onWrap
+        self.onReplace = onReplace
         self.canvasManager = canvasManager
     }
     
@@ -528,6 +538,7 @@ private struct OutlineRow: View {
             getIndexInParent: getIndexInParent,
             onSelect: onSelect,
             onWrap: onWrap,
+            onReplace: onReplace,
             canvasManager: canvasManager
         )
         .transition(.opacity)
@@ -573,6 +584,12 @@ private struct OutlineRow: View {
             onDuplicate()
         }) {
             Label("Duplicate", systemImage: "doc.on.doc")
+        }
+
+        Button(action: {
+            onReplace(component)
+        }) {
+            Label("Replace…", systemImage: "arrow.triangle.2.circlepath")
         }
 
         if canAddLayerModifiers {
@@ -1019,6 +1036,7 @@ private struct OverlayFolderRow: View {
     @Binding var expandedOverlayFolders: Set<UUID>
     let onSelect: (UIComponent) -> Void
     let onWrap: (UIComponent, ComponentType) -> Void
+    let onReplace: (UIComponent) -> Void
     let canvasManager: CanvasManager
     
     @State private var isHovered = false
@@ -1151,6 +1169,7 @@ private struct OverlayFolderRow: View {
             getIndexInParent: getIndexInParent,
             onSelect: onSelect,
             onWrap: onWrap,
+            onReplace: onReplace,
             canvasManager: canvasManager
         )
         .transition(.opacity)

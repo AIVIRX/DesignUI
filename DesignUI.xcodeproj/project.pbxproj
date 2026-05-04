@@ -190,6 +190,7 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB4F5CC2F2C433800D2AB65 /* GridConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridConfiguration.swift; sourceTree = "<group>"; };
+		ECC2476E2FA66E0400F82FC8 /* index.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = index.ts; sourceTree = "<group>"; };
 		ECC93A362F16D4C800D9F11E /* blank.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = blank.json; sourceTree = "<group>"; };
 		ECC93A372F16D4C800D9F11E /* flight_status_widget.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = flight_status_widget.json; sourceTree = "<group>"; };
 		ECC93A382F16D4C800D9F11E /* introducing_features.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = introducing_features.json; sourceTree = "<group>"; };
@@ -578,6 +579,7 @@
 		ECD13FFE2C18C12400105B3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				ECC2476E2FA66E0400F82FC8 /* index.ts */,
 				EC7D7BD82C19E426003134B1 /* Assets.xcassets */,
 				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
 				ECC93A392F16D4C800D9F11E /* Templates */,
@@ -1002,7 +1004,7 @@
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = YES;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
@@ -1082,7 +1084,7 @@
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = YES;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;

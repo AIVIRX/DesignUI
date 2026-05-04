@@ -36,10 +36,10 @@ struct ComponentRenderer: View {
     var body: some View {
         renderedComponent
         .opacity(component.isVisible ? 1.0 : 0.0)
-        .applyModifiers(component.modifiers, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+        .applyModifiers(component.modifiers, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture)
         .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
         .colorScheme(colorScheme ?? .light)
-        .contentShape(Rectangle())
+        .applyInteractionContentShapeIfNeeded(component: component)
         .id(component.id)
         .onAppear {
             hasAppliedModifiers = true
@@ -57,6 +57,8 @@ struct ComponentRenderer: View {
             return AnyView(renderText())
         case .image:
             return AnyView(renderImage())
+        case .map:
+            return AnyView(renderMap())
         case .stack:
             return AnyView(renderStack())
         case .vstack:
@@ -187,5 +189,27 @@ struct ComponentRenderer: View {
     
     private func selectionStroke<S: InsettableShape>(_ shape: S, color: Color, lineWidth: CGFloat) -> AnyView {
         AnyView(shape.stroke(color, lineWidth: lineWidth))
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func applyInteractionContentShapeIfNeeded(component: UIComponent) -> some View {
+        // Container-like layers with transparent space (Stack/ScrollView/Spacer) should not
+        // force a full-rect hit target, otherwise they block interaction with content beneath.
+        let shouldSkipForcedRectHitShape =
+            component.isOverlay ||
+            component.type == .stack ||
+            component.type == .vstack ||
+            component.type == .hstack ||
+            component.type == .zstack ||
+            component.type == .scrollView ||
+            component.type == .spacer
+
+        if shouldSkipForcedRectHitShape {
+            self
+        } else {
+            self.contentShape(Rectangle())
+        }
     }
 }

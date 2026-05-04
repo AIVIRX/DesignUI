@@ -4283,6 +4283,9 @@
     "0" : {
 
     },
+    "1" : {
+
+    },
     "9:41" : {
       "localizations" : {
         "ar" : {
@@ -7912,7 +7915,7 @@
         }
       }
     },
-    "Ask AI to generate anything..." : {
+    "Ask AI to perform edits..." : {
 
     },
     "Aspect Ratio" : {
@@ -32536,6 +32539,9 @@
         }
       }
     },
+    "Location Preset" : {
+
+    },
     "My Amazing Design" : {
       "localizations" : {
         "ar" : {
@@ -39099,6 +39105,9 @@
         }
       }
     },
+    "Page Viewer" : {
+
+    },
     "Pages" : {
       "localizations" : {
         "ar" : {
@@ -39754,6 +39763,9 @@
           }
         }
       }
+    },
+    "Pitch" : {
+
     },
     "Placeholder" : {
 
@@ -44355,6 +44367,9 @@
           }
         }
       }
+    },
+    "Replace…" : {
+
     },
     "Resizable" : {
       "localizations" : {
@@ -61438,6 +61453,9 @@
           }
         }
       }
+    },
+    "Zoom" : {
+
     },
     "ZStack" : {
       "localizations" : {
