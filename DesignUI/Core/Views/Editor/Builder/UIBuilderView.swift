@@ -1905,11 +1905,6 @@ struct UIBuilderView: View {
     }
     
     private func saveAsScreenshot() {
-        MapSnapshotCache.shared.prewarmSnapshots(
-            for: canvasManager.components,
-            colorScheme: canvasManager.colorScheme ?? .light
-        )
-
         let isWidget = canvasManager.devicePreset.category == .widget
         let screenshotView = CanvasScreenshotView(
             components: canvasManager.components,
@@ -2008,10 +2003,6 @@ struct UIBuilderView: View {
                 statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
                 statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
             )
-            MapSnapshotCache.shared.prewarmSnapshots(
-                for: canvasManager.components,
-                colorScheme: canvasManager.colorScheme ?? .light
-            )
             if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
                 of: screenshotView,
                 size: canvasManager.devicePreset.size,
@@ -2049,10 +2040,6 @@ struct UIBuilderView: View {
         } else {
             canvasManager.colorScheme = nil  // System default
         }
-        MapSnapshotCache.shared.prune(
-            to: newPage.components,
-            colorScheme: canvasManager.colorScheme ?? .light
-        )
         
         // Restore status bar visibility and component
         if let savedStatusBar = newPage.statusBarComponent {
@@ -2835,11 +2822,6 @@ struct UIBuilderView: View {
     }
     
     private func performScreenshotCapture() {
-        MapSnapshotCache.shared.prewarmSnapshots(
-            for: self.canvasManager.components,
-            colorScheme: self.canvasManager.colorScheme ?? .light
-        )
-
         let isWidget = self.canvasManager.devicePreset.category == .widget
         let screenshotView = CanvasScreenshotView(
             components: self.canvasManager.components,

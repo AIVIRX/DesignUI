@@ -261,7 +261,6 @@ private struct FastInspectorView: View {
     @FocusState private var focusedShadowNumericField: ShadowNumericFocus?
     @State private var numericInputTarget: NumericInputTarget?
     @State private var numericInputText: String = ""
-    @ObservedObject private var locationPermissionManager = LocationPermissionManager.shared
 
     private enum FillFieldFocus: Hashable {
         case hex(UUID)
@@ -321,9 +320,6 @@ private struct FastInspectorView: View {
                 if component.type == .progressView {
                     progressViewSection
                 }
-                if component.type == .map {
-                    mapSection
-                }
                 if component.type == .chart {
                     chartSection
                 }
@@ -348,11 +344,21 @@ private struct FastInspectorView: View {
             syncInspectorInputs()
         }
         .sheet(isPresented: $showSFSymbolPicker) {
+            #if os(iOS)
+            NavigationStack {
+                SFSymbolPickerView(selectedSymbol: $symbolInput) { selectedSymbol in
+                    symbolInput = selectedSymbol
+                    canvasManager.updateComponentProperty(for: component, key: "symbolName", value: selectedSymbol)
+                    showSFSymbolPicker = false
+                }
+            }
+            #else
             SFSymbolPickerView(selectedSymbol: $symbolInput) { selectedSymbol in
                 symbolInput = selectedSymbol
                 canvasManager.updateComponentProperty(for: component, key: "symbolName", value: selectedSymbol)
                 showSFSymbolPicker = false
             }
+            #endif
         }
         .alert(numericInputTitle, isPresented: Binding(
             get: { numericInputTarget != nil },
@@ -746,68 +752,6 @@ private struct FastInspectorView: View {
             }
         }
     }
-
-    private var mapShowUserLocation: Bool {
-        (component.getProperty(key: "showsUserLocation") as? Bool) ?? false
-    }
-
-    private var mapLocationPresetValue: String {
-        (component.getProperty(key: "locationPreset") as? String) ?? "San Francisco"
-    }
-
-    private var mapLocationPresetOptions: [String] {
-        ["Current Location", "San Francisco", "New York", "Los Angeles", "Chicago", "London", "Tokyo", "Paris"]
-    }
-
-    private var mapSection: some View {
-        inspectorSection(
-            "Map",
-            plus: nil,
-            showActions: showComponentActions && component.type == .map
-        ) {
-            VStack(spacing: 10) {
-                mapLocationPresetMenu
-
-                toggleField(
-                    title: "Show User Location",
-                    value: mapShowUserLocation,
-                    helpText: "Show User Location"
-                ) { enabled in
-                    canvasManager.updateComponentProperty(for: component, key: "showsUserLocation", value: enabled)
-                    if enabled {
-                        LocationPermissionManager.shared.requestWhenInUseIfNeeded()
-                    }
-                }
-            }
-        }
-    }
-
-    private var mapLocationPresetMenu: some View {
-        Menu {
-            ForEach(mapLocationPresetOptions, id: \.self) { option in
-                Button(option) {
-                    canvasManager.updateComponentProperty(for: component, key: "locationPreset", value: option)
-                }
-                .disabled(option == "Current Location" && !locationPermissionManager.isAuthorizedForLocation)
-            }
-        } label: {
-            HStack {
-                Text(mapLocationPresetValue)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.primary)
-                Spacer()
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(.secondary)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(roundedFieldBackground)
-        }
-        .buttonStyle(.plain)
-        .help("Location Preset")
-    }
-
 
     private var chartStyleValue: String {
         (component.getProperty(key: "chartStyle") as? String) ?? "Line + Area"

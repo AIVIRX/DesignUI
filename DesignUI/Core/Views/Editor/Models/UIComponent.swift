@@ -15,7 +15,6 @@ import UIKit
 enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case text = "Text"
     case image = "Image"
-    case map = "Map"
     case sfSymbol = "SF Symbol"
     case stack = "Stack"
     case vstack = "VStack"
@@ -47,7 +46,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .text: return "textformat"
         case .image: return "photo"
-        case .map: return "map"
         case .stack: return "square.stack.3d.up"
         case .vstack: return "square.split.1x2.fill"
         case .hstack: return "square.split.2x1.fill"
@@ -76,6 +74,21 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     
     var assetName: String {
         return "component_\(String(describing: self).lowercased())"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        if raw == "Map" {
+            self = .shape
+            return
+        }
+        self = ComponentType(rawValue: raw) ?? .text
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }
 
@@ -1139,20 +1152,6 @@ extension UIComponent {
                 ComponentProperty(key: "imageData", displayName: "Image Data", type: .string, value: "", defaultValue: ""),
                 ComponentProperty(key: "resizable", displayName: "Resizable", type: .boolean, value: true, defaultValue: true),
                 ComponentProperty(key: "aspectRatio", displayName: "Aspect Ratio", type: .dropdown, value: "fit", defaultValue: "fit", options: ["fit", "fill", "none"])
-            ]
-        case .map:
-            return [
-                ComponentProperty(
-                    key: "locationPreset",
-                    displayName: "Location",
-                    type: .dropdown,
-                    value: "San Francisco",
-                    defaultValue: "San Francisco",
-                    options: ["Current Location", "San Francisco", "New York", "Los Angeles", "Chicago", "London", "Tokyo", "Paris"]
-                ),
-                ComponentProperty(key: "zoom", displayName: "Zoom", type: .number, value: 12.0, defaultValue: 12.0),
-                ComponentProperty(key: "pitch", displayName: "Pitch", type: .number, value: 0.0, defaultValue: 0.0),
-                ComponentProperty(key: "showsUserLocation", displayName: "Shows User Location", type: .boolean, value: false, defaultValue: false)
             ]
         case .stack:
             return [

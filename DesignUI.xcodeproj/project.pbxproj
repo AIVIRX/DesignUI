@@ -16,7 +16,6 @@
 		EC37CE232F195EF3006CFD08 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE222F195EEC006CFD08 /* DetailView.swift */; };
 		EC37CE252F196758006CFD08 /* CommunityCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC37CE242F196751006CFD08 /* CommunityCards.swift */; };
 		EC3C17462F9FCA6A00027185 /* ColorModifierEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC3C17432F9FCA6A00027185 /* ColorModifierEditor.swift */; };
-		EC3FBFE02F97318000B2B3BD /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = EC3FBFDF2F97318000B2B3BD /* Localizable.xcstrings */; };
 		EC412F542E79F3EA001B923B /* InfiniteScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */; };
 		EC4D83AD2F63B03D002219E8 /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4D836B2F63B03D002219E8 /* CodePreviewView.swift */; };
 		EC4D83AE2F63B03D002219E8 /* DesignTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4D83842F63B03D002219E8 /* DesignTemplate.swift */; };
@@ -52,6 +51,7 @@
 		EC5982A62D57F61F00633392 /* LikedPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */; };
 		EC6027F32F4D0AB900950A88 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6027F22F4D0AB900950A88 /* AIService.swift */; };
 		EC62CF652F09F0DB00D7EFF8 /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */; };
+		EC6B2CE82FA9095D006A9B77 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = EC6B2CE72FA9095D006A9B77 /* Localizable.xcstrings */; };
 		EC6FE5832D6A95A5001B38E4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */; };
 		EC7D7BC42C19E218003134B1 /* DesignUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */; };
 		EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC7D7BD82C19E426003134B1 /* Assets.xcassets */; };
@@ -120,7 +120,6 @@
 		EC37CE222F195EEC006CFD08 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC37CE242F196751006CFD08 /* CommunityCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityCards.swift; sourceTree = "<group>"; };
 		EC3C17432F9FCA6A00027185 /* ColorModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorModifierEditor.swift; sourceTree = "<group>"; };
-		EC3FBFDF2F97318000B2B3BD /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollView.swift; sourceTree = "<group>"; };
 		EC419E5B2E85D6B60081C5D2 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
@@ -159,6 +158,7 @@
 		EC5982A52D57F61F00633392 /* LikedPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedPostsViewModel.swift; sourceTree = "<group>"; };
 		EC6027F22F4D0AB900950A88 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		EC62CF642F09F0DB00D7EFF8 /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
+		EC6B2CE72FA9095D006A9B77 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		EC6FE5822D6A95A5001B38E4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignUIApp.swift; sourceTree = "<group>"; };
 		EC7D7BD82C19E426003134B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -356,13 +356,13 @@
 			path = Rendering;
 			sourceTree = "<group>";
 		};
-		EC4D83AC2F63B03D002219E8 /* Screenshots */ = {
+		EC4D83AC2F63B03D002219E8 /* ScreenShots */ = {
 			isa = PBXGroup;
 			children = (
 				EC4D83AA2F63B03D002219E8 /* CanvasScreenshotView.swift */,
 				EC4D83AB2F63B03D002219E8 /* ScreenshotUtility.swift */,
 			);
-			path = Screenshots;
+			path = ScreenShots;
 			sourceTree = "<group>";
 		};
 		EC86A0FC2F29E03A00FD74CA /* Community */ = {
@@ -435,6 +435,7 @@
 		ECADF5F22BCAE9610096753A = {
 			isa = PBXGroup;
 			children = (
+				EC6B2CE72FA9095D006A9B77 /* Localizable.xcstrings */,
 				ECADF5FD2BCAE9610096753A /* DesignUI */,
 				ECADF5FC2BCAE9610096753A /* Products */,
 				ECADF6182BCC83AB0096753A /* Frameworks */,
@@ -482,7 +483,7 @@
 				EC4D83872F63B03D002219E8 /* Models */,
 				EC4D83A52F63B03D002219E8 /* Panels */,
 				EC4D83A92F63B03D002219E8 /* Rendering */,
-				EC4D83AC2F63B03D002219E8 /* Screenshots */,
+				EC4D83AC2F63B03D002219E8 /* ScreenShots */,
 			);
 			path = Editor;
 			sourceTree = "<group>";
@@ -583,7 +584,6 @@
 				EC7D7BD82C19E426003134B1 /* Assets.xcassets */,
 				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
 				ECC93A392F16D4C800D9F11E /* Templates */,
-				EC3FBFDF2F97318000B2B3BD /* Localizable.xcstrings */,
 				EC8C354F2F9E9AAD004A2C94 /* AppIcon.icon */,
 			);
 			path = Resources;
@@ -737,7 +737,7 @@
 			files = (
 				ECC93A3A2F16D4C800D9F11E /* blank.json in Resources */,
 				ECC93A3B2F16D4C800D9F11E /* flight_status_widget.json in Resources */,
-				EC3FBFE02F97318000B2B3BD /* Localizable.xcstrings in Resources */,
+				EC6B2CE82FA9095D006A9B77 /* Localizable.xcstrings in Resources */,
 				ECC93A3C2F16D4C800D9F11E /* introducing_features.json in Resources */,
 				EC7D7BD92C19E426003134B1 /* Assets.xcassets in Resources */,
 				EC8C35502F9E9AAD004A2C94 /* AppIcon.icon in Resources */,
@@ -990,7 +990,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 500;
+				CURRENT_PROJECT_VERSION = 1200;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1004,7 +1004,7 @@
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = YES;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
@@ -1036,7 +1036,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 37;
+				MARKETING_VERSION = 2026.1;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-function-bodies=100 -Xfrontend -warn-long-expression-type-checking=100";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
@@ -1055,7 +1055,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Debug;
 		};
@@ -1070,7 +1070,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 500;
+				CURRENT_PROJECT_VERSION = 1200;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1084,7 +1084,7 @@
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = YES;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
@@ -1116,7 +1116,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 37;
+				MARKETING_VERSION = 2026.1;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
@@ -1135,7 +1135,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Release;
 		};

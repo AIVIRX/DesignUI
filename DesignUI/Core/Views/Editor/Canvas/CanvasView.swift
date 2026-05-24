@@ -171,8 +171,7 @@ struct CanvasView: View {
                 )
                 .modifier(
                     ConditionalDrawingGroup(
-                        shouldRasterize: !canvasManager.hasMapComponent
-                            && !canvasManager.hasScrollableComponent
+                        shouldRasterize: !canvasManager.hasScrollableComponent
                             && !canvasManager.hasPlatformViewComponent
                     )
                 )

@@ -66,10 +66,6 @@ class CanvasManager: ObservableObject {
     private var statusBarCancellable: AnyCancellable?
     private let layoutAnimation = Animation.spring(response: 0.35, dampingFraction: 0.85)
     
-    var hasMapComponent: Bool {
-        return containsComponent(ofType: .map, in: components)
-    }
-
     var hasScrollableComponent: Bool {
         return containsComponent(ofType: .scrollView, in: components)
     }
@@ -1056,10 +1052,6 @@ class CanvasManager: ObservableObject {
         if containsComponent(ofType: .chart, in: components) {
             imports.append("import Charts")
         }
-        if containsComponent(ofType: .map, in: components) {
-            imports.append("import MapKit")
-        }
-        
         var code = imports.joined(separator: "\n")
         code += "\n\nstruct \(viewName): View {\n    var body: some View {"
         

@@ -73,8 +73,7 @@ const PRO_DAILY_LIMIT = 120;
 const THEME_MODEL = "gpt-4.1-mini";
 const ARCHETYPE_MODEL = "gpt-4o-mini";
 const SLOT_PLANNER_MODEL = "gpt-4o-mini";
-const SLOT_GENERATOR_MODEL = "gpt-4o-mini";   // fast, parallel-friendly — constraints keep it safe
-const SLOT_CRITIC_MODEL = "gpt-4.1-mini";
+const SLOT_GENERATOR_MODEL = "gpt-4.1";       // prioritize first-pass visual quality
 const STANDARD_TOKENS_MODEL = "gpt-4o-mini";
 const SELECTION_MODEL = "gpt-4o-mini";
 const REPAIR_MODEL = "gpt-4o-mini";
@@ -85,20 +84,18 @@ const SELECTION_MAX_TOKENS = 900;
 const STYLE_PATCH_MAX_TOKENS = 400;
 const ARCHETYPE_MAX_TOKENS = 200;
 const SLOT_PLANNER_MAX_TOKENS = 800;
-const SLOT_GENERATOR_MAX_TOKENS = 2200;
-const SLOT_CRITIC_MAX_TOKENS = 260;
+const SLOT_GENERATOR_MAX_TOKENS = 3000;
 const THEME_EXTRACT_MAX_TOKENS = 600;
 const OPENAI_TIMEOUT_MS = 14000;
 const EMBEDDING_TIMEOUT_MS = 6000;
-const SLOT_CRITIC_TIMEOUT_MS = 3200;
-const GENERATION_DEADLINE_MS = 22000;
+const GENERATION_DEADLINE_MS = 30000;
 const SLOT_BATCH_SIZE = 2;
 const SLOT_BATCH_GRACE_MS = 1200;
-const SLOT_GENERATION_MAX_ATTEMPTS = 1;
+const SLOT_GENERATION_MAX_ATTEMPTS = 2;
 const MAX_GENERATION_SLOTS = 6;
-const SLOT_DESIGN_PASSES = 2;
-const SLOT_CRITIC_MIN_SCORE = 76;
-const GEN_V3_SKETCH_RENDER = true;
+const SLOT_DESIGN_PASSES = 1;
+const GEN_V3_SKETCH_RENDER = false;
+const GEN_V3_CONTRACTS_AS_PLANS = true;
 
 // ─── Schema rules ────────────────────────────────────────────────────────────
 
@@ -919,6 +916,100 @@ type Exemplar = {
     similarity?: number;
 };
 
+const SEED_SLOT_EXEMPLARS: Exemplar[] = [
+    {
+        id: "seed_hero_banner_1",
+        slot_type: "hero_banner",
+        voice_tone: "friendly",
+        surface_style: "editorial",
+        domain_tags: ["general"],
+        description: "Editorial hero with focal value, support copy, and CTA row.",
+        component_tree: {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 12 },
+            modifiers: [
+                { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
+                { type: "Padding", properties: { amount: 16, location: "all" } },
+                { type: "Background Color", properties: { color: "blue:0.08" } },
+                { type: "Corner Radius", properties: { radius: 18 } },
+            ],
+            children: [
+                { type: "Text", properties: { text: "Weekly momentum" }, modifiers: [{ type: "Font", properties: { fontSize: "caption", fontWeight: "semibold" } }] },
+                { type: "Text", properties: { text: "24% growth" }, modifiers: [{ type: "Font", properties: { fontSize: "largeTitle", fontWeight: "bold" } }] },
+                { type: "Text", properties: { text: "Performance is trending up across your top segments." }, modifiers: [{ type: "Foreground Color", properties: { color: "secondary:1.0" } }] },
+            ],
+        },
+    },
+    {
+        id: "seed_stat_group_1",
+        slot_type: "stat_group",
+        voice_tone: "professional",
+        surface_style: "utility",
+        domain_tags: ["general"],
+        description: "Two-up metric cards with primary + secondary stats and trend label.",
+        component_tree: {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 10 },
+            children: [
+                {
+                    type: "HStack",
+                    properties: { spacing: 10, alignment: "top" },
+                    children: [
+                        { type: "RoundedRectangle", properties: { cornerRadius: 14 }, modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 110 } }, { type: "Fill", properties: { color: "gray:0.10" } }] },
+                        { type: "RoundedRectangle", properties: { cornerRadius: 14 }, modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 110 } }, { type: "Fill", properties: { color: "gray:0.10" } }] },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        id: "seed_horizontal_rail_1",
+        slot_type: "horizontal_rail",
+        voice_tone: "friendly",
+        surface_style: "immersive",
+        domain_tags: ["media"],
+        description: "Poster rail with visual-first cards and concise labels.",
+        component_tree: {
+            type: "ScrollView",
+            properties: { axis: "horizontal", showsIndicators: false },
+            children: [
+                {
+                    type: "HStack",
+                    properties: { spacing: 12, alignment: "top" },
+                    children: [
+                        { type: "RoundedRectangle", properties: { cornerRadius: 12 }, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 140, heightType: "Custom", height: 190 } }, { type: "Fill", properties: { color: "gray:0.16" } }] },
+                        { type: "RoundedRectangle", properties: { cornerRadius: 12 }, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 140, heightType: "Custom", height: 190 } }, { type: "Fill", properties: { color: "gray:0.16" } }] },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        id: "seed_content_list_1",
+        slot_type: "content_list",
+        voice_tone: "professional",
+        surface_style: "utility",
+        domain_tags: ["general"],
+        description: "Scannable list rows with icon, title, subtitle, and right-aligned status.",
+        component_tree: {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 10 },
+            children: [
+                {
+                    type: "HStack",
+                    properties: { spacing: 10, alignment: "center" },
+                    modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }, { type: "Padding", properties: { amount: 12, location: "all" } }, { type: "Background Color", properties: { color: "gray:0.08" } }, { type: "Corner Radius", properties: { radius: 12 } }],
+                    children: [
+                        { type: "Circle", modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 32, heightType: "Custom", height: 32 } }, { type: "Fill", properties: { color: "gray:0.16" } }] },
+                        { type: "Text", properties: { text: "Primary row" }, modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }, { type: "Font", properties: { fontSize: "body", fontWeight: "semibold" } }] },
+                        { type: "Text", properties: { text: "Open" }, modifiers: [{ type: "Foreground Color", properties: { color: "blue:1.0" } }, { type: "Font", properties: { fontSize: "caption", fontWeight: "bold" } }] },
+                    ],
+                },
+            ],
+        },
+    },
+];
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const VALID_MODIFIER_TYPES = new Set([
@@ -926,12 +1017,6 @@ const VALID_MODIFIER_TYPES = new Set([
     "Shadow", "Opacity", "Border", "Stroke", "Background", "Overlay", "Mask", "Blur",
     "Rotation", "Offset", "Fill", "Clip Shape", "Text Alignment", "Tint", "Glass Effect",
 ]);
-const MODIFIER_SORT_ORDER = [
-    "Frame", "Padding", "Background Color", "Foreground Color", "Font", "Corner Radius",
-    "Shadow", "Opacity", "Border", "Stroke", "Background", "Overlay", "Mask", "Blur",
-    "Rotation", "Offset", "Fill", "Clip Shape", "Text Alignment", "Tint", "Glass Effect",
-] as const;
-const MODIFIER_SORT_INDEX: Map<string, number> = new Map(MODIFIER_SORT_ORDER.map((t, i) => [t, i] as [string, number]));
 const VALID_COMPONENT_TYPES = new Set([
     "Text", "Image", "SF Symbol", "Stack", "VStack", "HStack", "ZStack", "ScrollView", "Shape",
     "Button", "Chart", "Spacer", "Divider", "Rectangle", "Circle", "RoundedRectangle",
@@ -1585,51 +1670,122 @@ async function extractThemeTokens(prompt: string): Promise<ThemeTokens> {
         ctaText: "Get Started", domainTags: ["productivity"],
         sharedFacts: { greeting: "Welcome back", userName: "Alex", primaryMetricValue: "68%", secondaryMetricValue: "12 completed", streakValue: "5 days", progressPercent: 68, todayDate: "Mon, Jan 15" },
     };
+    const domainDefaults = inferDomainDefaults(prompt);
+    const explicitAccent = extractExplicitAccentFromPrompt(prompt);
+    const baseline: ThemeTokens = mergeThemeWithDefaults(fallback, domainDefaults);
 
     const response = await callOpenAI({
         model: THEME_MODEL,
         messages: [
             { role: "system", content: THEME_EXTRACTOR_SYSTEM_PROMPT },
+            { role: "system", content: `DOMAIN DEFAULTS (starting point, refine for this app):\n${JSON.stringify(domainDefaults)}` },
             { role: "user", content: prompt },
         ],
         temperature: 0.2, maxTokens: THEME_EXTRACT_MAX_TOKENS, responseFormat: { type: "json_object" },
     });
 
-    if (!response.ok) return fallback;
+    if (!response.ok) return baseline;
     const parsed = parseJsonSafe(response.content);
-    if (isJsonParseError(parsed) || !isObject(parsed.value)) return fallback;
+    if (isJsonParseError(parsed) || !isObject(parsed.value)) return baseline;
     const v = parsed.value as Record<string, unknown>;
 
     const rawFacts = isObject(v.sharedFacts) ? v.sharedFacts as Record<string, unknown> : {};
 
-    return {
-        accentColor: typeof v.accentColor === "string" ? v.accentColor : fallback.accentColor,
-        secondaryColor: typeof v.secondaryColor === "string" ? v.secondaryColor : fallback.secondaryColor,
-        surfaceStyle: normalizeSurfaceStyle(v.surfaceStyle, fallback.surfaceStyle),
-        density: normalizeDensity(v.density, fallback.density),
+    const extracted: ThemeTokens = {
+        accentColor: typeof v.accentColor === "string" ? v.accentColor : baseline.accentColor,
+        secondaryColor: typeof v.secondaryColor === "string" ? v.secondaryColor : baseline.secondaryColor,
+        surfaceStyle: normalizeSurfaceStyle(v.surfaceStyle, baseline.surfaceStyle),
+        density: normalizeDensity(v.density, baseline.density),
         fontDesign: (["default", "serif", "rounded", "monospaced"] as const).includes(v.fontDesign as never) ? v.fontDesign as string : "default",
         cornerRadiusScale: (v.cornerRadiusScale === "sharp" || v.cornerRadiusScale === "medium" || v.cornerRadiusScale === "pill") ? v.cornerRadiusScale : "medium",
         usesGradient: typeof v.usesGradient === "boolean" ? v.usesGradient : false,
-        appName: typeof v.appName === "string" ? v.appName : fallback.appName,
+        appName: typeof v.appName === "string" ? v.appName : baseline.appName,
         voiceTone: (v.voiceTone === "playful" || v.voiceTone === "calm" || v.voiceTone === "professional" || v.voiceTone === "urgent") ? v.voiceTone : "professional",
         mascotSymbol: typeof v.mascotSymbol === "string" ? v.mascotSymbol : "",
         itemNoun: typeof v.itemNoun === "string" ? v.itemNoun : "items",
         ctaVerb: typeof v.ctaVerb === "string" ? v.ctaVerb : "Start",
-        primaryMetricLabel: typeof v.primaryMetricLabel === "string" ? v.primaryMetricLabel : fallback.primaryMetricLabel,
-        primaryMetricUnit: typeof v.primaryMetricUnit === "string" ? v.primaryMetricUnit : fallback.primaryMetricUnit,
-        sampleItems: Array.isArray(v.sampleItems) ? (v.sampleItems as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 5) : fallback.sampleItems,
-        sampleMetrics: Array.isArray(v.sampleMetrics) ? (v.sampleMetrics as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 4) : fallback.sampleMetrics,
-        sampleRailItems: Array.isArray(v.sampleRailItems) ? (v.sampleRailItems as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 6) : fallback.sampleRailItems,
-        ctaText: typeof v.ctaText === "string" ? v.ctaText : fallback.ctaText,
-        domainTags: Array.isArray(v.domainTags) ? (v.domainTags as unknown[]).filter((x): x is string => typeof x === "string").map((x) => x.toLowerCase()).slice(0, 6) : fallback.domainTags,
+        primaryMetricLabel: typeof v.primaryMetricLabel === "string" ? v.primaryMetricLabel : baseline.primaryMetricLabel,
+        primaryMetricUnit: typeof v.primaryMetricUnit === "string" ? v.primaryMetricUnit : baseline.primaryMetricUnit,
+        sampleItems: Array.isArray(v.sampleItems) ? (v.sampleItems as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 5) : baseline.sampleItems,
+        sampleMetrics: Array.isArray(v.sampleMetrics) ? (v.sampleMetrics as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 4) : baseline.sampleMetrics,
+        sampleRailItems: Array.isArray(v.sampleRailItems) ? (v.sampleRailItems as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 6) : baseline.sampleRailItems,
+        ctaText: typeof v.ctaText === "string" ? v.ctaText : baseline.ctaText,
+        domainTags: Array.isArray(v.domainTags) ? (v.domainTags as unknown[]).filter((x): x is string => typeof x === "string").map((x) => x.toLowerCase()).slice(0, 6) : baseline.domainTags,
         sharedFacts: {
-            greeting: typeof rawFacts.greeting === "string" ? rawFacts.greeting : fallback.sharedFacts.greeting,
-            userName: typeof rawFacts.userName === "string" ? rawFacts.userName : fallback.sharedFacts.userName,
-            primaryMetricValue: typeof rawFacts.primaryMetricValue === "string" ? rawFacts.primaryMetricValue : fallback.sharedFacts.primaryMetricValue,
-            secondaryMetricValue: typeof rawFacts.secondaryMetricValue === "string" ? rawFacts.secondaryMetricValue : fallback.sharedFacts.secondaryMetricValue,
-            streakValue: typeof rawFacts.streakValue === "string" ? rawFacts.streakValue : fallback.sharedFacts.streakValue,
-            progressPercent: typeof rawFacts.progressPercent === "number" ? rawFacts.progressPercent : fallback.sharedFacts.progressPercent,
-            todayDate: typeof rawFacts.todayDate === "string" ? rawFacts.todayDate : fallback.sharedFacts.todayDate,
+            greeting: typeof rawFacts.greeting === "string" ? rawFacts.greeting : baseline.sharedFacts.greeting,
+            userName: typeof rawFacts.userName === "string" ? rawFacts.userName : baseline.sharedFacts.userName,
+            primaryMetricValue: typeof rawFacts.primaryMetricValue === "string" ? rawFacts.primaryMetricValue : baseline.sharedFacts.primaryMetricValue,
+            secondaryMetricValue: typeof rawFacts.secondaryMetricValue === "string" ? rawFacts.secondaryMetricValue : baseline.sharedFacts.secondaryMetricValue,
+            streakValue: typeof rawFacts.streakValue === "string" ? rawFacts.streakValue : baseline.sharedFacts.streakValue,
+            progressPercent: typeof rawFacts.progressPercent === "number" ? rawFacts.progressPercent : baseline.sharedFacts.progressPercent,
+            todayDate: typeof rawFacts.todayDate === "string" ? rawFacts.todayDate : baseline.sharedFacts.todayDate,
+        },
+    };
+    const merged = mergeThemeWithDefaults(extracted, domainDefaults);
+    if (explicitAccent) {
+        merged.accentColor = explicitAccent;
+        if (!merged.secondaryColor || merged.secondaryColor === domainDefaults.secondaryColor) {
+            merged.secondaryColor = explicitAccent;
+        }
+    }
+    return merged;
+}
+
+function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
+    const p = prompt.toLowerCase();
+    if (/\bmeditation\b|\bmindful\b|\bcalm\b|\bbreathe\b|\bzen\b/.test(p)) {
+        return { accentColor: "purple:1.0", secondaryColor: "indigo:1.0", surfaceStyle: "calm", density: "airy", voiceTone: "calm", cornerRadiusScale: "pill", domainTags: ["meditation", "wellness"], ctaText: "Begin Session" };
+    }
+    if (/\bfinance\b|\bbank\b|\binvest\b|\bportfolio\b|\bstock\b/.test(p)) {
+        return { accentColor: "blue:1.0", secondaryColor: "teal:1.0", surfaceStyle: "utility", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["finance", "analytics"], ctaText: "Review Now" };
+    }
+    if (/\bmusic\b|\bplaylist\b|\bspotify\b|\bartist\b|\balbum\b/.test(p)) {
+        return { accentColor: "green:1.0", secondaryColor: "purple:1.0", surfaceStyle: "immersive", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["music", "media"], ctaText: "Play Now" };
+    }
+    if (/\btravel\b|\bitinerary\b|\btrip\b|\bflight\b|\bhotel\b/.test(p)) {
+        return { accentColor: "orange:1.0", secondaryColor: "blue:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["travel", "planning"], ctaText: "View Trip" };
+    }
+    if (/\bfitness\b|\bworkout\b|\btraining\b|\brun\b|\bactivity\b/.test(p)) {
+        return { accentColor: "red:1.0", secondaryColor: "orange:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "urgent", cornerRadiusScale: "medium", domainTags: ["fitness", "health"], ctaText: "Start Run" };
+    }
+    if (/\bshopping\b|\bstore\b|\becommerce\b|\bcheckout\b|\bcart\b/.test(p)) {
+        return { accentColor: "indigo:1.0", secondaryColor: "pink:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["commerce", "retail"], ctaText: "Shop Now" };
+    }
+    if (/\bnews\b|\barticle\b|\breader\b|\bmagazine\b/.test(p)) {
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "sharp", domainTags: ["news", "content"], ctaText: "Read More" };
+    }
+    if (/\bchat\b|\bmessage\b|\binbox\b|\bdm\b/.test(p)) {
+        return { accentColor: "blue:1.0", secondaryColor: "green:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "playful", cornerRadiusScale: "pill", domainTags: ["messaging", "social"], ctaText: "Send Message" };
+    }
+    return {};
+}
+
+function extractExplicitAccentFromPrompt(prompt: string): string | null {
+    const p = prompt.toLowerCase();
+    const colorMap: Array<{ re: RegExp; color: string }> = [
+        { re: /\byellow\b|\bgold(en)?\b/, color: "yellow:1.0" },
+        { re: /\bgreen\b/, color: "green:1.0" },
+        { re: /\bblue\b/, color: "blue:1.0" },
+        { re: /\bred\b/, color: "red:1.0" },
+        { re: /\borange\b/, color: "orange:1.0" },
+        { re: /\bpurple\b|\bviolet\b/, color: "purple:1.0" },
+        { re: /\bpink\b/, color: "pink:1.0" },
+        { re: /\bteal\b|\bcyan\b/, color: "teal:1.0" },
+        { re: /\bindigo\b/, color: "indigo:1.0" },
+    ];
+    for (const entry of colorMap) {
+        if (entry.re.test(p)) return entry.color;
+    }
+    return null;
+}
+
+function mergeThemeWithDefaults(base: ThemeTokens, defaults: Partial<ThemeTokens>): ThemeTokens {
+    return {
+        ...base,
+        ...defaults,
+        sharedFacts: {
+            ...base.sharedFacts,
+            ...(defaults.sharedFacts ?? {}),
         },
     };
 }
@@ -2426,6 +2582,9 @@ async function retrieveSlotExemplars(params: {
     k?: number;
 }): Promise<Exemplar[]> {
     const k = params.k ?? 2;
+    const seedForSlot = SEED_SLOT_EXEMPLARS
+        .filter((ex) => ex.slot_type === params.slotType)
+        .slice(0, k);
     if (params.supabase) {
         try {
             const embedding = await embedText(params.queryText);
@@ -2453,10 +2612,7 @@ async function retrieveSlotExemplars(params: {
             console.warn("slot exemplar retrieval failed:", err instanceof Error ? err.message : String(err));
         }
     }
-    // No in-memory seed exemplars for v2 — the slot generator prompt is rich enough
-    // to produce good output without few-shot examples. Exemplars improve quality
-    // but aren't required for correctness.
-    return [];
+    return seedForSlot;
 }
 
 // ─── Slot Generator ──────────────────────────────────────────────────────────
@@ -2566,55 +2722,58 @@ function buildSlotGeneratorSystemPrompt(
     const likelyDetail = promptLikelyDetailScreen(slot.intent);
     const likelyRoot = promptLikelyRootScreen(slot.intent);
 
-    return `Generate a SwiftUI component tree for one section of "${theme.appName}".
-Return JSON: {"component":<UIComponent>}. No markdown.
+    const locksText = slotPromptRequirements.length > 0
+        ? slotPromptRequirements.map((r) => `${r.slotType}:${r.mustInclude}${r.variantHint ? ` [${r.variantHint}]` : ""}`).join(" | ")
+        : "none";
 
-SECTION: ${slot.slotType} — ${constraint.description}
-INTENT: ${slot.intent}
-${slot.itemCount ? `ITEMS: ${slot.itemCount}` : ""}${slot.variant_hint ? `\nSTYLE HINT: ${slot.variant_hint}` : ""}
+    return `Return JSON only: {"component":<UIComponent>}. No markdown.
 
-CONSTRAINTS: root=[${constraint.allowedRoots.join("|")}] maxDepth=${constraint.maxDepth}${constraint.fullWidth ? ' rootFrame={widthType:"Full",heightType:"Default"}' : ""}${constraint.requiredTextCount ? ` minTexts=${constraint.requiredTextCount}` : ""}
+LAYER 1 — IDENTITY
+You are designing the "${slot.slotType}" section for "${theme.appName}".
+Section role: ${constraint.description}
+Intent: ${slot.intent}
+${slot.itemCount ? `Items target: ${slot.itemCount}` : ""}
+${slot.variant_hint ? `Creative hint: ${slot.variant_hint}` : ""}
 
-THEME: accent="${theme.accentColor}" secondary="${theme.secondaryColor}" tone=${theme.voiceTone} surface=${theme.surfaceStyle} density=${theme.density} font=${theme.fontDesign} radius=${theme.cornerRadiusScale}(${radiusMap[theme.cornerRadiusScale]}) spacing=${spacingMap[theme.density]}
-PALETTE: ${paletteMap[theme.surfaceStyle] || paletteMap.utility}
-${theme.mascotSymbol ? `MASCOT: "${theme.mascotSymbol}"` : ""}
+LAYER 2 — VISUAL BRIEF
+Theme: tone=${theme.voiceTone} surface=${theme.surfaceStyle} density=${theme.density} accent=${theme.accentColor} radius=${theme.cornerRadiusScale}(${radiusMap[theme.cornerRadiusScale]}) spacing=${spacingMap[theme.density]} font=${theme.fontDesign}
+Palette hints: ${paletteMap[theme.surfaceStyle] || paletteMap.utility}
+${theme.mascotSymbol ? `Mascot symbol: ${theme.mascotSymbol}` : ""}
+Other slots in screen: ${contextSlots || "none"} (avoid repetition)
+${railVariantGuide ? `\n${railVariantGuide}` : ""}
 
+Design principles (priority order):
+1) Clear visual hierarchy with one focal element.
+2) Real content from provided data; never placeholder copy.
+3) Purposeful spacing rhythm; avoid uniform padding everywhere.
+4) Component variety; avoid repeated identical row/card structures.
+
+LAYER 3 — CONTENT DATA
 FACTS: greeting="${theme.sharedFacts.greeting}" user="${theme.sharedFacts.userName}" metric1="${theme.sharedFacts.primaryMetricValue}" metric2="${theme.sharedFacts.secondaryMetricValue}" streak="${theme.sharedFacts.streakValue}" progress=${theme.sharedFacts.progressPercent}% date="${theme.sharedFacts.todayDate}"
 ITEMS: ${JSON.stringify(theme.sampleItems)}
 METRICS: ${JSON.stringify(theme.sampleMetrics)}
 RAIL: ${JSON.stringify(theme.sampleRailItems)}
 CTA: "${theme.ctaText}" NOUN: "${theme.itemNoun}"
-PROMPT-LOCKS FOR THIS SECTION: ${slotPromptRequirements.length > 0 ? slotPromptRequirements.map((r) => `${r.slotType}:${r.mustInclude}${r.variantHint ? ` [${r.variantHint}]` : ""}`).join(" | ") : "none"}
-${designSpec ? `PROMPT DSL SPEC: ${formatPromptDesignSpec(designSpec)}` : ""}
-${railVariantGuide ? `\n${railVariantGuide}` : ""}
 
-OTHER SECTIONS: ${contextSlots || "none"} — don't repeat their content.
+LAYER 4 — HARD CONSTRAINTS
+Root type must be one of: [${constraint.allowedRoots.join("|")}]
+Max depth: ${constraint.maxDepth}
+${constraint.fullWidth ? 'Root frame requirement: {widthType:"Full",heightType:"Default"}' : ""}
+${constraint.requiredTextCount ? `Minimum text nodes: ${constraint.requiredTextCount}` : ""}
+Prompt locks for this section: ${locksText}
+${designSpec ? `Prompt DSL spec: ${formatPromptDesignSpec(designSpec)}` : ""}
 
-${SLOT_SCHEMA_COMPACT}
-
-DESIGN DIRECTOR (MUST FOLLOW):
-- Create original composition, not boilerplate stacks. Use hierarchy, contrast, and rhythm.
-- Include a clear visual focal point in this section (scale, weight, color, or placement).
-- Prefer purposeful spacing patterns over uniform spacing everywhere.
-- Mix primitives: pair text+symbol+shape intelligently instead of repeating identical rows/cards.
-- Use depth/layering where useful (ZStack, overlay, subtle shadow, nested groups), while keeping structure valid.
-- Keep content scannable: strong title/value anchors, lighter supporting text, clear affordances.
-- Avoid flat generic output: no placeholder-looking layouts, no repetitive clones of the same child.
-
-CRITICAL:
-- The user's prompt details are hard requirements. If this section maps to a requested detail, implement it literally.
-- Use REAL content from FACTS/ITEMS/METRICS above. Never "Item 1", "Title", "Subtitle", "Description".
-- Never render planning or constraint language as UI text labels. Do NOT output text like "a horizontal rail of...", "prompt-locks", "must include", or schema/spec instructions.
-- For circular progress/ring UI, use Gauge (gaugeType:"circular" or "circular range") as the primary progress element.
-- Do NOT fake progress with two full-stroke Circle rings.
+Critical rules:
+- Never render planning/spec language as UI text.
+- Use real SF Symbol names only.
+- Use Gauge for circular progress/rings; do not fake rings with layered full-stroke circles.
 - ${selectedRailVariant === "media_track"
-            ? 'Media-track rail is mandatory here: each rail item must be square artwork + primary title text + secondary artist/subtitle text directly below.'
-            : "If a rail variant is specified, honor its item morphology exactly."}
-- App header nav logic: back chevron is ONLY for detail/drill-in screens. For home/root/main screens, do NOT use a back button.
-- Header context hint for this slot: likelyDetail=${likelyDetail} likelyRoot=${likelyRoot}
-- SF Symbols: star.fill heart.fill bolt.fill flame.fill checkmark.circle.fill person.fill magnifyingglass house.fill gear bell.fill plus xmark chevron.right ellipsis chart.bar.fill book.fill clock.fill calendar figure.run leaf.fill moon.fill sun.max.fill fork.knife cart.fill creditcard.fill
-- Be creative with layout — don't just stack VStacks. Use ZStack overlays, HStack arrangements, icon circles, progress rings, colored badges.
-- If two sibling groups are structurally identical, intentionally vary at least one of: scale, alignment, spacing, emphasis, or supporting element.`;
+            ? "Media-track rail is mandatory: each rail item must be square artwork + primary title + secondary artist/subtitle."
+            : "If a rail variant is specified, honor its morphology exactly."}
+- App header rule: back chevron only for detail/drill-in screens (likelyDetail=${likelyDetail}, likelyRoot=${likelyRoot}).
+
+LAYER 5 — OUTPUT SCHEMA
+${SLOT_SCHEMA_COMPACT}`;
 }
 
 function buildExemplarsBlock(exemplars: Exemplar[]): string {
@@ -2626,84 +2785,6 @@ function buildExemplarsBlock(exemplars: Exemplar[]): string {
     }));
     return `EXEMPLARS (reference for quality and tone — do NOT copy layout. Create something NEW):
 ${JSON.stringify(shown, null, 1)}`;
-}
-
-type SlotDesignCritique = {
-    score: number;
-    issues: string[];
-    improve: string;
-};
-
-const CRITIC_SLOT_TYPES = new Set<SlotType>([
-    "hero_banner",
-    "progress_section",
-    "stat_group",
-    "content_list",
-    "content_grid",
-    "horizontal_rail",
-    "card_detail",
-    "feature_grid",
-    "social_feed_slot",
-    "timeline_list",
-    "floating_card",
-]);
-
-async function critiqueSlotDesign(params: {
-    slot: SlotPlan;
-    prompt: string;
-    theme: ThemeTokens;
-    component: AnyComponent;
-}): Promise<SlotDesignCritique | null> {
-    if (!CRITIC_SLOT_TYPES.has(params.slot.slotType)) return null;
-
-    const response = await callOpenAI({
-        model: SLOT_CRITIC_MODEL,
-        messages: [
-            {
-                role: "system",
-                content: `You are a strict mobile UI art director.
-Score a generated section from 0-100.
-Output JSON only:
-{
-  "score": number,
-  "issues": string[],           // max 4 short bullets
-  "improve": string             // one concise rewrite direction
-}
-Rubric:
-- hierarchy clarity (0-30): focal point + readable information order
-- composition originality (0-30): non-generic layout, good rhythm/variation
-- visual contrast (0-20): emphasis/secondary balance, legibility
-- spacing discipline (0-20): intentional spacing, no cramped/flat repetition
-Be tough: generic stacky outputs should score below 76.`,
-            },
-            {
-                role: "user",
-                content: `PROMPT: ${params.prompt}
-SLOT: ${params.slot.slotType}
-INTENT: ${params.slot.intent}
-THEME: accent=${params.theme.accentColor} tone=${params.theme.voiceTone} surface=${params.theme.surfaceStyle} density=${params.theme.density}
-COMPONENT JSON:
-${JSON.stringify(params.component)}`,
-            },
-        ],
-        temperature: 0,
-        maxTokens: SLOT_CRITIC_MAX_TOKENS,
-        responseFormat: { type: "json_object" },
-        timeoutMs: SLOT_CRITIC_TIMEOUT_MS,
-    });
-
-    if (!response.ok) return null;
-    const parsed = parseJsonSafe(response.content);
-    if (isJsonParseError(parsed) || !isObject(parsed.value)) return null;
-    const v = parsed.value as Record<string, unknown>;
-    const rawScore = typeof v.score === "number" ? v.score : Number(v.score);
-    if (!Number.isFinite(rawScore)) return null;
-    const score = Math.max(0, Math.min(100, Math.round(rawScore)));
-    const issues = Array.isArray(v.issues)
-        ? v.issues.filter((x) => typeof x === "string").map((x) => String(x).trim()).filter(Boolean).slice(0, 4)
-        : [];
-    const improve = typeof v.improve === "string" ? v.improve.trim() : "";
-    return { score, issues, improve };
 }
 
 async function generateSlot(params: {
@@ -2727,17 +2808,14 @@ async function generateSlot(params: {
 
     // Only attempt retrieval if we have a DB connection — skip the embedding
     // call entirely on cold starts to save ~400ms per slot.
-    let exemplars: Exemplar[] = [];
-    if (params.supabase) {
-        exemplars = await retrieveSlotExemplars({
-            supabase: params.supabase,
-            slotType: slot.slotType,
-            voiceTone: theme.voiceTone,
-            domainTags: theme.domainTags,
-            queryText,
-            k: designSpec?.strictOneToOne ? 3 : 2,
-        });
-    }
+    const exemplars: Exemplar[] = await retrieveSlotExemplars({
+        supabase: params.supabase,
+        slotType: slot.slotType,
+        voiceTone: theme.voiceTone,
+        domainTags: theme.domainTags,
+        queryText,
+        k: designSpec?.strictOneToOne ? 3 : 2,
+    });
 
     const systemPrompt = buildSlotGeneratorSystemPrompt(theme, slot, plan.slots, slotPromptRequirements, designSpec);
     let critiqueGuidance = "";
@@ -2769,26 +2847,7 @@ Keep the same slot intent, but improve visual hierarchy/composition/contrast/spa
             continue;
         }
 
-        const critique = await critiqueSlotDesign({
-            slot,
-            prompt,
-            theme,
-            component: result.component,
-        });
-
-        const shouldReturn = !critique
-            || critique.score >= SLOT_CRITIC_MIN_SCORE
-            || designPass >= SLOT_DESIGN_PASSES - 1;
-
-        if (shouldReturn) {
-            return { component: result.component, exemplarIds: exemplars.map((e) => e.id) };
-        }
-
-        critiqueGuidance = [
-            `Score: ${critique.score}/100`,
-            ...(critique.issues.length > 0 ? [`Issues: ${critique.issues.join(" | ")}`] : []),
-            critique.improve ? `Direction: ${critique.improve}` : "",
-        ].filter(Boolean).join("\n");
+        return { component: result.component, exemplarIds: exemplars.map((e) => e.id) };
     }
 
     // Ultimate fallback: minimal placeholder
@@ -2847,10 +2906,80 @@ async function compileSlotWithRepair(params: {
             continue;
         }
 
+        const qualityIssues = detectLowQualitySlotOutput(fixed);
+        if (qualityIssues.length > 0) {
+            lastError = `Low-quality output rejected:\n${qualityIssues.join("\n")}`;
+            continue;
+        }
+
         return { ok: true, component: fixed };
     }
 
     return { ok: false, error: `Failed after ${params.maxAttempts} attempts: ${lastError}` };
+}
+
+function detectLowQualitySlotOutput(component: AnyComponent): string[] {
+    let textNodeCount = 0;
+    let placeholderTextCount = 0;
+    let questionMarkSymbolCount = 0;
+    let emptyFontModifierCount = 0;
+    let duplicateFontChainCount = 0;
+    let genericFallbackCopyCount = 0;
+    const genericFallbackPhrases = new Set([
+        "priority item",
+        "follow up",
+        "keep momentum",
+        "start here",
+        "final check",
+        "in progress",
+        "pending",
+        "items 1",
+        "items 2",
+    ]);
+
+    walkComponentTree(component, (n) => {
+        if (n.type === "Text") {
+            textNodeCount += 1;
+            const text = isObject(n.properties) ? String(n.properties.text ?? "") : "";
+            const cleaned = text.trim().toLowerCase();
+            if (!cleaned || cleaned === "text" || cleaned === "title" || cleaned === "subtitle" || cleaned === "item") {
+                placeholderTextCount += 1;
+            }
+            if (genericFallbackPhrases.has(cleaned)) genericFallbackCopyCount += 1;
+        }
+        if (n.type === "SF Symbol") {
+            const symbolName = isObject(n.properties) ? String(n.properties.symbolName ?? "").trim().toLowerCase() : "";
+            if (symbolName === "questionmark" || symbolName === "questionmark.circle") {
+                questionMarkSymbolCount += 1;
+            }
+        }
+
+        if (!Array.isArray(n.modifiers)) return;
+        let consecutiveFont = 0;
+        for (const mod of n.modifiers) {
+            if (!isObject(mod)) continue;
+            if (mod.type === "Font") {
+                consecutiveFont += 1;
+                const props = isObject(mod.properties) ? mod.properties as Record<string, unknown> : {};
+                const hasFontProps = typeof props.fontSize === "string" || typeof props.fontWeight === "string" || typeof props.fontDesign === "string";
+                if (!hasFontProps) emptyFontModifierCount += 1;
+            } else {
+                if (consecutiveFont > 1) duplicateFontChainCount += 1;
+                consecutiveFont = 0;
+            }
+        }
+        if (consecutiveFont > 1) duplicateFontChainCount += 1;
+    });
+
+    const issues: string[] = [];
+    if (emptyFontModifierCount >= 3) issues.push(`too many empty font modifiers (${emptyFontModifierCount})`);
+    if (duplicateFontChainCount >= 2) issues.push(`repeated duplicate font modifier chains (${duplicateFontChainCount})`);
+    if (textNodeCount > 0 && placeholderTextCount / textNodeCount >= 0.35 && placeholderTextCount >= 3) {
+        issues.push(`placeholder text ratio too high (${placeholderTextCount}/${textNodeCount})`);
+    }
+    if (questionMarkSymbolCount >= 2) issues.push(`too many unknown symbols (${questionMarkSymbolCount})`);
+    if (genericFallbackCopyCount >= 2) issues.push(`generic fallback copy detected (${genericFallbackCopyCount})`);
+    return issues;
 }
 
 // ─── Slot Validation ─────────────────────────────────────────────────────────
@@ -3432,7 +3561,7 @@ function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec?: Prom
                                     { type: "Glass Effect", properties: { shape: "Circle" } },
                                 ],
                             },
-                            mkSym(leadingSymbol, "primary:1.0", "subheadline", "semibold"),
+                            mkSym(leadingSymbol, undefined, "subheadline", "semibold"),
                         ],
                     },
                     { type: "Spacer" },
@@ -3457,7 +3586,7 @@ function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec?: Prom
                                     { type: "Glass Effect", properties: { shape: "Circle" } },
                                 ],
                             },
-                            mkSym("ellipsis", "primary:1.0", "subheadline", "semibold"),
+                            mkSym("ellipsis", undefined, "subheadline", "semibold"),
                         ],
                     },
                 ],
@@ -4944,6 +5073,186 @@ function resolveScreenContract(prompt: string, spec: PromptDesignSpec): ScreenCo
     return null;
 }
 
+function resolveContractAsPlan(contract: ScreenContract, _spec: PromptDesignSpec): ScreenPlan {
+    const make = (
+        slotType: SlotType,
+        position: SlotPosition,
+        intent: string,
+        itemCount?: number,
+        variant_hint?: string,
+    ): SlotPlan => ({ slotType, position, intent, itemCount, variant_hint });
+
+    const base: ScreenPlan = {
+        archetype: "dashboard",
+        slots: [],
+        canvas_settings: { statusBarVisible: true, statusBarTopSafeArea: true },
+    };
+
+    const plans: Record<ScreenContract, ScreenPlan> = {
+        modern_login_v1: { ...base, archetype: "onboarding", slots: [
+            make("hero_banner", "body", "welcome and trust-building headline"),
+            make("form_section", "body", "email/password inputs with recovery affordances", 3),
+            make("action_bar", "bottom", "primary sign-in CTA and secondary auth options"),
+        ]},
+        instagram_feed_v1: { ...base, archetype: "social_feed", slots: [
+            make("app_header", "top", "social feed brand header with quick actions"),
+            make("story_rail", "body", "stories row with circular avatars", 8),
+            make("social_feed_slot", "body", "post feed with author, media, actions, caption", 4),
+            make("nav_bar", "bottom", "social bottom navigation"),
+        ]},
+        music_discovery_v1: { ...base, archetype: "music_player", slots: [
+            make("app_header", "top", "music browse header and controls"),
+            make("segmented_tabs", "body", "music filters like all, playlists, podcasts"),
+            make("horizontal_rail", "body", "featured albums and mixes", 6),
+            make("content_list", "body", "recommended tracks and playlists", 6),
+            make("media_player", "bottom", "mini player controls"),
+        ]},
+        creator_dashboard_v1: { ...base, archetype: "analytics", slots: [
+            make("app_header", "top", "creator analytics header"),
+            make("stat_group", "body", "key creator metrics cards", 4),
+            make("chart_section", "body", "audience/performance trend chart"),
+            make("content_list", "body", "recent posts with performance deltas", 5),
+        ]},
+        ecommerce_home_v1: { ...base, archetype: "marketplace", slots: [
+            make("search_bar", "top", "store search and category quick filters"),
+            make("hero_banner", "body", "featured sale/promo card with CTA"),
+            make("content_grid", "body", "product grid with prices", 6),
+            make("nav_bar", "bottom", "shopping app bottom navigation"),
+        ]},
+        travel_planner_v1: { ...base, archetype: "travel", slots: [
+            make("app_header", "top", "trip planner overview"),
+            make("timeline_list", "body", "itinerary timeline with day stops", 6),
+            make("content_list", "body", "bookings and travel checklist rows", 5),
+            make("action_bar", "bottom", "primary travel action controls"),
+        ]},
+        finance_portfolio_v1: { ...base, archetype: "finance", slots: [
+            make("app_header", "top", "portfolio summary header with value and delta"),
+            make("chart_section", "body", "allocation/performance chart"),
+            make("content_list", "body", "watchlist rows ticker, price, change", 6),
+            make("nav_bar", "bottom", "finance bottom tabs"),
+        ]},
+        learning_path_v1: { ...base, archetype: "education", slots: [
+            make("app_header", "top", "learning progress header"),
+            make("progress_section", "body", "course progress and streak visualization"),
+            make("content_list", "body", "lesson list with status", 6),
+            make("action_bar", "bottom", "continue learning CTA"),
+        ]},
+        chat_inbox_v1: { ...base, archetype: "chat", slots: [
+            make("app_header", "top", "messages header and actions"),
+            make("search_bar", "top", "search conversations"),
+            make("chat_bubble_list", "body", "inbox thread preview list", 8),
+            make("nav_bar", "bottom", "chat app navigation"),
+        ]},
+        chat_thread_v1: { ...base, archetype: "chat", slots: [
+            make("app_header", "top", "conversation title and actions"),
+            make("chat_bubble_list", "body", "message bubbles in active conversation", 10),
+            make("action_bar", "bottom", "compose/send message controls"),
+        ]},
+        maps_explore_v1: { ...base, archetype: "travel", slots: [
+            make("search_bar", "top", "location search and filters"),
+            make("map_preview", "body", "nearby places map context"),
+            make("horizontal_rail", "body", "nearby places cards", 5),
+            make("action_bar", "bottom", "route and save actions"),
+        ]},
+        video_feed_v1: { ...base, archetype: "social_feed", slots: [
+            make("social_feed_slot", "body", "full-bleed short video feed cards", 4),
+            make("action_bar", "overlay", "vertical interaction actions"),
+            make("nav_bar", "bottom", "video app tabs"),
+        ]},
+        checkout_flow_v1: { ...base, archetype: "shopping_cart", slots: [
+            make("app_header", "top", "checkout title and step indicator"),
+            make("content_list", "body", "cart items with quantities/prices", 4),
+            make("form_section", "body", "shipping and payment sections", 3),
+            make("action_bar", "bottom", "place order CTA"),
+        ]},
+        settings_account_v1: { ...base, archetype: "settings", slots: [
+            make("app_header", "top", "account settings header"),
+            make("profile_header", "body", "user avatar and account summary"),
+            make("settings_list", "body", "settings rows with toggles and chevrons", 8),
+        ]},
+        auth_2fa_v1: { ...base, archetype: "onboarding", slots: [
+            make("hero_banner", "body", "verification instructions and trust copy"),
+            make("form_section", "body", "one-time code entry"),
+            make("action_bar", "bottom", "verify and resend actions"),
+        ]},
+        state_pack_v1: { ...base, archetype: "dashboard", slots: [
+            make("empty_state", "body", "empty/loading/error state compositions"),
+            make("content_list", "body", "state explanation and recovery actions", 4),
+        ]},
+        restaurant_delivery_v1: { ...base, archetype: "order_tracking", slots: [
+            make("search_bar", "top", "restaurant search and filters"),
+            make("horizontal_rail", "body", "cuisine and featured restaurants", 6),
+            make("content_list", "body", "restaurant cards with ETA and rating", 6),
+            make("nav_bar", "bottom", "delivery app tabs"),
+        ]},
+        calendar_week_v1: { ...base, archetype: "calendar", slots: [
+            make("app_header", "top", "weekly schedule overview"),
+            make("calendar_strip", "body", "week day/date selector strip"),
+            make("timeline_list", "body", "events/tasks by day timeline", 8),
+        ]},
+        kanban_board_v1: { ...base, archetype: "project_management", slots: [
+            make("app_header", "top", "board title and filters"),
+            make("segmented_tabs", "top", "board scope and grouping tabs"),
+            make("content_grid", "body", "kanban columns with cards", 6),
+        ]},
+        onboarding_flow_v1: { ...base, archetype: "onboarding", slots: [
+            make("onboarding_step", "body", "step hero with value proposition"),
+            make("progress_section", "body", "onboarding progress indicator"),
+            make("action_bar", "bottom", "next/skip controls"),
+        ]},
+        notification_center_v1: { ...base, archetype: "dashboard", slots: [
+            make("app_header", "top", "notifications center header"),
+            make("segmented_tabs", "top", "all/unread/filter tabs"),
+            make("notification_list", "body", "notification rows with metadata", 8),
+        ]},
+        profile_social_v1: { ...base, archetype: "social_profile", slots: [
+            make("profile_header", "body", "avatar, name, stats, follow actions"),
+            make("segmented_tabs", "body", "content filters like posts/media/tagged"),
+            make("content_grid", "body", "recent content cards", 6),
+        ]},
+        health_activity_v1: { ...base, archetype: "health", slots: [
+            make("app_header", "top", "activity summary header"),
+            make("stat_group", "body", "rings and activity metrics", 4),
+            make("chart_section", "body", "daily/weekly trends"),
+            make("timeline_list", "body", "recent workouts", 5),
+        ]},
+        news_reader_v1: { ...base, archetype: "news", slots: [
+            make("app_header", "top", "news briefing header"),
+            make("horizontal_rail", "body", "top stories rail", 5),
+            make("content_list", "body", "article feed with sources/timestamps", 8),
+        ]},
+        booking_hotel_v1: { ...base, archetype: "booking", slots: [
+            make("search_bar", "top", "destination/date/guest query"),
+            make("hero_banner", "body", "featured stay offer"),
+            make("content_list", "body", "hotel listing cards with price/rating", 6),
+            make("action_bar", "bottom", "apply filters/sort actions"),
+        ]},
+        customer_support_v1: { ...base, archetype: "chat", slots: [
+            make("app_header", "top", "support center header"),
+            make("content_list", "body", "help topics and FAQ rows", 6),
+            make("form_section", "body", "issue input and contact options", 3),
+            make("action_bar", "bottom", "submit/start chat action"),
+        ]},
+        admin_table_v1: { ...base, archetype: "analytics", slots: [
+            make("app_header", "top", "admin dataset controls"),
+            make("search_bar", "top", "search/filter toolbar"),
+            make("comparison_table", "body", "tabular records with row actions"),
+            make("action_bar", "bottom", "page navigation controls"),
+        ] as SlotPlan[] },
+        camera_capture_v1: { ...base, archetype: "photography", slots: [
+            make("hero_banner", "body", "live camera preview framing"),
+            make("action_bar", "bottom", "shutter, mode, and capture actions"),
+        ]},
+        search_results_native_v1: { ...base, archetype: "news", slots: [
+            make("search_bar", "top", "query input with native search affordance"),
+            make("content_list", "body", "autocomplete suggestions and search results", 8),
+            make("horizontal_rail", "body", "refinement chips and related categories", 6),
+        ]},
+    };
+
+    return plans[contract] ?? base;
+}
+
 function buildContractScreen(contract: ScreenContract, theme: ThemeTokens, surfaces: ThemeSurfaces): { components: AnyComponent[]; canvas_settings: CanvasSettings } {
     const full = { type: "Frame", properties: { widthType: "Full", heightType: "Full" } };
     const fullW = { type: "Frame", properties: { widthType: "Full", heightType: "Default" } };
@@ -5637,7 +5946,7 @@ async function buildGeneratedScreen(
         ]), "archetype/theme");
         const surfaces = computeThemeSurfaces(theme);
         const contract = resolveScreenContract(prompt, designSpec);
-        if (contract) {
+        if (contract && !GEN_V3_CONTRACTS_AS_PLANS) {
             const built = buildContractScreen(contract, theme, surfaces);
             if (!validateContractScreen(contract, built.components)) {
                 throw new Error(`Contract render validation failed for ${contract}`);
@@ -5649,9 +5958,10 @@ async function buildGeneratedScreen(
                 exemplarsUsed: [],
             };
         }
-
         // Step 2: Plan slots (informed by archetype + theme)
-        const rawPlan = await withDeadline(planSlots(prompt, archetype, theme, context, manifest, designSpec), "slot planning");
+        const rawPlan = contract
+            ? resolveContractAsPlan(contract, designSpec)
+            : await withDeadline(planSlots(prompt, archetype, theme, context, manifest, designSpec), "slot planning");
         const plan = refineScreenPlan(rawPlan, manifest, designSpec);
         const sketch = GEN_V3_SKETCH_RENDER ? buildLayoutSketch(plan, designSpec) : null;
         const plannedSlots = (sketch ? sketch.nodes.map(materializeSlotFromSketchNode) : plan.slots).slice(0, MAX_GENERATION_SLOTS);
@@ -5746,18 +6056,17 @@ async function buildGeneratedScreen(
         };
     }
 
-    // Standard mode — simpler pipeline, still uses slots
-    const [tokens, archetype] = await withDeadline(Promise.all([
-        generateScreenTokens(prompt),
+    // Standard mode — still use full prompt-aware theme extraction
+    // to avoid generic "Workspace"/default content outputs.
+    const [theme, archetype] = await withDeadline(Promise.all([
+        extractThemeTokens(prompt),
         classifyArchetype(prompt),
-    ]), "tokens/archetype");
-
-    const theme = buildBaselineTheme(tokens);
+    ]), "theme/archetype");
     const surfaces = computeThemeSurfaces(theme);
     const manifest = buildDesignManifest(prompt);
     const designSpec = compilePromptDesignSpec(prompt, manifest);
     const contract = resolveScreenContract(prompt, designSpec);
-    if (contract) {
+    if (contract && !GEN_V3_CONTRACTS_AS_PLANS) {
         const built = buildContractScreen(contract, theme, surfaces);
         if (!validateContractScreen(contract, built.components)) {
             throw new Error(`Contract render validation failed for ${contract}`);
@@ -5767,7 +6076,9 @@ async function buildGeneratedScreen(
             canvas_settings: built.canvas_settings,
         };
     }
-    const rawPlan = await withDeadline(planSlots(prompt, archetype, theme, context, manifest, designSpec), "slot planning");
+    const rawPlan = contract
+        ? resolveContractAsPlan(contract, designSpec)
+        : await withDeadline(planSlots(prompt, archetype, theme, context, manifest, designSpec), "slot planning");
     const plan = refineScreenPlan(rawPlan, manifest, designSpec);
     const sketch = GEN_V3_SKETCH_RENDER ? buildLayoutSketch(plan, designSpec) : null;
     const plannedSlots = (sketch ? sketch.nodes.map(materializeSlotFromSketchNode) : plan.slots).slice(0, MAX_GENERATION_SLOTS);
@@ -6896,7 +7207,6 @@ function postProcessComponents(
     const LEAF_PP = new Set(["Text", "Image", "SF Symbol", "Shape", "Chart", "Spacer", "Divider", "Rectangle", "Circle", "RoundedRectangle", "Capsule", "Ellipse", "Linear Gradient", "Text Field", "Switch", "Slider", "Progress View", "Status Bar", "Gauge"]);
     const SHAPE_PP = new Set(["Shape", "Rectangle", "Circle", "RoundedRectangle", "Capsule", "Ellipse"]);
     const ALL_VALID_PP = new Set([...CONTAINER_PP, ...LEAF_PP]);
-    const defaultShapePrimary = canvasColorScheme === "light" ? "black:1.0" : canvasColorScheme === "dark" ? "white:1.0" : undefined;
 
     const coerceType = (type: unknown): string => {
         if (typeof type === "string" && ALL_VALID_PP.has(type)) return type;
@@ -6952,6 +7262,34 @@ function postProcessComponents(
         return undefined;
     };
 
+    const hasMeaningfulModifier = (mod: Record<string, unknown>): boolean => {
+        const type = String(mod.type ?? "");
+        const props = isObject(mod.properties) ? mod.properties as Record<string, unknown> : {};
+        if (type === "Font") {
+            return typeof props.fontSize === "string" || typeof props.fontWeight === "string" || typeof props.fontDesign === "string";
+        }
+        if (type === "Frame") {
+            return props.widthType !== undefined || props.heightType !== undefined || props.width !== undefined || props.height !== undefined;
+        }
+        if (type === "Padding") {
+            return props.amount !== undefined || props.location !== undefined;
+        }
+        if (type === "Foreground Color" || type === "Background Color" || type === "Fill" || type === "Stroke" || type === "Tint") {
+            return typeof props.color === "string" && props.color.trim().length > 0;
+        }
+        if (type === "Corner Radius") return props.radius !== undefined;
+        if (type === "Opacity") return props.value !== undefined || props.opacity !== undefined;
+        if (type === "Shadow") return props.radius !== undefined || props.x !== undefined || props.y !== undefined || props.color !== undefined;
+        if (type === "Offset") return props.x !== undefined || props.y !== undefined;
+        if (type === "Rotation") return props.degrees !== undefined || props.angle !== undefined;
+        if (type === "Blur") return props.radius !== undefined;
+        if (type === "Clip Shape") return typeof props.shape === "string";
+        if (type === "Text Alignment") return typeof props.alignment === "string";
+        if (type === "Border") return props.lineWidth !== undefined || props.color !== undefined;
+        if (type === "Background" || type === "Overlay" || type === "Mask") return Array.isArray(mod.children) && mod.children.length > 0;
+        return true;
+    };
+
     const visit = (node: AnyComponent): AnyComponent => {
         if (!node || typeof node !== "object") return { type: "Text", properties: { text: "" }, modifiers: [] };
 
@@ -6994,20 +7332,14 @@ function postProcessComponents(
             const props = node.properties as Record<string, unknown>;
             props.symbolName = typeof props.symbolName === "string" ? normalizeSFSymbolName(props.symbolName) : "questionmark";
         }
-
-        if (SHAPE_PP.has(node.type) && defaultShapePrimary) {
-            const hasExplicitShapeColor = node.modifiers.some((m) => {
-                if (!isObject(m)) return false;
-                const mt = typeof m.type === "string" ? m.type : "";
-                if (!["Fill", "Stroke", "Background Color"].includes(mt)) return false;
-                const props = isObject(m.properties) ? m.properties : {};
-                return typeof props.color === "string" && props.color.trim().length > 0;
-            });
-            if (!hasExplicitShapeColor) {
-                node.modifiers.push({
-                    type: "Fill",
-                    properties: { color: defaultShapePrimary },
-                });
+        if (node.type === "Gauge") {
+            const props = node.properties as Record<string, unknown>;
+            const gaugeColor = typeof props.color === "string" ? props.color.trim() : "";
+            if (gaugeColor.length > 0) {
+                const hasTint = node.modifiers.some((m) => isObject(m) && m.type === "Tint");
+                if (!hasTint) {
+                    node.modifiers.push({ type: "Tint", properties: { color: gaugeColor } });
+                }
             }
         }
 
@@ -7053,10 +7385,9 @@ function postProcessComponents(
                 if (Array.isArray(modObj.children) && modObj.children.length > 0) {
                     modObj.children = (modObj.children as AnyComponent[]).map(visit);
                 } else {
-                    const defaultChild: AnyComponent = modObj.type === "Mask" ? { type: "Circle", properties: {}, modifiers: [] }
-                        : modObj.type === "Overlay" ? { type: "Text", properties: { text: "Text" }, modifiers: [] }
-                            : { type: "RoundedRectangle", properties: { cornerRadius: 8 }, modifiers: [] };
-                    modObj.children = [visit(defaultChild)];
+                    // Don't auto-insert placeholder modifier children.
+                    // Empty overlay/background/mask modifiers are dropped.
+                    (modObj as Record<string, unknown>).__drop = true;
                 }
             }
 
@@ -7072,14 +7403,23 @@ function postProcessComponents(
                 }
             }
             return modObj;
-        }).filter((mod) => VALID_MODIFIER_TYPES.has(mod.type as string));
-
-        node.modifiers = node.modifiers.filter((mod) => {
-            if ((mod.type as string) !== "Foreground Color") return true;
-            const props = isObject(mod.properties) ? mod.properties : {};
-            const color = typeof props.color === "string" ? props.color.toLowerCase() : "";
-            return color !== "primary" && color !== "primary:1" && color !== "primary:1.0";
+        }).filter((mod) => {
+            if (!VALID_MODIFIER_TYPES.has(mod.type as string)) return false;
+            if ((mod as Record<string, unknown>).__drop === true) return false;
+            return hasMeaningfulModifier(mod as Record<string, unknown>);
         });
+
+        // Preserve intentional foreground color choices from generation.
+        // Previously we stripped "primary" colors, which could flatten contrast
+        // and remove deliberate styling decisions.
+        if (node.type === "SF Symbol") {
+            node.modifiers = node.modifiers.filter((mod) => {
+                if ((mod.type as string) !== "Foreground Color") return true;
+                const props = isObject(mod.properties) ? mod.properties : {};
+                const color = typeof props.color === "string" ? props.color.toLowerCase() : "";
+                return color !== "primary" && color !== "primary:1" && color !== "primary:1.0";
+            });
+        }
 
         if (SHAPE_PP.has(node.type)) {
             const hasFill = node.modifiers.some((mod) => (mod.type as string) === "Fill");
@@ -7098,14 +7438,8 @@ function postProcessComponents(
             });
         }
 
-        node.modifiers = node.modifiers
-            .map((mod, index) => ({ mod, index }))
-            .sort((a, b) => {
-                const ao = MODIFIER_SORT_INDEX.get(String(a.mod.type ?? "")) ?? Number.MAX_SAFE_INTEGER;
-                const bo = MODIFIER_SORT_INDEX.get(String(b.mod.type ?? "")) ?? Number.MAX_SAFE_INTEGER;
-                return ao !== bo ? ao - bo : a.index - b.index;
-            })
-            .map(({ mod }) => mod);
+        // Preserve modifier order from generation to avoid unintentionally
+        // changing visual semantics. We only normalize/validate modifier data.
 
         const modifierChildren: AnyComponent[] = [];
         node.modifiers.forEach((mod) => {
@@ -7129,6 +7463,17 @@ function postProcessComponents(
             node.children = [...nonModifierChildren, ...modifierChildren];
         } else if (nonModifierChildren.length !== existingChildren.length) {
             node.children = nonModifierChildren;
+        }
+
+        if (Array.isArray(node.children)) {
+            node.children = node.children.filter((child) => {
+                if (!isObject(child) || child.type !== "Text") return true;
+                const props = isObject(child.properties) ? child.properties as Record<string, unknown> : {};
+                const text = typeof props.text === "string" ? props.text.trim().toLowerCase() : "";
+                const mods = Array.isArray(child.modifiers) ? child.modifiers as Array<Record<string, unknown>> : [];
+                const hasMeaningfulMods = mods.some((m) => isObject(m) && hasMeaningfulModifier(m));
+                return !(text === "text" && !hasMeaningfulMods);
+            });
         }
         return node;
     };

@@ -57,8 +57,6 @@ struct ComponentRenderer: View {
             return AnyView(renderText())
         case .image:
             return AnyView(renderImage())
-        case .map:
-            return AnyView(renderMap())
         case .stack:
             return AnyView(renderStack())
         case .vstack:

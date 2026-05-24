@@ -20,6 +20,7 @@ struct SettingsView: View {
     @Environment(\.openURL) var openURL
     
     private let appStoreURL = URL(string: "https://apps.apple.com/us/app/dock-ui-swiftui-snippets/id6496860953")!
+    private let stringCatalogTranslateURL = URL(string: "https://apps.apple.com/us/app/string-catalog-translate/id6761640833?mt=12")!
     private let websiteURL = URL(string: "https://dockui.com")!
     private let privacyURL = URL(string: "https://dockui.com/privacy")!
     private let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
@@ -120,6 +121,15 @@ struct SettingsView: View {
             VStack {
                 settingsLinkRow(title: "Website", icon: "globe", iconColor: .blue) {
                     openURL(websiteURL)
+                }
+                rowDivider
+                settingsLinkRow(
+                    title: "String Catalog - Translate",
+                    icon: "character.book.closed.fill",
+                    iconColor: .orange,
+                    imageAssetName: "StringCatLogo"
+                ) {
+                    openURL(stringCatalogTranslateURL)
                 }
             }
         }
@@ -259,12 +269,26 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    private func settingsLinkRow(title: String, icon: String, iconColor: Color, action: @escaping () -> Void) -> some View {
+    private func settingsLinkRow(
+        title: String,
+        icon: String,
+        iconColor: Color,
+        imageAssetName: String? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .foregroundColor(iconColor)
-                    .frame(width: 24)
+                if let imageAssetName {
+                    Image(imageAssetName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 24, height: 24)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                } else {
+                    Image(systemName: icon)
+                        .foregroundColor(iconColor)
+                        .frame(width: 24)
+                }
                 Text(title)
                 Spacer()
                 Image(systemName: "chevron.right")

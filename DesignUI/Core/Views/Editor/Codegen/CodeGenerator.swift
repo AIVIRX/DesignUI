@@ -27,8 +27,6 @@ struct CodeGenerator {
             baseCode = generateTextCode(component: component, indent: indent, nextIndent: nextIndent)
         case .image:
             baseCode = generateImageCode(component: component, indent: indent, nextIndent: nextIndent)
-        case .map:
-            baseCode = generateMapCode(component: component, indent: indent, nextIndent: nextIndent)
         case .stack:
             baseCode = generateStackCode(component: component, indent: indent, nextIndent: nextIndent, indentLevel: indentLevel)
         case .vstack:
@@ -170,50 +168,6 @@ struct CodeGenerator {
         return code
     }
 
-    private static func generateMapCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let locationPreset = (component.getProperty(key: "locationPreset") as? String) ?? "San Francisco"
-        let rawZoom = (component.getProperty(key: "zoom") as? Double)
-            ?? (component.getProperty(key: "zoom") as? Int).map(Double.init)
-            ?? 12.0
-        let rawPitch = (component.getProperty(key: "pitch") as? Double)
-            ?? (component.getProperty(key: "pitch") as? Int).map(Double.init)
-            ?? 0.0
-        let showsUserLocation = component.getProperty(key: "showsUserLocation") as? Bool ?? false
-        let (latitude, longitude) = mapPresetCoordinate(for: locationPreset)
-        let zoom = rawZoom.isFinite ? min(max(rawZoom, 1.0), 20.0) : 12.0
-        let pitch = rawPitch.isFinite ? min(max(rawPitch, 0.0), 75.0) : 0.0
-        let distance = max(30.0, min(20_000_000.0, 20_000_000.0 / pow(2.0, zoom)))
-
-        var code = "\(indent)Map(position: .constant(.camera("
-        code += "MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: \(formatNumber(latitude)), longitude: \(formatNumber(longitude))), "
-        code += "distance: \(formatNumber(distance)), heading: 0, pitch: \(formatNumber(pitch))"
-        code += "))), interactionModes: .all, showsUserLocation: \(showsUserLocation ? "true" : "false"))"
-        code += "\n\(nextIndent).mapStyle(.standard(elevation: .realistic))"
-        code += "\n\(nextIndent)// Requires: import MapKit (and iOS 17+/macOS 14+ for camera position APIs)"
-        return code
-    }
-
-    private static func mapPresetCoordinate(for preset: String) -> (Double, Double) {
-        switch preset {
-        case "Current Location":
-            return (37.7749, -122.4194)
-        case "New York":
-            return (40.7128, -74.0060)
-        case "Los Angeles":
-            return (34.0522, -118.2437)
-        case "Chicago":
-            return (41.8781, -87.6298)
-        case "London":
-            return (51.5074, -0.1278)
-        case "Tokyo":
-            return (35.6762, 139.6503)
-        case "Paris":
-            return (48.8566, 2.3522)
-        default:
-            return (37.7749, -122.4194)
-        }
-    }
-    
     private static func generateVStackCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         let spacingValue: Double
         if let spacing = component.getProperty(key: "spacing") as? Double {

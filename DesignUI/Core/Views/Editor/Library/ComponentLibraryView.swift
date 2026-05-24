@@ -19,7 +19,7 @@ struct ComponentLibraryView: View {
     
     // Define the custom sort order for prioritization
     private let componentOrder: [ComponentType] = [
-        .text, .image, .map, .sfSymbol, // Core Content
+        .text, .image, .sfSymbol, // Core Content
         .stack, .scrollView, .spacer, .divider, // Layout
         .shape, // Shapes
         .button, .textField, .toggle, .slider, .progressView, .gauge // Controls

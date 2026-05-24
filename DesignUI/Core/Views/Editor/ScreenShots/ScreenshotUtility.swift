@@ -44,6 +44,19 @@ class ScreenshotUtility {
         }
         
         #if os(macOS)
+        // Primary path: ImageRenderer tends to match on-canvas visual effects better
+        // (materials/glass/vibrancy) than offscreen NSHostingView bitmap capture.
+        let renderer = ImageRenderer(content: contentView)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+
+        if let nsImage = renderer.nsImage,
+           let tiff = nsImage.tiffRepresentation,
+           let rep = NSBitmapImageRep(data: tiff),
+           let pngData = rep.representation(using: .png, properties: [:]) {
+            return pngData
+        }
+
+        // Fallback path: keep the prior NSHostingView capture for robustness.
         let hostingView = NSHostingView(rootView: contentView)
         let targetSize: CGSize
         if isContentAdaptive {
