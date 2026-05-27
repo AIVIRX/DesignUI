@@ -2,6 +2,7 @@
 import SwiftUI
 import Foundation
 import CryptoKit
+import ImageIO
 #if os(macOS)
 import AppKit
 typealias PlatformImage = NSImage
@@ -893,7 +894,9 @@ class DesignManager: ObservableObject {
         guard let url = URL(string: urlString) else { return nil }
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            let hash = sha256Hex(urlString)
+            // Deduplicate by actual image content, not URL string, so reopened
+            // community posts with different URL variants don't create duplicates.
+            let hash = sha256Hex(data)
             let preferredFilename = "remote-\(hash).jpg"
             return ImageGalleryManager.shared.saveImage(data: data, preferredFilename: preferredFilename)
         } catch {
@@ -907,6 +910,11 @@ class DesignManager: ObservableObject {
         let digest = SHA256.hash(data: data)
         return digest.map { String(format: "%02x", $0) }.joined()
     }
+
+    private func sha256Hex(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
+    }
     
     private func deepCopyComponents(_ components: [UIComponent]) -> [UIComponent] {
         return components.map { $0.clone() }
@@ -914,14 +922,22 @@ class DesignManager: ObservableObject {
     
     func deleteDesign(_ designFile: DesignFile) {
         designFile.delete()
-        
+
+        removeDesignFromList(designId: designFile.id)
+        clearCurrentDesignIfNeeded(deletedDesignId: designFile.id)
+    }
+
+    private func removeDesignFromList(designId: UUID) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.86)) {
-            designFiles.removeAll { $0.id == designFile.id }
+            designFiles.removeAll(where: { existing in
+                existing.id == designId
+            })
         }
-        
-        if currentDesign?.id == designFile.id {
-            currentDesign = nil
-        }
+    }
+
+    private func clearCurrentDesignIfNeeded(deletedDesignId: UUID) {
+        guard currentDesign?.id == deletedDesignId else { return }
+        currentDesign = nil
     }
     
     #if os(iOS)
@@ -1155,9 +1171,14 @@ class ImageGalleryManager: ObservableObject {
     }
     
     private let bundledAssets: [String] = []
+    private let memoryCache = NSCache<NSString, PlatformImage>()
+    private let thumbnailCache = NSCache<NSString, PlatformImage>()
+    private let ioQueue = DispatchQueue(label: "com.designui.imagegallery.io", qos: .userInitiated)
     
     init() {
         createGalleryDirectoryIfNeeded()
+        memoryCache.countLimit = 300
+        thumbnailCache.countLimit = 500
     }
     
     private func createGalleryDirectoryIfNeeded() {
@@ -1297,30 +1318,38 @@ class ImageGalleryManager: ObservableObject {
     #endif
     
     func loadImage(filename: String) -> PlatformImage? {
+        if let cached = memoryCache.object(forKey: filename as NSString) {
+            return cached
+        }
+
         if bundledAssets.contains(filename) {
             debugLog("🎨 Loading bundled asset: \(filename)")
             
             #if os(macOS)
             if let image = NSImage(named: filename) {
                 debugLog("✅ Successfully loaded bundled asset from default bundle: \(filename)")
+                memoryCache.setObject(image, forKey: filename as NSString)
                 return image
             }
             
             for bundle in Bundle.allBundles {
                 if let image = bundle.image(forResource: filename) {
                     debugLog("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
+                    memoryCache.setObject(image, forKey: filename as NSString)
                     return image
                 }
             }
             #else
             if let image = UIImage(named: filename) {
                 debugLog("✅ Successfully loaded bundled asset from default bundle: \(filename)")
+                memoryCache.setObject(image, forKey: filename as NSString)
                 return image
             }
             
             for bundle in Bundle.allBundles {
                 if let image = UIImage(named: filename, in: bundle, compatibleWith: nil) {
                     debugLog("✅ Found bundled asset in bundle \(bundle.bundleIdentifier ?? "unknown"): \(filename)")
+                    memoryCache.setObject(image, forKey: filename as NSString)
                     return image
                 }
             }
@@ -1337,12 +1366,95 @@ class ImageGalleryManager: ObservableObject {
         
         if let data = try? Data(contentsOf: fileURL) {
             #if os(macOS)
-            return NSImage(data: data)
+            if let image = NSImage(data: data) {
+                memoryCache.setObject(image, forKey: filename as NSString)
+                return image
+            }
             #else
-            return UIImage(data: data)
+            if let image = UIImage(data: data) {
+                memoryCache.setObject(image, forKey: filename as NSString)
+                return image
+            }
             #endif
         }
         return nil
+    }
+
+    func loadImageAsync(filename: String, completion: @escaping (PlatformImage?) -> Void) {
+        if let cached = memoryCache.object(forKey: filename as NSString) {
+            completion(cached)
+            return
+        }
+
+        ioQueue.async { [weak self] in
+            guard let self else {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            let image = self.loadImage(filename: filename)
+            DispatchQueue.main.async {
+                completion(image)
+            }
+        }
+    }
+
+    func loadThumbnailAsync(filename: String, maxPixelSize: Int = 220, completion: @escaping (PlatformImage?) -> Void) {
+        let cacheKey = "\(filename)#\(maxPixelSize)" as NSString
+        if let cached = thumbnailCache.object(forKey: cacheKey) {
+            completion(cached)
+            return
+        }
+
+        ioQueue.async { [weak self] in
+            guard let self else {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
+            if let bundled = self.loadImage(filename: filename) {
+                self.thumbnailCache.setObject(bundled, forKey: cacheKey)
+                DispatchQueue.main.async { completion(bundled) }
+                return
+            }
+
+            guard let fileURL = self.getImageUrl(filename: filename),
+                  self.fileManager.fileExists(atPath: fileURL.path) else {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
+            let thumbnail = self.downsampleImage(at: fileURL, maxPixelSize: maxPixelSize) ?? self.loadImage(filename: filename)
+            if let thumbnail {
+                self.thumbnailCache.setObject(thumbnail, forKey: cacheKey)
+            }
+            DispatchQueue.main.async {
+                completion(thumbnail)
+            }
+        }
+    }
+
+    private func downsampleImage(at url: URL, maxPixelSize: Int) -> PlatformImage? {
+        let sourceOptions: CFDictionary = [kCGImageSourceShouldCache: false] as CFDictionary
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions) else {
+            return nil
+        }
+
+        let downsampleOptions: CFDictionary = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelSize
+        ] as CFDictionary
+
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions) else {
+            return nil
+        }
+
+        #if os(macOS)
+        return NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+        #else
+        return UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up)
+        #endif
     }
     
     func getImageUrl(filename: String) -> URL? {
@@ -1396,6 +1508,8 @@ class ImageGalleryManager: ObservableObject {
         
         if fileManager.fileExists(atPath: fileURL.path) {
             try? fileManager.removeItem(at: fileURL)
+            memoryCache.removeObject(forKey: filename as NSString)
+            thumbnailCache.removeAllObjects()
             debugLog("🗑️ ImageGalleryManager: Deleted \(filename)")
         }
     }

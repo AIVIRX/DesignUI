@@ -26,17 +26,31 @@ extension CodeGenerator {
     }
 
     private static func chartColorCode(component: UIComponent) -> String {
-        let fillModifier = component.modifiers
-            .reversed()
-            .first { modifier in
-                modifier.type == .fill || modifier.type == .foregroundColor || modifier.type == .tint
-            }
-
-        guard let token = fillModifier?.properties["color"] as? String else {
+        guard let token = chartColorToken(component: component) else {
             return "Color.blue"
         }
 
         return colorTokenToCode(token)
+    }
+
+    private static func chartColorToken(component: UIComponent) -> String? {
+        guard let modifier = chartColorModifier(from: component.modifiers) else {
+            return nil
+        }
+        return modifier.properties["color"] as? String
+    }
+
+    private static func chartColorModifier(from modifiers: [ComponentModifier]) -> ComponentModifier? {
+        for modifier in modifiers.reversed() {
+            if isChartColorModifier(modifier) {
+                return modifier
+            }
+        }
+        return nil
+    }
+
+    private static func isChartColorModifier(_ modifier: ComponentModifier) -> Bool {
+        modifier.type == .fill || modifier.type == .foregroundColor || modifier.type == .tint
     }
 
     private static func colorTokenToCode(_ token: String) -> String {

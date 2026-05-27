@@ -488,52 +488,14 @@ struct UniversalColorPickerView: View {
     }
 
     private var satBrightnessField: some View {
-        GeometryReader { geo in
-            let width = max(1, geo.size.width)
-            let height = max(1, geo.size.height)
-            let x = saturation * width
-            let y = (1 - brightness) * height
-
-            ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [.white, Color(hue: hue, saturation: 1, brightness: 1)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [.clear, .black],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-
-                Circle()
-                    .stroke(Color.white, lineWidth: 2)
-                    .frame(width: 18, height: 18)
-                    .background(Circle().fill(Color.black.opacity(0.25)))
-                    .position(x: max(9, min(width - 9, x)), y: max(9, min(height - 9, y)))
-                    .shadow(color: .black.opacity(0.35), radius: 1, x: 0, y: 0)
+        SatBrightnessFieldView(
+            hue: hue,
+            saturation: $saturation,
+            brightness: $brightness,
+            onColorChange: { confirmed in
+                publishCustomColor(confirmed: confirmed)
             }
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                    .onChanged { value in
-                        let clampedX = max(0, min(width, value.location.x))
-                        let clampedY = max(0, min(height, value.location.y))
-                        saturation = clampedX / width
-                        brightness = 1 - (clampedY / height)
-                        publishCustomColor(confirmed: false)
-                    }
-                    .onEnded { _ in
-                        publishCustomColor(confirmed: true)
-                    }
-            )
-        }
+        )
         .frame(height: 156)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
@@ -824,6 +786,88 @@ struct UniversalColorPickerView: View {
         #endif
     }
 
+}
+
+private struct SatBrightnessFieldView: View {
+    let hue: Double
+    @Binding var saturation: Double
+    @Binding var brightness: Double
+    let onColorChange: (Bool) -> Void
+
+    private let markerDiameter: CGFloat = 18
+    private var markerRadius: CGFloat { markerDiameter / 2 }
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = max(1, geo.size.width)
+            let height = max(1, geo.size.height)
+            let markerX = clampedMarkerX(width: width)
+            let markerY = clampedMarkerY(height: height)
+
+            ZStack(alignment: .topLeading) {
+                saturationGradient
+                brightnessGradient
+                markerView(x: markerX, y: markerY)
+            }
+            .contentShape(Rectangle())
+            .gesture(dragGesture(width: width, height: height))
+        }
+    }
+
+    private var saturationGradient: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(
+                LinearGradient(
+                    colors: [.white, Color(hue: hue, saturation: 1, brightness: 1)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+    }
+
+    private var brightnessGradient: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(
+                LinearGradient(
+                    colors: [.clear, .black],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+    }
+
+    private func markerView(x: CGFloat, y: CGFloat) -> some View {
+        Circle()
+            .stroke(Color.white, lineWidth: 2)
+            .frame(width: markerDiameter, height: markerDiameter)
+            .background(Circle().fill(Color.black.opacity(0.25)))
+            .position(x: x, y: y)
+            .shadow(color: .black.opacity(0.35), radius: 1, x: 0, y: 0)
+    }
+
+    private func clampedMarkerX(width: CGFloat) -> CGFloat {
+        let rawX = saturation * width
+        return max(markerRadius, min(width - markerRadius, rawX))
+    }
+
+    private func clampedMarkerY(height: CGFloat) -> CGFloat {
+        let rawY = (1 - brightness) * height
+        return max(markerRadius, min(height - markerRadius, rawY))
+    }
+
+    private func dragGesture(width: CGFloat, height: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { value in
+                let clampedX = max(0, min(width, value.location.x))
+                let clampedY = max(0, min(height, value.location.y))
+                saturation = clampedX / width
+                brightness = 1 - (clampedY / height)
+                onColorChange(false)
+            }
+            .onEnded { _ in
+                onColorChange(true)
+            }
+    }
 }
 
 private struct CheckerboardBackground: View {

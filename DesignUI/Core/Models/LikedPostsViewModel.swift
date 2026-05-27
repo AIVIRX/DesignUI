@@ -7,6 +7,11 @@
 import SwiftUI
 
 class LikedPostsViewModel: ObservableObject {
+    private struct LikeResponse: Codable {
+        let created_at: String
+        let posts: DesignPost
+    }
+
     @Published var likedPosts: [DesignPost] = []
     @Published var isLoading: Bool = false
     @Published var hasMorePosts: Bool = true
@@ -17,6 +22,16 @@ class LikedPostsViewModel: ObservableObject {
     private let pageSize: Int = 6
     private let client = SupabaseManager.shared.client
     private var isRefreshing = false
+    private let likedPostsSelection = """
+        created_at,
+        posts!inner (
+        *,
+        profiles!posts_author_id_fkey (
+          username,
+          verified
+            )
+        )
+    """
     
     // Memory management: Keep max 150 items, remove oldest when limit reached
     private let maxItemsInMemory: Int = 150
@@ -51,57 +66,69 @@ class LikedPostsViewModel: ObservableObject {
         
         isLoading = true
         error = nil
-        
+
+        let page = currentPage
         currentTask = Task {
-            do {
-            let response = try await client
-                .from("likes")
-                .select("""
-                    created_at,
-                    posts!inner (
-                    *,
-                    profiles!posts_author_id_fkey (
-                      username,
-                      verified
-                        )
-                    )
-                """)
-                .eq("user_id", value: userId)
-                .eq("posts.public", value: true)
-                .order("created_at", ascending: false)
-                .range(from: currentPage * pageSize, to: (currentPage + 1) * pageSize - 1)
-                .execute()
-            
-            struct LikeResponse: Codable {
-                let created_at: String
-                let posts: DesignPost
-            }
-            
-                let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: response.data)
-                let newLikedPosts = likeResponses.map { $0.posts }
-                
-                likedPosts.append(contentsOf: newLikedPosts)
-                
-                // Memory management: Remove oldest items if we exceed the limit
-                if likedPosts.count > maxItemsInMemory {
-                    let itemsToRemove = min(itemsToRemoveWhenFull, likedPosts.count - maxItemsInMemory)
-                    likedPosts.removeFirst(itemsToRemove)
-                }
-                
-                currentPage += 1
-                hasMorePosts = newLikedPosts.count == pageSize
-            } catch {
-                self.error = error
-                // Only log non-cancelled errors
-                if let urlError = error as? URLError, urlError.code == .cancelled {
-                    // Silently handle cancelled requests - these are usually due to view lifecycle changes
-                    return
-                }
-                print("Error fetching liked posts: \(error)")
-            }
-            
-            isLoading = false
+            await fetchLikedPostsPage(userId: userId, page: page)
         }
+    }
+
+    @MainActor
+    private func fetchLikedPostsPage(userId: UUID, page: Int) async {
+        defer { isLoading = false }
+
+        do {
+            let newLikedPosts = try await loadLikedPostsPage(userId: userId, page: page)
+            appendLikedPostsPage(newLikedPosts)
+        } catch {
+            handleFetchError(error, message: "Error fetching liked posts")
+        }
+    }
+
+    @MainActor
+    private func loadLikedPostsPage(userId: UUID, page: Int) async throws -> [DesignPost] {
+        let startIndex = page * pageSize
+        let endIndex = startIndex + pageSize - 1
+        let response = try await client
+            .from("likes")
+            .select(likedPostsSelection)
+            .eq("user_id", value: userId)
+            .eq("posts.public", value: true)
+            .order("created_at", ascending: false)
+            .range(from: startIndex, to: endIndex)
+            .execute()
+
+        return try decodeLikedPosts(from: response.data)
+    }
+
+    private func decodeLikedPosts(from data: Data) throws -> [DesignPost] {
+        let likeResponses = try JSONDecoder().decode([LikeResponse].self, from: data)
+        return likeResponses.map { $0.posts }
+    }
+
+    @MainActor
+    private func appendLikedPostsPage(_ newLikedPosts: [DesignPost]) {
+        likedPosts.append(contentsOf: newLikedPosts)
+        trimLikedPostsIfNeeded()
+        currentPage += 1
+        hasMorePosts = newLikedPosts.count == pageSize
+    }
+
+    @MainActor
+    private func trimLikedPostsIfNeeded() {
+        guard likedPosts.count > maxItemsInMemory else { return }
+        let overflowCount = likedPosts.count - maxItemsInMemory
+        let itemsToRemove = min(itemsToRemoveWhenFull, overflowCount)
+        likedPosts.removeFirst(itemsToRemove)
+    }
+
+    @MainActor
+    private func handleFetchError(_ error: Error, message: String) {
+        self.error = error
+        if let urlError = error as? URLError, urlError.code == .cancelled {
+            return
+        }
+        print("\(message): \(error)")
     }
     
     @MainActor

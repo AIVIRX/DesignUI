@@ -28,7 +28,8 @@ class AuthViewModel: ObservableObject {
         authChangeTask = Task {
             for await state in supabase.auth.authStateChanges {
                 await MainActor.run {
-                    if let user = state.session?.user {
+                    if let session = state.session, !session.isExpired {
+                        let user = session.user
                         self.currentUser = user
                         self.isAuthenticated = true
                         self.isCheckingUsername = true

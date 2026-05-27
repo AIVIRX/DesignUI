@@ -287,54 +287,98 @@ private struct FastInspectorView: View {
         case shadowX(UUID)
         case shadowY(UUID)
     }
+    
+    @ViewBuilder
+    private var panelSections: some View {
+        if isCanvasSettingsSelection {
+            canvasSettingsSection
+        } else {
+            panelSectionsPrimary
+            panelSectionsInteractive
+            panelSectionsData
+            panelSectionsTextAndLayout
+            layoutSection
+            effectGroupsSection
+        }
+    }
+    
+    @ViewBuilder
+    private var panelSectionsPrimary: some View {
+        if hasSymbolProperty {
+            sfSymbolSection
+        }
+        if component.type == .image {
+            imageSection
+        }
+        if component.type == .scrollView {
+            scrollViewSection
+        }
+        if component.type == .shape {
+            shapeSection
+        }
+    }
+    
+    @ViewBuilder
+    private var panelSectionsInteractive: some View {
+        if component.type == .textField {
+            textFieldSection
+        }
+        if component.type == .button {
+            buttonSection
+        }
+        if component.type == .toggle {
+            switchSection
+        }
+        if component.type == .slider {
+            sliderSection
+        }
+    }
+    
+    @ViewBuilder
+    private var panelSectionsData: some View {
+        if component.type == .progressView {
+            progressViewSection
+        }
+        if component.type == .chart {
+            chartSection
+        }
+        if component.type == .gauge {
+            gaugeSection
+        }
+        if component.type == .stack {
+            stackSection
+        }
+    }
+    
+    @ViewBuilder
+    private var panelSectionsTextAndLayout: some View {
+        if editableTextKey != nil && component.type != .textField {
+            textSection
+        }
+    }
+    
+    @ViewBuilder
+    private var symbolPickerSheetContent: some View {
+        #if os(iOS)
+        NavigationStack {
+            SFSymbolPickerView(selectedSymbol: $symbolInput) { selectedSymbol in
+                symbolInput = selectedSymbol
+                canvasManager.updateComponentProperty(for: component, key: "symbolName", value: selectedSymbol)
+                showSFSymbolPicker = false
+            }
+        }
+        #else
+        SFSymbolPickerView(selectedSymbol: $symbolInput) { selectedSymbol in
+            symbolInput = selectedSymbol
+            canvasManager.updateComponentProperty(for: component, key: "symbolName", value: selectedSymbol)
+            showSFSymbolPicker = false
+        }
+        #endif
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            if isCanvasSettingsSelection {
-                canvasSettingsSection
-            } else {
-                if hasSymbolProperty {
-                    sfSymbolSection
-                }
-                if component.type == .image {
-                    imageSection
-                }
-                if component.type == .scrollView {
-                    scrollViewSection
-                }
-                if component.type == .shape {
-                    shapeSection
-                }
-                if component.type == .textField {
-                    textFieldSection
-                }
-                if component.type == .button {
-                    buttonSection
-                }
-                if component.type == .toggle {
-                    switchSection
-                }
-                if component.type == .slider {
-                    sliderSection
-                }
-                if component.type == .progressView {
-                    progressViewSection
-                }
-                if component.type == .chart {
-                    chartSection
-                }
-                if component.type == .gauge {
-                    gaugeSection
-                }
-                if component.type == .stack {
-                    stackSection
-                }
-                if editableTextKey != nil && component.type != .textField {
-                    textSection
-                }
-                layoutSection
-                effectGroupsSection
-            }
+            panelSections
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
@@ -344,21 +388,7 @@ private struct FastInspectorView: View {
             syncInspectorInputs()
         }
         .sheet(isPresented: $showSFSymbolPicker) {
-            #if os(iOS)
-            NavigationStack {
-                SFSymbolPickerView(selectedSymbol: $symbolInput) { selectedSymbol in
-                    symbolInput = selectedSymbol
-                    canvasManager.updateComponentProperty(for: component, key: "symbolName", value: selectedSymbol)
-                    showSFSymbolPicker = false
-                }
-            }
-            #else
-            SFSymbolPickerView(selectedSymbol: $symbolInput) { selectedSymbol in
-                symbolInput = selectedSymbol
-                canvasManager.updateComponentProperty(for: component, key: "symbolName", value: selectedSymbol)
-                showSFSymbolPicker = false
-            }
-            #endif
+            symbolPickerSheetContent
         }
         .alert(numericInputTitle, isPresented: Binding(
             get: { numericInputTarget != nil },
@@ -609,7 +639,7 @@ private struct FastInspectorView: View {
     }
 
     private var scrollShowsIndicators: Bool {
-        (component.getProperty(key: "showsIndicators") as? Bool) ?? true
+        component.getBoolProperty(key: "showsIndicators", defaultValue: true)
     }
 
     private var scrollViewSection: some View {
@@ -1080,7 +1110,7 @@ private struct FastInspectorView: View {
                 .frame(width: 34)
                 .onChange(of: textFontSizeInput) { _, newValue in
                     if isParsableNumberInput(newValue) {
-                        setCustomFontSize(newValue)
+                        applyTypingFontSize(newValue)
                     }
                 }
                 .onSubmit {
@@ -1239,170 +1269,193 @@ private struct FastInspectorView: View {
     }
 
     private var layoutSection: some View {
-        inspectorSection(
+        let showLayoutActions =
+            showComponentActions &&
+            editableTextKey == nil &&
+            !hasSymbolProperty &&
+            component.type != .stack &&
+            component.type != .image &&
+            component.type != .scrollView &&
+            component.type != .shape &&
+            component.type != .button &&
+            component.type != .toggle &&
+            component.type != .slider &&
+            component.type != .progressView &&
+            component.type != .chart &&
+            component.type != .gauge &&
+            component.type != .textField
+
+        return inspectorSection(
             "Layout",
             plus: nil,
-            showActions: showComponentActions &&
-                editableTextKey == nil &&
-                !hasSymbolProperty &&
-                component.type != .stack &&
-                component.type != .image &&
-                component.type != .scrollView &&
-                component.type != .shape &&
-                component.type != .button &&
-                component.type != .toggle &&
-                component.type != .slider &&
-                component.type != .progressView &&
-                component.type != .chart &&
-                component.type != .gauge &&
-                component.type != .textField
+            showActions: showLayoutActions
         ) {
             VStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    if isPhone {
-                        VStack(spacing: 8) {
-                            mobileFrameSliderField(axis: "width")
-                            mobileFrameSliderField(axis: "height")
-                        }
-                    } else {
-                        frameInlineField(axis: "width", text: $frameWidthInput)
-                        frameInlineField(axis: "height", text: $frameHeightInput)
-                    }
-                }
+                layoutFrameRow
 
-                HStack(spacing: 10) {
-                    if isPhone {
-                        VStack(spacing: 8) {
-                            mobileSliderField(
-                                title: "H Padding",
-                                systemImage: "arrow.left.and.right",
-                                value: resolvedPaddingAmount(for: "horizontal"),
-                                range: 0...64,
-                                step: 1
-                            ) { setPaddingAxis("horizontal", String($0), continuous: true) } onCommit: { value in
-                                setPaddingAxis("horizontal", String(value), continuous: false)
-                            } onDirectInput: {
-                                numericInputText = String(Int(resolvedPaddingAmount(for: "horizontal").rounded()))
-                                numericInputTarget = .paddingHorizontal
-                            }
-                            mobileSliderField(
-                                title: "V Padding",
-                                systemImage: "arrow.up.and.down",
-                                value: resolvedPaddingAmount(for: "vertical"),
-                                range: 0...64,
-                                step: 1
-                            ) { setPaddingAxis("vertical", String($0), continuous: true) } onCommit: { value in
-                                setPaddingAxis("vertical", String(value), continuous: false)
-                            } onDirectInput: {
-                                numericInputText = String(Int(resolvedPaddingAmount(for: "vertical").rounded()))
-                                numericInputTarget = .paddingVertical
-                            }
-                        }
-                    } else {
-                        paddingAxisField(
-                            symbol: "arrow.left.and.right",
-                            text: $paddingHorizontalInput,
-                            helpText: "Horizontal Padding"
-                        ) { committed in
-                            setPaddingAxis("horizontal", committed)
-                        }
-                        paddingAxisField(
-                            symbol: "arrow.up.and.down",
-                            text: $paddingVerticalInput,
-                            helpText: "Vertical Padding"
-                        ) { committed in
-                            setPaddingAxis("vertical", committed)
-                        }
-                    }
-                }
+                layoutPaddingRow
 
-                HStack(spacing: 10) {
-                    if isPhone {
-                        VStack(spacing: 8) {
-                            mobileSliderField(
-                                title: "X Offset",
-                                systemImage: "arrow.left.and.right",
-                                value: currentOffsetX(),
-                                range: -500...500,
-                                step: 1
-                            ) { value in
-                                setOffsetAxis("x", String(value), continuous: true)
-                            } onCommit: { value in
-                                setOffsetAxis("x", String(value), continuous: false)
-                            } onDirectInput: {
-                                numericInputText = String(Int(currentOffsetX().rounded()))
-                                numericInputTarget = .offsetX
-                            }
-
-                            mobileSliderField(
-                                title: "Y Offset",
-                                systemImage: "arrow.up.and.down",
-                                value: currentOffsetY(),
-                                range: -500...500,
-                                step: 1
-                            ) { value in
-                                setOffsetAxis("y", String(value), continuous: true)
-                            } onCommit: { value in
-                                setOffsetAxis("y", String(value), continuous: false)
-                            } onDirectInput: {
-                                numericInputText = String(Int(currentOffsetY().rounded()))
-                                numericInputTarget = .offsetY
-                            }
-                        }
-                    } else {
-                        axisInputField(label: "X", text: $offsetXInput, helpText: "Offset X") { committed in
-                            setOffsetAxis("x", committed)
-                        }
-                        axisInputField(label: "Y", text: $offsetYInput, helpText: "Offset Y") { committed in
-                            setOffsetAxis("y", committed)
-                        }
-                    }
-                }
+                layoutOffsetRow
 
                 if component.type != .stack, let alignmentOptions {
                     alignmentSegmentedControl(options: alignmentOptions, selected: selectedAlignmentOption)
                         .help("Alignment")
                 }
 
-                HStack(spacing: 10) {
-                    if isPhone {
-                        VStack(spacing: 8) {
-                            mobileSliderField(
-                                title: "Opacity",
-                                systemImage: "app.translucent",
-                                value: currentUniversalOpacity() * 100.0,
-                                range: 0...100,
-                                step: 1
-                            ) { setUniversalOpacity($0 / 100.0, continuous: true) } onCommit: { value in
-                                setUniversalOpacity(value / 100.0, continuous: false)
-                            } onDirectInput: {
-                                numericInputText = String(Int((currentUniversalOpacity() * 100.0).rounded()))
-                                numericInputTarget = .opacity
-                            }
-                            mobileSliderField(
-                                title: "Corner Radius",
-                                systemImage: "button.roundedtop.horizontal",
-                                value: Double(cornerRadiusInput) ?? 0,
-                                range: 0...100,
-                                step: 1
-                            ) { setCornerRadius(String($0), continuous: true) } onCommit: { value in
-                                setCornerRadius(String(value), continuous: false)
-                            } onDirectInput: {
-                                numericInputText = cornerRadiusInput
-                                numericInputTarget = .cornerRadius
-                            }
-                        }
-                    } else {
-                        iconPercentInputField(symbol: "app.translucent", text: $objectOpacityInput, helpText: "Object Opacity") { percent in
-                            setUniversalOpacity(percent / 100.0)
-                        }
-                        iconDegreeInputField(symbol: "rotate.right", text: $rotationInput, helpText: "Rotation") { committed in
-                            setRotation(committed)
-                        }
-                        iconPxInputField(symbol: "button.roundedtop.horizontal", text: $cornerRadiusInput, helpText: "Corner Radius") { committed in
-                            setCornerRadius(committed)
-                        }
+                layoutOpacityAndCornerRow
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var layoutFrameRow: some View {
+        HStack(spacing: 10) {
+            if isPhone {
+                VStack(spacing: 8) {
+                    mobileFrameSliderField(axis: "width")
+                    mobileFrameSliderField(axis: "height")
+                }
+            } else {
+                frameInlineField(axis: "width", text: $frameWidthInput)
+                frameInlineField(axis: "height", text: $frameHeightInput)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var layoutPaddingRow: some View {
+        HStack(spacing: 10) {
+            if isPhone {
+                VStack(spacing: 8) {
+                    mobileSliderField(
+                        title: "H Padding",
+                        systemImage: "arrow.left.and.right",
+                        value: resolvedPaddingAmount(for: "horizontal"),
+                        range: 0...64,
+                        step: 1
+                    ) { setPaddingAxis("horizontal", String($0), continuous: true) } onCommit: { value in
+                        setPaddingAxis("horizontal", String(value), continuous: false)
+                    } onDirectInput: {
+                        numericInputText = String(Int(resolvedPaddingAmount(for: "horizontal").rounded()))
+                        numericInputTarget = .paddingHorizontal
                     }
+                    mobileSliderField(
+                        title: "V Padding",
+                        systemImage: "arrow.up.and.down",
+                        value: resolvedPaddingAmount(for: "vertical"),
+                        range: 0...64,
+                        step: 1
+                    ) { setPaddingAxis("vertical", String($0), continuous: true) } onCommit: { value in
+                        setPaddingAxis("vertical", String(value), continuous: false)
+                    } onDirectInput: {
+                        numericInputText = String(Int(resolvedPaddingAmount(for: "vertical").rounded()))
+                        numericInputTarget = .paddingVertical
+                    }
+                }
+            } else {
+                paddingAxisField(
+                    symbol: "arrow.left.and.right",
+                    text: $paddingHorizontalInput,
+                    helpText: "Horizontal Padding"
+                ) { committed in
+                    setPaddingAxis("horizontal", committed)
+                }
+                paddingAxisField(
+                    symbol: "arrow.up.and.down",
+                    text: $paddingVerticalInput,
+                    helpText: "Vertical Padding"
+                ) { committed in
+                    setPaddingAxis("vertical", committed)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var layoutOffsetRow: some View {
+        HStack(spacing: 10) {
+            if isPhone {
+                VStack(spacing: 8) {
+                    mobileSliderField(
+                        title: "X Offset",
+                        systemImage: "arrow.left.and.right",
+                        value: currentOffsetX(),
+                        range: -500...500,
+                        step: 1
+                    ) { value in
+                        setOffsetAxis("x", String(value), continuous: true)
+                    } onCommit: { value in
+                        setOffsetAxis("x", String(value), continuous: false)
+                    } onDirectInput: {
+                        numericInputText = String(Int(currentOffsetX().rounded()))
+                        numericInputTarget = .offsetX
+                    }
+
+                    mobileSliderField(
+                        title: "Y Offset",
+                        systemImage: "arrow.up.and.down",
+                        value: currentOffsetY(),
+                        range: -500...500,
+                        step: 1
+                    ) { value in
+                        setOffsetAxis("y", String(value), continuous: true)
+                    } onCommit: { value in
+                        setOffsetAxis("y", String(value), continuous: false)
+                    } onDirectInput: {
+                        numericInputText = String(Int(currentOffsetY().rounded()))
+                        numericInputTarget = .offsetY
+                    }
+                }
+            } else {
+                axisInputField(label: "X", text: $offsetXInput, helpText: "Offset X") { committed in
+                    setOffsetAxis("x", committed)
+                }
+                axisInputField(label: "Y", text: $offsetYInput, helpText: "Offset Y") { committed in
+                    setOffsetAxis("y", committed)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var layoutOpacityAndCornerRow: some View {
+        HStack(spacing: 10) {
+            if isPhone {
+                VStack(spacing: 8) {
+                    mobileSliderField(
+                        title: "Opacity",
+                        systemImage: "app.translucent",
+                        value: currentUniversalOpacity() * 100.0,
+                        range: 0...100,
+                        step: 1
+                    ) { setUniversalOpacity($0 / 100.0, continuous: true) } onCommit: { value in
+                        setUniversalOpacity(value / 100.0, continuous: false)
+                    } onDirectInput: {
+                        numericInputText = String(Int((currentUniversalOpacity() * 100.0).rounded()))
+                        numericInputTarget = .opacity
+                    }
+                    mobileSliderField(
+                        title: "Corner Radius",
+                        systemImage: "button.roundedtop.horizontal",
+                        value: Double(cornerRadiusInput) ?? 0,
+                        range: 0...100,
+                        step: 1
+                    ) { setCornerRadius(String($0), continuous: true) } onCommit: { value in
+                        setCornerRadius(String(value), continuous: false)
+                    } onDirectInput: {
+                        numericInputText = cornerRadiusInput
+                        numericInputTarget = .cornerRadius
+                    }
+                }
+            } else {
+                iconPercentInputField(symbol: "app.translucent", text: $objectOpacityInput, helpText: "Object Opacity") { percent in
+                    setUniversalOpacity(percent / 100.0)
+                }
+                iconDegreeInputField(symbol: "rotate.right", text: $rotationInput, helpText: "Rotation") { committed in
+                    setRotation(committed)
+                }
+                iconPxInputField(symbol: "button.roundedtop.horizontal", text: $cornerRadiusInput, helpText: "Corner Radius") { committed in
+                    setCornerRadius(committed)
                 }
             }
         }
@@ -2119,116 +2172,39 @@ private struct FastInspectorView: View {
             groupRow("Effects", type: .glassEffect, menuTypes: [.glassEffect, .shadow, .blur, .clipShape])
 
             ForEach(effectModifiers) { effect in
-                if effect.type == .blur {
-                    blurInlineControl(for: effect)
-                        .padding(.vertical, 2)
-                } else if effect.type == .shadow {
-                    shadowInlineControls(for: effect)
-                        .padding(.vertical, 2)
-                } else if effect.type == .clipShape {
-                    clipShapeInlineControl(for: effect)
-                        .padding(.vertical, 2)
-                } else {
-                    VStack(alignment: .leading, spacing: effect.type == .glassEffect ? 0 : 8) {
-                        HStack(spacing: 10) {
-                            Button {
-                                canvasManager.removeModifier(from: component, modifier: effect)
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.secondary)
-                                    .frame(width: 22, height: 22)
-                                    .background(Circle().fill(Color.secondary.opacity(0.16)))
-                            }
-                            .buttonStyle(.plain)
-
-                            if effect.type == .glassEffect {
-                                let selectedShape = (effect.properties["shape"] as? String) ?? "Default"
-
-                                Image(systemName: effect.type.icon)
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.primary)
-
-                                compactMenuField(
-                                    title: glassShapeDisplayName(selectedShape),
-                                    options: ["Default", "Rect", "Rounded", "Circle", "Capsule", "Ellipse"]
-                                ) { selectedDisplay in
-                                    let selected = glassShapeStorageName(selectedDisplay)
-                                    updateEffectModifier(effect) { mod in
-                                        if selected == "Default" {
-                                            mod.properties.removeValue(forKey: "shape")
-                                            mod.properties.removeValue(forKey: "shapeType")
-                                            mod.properties.removeValue(forKey: "cornerRadius")
-                                        } else {
-                                            mod.properties["shape"] = selected
-                                            if selected == "RoundedRectangle" {
-                                                if mod.properties["cornerRadius"] == nil { mod.properties["cornerRadius"] = 10.0 }
-                                            } else {
-                                                mod.properties.removeValue(forKey: "cornerRadius")
-                                            }
-                                        }
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-
-                                if selectedShape == "RoundedRectangle" {
-                                    iconPxInputField(
-                                        symbol: "button.roundedtop.horizontal",
-                                        text: Binding(
-                                            get: {
-                                                let radius = glassEffectCornerRadius(for: effect)
-                                                return String(Int(max(0, radius).rounded()))
-                                            },
-                                            set: { newValue in
-                                                guard isParsableNumberInput(newValue) else { return }
-                                                let parsed = max(0, Double(newValue.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
-                                                updateEffectModifier(effect) { mod in
-                                                    mod.properties["cornerRadius"] = parsed
-                                                }
-                                            }
-                                        ),
-                                        helpText: "Corner Radius"
-                                    ) { committed in
-                                        let parsed = max(0, Double(committed.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
-                                        updateEffectModifier(effect) { mod in
-                                            mod.properties["cornerRadius"] = parsed
-                                        }
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                }
-                            } else {
-                                Button {
-                                    // Effects are inline-editable in the panel.
-                                } label: {
-                                    Image(systemName: effect.type.icon)
-                                        .font(.system(size: 12, weight: .semibold))
-                                        .foregroundColor(.primary)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(Color.secondary.opacity(0.14))
-                                        )
-                                }
-                                .buttonStyle(.plain)
-
-                                Spacer(minLength: 0)
-                            }
-                        }
-
-                        if effect.type != .glassEffect {
-                            effectInlineControls(for: effect)
-                        } else {
-                            EmptyView()
-                        }
-                    }
-                    .padding(.vertical, 2)
-                }
+                effectRow(for: effect)
             }
         }
     }
 
-    private func clipShapeInlineControl(for effect: ComponentModifier) -> some View {
+    @ViewBuilder
+    private func effectRow(for effect: ComponentModifier) -> some View {
+        if effect.type == .blur {
+            blurInlineControl(for: effect)
+                .padding(.vertical, 2)
+        } else if effect.type == .shadow {
+            shadowInlineControls(for: effect)
+                .padding(.vertical, 2)
+        } else if effect.type == .clipShape {
+            clipShapeInlineControl(for: effect)
+                .padding(.vertical, 2)
+        } else {
+            defaultEffectRow(for: effect)
+                .padding(.vertical, 2)
+        }
+    }
+
+    private func defaultEffectRow(for effect: ComponentModifier) -> some View {
+        VStack(alignment: .leading, spacing: effect.type == .glassEffect ? 0 : 8) {
+            effectHeaderRow(for: effect)
+            if effect.type != .glassEffect {
+                effectInlineControls(for: effect)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func effectHeaderRow(for effect: ComponentModifier) -> some View {
         HStack(spacing: 10) {
             Button {
                 canvasManager.removeModifier(from: component, modifier: effect)
@@ -2241,8 +2217,103 @@ private struct FastInspectorView: View {
             }
             .buttonStyle(.plain)
 
+            if effect.type == .glassEffect {
+                glassEffectHeaderControls(for: effect)
+            } else {
+                Button {
+                    // Effects are inline-editable in the panel.
+                } label: {
+                    Image(systemName: effect.type.icon)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.secondary.opacity(0.14))
+                        )
+                }
+                .buttonStyle(.plain)
+
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func glassEffectHeaderControls(for effect: ComponentModifier) -> some View {
+        let selectedShape = (effect.properties["shape"] as? String) ?? "Default"
+
+        Image(systemName: effect.type.icon)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(.primary)
+
+        compactMenuField(
+            title: glassShapeDisplayName(selectedShape),
+            options: ["Default", "Rect", "Rounded", "Circle", "Capsule", "Ellipse"]
+        ) { selectedDisplay in
+            let selected = glassShapeStorageName(selectedDisplay)
+            updateEffectModifier(effect) { mod in
+                if selected == "Default" {
+                    mod.properties.removeValue(forKey: "shape")
+                    mod.properties.removeValue(forKey: "shapeType")
+                    mod.properties.removeValue(forKey: "cornerRadius")
+                } else {
+                    mod.properties["shape"] = selected
+                    if selected == "RoundedRectangle" {
+                        if mod.properties["cornerRadius"] == nil { mod.properties["cornerRadius"] = 10.0 }
+                    } else {
+                        mod.properties.removeValue(forKey: "cornerRadius")
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+
+        if selectedShape == "RoundedRectangle" {
+            iconPxInputField(
+                symbol: "button.roundedtop.horizontal",
+                text: Binding(
+                    get: {
+                        let radius = glassEffectCornerRadius(for: effect)
+                        return String(Int(max(0, radius).rounded()))
+                    },
+                    set: { newValue in
+                        guard isParsableNumberInput(newValue) else { return }
+                        let parsed = max(0, Double(newValue.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
+                        updateEffectModifier(effect) { mod in
+                            mod.properties["cornerRadius"] = parsed
+                        }
+                    }
+                ),
+                helpText: "Corner Radius"
+            ) { committed in
+                let parsed = max(0, Double(committed.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
+                updateEffectModifier(effect) { mod in
+                    mod.properties["cornerRadius"] = parsed
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func clipShapeInlineControl(for effect: ComponentModifier) -> some View {
+        let selectedShape = (effect.properties["shape"] as? String) ?? "Rectangle"
+
+        return HStack(spacing: 10) {
+            Button {
+                canvasManager.removeModifier(from: component, modifier: effect)
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.secondary)
+                    .frame(width: 22, height: 22)
+                    .background(Circle().fill(Color.secondary.opacity(0.16)))
+            }
+            .buttonStyle(.plain)
+
             compactMenuField(
-                title: (effect.properties["shape"] as? String) ?? "Rectangle",
+                title: selectedShape,
                 options: ["Rectangle", "RoundedRectangle", "Circle", "Capsule", "Ellipse"]
             ) { selected in
                 updateEffectModifier(effect) { mod in
@@ -2253,6 +2324,32 @@ private struct FastInspectorView: View {
                         mod.properties["cornerRadius"] = 10.0
                     }
                 }
+            }
+
+            if selectedShape == "RoundedRectangle" {
+                iconPxInputField(
+                    symbol: "button.roundedtop.horizontal",
+                    text: Binding(
+                        get: {
+                            let radius = (effect.properties["cornerRadius"] as? Double) ?? 10
+                            return String(Int(max(0, radius).rounded()))
+                        },
+                        set: { newValue in
+                            guard isParsableNumberInput(newValue) else { return }
+                            let parsed = max(0, Double(newValue.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
+                            updateEffectModifier(effect) { mod in
+                                mod.properties["cornerRadius"] = parsed
+                            }
+                        }
+                    ),
+                    helpText: "Corner Radius"
+                ) { committed in
+                    let parsed = max(0, Double(committed.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
+                    updateEffectModifier(effect) { mod in
+                        mod.properties["cornerRadius"] = parsed
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
 
             Spacer(minLength: 0)
@@ -2294,155 +2391,174 @@ private struct FastInspectorView: View {
 
     private func shadowInlineControls(for effect: ComponentModifier) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Button {
-                    canvasManager.removeModifier(from: component, modifier: effect)
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                        .frame(width: 22, height: 22)
-                        .background(Circle().fill(Color.secondary.opacity(0.16)))
-                }
-                .buttonStyle(.plain)
+            shadowColorControlsRow(for: effect)
+            shadowValueControls(for: effect)
+        }
+    }
+    
+    @ViewBuilder
+    private func shadowColorControlsRow(for effect: ComponentModifier) -> some View {
+        HStack(spacing: 10) {
+            Button {
+                canvasManager.removeModifier(from: component, modifier: effect)
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.secondary)
+                    .frame(width: 22, height: 22)
+                    .background(Circle().fill(Color.secondary.opacity(0.16)))
+            }
+            .buttonStyle(.plain)
 
-                Button {
+            Button {
 #if os(macOS)
-                    macFillPopoverModifierId = effect.id
+                macFillPopoverModifierId = effect.id
 #else
-                    colorEditorModifierId = effect.id
-                    colorEditorTitle = "Shadow Color"
-                    showColorEditor = true
+                colorEditorModifierId = effect.id
+                colorEditorTitle = "Shadow Color"
+                showColorEditor = true
 #endif
-                } label: {
-                    Circle()
-                        .fill(colorFromToken(shadowColorToken(for: effect)))
-                        .opacity(currentShadowOpacity(for: effect))
-                        .frame(width: 24, height: 24)
-                        .overlay(Circle().stroke(Color.primary.opacity(0.35), lineWidth: 1))
-                }
-                .buttonStyle(.plain)
+            } label: {
+                Circle()
+                    .fill(colorFromToken(shadowColorToken(for: effect)))
+                    .opacity(currentShadowOpacity(for: effect))
+                    .frame(width: 24, height: 24)
+                    .overlay(Circle().stroke(Color.primary.opacity(0.35), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
 #if os(macOS)
-                .popover(
-                    isPresented: Binding(
-                        get: { macFillPopoverModifierId == effect.id },
-                        set: { isPresented in
-                            if !isPresented, macFillPopoverModifierId == effect.id {
-                                macFillPopoverModifierId = nil
+            .popover(
+                isPresented: Binding(
+                    get: { macFillPopoverModifierId == effect.id },
+                    set: { isPresented in
+                        if !isPresented, macFillPopoverModifierId == effect.id {
+                            macFillPopoverModifierId = nil
+                        }
+                    }
+                ),
+                arrowEdge: .trailing
+            ) {
+                ColorModifierEditor(
+                    modifier: Binding(
+                        get: { component.modifiers.first(where: { $0.id == effect.id }) ?? effect },
+                        set: { newModifier in
+                            DispatchQueue.main.async {
+                                canvasManager.updateModifier(for: component, modifier: newModifier)
                             }
                         }
                     ),
-                    arrowEdge: .trailing
-                ) {
-                    ColorModifierEditor(
-                        modifier: Binding(
-                            get: { component.modifiers.first(where: { $0.id == effect.id }) ?? effect },
-                            set: { newModifier in
-                                DispatchQueue.main.async {
-                                    canvasManager.updateModifier(for: component, modifier: newModifier)
-                                }
-                            }
-                        ),
-                        component: component,
-                        title: "Shadow Color"
-                    )
-                    .padding(8)
-                }
+                    component: component,
+                    title: "Shadow Color"
+                )
+                .padding(8)
+            }
 #endif
 
-                shadowHexEditor(for: effect)
-                shadowOpacityEditor(for: effect)
+            shadowHexEditor(for: effect)
+            shadowOpacityEditor(for: effect)
+        }
+    }
+    
+    @ViewBuilder
+    private func shadowValueControls(for effect: ComponentModifier) -> some View {
+        HStack(spacing: 8) {
+            if isPhone {
+                shadowValueControlsPhone(for: effect)
+            } else {
+                shadowValueControlsDesktop(for: effect)
             }
-
-            HStack(spacing: 8) {
-                if isPhone {
-                    VStack(spacing: 8) {
-                        mobileSliderField(
-                            title: "Shadow Radius",
-                            systemImage: "smallcircle.filled.circle",
-                            value: currentShadowRadius(for: effect),
-                            range: 0...40,
-                            step: 1
-                        ) { updateShadowRadius(effect, value: max(0, $0), continuous: true) } onCommit: { value in
-                            updateShadowRadius(effect, value: max(0, value), continuous: false)
-                        } onDirectInput: {
-                            numericInputText = String(Int(currentShadowRadius(for: effect).rounded()))
-                            numericInputTarget = .shadowRadius(effect.id)
-                        }
-                        mobileSliderField(
-                            title: "Shadow X",
-                            systemImage: "arrow.left.and.right",
-                            value: currentShadowX(for: effect),
-                            range: -100...100,
-                            step: 1
-                        ) { updateShadowOffset(effect, x: $0, y: currentShadowY(for: effect), continuous: true) } onCommit: { value in
-                            updateShadowOffset(effect, x: value, y: currentShadowY(for: effect), continuous: false)
-                        } onDirectInput: {
-                            numericInputText = String(Int(currentShadowX(for: effect).rounded()))
-                            numericInputTarget = .shadowX(effect.id)
-                        }
-                        mobileSliderField(
-                            title: "Shadow Y",
-                            systemImage: "arrow.up.and.down",
-                            value: currentShadowY(for: effect),
-                            range: -100...100,
-                            step: 1
-                        ) { updateShadowOffset(effect, x: currentShadowX(for: effect), y: $0, continuous: true) } onCommit: { value in
-                            updateShadowOffset(effect, x: currentShadowX(for: effect), y: value, continuous: false)
-                        } onDirectInput: {
-                            numericInputText = String(Int(currentShadowY(for: effect).rounded()))
-                            numericInputTarget = .shadowY(effect.id)
-                        }
-                    }
-                } else {
-                    shadowNumberEditor(for: effect, label: "R", text: Binding(
-                        get: { shadowRadiusInputs[effect.id] ?? String(Int(currentShadowRadius(for: effect).rounded())) },
-                        set: { newValue in
-                            let sanitized = sanitizeSignedNumberInput(newValue)
-                            shadowRadiusInputs[effect.id] = sanitized
-                            if let value = Double(sanitized) {
-                                updateShadowRadius(effect, value: max(0, value), continuous: true)
-                            }
-                        }
-                    ), focus: .radius(effect.id)) {
-                        let sanitized = sanitizeSignedNumberInput(shadowRadiusInputs[effect.id] ?? "")
-                        let value = Double(sanitized) ?? currentShadowRadius(for: effect)
-                        updateShadowRadius(effect, value: max(0, value), continuous: false)
-                        shadowRadiusInputs[effect.id] = String(Int(max(0, value).rounded()))
-                    }
-
-                    shadowNumberEditor(for: effect, label: "X", text: Binding(
-                        get: { shadowXInputs[effect.id] ?? String(Int(currentShadowX(for: effect).rounded())) },
-                        set: { newValue in
-                            let sanitized = sanitizeSignedNumberInput(newValue)
-                            shadowXInputs[effect.id] = sanitized
-                            if let value = Double(sanitized) {
-                                updateShadowOffset(effect, x: value, y: currentShadowY(for: effect), continuous: true)
-                            }
-                        }
-                    ), focus: .x(effect.id)) {
-                        let sanitized = sanitizeSignedNumberInput(shadowXInputs[effect.id] ?? "")
-                        let value = Double(sanitized) ?? currentShadowX(for: effect)
-                        updateShadowOffset(effect, x: value, y: currentShadowY(for: effect), continuous: false)
-                        shadowXInputs[effect.id] = String(Int(value.rounded()))
-                    }
-
-                    shadowNumberEditor(for: effect, label: "Y", text: Binding(
-                        get: { shadowYInputs[effect.id] ?? String(Int(currentShadowY(for: effect).rounded())) },
-                        set: { newValue in
-                            let sanitized = sanitizeSignedNumberInput(newValue)
-                            shadowYInputs[effect.id] = sanitized
-                            if let value = Double(sanitized) {
-                                updateShadowOffset(effect, x: currentShadowX(for: effect), y: value, continuous: true)
-                            }
-                        }
-                    ), focus: .y(effect.id)) {
-                        let sanitized = sanitizeSignedNumberInput(shadowYInputs[effect.id] ?? "")
-                        let value = Double(sanitized) ?? currentShadowY(for: effect)
-                        updateShadowOffset(effect, x: currentShadowX(for: effect), y: value, continuous: false)
-                        shadowYInputs[effect.id] = String(Int(value.rounded()))
+        }
+    }
+    
+    private func shadowValueControlsPhone(for effect: ComponentModifier) -> some View {
+        VStack(spacing: 8) {
+            mobileSliderField(
+                title: "Shadow Radius",
+                systemImage: "smallcircle.filled.circle",
+                value: currentShadowRadius(for: effect),
+                range: 0...40,
+                step: 1
+            ) { updateShadowRadius(effect, value: max(0, $0), continuous: true) } onCommit: { value in
+                updateShadowRadius(effect, value: max(0, value), continuous: false)
+            } onDirectInput: {
+                numericInputText = String(Int(currentShadowRadius(for: effect).rounded()))
+                numericInputTarget = .shadowRadius(effect.id)
+            }
+            mobileSliderField(
+                title: "Shadow X",
+                systemImage: "arrow.left.and.right",
+                value: currentShadowX(for: effect),
+                range: -100...100,
+                step: 1
+            ) { updateShadowOffset(effect, x: $0, y: currentShadowY(for: effect), continuous: true) } onCommit: { value in
+                updateShadowOffset(effect, x: value, y: currentShadowY(for: effect), continuous: false)
+            } onDirectInput: {
+                numericInputText = String(Int(currentShadowX(for: effect).rounded()))
+                numericInputTarget = .shadowX(effect.id)
+            }
+            mobileSliderField(
+                title: "Shadow Y",
+                systemImage: "arrow.up.and.down",
+                value: currentShadowY(for: effect),
+                range: -100...100,
+                step: 1
+            ) { updateShadowOffset(effect, x: currentShadowX(for: effect), y: $0, continuous: true) } onCommit: { value in
+                updateShadowOffset(effect, x: currentShadowX(for: effect), y: value, continuous: false)
+            } onDirectInput: {
+                numericInputText = String(Int(currentShadowY(for: effect).rounded()))
+                numericInputTarget = .shadowY(effect.id)
+            }
+        }
+    }
+    
+    private func shadowValueControlsDesktop(for effect: ComponentModifier) -> some View {
+        Group {
+            shadowNumberEditor(for: effect, label: "R", text: Binding(
+                get: { shadowRadiusInputs[effect.id] ?? String(Int(currentShadowRadius(for: effect).rounded())) },
+                set: { newValue in
+                    let sanitized = sanitizeSignedNumberInput(newValue)
+                    shadowRadiusInputs[effect.id] = sanitized
+                    if let value = Double(sanitized) {
+                        updateShadowRadius(effect, value: max(0, value), continuous: true)
                     }
                 }
+            ), focus: .radius(effect.id)) {
+                let sanitized = sanitizeSignedNumberInput(shadowRadiusInputs[effect.id] ?? "")
+                let value = Double(sanitized) ?? currentShadowRadius(for: effect)
+                updateShadowRadius(effect, value: max(0, value), continuous: false)
+                shadowRadiusInputs[effect.id] = String(Int(max(0, value).rounded()))
+            }
+
+            shadowNumberEditor(for: effect, label: "X", text: Binding(
+                get: { shadowXInputs[effect.id] ?? String(Int(currentShadowX(for: effect).rounded())) },
+                set: { newValue in
+                    let sanitized = sanitizeSignedNumberInput(newValue)
+                    shadowXInputs[effect.id] = sanitized
+                    if let value = Double(sanitized) {
+                        updateShadowOffset(effect, x: value, y: currentShadowY(for: effect), continuous: true)
+                    }
+                }
+            ), focus: .x(effect.id)) {
+                let sanitized = sanitizeSignedNumberInput(shadowXInputs[effect.id] ?? "")
+                let value = Double(sanitized) ?? currentShadowX(for: effect)
+                updateShadowOffset(effect, x: value, y: currentShadowY(for: effect), continuous: false)
+                shadowXInputs[effect.id] = String(Int(value.rounded()))
+            }
+
+            shadowNumberEditor(for: effect, label: "Y", text: Binding(
+                get: { shadowYInputs[effect.id] ?? String(Int(currentShadowY(for: effect).rounded())) },
+                set: { newValue in
+                    let sanitized = sanitizeSignedNumberInput(newValue)
+                    shadowYInputs[effect.id] = sanitized
+                    if let value = Double(sanitized) {
+                        updateShadowOffset(effect, x: currentShadowX(for: effect), y: value, continuous: true)
+                    }
+                }
+            ), focus: .y(effect.id)) {
+                let sanitized = sanitizeSignedNumberInput(shadowYInputs[effect.id] ?? "")
+                let value = Double(sanitized) ?? currentShadowY(for: effect)
+                updateShadowOffset(effect, x: currentShadowX(for: effect), y: value, continuous: false)
+                shadowYInputs[effect.id] = String(Int(value.rounded()))
             }
         }
     }
@@ -2662,20 +2778,20 @@ private struct FastInspectorView: View {
                 HStack(spacing: 8) {
                     Image(systemName: systemImage)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.66))
+                        .foregroundColor(.secondary)
                     Text(title)
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.white.opacity(0.72))
+                        .foregroundColor(.primary)
                     Spacer(minLength: 0)
                     Button(action: onDirectInput) {
                         Text("\(Int(clampedValue.rounded()))")
                             .font(.system(size: compact ? 15 : 16, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.95))
+                            .foregroundColor(.primary)
                             .padding(.horizontal, compact ? 8 : 10)
                             .padding(.vertical, 4)
                             .background(
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color.white.opacity(0.12))
+                                    .fill(Color.secondary.opacity(0.16))
                             )
                     }
                     .buttonStyle(.plain)
@@ -2696,7 +2812,7 @@ private struct FastInspectorView: View {
                     }
                 }
             )
-            .tint(Color.white.opacity(0.9))
+            .tint(.blue)
             .padding(.horizontal, compact ? 12 : 14)
             .padding(.bottom, compact ? 2 : 6)
         }
@@ -2707,7 +2823,7 @@ private struct FastInspectorView: View {
                 sliderBody
                     .background(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color.white.opacity(compact ? 0.08 : 0.10))
+                            .fill(Color.secondary.opacity(compact ? 0.10 : 0.14))
                     )
             )
         } else {
@@ -3313,6 +3429,18 @@ private struct FastInspectorView: View {
             if mod.properties["fontDesign"] == nil { mod.properties["fontDesign"] = "default" }
         }
         syncTextFontSizeInput()
+    }
+    
+    private func applyTypingFontSize(_ raw: String) {
+        let cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let parsed = Double(cleaned), parsed >= 8, parsed <= 72 else { return }
+        let isWhole = abs(parsed.rounded() - parsed) < 0.0001
+        let sizeToken = isWhole ? String(Int(parsed.rounded())) : String(format: "%.1f", parsed)
+        updateOrCreateModifier(.font) { mod in
+            mod.properties["fontSize"] = sizeToken
+            if mod.properties["fontWeight"] == nil { mod.properties["fontWeight"] = "regular" }
+            if mod.properties["fontDesign"] == nil { mod.properties["fontDesign"] = "default" }
+        }
     }
 
     private func adjustFontSize(by delta: Double) {

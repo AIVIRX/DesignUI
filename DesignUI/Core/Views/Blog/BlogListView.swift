@@ -23,33 +23,13 @@ struct NewsListView: View {
                     NewsHeroHeaderView()
                         .padding(.horizontal)
                         .padding(.top, 16)
-                    let gridPosts = Array(viewModel.posts)
-                    if !gridPosts.isEmpty {
-                        LazyVGrid(columns: columns) {
-                            ForEach(gridPosts) { post in
-                                NavigationLink(destination: NewsDetailView(post: post)) {
-                                    BlogGridCard(post: post)
-                                        .padding(.vertical, 5)
-                                        .animation(.easeInOut(duration: 0.15), value: post.id)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                        .frame(maxWidth: 1800)
-                    } else if viewModel.isLoading {
-                        ProgressView()
-                            .padding(.top, 24)
-                    } else {
-                        VStack(spacing: 8) {
-                            Text("No posts found")
-                                .font(.headline)
-                            Text(viewModel.errorMessage ?? "Check back soon for updates.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.top, 24)
-                    }
+
+                    NewsGridSection(
+                        posts: Array(viewModel.posts),
+                        columns: columns,
+                        isLoading: viewModel.isLoading,
+                        errorMessage: viewModel.errorMessage
+                    )
                 }
                 .frame(maxWidth: .infinity)
                 .navigationTitle("News")
@@ -61,11 +41,75 @@ struct NewsListView: View {
                 await viewModel.fetchNews()
             }
             .task {
-                if viewModel.posts.isEmpty && !viewModel.isLoading {
-                    await viewModel.fetchNews()
-                }
+                await fetchNewsIfNeeded()
             }
         }
+    }
+
+    private func fetchNewsIfNeeded() async {
+        guard viewModel.posts.isEmpty, !viewModel.isLoading else { return }
+        await viewModel.fetchNews()
+    }
+}
+
+private struct NewsGridSection: View {
+    let posts: [NewsPost]
+    let columns: [GridItem]
+    let isLoading: Bool
+    let errorMessage: String?
+
+    var body: some View {
+        if !posts.isEmpty {
+            NewsPostsGrid(posts: posts, columns: columns)
+        } else if isLoading {
+            ProgressView()
+                .padding(.top, 24)
+        } else {
+            EmptyNewsStateView(errorMessage: errorMessage)
+        }
+    }
+}
+
+private struct NewsPostsGrid: View {
+    let posts: [NewsPost]
+    let columns: [GridItem]
+
+    var body: some View {
+        LazyVGrid(columns: columns) {
+            ForEach(posts) { post in
+                NewsPostGridLink(post: post)
+            }
+        }
+        .frame(maxWidth: 1800)
+    }
+}
+
+private struct NewsPostGridLink: View {
+    let post: NewsPost
+
+    var body: some View {
+        NavigationLink(destination: NewsDetailView(post: post)) {
+            BlogGridCard(post: post)
+                .padding(.vertical, 5)
+                .animation(.easeInOut(duration: 0.15), value: post.id)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+private struct EmptyNewsStateView: View {
+    let errorMessage: String?
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("No posts found")
+                .font(.headline)
+            Text(errorMessage ?? "Check back soon for updates.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top, 24)
     }
 }
 

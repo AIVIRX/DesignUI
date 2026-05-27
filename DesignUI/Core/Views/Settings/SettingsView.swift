@@ -35,7 +35,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading) {
                     subscriptionSection
                     appearanceSection
-                    communitySection
+                    moreAppsSection
                     featuresSection
                     appSection
                     supportSection
@@ -116,22 +116,9 @@ struct SettingsView: View {
         }
     }
 
-    private var communitySection: some View {
-        section("Community") {
-            VStack {
-                settingsLinkRow(title: "Website", icon: "globe", iconColor: .blue) {
-                    openURL(websiteURL)
-                }
-                rowDivider
-                settingsLinkRow(
-                    title: "String Catalog - Translate",
-                    icon: "character.book.closed.fill",
-                    iconColor: .orange,
-                    imageAssetName: "StringCatLogo"
-                ) {
-                    openURL(stringCatalogTranslateURL)
-                }
-            }
+    private var moreAppsSection: some View {
+        section("More Apps") {
+            stringCatalogPromoRow
         }
     }
 
@@ -199,24 +186,30 @@ struct SettingsView: View {
 
     private var supportSection: some View {
         section("Support") {
-            Button(action: sendEmail) {
-                HStack(spacing: 12) {
-                    Image(systemName: "envelope.fill")
-                        .foregroundColor(.green)
-                        .frame(width: 24)
-                    Text("Send Feedback")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
+            VStack {
+                settingsLinkRow(title: "Website", icon: "globe", iconColor: .blue) {
+                    openURL(websiteURL)
                 }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .foregroundColor(.primary)
+                rowDivider
+                Button(action: sendEmail) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "envelope.fill")
+                            .foregroundColor(.green)
+                            .frame(width: 24)
+                        Text("Send Feedback")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.primary)
 #if os(iOS)
-            .disabled(!MFMailComposeViewController.canSendMail())
+                .disabled(!MFMailComposeViewController.canSendMail())
 #endif
+            }
         }
     }
 
@@ -247,6 +240,43 @@ struct SettingsView: View {
 
     private var rowDivider: some View {
         Divider().padding(.leading, 36)
+    }
+
+    private var stringCatalogPromoRow: some View {
+        Button {
+            openURL(stringCatalogTranslateURL)
+        } label: {
+            HStack(spacing: 12) {
+                Image("StringCatLogo")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 50, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("String Catalog Translator")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Text("Translate your app strings")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer(minLength: 10)
+
+                Text("Get")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(Color.blue)
+                    )
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

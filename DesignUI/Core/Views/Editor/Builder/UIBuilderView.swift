@@ -410,56 +410,16 @@ struct UIBuilderView: View {
     }
 
     private var pageMenu: some View {
-        Menu {
-            Section("Pages") {
-                ForEach(Array(designFile.pages.enumerated()), id: \.element.id) { index, page in
-                    Button {
-                        switchToPage(index)
-                    } label: {
-                        HStack {
-                            Text(page.name)
-                            if index == currentPageIndex {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            }
-            
-            Divider()
-
-            Button(action: { showPageViewerNavigation = true }) {
-                Label("Page Viewer", systemImage: "square.grid.2x2")
-            }
-            
-            Button(action: { attemptAddPage() }) {
-                Label("Add Page", systemImage: "plus")
-            }
-            
-            Button(action: { duplicateCurrentPage() }) {
-                Label("Duplicate Page", systemImage: "doc.on.doc")
-            }
-            
-            Button(action: { presentRenameCurrentPage() }) {
-                Label("Rename Page", systemImage: "pencil")
-            }
-            
-            Button(role: .destructive, action: { deleteCurrentPage() }) {
-                Label("Delete Page", systemImage: "trash")
-            }
-            .disabled(currentPageIndex == 0)
-        } label: {
-            HStack(spacing: 4) {
-                Text("Pages")
-                    .tint(.primary)
-                #if os(iOS)
-                Image(systemName: "chevron.up.chevron.down")
-                    .tint(.secondary)
-                    .font(.caption)
-                #endif
-            }
-            .bold()
-        }
+        PageMenuView(
+            pages: designFile.pages,
+            currentPageIndex: currentPageIndex,
+            onSelectPage: switchToPage,
+            onShowPageViewer: { showPageViewerNavigation = true },
+            onAddPage: attemptAddPage,
+            onDuplicatePage: duplicateCurrentPage,
+            onRenamePage: presentRenameCurrentPage,
+            onDeletePage: deleteCurrentPage
+        )
     }
 
     var body: some View {
@@ -2278,89 +2238,19 @@ struct UIBuilderView: View {
         }
 
         let sanitizedComponents = sanitizeAIComponentsForDisplay(components, prompt: prompt)
-
-        if let selected = canvasManager.selectedComponent, sanitizedComponents.count == 1 {
-            let candidate: UIComponent
-            var appliedAIEditOperations = false
-            if let operations, !operations.isEmpty {
-                do {
-                    let result = try AIOperationReducer.shared.applyWithInverse(to: selected, operations: operations)
-                    candidate = result.component
-                    appliedAIEditOperations = true
-                } catch {
-                    print("AIOperationReducer failed: \(error.localizedDescription)")
-                    candidate = sanitizedComponents[0]
-                }
-            } else {
-                candidate = sanitizedComponents[0]
-            }
-            if selected.type == .text && candidate.type == .text && !promptExplicitlyChangesText(prompt) {
-                let existingText = selected.getProperty(key: "text") as? String ?? ""
-                let newText = candidate.getProperty(key: "text") as? String ?? ""
-                let isPlaceholder = newText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "text"
-                if !existingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-                    (newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isPlaceholder) {
-                    candidate.setProperty(key: "text", value: existingText)
-                }
-            }
-            if let operations, !operations.isEmpty, appliedAIEditOperations {
-                // Use the primary canvas undo/redo stack so AI edits behave exactly
-                // like manual edits and remain reliably undoable.
-                canvasManager.replaceComponent(selected, with: candidate, registerUndo: true, undoDescription: "AI Edit")
-                aiOperationUndoStack.removeAll()
-                aiOperationRedoStack.removeAll()
-            } else {
-                canvasManager.replaceComponent(selected, with: candidate)
-                aiOperationUndoStack.removeAll()
-                aiOperationRedoStack.removeAll()
-            }
-            persistAIGeneratedPreview()
-            toastManager.showToast(ToastData(title: "AI updated component", icon: "sparkles"))
+        
+        if handleAISelectedSingleComponent(prompt: prompt, operations: operations, sanitizedComponents: sanitizedComponents) {
             return
         }
-
-        if let selected = canvasManager.selectedComponent, sanitizedComponents.count > 1 {
-            if let replacement = composeFilledSelectionReplacement(
-                selected: selected,
-                generated: sanitizedComponents,
-                prompt: prompt
-            ) {
-                canvasManager.replaceComponent(selected, with: replacement, registerUndo: true, undoDescription: "AI Fill Selection")
-                aiOperationUndoStack.removeAll()
-                aiOperationRedoStack.removeAll()
-                persistAIGeneratedPreview()
-                toastManager.showToast(ToastData(title: "AI filled selected component", icon: "sparkles"))
-                return
-            }
+        if handleAISelectedMultipleComponents(prompt: prompt, sanitizedComponents: sanitizedComponents) {
+            return
         }
-
-        if canvasManager.selectedComponent == nil, sanitizedComponents.count == 1 {
-            let candidate = sanitizedComponents[0]
-            let isLikelyFullScreenRoot =
-                (candidate.type == .stack || candidate.type == .vstack || candidate.type == .zstack || candidate.type == .scrollView) &&
-                candidate.children.count >= 3
-            if isLikelyFullScreenRoot {
-                canvasManager.registerUndoAction("AI Generate Screen")
-                aiOperationUndoStack.removeAll()
-                aiOperationRedoStack.removeAll()
-                canvasManager.deselectAll()
-                canvasManager.components = sanitizedComponents
-                NotificationCenter.default.post(name: .designChanged, object: nil)
-                persistAIGeneratedPreview()
-                toastManager.showToast(ToastData(title: "AI generated screen", icon: "sparkles"))
-            } else {
-                aiOperationUndoStack.removeAll()
-                aiOperationRedoStack.removeAll()
-                canvasManager.addComponent(candidate)
-                persistAIGeneratedPreview()
-                toastManager.showToast(ToastData(title: "AI added component", icon: "sparkles"))
-            }
+        if handleAINoSelectionSingleComponent(sanitizedComponents: sanitizedComponents) {
             return
         }
 
         canvasManager.registerUndoAction("AI Generate")
-        aiOperationUndoStack.removeAll()
-        aiOperationRedoStack.removeAll()
+        clearAIOperationStacks()
         canvasManager.deselectAll()
 
         canvasManager.components = sanitizedComponents
@@ -2368,6 +2258,93 @@ struct UIBuilderView: View {
         NotificationCenter.default.post(name: .designChanged, object: nil)
         persistAIGeneratedPreview()
         toastManager.showToast(ToastData(title: "AI generated components", icon: "sparkles"))
+    }
+    
+    private func clearAIOperationStacks() {
+        aiOperationUndoStack.removeAll()
+        aiOperationRedoStack.removeAll()
+    }
+    
+    private func handleAISelectedSingleComponent(
+        prompt: String,
+        operations: [AIEditOperation]?,
+        sanitizedComponents: [UIComponent]
+    ) -> Bool {
+        guard let selected = canvasManager.selectedComponent, sanitizedComponents.count == 1 else { return false }
+        
+        let candidate: UIComponent
+        var appliedAIEditOperations = false
+        if let operations, !operations.isEmpty {
+            do {
+                let result = try AIOperationReducer.shared.applyWithInverse(to: selected, operations: operations)
+                candidate = result.component
+                appliedAIEditOperations = true
+            } catch {
+                print("AIOperationReducer failed: \(error.localizedDescription)")
+                candidate = sanitizedComponents[0]
+            }
+        } else {
+            candidate = sanitizedComponents[0]
+        }
+        
+        if selected.type == .text && candidate.type == .text && !promptExplicitlyChangesText(prompt) {
+            let existingText = selected.getProperty(key: "text") as? String ?? ""
+            let newText = candidate.getProperty(key: "text") as? String ?? ""
+            let isPlaceholder = newText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "text"
+            if !existingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                (newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isPlaceholder) {
+                candidate.setProperty(key: "text", value: existingText)
+            }
+        }
+        
+        if let operations, !operations.isEmpty, appliedAIEditOperations {
+            canvasManager.replaceComponent(selected, with: candidate, registerUndo: true, undoDescription: "AI Edit")
+        } else {
+            canvasManager.replaceComponent(selected, with: candidate)
+        }
+        clearAIOperationStacks()
+        persistAIGeneratedPreview()
+        toastManager.showToast(ToastData(title: "AI updated component", icon: "sparkles"))
+        return true
+    }
+    
+    private func handleAISelectedMultipleComponents(prompt: String, sanitizedComponents: [UIComponent]) -> Bool {
+        guard let selected = canvasManager.selectedComponent, sanitizedComponents.count > 1 else { return false }
+        guard let replacement = composeFilledSelectionReplacement(
+            selected: selected,
+            generated: sanitizedComponents,
+            prompt: prompt
+        ) else { return false }
+        
+        canvasManager.replaceComponent(selected, with: replacement, registerUndo: true, undoDescription: "AI Fill Selection")
+        clearAIOperationStacks()
+        persistAIGeneratedPreview()
+        toastManager.showToast(ToastData(title: "AI filled selected component", icon: "sparkles"))
+        return true
+    }
+    
+    private func handleAINoSelectionSingleComponent(sanitizedComponents: [UIComponent]) -> Bool {
+        guard canvasManager.selectedComponent == nil, sanitizedComponents.count == 1 else { return false }
+        let candidate = sanitizedComponents[0]
+        let isLikelyFullScreenRoot =
+            (candidate.type == .stack || candidate.type == .vstack || candidate.type == .zstack || candidate.type == .scrollView) &&
+            candidate.children.count >= 3
+        
+        if isLikelyFullScreenRoot {
+            canvasManager.registerUndoAction("AI Generate Screen")
+            clearAIOperationStacks()
+            canvasManager.deselectAll()
+            canvasManager.components = sanitizedComponents
+            NotificationCenter.default.post(name: .designChanged, object: nil)
+            persistAIGeneratedPreview()
+            toastManager.showToast(ToastData(title: "AI generated screen", icon: "sparkles"))
+        } else {
+            clearAIOperationStacks()
+            canvasManager.addComponent(candidate)
+            persistAIGeneratedPreview()
+            toastManager.showToast(ToastData(title: "AI added component", icon: "sparkles"))
+        }
+        return true
     }
 
     private func sanitizeAIComponentsForDisplay(_ components: [UIComponent], prompt: String) -> [UIComponent] {
@@ -2923,6 +2900,97 @@ extension View {
     }
 }
 
+private struct PageMenuView: View {
+    let pages: [DesignPage]
+    let currentPageIndex: Int
+    let onSelectPage: (Int) -> Void
+    let onShowPageViewer: () -> Void
+    let onAddPage: () -> Void
+    let onDuplicatePage: () -> Void
+    let onRenamePage: () -> Void
+    let onDeletePage: () -> Void
+
+    var body: some View {
+        Menu {
+            pageSection
+            Divider()
+            menuActions
+        } label: {
+            menuLabel
+        }
+    }
+
+    private var pageSection: some View {
+        Section("Pages") {
+            ForEach(Array(pages.enumerated()), id: \.element.id) { index, page in
+                PageMenuRow(
+                    index: index,
+                    page: page,
+                    isSelected: index == currentPageIndex,
+                    onSelectPage: onSelectPage
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var menuActions: some View {
+        Button(action: onShowPageViewer) {
+            Label("Page Viewer", systemImage: "square.grid.2x2")
+        }
+
+        Button(action: onAddPage) {
+            Label("Add Page", systemImage: "plus")
+        }
+
+        Button(action: onDuplicatePage) {
+            Label("Duplicate Page", systemImage: "doc.on.doc")
+        }
+
+        Button(action: onRenamePage) {
+            Label("Rename Page", systemImage: "pencil")
+        }
+
+        Button(role: .destructive, action: onDeletePage) {
+            Label("Delete Page", systemImage: "trash")
+        }
+        .disabled(currentPageIndex == 0)
+    }
+
+    private var menuLabel: some View {
+        HStack(spacing: 4) {
+            Text("Pages")
+                .tint(.primary)
+            #if os(iOS)
+            Image(systemName: "chevron.up.chevron.down")
+                .tint(.secondary)
+                .font(.caption)
+            #endif
+        }
+        .bold()
+    }
+}
+
+private struct PageMenuRow: View {
+    let index: Int
+    let page: DesignPage
+    let isSelected: Bool
+    let onSelectPage: (Int) -> Void
+
+    var body: some View {
+        Button {
+            onSelectPage(index)
+        } label: {
+            HStack {
+                Text(page.name)
+                if isSelected {
+                    Image(systemName: "checkmark")
+                }
+            }
+        }
+    }
+}
+
 private struct PageViewerSheet: View {
     @ObservedObject var designFile: DesignFile
     @Binding var currentPageIndex: Int
@@ -2938,102 +3006,246 @@ private struct PageViewerSheet: View {
     private let phonePreviewWidth: CGFloat = 196.0 // ~50% scale of 16 Pro canvas width
 
     var body: some View {
-        GeometryReader { proxy in
-            let availableWidth = max(360, proxy.size.width - 24)
-            let gridSpacing: CGFloat = 28
-            let tileWidthWithSpacing = phonePreviewWidth + gridSpacing
-            let targetColumns = max(1, min(4, Int((availableWidth + 14) / tileWidthWithSpacing)))
-            let columns = Array(repeating: GridItem(.fixed(phonePreviewWidth), spacing: gridSpacing), count: targetColumns)
-
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: gridSpacing) {
-                    ForEach(Array(designFile.pages.enumerated()), id: \.element.id) { index, page in
-                        pageCard(index: index, page: page)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-            }
-        }
+        PageViewerGrid(
+            pages: designFile.pages,
+            currentPageIndex: currentPageIndex,
+            phoneAspectRatio: phoneAspectRatio,
+            phonePreviewWidth: phonePreviewWidth,
+            renamingPageId: $renamingPageId,
+            renameText: $renameText,
+            onSelectPage: onSelectPage,
+            onDuplicatePage: onDuplicatePage,
+            onRenamePage: onRenamePage,
+            onDeletePage: onDeletePage
+        )
         .safeAreaInset(edge: .bottom) {
-            HStack {
-                Spacer()
-                Button {
-                    onAddPage()
-                } label: {
-                    Label("Add Page", systemImage: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-            }
-            .padding()
-            .background(.thinMaterial)
+            PageViewerAddPageBar(onAddPage: onAddPage)
         }
     }
 
-    private func pageCard(index: Int, page: DesignPage) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Group {
-                if let thumbnail = page.thumbnail,
-                   let image = thumbnailImage(from: thumbnail) {
-                    image
-                        .resizable()
-                        .aspectRatio(phoneAspectRatio, contentMode: .fill)
-                        .frame(width: phonePreviewWidth, height: phonePreviewWidth / phoneAspectRatio)
-                        .clipped()
-                } else {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.primary.opacity(0.06))
-                        .frame(width: phonePreviewWidth, height: phonePreviewWidth / phoneAspectRatio)
-                        .overlay(Image(systemName: "doc").foregroundColor(.secondary))
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(Color.primary.opacity(0.14), lineWidth: 1)
-            )
+}
 
-            if renamingPageId == page.id {
-                TextField("Page Name", text: $renameText, onCommit: {
-                    let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !trimmed.isEmpty { onRenamePage(index, trimmed) }
-                    renamingPageId = nil
-                })
-                .textFieldStyle(.roundedBorder)
-                .font(.caption)
-            } else {
-                Text(page.name)
-                    .font(.subheadline.weight(index == currentPageIndex ? .bold : .regular))
-                    .lineLimit(1)
+private struct PageViewerGrid: View {
+    let pages: [DesignPage]
+    let currentPageIndex: Int
+    let phoneAspectRatio: CGFloat
+    let phonePreviewWidth: CGFloat
+    @Binding var renamingPageId: UUID?
+    @Binding var renameText: String
+    var onSelectPage: (Int) -> Void
+    var onDuplicatePage: (Int) -> Void
+    var onRenamePage: (Int, String) -> Void
+    var onDeletePage: (Int) -> Void
+
+    private let gridSpacing: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { proxy in
+            PageViewerGridScroll(
+                pages: pages,
+                columns: gridColumns(for: proxy.size.width),
+                gridSpacing: gridSpacing,
+                currentPageIndex: currentPageIndex,
+                phoneAspectRatio: phoneAspectRatio,
+                phonePreviewWidth: phonePreviewWidth,
+                renamingPageId: $renamingPageId,
+                renameText: $renameText,
+                onSelectPage: onSelectPage,
+                onDuplicatePage: onDuplicatePage,
+                onRenamePage: onRenamePage,
+                onDeletePage: onDeletePage
+            )
+        }
+    }
+
+    private func gridColumns(for width: CGFloat) -> [GridItem] {
+        let availableWidth = max(360, width - 24)
+        let tileWidthWithSpacing = phonePreviewWidth + gridSpacing
+        let targetColumns = max(1, min(4, Int((availableWidth + 14) / tileWidthWithSpacing)))
+        return Array(repeating: GridItem(.fixed(phonePreviewWidth), spacing: gridSpacing), count: targetColumns)
+    }
+}
+
+private struct PageViewerGridScroll: View {
+    let pages: [DesignPage]
+    let columns: [GridItem]
+    let gridSpacing: CGFloat
+    let currentPageIndex: Int
+    let phoneAspectRatio: CGFloat
+    let phonePreviewWidth: CGFloat
+    @Binding var renamingPageId: UUID?
+    @Binding var renameText: String
+    var onSelectPage: (Int) -> Void
+    var onDuplicatePage: (Int) -> Void
+    var onRenamePage: (Int, String) -> Void
+    var onDeletePage: (Int) -> Void
+    
+    @ViewBuilder
+    private var gridContent: some View {
+        LazyVGrid(columns: columns, spacing: gridSpacing) {
+            pageCards
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+    }
+    
+    @ViewBuilder
+    private var pageCards: some View {
+        ForEach(Array(pages.enumerated()), id: \.element.id) { index, page in
+            pageCard(index: index, page: page)
+        }
+    }
+    
+    private func pageCard(index: Int, page: DesignPage) -> some View {
+        PagePreviewCard(
+            index: index,
+            page: page,
+            isSelected: index == currentPageIndex,
+            phoneAspectRatio: phoneAspectRatio,
+            phonePreviewWidth: phonePreviewWidth,
+            renamingPageId: $renamingPageId,
+            renameText: $renameText,
+            onSelectPage: onSelectPage,
+            onDuplicatePage: onDuplicatePage,
+            onRenamePage: onRenamePage,
+            onDeletePage: onDeletePage
+        )
+    }
+
+    var body: some View {
+        ScrollView {
+            gridContent
+        }
+    }
+}
+
+private struct PageViewerAddPageBar: View {
+    let onAddPage: () -> Void
+
+    var body: some View {
+        HStack {
+            Spacer()
+            Button {
+                onAddPage()
+            } label: {
+                Label("Add Page", systemImage: "plus")
             }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .background(.thinMaterial)
+    }
+}
+
+private struct PagePreviewCard: View {
+    let index: Int
+    let page: DesignPage
+    let isSelected: Bool
+    let phoneAspectRatio: CGFloat
+    let phonePreviewWidth: CGFloat
+    @Binding var renamingPageId: UUID?
+    @Binding var renameText: String
+    var onSelectPage: (Int) -> Void
+    var onDuplicatePage: (Int) -> Void
+    var onRenamePage: (Int, String) -> Void
+    var onDeletePage: (Int) -> Void
+
+    private var previewHeight: CGFloat {
+        phonePreviewWidth / phoneAspectRatio
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            thumbnailPreview
+            titleEditor
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(index == currentPageIndex ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.08))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(index == currentPageIndex ? Color.accentColor : Color.clear, lineWidth: 2)
-        )
+        .background(cardBackground)
+        .overlay(cardBorder)
         .contentShape(Rectangle())
         .onTapGesture { onSelectPage(index) }
-        .contextMenu {
-            Button("Rename") {
-                renamingPageId = page.id
-                renameText = page.name
-            }
-            Button("Duplicate") {
-                onDuplicatePage(index)
-            }
-            if index > 0 {
-                Divider()
-                Button("Delete", role: .destructive) {
-                    onDeletePage(index)
-                }
+        .contextMenu { contextMenuContent }
+    }
+
+    @ViewBuilder
+    private var thumbnailPreview: some View {
+        Group {
+            if let thumbnail = page.thumbnail,
+               let image = thumbnailImage(from: thumbnail) {
+                image
+                    .resizable()
+                    .aspectRatio(phoneAspectRatio, contentMode: .fill)
+                    .frame(width: phonePreviewWidth, height: previewHeight)
+                    .clipped()
+            } else {
+                placeholderPreview
             }
         }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(thumbnailBorder)
+    }
+
+    private var placeholderPreview: some View {
+        RoundedRectangle(cornerRadius: 10)
+            .fill(Color.primary.opacity(0.06))
+            .frame(width: phonePreviewWidth, height: previewHeight)
+            .overlay(Image(systemName: "doc").foregroundColor(.secondary))
+    }
+
+    @ViewBuilder
+    private var titleEditor: some View {
+        if renamingPageId == page.id {
+            TextField("Page Name", text: $renameText, onCommit: commitRename)
+                .textFieldStyle(.roundedBorder)
+                .font(.caption)
+        } else {
+            Text(page.name)
+                .font(.subheadline.weight(isSelected ? .bold : .regular))
+                .lineLimit(1)
+        }
+    }
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(isSelected ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.08))
+    }
+
+    private var cardBorder: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+    }
+
+    private var thumbnailBorder: some View {
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .stroke(Color.primary.opacity(0.14), lineWidth: 1)
+    }
+
+    @ViewBuilder
+    private var contextMenuContent: some View {
+        Button("Rename", action: beginRename)
+        Button("Duplicate") {
+            onDuplicatePage(index)
+        }
+        if index > 0 {
+            Divider()
+            Button("Delete", role: .destructive) {
+                onDeletePage(index)
+            }
+        }
+    }
+
+    private func beginRename() {
+        renamingPageId = page.id
+        renameText = page.name
+    }
+
+    private func commitRename() {
+        let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            onRenamePage(index, trimmed)
+        }
+        renamingPageId = nil
     }
 
     private func thumbnailImage(from data: Data) -> Image? {

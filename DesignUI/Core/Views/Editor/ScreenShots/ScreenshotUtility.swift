@@ -44,19 +44,8 @@ class ScreenshotUtility {
         }
         
         #if os(macOS)
-        // Primary path: ImageRenderer tends to match on-canvas visual effects better
-        // (materials/glass/vibrancy) than offscreen NSHostingView bitmap capture.
-        let renderer = ImageRenderer(content: contentView)
-        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
-
-        if let nsImage = renderer.nsImage,
-           let tiff = nsImage.tiffRepresentation,
-           let rep = NSBitmapImageRep(data: tiff),
-           let pngData = rep.representation(using: .png, properties: [:]) {
-            return pngData
-        }
-
-        // Fallback path: keep the prior NSHostingView capture for robustness.
+        // Primary path (macOS): NSHostingView is more reliable for fixed-size captures
+        // that include ScrollView content + overlay bars in one composited frame.
         let hostingView = NSHostingView(rootView: contentView)
         let targetSize: CGSize
         if isContentAdaptive {
@@ -84,6 +73,19 @@ class ScreenshotUtility {
             debugLog("❌ Failed to convert to PNG")
             return nil
         }
+
+        // If content is unexpectedly blank in fixed-size mode, fall back to ImageRenderer.
+        // This keeps us resilient for edge cases while preferring stable layout behavior.
+        if !isContentAdaptive, let image = NSImage(data: pngData), isLikelyBlank(image: image) {
+            let renderer = ImageRenderer(content: contentView)
+            renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+            if let nsImage = renderer.nsImage,
+               let tiff = nsImage.tiffRepresentation,
+               let rep = NSBitmapImageRep(data: tiff),
+               let rendererPNG = rep.representation(using: .png, properties: [:]) {
+                return rendererPNG
+            }
+        }
         return pngData
         #else
         // Use ImageRenderer for iOS capture.
@@ -104,4 +106,44 @@ class ScreenshotUtility {
         return pngData
         #endif
     }
+
+#if os(macOS)
+    private func isLikelyBlank(image: NSImage) -> Bool {
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let data = rep.bitmapData else {
+            return false
+        }
+
+        let width = rep.pixelsWide
+        let height = rep.pixelsHigh
+        guard width > 0, height > 0 else { return true }
+
+        let bytesPerPixel = max(rep.bitsPerPixel / 8, 4)
+        let rowBytes = rep.bytesPerRow
+
+        var sampled = 0
+        var nearBackground = 0
+        let step = max(1, min(width, height) / 24)
+
+        for y in stride(from: 0, to: height, by: step) {
+            for x in stride(from: 0, to: width, by: step) {
+                let offset = y * rowBytes + x * bytesPerPixel
+                let r = Int(data[offset])
+                let g = Int(data[offset + 1])
+                let b = Int(data[offset + 2])
+                sampled += 1
+
+                // Near iOS light canvas gray/white background.
+                if abs(r - g) < 8, abs(g - b) < 8, r >= 225 {
+                    nearBackground += 1
+                }
+            }
+        }
+
+        guard sampled > 0 else { return false }
+        let ratio = Double(nearBackground) / Double(sampled)
+        return ratio > 0.97
+    }
+#endif
 }

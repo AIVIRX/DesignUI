@@ -317,6 +317,7 @@ private struct GalleryImageCell: View {
     let isEditing: Bool
     
     @State private var isHovering = false
+    @State private var loadedImage: PlatformImage?
     
     var body: some View {
         ZStack {
@@ -331,22 +332,15 @@ private struct GalleryImageCell: View {
 
     @ViewBuilder
     private var imageContent: some View {
-        if let fileURL = ImageGalleryManager.shared.getImageUrl(filename: filename),
-           FileManager.default.fileExists(atPath: fileURL.path) {
-            AsyncImage(url: fileURL) { phase in
-                switch phase {
-                case .success(let image):
-                    chartCellImage(image: image)
-                case .empty:
-                    placeholderView
-                case .failure:
-                    placeholderView
-                @unknown default:
-                    placeholderView
-                }
-            }
+        if let loadedImage {
+            chartCellImage(image: swiftUIImage(from: loadedImage))
         } else {
             placeholderView
+                .task(id: filename) {
+                    ImageGalleryManager.shared.loadThumbnailAsync(filename: filename) { image in
+                        loadedImage = image
+                    }
+                }
         }
     }
 
@@ -409,9 +403,10 @@ private struct GalleryImageCell: View {
         image
             .renderingMode(.original)
             .resizable()
-            .aspectRatio(contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .scaledToFit()
+            .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .clipped()
             .padding()
     }
@@ -420,5 +415,13 @@ private struct GalleryImageCell: View {
         Color.gray.opacity(0.1)
             .aspectRatio(1, contentMode: .fit)
             .overlay(ProgressView())
+    }
+
+    private func swiftUIImage(from image: PlatformImage) -> Image {
+        #if os(macOS)
+        return Image(nsImage: image)
+        #else
+        return Image(uiImage: image)
+        #endif
     }
 }

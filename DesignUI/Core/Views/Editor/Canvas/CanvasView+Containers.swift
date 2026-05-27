@@ -73,6 +73,51 @@ struct ComponentsContainerWithStatusBar: View {
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
     
+    private var animatedComponentIds: [UUID] {
+        components.map(\.id)
+    }
+    
+    private func selectChildComponent(_ childComponent: UIComponent, additive: Bool) {
+        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
+            canvasManager.selectComponent(foundComponent, additive: additive)
+        }
+    }
+    
+    @ViewBuilder
+    private func componentRow(_ component: UIComponent) -> some View {
+        ComponentView(
+            component: component,
+            onSelect: { additive in
+                canvasManager.selectComponent(component, additive: additive)
+            },
+            selectedDevice: selectedDevice,
+            colorScheme: colorScheme,
+            selectedComponentIds: canvasManager.selectedComponentIds,
+            onSelectChild: { childComponent, additive in
+                selectChildComponent(childComponent, additive: additive)
+            },
+            canvasManager: canvasManager
+        )
+        .id(componentViewId(component))
+        .onAppear {
+            // Force a refresh after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            }
+        }
+    }
+    
+    private func handleBackgroundTap() {
+        canvasManager.deselectAll()
+        #if os(iOS)
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            NotificationCenter.default.post(name: .minimizeSheet, object: nil)
+        }
+        #elseif os(macOS)
+        NSApp.keyWindow?.makeFirstResponder(nil)
+        #endif
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // Top padding (Safe Area)
@@ -80,49 +125,15 @@ struct ComponentsContainerWithStatusBar: View {
                 .frame(height: statusBarTopSafeArea ? 50 : 0) // Top padding for status bar
             
             ForEach(components, id: \.id) { component in
-                ComponentView(
-                    component: component,
-                    onSelect: { additive in
-                        canvasManager.selectComponent(component, additive: additive)
-                    },
-                    selectedDevice: selectedDevice,
-                    colorScheme: colorScheme,
-                    selectedComponentIds: canvasManager.selectedComponentIds,
-                    onSelectChild: { childComponent, additive in
-                        // Find the component in the hierarchy and select it
-                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
-                            canvasManager.selectComponent(foundComponent, additive: additive)
-                        }
-                    },
-                    canvasManager: canvasManager
-                )
-                .id(componentViewId(component))
-                .onAppear {
-                    // Force a refresh after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    }
-                }
+                componentRow(component)
             }
         }
         .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
         .clipped() // Prevent content from expanding beyond the screen bounds
         .contentShape(Rectangle())
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: animatedComponentIds)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarTopSafeArea)
-        .onTapGesture {
-            // Deselect when clicking empty space
-            canvasManager.deselectAll()
-            // Dismiss keyboard/unfocus text fields
-            #if os(iOS)
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            // On iPhone, minimize the sheet
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                NotificationCenter.default.post(name: .minimizeSheet, object: nil)
-            }
-            #elseif os(macOS)
-            NSApp.keyWindow?.makeFirstResponder(nil)
-            #endif
-        }
+        .onTapGesture(perform: handleBackgroundTap)
     }
     
 }
@@ -135,51 +146,62 @@ struct ComponentsContainerWithoutStatusBar: View {
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
     
+    private var animatedComponentIds: [UUID] {
+        components.map(\.id)
+    }
+    
+    private func selectChildComponent(_ childComponent: UIComponent, additive: Bool) {
+        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
+            canvasManager.selectComponent(foundComponent, additive: additive)
+        }
+    }
+    
+    @ViewBuilder
+    private func componentRow(_ component: UIComponent) -> some View {
+        ComponentView(
+            component: component,
+            onSelect: { additive in
+                canvasManager.selectComponent(component, additive: additive)
+            },
+            selectedDevice: selectedDevice,
+            colorScheme: colorScheme,
+            selectedComponentIds: canvasManager.selectedComponentIds,
+            onSelectChild: { childComponent, additive in
+                selectChildComponent(childComponent, additive: additive)
+            },
+            canvasManager: canvasManager
+        )
+        .id(componentViewId(component))
+        .onAppear {
+            // Force a refresh after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            }
+        }
+    }
+    
+    private func handleBackgroundTap() {
+        canvasManager.deselectAll()
+        #if os(iOS)
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            NotificationCenter.default.post(name: .minimizeSheet, object: nil)
+        }
+        #elseif os(macOS)
+        NSApp.keyWindow?.makeFirstResponder(nil)
+        #endif
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             ForEach(components, id: \.id) { component in
-                ComponentView(
-                    component: component,
-                    onSelect: { additive in
-                        canvasManager.selectComponent(component, additive: additive)
-                    },
-                    selectedDevice: selectedDevice,
-                    colorScheme: colorScheme,
-                    selectedComponentIds: canvasManager.selectedComponentIds,
-                    onSelectChild: { childComponent, additive in
-                        // Find the component in the hierarchy and select it
-                        if let foundComponent = findComponentInHierarchy(componentId: childComponent.id, in: components) {
-                            canvasManager.selectComponent(foundComponent, additive: additive)
-                        }
-                    },
-                    canvasManager: canvasManager
-                )
-                .id(componentViewId(component))
-                .onAppear {
-                    // Force a refresh after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    }
-                }
+                componentRow(component)
             }
         }
         .frame(width: screenGeometry.size.width, height: screenGeometry.size.height)
         .clipped() // Prevent content from expanding beyond the screen bounds
         .contentShape(Rectangle())
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: components.map { $0.id })
-        .onTapGesture {
-            // Deselect when clicking empty space
-            canvasManager.deselectAll()
-            // Dismiss keyboard/unfocus text fields
-            #if os(iOS)
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            // On iPhone, minimize the sheet
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                NotificationCenter.default.post(name: .minimizeSheet, object: nil)
-            }
-            #elseif os(macOS)
-            NSApp.keyWindow?.makeFirstResponder(nil)
-            #endif
-        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: animatedComponentIds)
+        .onTapGesture(perform: handleBackgroundTap)
     }
     
 }

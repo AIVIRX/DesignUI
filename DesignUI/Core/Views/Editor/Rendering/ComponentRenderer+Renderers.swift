@@ -418,57 +418,19 @@ extension ComponentRenderer {
     
     func renderScrollView() -> some View {
         let axesString = component.getProperty(key: "axis") as? String ?? "vertical"
-        let showsIndicators = component.getProperty(key: "showsIndicators") as? Bool ?? true
+        let showsIndicators = component.getBoolProperty(key: "showsIndicators", defaultValue: true)
         
         let axes: Axis.Set = axesString == "horizontal" ? .horizontal : .vertical
         let hasExplicitFrame = component.frame.width > 0 && component.frame.height > 0
         
         let contentChildren = component.children.filter { $0.modifierId == nil }
-        let content = Group {
-            if axes == .horizontal {
-                HStack(spacing: 8) {
-                    ForEach(contentChildren, id: \.id) { child in
-                        ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                            onSelectChild?(child, additive)
-                        }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture, canvasManager: canvasManager)
-                    }
-                }
-            } else {
-                VStack(alignment: .center, spacing: 8) {
-                    ForEach(contentChildren, id: \.id) { child in
-                        ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                            onSelectChild?(child, additive)
-                        }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture, canvasManager: canvasManager)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-            }
-        }
+        let content = scrollContent(children: contentChildren, axes: axes)
 
-        if isScreenshotCapture {
-            if axes == .horizontal {
-                return AnyView(
-                    HStack(spacing: 8) {
-                        ForEach(contentChildren, id: \.id) { child in
-                            ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                                onSelectChild?(child, additive)
-                            }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture, canvasManager: canvasManager)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                )
-            } else {
-                return AnyView(
-                    VStack(alignment: .center, spacing: 8) {
-                        ForEach(contentChildren, id: \.id) { child in
-                            ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
-                                onSelectChild?(child, additive)
-                            }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture, canvasManager: canvasManager)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                )
-            }
+        // For fixed-size screenshot captures, keep real ScrollView behavior so sibling
+        // overlays (like bottom nav bars) remain visible within device bounds.
+        // Only expand scroll content in content-adaptive screenshot mode.
+        if isScreenshotCapture && deviceSize == nil {
+            return screenshotScrollContent(children: contentChildren, axes: axes)
         }
         
         let base: AnyView = AnyView(
@@ -486,10 +448,66 @@ extension ComponentRenderer {
             return AnyView(base.frame(width: component.frame.width, height: component.frame.height))
         }
         
+        // In fixed-size screenshot capture, vertical feeds often rely on "full" frame
+        // modifiers (not component.frame). Force fill so the content doesn't collapse.
+        if isScreenshotCapture && deviceSize != nil && axes == .vertical {
+            return AnyView(base.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top))
+        }
+        
         if axes == .horizontal {
             return AnyView(base.frame(minWidth: 160))
         } else {
             return AnyView(base.frame(minWidth: 120, minHeight: 160))
+        }
+    }
+    
+    @ViewBuilder
+    private func scrollContent(children: [UIComponent], axes: Axis.Set) -> some View {
+        if axes == .horizontal {
+            HStack(spacing: 8) {
+                scrollChildren(children)
+            }
+        } else {
+            VStack(alignment: .center, spacing: 8) {
+                scrollChildren(children)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+    
+    private func screenshotScrollContent(children: [UIComponent], axes: Axis.Set) -> AnyView {
+        if axes == .horizontal {
+            return AnyView(
+                HStack(spacing: 8) {
+                    scrollChildren(children)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            )
+        } else {
+            return AnyView(
+                VStack(alignment: .center, spacing: 8) {
+                    scrollChildren(children)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private func scrollChildren(_ children: [UIComponent]) -> some View {
+        ForEach(children, id: \.id) { child in
+            ComponentRenderer(
+                component: child,
+                deviceSize: deviceSize,
+                colorScheme: colorScheme,
+                onTap: { additive in
+                    onSelectChild?(child, additive)
+                },
+                onSelectChild: onSelectChild,
+                selectedComponentIds: selectedComponentIds,
+                isScreenshotCapture: isScreenshotCapture,
+                canvasManager: canvasManager
+            )
         }
     }
     

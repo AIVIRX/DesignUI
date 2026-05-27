@@ -45,6 +45,31 @@ struct DesignBrowserView: View {
     }
     
     private var browserContent: some View {
+        browserScrollContent
+            .modifier(
+                DesignBrowserChromeModifier(
+                    newDesignName: $newDesignName,
+                    showingNewDesignSheet: $showingNewDesignSheet,
+                    showingDeleteAlert: $showingDeleteAlert,
+                    showingRenameSheet: $showingRenameSheet,
+                    renameText: $renameText,
+                    showingPaywall: $showingPaywall,
+                    showingLimitAlert: $showingLimitAlert,
+                    showingSettings: $showingSettings,
+                    subscriptionManager: subscriptionManager,
+                    freeDesignLimit: freeDesignLimit,
+                    onCreateNewTapped: handleCreateNewTapped,
+                    onCreateDesign: createDesign,
+                    onCancelNewDesign: resetNewDesignSheet,
+                    onDeleteConfirmed: deletePendingDesign,
+                    onRenameDesign: renamePendingDesign,
+                    onCancelRename: resetRenameSheet,
+                    onAppear: designManager.refreshDesignFiles
+                )
+            )
+    }
+
+    private var browserScrollContent: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 32) {
@@ -67,92 +92,6 @@ struct DesignBrowserView: View {
         }
         .task {
             await requestReviewAfterDelayIfNeeded()
-        }
-        .navigationTitle("Design Browser")
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: { showingSettings = true }) {
-                    Label("Settings", systemImage: "gear")
-                }
-            }
-            
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: handleCreateNewTapped) {
-                    Label("New Design", systemImage: "plus")
-                }
-            }
-        }
-        .sheet(isPresented: $showingNewDesignSheet) {
-            NewDesignSheet(
-                designName: $newDesignName,
-                onCreate: { name in
-                    let newDesign = designManager.createNewDesign(name: name)
-                    openDesign(newDesign)
-                    showingNewDesignSheet = false
-                    newDesignName = ""
-                },
-                onCancel: {
-                    showingNewDesignSheet = false
-                    newDesignName = ""
-                }
-            )
-            #if os(iOS)
-            .presentationDetents([.height(250)])
-            #endif
-        }
-        .alert("Delete Design", isPresented: $showingDeleteAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
-                if let design = designToDelete {
-                    designManager.deleteDesign(design)
-                }
-            }
-        } message: {
-            Text("Are you sure you want to delete this design? This action cannot be undone.")
-        }
-        .sheet(isPresented: $showingRenameSheet) {
-            RenameDesignSheet(
-                designName: $renameText,
-                onRename: { newName in
-                    if let design = designToRename, !newName.isEmpty {
-                        designManager.renameDesign(design, to: newName)
-                    }
-                    showingRenameSheet = false
-                    designToRename = nil
-                    renameText = ""
-                },
-                onCancel: {
-                    showingRenameSheet = false
-                    designToRename = nil
-                    renameText = ""
-                }
-            )
-            #if os(iOS)
-            .presentationDetents([.height(250)])
-            #endif
-        }
-        .onAppear {
-            // Refresh design files when view appears (triggers iCloud check on iOS)
-            designManager.refreshDesignFiles()
-        }
-        .sheet(isPresented: $showingPaywall) {
-            CustomPaywallView()
-                .environmentObject(PaywallManager.shared)
-                .environmentObject(subscriptionManager)
-        }
-        .alert("Free Limit Reached", isPresented: $showingLimitAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Subscribe") {
-                showingPaywall = true
-            }
-        } message: {
-            Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
         }
     }
     
@@ -346,6 +285,36 @@ struct DesignBrowserView: View {
         }
         showingNewDesignSheet = true
     }
+
+    private func createDesign(named name: String) {
+        let newDesign = designManager.createNewDesign(name: name)
+        openDesign(newDesign)
+        resetNewDesignSheet()
+    }
+
+    private func resetNewDesignSheet() {
+        showingNewDesignSheet = false
+        newDesignName = ""
+    }
+
+    private func deletePendingDesign() {
+        if let design = designToDelete {
+            designManager.deleteDesign(design)
+        }
+    }
+
+    private func renamePendingDesign(to newName: String) {
+        if let design = designToRename, !newName.isEmpty {
+            designManager.renameDesign(design, to: newName)
+        }
+        resetRenameSheet()
+    }
+
+    private func resetRenameSheet() {
+        showingRenameSheet = false
+        designToRename = nil
+        renameText = ""
+    }
     
     private func openDesign(_ design: DesignFile) {
         #if os(macOS)
@@ -414,6 +383,100 @@ struct DesignBrowserView: View {
         
         requestReview()
         SessionManager.shared.hasRequestedReview = true
+    }
+}
+
+private struct DesignBrowserChromeModifier: ViewModifier {
+    @Binding var newDesignName: String
+    @Binding var showingNewDesignSheet: Bool
+    @Binding var showingDeleteAlert: Bool
+    @Binding var showingRenameSheet: Bool
+    @Binding var renameText: String
+    @Binding var showingPaywall: Bool
+    @Binding var showingLimitAlert: Bool
+    @Binding var showingSettings: Bool
+    @ObservedObject var subscriptionManager: SubscriptionManager
+
+    let freeDesignLimit: Int
+    let onCreateNewTapped: () -> Void
+    let onCreateDesign: (String) -> Void
+    let onCancelNewDesign: () -> Void
+    let onDeleteConfirmed: () -> Void
+    let onRenameDesign: (String) -> Void
+    let onCancelRename: () -> Void
+    let onAppear: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .navigationTitle("Design Browser")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar { toolbarContent }
+            .sheet(isPresented: $showingNewDesignSheet) { newDesignSheet }
+            .alert("Delete Design", isPresented: $showingDeleteAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive, action: onDeleteConfirmed)
+            } message: {
+                Text("Are you sure you want to delete this design? This action cannot be undone.")
+            }
+            .sheet(isPresented: $showingRenameSheet) { renameDesignSheet }
+            .onAppear(perform: onAppear)
+            .sheet(isPresented: $showingPaywall) { paywallSheet }
+            .alert("Free Limit Reached", isPresented: $showingLimitAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Subscribe") {
+                    showingPaywall = true
+                }
+            } message: {
+                Text("Free users are limited to \(freeDesignLimit) designs. Subscribe to create unlimited designs.")
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button(action: { showingSettings = true }) {
+                Label("Settings", systemImage: "gear")
+            }
+        }
+
+        ToolbarItem(placement: .primaryAction) {
+            Button(action: onCreateNewTapped) {
+                Label("New Design", systemImage: "plus")
+            }
+        }
+    }
+
+    private var newDesignSheet: some View {
+        NewDesignSheet(
+            designName: $newDesignName,
+            onCreate: onCreateDesign,
+            onCancel: onCancelNewDesign
+        )
+        #if os(iOS)
+        .presentationDetents([.height(250)])
+        #endif
+    }
+
+    private var renameDesignSheet: some View {
+        RenameDesignSheet(
+            designName: $renameText,
+            onRename: onRenameDesign,
+            onCancel: onCancelRename
+        )
+        #if os(iOS)
+        .presentationDetents([.height(250)])
+        #endif
+    }
+
+    private var paywallSheet: some View {
+        CustomPaywallView()
+            .environmentObject(PaywallManager.shared)
+            .environmentObject(subscriptionManager)
     }
 }
 
@@ -544,13 +607,16 @@ struct DesignCardView: View {
                 .scaleEffect(isHovered ? 1.03 : 1.0)
             
             // Name and menu row
-            HStack {
+            HStack(spacing: 8) {
                 Text(designFile.name)
                     .font(.headline)
-                    .lineLimit(horizontalSizeClass == .compact ? 2 : 1)
-                    .minimumScaleFactor(0.85)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .minimumScaleFactor(0.9)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .layoutPriority(0)
                 
-                Spacer()
+                Spacer(minLength: 0)
                 
                 Menu {
                     Button {
@@ -589,6 +655,8 @@ struct DesignCardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
                 .buttonStyle(PlainButtonStyle())
+                .fixedSize()
+                .layoutPriority(1)
 #if os(macOS)
                 .pointerStyle(.link)
 #endif

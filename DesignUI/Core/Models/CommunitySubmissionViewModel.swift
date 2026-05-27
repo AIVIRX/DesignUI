@@ -13,7 +13,7 @@ private struct SubmissionPayload: Encodable {
     let title: String
     let description: String
     let preview_image_url: String
-    let design_json: String
+    let design_json: DesignFileData
     let author_id: String
     let status: String
     let original_post_id: String?
@@ -217,7 +217,7 @@ class CommunitySubmissionViewModel: ObservableObject {
     }
     
     /// Process design file and upload any embedded images
-    private func processDesignForUpload(designFile: DesignFile, userId: String, postId: String) async throws -> String {
+    private func processDesignForUpload(designFile: DesignFile, userId: String, postId: String) async throws -> DesignFileData {
         // Clone pages/components to avoid mutating the live design
         let clonedPages: [DesignPage]? = {
             if !designFile.pages.isEmpty {
@@ -267,12 +267,7 @@ class CommunitySubmissionViewModel: ObservableObject {
             )
         }
         
-        // Encode design file to JSON using existing DesignFileData from DesignFile.swift
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        encoder.dateEncodingStrategy = .iso8601
-        
-        // Use the existing DesignFileData struct
+        // Build strongly-typed design payload for jsonb column.
         let designData: DesignFileData
         if let pages = clonedPages, !pages.isEmpty {
             designData = DesignFileData(
@@ -300,13 +295,8 @@ class CommunitySubmissionViewModel: ObservableObject {
                 statusBarTopSafeArea: designFile.statusBarTopSafeArea
             )
         }
-        
-        let jsonData = try encoder.encode(designData)
-        guard let jsonString = String(data: jsonData, encoding: .utf8) else {
-            throw SubmissionError.jsonEncodingFailed
-        }
-        
-        return jsonString
+
+        return designData
     }
 
     private func replaceLocalImagesWithRemoteURLs(

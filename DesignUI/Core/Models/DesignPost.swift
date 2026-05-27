@@ -132,4 +132,18 @@ struct DesignPost: Identifiable, Codable, Equatable {
         try container.encodeIfPresent(status, forKey: .status)
         try container.encodeIfPresent(design_json, forKey: .design_json)
     }
+    
+    static func == (lhs: DesignPost, rhs: DesignPost) -> Bool {
+        lhs.id == rhs.id &&
+        lhs.slug == rhs.slug &&
+        lhs.preview_image_url == rhs.preview_image_url &&
+        lhs.title == rhs.title &&
+        lhs.description == rhs.description &&
+        lhs.code_snippet == rhs.code_snippet &&
+        lhs.created_at == rhs.created_at &&
+        lhs.profiles == rhs.profiles &&
+        lhs.isPremium == rhs.isPremium &&
+        lhs.post_type == rhs.post_type &&
+        lhs.status == rhs.status
+    }
 }

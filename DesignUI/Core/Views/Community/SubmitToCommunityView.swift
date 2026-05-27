@@ -23,30 +23,27 @@ struct SubmitToCommunityView: View {
     
     var body: some View {
         NavigationStack {
-            submissionForm
+            navigationContent
+        }
+    }
+
+    private var navigationContent: some View {
+        submissionForm
             .navigationTitle("Share to Community")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar { toolbarContent }
-            .alert("Error", isPresented: $viewModel.showError, actions: {
-                Button("OK", role: .cancel) { }
-            }, message: {
-                Text(viewModel.errorMessage)
-            })
-            .alert("Account Required", isPresented: $showAccountRequiredAlert, actions: {
-                Button("OK", role: .cancel) { }
-            }, message: {
-                Text("You need to be signed in to submit designs to the community.")
-            })
+            .modifier(
+                SubmissionAlertModifier(
+                    showError: $viewModel.showError,
+                    errorMessage: viewModel.errorMessage,
+                    showAccountRequiredAlert: $showAccountRequiredAlert
+                )
+            )
             .onChange(of: viewModel.submissionSuccess) { _, success in
-                if success {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        dismiss()
-                    }
-                }
+                handleSubmissionSuccess(success)
             }
-        }
     }
     
     private var submissionForm: some View {
@@ -198,6 +195,13 @@ struct SubmitToCommunityView: View {
             )
         }
     }
+
+    private func handleSubmissionSuccess(_ success: Bool) {
+        guard success else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            dismiss()
+        }
+    }
     
     #if os(iOS)
     private var submitButton: some View {
@@ -248,4 +252,24 @@ struct SubmitToCommunityView: View {
         NSImage(data: data)
     }
     #endif
+}
+
+private struct SubmissionAlertModifier: ViewModifier {
+    @Binding var showError: Bool
+    let errorMessage: String
+    @Binding var showAccountRequiredAlert: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Error", isPresented: $showError, actions: {
+                Button("OK", role: .cancel) { }
+            }, message: {
+                Text(errorMessage)
+            })
+            .alert("Account Required", isPresented: $showAccountRequiredAlert, actions: {
+                Button("OK", role: .cancel) { }
+            }, message: {
+                Text("You need to be signed in to submit designs to the community.")
+            })
+    }
 }

@@ -301,7 +301,7 @@ struct CodeGenerator {
     
     private static func generateScrollViewCode(component: UIComponent, indent: String, nextIndent: String, indentLevel: Int) -> String {
         let axis = component.getProperty(key: "axis") as? String ?? "vertical"
-        let showsIndicators = component.getProperty(key: "showsIndicators") as? Bool ?? true
+        let showsIndicators = component.getBoolProperty(key: "showsIndicators", defaultValue: true)
         
         let scrollAxis: String = axis == "horizontal" ? ".horizontal" : ".vertical"
         let showsIndicatorsString = showsIndicators ? "true" : "false"
@@ -351,61 +351,102 @@ struct CodeGenerator {
         return "\(indent)Slider(value: .constant(\(value)), in: \(min)...\(max))"
     }
     
-    private static func generateGaugeCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let gaugeType = component.getProperty(key: "gaugeType") as? String ?? "circular"
-        let value = (component.getProperty(key: "value") as? Double)
-            ?? (component.getProperty(key: "value") as? Int).map(Double.init)
-            ?? 50
-        let min = (component.getProperty(key: "min") as? Double)
-            ?? (component.getProperty(key: "min") as? Int).map(Double.init)
-            ?? 0
-        let max = (component.getProperty(key: "max") as? Double)
-            ?? (component.getProperty(key: "max") as? Int).map(Double.init)
-            ?? 100
-        let showValue = component.getProperty(key: "showValue") as? Bool ?? true
-        
-        var code = ""
-        
-        switch gaugeType {
-        case "linear":
-            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {"
-            if showValue {
-                code += "\n\(nextIndent)Text(\"\(Int(value))\")"
-            }
-            code += "\n\(indent)}"
-            code += "\n\(nextIndent).gaugeStyle(.linearCapacity)"
-            
-        case "circular":
-            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {"
-            if showValue {
-                code += "\n\(nextIndent)Text(\"\(Int(value))\")"
-            } else {
-                code += "\n\(nextIndent)EmptyView()"
-            }
-            code += "\n\(indent)}"
-            code += "\n\(nextIndent).gaugeStyle(.accessoryCircularCapacity)"
-            
-        case "circular range":
-            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {"
-            code += "\n\(nextIndent)EmptyView()"
-            code += "\n\(indent)} currentValueLabel: {"
-            if showValue {
-                code += "\n\(nextIndent)Text(\"\(Int(value))\")"
-            } else {
-                code += "\n\(nextIndent)EmptyView()"
-            }
-            code += "\n\(indent)} minimumValueLabel: {"
-            code += "\n\(nextIndent)Text(\"\(Int(min))\")"
-            code += "\n\(indent)} maximumValueLabel: {"
-            code += "\n\(nextIndent)Text(\"\(Int(max))\")"
-            code += "\n\(indent)}"
-            code += "\n\(nextIndent).gaugeStyle(.accessoryCircular)"
-            
-        default:
-            code = "\(indent)Gauge(value: \(formatNumber(value)), in: \(formatNumber(min))...\(formatNumber(max))) {}"
-            code += "\n\(nextIndent).gaugeStyle(.accessoryCircularCapacity)"
-        }
+    private struct GaugeCodeProperties {
+        let gaugeType: String
+        let value: Double
+        let min: Double
+        let max: Double
+        let showValue: Bool
+    }
 
+    private static func generateGaugeCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+        let properties = gaugeCodeProperties(from: component)
+
+        switch properties.gaugeType {
+        case "linear":
+            return linearGaugeCode(properties: properties, indent: indent, nextIndent: nextIndent)
+        case "circular":
+            return circularGaugeCode(properties: properties, indent: indent, nextIndent: nextIndent)
+        case "circular range":
+            return circularRangeGaugeCode(properties: properties, indent: indent, nextIndent: nextIndent)
+        default:
+            return defaultGaugeCode(properties: properties, indent: indent, nextIndent: nextIndent)
+        }
+    }
+
+    private static func gaugeCodeProperties(from component: UIComponent) -> GaugeCodeProperties {
+        GaugeCodeProperties(
+            gaugeType: component.getProperty(key: "gaugeType") as? String ?? "circular",
+            value: doubleProperty(component, key: "value", defaultValue: 50),
+            min: doubleProperty(component, key: "min", defaultValue: 0),
+            max: doubleProperty(component, key: "max", defaultValue: 100),
+            showValue: component.getProperty(key: "showValue") as? Bool ?? true
+        )
+    }
+
+    private static func doubleProperty(_ component: UIComponent, key: String, defaultValue: Double) -> Double {
+        if let doubleValue = component.getProperty(key: key) as? Double {
+            return doubleValue
+        }
+        if let intValue = component.getProperty(key: key) as? Int {
+            return Double(intValue)
+        }
+        return defaultValue
+    }
+
+    private static func gaugeHeader(_ properties: GaugeCodeProperties, indent: String) -> String {
+        let value = formatNumber(properties.value)
+        let min = formatNumber(properties.min)
+        let max = formatNumber(properties.max)
+        return "\(indent)Gauge(value: \(value), in: \(min)...\(max)) {"
+    }
+
+    private static func gaugeValueLabel(_ properties: GaugeCodeProperties, nextIndent: String, emptyWhenHidden: Bool) -> String {
+        if properties.showValue {
+            return "\(nextIndent)Text(\"\(Int(properties.value))\")"
+        }
+        return emptyWhenHidden ? "\(nextIndent)EmptyView()" : ""
+    }
+
+    private static func linearGaugeCode(properties: GaugeCodeProperties, indent: String, nextIndent: String) -> String {
+        var code = gaugeHeader(properties, indent: indent)
+        let label = gaugeValueLabel(properties, nextIndent: nextIndent, emptyWhenHidden: false)
+        if !label.isEmpty {
+            code += "\n\(label)"
+        }
+        code += "\n\(indent)}"
+        code += "\n\(nextIndent).gaugeStyle(.linearCapacity)"
+        return code
+    }
+
+    private static func circularGaugeCode(properties: GaugeCodeProperties, indent: String, nextIndent: String) -> String {
+        var code = gaugeHeader(properties, indent: indent)
+        code += "\n\(gaugeValueLabel(properties, nextIndent: nextIndent, emptyWhenHidden: true))"
+        code += "\n\(indent)}"
+        code += "\n\(nextIndent).gaugeStyle(.accessoryCircularCapacity)"
+        return code
+    }
+
+    private static func circularRangeGaugeCode(properties: GaugeCodeProperties, indent: String, nextIndent: String) -> String {
+        var code = gaugeHeader(properties, indent: indent)
+        code += "\n\(nextIndent)EmptyView()"
+        code += "\n\(indent)} currentValueLabel: {"
+        code += "\n\(gaugeValueLabel(properties, nextIndent: nextIndent, emptyWhenHidden: true))"
+        code += "\n\(indent)} minimumValueLabel: {"
+        code += "\n\(nextIndent)Text(\"\(Int(properties.min))\")"
+        code += "\n\(indent)} maximumValueLabel: {"
+        code += "\n\(nextIndent)Text(\"\(Int(properties.max))\")"
+        code += "\n\(indent)}"
+        code += "\n\(nextIndent).gaugeStyle(.accessoryCircular)"
+        return code
+    }
+
+    private static func defaultGaugeCode(properties: GaugeCodeProperties, indent: String, nextIndent: String) -> String {
+        let value = formatNumber(properties.value)
+        let min = formatNumber(properties.min)
+        let max = formatNumber(properties.max)
+        var code = "\(indent)Gauge(value: \(value), in: \(min)...\(max)) {}"
+        code += "\n\(nextIndent).gaugeStyle(.accessoryCircularCapacity)"
         return code
     }
     
@@ -997,51 +1038,75 @@ struct CodeGenerator {
     }
     
     static func colorToString(_ value: Any?) -> String {
-        // Handle semantic color strings (intent preservation)
         if let colorString = value as? String {
-            let cleanString = colorString.hasPrefix("color:") ? String(colorString.dropFirst(6)) : colorString
-            
-            let semanticColors = ["primary", "secondary", "tertiary", "quaternary", "blue", "red", "green", "orange", "yellow", "purple", "pink", "gray", "white", "black", "clear", "teal", "indigo", "mint", "cyan", "brown"]
-            
-            let parts = cleanString.split(separator: ":", maxSplits: 1).map(String.init)
-            if parts.count == 2, let opacity = Double(parts[1]) {
-                let name = parts[0].lowercased()
-                if semanticColors.contains(name) {
-                    if opacity >= 0.999 {
-                        return ".\(name)"
-                    }
-                    return ".\(name).opacity(\(formatNumber(opacity)))"
+            return colorStringToString(colorString)
+        }
+
+        guard let color = value as? Color else { return ".clear" }
+        return swiftUIColorToString(color)
+    }
+
+    private static let semanticColorNames: Set<String> = [
+        "primary", "secondary", "tertiary", "quaternary", "blue", "red", "green",
+        "orange", "yellow", "purple", "pink", "gray", "white", "black", "clear",
+        "teal", "indigo", "mint", "cyan", "brown",
+    ]
+
+    private static func colorStringToString(_ colorString: String) -> String {
+        let cleanString = colorString.hasPrefix("color:") ? String(colorString.dropFirst(6)) : colorString
+
+        let parts = cleanString.split(separator: ":", maxSplits: 1).map(String.init)
+        if parts.count == 2, let opacity = Double(parts[1]) {
+            let name = parts[0].lowercased()
+            if semanticColorNames.contains(name) {
+                if opacity >= 0.999 {
+                    return ".\(name)"
                 }
+                return ".\(name).opacity(\(formatNumber(opacity)))"
             }
-            
-            if semanticColors.contains(cleanString.lowercased()) {
-                return ".\(cleanString.lowercased())"
-            }
-            
-            // If it's an RGB string or Hex, convert to Color object and let the RGB logic handle it
-            // This allows matching against standard colors with tolerance
-            if cleanString.hasPrefix("rgb(") || cleanString.hasPrefix("rgba(") || cleanString.hasPrefix("#") {
-                let color = ComponentProperty.colorStringToColor(cleanString)
-                return colorToString(color) // Recursive call to handle Color object
-            }
-            
-            return "Color(\"\(cleanString)\")"
         }
-        
-        guard let color = value as? Color else {
-            return ".clear"
+
+        let lowercasedName = cleanString.lowercased()
+        if semanticColorNames.contains(lowercasedName) {
+            return ".\(lowercasedName)"
         }
-        
-        // Extract RGBA values and match against known colors
-        #if os(macOS)
-        let nsColor = NSColor(color)
-        let rgba = nsColor.rgbaComponents
+
+        // RGB and hex strings can often collapse back to built-in SwiftUI colors.
+        if cleanString.hasPrefix("rgb(") || cleanString.hasPrefix("rgba(") || cleanString.hasPrefix("#") {
+            let color = ComponentProperty.colorStringToColor(cleanString)
+            return swiftUIColorToString(color)
+        }
+
+        return "Color(\"\(cleanString)\")"
+    }
+
+    private static func swiftUIColorToString(_ color: Color) -> String {
+        let rgba = rgbaComponents(from: color)
         let r = rgba.red
         let g = rgba.green
         let b = rgba.blue
         let a = rgba.alpha
+
+        if let standardName = standardColorName(red: r, green: g, blue: b, alpha: a) {
+            return standardName
+        }
+
+        let cleanR = round(r * 1000) / 1000
+        let cleanG = round(g * 1000) / 1000
+        let cleanB = round(b * 1000) / 1000
+
+        if a < 0.99 {
+            let cleanA = round(a * 100) / 100
+            return "Color(red: \(cleanR), green: \(cleanG), blue: \(cleanB), opacity: \(cleanA))"
+        }
+        return "Color(red: \(cleanR), green: \(cleanG), blue: \(cleanB))"
+    }
+
+    private static func rgbaComponents(from color: Color) -> (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        #if os(macOS)
+        let nsColor = NSColor(color)
+        return nsColor.rgbaComponents
         #else
-        // For iOS, try to extract components
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 1
         if let cgColor = color.cgColor {
             let components = cgColor.components ?? [0, 0, 0, 1]
@@ -1058,48 +1123,38 @@ struct CodeGenerator {
                 a = components.count >= 2 ? components[1] : 1
             }
         }
+        return (r, g, b, a)
         #endif
-        
-        // Match against known SwiftUI colors with tolerance
-        func matches(_ targetR: CGFloat, _ targetG: CGFloat, _ targetB: CGFloat, tolerance: CGFloat = 0.1) -> Bool {
-            return abs(r - targetR) < tolerance && abs(g - targetG) < tolerance && abs(b - targetB) < tolerance
-        }
-        
-        // Standard SwiftUI colors (approximate RGB values)
-        if matches(1.0, 1.0, 1.0) && a >= 0.99 { return ".white" }
-        if matches(0.0, 0.0, 0.0) && a >= 0.99 { return ".black" }
+    }
+
+    private static func standardColorName(red r: CGFloat, green g: CGFloat, blue b: CGFloat, alpha a: CGFloat) -> String? {
+        if matchesColor(r, g, b, targetRed: 1.0, targetGreen: 1.0, targetBlue: 1.0) && a >= 0.99 { return ".white" }
+        if matchesColor(r, g, b, targetRed: 0.0, targetGreen: 0.0, targetBlue: 0.0) && a >= 0.99 { return ".black" }
         if a < 0.01 { return ".clear" }
-        
-        // Check standard system colors with broad matching
-        if matches(0.0, 0.48, 1.0) { return ".blue" } // System Blue
-        if matches(1.0, 0.23, 0.19) { return ".red" } // System Red
-        if matches(0.20, 0.78, 0.35) { return ".green" } // System Green
-        if matches(1.0, 0.58, 0.0) { return ".orange" } // System Orange
-        if matches(1.0, 0.80, 0.0) { return ".yellow" } // System Yellow
-        if matches(0.69, 0.32, 0.87) { return ".purple" } // System Purple
-        if matches(1.0, 0.18, 0.33) { return ".pink" } // System Pink
-        if matches(0.56, 0.56, 0.58) { return ".gray" } // System Gray
-        if matches(0.19, 0.68, 0.79) { return ".teal" } // System Teal
-        if matches(0.35, 0.34, 0.84) { return ".indigo" } // System Indigo
-        if matches(0.0, 0.78, 0.75) { return ".mint" } // System Mint
-        if matches(0.20, 0.68, 0.90) { return ".cyan" } // System Cyan
-        if matches(0.61, 0.35, 0.22) { return ".brown" } // System Brown
-        
-        // Secondary checks for pure bright colors
+
+        if matchesColor(r, g, b, targetRed: 0.0, targetGreen: 0.48, targetBlue: 1.0) { return ".blue" }
+        if matchesColor(r, g, b, targetRed: 1.0, targetGreen: 0.23, targetBlue: 0.19) { return ".red" }
+        if matchesColor(r, g, b, targetRed: 0.20, targetGreen: 0.78, targetBlue: 0.35) { return ".green" }
+        if matchesColor(r, g, b, targetRed: 1.0, targetGreen: 0.58, targetBlue: 0.0) { return ".orange" }
+        if matchesColor(r, g, b, targetRed: 1.0, targetGreen: 0.80, targetBlue: 0.0) { return ".yellow" }
+        if matchesColor(r, g, b, targetRed: 0.69, targetGreen: 0.32, targetBlue: 0.87) { return ".purple" }
+        if matchesColor(r, g, b, targetRed: 1.0, targetGreen: 0.18, targetBlue: 0.33) { return ".pink" }
+        if matchesColor(r, g, b, targetRed: 0.56, targetGreen: 0.56, targetBlue: 0.58) { return ".gray" }
+        if matchesColor(r, g, b, targetRed: 0.19, targetGreen: 0.68, targetBlue: 0.79) { return ".teal" }
+        if matchesColor(r, g, b, targetRed: 0.35, targetGreen: 0.34, targetBlue: 0.84) { return ".indigo" }
+        if matchesColor(r, g, b, targetRed: 0.0, targetGreen: 0.78, targetBlue: 0.75) { return ".mint" }
+        if matchesColor(r, g, b, targetRed: 0.20, targetGreen: 0.68, targetBlue: 0.90) { return ".cyan" }
+        if matchesColor(r, g, b, targetRed: 0.61, targetGreen: 0.35, targetBlue: 0.22) { return ".brown" }
+
         if r < 0.1 && g < 0.1 && b > 0.9 { return ".blue" }
         if r > 0.9 && g < 0.1 && b < 0.1 { return ".red" }
         if r < 0.1 && g > 0.9 && b < 0.1 { return ".green" }
-        
-        // For truly custom colors, output clean RGB
-        let cleanR = round(r * 1000) / 1000
-        let cleanG = round(g * 1000) / 1000
-        let cleanB = round(b * 1000) / 1000
-        
-        if a < 0.99 {
-            let cleanA = round(a * 100) / 100
-            return "Color(red: \(cleanR), green: \(cleanG), blue: \(cleanB), opacity: \(cleanA))"
-        }
-        return "Color(red: \(cleanR), green: \(cleanG), blue: \(cleanB))"
+
+        return nil
+    }
+
+    private static func matchesColor(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, targetRed: CGFloat, targetGreen: CGFloat, targetBlue: CGFloat, tolerance: CGFloat = 0.1) -> Bool {
+        abs(r - targetRed) < tolerance && abs(g - targetGreen) < tolerance && abs(b - targetBlue) < tolerance
     }
     
     private static func alignmentFromString(_ alignment: String) -> String {

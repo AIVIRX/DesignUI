@@ -60,7 +60,7 @@ struct NewsContentView: View {
                 ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
                     if let url = part.url {
                         Link(part.text, destination: url)
-                            .foregroundColor(.white)
+                            .foregroundColor(.accentColor)
                             .underline()
                     } else {
                         Text(part.text)
@@ -162,9 +162,9 @@ struct NewsContentView: View {
         let nsAttributedString = NSMutableAttributedString(string: text)
         nsAttributedString.addAttribute(.link, value: url, range: NSRange(location: 0, length: length))
         #if os(iOS)
-        nsAttributedString.addAttribute(.foregroundColor, value: UIColor.white, range: NSRange(location: 0, length: length))
+        nsAttributedString.addAttribute(.foregroundColor, value: UIColor.systemBlue, range: NSRange(location: 0, length: length))
         #elseif os(macOS)
-        nsAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: NSRange(location: 0, length: length))
+        nsAttributedString.addAttribute(.foregroundColor, value: NSColor.systemBlue, range: NSRange(location: 0, length: length))
         #endif
         nsAttributedString.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 0, length: length))
         return AttributedString(nsAttributedString)

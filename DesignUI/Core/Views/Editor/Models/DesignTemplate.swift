@@ -82,7 +82,13 @@ class DesignTemplateManager {
             "blank",
             "wallet",
             "introducing_features",
-            "flight_status_widget"
+            "flight_status_widget",
+            "productivity_dashboard",
+            "community_profile",
+            "transfer_keypad",
+            "push_notifications_prompt",
+            "wallet_transactions_plus",
+            "social_masonry_feed"
         ]
         
         for filename in templateFiles {

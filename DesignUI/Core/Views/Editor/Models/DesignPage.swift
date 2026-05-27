@@ -10,6 +10,19 @@ import Foundation
 /// Represents a single page/screen within a design file.
 /// Each page has its own components, device preset, color scheme, and status bar settings.
 class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
+    private struct EqualitySnapshot: Equatable {
+        let id: UUID
+        let name: String
+        let components: [UIComponent]
+        let thumbnail: Data?
+        let devicePreset: String?
+        let colorScheme: String?
+        let statusBarVisible: Bool
+        let statusBarTopSafeArea: Bool
+        let statusBarComponentId: UUID?
+        let statusBarComponentPropertyCount: Int?
+    }
+
     let id: UUID
     @Published var name: String
     @Published var components: [UIComponent]
@@ -65,20 +78,22 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
     }
         
     static func == (lhs: DesignPage, rhs: DesignPage) -> Bool {
-        guard lhs.id == rhs.id else { return false }
-        guard lhs.name == rhs.name else { return false }
-        guard lhs.components == rhs.components else { return false }
-        guard lhs.thumbnail == rhs.thumbnail else { return false }
-        guard lhs.devicePreset == rhs.devicePreset else { return false }
-        guard lhs.colorScheme == rhs.colorScheme else { return false }
-        guard lhs.statusBarVisible == rhs.statusBarVisible else { return false }
-        guard lhs.statusBarTopSafeArea == rhs.statusBarTopSafeArea else { return false }
-        return statusBarComponentMatches(lhs.statusBarComponent, rhs.statusBarComponent)
+        lhs.equalitySnapshot == rhs.equalitySnapshot
     }
 
-    private static func statusBarComponentMatches(_ lhs: UIComponent?, _ rhs: UIComponent?) -> Bool {
-        lhs?.id == rhs?.id &&
-        lhs?.properties.count == rhs?.properties.count // Shallow check
+    private var equalitySnapshot: EqualitySnapshot {
+        EqualitySnapshot(
+            id: id,
+            name: name,
+            components: components,
+            thumbnail: thumbnail,
+            devicePreset: devicePreset,
+            colorScheme: colorScheme,
+            statusBarVisible: statusBarVisible,
+            statusBarTopSafeArea: statusBarTopSafeArea,
+            statusBarComponentId: statusBarComponent?.id,
+            statusBarComponentPropertyCount: statusBarComponent?.properties.count
+        )
     }
         
     /// Creates a deep copy of this page with a new ID and optional name suffix

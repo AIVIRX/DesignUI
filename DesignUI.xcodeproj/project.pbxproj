@@ -85,15 +85,12 @@
 		ECB1DA602C7BB386002D7E31 /* SimilarPosts.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */; };
 		ECB4F5CD2F2C433800D2AB65 /* GridConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB4F5CC2F2C433800D2AB65 /* GridConfiguration.swift */; };
 		ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */; };
-		ECC527602E27155000DAA548 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275F2E27155000DAA548 /* Supabase */; };
-		ECC527622E27155500DAA548 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527612E27155500DAA548 /* Storage */; };
-		ECC527642E27155900DAA548 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527632E27155900DAA548 /* Auth */; };
-		ECC527662E27155D00DAA548 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527652E27155D00DAA548 /* Functions */; };
-		ECC527682E27156000DAA548 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = ECC527672E27156000DAA548 /* PostgREST */; };
 		ECC93A3A2F16D4C800D9F11E /* blank.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A362F16D4C800D9F11E /* blank.json */; };
 		ECC93A3B2F16D4C800D9F11E /* flight_status_widget.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A372F16D4C800D9F11E /* flight_status_widget.json */; };
 		ECC93A3C2F16D4C800D9F11E /* introducing_features.json in Resources */ = {isa = PBXBuildFile; fileRef = ECC93A382F16D4C800D9F11E /* introducing_features.json */; };
 		ECD12B372D8F487D001A73C7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD12B362D8F487D001A73C7 /* Toast.swift */; };
+		ECD787CE2FC6594C0041F4DC /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = ECD787CD2FC6594C0041F4DC /* Auth */; };
+		ECD787D02FC6594C0041F4DC /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ECD787CF2FC6594C0041F4DC /* Supabase */; };
 		ECD803C02F3EAABE0022D533 /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803BF2F3EAABE0022D533 /* WelcomeScreen.swift */; };
 		ECD803C22F3EAB080022D533 /* TextCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803C12F3EAB080022D533 /* TextCarousel.swift */; };
 		ECD803C82F3EAD930022D533 /* MultiStepForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD803C52F3EAD930022D533 /* MultiStepForm.swift */; };
@@ -120,6 +117,22 @@
 		EC37CE222F195EEC006CFD08 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		EC37CE242F196751006CFD08 /* CommunityCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityCards.swift; sourceTree = "<group>"; };
 		EC3C17432F9FCA6A00027185 /* ColorModifierEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorModifierEditor.swift; sourceTree = "<group>"; };
+		EC3D253D2FC37DEF003C96A2 /* assembler.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = assembler.ts; sourceTree = "<group>"; };
+		EC3D253E2FC37DEF003C96A2 /* deno-shims.d.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = "deno-shims.d.ts"; sourceTree = "<group>"; };
+		EC3D253F2FC37DEF003C96A2 /* editing.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = editing.ts; sourceTree = "<group>"; };
+		EC3D25402FC37DEF003C96A2 /* index.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = index.ts; sourceTree = "<group>"; };
+		EC3D25412FC37DEF003C96A2 /* manifest.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = manifest.ts; sourceTree = "<group>"; };
+		EC3D25422FC37DEF003C96A2 /* openai.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = openai.ts; sourceTree = "<group>"; };
+		EC3D25432FC37DEF003C96A2 /* planner.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = planner.ts; sourceTree = "<group>"; };
+		EC3D25442FC37DEF003C96A2 /* postprocess.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = postprocess.ts; sourceTree = "<group>"; };
+		EC3D25452FC37DEF003C96A2 /* repair.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = repair.ts; sourceTree = "<group>"; };
+		EC3D25462FC37DEF003C96A2 /* retrieval.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = retrieval.ts; sourceTree = "<group>"; };
+		EC3D25472FC37DEF003C96A2 /* schema.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = schema.ts; sourceTree = "<group>"; };
+		EC3D25482FC37DEF003C96A2 /* slot-generator.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = "slot-generator.ts"; sourceTree = "<group>"; };
+		EC3D25492FC37DEF003C96A2 /* theme.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = theme.ts; sourceTree = "<group>"; };
+		EC3D254A2FC37DEF003C96A2 /* types.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = types.ts; sourceTree = "<group>"; };
+		EC3D254B2FC37DEF003C96A2 /* utils.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = utils.ts; sourceTree = "<group>"; };
+		EC3D254C2FC37DEF003C96A2 /* validation.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = validation.ts; sourceTree = "<group>"; };
 		EC412F532E79F3EA001B923B /* InfiniteScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfiniteScrollView.swift; sourceTree = "<group>"; };
 		EC419E5B2E85D6B60081C5D2 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
 		EC47CA2B2D03FB42002EA494 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.1.sdk/System/Library/Frameworks/AdSupport.framework; sourceTree = DEVELOPER_DIR; };
@@ -190,7 +203,6 @@
 		ECADF5FB2BCAE9610096753A /* Dock UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dock UI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB1DA5F2C7BB386002D7E31 /* SimilarPosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarPosts.swift; sourceTree = "<group>"; };
 		ECB4F5CC2F2C433800D2AB65 /* GridConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridConfiguration.swift; sourceTree = "<group>"; };
-		ECC2476E2FA66E0400F82FC8 /* index.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = index.ts; sourceTree = "<group>"; };
 		ECC93A362F16D4C800D9F11E /* blank.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = blank.json; sourceTree = "<group>"; };
 		ECC93A372F16D4C800D9F11E /* flight_status_widget.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = flight_status_widget.json; sourceTree = "<group>"; };
 		ECC93A382F16D4C800D9F11E /* introducing_features.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = introducing_features.json; sourceTree = "<group>"; };
@@ -219,14 +231,11 @@
 				EC26F3532F246D500035E1EA /* FluidGradient in Frameworks */,
 				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
 				ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */,
+				ECD787CE2FC6594C0041F4DC /* Auth in Frameworks */,
+				ECD787D02FC6594C0041F4DC /* Supabase in Frameworks */,
 				ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */,
-				ECC527602E27155000DAA548 /* Supabase in Frameworks */,
-				ECC527682E27156000DAA548 /* PostgREST in Frameworks */,
-				ECC527662E27155D00DAA548 /* Functions in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
-				ECC527622E27155500DAA548 /* Storage in Frameworks */,
 				EC95B1072F6B37B30045535D /* NotchMyProblem in Frameworks */,
-				ECC527642E27155900DAA548 /* Auth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -247,6 +256,45 @@
 				EC0C95C52EB2A18F00AA6A84 /* CustomPaywallView.swift */,
 			);
 			path = Paywall;
+			sourceTree = "<group>";
+		};
+		EC3D254D2FC37DEF003C96A2 /* StudioAI */ = {
+			isa = PBXGroup;
+			children = (
+				EC3D253D2FC37DEF003C96A2 /* assembler.ts */,
+				EC3D253E2FC37DEF003C96A2 /* deno-shims.d.ts */,
+				EC3D253F2FC37DEF003C96A2 /* editing.ts */,
+				EC3D25402FC37DEF003C96A2 /* index.ts */,
+				EC3D25412FC37DEF003C96A2 /* manifest.ts */,
+				EC3D25422FC37DEF003C96A2 /* openai.ts */,
+				EC3D25432FC37DEF003C96A2 /* planner.ts */,
+				EC3D25442FC37DEF003C96A2 /* postprocess.ts */,
+				EC3D25452FC37DEF003C96A2 /* repair.ts */,
+				EC3D25462FC37DEF003C96A2 /* retrieval.ts */,
+				EC3D25472FC37DEF003C96A2 /* schema.ts */,
+				EC3D25482FC37DEF003C96A2 /* slot-generator.ts */,
+				EC3D25492FC37DEF003C96A2 /* theme.ts */,
+				EC3D254A2FC37DEF003C96A2 /* types.ts */,
+				EC3D254B2FC37DEF003C96A2 /* utils.ts */,
+				EC3D254C2FC37DEF003C96A2 /* validation.ts */,
+			);
+			path = StudioAI;
+			sourceTree = "<group>";
+		};
+		EC3D254E2FC37DEF003C96A2 /* functions */ = {
+			isa = PBXGroup;
+			children = (
+				EC3D254D2FC37DEF003C96A2 /* StudioAI */,
+			);
+			path = functions;
+			sourceTree = "<group>";
+		};
+		EC3D254F2FC37DEF003C96A2 /* supabase */ = {
+			isa = PBXGroup;
+			children = (
+				EC3D254E2FC37DEF003C96A2 /* functions */,
+			);
+			path = supabase;
 			sourceTree = "<group>";
 		};
 		EC4D836A2F63B03D002219E8 /* AI */ = {
@@ -435,7 +483,6 @@
 		ECADF5F22BCAE9610096753A = {
 			isa = PBXGroup;
 			children = (
-				EC6B2CE72FA9095D006A9B77 /* Localizable.xcstrings */,
 				ECADF5FD2BCAE9610096753A /* DesignUI */,
 				ECADF5FC2BCAE9610096753A /* Products */,
 				ECADF6182BCC83AB0096753A /* Frameworks */,
@@ -453,8 +500,10 @@
 		ECADF5FD2BCAE9610096753A /* DesignUI */ = {
 			isa = PBXGroup;
 			children = (
+				EC3D254F2FC37DEF003C96A2 /* supabase */,
 				ECD13FD32C18BA7B00105B3E /* Core */,
 				EC7D7BC32C19E218003134B1 /* DesignUIApp.swift */,
+				EC6B2CE72FA9095D006A9B77 /* Localizable.xcstrings */,
 			);
 			path = DesignUI;
 			sourceTree = "<group>";
@@ -580,7 +629,6 @@
 		ECD13FFE2C18C12400105B3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				ECC2476E2FA66E0400F82FC8 /* index.ts */,
 				EC7D7BD82C19E426003134B1 /* Assets.xcassets */,
 				EC33A6042D10DB5B00372CFF /* ConfigStore.storekit */,
 				ECC93A392F16D4C800D9F11E /* Templates */,
@@ -635,15 +683,12 @@
 			name = DesignUI;
 			packageProductDependencies = (
 				ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */,
-				ECC5275F2E27155000DAA548 /* Supabase */,
-				ECC527612E27155500DAA548 /* Storage */,
-				ECC527632E27155900DAA548 /* Auth */,
-				ECC527652E27155D00DAA548 /* Functions */,
-				ECC527672E27156000DAA548 /* PostgREST */,
 				ECB10DA42EB06B5D00420663 /* RevenueCat */,
 				ECB10DA62EB06B5D00420663 /* RevenueCatUI */,
 				EC26F3522F246D500035E1EA /* FluidGradient */,
 				EC95B1062F6B37B30045535D /* NotchMyProblem */,
+				ECD787CD2FC6594C0041F4DC /* Auth */,
+				ECD787CF2FC6594C0041F4DC /* Supabase */,
 			);
 			productName = DesignUI;
 			productReference = ECADF5FB2BCAE9610096753A /* Dock UI.app */;
@@ -715,11 +760,11 @@
 			);
 			mainGroup = ECADF5F22BCAE9610096753A;
 			packageReferences = (
-				ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */,
 				EC95B1052F6B37B30045535D /* XCRemoteSwiftPackageReference "NotchMyProblem" */,
+				ECD787CC2FC6594C0041F4DC /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
 			projectDirPath = "";
@@ -990,7 +1035,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1200;
+				CURRENT_PROJECT_VERSION = 1201;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1036,7 +1081,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 2026.1;
+				MARKETING_VERSION = 2026.2;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-function-bodies=100 -Xfrontend -warn-long-expression-type-checking=100";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
@@ -1070,7 +1115,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1200;
+				CURRENT_PROJECT_VERSION = 1201;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -1116,7 +1161,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 2026.1;
+				MARKETING_VERSION = 2026.2;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
@@ -1187,20 +1232,20 @@
 				minimumVersion = 5.45.0;
 			};
 		};
-		ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/supabase/supabase-swift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.5.1;
-			};
-		};
 		ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 3.1.3;
+			};
+		};
+		ECD787CC2FC6594C0041F4DC /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1231,30 +1276,15 @@
 			package = ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
 			productName = SDWebImageSwiftUI;
 		};
-		ECC5275F2E27155000DAA548 /* Supabase */ = {
+		ECD787CD2FC6594C0041F4DC /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Supabase;
-		};
-		ECC527612E27155500DAA548 /* Storage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Storage;
-		};
-		ECC527632E27155900DAA548 /* Auth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			package = ECD787CC2FC6594C0041F4DC /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Auth;
 		};
-		ECC527652E27155D00DAA548 /* Functions */ = {
+		ECD787CF2FC6594C0041F4DC /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Functions;
-		};
-		ECC527672E27156000DAA548 /* PostgREST */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECC527592E27142000DAA548 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = PostgREST;
+			package = ECD787CC2FC6594C0041F4DC /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

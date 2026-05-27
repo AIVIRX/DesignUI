@@ -592,6 +592,35 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         return property.value
     }
+
+    func getBoolProperty(key: String, defaultValue: Bool = false) -> Bool {
+        guard let raw = getProperty(key: key) else { return defaultValue }
+
+        if let boolValue = raw as? Bool {
+            return boolValue
+        }
+
+        if let intValue = raw as? Int {
+            return intValue != 0
+        }
+
+        if let doubleValue = raw as? Double {
+            return doubleValue != 0
+        }
+
+        if let stringValue = raw as? String {
+            switch stringValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            case "true", "1", "yes", "y", "on":
+                return true
+            case "false", "0", "no", "n", "off":
+                return false
+            default:
+                return defaultValue
+            }
+        }
+
+        return defaultValue
+    }
     
     func addChild(_ child: UIComponent) {
         // Prevent adding the same component multiple times
@@ -892,87 +921,70 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id, type, properties, children, frame, isVisible, zIndex, modifiers, isOverlay, modifierId, modifierType
     }
-    
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-        let decodedType = try container.decode(ComponentType.self, forKey: .type)
-        self.type = decodedType
-        
-        // DICTIONARY PROPERTIES FORMAT: { "key": value }
-        if let propsDict = try? container.decode([String: AnyCodable].self, forKey: .properties) {
-            self.properties = propsDict.map { key, anyValue in
-                ComponentProperty(
-                    key: key,
-                    displayName: ComponentProperty.properDisplayName(for: key),
-                    type: .string, // Provisional type, restored from defaults later
-                    value: anyValue.value,
-                    defaultValue: anyValue.value, // Placeholder
-                    options: nil
-                )
-            }
-        } else {
-            self.properties = []
-        }
 
-        // Migrate legacy stack component types into unified Stack.
-        var migratedStackType: String?
-        switch decodedType {
-        case .vstack:
-            self.type = .stack
-            migratedStackType = "vertical"
-        case .hstack:
-            self.type = .stack
-            migratedStackType = "horizontal"
-        case .zstack:
-            self.type = .stack
-            migratedStackType = "z"
-        default:
-            break
+    private static func decodeRawProperties(from container: KeyedDecodingContainer<CodingKeys>) -> [ComponentProperty] {
+        guard let propsDict = try? container.decode([String: AnyCodable].self, forKey: .properties) else {
+            return []
         }
-        
-        self.children = try container.decodeIfPresent([UIComponent].self, forKey: .children) ?? []
-        
-        // Handle frame decoding - support both array format [[x, y], [width, height]] and dictionary format
+        return propsDict.map { key, anyValue in
+            ComponentProperty(
+                key: key,
+                displayName: ComponentProperty.properDisplayName(for: key),
+                type: .string,
+                value: anyValue.value,
+                defaultValue: anyValue.value,
+                options: nil
+            )
+        }
+    }
+
+    private static func decodeFrame(from container: KeyedDecodingContainer<CodingKeys>) throws -> CGRect {
         if let frameArray = try? container.decode([[Double]].self, forKey: .frame),
            frameArray.count == 2,
            frameArray[0].count == 2,
            frameArray[1].count == 2 {
-            // Array format: [[x, y], [width, height]]
             let x = frameArray[0][0]
             let y = frameArray[0][1]
             let width = frameArray[1][0]
             let height = frameArray[1][1]
-            self._frame = CGRect(x: x, y: y, width: width, height: height)
-        } else {
-            // Dictionary format (standard CGRect Codable) - default to .zero if missing
-            self._frame = try container.decodeIfPresent(CGRect.self, forKey: .frame) ?? .zero
+            return CGRect(x: x, y: y, width: width, height: height)
         }
-        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible) ?? true
-        self.zIndex = try container.decodeIfPresent(Int.self, forKey: .zIndex) ?? 0
-        self.modifiers = try container.decodeIfPresent([ComponentModifier].self, forKey: .modifiers) ?? []
-        self.isOverlay = try container.decodeIfPresent(Bool.self, forKey: .isOverlay) ?? false
-        self.modifierId = try container.decodeIfPresent(UUID.self, forKey: .modifierId)
-        self.modifierType = try container.decodeIfPresent(ModifierType.self, forKey: .modifierType)
+        return try container.decodeIfPresent(CGRect.self, forKey: .frame) ?? .zero
+    }
 
-        let defaultProps = UIComponent.defaultProperties(for: self.type)
+    private static func migrateLegacyStackType(from decodedType: ComponentType) -> (ComponentType, String?) {
+        switch decodedType {
+        case .vstack:
+            return (.stack, "vertical")
+        case .hstack:
+            return (.stack, "horizontal")
+        case .zstack:
+            return (.stack, "z")
+        default:
+            return (decodedType, nil)
+        }
+    }
+
+    private static func normalizedRestoredProperties(
+        savedProperties: [ComponentProperty],
+        type: ComponentType,
+        migratedStackType: String?
+    ) -> [ComponentProperty] {
+        let defaultProps = UIComponent.defaultProperties(for: type)
         var restoredProperties: [ComponentProperty] = []
-        
+
         for defaultProp in defaultProps {
-            // Check if this property was saved in JSON
-            if let savedProp = self.properties.first(where: { $0.key == defaultProp.key }) {
-                // Property exists in JSON - use saved value with restored metadata
+            if let savedProp = savedProperties.first(where: { $0.key == defaultProp.key }) {
                 var correctValue = savedProp.value
-                
+
                 if defaultProp.type == .number {
-                    // JSON numbers can decode as Int or Double, normalize to Double
                     if let intVal = correctValue as? Int {
                         correctValue = Double(intVal)
                     } else if let stringVal = correctValue as? String, let doubleVal = Double(stringVal) {
                         correctValue = doubleVal
                     }
                 }
-                
+
                 restoredProperties.append(ComponentProperty(
                     key: defaultProp.key,
                     displayName: defaultProp.displayName,
@@ -982,13 +994,11 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                     options: defaultProp.options
                 ))
             } else {
-                // Property NOT in JSON - use default value from code
                 restoredProperties.append(defaultProp)
             }
         }
 
-        // Ensure migrated stack orientation is persisted.
-        if self.type == .stack {
+        if type == .stack {
             if let migratedStackType {
                 if let idx = restoredProperties.firstIndex(where: { $0.key == "stackType" }) {
                     restoredProperties[idx].value = migratedStackType
@@ -1013,18 +1023,16 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
                 ))
             }
         }
-        
-        // Also add any custom properties that aren't in defaults (shouldn't happen often)
-        for savedProp in self.properties {
+
+        for savedProp in savedProperties {
             if !restoredProperties.contains(where: { $0.key == savedProp.key }) {
                 restoredProperties.append(savedProp)
             }
         }
 
-        // Drop legacy per-shape stroke properties (handled by Stroke modifier now)
         let legacyStrokeKeys = Set(["stroke", "lineWidth"])
         let isLegacyStrokeShape: Bool = {
-            switch self.type {
+            switch type {
             case .rectangle, .circle, .roundedRectangle, .capsule, .ellipse, .shape:
                 return true
             default:
@@ -1034,8 +1042,33 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         if isLegacyStrokeShape {
             restoredProperties.removeAll { legacyStrokeKeys.contains($0.key) }
         }
+
+        return restoredProperties
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        let decodedType = try container.decode(ComponentType.self, forKey: .type)
+        let (migratedType, migratedStackType) = Self.migrateLegacyStackType(from: decodedType)
+        self.type = migratedType
+        let savedProperties = Self.decodeRawProperties(from: container)
+        self.properties = savedProperties
         
-        self.properties = restoredProperties
+        self.children = try container.decodeIfPresent([UIComponent].self, forKey: .children) ?? []
+        self._frame = try Self.decodeFrame(from: container)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible) ?? true
+        self.zIndex = try container.decodeIfPresent(Int.self, forKey: .zIndex) ?? 0
+        self.modifiers = try container.decodeIfPresent([ComponentModifier].self, forKey: .modifiers) ?? []
+        self.isOverlay = try container.decodeIfPresent(Bool.self, forKey: .isOverlay) ?? false
+        self.modifierId = try container.decodeIfPresent(UUID.self, forKey: .modifierId)
+        self.modifierType = try container.decodeIfPresent(ModifierType.self, forKey: .modifierType)
+
+        self.properties = Self.normalizedRestoredProperties(
+            savedProperties: savedProperties,
+            type: self.type,
+            migratedStackType: migratedStackType
+        )
 
         // Fix orphaned modifier children when modifier IDs are missing in JSON
         reconcileModifierChildren()
