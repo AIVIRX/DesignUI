@@ -24,7 +24,7 @@
     "_developerTeamID" : "5C778DVBP3",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 798586684.20549595,
+    "_lastSynchronizedDate" : 802931746.555089,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
@@ -84,6 +84,15 @@
           "adHocOffers" : [
 
           ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "4.99",
+              "displayPrice" : "4.99",
+              "internalID" : "6754583434_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
           "codeOffers" : [
 
           ],
@@ -93,18 +102,18 @@
           "internalID" : "6754583434",
           "introductoryOffer" : {
             "billingPlanType" : "BILLED_UPFRONT",
-            "internalID" : "9B3B901B",
+            "internalID" : "93DAF543",
             "numberOfPeriods" : 1,
             "paymentMode" : "free",
-            "subscriptionPeriod" : "P3D"
+            "subscriptionPeriod" : "P1W"
           },
           "introductoryOffers" : [
             {
               "billingPlanType" : "BILLED_UPFRONT",
-              "internalID" : "9B3B901B",
+              "internalID" : "93DAF543",
               "numberOfPeriods" : 1,
               "paymentMode" : "free",
-              "subscriptionPeriod" : "P3D"
+              "subscriptionPeriod" : "P1W"
             }
           ],
           "localizations" : [
@@ -126,6 +135,15 @@
         {
           "adHocOffers" : [
 
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "1.99",
+              "displayPrice" : "1.99",
+              "internalID" : "6761801833_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
           ],
           "codeOffers" : [
 
@@ -157,6 +175,15 @@
           "adHocOffers" : [
 
           ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "14.99",
+              "displayPrice" : "14.99",
+              "internalID" : "6754583917_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
           "codeOffers" : [
 
           ],
@@ -166,18 +193,18 @@
           "internalID" : "6754583917",
           "introductoryOffer" : {
             "billingPlanType" : "BILLED_UPFRONT",
-            "internalID" : "CA100FDD",
+            "internalID" : "6F8CACE9",
             "numberOfPeriods" : 1,
             "paymentMode" : "free",
-            "subscriptionPeriod" : "P3D"
+            "subscriptionPeriod" : "P1W"
           },
           "introductoryOffers" : [
             {
               "billingPlanType" : "BILLED_UPFRONT",
-              "internalID" : "CA100FDD",
+              "internalID" : "6F8CACE9",
               "numberOfPeriods" : 1,
               "paymentMode" : "free",
-              "subscriptionPeriod" : "P3D"
+              "subscriptionPeriod" : "P1W"
             }
           ],
           "localizations" : [
