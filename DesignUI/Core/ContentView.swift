@@ -20,6 +20,7 @@ struct ContentView: View {
     enum Tabs: Hashable {
         case home
         case news
+        case symbols
         case profile
     }
     
@@ -31,6 +32,10 @@ struct ContentView: View {
             
             Tab("News", systemImage: "newspaper", value: .news) {
                 NewsListView()
+            }
+
+            Tab("SF Symbols", systemImage: "sparkles", value: .symbols) {
+                SFIconsView()
             }
             
             Tab("Account", systemImage: "person", value: .profile) {

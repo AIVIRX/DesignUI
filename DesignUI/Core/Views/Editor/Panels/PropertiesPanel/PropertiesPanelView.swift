@@ -705,7 +705,9 @@ private struct FastInspectorView: View {
                     iconPxInputField(
                         symbol: "button.roundedtop.horizontal",
                         text: $shapeCornerRadiusInput,
-                        helpText: "Corner Radius"
+                        helpText: "Corner Radius",
+                        scrubId: "shape-corner-radius",
+                        scrubRange: 0...100
                     ) { committed in
                         setShapeCornerRadius(committed)
                     }
@@ -1454,7 +1456,7 @@ private struct FastInspectorView: View {
                 iconDegreeInputField(symbol: "rotate.right", text: $rotationInput, helpText: "Rotation") { committed in
                     setRotation(committed)
                 }
-                iconPxInputField(symbol: "button.roundedtop.horizontal", text: $cornerRadiusInput, helpText: "Corner Radius") { committed in
+                iconPxInputField(symbol: "button.roundedtop.horizontal", text: $cornerRadiusInput, helpText: "Corner Radius", scrubId: "modifier-corner-radius", scrubRange: 0...100) { committed in
                     setCornerRadius(committed)
                 }
             }
@@ -1545,77 +1547,97 @@ private struct FastInspectorView: View {
             groupRow("Fills", type: .fill, menuTypes: [.fill, .foregroundColor, .backgroundColor, .tint])
 
             ForEach(fillModifiers) { fill in
-                HStack(spacing: 10) {
-                    Button {
-                        canvasManager.removeModifier(from: component, modifier: fill)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
-                            .frame(width: 22, height: 22)
-                            .background(Circle().fill(Color.secondary.opacity(0.16)))
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-#if os(macOS)
-                        macFillPopoverModifierId = fill.id
-#else
-                        colorEditorModifierId = fill.id
-                        colorEditorTitle = fill.type == .fill
-                            ? "Fill Color"
-                            : (fill.type == .foregroundColor
-                                ? "Foreground Color"
-                                : (fill.type == .backgroundColor ? "Background Color" : "Tint"))
-                        showColorEditor = true
-#endif
-                    } label: {
-                        fillPreviewSwatch(for: fill)
-                    }
-                    .buttonStyle(.plain)
-#if os(macOS)
-                    .popover(
-                        isPresented: Binding(
-                            get: { macFillPopoverModifierId == fill.id },
-                            set: { isPresented in
-                                if !isPresented, macFillPopoverModifierId == fill.id {
-                                    macFillPopoverModifierId = nil
-                                }
-                            }
-                        ),
-                        arrowEdge: .trailing
-                    ) {
-                        ColorModifierEditor(
-                            modifier: Binding(
-                                get: {
-                                    component.modifiers.first(where: { $0.id == fill.id }) ?? fill
-                                },
-                                set: { newModifier in
-                                    DispatchQueue.main.async {
-                                        canvasManager.updateModifier(for: component, modifier: newModifier)
-                                    }
-                                }
-                            ),
-                            component: component,
-                            title: fill.type == .fill
-                                ? "Fill Color"
-                                : (fill.type == .foregroundColor
-                                    ? "Foreground Color"
-                                    : (fill.type == .backgroundColor ? "Background Color" : "Tint"))
-                        )
-                        .padding(8)
-                    }
-#endif
-
-                    if !hasGradientFill(fill) {
-                        fillHexEditor(for: fill)
-                        fillOpacityEditor(for: fill)
-                    } else {
-                        Spacer(minLength: 0)
-                    }
-                }
+                fillRow(for: fill)
                 .padding(.vertical, 2)
             }
+        }
+    }
+
+    private func fillRow(for fill: ComponentModifier) -> some View {
+        HStack(spacing: 10) {
+            removeFillButton(for: fill)
+            fillEditorButton(for: fill)
+
+            if !hasGradientFill(fill) {
+                fillHexEditor(for: fill)
+                fillOpacityEditor(for: fill)
+            } else {
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    private func removeFillButton(for fill: ComponentModifier) -> some View {
+        Button {
+            canvasManager.removeModifier(from: component, modifier: fill)
+        } label: {
+            Image(systemName: "xmark")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.secondary)
+                .frame(width: 22, height: 22)
+                .background(Circle().fill(Color.secondary.opacity(0.16)))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func fillEditorButton(for fill: ComponentModifier) -> some View {
+        let title = fillEditorTitle(for: fill)
+
+        return Button {
+#if os(macOS)
+            macFillPopoverModifierId = fill.id
+#else
+            colorEditorModifierId = fill.id
+            colorEditorTitle = title
+            showColorEditor = true
+#endif
+        } label: {
+            fillPreviewSwatch(for: fill)
+        }
+        .buttonStyle(.plain)
+#if os(macOS)
+        .popover(
+            isPresented: Binding(
+                get: { macFillPopoverModifierId == fill.id },
+                set: { isPresented in
+                    if !isPresented, macFillPopoverModifierId == fill.id {
+                        macFillPopoverModifierId = nil
+                    }
+                }
+            ),
+            arrowEdge: .trailing
+        ) {
+            ColorModifierEditor(
+                modifier: Binding(
+                    get: {
+                        component.modifiers.first(where: { $0.id == fill.id }) ?? fill
+                    },
+                    set: { newModifier in
+                        DispatchQueue.main.async {
+                            canvasManager.updateModifier(for: component, modifier: newModifier)
+                        }
+                    }
+                ),
+                component: component,
+                title: title
+            )
+            .padding(8)
+        }
+#endif
+    }
+
+    private func fillEditorTitle(for fill: ComponentModifier) -> String {
+        switch fill.type {
+        case .fill:
+            return "Fill Color"
+        case .foregroundColor:
+            return "Foreground Color"
+        case .backgroundColor:
+            return "Background Color"
+        case .tint:
+            return "Tint"
+        default:
+            return "Color"
         }
     }
 
@@ -2275,18 +2297,20 @@ private struct FastInspectorView: View {
                 symbol: "button.roundedtop.horizontal",
                 text: Binding(
                     get: {
-                        let radius = glassEffectCornerRadius(for: effect)
+                        let radius = currentGlassEffectCornerRadius(for: effect)
                         return String(Int(max(0, radius).rounded()))
                     },
                     set: { newValue in
                         guard isParsableNumberInput(newValue) else { return }
                         let parsed = max(0, Double(newValue.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
-                        updateEffectModifier(effect) { mod in
+                        updateEffectModifierContinuous(effect) { mod in
                             mod.properties["cornerRadius"] = parsed
                         }
                     }
                 ),
-                helpText: "Corner Radius"
+                helpText: "Corner Radius",
+                scrubId: "glass-corner-radius-\(effect.id.uuidString)",
+                scrubRange: 0...100
             ) { committed in
                 let parsed = max(0, Double(committed.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
                 updateEffectModifier(effect) { mod in
@@ -2331,18 +2355,20 @@ private struct FastInspectorView: View {
                     symbol: "button.roundedtop.horizontal",
                     text: Binding(
                         get: {
-                            let radius = (effect.properties["cornerRadius"] as? Double) ?? 10
+                            let radius = currentClipShapeCornerRadius(for: effect)
                             return String(Int(max(0, radius).rounded()))
                         },
                         set: { newValue in
                             guard isParsableNumberInput(newValue) else { return }
                             let parsed = max(0, Double(newValue.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
-                            updateEffectModifier(effect) { mod in
+                            updateEffectModifierContinuous(effect) { mod in
                                 mod.properties["cornerRadius"] = parsed
                             }
                         }
                     ),
-                    helpText: "Corner Radius"
+                    helpText: "Corner Radius",
+                    scrubId: "clip-corner-radius-\(effect.id.uuidString)",
+                    scrubRange: 0...100
                 ) { committed in
                     let parsed = max(0, Double(committed.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 10)
                     updateEffectModifier(effect) { mod in
@@ -3668,18 +3694,20 @@ private struct FastInspectorView: View {
         symbol: String,
         text: Binding<String>,
         helpText: String? = nil,
+        scrubId: String? = nil,
+        scrubRange: ClosedRange<Double> = 0...500,
         onCommit: @escaping (String) -> Void
     ) -> some View {
         HStack(spacing: 8) {
             scrubIcon(
                 systemName: symbol,
-                scrubId: "px:\(symbol)",
+                scrubId: scrubId ?? "px:\(symbol)",
                 currentValue: {
                     parseNumericInput(text.wrappedValue)
                 },
-                range: -500...500
+                range: scrubRange
             ) { value in
-                let rounded = Int(value.rounded())
+                let rounded = Int(min(max(value, scrubRange.lowerBound), scrubRange.upperBound).rounded())
                 text.wrappedValue = "\(rounded)"
                 onCommit(text.wrappedValue)
             }
@@ -4289,6 +4317,25 @@ private struct FastInspectorView: View {
     }
 
     private func glassEffectCornerRadius(for effect: ComponentModifier) -> Double {
+        if let radius = effect.properties["cornerRadius"] as? Double { return radius }
+        if let radius = effect.properties["cornerRadius"] as? CGFloat { return Double(radius) }
+        if let radius = effect.properties["cornerRadius"] as? Int { return Double(radius) }
+        return 10
+    }
+
+    private func currentGlassEffectCornerRadius(for effect: ComponentModifier) -> Double {
+        if let latest = component.modifiers.first(where: { $0.id == effect.id }) {
+            return glassEffectCornerRadius(for: latest)
+        }
+        return glassEffectCornerRadius(for: effect)
+    }
+
+    private func currentClipShapeCornerRadius(for effect: ComponentModifier) -> Double {
+        if let latest = component.modifiers.first(where: { $0.id == effect.id }) {
+            if let radius = latest.properties["cornerRadius"] as? Double { return radius }
+            if let radius = latest.properties["cornerRadius"] as? CGFloat { return Double(radius) }
+            if let radius = latest.properties["cornerRadius"] as? Int { return Double(radius) }
+        }
         if let radius = effect.properties["cornerRadius"] as? Double { return radius }
         if let radius = effect.properties["cornerRadius"] as? CGFloat { return Double(radius) }
         if let radius = effect.properties["cornerRadius"] as? Int { return Double(radius) }

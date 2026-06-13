@@ -319,6 +319,13 @@ private struct GalleryImageCell: View {
     @State private var isHovering = false
     @State private var loadedImage: PlatformImage?
     
+    init(filename: String, isSelected: Bool, isEditing: Bool) {
+        self.filename = filename
+        self.isSelected = isSelected
+        self.isEditing = isEditing
+        _loadedImage = State(initialValue: ImageGalleryManager.shared.cachedThumbnail(filename: filename))
+    }
+    
     var body: some View {
         ZStack {
             imageContent

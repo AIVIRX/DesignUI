@@ -1157,6 +1157,7 @@ class ImageGalleryManager: ObservableObject {
     
     private let fileManager = FileManager.default
     private let galleryFolderName = "DesignImages"
+    private let manifestFileName = "gallery-manifest.json"
     
     private var imagesDirectory: URL? {
         let containerIdentifier = "iCloud.com.Maicol.Dockui"
@@ -1174,11 +1175,29 @@ class ImageGalleryManager: ObservableObject {
     private let memoryCache = NSCache<NSString, PlatformImage>()
     private let thumbnailCache = NSCache<NSString, PlatformImage>()
     private let ioQueue = DispatchQueue(label: "com.designui.imagegallery.io", qos: .userInitiated)
+    private var cachedFilenames: [String] = []
+    private var hasLoadedFilenameCache = false
+    
+    private var manifestURL: URL? {
+        imagesDirectory?.appendingPathComponent(manifestFileName)
+    }
+    
+    private var thumbnailCacheDirectory: URL? {
+        guard let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+        return cachesDirectory
+            .appendingPathComponent("DesignUI")
+            .appendingPathComponent("ImageGalleryThumbnails", isDirectory: true)
+    }
     
     init() {
         createGalleryDirectoryIfNeeded()
+        createThumbnailCacheDirectoryIfNeeded()
         memoryCache.countLimit = 300
         thumbnailCache.countLimit = 500
+        cachedFilenames = loadFilenameManifest()
+        hasLoadedFilenameCache = !cachedFilenames.isEmpty
     }
     
     private func createGalleryDirectoryIfNeeded() {
@@ -1190,6 +1209,18 @@ class ImageGalleryManager: ObservableObject {
                 debugLog("✅ ImageGalleryManager: Created gallery directory")
             } catch {
                 debugLog("❌ ImageGalleryManager: Failed to create gallery directory: \(error)")
+            }
+        }
+    }
+    
+    private func createThumbnailCacheDirectoryIfNeeded() {
+        guard let thumbnailCacheDirectory else { return }
+        
+        if !fileManager.fileExists(atPath: thumbnailCacheDirectory.path) {
+            do {
+                try fileManager.createDirectory(at: thumbnailCacheDirectory, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                debugLog("❌ ImageGalleryManager: Failed to create thumbnail cache directory: \(error)")
             }
         }
     }
@@ -1208,6 +1239,7 @@ class ImageGalleryManager: ObservableObject {
         do {
             try optimizedData.write(to: fileURL)
             debugLog("ImageGalleryManager: Saved optimized image")
+            didSaveImage(named: filename)
             return filename
         } catch {
             debugLog("ImageGalleryManager: Failed to save image: \(error)")
@@ -1231,6 +1263,7 @@ class ImageGalleryManager: ObservableObject {
         do {
             try optimizedData.write(to: fileURL)
             debugLog("ImageGalleryManager: Saved optimized image (preferred filename)")
+            didSaveImage(named: preferredFilename)
             return preferredFilename
         } catch {
             debugLog("ImageGalleryManager: Failed to save image: \(error)")
@@ -1247,6 +1280,7 @@ class ImageGalleryManager: ObservableObject {
         
         do {
             try data.write(to: fileURL)
+            didSaveImage(named: filename)
             return filename
         } catch {
             return nil
@@ -1422,15 +1456,45 @@ class ImageGalleryManager: ObservableObject {
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
+            
+            if let cachedThumbnail = self.loadCachedThumbnail(filename: filename, maxPixelSize: maxPixelSize, sourceURL: fileURL) {
+                self.thumbnailCache.setObject(cachedThumbnail, forKey: cacheKey)
+                DispatchQueue.main.async {
+                    completion(cachedThumbnail)
+                }
+                return
+            }
 
             let thumbnail = self.downsampleImage(at: fileURL, maxPixelSize: maxPixelSize) ?? self.loadImage(filename: filename)
             if let thumbnail {
                 self.thumbnailCache.setObject(thumbnail, forKey: cacheKey)
+                self.persistThumbnailToDisk(thumbnail, filename: filename, maxPixelSize: maxPixelSize)
             }
             DispatchQueue.main.async {
                 completion(thumbnail)
             }
         }
+    }
+    
+    func cachedThumbnail(filename: String, maxPixelSize: Int = 220) -> PlatformImage? {
+        let cacheKey = "\(filename)#\(maxPixelSize)" as NSString
+        if let cached = thumbnailCache.object(forKey: cacheKey) {
+            return cached
+        }
+        
+        if let bundled = memoryCache.object(forKey: filename as NSString) {
+            thumbnailCache.setObject(bundled, forKey: cacheKey)
+            return bundled
+        }
+        
+        guard let fileURL = getImageUrl(filename: filename),
+              fileManager.fileExists(atPath: fileURL.path),
+              let cachedThumbnail = loadCachedThumbnail(filename: filename, maxPixelSize: maxPixelSize, sourceURL: fileURL) else {
+            return nil
+        }
+        
+        thumbnailCache.setObject(cachedThumbnail, forKey: cacheKey)
+        return cachedThumbnail
     }
 
     private func downsampleImage(at url: URL, maxPixelSize: Int) -> PlatformImage? {
@@ -1468,34 +1532,20 @@ class ImageGalleryManager: ObservableObject {
         return fileManager.fileExists(atPath: fileURL.path)
     }
     
-        func getAllImageFilenames() -> [String] {
-            var allImages: [String] = []
-            
-            if let imagesDirectory = imagesDirectory {
-                do {
-                    let fileURLs = try fileManager.contentsOfDirectory(at: imagesDirectory, includingPropertiesForKeys: [.creationDateKey], options: .skipsHiddenFiles)
-                    
-                    let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
-                    let localImages = fileURLs.filter { url in
-                        imageExtensions.contains(url.pathExtension.lowercased())
-                    }
-                    
-                    let sortedLocalImages = localImages.sorted { url1, url2 in
-                        let date1 = (try? url1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                        let date2 = (try? url2.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                        return date1 > date2
-                    }
-                    
-                    allImages.append(contentsOf: sortedLocalImages.map { $0.lastPathComponent })
-                } catch {
-                    debugLog("❌ ImageGalleryManager: Failed to list images: \(error)")
-                }
-            }
-            
-            allImages.append(contentsOf: bundledAssets)
-            
-            return allImages
+    func getAllImageFilenames() -> [String] {
+        if !hasLoadedFilenameCache {
+            cachedFilenames = loadFilenameManifest()
+            hasLoadedFilenameCache = true
         }
+
+        let localImages = validatedCachedFilenames()
+        if localImages != cachedFilenames {
+            cachedFilenames = localImages
+            saveFilenameManifest(localImages)
+        }
+
+        return localImages + bundledAssets
+    }
             
     func deleteImage(filename: String) {
         if bundledAssets.contains(filename) {
@@ -1509,8 +1559,143 @@ class ImageGalleryManager: ObservableObject {
         if fileManager.fileExists(atPath: fileURL.path) {
             try? fileManager.removeItem(at: fileURL)
             memoryCache.removeObject(forKey: filename as NSString)
-            thumbnailCache.removeAllObjects()
+            removeThumbnailCaches(for: filename)
+            cachedFilenames.removeAll { $0 == filename }
+            hasLoadedFilenameCache = true
+            saveFilenameManifest(cachedFilenames)
             debugLog("🗑️ ImageGalleryManager: Deleted \(filename)")
         }
+    }
+    
+    private func didSaveImage(named filename: String) {
+        memoryCache.removeObject(forKey: filename as NSString)
+        removeThumbnailCaches(for: filename)
+        cachedFilenames.removeAll { $0 == filename }
+        cachedFilenames.insert(filename, at: 0)
+        hasLoadedFilenameCache = true
+        saveFilenameManifest(cachedFilenames)
+    }
+    
+    private func validatedCachedFilenames() -> [String] {
+        let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
+        let existingCached = cachedFilenames.filter { filename in
+            let ext = URL(fileURLWithPath: filename).pathExtension.lowercased()
+            return imageExtensions.contains(ext) && imageExists(filename: filename)
+        }
+        
+        if !existingCached.isEmpty || hasLoadedFilenameCache {
+            return existingCached
+        }
+        
+        let scanned = scanImagesFromDisk()
+        if scanned != cachedFilenames {
+            saveFilenameManifest(scanned)
+        }
+        return scanned
+    }
+    
+    private func scanImagesFromDisk() -> [String] {
+        guard let imagesDirectory else { return [] }
+        
+        do {
+            let fileURLs = try fileManager.contentsOfDirectory(
+                at: imagesDirectory,
+                includingPropertiesForKeys: [.creationDateKey],
+                options: .skipsHiddenFiles
+            )
+            
+            let imageExtensions = ["jpg", "jpeg", "png", "heic", "webp"]
+            let localImages = fileURLs.filter { url in
+                imageExtensions.contains(url.pathExtension.lowercased())
+            }
+            
+            let sortedLocalImages = localImages.sorted { url1, url2 in
+                let date1 = (try? url1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                let date2 = (try? url2.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
+                return date1 > date2
+            }
+            
+            return sortedLocalImages.map(\.lastPathComponent)
+        } catch {
+            debugLog("❌ ImageGalleryManager: Failed to list images: \(error)")
+            return []
+        }
+    }
+    
+    private func loadFilenameManifest() -> [String] {
+        guard let manifestURL,
+              let data = try? Data(contentsOf: manifestURL),
+              let filenames = try? JSONDecoder().decode([String].self, from: data) else {
+            return scanImagesFromDisk()
+        }
+        return filenames
+    }
+    
+    private func saveFilenameManifest(_ filenames: [String]) {
+        guard let manifestURL,
+              let data = try? JSONEncoder().encode(filenames) else { return }
+        try? data.write(to: manifestURL, options: .atomic)
+    }
+    
+    private func thumbnailDiskURL(filename: String, maxPixelSize: Int) -> URL? {
+        guard let thumbnailCacheDirectory else { return nil }
+        return thumbnailCacheDirectory.appendingPathComponent("\(filename)#\(maxPixelSize).jpg")
+    }
+    
+    private func loadCachedThumbnail(filename: String, maxPixelSize: Int, sourceURL: URL) -> PlatformImage? {
+        guard let thumbnailURL = thumbnailDiskURL(filename: filename, maxPixelSize: maxPixelSize),
+              fileManager.fileExists(atPath: thumbnailURL.path) else {
+            return nil
+        }
+        
+        let sourceDate = (try? sourceURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+        let thumbnailDate = (try? thumbnailURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+        guard thumbnailDate >= sourceDate else { return nil }
+        
+        if let data = try? Data(contentsOf: thumbnailURL) {
+            #if os(macOS)
+            return NSImage(data: data)
+            #else
+            return UIImage(data: data)
+            #endif
+        }
+        
+        return nil
+    }
+    
+    private func persistThumbnailToDisk(_ image: PlatformImage, filename: String, maxPixelSize: Int) {
+        guard let thumbnailURL = thumbnailDiskURL(filename: filename, maxPixelSize: maxPixelSize),
+              let data = thumbnailData(from: image) else {
+            return
+        }
+        
+        try? data.write(to: thumbnailURL, options: .atomic)
+    }
+    
+    private func removeThumbnailCaches(for filename: String) {
+        thumbnailCache.removeAllObjects()
+        
+        guard let thumbnailCacheDirectory,
+              let urls = try? fileManager.contentsOfDirectory(
+                at: thumbnailCacheDirectory,
+                includingPropertiesForKeys: nil,
+                options: .skipsHiddenFiles
+              ) else { return }
+        
+        for url in urls where url.lastPathComponent.hasPrefix("\(filename)#") {
+            try? fileManager.removeItem(at: url)
+        }
+    }
+    
+    private func thumbnailData(from image: PlatformImage) -> Data? {
+        #if os(macOS)
+        guard let tiffData = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData) else {
+            return nil
+        }
+        return bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.7])
+        #else
+        return image.jpegData(compressionQuality: 0.7)
+        #endif
     }
 }

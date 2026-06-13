@@ -16,47 +16,7 @@ struct UnsplashGalleryView: View {
     var onImageSelected: (String) -> Void
     
     var body: some View {
-        VStack {
-            if let error = errorMessage {
-                Text(error)
-                    .foregroundColor(.red)
-                    .padding()
-            }
-            
-            if isLoading && photos.isEmpty {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    LazyMasonryView(
-                        items: photos,
-                        columns: {
-#if os(macOS)
-                            return 3
-#else
-                            return 2
-#endif
-                        }(),
-                        spacing: 12,
-                        hasMorePosts: true,
-                        isLoading: isLoading,
-                        loadMoreHandler: { _ in loadMore() }
-                    ) { photo in
-                        Button(action: {
-                            downloadAndSelect(photo: photo)
-                        }) {
-                            UnsplashPhotoCell(photo: photo)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(isSelecting || isLoading)
-                    }
-                    .padding()
-                    #if os(macOS)
-                    .padding(.top, 60) // Add top padding for overlay search bar
-                    #endif
-                }
-            }
-        }
+        content
         .navigationTitle("Unsplash")
 #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -66,33 +26,7 @@ struct UnsplashGalleryView: View {
         }
 #endif
 #if os(macOS)
-        .overlay(alignment: .top) {
-            HStack(spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.primary)
-                
-                TextField("Search photos...", text: $searchText)
-                    .textFieldStyle(.plain)
-                    .onSubmit {
-                        performSearch()
-                    }
-                
-                if !searchText.isEmpty {
-                    Button(action: {
-                        searchText = ""
-                        resetAndLoadInitial()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(12)
-            .background(.ultraThinMaterial, in: Capsule())
-            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-            .padding()
-        }
+        .overlay(alignment: .top) { macSearchOverlay }
 #endif
         .onChange(of: searchText) { _, newValue in
             if newValue.isEmpty {
@@ -103,6 +37,99 @@ struct UnsplashGalleryView: View {
             resetAndLoadInitial()
         }
     }
+
+    private var content: some View {
+        VStack {
+            errorBanner
+            galleryContent
+        }
+    }
+
+    @ViewBuilder
+    private var errorBanner: some View {
+        if let errorMessage {
+            Text(errorMessage)
+                .foregroundColor(.red)
+                .padding()
+        }
+    }
+
+    @ViewBuilder
+    private var galleryContent: some View {
+        if isLoading && photos.isEmpty {
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            ScrollView {
+                masonryGrid
+            }
+        }
+    }
+
+    private var masonryGrid: some View {
+        LazyMasonryView(
+            items: photos,
+            columns: masonryColumnCount,
+            spacing: 12,
+            hasMorePosts: true,
+            isLoading: isLoading,
+            loadMoreHandler: { _ in loadMore() }
+        ) { photo in
+            unsplashPhotoButton(for: photo)
+        }
+        .padding()
+        #if os(macOS)
+        .padding(.top, 60)
+        #endif
+    }
+
+    private func unsplashPhotoButton(for photo: UnsplashPhoto) -> some View {
+        Button {
+            downloadAndSelect(photo: photo)
+        } label: {
+            UnsplashPhotoCell(photo: photo)
+        }
+        .buttonStyle(.plain)
+        .disabled(isSelecting || isLoading)
+    }
+
+    private var masonryColumnCount: Int {
+        #if os(macOS)
+        return 3
+        #else
+        return 2
+        #endif
+    }
+
+    #if os(macOS)
+    private var macSearchOverlay: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.primary)
+
+            TextField("Search photos...", text: $searchText)
+                .textFieldStyle(.plain)
+                .onSubmit {
+                    performSearch()
+                }
+
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                    resetAndLoadInitial()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+        .background(.ultraThinMaterial, in: Capsule())
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .padding()
+    }
+    #endif
     
     private func resetAndLoadInitial() {
         currentPage = 1

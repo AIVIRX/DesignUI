@@ -122,72 +122,113 @@ struct ComponentRenderer: View {
     }
     
     private func renderSelectionOverlay() -> some View {
+        guard shouldShowSelectionOverlay else { return AnyView(EmptyView()) }
+
+        let style = selectionOverlayStyle
+
+        switch selectionOverlayKind {
+        case .circle:
+            return selectionStroke(Circle(), color: style.color, lineWidth: style.lineWidth)
+        case .capsule:
+            return selectionStroke(Capsule(), color: style.color, lineWidth: style.lineWidth)
+        case .ellipse:
+            return selectionStroke(Ellipse(), color: style.color, lineWidth: style.lineWidth)
+        case let .roundedRectangle(radius):
+            return selectionStroke(RoundedRectangle(cornerRadius: radius), color: style.color, lineWidth: style.lineWidth)
+        }
+    }
+
+    private var shouldShowSelectionOverlay: Bool {
         let isSelected = selectedComponentIds.contains(component.id)
         let isHovering = isHovered && onSelectChild != nil && component.children.isEmpty
-        
-        guard isSelected || isHovering else { return AnyView(EmptyView()) }
-        
-        let color = isSelected ? Color.blue : Color.blue.opacity(0.7)
-        let lineWidth: CGFloat = isSelected ? 2 : 1
-        
-        // 1. Check modifiers first (ClipShape has highest priority for shape)
-        if let clipMod = component.modifiers.first(where: { $0.type == .clipShape }),
-           let shapeName = clipMod.properties["shape"] as? String {
-            if shapeName == "Circle" { return selectionStroke(Circle(), color: color, lineWidth: lineWidth) }
-            if shapeName == "Capsule" { return selectionStroke(Capsule(), color: color, lineWidth: lineWidth) }
-            if shapeName == "Ellipse" { return selectionStroke(Ellipse(), color: color, lineWidth: lineWidth) }
-            if shapeName == "RoundedRectangle" {
-                // Try to get radius from clip shape properties, otherwise default
-                // Note: clipShape modifier usually doesn't store radius in "shape" string, 
-                // but if we had a more complex storage (which we don't for clipShape currently in Modifier.swift details),
-                // we'd use it. For now, clipShape usually just takes a shape name. 
-                // A dedicated RoundedRectangle clip might strictly need a corner radius param if supported.
-                // Assuming standard default if not specified.
-                return selectionStroke(RoundedRectangle(cornerRadius: 8), color: color, lineWidth: lineWidth)
-            }
+        return isSelected || isHovering
+    }
+
+    private var selectionOverlayStyle: (color: Color, lineWidth: CGFloat) {
+        let isSelected = selectedComponentIds.contains(component.id)
+        return (
+            color: isSelected ? Color.blue : Color.blue.opacity(0.7),
+            lineWidth: isSelected ? 2 : 1
+        )
+    }
+
+    private var selectionOverlayKind: SelectionOverlayKind {
+        if let kind = clipShapeOverlayKind() {
+            return kind
         }
-        
-        // 2. Check for CornerRadius modifier
+
         if let radiusMod = component.modifiers.first(where: { $0.type == .cornerRadius }) {
             let radius = radiusMod.getCGFloat(key: "radius", defaultValue: 8)
-            return selectionStroke(RoundedRectangle(cornerRadius: radius), color: color, lineWidth: lineWidth)
+            return .roundedRectangle(radius: radius)
         }
-        
-        // 3. Check Component Type & Intrinsic Properties
+
+        return intrinsicOverlayKind()
+    }
+
+    private func clipShapeOverlayKind() -> SelectionOverlayKind? {
+        guard let clipMod = component.modifiers.first(where: { $0.type == .clipShape }),
+              let shapeName = clipMod.properties["shape"] as? String else {
+            return nil
+        }
+
+        switch shapeName {
+        case "Circle":
+            return .circle
+        case "Capsule":
+            return .capsule
+        case "Ellipse":
+            return .ellipse
+        case "RoundedRectangle":
+            return .roundedRectangle(radius: 8)
+        default:
+            return nil
+        }
+    }
+
+    private func intrinsicOverlayKind() -> SelectionOverlayKind {
         switch component.type {
         case .circle:
-            return selectionStroke(Circle(), color: color, lineWidth: lineWidth)
+            return .circle
         case .capsule:
-            return selectionStroke(Capsule(), color: color, lineWidth: lineWidth)
+            return .capsule
         case .ellipse:
-            return selectionStroke(Ellipse(), color: color, lineWidth: lineWidth)
+            return .ellipse
         case .roundedRectangle:
             let radius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
-            return selectionStroke(RoundedRectangle(cornerRadius: radius), color: color, lineWidth: lineWidth)
+            return .roundedRectangle(radius: radius)
         case .shape:
-            let shapeType = component.getProperty(key: "shapeType") as? String ?? "Rectangle"
-            switch shapeType {
-            case "Circle":
-                return selectionStroke(Circle(), color: color, lineWidth: lineWidth)
-            case "Capsule":
-                return selectionStroke(Capsule(), color: color, lineWidth: lineWidth)
-            case "Ellipse":
-                return selectionStroke(Ellipse(), color: color, lineWidth: lineWidth)
-            case "Rounded Rectangle":
-                let radius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
-                return selectionStroke(RoundedRectangle(cornerRadius: radius), color: color, lineWidth: lineWidth)
-            default:
-                return selectionStroke(RoundedRectangle(cornerRadius: 0), color: color, lineWidth: lineWidth)
-            }
+            return shapeOverlayKind(from: component.getProperty(key: "shapeType") as? String ?? "Rectangle")
         default:
-            // Standard rectangular bounds for everything else
-            return selectionStroke(RoundedRectangle(cornerRadius: 4), color: color, lineWidth: lineWidth)
+            return .roundedRectangle(radius: 4)
+        }
+    }
+
+    private func shapeOverlayKind(from shapeType: String) -> SelectionOverlayKind {
+        switch shapeType {
+        case "Circle":
+            return .circle
+        case "Capsule":
+            return .capsule
+        case "Ellipse":
+            return .ellipse
+        case "Rounded Rectangle":
+            let radius = component.getProperty(key: "cornerRadius") as? Double ?? 12.0
+            return .roundedRectangle(radius: radius)
+        default:
+            return .roundedRectangle(radius: 0)
         }
     }
     
     private func selectionStroke<S: InsettableShape>(_ shape: S, color: Color, lineWidth: CGFloat) -> AnyView {
         AnyView(shape.stroke(color, lineWidth: lineWidth))
     }
+}
+
+private enum SelectionOverlayKind {
+    case circle
+    case capsule
+    case ellipse
+    case roundedRectangle(radius: CGFloat)
 }
 
 private extension View {

@@ -14,21 +14,8 @@ struct ContinueButton: View {
     var state: FieldState
     
     var body: some View {
-        Button(action: {
-            if state != .loading {
-                action()
-            }
-        }) {
-            HStack(spacing: 10) {
-                if state == .loading {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Image(systemName: icon)
-                }
-                
-                Text(title)
-            }
+        Button(action: handleTap) {
+            buttonContent
             .font(.headline)
             .bold()
             .foregroundStyle(.white)
@@ -39,5 +26,27 @@ struct ContinueButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private var buttonContent: some View {
+        HStack(spacing: 10) {
+            buttonLeadingView
+            Text(title)
+        }
+    }
+
+    @ViewBuilder
+    private var buttonLeadingView: some View {
+        if state == .loading {
+            ProgressView()
+                .tint(.white)
+        } else {
+            Image(systemName: icon)
+        }
+    }
+
+    private func handleTap() {
+        guard state != .loading else { return }
+        action()
     }
 }

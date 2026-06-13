@@ -36,7 +36,6 @@ struct SettingsView: View {
                     subscriptionSection
                     appearanceSection
                     moreAppsSection
-                    featuresSection
                     appSection
                     supportSection
                     legalSection
@@ -119,26 +118,6 @@ struct SettingsView: View {
     private var moreAppsSection: some View {
         section("More Apps") {
             stringCatalogPromoRow
-        }
-    }
-
-    private var featuresSection: some View {
-        section("Features") {
-            NavigationLink(destination: SFIconsView()) {
-                HStack {
-                    Image(systemName: "plus.square.dashed")
-                        .foregroundColor(.blue)
-                        .frame(width: 24)
-                    Text("SF Symbols")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .foregroundColor(.primary)
         }
     }
 

@@ -47,50 +47,89 @@ struct MultiStepForm: View {
     }
     
     var body: some View {
-        VStack (spacing: 64) {
-            VStack(alignment: .leading, spacing: 32) {
-                ForEach(steps, id: \.id) { step in
-                    Step(
-                        icon: step.icon,
-                        iconColour: step.gradient.0,
-                        title: step.title,
-                        description: step.description,
-                        isExpanded: !hasFinishedForm && step.id == steps[currentStep].id
-                    )
-                }
-                
-                ZStack {
-                    if hasFinishedForm {
-                        CompletionStep(
-                            title: completionStep.title,
-                            description: completionStep.description,
-                            completionTitle: completionStep.completionTitle,
-                            completionDescription: completionStep.completionDescription,
-                            onSubmit: completionStep.onSubmit,
-                            onComplete: completionStep.onComplete
-                        )
-                        .transition(.offset(y: 40).combined(with: .opacity))
-                    }
-                }
-                .animation(.default.delay(0.4), value: hasFinishedForm)
-            }
-            
-            if !hasFinishedForm {
-                switch steps[currentStep].type {
-                case .button(let title, let icon):
-                    ContinueButton(
-                        title: title,
-                        icon: icon,
-                        action: submitCurrentStep,
-                        state: steps[currentStep].state
-                    )
-                    .animation(.none, value: currentStep)
-                
-                }
+        formLayout
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: formAlignment)
+        .padding(42)
+    }
+
+    private var formLayout: some View {
+        VStack(spacing: 64) {
+            stepListSection
+            currentStepAction
+        }
+    }
+
+    private var stepListSection: some View {
+        VStack(alignment: .leading, spacing: 32) {
+            stepRows
+            completionSection
+        }
+    }
+
+    private var stepRows: some View {
+        ForEach(steps, id: \.id) { step in
+            stepRow(for: step)
+        }
+    }
+
+    private func stepRow(for step: FormStep) -> some View {
+        Step(
+            icon: step.icon,
+            iconColour: step.gradient.0,
+            title: step.title,
+            description: step.description,
+            isExpanded: isExpanded(step)
+        )
+    }
+
+    private var completionSection: some View {
+        ZStack {
+            if hasFinishedForm {
+                completionContent
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: hasFinishedForm ? .center : .bottomLeading)
-        .padding(42)
+        .animation(.default.delay(0.4), value: hasFinishedForm)
+    }
+
+    private var completionContent: some View {
+        CompletionStep(
+            title: completionStep.title,
+            description: completionStep.description,
+            completionTitle: completionStep.completionTitle,
+            completionDescription: completionStep.completionDescription,
+            onSubmit: completionStep.onSubmit,
+            onComplete: completionStep.onComplete
+        )
+        .transition(.offset(y: 40).combined(with: .opacity))
+    }
+
+    @ViewBuilder
+    private var currentStepAction: some View {
+        if !hasFinishedForm {
+            currentStepButton
+        }
+    }
+
+    @ViewBuilder
+    private var currentStepButton: some View {
+        switch steps[currentStep].type {
+        case .button(let title, let icon):
+            ContinueButton(
+                title: title,
+                icon: icon,
+                action: submitCurrentStep,
+                state: steps[currentStep].state
+            )
+            .animation(.none, value: currentStep)
+        }
+    }
+
+    private var formAlignment: Alignment {
+        hasFinishedForm ? .center : .bottomLeading
+    }
+
+    private func isExpanded(_ step: FormStep) -> Bool {
+        !hasFinishedForm && step.id == steps[currentStep].id
     }
     
     private func submitCurrentStep() {

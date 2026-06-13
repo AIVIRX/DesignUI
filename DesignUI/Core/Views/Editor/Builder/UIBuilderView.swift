@@ -216,7 +216,6 @@ struct UIBuilderView: View {
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
     @State private var showRenamePageSheet: Bool = false
-    @State private var showPageViewerNavigation: Bool = false
     @State private var renamePageText: String = ""
     @State private var isRestoringCanvasSettings: Bool = false
 
@@ -414,7 +413,6 @@ struct UIBuilderView: View {
             pages: designFile.pages,
             currentPageIndex: currentPageIndex,
             onSelectPage: switchToPage,
-            onShowPageViewer: { showPageViewerNavigation = true },
             onAddPage: attemptAddPage,
             onDuplicatePage: duplicateCurrentPage,
             onRenamePage: presentRenameCurrentPage,
@@ -433,9 +431,9 @@ struct UIBuilderView: View {
                 withDeviceChangeHandlers(
                     withComponentChangeHandlers(
                         withLifecycleHandlers(
-                            withRenamePageSheet(
-                                withEditorSheets(
-                                    withCommunitySheet(
+                            withEditorSheets(
+                                withCommunitySheet(
+                                    withRenamePageSheet(
                                         withCodePreviewSheet(
                                             withToolbar(baseNavigationContent)
                                         )
@@ -582,6 +580,49 @@ struct UIBuilderView: View {
             }
     }
 
+    private func withRenamePageSheet<Content: View>(_ content: Content) -> some View {
+        content
+            .sheet(isPresented: $showRenamePageSheet) {
+                renamePageSheetContent
+            }
+    }
+
+    private var renamePageSheetContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Rename Page")
+                .font(.title3.weight(.semibold))
+
+            TextField("Page Name", text: $renamePageText)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit {
+                    commitRenameAndDismissPageSheet()
+                }
+
+            HStack {
+                Spacer()
+
+                Button("Cancel") {
+                    showRenamePageSheet = false
+                }
+
+                Button("Save") {
+                    commitRenameAndDismissPageSheet()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(renamePageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 320)
+    }
+
+    private func commitRenameAndDismissPageSheet() {
+        let trimmed = renamePageText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        commitRenameCurrentPage()
+        showRenamePageSheet = false
+    }
+
     private func withEditorSheets<Content: View>(_ content: Content) -> some View {
 #if os(iOS)
         content
@@ -591,97 +632,6 @@ struct UIBuilderView: View {
 #else
         content
 #endif
-    }
-
-    private func withRenamePageSheet<Content: View>(_ content: Content) -> some View {
-        content
-            #if os(macOS)
-            .sheet(isPresented: $showPageViewerNavigation) {
-                NavigationStack {
-                    PageViewerSheet(
-                        designFile: designFile,
-                        currentPageIndex: $currentPageIndex,
-                        onSelectPage: { index in
-                            switchToPage(index)
-                            showPageViewerNavigation = false
-                        },
-                        onAddPage: { attemptAddPage() },
-                        onDuplicatePage: { index in
-                            if let (_, newIndex) = designFile.duplicatePage(at: index) {
-                                switchToPage(newIndex)
-                            }
-                        },
-                        onRenamePage: { index, name in
-                            designFile.renamePage(at: index, to: name)
-                            designFile.markAsChanged()
-                            NotificationCenter.default.post(name: .designChanged, object: nil)
-                        },
-                        onDeletePage: { index in
-                            guard index > 0 else { return }
-                            if designFile.deletePage(at: index) {
-                                switchToPage(designFile.currentPageIndex)
-                            }
-                        }
-                    )
-                    .navigationTitle("Page Viewer")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showPageViewerNavigation = false }
-                        }
-                    }
-                }
-                .frame(minWidth: 1100, minHeight: 760)
-            }
-            #else
-            .navigationDestination(isPresented: $showPageViewerNavigation) {
-                PageViewerSheet(
-                    designFile: designFile,
-                    currentPageIndex: $currentPageIndex,
-                    onSelectPage: { index in
-                        switchToPage(index)
-                        showPageViewerNavigation = false
-                    },
-                    onAddPage: { attemptAddPage() },
-                    onDuplicatePage: { index in
-                        if let (_, newIndex) = designFile.duplicatePage(at: index) {
-                            switchToPage(newIndex)
-                        }
-                    },
-                    onRenamePage: { index, name in
-                        designFile.renamePage(at: index, to: name)
-                        designFile.markAsChanged()
-                        NotificationCenter.default.post(name: .designChanged, object: nil)
-                    },
-                    onDeletePage: { index in
-                        guard index > 0 else { return }
-                        if designFile.deletePage(at: index) {
-                            switchToPage(designFile.currentPageIndex)
-                        }
-                    }
-                )
-                .navigationTitle("Page Viewer")
-            }
-            #endif
-            .sheet(isPresented: $showRenamePageSheet) {
-                NavigationStack {
-                    Form {
-                        TextField("", text: $renamePageText)
-                    }
-                    .navigationTitle("Rename Page")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Back") { showRenamePageSheet = false }
-                        }
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Save") {
-                                commitRenameCurrentPage()
-                                showRenamePageSheet = false
-                            }
-                            .disabled(renamePageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        }
-                    }
-                }
-            }
     }
 
     private func withLifecycleHandlers<Content: View>(_ content: Content) -> some View {
@@ -1525,74 +1475,31 @@ struct UIBuilderView: View {
     
     @ViewBuilder
     private var devicePresetsListSections: some View {
-        Section("iPhone") {
-            ForEach(DevicePreset.iphones) { preset in
-                Button(action: {
-                    canvasManager.setDevicePreset(preset)
-                }) {
-                    HStack {
-                        Text(preset.rawValue)
-                            .foregroundColor(.primary)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                }
+        devicePresetListSection(title: "iPhone", presets: DevicePreset.iphones)
+        devicePresetListSection(title: "iPad", presets: DevicePreset.ipads)
+        devicePresetListSection(title: "Widgets", presets: DevicePreset.widgets)
+        devicePresetListSection(title: "Custom", presets: DevicePreset.custom)
+    }
+
+    private func devicePresetListSection(title: String, presets: [DevicePreset]) -> some View {
+        Section(title) {
+            ForEach(presets) { preset in
+                devicePresetListRow(for: preset)
             }
         }
-        
-        Section("iPad") {
-            ForEach(DevicePreset.ipads) { preset in
-                Button(action: {
-                    canvasManager.setDevicePreset(preset)
-                }) {
-                    HStack {
-                        Text(preset.rawValue)
-                            .foregroundColor(.primary)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                }
-            }
-        }
-        
-        Section("Widgets") {
-            ForEach(DevicePreset.widgets) { preset in
-                Button(action: {
-                    canvasManager.setDevicePreset(preset)
-                }) {
-                    HStack {
-                        Text(preset.rawValue)
-                            .foregroundColor(.primary)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                }
-            }
-        }
-        
-        Section("Custom") {
-            ForEach(DevicePreset.custom) { preset in
-                Button(action: {
-                    canvasManager.setDevicePreset(preset)
-                }) {
-                    HStack {
-                        Text(preset.rawValue)
-                            .foregroundColor(.primary)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
+    }
+
+    private func devicePresetListRow(for preset: DevicePreset) -> some View {
+        Button {
+            canvasManager.setDevicePreset(preset)
+        } label: {
+            HStack {
+                Text(preset.rawValue)
+                    .foregroundColor(.primary)
+                Spacer()
+                if canvasManager.devicePreset == preset {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.blue)
                 }
             }
         }
@@ -2861,7 +2768,15 @@ struct ComponentView: View {
     }
     
     var body: some View {
-        ComponentRenderer(component: component, deviceSize: selectedDevice.size, colorScheme: colorScheme, onTap: onSelect, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, canvasManager: canvasManager)
+        ComponentRenderer(
+            component: component,
+            deviceSize: selectedDevice.isContentAdaptive ? nil : selectedDevice.size,
+            colorScheme: colorScheme,
+            onTap: onSelect,
+            onSelectChild: onSelectChild,
+            selectedComponentIds: selectedComponentIds,
+            canvasManager: canvasManager
+        )
 
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.frame)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: component.isVisible)
@@ -2904,7 +2819,6 @@ private struct PageMenuView: View {
     let pages: [DesignPage]
     let currentPageIndex: Int
     let onSelectPage: (Int) -> Void
-    let onShowPageViewer: () -> Void
     let onAddPage: () -> Void
     let onDuplicatePage: () -> Void
     let onRenamePage: () -> Void
@@ -2935,10 +2849,6 @@ private struct PageMenuView: View {
 
     @ViewBuilder
     private var menuActions: some View {
-        Button(action: onShowPageViewer) {
-            Label("Page Viewer", systemImage: "square.grid.2x2")
-        }
-
         Button(action: onAddPage) {
             Label("Add Page", systemImage: "plus")
         }
@@ -2988,153 +2898,6 @@ private struct PageMenuRow: View {
                 }
             }
         }
-    }
-}
-
-private struct PageViewerSheet: View {
-    @ObservedObject var designFile: DesignFile
-    @Binding var currentPageIndex: Int
-    var onSelectPage: (Int) -> Void
-    var onAddPage: () -> Void
-    var onDuplicatePage: (Int) -> Void
-    var onRenamePage: (Int, String) -> Void
-    var onDeletePage: (Int) -> Void
-
-    @State private var renamingPageId: UUID?
-    @State private var renameText: String = ""
-    private let phoneAspectRatio: CGFloat = 393.0 / 852.0 // iPhone 16 Pro portrait
-    private let phonePreviewWidth: CGFloat = 196.0 // ~50% scale of 16 Pro canvas width
-
-    var body: some View {
-        PageViewerGrid(
-            pages: designFile.pages,
-            currentPageIndex: currentPageIndex,
-            phoneAspectRatio: phoneAspectRatio,
-            phonePreviewWidth: phonePreviewWidth,
-            renamingPageId: $renamingPageId,
-            renameText: $renameText,
-            onSelectPage: onSelectPage,
-            onDuplicatePage: onDuplicatePage,
-            onRenamePage: onRenamePage,
-            onDeletePage: onDeletePage
-        )
-        .safeAreaInset(edge: .bottom) {
-            PageViewerAddPageBar(onAddPage: onAddPage)
-        }
-    }
-
-}
-
-private struct PageViewerGrid: View {
-    let pages: [DesignPage]
-    let currentPageIndex: Int
-    let phoneAspectRatio: CGFloat
-    let phonePreviewWidth: CGFloat
-    @Binding var renamingPageId: UUID?
-    @Binding var renameText: String
-    var onSelectPage: (Int) -> Void
-    var onDuplicatePage: (Int) -> Void
-    var onRenamePage: (Int, String) -> Void
-    var onDeletePage: (Int) -> Void
-
-    private let gridSpacing: CGFloat = 28
-
-    var body: some View {
-        GeometryReader { proxy in
-            PageViewerGridScroll(
-                pages: pages,
-                columns: gridColumns(for: proxy.size.width),
-                gridSpacing: gridSpacing,
-                currentPageIndex: currentPageIndex,
-                phoneAspectRatio: phoneAspectRatio,
-                phonePreviewWidth: phonePreviewWidth,
-                renamingPageId: $renamingPageId,
-                renameText: $renameText,
-                onSelectPage: onSelectPage,
-                onDuplicatePage: onDuplicatePage,
-                onRenamePage: onRenamePage,
-                onDeletePage: onDeletePage
-            )
-        }
-    }
-
-    private func gridColumns(for width: CGFloat) -> [GridItem] {
-        let availableWidth = max(360, width - 24)
-        let tileWidthWithSpacing = phonePreviewWidth + gridSpacing
-        let targetColumns = max(1, min(4, Int((availableWidth + 14) / tileWidthWithSpacing)))
-        return Array(repeating: GridItem(.fixed(phonePreviewWidth), spacing: gridSpacing), count: targetColumns)
-    }
-}
-
-private struct PageViewerGridScroll: View {
-    let pages: [DesignPage]
-    let columns: [GridItem]
-    let gridSpacing: CGFloat
-    let currentPageIndex: Int
-    let phoneAspectRatio: CGFloat
-    let phonePreviewWidth: CGFloat
-    @Binding var renamingPageId: UUID?
-    @Binding var renameText: String
-    var onSelectPage: (Int) -> Void
-    var onDuplicatePage: (Int) -> Void
-    var onRenamePage: (Int, String) -> Void
-    var onDeletePage: (Int) -> Void
-    
-    @ViewBuilder
-    private var gridContent: some View {
-        LazyVGrid(columns: columns, spacing: gridSpacing) {
-            pageCards
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-    }
-    
-    @ViewBuilder
-    private var pageCards: some View {
-        ForEach(Array(pages.enumerated()), id: \.element.id) { index, page in
-            pageCard(index: index, page: page)
-        }
-    }
-    
-    private func pageCard(index: Int, page: DesignPage) -> some View {
-        PagePreviewCard(
-            index: index,
-            page: page,
-            isSelected: index == currentPageIndex,
-            phoneAspectRatio: phoneAspectRatio,
-            phonePreviewWidth: phonePreviewWidth,
-            renamingPageId: $renamingPageId,
-            renameText: $renameText,
-            onSelectPage: onSelectPage,
-            onDuplicatePage: onDuplicatePage,
-            onRenamePage: onRenamePage,
-            onDeletePage: onDeletePage
-        )
-    }
-
-    var body: some View {
-        ScrollView {
-            gridContent
-        }
-    }
-}
-
-private struct PageViewerAddPageBar: View {
-    let onAddPage: () -> Void
-
-    var body: some View {
-        HStack {
-            Spacer()
-            Button {
-                onAddPage()
-            } label: {
-                Label("Add Page", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding()
-        .background(.thinMaterial)
     }
 }
 

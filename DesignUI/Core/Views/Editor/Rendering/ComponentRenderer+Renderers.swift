@@ -31,128 +31,173 @@ extension ComponentRenderer {
     }
     
     func renderImage() -> some View {
-        let resizable = component.getProperty(key: "resizable") as? Bool ?? true
-        let aspectRatio = component.getProperty(key: "aspectRatio") as? String ?? "fit"
-        
-        var imageName = component.getProperty(key: "imageName") as? String ?? ""
-        
-        if imageName.isEmpty {
-            let imageData = component.getProperty(key: "imageData") as? String ?? ""
-            
-            if !imageData.isEmpty {
-                if imageData.hasSuffix(".jpg") || imageData.hasSuffix(".jpeg") || imageData.hasSuffix(".png") || imageData.hasSuffix(".gif") || imageData.hasSuffix(".heic") {
-                    imageName = imageData
-                }
-                else if ImageGalleryManager.shared.getAllImageFilenames().contains(imageData) {
-                     imageName = imageData
-                }
-            }
-        }
-        
-        if !imageName.isEmpty && ImageGalleryManager.shared.imageExists(filename: imageName) {
-             return AnyView(ImageComponentView(
-                imageName: imageName,
-                resizable: resizable,
-                aspectRatio: aspectRatio,
-                deviceSize: deviceSize
-             ))
+        let config = imageRenderConfig()
+        let imageName = resolvedImageName()
+
+        if isLocalGalleryImage(named: imageName) {
+            return AnyView(
+                ImageComponentView(
+                    imageName: imageName,
+                    resizable: config.resizable,
+                    aspectRatio: config.aspectRatio,
+                    deviceSize: deviceSize
+                )
+            )
         }
 
-        if let remoteURL = URL(string: imageName),
-           let scheme = remoteURL.scheme?.lowercased(),
-           (scheme == "http" || scheme == "https") {
-            return AnyView(RemoteImageComponentView(
-                url: remoteURL,
-                resizable: resizable,
-                aspectRatio: aspectRatio,
-                deviceSize: deviceSize
-            ))
+        if let remoteURL = remoteImageURL(from: imageName) {
+            return AnyView(
+                RemoteImageComponentView(
+                    url: remoteURL,
+                    resizable: config.resizable,
+                    aspectRatio: config.aspectRatio,
+                    deviceSize: deviceSize
+                )
+            )
         }
-        
-        if let imageDataString = component.getProperty(key: "imageData") as? String,
-           !imageDataString.isEmpty {
-            if let imageData = Data(base64Encoded: imageDataString, options: .ignoreUnknownCharacters),
-               !imageData.isEmpty {
-                if let image = createImage(from: imageData) {
-                    let maxWidth = deviceSize?.width ?? 1000
-                    let maxHeight = deviceSize?.height ?? 1000
-                    
-                    #if os(macOS)
-                    let imageSize = getImageSize(image)
-                    let imageAspectRatio = imageSize.width > 0 && imageSize.height > 0 ? imageSize.width / imageSize.height : nil
-                    
-                    var view: AnyView = AnyView(Image(nsImage: image)
-                        .resizableIfNeeded(resizable))
-                    
-                    if aspectRatio != "none", let aspectRatioValue = imageAspectRatio {
-                        switch aspectRatio {
-                        case "fit":
-                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
-                        case "fill":
-                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fill))
-                        default:
-                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
-                        }
-                    } else if aspectRatio != "none" {
-                        switch aspectRatio {
-                        case "fit":
-                            view = AnyView(view.aspectRatio(contentMode: .fit))
-                        case "fill":
-                            view = AnyView(view.aspectRatio(contentMode: .fill))
-                        default:
-                            break
-                        }
-                    }
-                    #else
-                    let imageSize = getImageSize(image)
-                    let imageAspectRatio = imageSize.width > 0 && imageSize.height > 0 ? imageSize.width / imageSize.height : nil
-                    
-                    var view: AnyView = AnyView(Image(uiImage: image)
-                        .resizableIfNeeded(resizable))
-                    
-                    if aspectRatio != "none", let aspectRatioValue = imageAspectRatio {
-                        switch aspectRatio {
-                        case "fit":
-                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
-                        case "fill":
-                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fill).clipped())
-                        default:
-                            view = AnyView(view.aspectRatio(aspectRatioValue, contentMode: .fit))
-                        }
-                    } else if aspectRatio != "none" {
-                        switch aspectRatio {
-                        case "fit":
-                            view = AnyView(view.aspectRatio(contentMode: .fit))
-                        case "fill":
-                            view = AnyView(view.aspectRatio(contentMode: .fill).clipped())
-                        default:
-                            break
-                        }
-                    }
-                    #endif
-                    
-                    view = AnyView(view.frame(maxWidth: maxWidth, maxHeight: maxHeight))
+
+        if let base64View = renderBase64Image(resizable: config.resizable, aspectRatio: config.aspectRatio) {
+            return base64View
+        }
+
+        return imagePlaceholderView()
+    }
+
+    private func imageRenderConfig() -> (resizable: Bool, aspectRatio: String) {
+        (
+            resizable: component.getProperty(key: "resizable") as? Bool ?? true,
+            aspectRatio: component.getProperty(key: "aspectRatio") as? String ?? "fit"
+        )
+    }
+
+    private func resolvedImageName() -> String {
+        let imageName = component.getProperty(key: "imageName") as? String ?? ""
+        guard imageName.isEmpty else { return imageName }
+
+        let imageData = component.getProperty(key: "imageData") as? String ?? ""
+        guard !imageData.isEmpty else { return "" }
+
+        if isImageFilename(imageData) || ImageGalleryManager.shared.getAllImageFilenames().contains(imageData) {
+            return imageData
+        }
+
+        return ""
+    }
+
+    private func isImageFilename(_ value: String) -> Bool {
+        value.hasSuffix(".jpg")
+            || value.hasSuffix(".jpeg")
+            || value.hasSuffix(".png")
+            || value.hasSuffix(".gif")
+            || value.hasSuffix(".heic")
+    }
+
+    private func isLocalGalleryImage(named imageName: String) -> Bool {
+        !imageName.isEmpty && ImageGalleryManager.shared.imageExists(filename: imageName)
+    }
+
+    private func remoteImageURL(from imageName: String) -> URL? {
+        guard let remoteURL = URL(string: imageName),
+              let scheme = remoteURL.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return nil
+        }
+
+        return remoteURL
+    }
+
+    private func renderBase64Image(resizable: Bool, aspectRatio: String) -> AnyView? {
+        guard let imageDataString = component.getProperty(key: "imageData") as? String,
+              !imageDataString.isEmpty,
+              let imageData = Data(base64Encoded: imageDataString, options: .ignoreUnknownCharacters),
+              !imageData.isEmpty,
+              let image = createImage(from: imageData) else {
+            return nil
+        }
+
+        return renderedDecodedImage(image, resizable: resizable, aspectRatio: aspectRatio)
+    }
+
+    #if os(macOS)
+    private func renderedDecodedImage(_ image: NSImage, resizable: Bool, aspectRatio: String) -> AnyView {
+        let intrinsicSize = getImageSize(image)
+        let imageAspectRatio = intrinsicAspectRatio(for: intrinsicSize)
+        var view: AnyView = AnyView(Image(nsImage: image).resizableIfNeeded(resizable))
+        view = applyImageAspectRatio(to: view, aspectRatio: aspectRatio, imageAspectRatio: imageAspectRatio, clipsFill: false)
+        return applyResolvedImageFrame(to: view, intrinsicSize: intrinsicSize)
+    }
+    #else
+    private func renderedDecodedImage(_ image: UIImage, resizable: Bool, aspectRatio: String) -> AnyView {
+        let intrinsicSize = getImageSize(image)
+        let imageAspectRatio = intrinsicAspectRatio(for: intrinsicSize)
+        var view: AnyView = AnyView(Image(uiImage: image).resizableIfNeeded(resizable))
+        view = applyImageAspectRatio(to: view, aspectRatio: aspectRatio, imageAspectRatio: imageAspectRatio, clipsFill: true)
+        return applyResolvedImageFrame(to: view, intrinsicSize: intrinsicSize)
+    }
+    #endif
+
+    private func intrinsicAspectRatio(for intrinsicSize: CGSize) -> CGFloat? {
+        guard intrinsicSize.width > 0 && intrinsicSize.height > 0 else { return nil }
+        return intrinsicSize.width / intrinsicSize.height
+    }
+
+    private func applyImageAspectRatio(
+        to view: AnyView,
+        aspectRatio: String,
+        imageAspectRatio: CGFloat?,
+        clipsFill: Bool
+    ) -> AnyView {
+        guard aspectRatio != "none" else { return view }
+
+        if let imageAspectRatio {
+            switch aspectRatio {
+            case "fit":
+                return AnyView(view.aspectRatio(imageAspectRatio, contentMode: .fit))
+            case "fill":
+                let filledView = AnyView(view.aspectRatio(imageAspectRatio, contentMode: .fill))
+                return clipsFill ? AnyView(filledView.clipped()) : filledView
+            default:
+                return AnyView(view.aspectRatio(imageAspectRatio, contentMode: .fit))
+            }
+        }
+
+        switch aspectRatio {
+        case "fit":
+            return AnyView(view.aspectRatio(contentMode: .fit))
+        case "fill":
+            let filledView = AnyView(view.aspectRatio(contentMode: .fill))
+            return clipsFill ? AnyView(filledView.clipped()) : filledView
+        default:
+            return view
+        }
+    }
+
+    private func applyResolvedImageFrame(to view: AnyView, intrinsicSize: CGSize) -> AnyView {
+        if let fallbackSize = resolvedImageFrameSize(for: intrinsicSize) {
+            return AnyView(view.frame(width: fallbackSize.width, height: fallbackSize.height))
+        }
+
+        return AnyView(view.frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height))
+    }
+
+    private func imagePlaceholderView() -> AnyView {
+        let defaultSize: CGFloat = 100
+
+        return AnyView(
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.gray.opacity(0.15))
+                VStack(spacing: 4) {
+                    Image(systemName: "photo.badge.plus")
+                        .font(.system(size: 24))
+                        .foregroundColor(.secondary)
+                    Text("Select Image")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
-        }
-        
-        let defaultSize: CGFloat = 100
-        
-        let placeholderView = ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.15))
-            VStack(spacing: 4) {
-                Image(systemName: "photo.badge.plus")
-                    .font(.system(size: 24))
-                    .foregroundColor(.secondary)
-                Text("Select Image")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .frame(width: defaultSize, height: defaultSize)
-        
-        return AnyView(placeholderView)
+            .frame(width: defaultSize, height: defaultSize)
+        )
     }
 
     #if os(macOS)
@@ -204,6 +249,12 @@ extension ComponentRenderer {
         return image.size
     }
     #endif
+
+    private func resolvedImageFrameSize(for intrinsicSize: CGSize) -> CGSize? {
+        guard deviceSize == nil else { return nil }
+        guard intrinsicSize.width > 0, intrinsicSize.height > 0 else { return CGSize(width: 100, height: 100) }
+        return intrinsicSize
+    }
     
     func renderButton() -> some View {
         let buttonStyle = component.getProperty(key: "buttonStyle") as? String ?? "borderedProminent"
@@ -227,65 +278,103 @@ extension ComponentRenderer {
     }
     
     func renderGauge() -> some View {
+        let config = gaugeRenderConfig()
+
+        switch config.type {
+        case "linear":
+            return linearGaugeView(config: config)
+        case "circular":
+            return circularGaugeView(config: config)
+        case "circular range":
+            return circularRangeGaugeView(config: config)
+        default:
+            return defaultGaugeView(config: config)
+        }
+    }
+
+    private func gaugeRenderConfig() -> (type: String, value: Double, minValue: Double, maxValue: Double, showValue: Bool) {
         let gaugeType = component.getProperty(key: "gaugeType") as? String ?? "circular"
-        let rawValue = (component.getProperty(key: "value") as? Double)
-            ?? (component.getProperty(key: "value") as? Int).map(Double.init)
-            ?? 50
-        let rawMin = (component.getProperty(key: "min") as? Double)
-            ?? (component.getProperty(key: "min") as? Int).map(Double.init)
-            ?? 0
-        let rawMax = (component.getProperty(key: "max") as? Double)
-            ?? (component.getProperty(key: "max") as? Int).map(Double.init)
-            ?? 100
+        let rawValue = doubleComponentProperty("value", defaultValue: 50)
+        let rawMin = doubleComponentProperty("min", defaultValue: 0)
+        let rawMax = doubleComponentProperty("max", defaultValue: 100)
         let showValue = component.getProperty(key: "showValue") as? Bool ?? true
-        
+
         let minValue = Swift.min(rawMin, rawMax)
         let maxValue = Swift.max(rawMin, rawMax)
         let safeValue = rawValue.isFinite ? rawValue : minValue
-        let value = Swift.min(Swift.max(safeValue, minValue), maxValue)
-        
-        return AnyView(
-            Group {
-                switch gaugeType {
-                case "linear":
-                    Gauge(value: value, in: minValue...maxValue) {
-                        if showValue {
-                            Text("\(Int(value))")
-                        }
-                    }
-                    .gaugeStyle(.linearCapacity)
-                    
-                case "circular":
-                    Gauge(value: value, in: minValue...maxValue) {
-                        if showValue {
-                            Text("\(Int(value))")
-                        } else {
-                            EmptyView()
-                        }
-                    }
-                    .gaugeStyle(.accessoryCircularCapacity)
-                    
-                case "circular range":
-                    Gauge(value: value, in: minValue...maxValue) {
-                        EmptyView()
-                    } currentValueLabel: {
-                        if showValue {
-                            Text("\(Int(value))")
-                        } else {
-                            EmptyView()
-                        }
-                    } minimumValueLabel: {
-                        Text("\(Int(minValue))")
-                    } maximumValueLabel: {
-                        Text("\(Int(maxValue))")
-                    }
-                    .gaugeStyle(.accessoryCircular)
-                    
-                default:
-                    Gauge(value: value, in: minValue...maxValue) {}
-                        .gaugeStyle(.accessoryCircularCapacity)
+        let clampedValue = Swift.min(Swift.max(safeValue, minValue), maxValue)
+
+        return (
+            type: gaugeType,
+            value: clampedValue,
+            minValue: minValue,
+            maxValue: maxValue,
+            showValue: showValue
+        )
+    }
+
+    private func doubleComponentProperty(_ key: String, defaultValue: Double) -> Double {
+        (component.getProperty(key: key) as? Double)
+            ?? (component.getProperty(key: key) as? Int).map(Double.init)
+            ?? defaultValue
+    }
+
+    private func gaugeValueText(_ value: Double) -> String {
+        String(Int(value))
+    }
+
+    private func gaugeValueLabel(_ value: Double, showValue: Bool) -> AnyView {
+        guard showValue else { return AnyView(EmptyView()) }
+        return AnyView(Text(gaugeValueText(value)))
+    }
+
+    private func linearGaugeView(config: (type: String, value: Double, minValue: Double, maxValue: Double, showValue: Bool)) -> AnyView {
+        AnyView(
+            Gauge(value: config.value, in: config.minValue...config.maxValue) {
+                if config.showValue {
+                    Text(gaugeValueText(config.value))
                 }
             }
+            .gaugeStyle(.linearCapacity)
+        )
+    }
+
+    private func circularGaugeView(config: (type: String, value: Double, minValue: Double, maxValue: Double, showValue: Bool)) -> AnyView {
+        AnyView(
+            Gauge(value: config.value, in: config.minValue...config.maxValue) {
+                if config.showValue {
+                    Text(gaugeValueText(config.value))
+                } else {
+                    EmptyView()
+                }
+            }
+            .gaugeStyle(.accessoryCircularCapacity)
+        )
+    }
+
+    private func circularRangeGaugeView(config: (type: String, value: Double, minValue: Double, maxValue: Double, showValue: Bool)) -> AnyView {
+        AnyView(
+            Gauge(value: config.value, in: config.minValue...config.maxValue) {
+                EmptyView()
+            } currentValueLabel: {
+                if config.showValue {
+                    Text(gaugeValueText(config.value))
+                } else {
+                    EmptyView()
+                }
+            } minimumValueLabel: {
+                Text(gaugeValueText(config.minValue))
+            } maximumValueLabel: {
+                Text(gaugeValueText(config.maxValue))
+            }
+            .gaugeStyle(.accessoryCircular)
+        )
+    }
+
+    private func defaultGaugeView(config: (type: String, value: Double, minValue: Double, maxValue: Double, showValue: Bool)) -> AnyView {
+        AnyView(
+            Gauge(value: config.value, in: config.minValue...config.maxValue) {}
+                .gaugeStyle(.accessoryCircularCapacity)
         )
     }
 
@@ -1347,20 +1436,40 @@ struct RemoteImageComponentView: View {
                 let base = resizable ? image.resizable() : image
                 Group {
                     if aspectRatio == "fit" {
-                        base.aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                        if let fallbackSize = intrinsicFallbackFrameSize {
+                            base.aspectRatio(contentMode: .fit)
+                                .frame(width: fallbackSize.width, height: fallbackSize.height)
+                        } else {
+                            base.aspectRatio(contentMode: .fit)
+                                .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                        }
                     } else if aspectRatio == "fill" {
-                        base.aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                            .clipped()
+                        if let fallbackSize = intrinsicFallbackFrameSize {
+                            base.aspectRatio(contentMode: .fill)
+                                .frame(width: fallbackSize.width, height: fallbackSize.height)
+                                .clipped()
+                        } else {
+                            base.aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                                .clipped()
+                        }
                     } else {
-                        base.frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                        if let fallbackSize = intrinsicFallbackFrameSize {
+                            base.frame(width: fallbackSize.width, height: fallbackSize.height)
+                        } else {
+                            base.frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                        }
                     }
                 }
             @unknown default:
                 EmptyView()
             }
         }
+    }
+
+    private var intrinsicFallbackFrameSize: CGSize? {
+        guard deviceSize == nil else { return nil }
+        return CGSize(width: 180, height: 180)
     }
 }
 
@@ -1374,28 +1483,56 @@ struct ImageComponentView: View {
         if !imageName.isEmpty, let platformImage = ImageGalleryManager.shared.loadImage(filename: imageName) {
             #if os(macOS)
             let imageView = Image(nsImage: platformImage)
+            let intrinsicSize = platformImage.size
             #else
             let imageView = Image(uiImage: platformImage)
+            let intrinsicSize = platformImage.size
             #endif
             
             let modifiedImage = resizable ? imageView.resizable() : imageView
             
             Group {
                 if aspectRatio == "fit" {
-                    modifiedImage.aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    if let fallbackSize = intrinsicImageFrameSize(for: intrinsicSize) {
+                        modifiedImage
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: fallbackSize.width, height: fallbackSize.height)
+                    } else {
+                        modifiedImage
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    }
                 } else if aspectRatio == "fill" {
-                    modifiedImage.aspectRatio(contentMode: .fill)
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
-                        .clipped()
+                    if let fallbackSize = intrinsicImageFrameSize(for: intrinsicSize) {
+                        modifiedImage
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: fallbackSize.width, height: fallbackSize.height)
+                            .clipped()
+                    } else {
+                        modifiedImage
+                            .aspectRatio(contentMode: .fill)
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                            .clipped()
+                    }
                 } else {
-                    modifiedImage
-                        .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    if let fallbackSize = intrinsicImageFrameSize(for: intrinsicSize) {
+                        modifiedImage
+                            .frame(width: fallbackSize.width, height: fallbackSize.height)
+                    } else {
+                        modifiedImage
+                            .frame(maxWidth: deviceSize?.width, maxHeight: deviceSize?.height)
+                    }
                 }
             }
         } else {
             EmptyView()
         }
+    }
+
+    private func intrinsicImageFrameSize(for intrinsicSize: CGSize) -> CGSize? {
+        guard deviceSize == nil else { return nil }
+        guard intrinsicSize.width > 0, intrinsicSize.height > 0 else { return CGSize(width: 100, height: 100) }
+        return intrinsicSize
     }
 }
 

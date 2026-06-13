@@ -27,79 +27,7 @@ struct OnboardingFlowView: View {
     )
     
     var body: some View {
-        ZStack {
-            if showGradient {
-                ZStack {
-                    RadialGradient(
-                        colors: [gradient.0, .clear],
-                        center: phase > 0 ? .top : .bottom,
-                        startRadius: phase > 0 ? 0 : 300,
-                        endRadius: 500
-                    )
-                    .animation(.smooth.delay(0.65), value: phase > 0)
-                    
-                    RadialGradient(
-                        colors: [gradient.1, .clear],
-                        center: phase > 0 ? .top : .bottom,
-                        startRadius: phase > 0 ? 50 : 200,
-                        endRadius: 450
-                    )
-                    .animation(.smooth.delay(0.52), value: phase > 0)
-                    
-                    RadialGradient(
-                        colors: [gradient.2, .clear],
-                        center: phase > 0 ? .init(x: 0.5, y: -0.2) : .bottom,
-                        startRadius: phase > 0 ? 0 : 80,
-                        endRadius: 350
-                    )
-                    .animation(.smooth.delay(0.4), value: phase > 0)
-                }
-                .transition(.move(edge: .top))
-            }
-            
-            VStack {
-                if phase == 0 {
-                    WelcomeScreen(
-                        title: title,
-                        description: description,
-                        logo: logo,
-                        carousel: carousel,
-                        action: {
-                            withAnimation(.smooth(duration: 0.7)) {
-                                phase = 1
-                                
-                                if let formStartGradient = form.first?.gradient {
-                                    gradient = formStartGradient
-                                }
-                                
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                                    withAnimation(.smooth) {
-                                        phase = 2
-                                    }
-                                }
-                            }
-                        }
-                    )
-                    .transition(
-                        .opacity
-                            .combined(with: .offset(y: 20))
-                    )
-                }
-                
-                if phase == 2 {
-                    MultiStepForm(
-                        steps: form,
-                        completionStep: completion,
-                        gradient: $gradient,
-                        keyboardShown: $keyboardShown,
-                    )
-                    .transition(
-                        .opacity
-                            .combined(with: .offset(y: 20))
-                    )
-                }
-            }
-        }
+        content
         .background(.white)
         .ignoresSafeArea(.container)
         .onAppear {
@@ -110,6 +38,119 @@ struct OnboardingFlowView: View {
         .onChange(of: keyboardShown) { _, newValue in
             withAnimation(.smooth) {
                 showGradient = !newValue
+            }
+        }
+    }
+
+    private var content: some View {
+        ZStack {
+            gradientBackgroundLayer
+            phaseContent
+        }
+    }
+
+    @ViewBuilder
+    private var gradientBackgroundLayer: some View {
+        if showGradient {
+            animatedGradientBackground
+                .transition(.move(edge: .top))
+        }
+    }
+
+    private var animatedGradientBackground: some View {
+        ZStack {
+            gradientLayer(
+                color: gradient.0,
+                center: phase > 0 ? .top : .bottom,
+                startRadius: phase > 0 ? 0 : 300,
+                endRadius: 500,
+                delay: 0.65
+            )
+
+            gradientLayer(
+                color: gradient.1,
+                center: phase > 0 ? .top : .bottom,
+                startRadius: phase > 0 ? 50 : 200,
+                endRadius: 450,
+                delay: 0.52
+            )
+
+            gradientLayer(
+                color: gradient.2,
+                center: phase > 0 ? .init(x: 0.5, y: -0.2) : .bottom,
+                startRadius: phase > 0 ? 0 : 80,
+                endRadius: 350,
+                delay: 0.4
+            )
+        }
+    }
+
+    private func gradientLayer(
+        color: Color,
+        center: UnitPoint,
+        startRadius: CGFloat,
+        endRadius: CGFloat,
+        delay: Double
+    ) -> some View {
+        RadialGradient(
+            colors: [color, .clear],
+            center: center,
+            startRadius: startRadius,
+            endRadius: endRadius
+        )
+        .animation(.smooth.delay(delay), value: phase > 0)
+    }
+
+    private var phaseContent: some View {
+        VStack {
+            welcomePhase
+            formPhase
+        }
+    }
+
+    @ViewBuilder
+    private var welcomePhase: some View {
+        if phase == 0 {
+            WelcomeScreen(
+                title: title,
+                description: description,
+                logo: logo,
+                carousel: carousel,
+                action: beginFormFlow
+            )
+            .transition(screenTransition)
+        }
+    }
+
+    @ViewBuilder
+    private var formPhase: some View {
+        if phase == 2 {
+            MultiStepForm(
+                steps: form,
+                completionStep: completion,
+                gradient: $gradient,
+                keyboardShown: $keyboardShown,
+            )
+            .transition(screenTransition)
+        }
+    }
+
+    private var screenTransition: AnyTransition {
+        .opacity.combined(with: .offset(y: 20))
+    }
+
+    private func beginFormFlow() {
+        withAnimation(.smooth(duration: 0.7)) {
+            phase = 1
+
+            if let formStartGradient = form.first?.gradient {
+                gradient = formStartGradient
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                withAnimation(.smooth) {
+                    phase = 2
+                }
             }
         }
     }

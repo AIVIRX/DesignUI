@@ -71,8 +71,10 @@ class CanvasManager: ObservableObject {
     }
     
     var hasPlatformViewComponent: Bool {
-        // ProgressView on macOS can bridge through AppKit and doesn't play well with drawingGroup flattening.
+        // Some views do not update reliably when the entire canvas is flattened with drawingGroup.
+        // Images are included here so live opacity changes stay visually in sync while editing.
         return containsComponent(ofType: .progressView, in: components)
+            || containsComponent(ofType: .image, in: components)
     }
     
     private func containsComponent(ofType type: ComponentType, in components: [UIComponent]) -> Bool {

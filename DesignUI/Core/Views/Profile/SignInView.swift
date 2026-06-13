@@ -15,54 +15,79 @@ struct SignInView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                ZStack {
-                    Color.white.ignoresSafeArea()
-                    signInGradientBackground
-                    
-                    VStack(spacing: 20) {
-                        Image("AppLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90)
-                        
-                        Text("Sign In")
-                            .font(.largeTitle).bold()
-                            .foregroundStyle(.black)
-                            .multilineTextAlignment(.center)
-                        
-                        Text("Create your account to save favorites, sync across devices, and access exclusive features.")
-                            .foregroundStyle(.black.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 8)
-                        
-                        SignInWithAppleButton { request in
-                            request.requestedScopes = [.email, .fullName]
-                        } onCompletion: { result in
-                            Task {
-                                await authViewModel.handleSignInWithApple(result)
-                            }
-                        }
-                        .id(signInAppleButtonId)
-                        .signInWithAppleButtonStyle(.black)
-                        .onChange(of: colorScheme, { _, _ in
-                            signInAppleButtonId = UUID().uuidString
-                        })
-                        .frame(height: 50)
-                        .frame(maxWidth: 500)
-                        .cornerRadius(12)
-                    }
-                    .padding(42)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                }
-                .ignoresSafeArea(edges: .top)
-            }
+            signInScreen
         }
         .alert("Error", isPresented: $authViewModel.showError) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(authViewModel.errorMessage)
         }
+    }
+
+    private var signInScreen: some View {
+        ZStack {
+            signInBackground
+            signInContent
+        }
+        .ignoresSafeArea(edges: .top)
+    }
+
+    private var signInBackground: some View {
+        ZStack {
+            Color.white.ignoresSafeArea()
+            signInGradientBackground
+        }
+    }
+
+    private var signInContent: some View {
+        VStack(spacing: 20) {
+            appLogo
+            signInTitle
+            signInSubtitle
+            appleSignInButton
+        }
+        .padding(42)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+
+    private var appLogo: some View {
+        Image("AppLogo")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 90)
+    }
+
+    private var signInTitle: some View {
+        Text("Sign In")
+            .font(.largeTitle)
+            .bold()
+            .foregroundStyle(.black)
+            .multilineTextAlignment(.center)
+    }
+
+    private var signInSubtitle: some View {
+        Text("Create your account to save favorites, sync across devices, and access exclusive features.")
+            .foregroundStyle(.black.opacity(0.7))
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 8)
+    }
+
+    private var appleSignInButton: some View {
+        SignInWithAppleButton { request in
+            request.requestedScopes = [.email, .fullName]
+        } onCompletion: { result in
+            Task {
+                await authViewModel.handleSignInWithApple(result)
+            }
+        }
+        .id(signInAppleButtonId)
+        .signInWithAppleButtonStyle(.black)
+        .onChange(of: colorScheme) { _, _ in
+            signInAppleButtonId = UUID().uuidString
+        }
+        .frame(height: 50)
+        .frame(maxWidth: 500)
+        .cornerRadius(12)
     }
     
     private var signInGradientBackground: some View {

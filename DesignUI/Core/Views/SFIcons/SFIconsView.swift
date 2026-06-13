@@ -7,41 +7,8 @@
 import SwiftUI
 
 struct SFIconsView: View {
-    @State private var searchText = ""
-    @State private var debouncedSearch = ""
-    @State private var localToast: ToastData?
-    
-    private var filteredSymbols: [String] {
-        guard !debouncedSearch.isEmpty else { return symbols }
-        return symbols.filter { $0.localizedCaseInsensitiveContains(debouncedSearch) }
-    }
-    
-    private var grid: [GridItem] {
-        [GridItem(.adaptive(minimum: 96), spacing: 16)]
-    }
-    
     var body: some View {
-        VStack {
-            ScrollView {
-                LazyVGrid(columns: grid, spacing: 16) {
-                    ForEach(filteredSymbols, id: \.self) { symbol in
-                        SymbolButton(
-                            symbol: symbol,
-                            onCopy: { copied in
-                                copyToClipboard(copied)
-                                localToast = ToastData(title: "Copied to clipboard", icon: "checkmark.circle.fill")
-                            }
-                        )
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
-                .padding(.bottom, 24)
-            }
-        }
-        .navigationTitle("SF Symbols")
-        .searchable(text: $searchText, prompt: "Search SF Symbols")
-        .toast($localToast)
+        SFSymbolSandboxView()
     }
 }
 

@@ -193,42 +193,8 @@ struct EditProfileView: View {
     
     private var displayNameField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Display Name")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Text("\(displayName.count)/50")
-                    .font(.caption)
-                    .foregroundColor(displayName.count > 50 ? .red : .secondary)
-            }
-            
-            TextField("John Doe", text: $displayName)
-                .autocorrectionDisabled()
-                .focused($focusedField, equals: .displayName)
-                .submitLabel(.next)
-                .onSubmit {
-                    validateDisplayName()
-                    if displayNameError.isEmpty {
-                        focusedField = .username
-                    }
-                }
-                .textFieldStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(backgroundColor)
-                .cornerRadius(12)
-                .overlay(displayNameFieldBorder)
-                .shadow(color: focusedField == .displayName ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
-                .onChange(of: displayName) { _, newValue in
-                    if newValue.count > 50 {
-                        displayName = String(newValue.prefix(50))
-                    }
-                    validateDisplayName()
-                }
+            displayNameHeader
+            displayNameInput
             
             if !displayNameError.isEmpty {
                 Text(displayNameError)
@@ -238,6 +204,63 @@ struct EditProfileView: View {
             }
         }
         .padding(.horizontal)
+    }
+
+    private var displayNameHeader: some View {
+        HStack {
+            Text("Display Name")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+
+            Spacer()
+
+            Text("\(displayName.count)/50")
+                .font(.caption)
+                .foregroundColor(displayNameCountColor)
+        }
+    }
+
+    private var displayNameInput: some View {
+        TextField("John Doe", text: $displayName)
+            .autocorrectionDisabled()
+            .focused($focusedField, equals: .displayName)
+            .submitLabel(.next)
+            .onSubmit {
+                handleDisplayNameSubmit()
+            }
+            .textFieldStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(backgroundColor)
+            .cornerRadius(12)
+            .overlay(displayNameFieldBorder)
+            .shadow(color: displayNameShadowColor, radius: 4, x: 0, y: 2)
+            .onChange(of: displayName) { _, newValue in
+                sanitizeDisplayName(newValue)
+            }
+    }
+
+    private var displayNameCountColor: Color {
+        (displayName.count > 50 || !displayNameError.isEmpty) ? .red : .secondary
+    }
+
+    private var displayNameShadowColor: Color {
+        focusedField == .displayName ? Color.black.opacity(0.1) : .clear
+    }
+
+    private func handleDisplayNameSubmit() {
+        validateDisplayName()
+        if displayNameError.isEmpty {
+            focusedField = .username
+        }
+    }
+
+    private func sanitizeDisplayName(_ newValue: String) {
+        if newValue.count > 50 {
+            displayName = String(newValue.prefix(50))
+        }
+        validateDisplayName()
     }
     
     private var usernameField: some View {

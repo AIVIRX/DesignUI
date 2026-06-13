@@ -2625,6 +2625,9 @@
         }
       }
     },
+    "%lld pt" : {
+
+    },
     "%lld Selected" : {
       "localizations" : {
         "ar" : {
@@ -4271,6 +4274,9 @@
           }
         }
       }
+    },
+    "%lld%%" : {
+
     },
     "•" : {
       "localizations" : {
@@ -9520,6 +9526,9 @@
         }
       }
     },
+    "Animation Speed" : {
+
+    },
     "Apply" : {
       "localizations" : {
         "ar" : {
@@ -12144,6 +12153,9 @@
         }
       }
     },
+    "Browse the full symbol library, then tap any symbol to open a detail view with live preview controls and copyable SwiftUI code." : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "ar" : {
@@ -13783,9 +13795,6 @@
           }
         }
       }
-    },
-    "Change" : {
-
     },
     "Choose Device" : {
       "localizations" : {
@@ -24611,6 +24620,9 @@
         }
       }
     },
+    "Effect" : {
+
+    },
     "Ellipse" : {
       "localizations" : {
         "ar" : {
@@ -30187,9 +30199,6 @@
         }
       }
     },
-    "Give it a name and we’ll open it in the editor." : {
-
-    },
     "Gradient Editor" : {
       "localizations" : {
         "ar" : {
@@ -31829,6 +31838,9 @@
           }
         }
       }
+    },
+    "Interactive Sandbox" : {
+
     },
     "iPad" : {
       "localizations" : {
@@ -35109,9 +35121,6 @@
           }
         }
       }
-    },
-    "Name your project" : {
-
     },
     "New Design" : {
       "localizations" : {
@@ -39049,6 +39058,9 @@
         }
       }
     },
+    "Opacity" : {
+
+    },
     "Open" : {
       "localizations" : {
         "ar" : {
@@ -40690,6 +40702,7 @@
       }
     },
     "Page Viewer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -41673,9 +41686,6 @@
         }
       }
     },
-    "Pick a starting point for this project." : {
-
-    },
     "Placeholder" : {
       "localizations" : {
         "ar" : {
@@ -42003,6 +42013,9 @@
           }
         }
       }
+    },
+    "Play" : {
+
     },
     "Point Count" : {
       "localizations" : {
@@ -43971,9 +43984,6 @@
           }
         }
       }
-    },
-    "Project Name" : {
-
     },
     "px" : {
       "localizations" : {
@@ -46926,6 +46936,9 @@
           }
         }
       }
+    },
+    "Rendering" : {
+
     },
     "Replace…" : {
       "localizations" : {
@@ -59063,6 +59076,9 @@
         }
       }
     },
+    "Symbol Size" : {
+
+    },
     "Tap to open" : {
       "localizations" : {
         "ar" : {
@@ -62343,6 +62359,9 @@
         }
       }
     },
+    "Use this as a preview intensity control while testing variable color symbols." : {
+
+    },
     "Username" : {
       "localizations" : {
         "ar" : {
@@ -62998,6 +63017,9 @@
           }
         }
       }
+    },
+    "Variable Color" : {
+
     },
     "Version %@" : {
       "localizations" : {
@@ -63655,6 +63677,9 @@
         }
       }
     },
+    "Weight" : {
+
+    },
     "Welcome" : {
       "localizations" : {
         "ar" : {
@@ -63982,9 +64007,6 @@
           }
         }
       }
-    },
-    "What are you creating?" : {
-
     },
     "Widgets" : {
       "localizations" : {

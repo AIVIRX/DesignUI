@@ -19,7 +19,7 @@ struct DesignBrowserView: View {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var communityViewModel = LatestPostsViewModel()
     @Environment(\.openWindow) private var openWindow
-    @State private var showingCreateProjectSheet = false
+    @State private var showingNewDesignSheet = false
     @State private var newDesignName = ""
     @State private var showingDeleteAlert = false
     @State private var designToDelete: DesignFile?
@@ -49,7 +49,7 @@ struct DesignBrowserView: View {
             .modifier(
                 DesignBrowserChromeModifier(
                     newDesignName: $newDesignName,
-                    showingCreateProjectSheet: $showingCreateProjectSheet,
+                    showingNewDesignSheet: $showingNewDesignSheet,
                     showingDeleteAlert: $showingDeleteAlert,
                     showingRenameSheet: $showingRenameSheet,
                     renameText: $renameText,
@@ -60,7 +60,7 @@ struct DesignBrowserView: View {
                     freeDesignLimit: freeDesignLimit,
                     onCreateNewTapped: handleCreateNewTapped,
                     onCreateDesign: createDesign,
-                    onCancelNewDesign: resetCreateProjectSheet,
+                    onCancelNewDesign: resetNewDesignSheet,
                     onDeleteConfirmed: deletePendingDesign,
                     onRenameDesign: renamePendingDesign,
                     onCancelRename: resetRenameSheet,
@@ -283,23 +283,17 @@ struct DesignBrowserView: View {
             showingLimitAlert = true
             return
         }
-        showingCreateProjectSheet = true
+        showingNewDesignSheet = true
     }
 
-    private func createDesign(mode: CreateProjectMode, named name: String) {
-        let finalName = name.isEmpty ? mode.defaultProjectName : name
-        let newDesign = designManager.createNewDesign(name: finalName)
-
-        if mode == .screenshots {
-            toastManager.showToast(ToastData(title: "Screenshots project created", icon: "photo"))
-        }
-
+    private func createDesign(named name: String) {
+        let newDesign = designManager.createNewDesign(name: name)
         openDesign(newDesign)
-        resetCreateProjectSheet()
+        resetNewDesignSheet()
     }
 
-    private func resetCreateProjectSheet() {
-        showingCreateProjectSheet = false
+    private func resetNewDesignSheet() {
+        showingNewDesignSheet = false
         newDesignName = ""
     }
 
@@ -394,7 +388,7 @@ struct DesignBrowserView: View {
 
 private struct DesignBrowserChromeModifier: ViewModifier {
     @Binding var newDesignName: String
-    @Binding var showingCreateProjectSheet: Bool
+    @Binding var showingNewDesignSheet: Bool
     @Binding var showingDeleteAlert: Bool
     @Binding var showingRenameSheet: Bool
     @Binding var renameText: String
@@ -405,7 +399,7 @@ private struct DesignBrowserChromeModifier: ViewModifier {
 
     let freeDesignLimit: Int
     let onCreateNewTapped: () -> Void
-    let onCreateDesign: (CreateProjectMode, String) -> Void
+    let onCreateDesign: (String) -> Void
     let onCancelNewDesign: () -> Void
     let onDeleteConfirmed: () -> Void
     let onRenameDesign: (String) -> Void
@@ -419,7 +413,7 @@ private struct DesignBrowserChromeModifier: ViewModifier {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar { toolbarContent }
-            .sheet(isPresented: $showingCreateProjectSheet) { createProjectSheet }
+            .sheet(isPresented: $showingNewDesignSheet) { newDesignSheet }
             .alert("Delete Design", isPresented: $showingDeleteAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive, action: onDeleteConfirmed)
@@ -457,14 +451,14 @@ private struct DesignBrowserChromeModifier: ViewModifier {
         }
     }
 
-    private var createProjectSheet: some View {
-        CreateProjectSheet(
+    private var newDesignSheet: some View {
+        NewDesignSheet(
             designName: $newDesignName,
             onCreate: onCreateDesign,
             onCancel: onCancelNewDesign
         )
         #if os(iOS)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.height(250)])
         #endif
     }
 
@@ -685,265 +679,6 @@ struct DesignCardView: View {
         .onTapGesture {
             onOpen()
         }
-    }
-}
-
-enum CreateProjectMode: String, Identifiable, CaseIterable {
-    case uiDesign
-    case screenshots
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .uiDesign:
-            return "UI Design"
-        case .screenshots:
-            return "App Store Screenshots"
-        }
-    }
-
-    var subtitle: String {
-        switch self {
-        case .uiDesign:
-            return "Build an interface, prototype, or full app screen."
-        case .screenshots:
-            return "Create polished launch visuals for the App Store."
-        }
-    }
-
-    var symbolName: String {
-        switch self {
-        case .uiDesign:
-            return "square.grid.2x2"
-        case .screenshots:
-            return "photo.on.rectangle.angled"
-        }
-    }
-
-    var accentColor: Color {
-        switch self {
-        case .uiDesign:
-            return .blue
-        case .screenshots:
-            return .purple
-        }
-    }
-
-    var defaultProjectName: String {
-        switch self {
-        case .uiDesign:
-            return "Untitled"
-        case .screenshots:
-            return "App Store Screenshots"
-        }
-    }
-}
-
-struct CreateProjectSheet: View {
-    @Binding var designName: String
-    let onCreate: (CreateProjectMode, String) -> Void
-    let onCancel: () -> Void
-
-    @State private var selectedMode: CreateProjectMode?
-    @FocusState private var isFocused: Bool
-    private let maxNameLength = 50
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    header
-
-                    if let selectedMode {
-                        selectedModeSummary(selectedMode)
-                        nameField
-                    } else {
-                        modeChoices
-                    }
-                }
-                .padding()
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        onCancel()
-                    }
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    if let selectedMode {
-                        Button("Create") {
-                            onCreate(selectedMode, designName.isEmpty ? selectedMode.defaultProjectName : designName)
-                        }
-                    }
-                }
-            }
-            .onAppear {
-                isFocused = true
-            }
-            .onDisappear {
-                selectedMode = nil
-                designName = ""
-            }
-        }
-    }
-
-    private var header: some View {
-        VStack(spacing: 8) {
-            Text(selectedMode == nil ? "What are you creating?" : "Name your project")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text(selectedMode == nil ? "Pick a starting point for this project." : "Give it a name and we’ll open it in the editor.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-    }
-
-    private var modeChoices: some View {
-        VStack(spacing: 14) {
-            ForEach(CreateProjectMode.allCases) { mode in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.18)) {
-                        selectedMode = mode
-                    }
-                } label: {
-                    modeCard(mode)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    private func modeCard(_ mode: CreateProjectMode) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(mode.accentColor.opacity(0.16))
-                    .frame(width: 52, height: 52)
-
-                Image(systemName: mode.symbolName)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(mode.accentColor)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(mode.title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-
-                Text(mode.subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.secondary.opacity(0.12), lineWidth: 1)
-        )
-    }
-
-    private func selectedModeSummary(_ mode: CreateProjectMode) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: mode.symbolName)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(mode.accentColor)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(mode.title)
-                    .font(.headline)
-                Text(mode.subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            Button("Change") {
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    selectedMode = nil
-                    designName = ""
-                }
-            }
-            .font(.caption.weight(.semibold))
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(modeBackgroundColor(for: mode).opacity(0.12))
-        )
-    }
-
-    private func modeBackgroundColor(for mode: CreateProjectMode) -> Color {
-        mode.accentColor
-    }
-
-    private var nameField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Project Name")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-
-                Spacer()
-
-                Text("\(designName.count)/\(maxNameLength)")
-                    .font(.caption)
-                    .foregroundColor(designName.count > maxNameLength ? .red : .secondary)
-            }
-
-            TextField("Project Name", text: $designName)
-                .autocorrectionDisabled()
-                .focused($isFocused)
-                .onSubmit {
-                    if let selectedMode {
-                        onCreate(selectedMode, designName.isEmpty ? selectedMode.defaultProjectName : designName)
-                    }
-                }
-                .textFieldStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(fieldBackgroundColor)
-                .cornerRadius(12)
-                .overlay(nameFieldBorder)
-                .shadow(color: isFocused ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
-                .onChange(of: designName) { _, newValue in
-                    if newValue.count > maxNameLength {
-                        designName = String(newValue.prefix(maxNameLength))
-                    }
-                }
-        }
-    }
-
-    private var nameFieldBorder: some View {
-        RoundedRectangle(cornerRadius: 12)
-            .stroke(
-                isFocused ? Color.accentColor : Color.gray.opacity(0.3),
-                lineWidth: isFocused ? 2 : 1
-            )
-    }
-
-    private var fieldBackgroundColor: Color {
-        #if os(iOS)
-        Color(uiColor: .systemBackground)
-        #else
-        Color(NSColor.controlBackgroundColor)
-        #endif
     }
 }
 
