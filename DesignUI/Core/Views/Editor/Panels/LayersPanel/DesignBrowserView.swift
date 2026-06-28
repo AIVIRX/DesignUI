@@ -16,6 +16,7 @@ struct DesignBrowserView: View {
     @EnvironmentObject private var designManager: DesignManager
     @EnvironmentObject private var toastManager: ToastManager
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var communityViewModel = LatestPostsViewModel()
     @Environment(\.openWindow) private var openWindow
@@ -72,15 +73,16 @@ struct DesignBrowserView: View {
     private var browserScrollContent: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(spacing: 32) {
-                    heroHeader
+                VStack(spacing: 28) {
+                    featuredHero
                     refreshStatusBanner
                     recentDesignsSection
-                    templatesSection
-                    communitySection
+                    exploreSection
                 }
-                .padding(.vertical)
+                .padding(.bottom, 16)
             }
+            .ignoresSafeArea(.container, edges: .top)
+            .scrollIndicators(.hidden)
             .refreshable {
                 await refreshHomeContent()
             }
@@ -95,12 +97,11 @@ struct DesignBrowserView: View {
         }
     }
     
-    private var heroHeader: some View {
+    private var featuredHero: some View {
         HeroHeaderView(onCreateNew: handleCreateNewTapped)
-            .padding(.horizontal)
-            .padding(.top, 16)
+            .ignoresSafeArea()
     }
-    
+
     @ViewBuilder
     private var refreshStatusBanner: some View {
         if communityViewModel.isRefreshing {
@@ -116,7 +117,7 @@ struct DesignBrowserView: View {
     }
     
     private var recentDesignsSection: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 14) {
             recentDesignsHeader
             
             if designManager.designFiles.isEmpty {
@@ -129,7 +130,7 @@ struct DesignBrowserView: View {
     
     private var recentDesignsHeader: some View {
         HStack {
-            Text("Recent Designs")
+            Text("My Designs")
                 .font(.system(size: 24, weight: .bold, design: .rounded))
             
             Spacer()
@@ -175,21 +176,66 @@ struct DesignBrowserView: View {
     }
     
     private var emptyDesignsState: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "doc.text")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary.opacity(0.5))
+        VStack(alignment: .leading, spacing: 14) {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.blue.opacity(0.95),
+                            Color.cyan.opacity(0.8),
+                            Color.blue.opacity(0.55)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(height: 220)
+                .overlay(alignment: .bottomLeading) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("My Designs")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                        
+                        Text("Create a design and it will show up here as a quick launch card.")
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.85))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(24)
+                }
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "wand.and.sparkles")
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(20)
+                }
             
-            Text("No Designs Yet")
-                .font(.title3.weight(.medium))
-                .fontDesign(.rounded)
+            Button(action: handleCreateNewTapped) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                    Text("Create Your First Design")
+                }
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.black)
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 4)
             
-            Text("Create your first design to get started")
+            Text("Your recent work will appear here for fast reopening.")
                 .foregroundColor(.secondary)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .padding(.horizontal, 4)
         }
-        .padding(.vertical, 40)
+        .padding(18)
         .frame(maxWidth: .infinity)
-        .background(RoundedRectangle(cornerRadius: 20).fill(Color.secondary.opacity(0.05)))
+        .background(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color.secondary.opacity(0.06))
+        )
         .padding(.horizontal)
     }
     
@@ -197,7 +243,7 @@ struct DesignBrowserView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
                 ForEach(designManager.designFiles) { designFile in
-                    DesignCardView(
+                    ContinuePlayingCardView(
                         designFile: designFile,
                         onOpen: {
                             openDesign(designFile)
@@ -224,9 +270,9 @@ struct DesignBrowserView: View {
         .scrollClipDisabled()
     }
     
-    private var templatesSection: some View {
-        VStack(alignment: .leading) {
-            Text("Start from Template")
+    private var exploreSection: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Templates")
                 .font(.system(size: 24, weight: .bold, design: .rounded))
                 .padding(.horizontal)
             
@@ -241,39 +287,37 @@ struct DesignBrowserView: View {
                     openDesign(newDesign)
                 }
             )
-        }
-    }
-    
-    private var communitySection: some View {
-        VStack(alignment: .leading) {
-            Text("Explore Community")
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .padding(.horizontal)
             
-            if communityViewModel.isLoading && communityViewModel.posts.isEmpty {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            } else if communityViewModel.posts.isEmpty {
-                Text("No community posts yet.")
-                    .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Community Picks")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .padding(.horizontal)
-            } else {
-                LazyVGrid(columns: GridConfiguration.shared.columns, spacing: 24) {
-                    ForEach(communityViewModel.posts) { post in
-                        CommunityCards(
-                            post: post,
-                            onOpen: { postToOpen in
-                                handleOpenCommunityPost(postToOpen)
+                
+                if communityViewModel.isLoading && communityViewModel.posts.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                } else if communityViewModel.posts.isEmpty {
+                    Text("No community posts yet.")
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                } else {
+                    LazyVGrid(columns: GridConfiguration.shared.columns, spacing: 24) {
+                        ForEach(communityViewModel.posts) { post in
+                            CommunityCards(
+                                post: post,
+                                onOpen: { postToOpen in
+                                    handleOpenCommunityPost(postToOpen)
+                                }
+                            )
+                            .task {
+                                await communityViewModel.loadMorePostsIfNeeded(currentItem: post)
                             }
-                        )
-                        .task {
-                            await communityViewModel.loadMorePostsIfNeeded(currentItem: post)
                         }
                     }
+                    .frame(maxWidth: 1800)
+                    .padding(.horizontal)
                 }
-                .frame(maxWidth: 1800)
-                .padding(.horizontal)
             }
         }
     }
@@ -408,11 +452,14 @@ private struct DesignBrowserChromeModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .navigationTitle("Design Browser")
             #if os(iOS)
+            .navigationTitle("Design Browser")
             .navigationBarTitleDisplayMode(.inline)
-            #endif
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar { toolbarContent }
+            #else
+            .toolbarBackground(.hidden, for: .windowToolbar)
+            #endif
             .sheet(isPresented: $showingNewDesignSheet) { newDesignSheet }
             .alert("Delete Design", isPresented: $showingDeleteAlert) {
                 Button("Cancel", role: .cancel) { }
@@ -483,102 +530,296 @@ private struct DesignBrowserChromeModifier: ViewModifier {
 struct HeroHeaderView: View {
     let onCreateNew: () -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var displaySlide = 0
+    @State private var autoRotateToken = UUID()
+    private let slides: [HeroSlide] = [
+        .init(
+            eyebrow: "Featured",
+            title: "Design your next idea",
+            subtitle: "Jump into a fresh design from templates.",
+            accent: Color(red: 0.06, green: 0.72, blue: 0.90),
+            accent2: Color(red: 0.15, green: 0.49, blue: 0.95),
+            accent3: Color(red: 0.08, green: 0.15, blue: 0.28),
+            cardSymbol: "sparkles"
+        ),
+        .init(
+            eyebrow: "AI",
+            title: "Design with AI",
+            subtitle: "Open a recent design, keep iterating, or spin up something new in seconds.",
+            accent: Color(red: 0.18, green: 0.82, blue: 0.58),
+            accent2: Color(red: 0.08, green: 0.46, blue: 0.34),
+            accent3: Color(red: 0.04, green: 0.18, blue: 0.14),
+            cardSymbol: "rectangle.on.rectangle"
+        ),
+        .init(
+            eyebrow: "Explore",
+            title: "Find inspiration",
+            subtitle: "Browse templates, community picks, and ready-made layouts to remix.",
+            accent: Color(red: 0.96, green: 0.53, blue: 0.21),
+            accent2: Color(red: 0.78, green: 0.24, blue: 0.17),
+            accent3: Color(red: 0.24, green: 0.10, blue: 0.08),
+            cardSymbol: "photo.on.rectangle"
+        )
+    ]
 
     var body: some View {
         let isCompact = horizontalSizeClass == .compact
+        let heroHeight: CGFloat = isCompact ? 300 : 600
+        let loopStartIndex = slides.count
         
         ZStack {
-            // Fancy Background
-            FluidGradient(blobs: [.purple, .blue, .cyan],
-                          speed: 0.4,
-                          blur: 0.75)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.gray.opacity(0.15), lineWidth: 1)
-                )
-            
-            // Content
-            Group {
-                if isCompact {
-                    VStack(alignment: .leading, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Welcome")
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
-                                .foregroundColor(.secondary)
-                            
-                            Text("Let's Create\nSomething Amazing")
-                                .font(.system(size: 26, weight: .bold, design: .rounded))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.primary, .primary.opacity(0.7)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
-                        }
-                        
-                        Button(action: onCreateNew) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 14, weight: .bold))
-                                Text("Create")
-                                    .font(.system(size: 14, weight: .bold))
-                            }
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 18)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .clipShape(Capsule())
-                            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
-                        }
-                        .buttonStyle(.plain)
+            GeometryReader { proxy in
+                let slideWidth = proxy.size.width
+                let carouselItems = loopedSlides
+
+                ZStack {
+                    ForEach(slides.indices, id: \.self) { index in
+                        heroBackdrop(slides[index], isCompact: isCompact)
+                            .opacity(index == currentSlideIndex ? 1 : 0)
                     }
-                } else {
-                    HStack(alignment: .bottom) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Welcome")
-                                .font(.system(size: 16, weight: .medium, design: .rounded))
-                                .foregroundColor(.secondary)
-                            
-                            Text("Let's Create\nSomething Amazing")
-                                .font(.system(size: 36, weight: .bold, design: .rounded))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.primary, .primary.opacity(0.7)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .lineLimit(2)
-                        }
-                        
-                        Spacer()
-                        
-                            Button(action: onCreateNew) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 16, weight: .bold))
-                                    Text("Create")
-                                        .font(.system(size: 16, weight: .bold))
-                                }
-                                .padding(.vertical, 14)
-                                .padding(.horizontal, 24)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .clipShape(Capsule())
-                                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .animation(.easeInOut(duration: 0.45), value: currentSlideIndex)
+                .stretchyBackground()
+
+                HStack(spacing: 0) {
+                    ForEach(carouselItems.indices, id: \.self) { index in
+                        heroSlide(carouselItems[index], isCompact: isCompact)
+                            .frame(width: slideWidth, height: heroHeight)
+                    }
+                }
+                .offset(x: -CGFloat(displaySlide) * slideWidth)
+                .onAppear {
+                    displaySlide = loopStartIndex
+                }
+                .onChange(of: slides.count) { _, _ in
+                    displaySlide = loopStartIndex
+                }
+                .onChange(of: displaySlide) { _, newValue in
+                    guard slides.count > 1 else { return }
+                    let loopCount = slides.count
+                    if newValue >= loopCount * 2 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.46) {
+                            var transaction = Transaction()
+                            transaction.animation = nil
+                            withTransaction(transaction) {
+                                displaySlide = loopCount
                             }
-                            .buttonStyle(.plain)
-                        
+                        }
+                    } else if newValue < loopCount {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.46) {
+                            var transaction = Transaction()
+                            transaction.animation = nil
+                            withTransaction(transaction) {
+                                displaySlide = loopCount + (newValue % loopCount)
+                            }
+                        }
                     }
                 }
             }
-            .padding(isCompact ? 20 : 32)
+
+            HStack {
+                arrowButton(systemName: "chevron.left") {
+                    previousSlide()
+                }
+                
+                Spacer(minLength: 0)
+                
+                arrowButton(systemName: "chevron.right") {
+                    nextSlide()
+                }
+            }
+            .padding(.horizontal, isCompact ? 12 : 12)
+            
+            VStack {
+                Spacer()
+                
+                VStack(spacing: 12) {
+                    dotsRow
+                }
+                .padding(.bottom, isCompact ? 14 : 18)
+            }
         }
-        .frame(height: isCompact ? 190 : 220)
+        .frame(maxWidth: .infinity)
+        .frame(height: heroHeight)
+        .ignoresSafeArea(edges: .top)
+        .task(id: autoRotateToken) {
+            guard slides.count > 1 else { return }
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                nextSlide()
+            }
+        }
+    }
+
+    private var dotsRow: some View {
+        HStack(spacing: 8) {
+            ForEach(slides.indices, id: \.self) { index in
+                Circle()
+                    .fill(index == currentSlideIndex ? .white : .white.opacity(0.38))
+                    .frame(width: 8, height: 8)
+                    .scaleEffect(index == currentSlideIndex ? 1.15 : 1.0)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(.black.opacity(0.16), in: Capsule())
+    }
+
+    private var loopedSlides: [HeroSlide] {
+        guard slides.count > 1 else {
+            return slides
+        }
+        return slides + slides + slides
+    }
+
+    private var currentSlideIndex: Int {
+        guard !slides.isEmpty else { return 0 }
+        let wrappedIndex = displaySlide % slides.count
+        return wrappedIndex >= 0 ? wrappedIndex : wrappedIndex + slides.count
+    }
+
+    private func heroSlide(_ slide: HeroSlide, isCompact: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(slide.eyebrow)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.75))
+                        .textCase(.uppercase)
+                        .tracking(1.2)
+
+                    Text(slide.title)
+                        .font(.system(size: isCompact ? 30 : 42, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+
+                    Text(slide.subtitle)
+                        .font(.system(size: isCompact ? 15 : 17, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.86))
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: isCompact ? .infinity : 520, alignment: .leading)
+                    
+                        Button(action: onCreateNew) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus")
+                                Text("Create Design")
+                            }
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color(red: 0.06, green: 0.20, blue: 0.34))
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 12)
+                            .background(.white)
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 4)
+                    }
+
+                if !isCompact {
+                    Spacer(minLength: 18)
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(.white.opacity(0.16))
+                        .frame(width: 180, height: 180)
+                        .overlay(
+                            Image(systemName: slide.cardSymbol)
+                                .font(.system(size: 58, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.9))
+                        )
+                }
+            }
+        }
+        .padding(isCompact ? 22 : 50)
+    }
+
+    private func heroBackdrop(_ slide: HeroSlide, isCompact: Bool) -> some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    slide.accent.opacity(0.92),
+                    slide.accent2.opacity(0.82),
+                    slide.accent3.opacity(0.72)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            FluidGradient(
+                blobs: [slide.accent2, slide.accent, slide.accent3],
+                speed: 0.35,
+                blur: 0.7
+            )
+            .blendMode(.screen)
+            .opacity(0.9)
+        }
+        .ignoresSafeArea()
+    }
+
+    private func arrowButton(systemName: String, action: @escaping () -> Void) -> some View {
+        ArrowHoverButton(systemName: systemName, action: action)
+    }
+
+    private func nextSlide() {
+        guard !slides.isEmpty else { return }
+        guard slides.count > 1 else { return }
+        autoRotateToken = UUID()
+        withAnimation(.snappy(duration: 0.45)) {
+            displaySlide += 1
+        }
+    }
+
+    private func previousSlide() {
+        guard !slides.isEmpty else { return }
+        guard slides.count > 1 else { return }
+        autoRotateToken = UUID()
+        withAnimation(.snappy(duration: 0.45)) {
+            displaySlide -= 1
+        }
+    }
+}
+
+private struct HeroSlide {
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    let accent: Color
+    let accent2: Color
+    let accent3: Color
+    let cardSymbol: String
+}
+
+private struct ArrowHoverButton: View {
+    let systemName: String
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.primary.opacity(isHovered ? 0.82 : 0.42))
+                .frame(width: 30, height: 70)
+                .scaleEffect(x: 1.0, y: 1.5)
+                .background {
+                    if isHovered {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                    }
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(.white.opacity(isHovered ? 0.22 : 0.0), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(isHovered ? 0.22 : 0.0), radius: 10, x: 0, y: 6)
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.18), value: isHovered)
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }
 
@@ -678,6 +919,110 @@ struct DesignCardView: View {
         }
         .onTapGesture {
             onOpen()
+        }
+    }
+}
+
+struct ContinuePlayingCardView: View {
+    @ObservedObject var designFile: DesignFile
+    let onOpen: () -> Void
+    let onDelete: () -> Void
+    let onRename: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            CanvasPreviewView(designFile: designFile)
+                .frame(width: 240, height: 200)
+                .background(Color.secondary.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(Color.white.opacity(isHovered ? 0.22 : 0.12), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(isHovered ? 0.18 : 0.08), radius: isHovered ? 14 : 8, x: 0, y: 6)
+                .scaleEffect(isHovered ? 1.03 : 1.0)
+            
+            HStack(spacing: 8) {
+                Text(designFile.name)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Menu {
+                    Button {
+                        onOpen()
+                    } label: {
+                        Label("Open", systemImage: "pencil")
+                    }
+                    
+                    Button {
+                        onRename()
+                    } label: {
+                        Label("Rename", systemImage: "character.cursor.ibeam")
+                    }
+                    
+#if os(macOS)
+                    Button {
+                        NSWorkspace.shared.activateFileViewerSelecting([designFile.fileURL])
+                    } label: {
+                        Label("Show in Finder", systemImage: "folder")
+                    }
+#endif
+                    
+                    Divider()
+                    
+                    Button(role: .destructive) {
+                        onDelete()
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .frame(width: 24, height: 24)
+                        .background(.white.opacity(0.14))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+            .frame(width: 240)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onOpen()
+        }
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.18)) {
+                isHovered = hovering
+            }
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func stretchyBackground() -> some View {
+        if #available(iOS 17.0, macOS 14.0, *) {
+            self
+                .visualEffect { effect, geometry in
+                    let scrollOffset = geometry.frame(in: .scrollView).minY
+                    let positiveOffset = max(0, scrollOffset)
+                    let currentHeight = max(geometry.size.height, 1)
+                    let newHeight = currentHeight + positiveOffset
+                    let scaleFactor = newHeight / currentHeight
+
+                    return effect.scaleEffect(
+                        x: scaleFactor,
+                        y: scaleFactor,
+                        anchor: .bottom
+                    )
+                }
+        } else {
+            self
         }
     }
 }

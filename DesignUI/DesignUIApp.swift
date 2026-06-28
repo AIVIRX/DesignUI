@@ -127,6 +127,7 @@ struct DesignUIApp: App {
                 }
             }
             .windowResizability(.automatic)
+            .windowStyle(.hiddenTitleBar)
             .defaultSize(width: 1200, height: 750)
             .commands {
                 TextEditingCommands()
@@ -151,6 +152,7 @@ struct DesignUIApp: App {
                 }
             }
             .windowResizability(.automatic)
+            .windowStyle(.hiddenTitleBar)
             .defaultSize(width: 1200, height: 750)
             .restorationBehavior(.disabled)
             .commands {

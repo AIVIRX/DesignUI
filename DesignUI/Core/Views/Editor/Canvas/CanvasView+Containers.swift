@@ -33,6 +33,7 @@ struct ComponentsContainerView: View {
     let statusBarComponent: UIComponent?
     let canvasManager: CanvasManager
     let screenGeometry: GeometryProxy
+    let topContentInset: CGFloat
     
     var body: some View {
         Group {
@@ -43,9 +44,9 @@ struct ComponentsContainerView: View {
                     selectedDevice: selectedDevice,
                     colorScheme: colorScheme,
                     statusBarComponent: statusBarComponent,
-                    statusBarTopSafeArea: canvasManager.statusBarTopSafeArea,
                     screenGeometry: screenGeometry,
-                    canvasManager: canvasManager
+                    canvasManager: canvasManager,
+                    topContentInset: topContentInset
                 )
             } else {
                 ComponentsContainerWithoutStatusBar(
@@ -54,7 +55,8 @@ struct ComponentsContainerView: View {
                     selectedDevice: selectedDevice,
                     colorScheme: colorScheme,
                     screenGeometry: screenGeometry,
-                    canvasManager: canvasManager
+                    canvasManager: canvasManager,
+                    topContentInset: topContentInset
                 )
             }
         }
@@ -69,9 +71,9 @@ struct ComponentsContainerWithStatusBar: View {
     let selectedDevice: DevicePreset
     let colorScheme: ColorScheme?
     @ObservedObject var statusBarComponent: UIComponent
-    let statusBarTopSafeArea: Bool
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
+    let topContentInset: CGFloat
     
     private var animatedComponentIds: [UUID] {
         components.map(\.id)
@@ -122,7 +124,7 @@ struct ComponentsContainerWithStatusBar: View {
         VStack(spacing: 0) {
             // Top padding (Safe Area)
             Spacer()
-                .frame(height: statusBarTopSafeArea ? 50 : 0) // Top padding for status bar
+                .frame(height: topContentInset)
             
             ForEach(components, id: \.id) { component in
                 componentRow(component)
@@ -132,7 +134,7 @@ struct ComponentsContainerWithStatusBar: View {
         .clipped() // Prevent content from expanding beyond the screen bounds
         .contentShape(Rectangle())
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: animatedComponentIds)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: statusBarTopSafeArea)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: topContentInset)
         .onTapGesture(perform: handleBackgroundTap)
     }
     
@@ -145,6 +147,7 @@ struct ComponentsContainerWithoutStatusBar: View {
     let colorScheme: ColorScheme?
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
+    let topContentInset: CGFloat
     
     private var animatedComponentIds: [UUID] {
         components.map(\.id)
@@ -193,6 +196,8 @@ struct ComponentsContainerWithoutStatusBar: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            Spacer()
+                .frame(height: topContentInset)
             ForEach(components, id: \.id) { component in
                 componentRow(component)
             }

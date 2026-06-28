@@ -22,7 +22,6 @@ struct NewsListView: View {
                 VStack(alignment: .center, spacing: 16) {
                     NewsHeroHeaderView()
                         .padding(.horizontal)
-                        .padding(.top, 16)
 
                     NewsGridSection(
                         posts: Array(viewModel.posts),
@@ -114,33 +113,20 @@ private struct EmptyNewsStateView: View {
 }
 
 struct NewsHeroHeaderView: View {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    
     var body: some View {
-        let isCompact = horizontalSizeClass == .compact
-        
-        ZStack {
-            FluidGradient(blobs: [.purple, .blue, .cyan],
-                          speed: 0.4,
-                          blur: 0.75)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.gray.opacity(0.15), lineWidth: 1)
-                )
-            
+        VStack {
             Text("Newsroom")
-                .font(.system(size: isCompact ? 32 : 44, weight: .bold, design: .rounded))
+                .font(.system(size: 44, weight: .bold, design: .rounded))
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [.primary, .primary.opacity(0.7)],
+                        colors: [.primary, .primary.opacity(0.8)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
-        .frame(height: isCompact ? 190 : 220)
+        .frame(height: 160)
     }
 }
 

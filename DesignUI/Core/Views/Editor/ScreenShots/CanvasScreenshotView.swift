@@ -12,6 +12,8 @@ struct CanvasScreenshotView: View {
     let colorScheme: ColorScheme
     let statusBarVisible: Bool
     let statusBarTopSafeArea: Bool
+    var previewToolbarVisible: Bool = false
+    var previewToolbarTitle: String = "Title"
     
     /// Whether this is a content-adaptive (No Size) screenshot
     var isContentAdaptive: Bool {
@@ -77,7 +79,7 @@ struct CanvasScreenshotView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.top, statusBarTopSafeArea ? 50 : 0) // Safe area for status bar
+            .padding(.top, topContentInset)
             
             // Status bar if needed and visible
             if statusBarVisible {
@@ -91,8 +93,67 @@ struct CanvasScreenshotView: View {
                     Spacer()
                 }
             }
+
+            if previewToolbarVisible {
+                PreviewToolbarChrome(
+                    title: previewToolbarTitle.isEmpty ? "Title" : previewToolbarTitle
+                )
+                .padding(.top, statusBarTopSafeArea ? 50 : 0)
+                .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .allowsHitTesting(false)
+            }
         }
         .frame(width: deviceSize.width, height: deviceSize.height)
         .colorScheme(colorScheme)
+    }
+
+    private var topContentInset: CGFloat {
+        (statusBarTopSafeArea ? 50 : 0) + (previewToolbarVisible ? 44 : 0)
+    }
+}
+
+private struct PreviewToolbarChrome: View {
+    let title: String
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color.primary.opacity(0.04))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5)
+                )
+
+            HStack(spacing: 12) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 28, height: 28)
+                    .background(Color.primary.opacity(0.04), in: Circle())
+
+                Spacer(minLength: 0)
+
+                Text(title)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .foregroundStyle(.primary)
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 28, height: 28)
+                    .background(Color.primary.opacity(0.04), in: Circle())
+            }
+            .padding(.horizontal, 14)
+        }
+        .frame(height: 44)
     }
 }

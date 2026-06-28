@@ -1778,7 +1778,9 @@ struct UIBuilderView: View {
             deviceSize: canvasManager.devicePreset.size,
             colorScheme: canvasManager.colorScheme ?? .light,
             statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
-            statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
+            statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea,
+            previewToolbarVisible: !isWidget && canvasManager.devicePreset.category == .iphone,
+            previewToolbarTitle: canvasManager.designName
         )
         
         guard let imageData = ScreenshotUtility.shared.captureThumbnail(
@@ -1868,7 +1870,9 @@ struct UIBuilderView: View {
                 deviceSize: canvasManager.devicePreset.size,
                 colorScheme: canvasManager.colorScheme ?? .light,
                 statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
-                statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
+                statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea,
+                previewToolbarVisible: !isWidget && canvasManager.devicePreset.category == .iphone,
+                previewToolbarTitle: canvasManager.designName
             )
             if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
                 of: screenshotView,
@@ -2712,7 +2716,9 @@ struct UIBuilderView: View {
             deviceSize: self.canvasManager.devicePreset.size,
             colorScheme: self.canvasManager.colorScheme ?? .light,
             statusBarVisible: isWidget ? false : self.canvasManager.statusBarVisible,
-            statusBarTopSafeArea: isWidget ? false : self.canvasManager.statusBarTopSafeArea
+            statusBarTopSafeArea: isWidget ? false : self.canvasManager.statusBarTopSafeArea,
+            previewToolbarVisible: !isWidget && self.canvasManager.devicePreset.category == .iphone,
+            previewToolbarTitle: self.canvasManager.designName
         )
         
         if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
