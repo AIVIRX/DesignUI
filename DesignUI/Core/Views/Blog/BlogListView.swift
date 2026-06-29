@@ -31,7 +31,6 @@ struct NewsListView: View {
                     )
                 }
                 .frame(maxWidth: .infinity)
-                .navigationTitle("News")
 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
 #endif

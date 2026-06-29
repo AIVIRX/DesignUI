@@ -1,5 +1,5 @@
 import type { AnyComponent, EditIntent } from "./types.ts";
-import { SELECTION_MODEL, STYLE_PATCH_MAX_TOKENS, callOpenAI } from "./openai.ts";
+import { STANDARD_TOKENS_MODEL, STYLE_PATCH_MAX_TOKENS, callOpenAI } from "./openai.ts";
 import { CANVAS_SETTINGS_RULES, CONTAINER_TYPES, SCHEMA_RULES } from "./schema.ts";
 import { isJsonParseError, isObject, parseJsonSafe } from "./utils.ts";
 
@@ -86,6 +86,97 @@ export function parseRequestedColor(prompt: string): string | null {
         return `${match}:${opacity.toFixed(2).replace(/\.?0+$/, "")}`;
     }
     return `${match}:1.0`;
+}
+
+export type ColorToneIntent = "darker" | "lighter";
+
+export function parseColorToneIntent(prompt: string): { tone: ColorToneIntent; strength: number } | null {
+    const p = prompt.toLowerCase();
+    const strength = /\b(much|very|way|really|super|significantly|dramatically|a lot)\b/.test(p) ? 2 : 1;
+    if (/\b(darker|darken|deeper|dimm?er|more muted|dull(?:er)?)\b/.test(p)) {
+        return { tone: "darker", strength };
+    }
+    if (/\b(lighter|lighten|brighter|brighten|more vivid|punchier|more vibrant)\b/.test(p)) {
+        return { tone: "lighter", strength };
+    }
+    return null;
+}
+
+function adjustHexChannel(channel: number, target: number, amount: number): number {
+    return Math.max(0, Math.min(255, Math.round(channel + ((target - channel) * amount))));
+}
+
+function adjustHexColorTone(hexColor: string, tone: ColorToneIntent, strength: number): string | null {
+    const match = hexColor.match(/^#([0-9a-f]{6})$/i);
+    if (!match) return null;
+    const raw = match[1];
+    const r = Number.parseInt(raw.slice(0, 2), 16);
+    const g = Number.parseInt(raw.slice(2, 4), 16);
+    const b = Number.parseInt(raw.slice(4, 6), 16);
+    const amount = Math.max(0.08, Math.min(0.28, 0.12 * strength));
+    const next = tone === "darker"
+        ? [Math.round(r * (1 - amount)), Math.round(g * (1 - amount)), Math.round(b * (1 - amount))]
+        : [adjustHexChannel(r, 255, amount), adjustHexChannel(g, 255, amount), adjustHexChannel(b, 255, amount)];
+    return `#${next.map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+}
+
+export function adjustColorForTone(colorString: string, toneIntent: { tone: ColorToneIntent; strength: number } | null): string {
+    if (!toneIntent) return colorString;
+    const [baseColor, opacity = "1.0"] = colorString.split(":");
+    const semanticDarken: Record<string, string> = {
+        yellow: "orange",
+        orange: "brown",
+        red: "brown",
+        pink: "red",
+        purple: "indigo",
+        indigo: "blue",
+        blue: "indigo",
+        cyan: "blue",
+        teal: "blue",
+        mint: "teal",
+        green: "teal",
+        gray: "black",
+        brown: "black",
+        white: "gray",
+        primary: "secondary",
+        secondary: "tertiary",
+        tertiary: "quaternary",
+        quaternary: "gray",
+    };
+    const semanticLighten: Record<string, string> = {
+        black: "gray",
+        gray: "white",
+        brown: "orange",
+        orange: "yellow",
+        red: "pink",
+        pink: "white",
+        purple: "pink",
+        indigo: "purple",
+        blue: "cyan",
+        cyan: "mint",
+        teal: "mint",
+        green: "mint",
+        yellow: "white",
+        white: "white",
+        primary: "primary",
+        secondary: "primary",
+        tertiary: "secondary",
+        quaternary: "tertiary",
+    };
+
+    if (baseColor.startsWith("#")) {
+        const adjusted = adjustHexColorTone(baseColor, toneIntent.tone, toneIntent.strength);
+        if (adjusted) return `${adjusted}:${opacity}`;
+        return colorString;
+    }
+
+    const map = toneIntent.tone === "darker" ? semanticDarken : semanticLighten;
+    let next = baseColor;
+    for (let i = 0; i < toneIntent.strength; i++) {
+        const mapped = map[next.toLowerCase()] ?? next;
+        next = mapped;
+    }
+    return `${next}:${opacity}`;
 }
 
 export function semanticFontSizeToNumber(size: string): number | null {
@@ -215,6 +306,15 @@ export function applyDeterministicModifierEdits(component: AnyComponent, prompt:
         if (/\brounded\b/.test(p)) return "rounded";
         if (/\bmonospaced\b|\bmono\b/.test(p)) return "monospaced";
         if (/\bdefault\b/.test(p)) return "default";
+        return null;
+    };
+    const getCurrentModifierColor = (...types: string[]): string | null => {
+        for (const type of types) {
+            const mod = modifiers.find((m) => isObject(m) && m.type === type);
+            if (!mod || !isObject(mod.properties)) continue;
+            const raw = (mod.properties as Record<string, unknown>).color;
+            if (typeof raw === "string" && raw.trim()) return raw;
+        }
         return null;
     };
     const parseClipShape = (): string | null => {
@@ -395,18 +495,28 @@ export function applyDeterministicModifierEdits(component: AnyComponent, prompt:
     }
 
     // Color + font edits
+    const requestedColorTone = parseColorToneIntent(prompt);
     const requestedColor = parseRequestedColor(prompt);
-    if (requestedColor && hasAny("\\btint\\b")) {
-        upsertModifier("Tint", { color: requestedColor });
-    }
-    if (requestedColor && (hasAny("\\bcolor\\b", "\\bforeground\\b", "\\btext color\\b") || component.type === "Text" || component.type === "SF Symbol")) {
-        upsertModifier("Foreground Color", { color: requestedColor });
-    }
-    if (requestedColor && hasAny("\\bbackground\\b", "\\bbg\\b")) {
-        upsertModifier("Background Color", { color: requestedColor });
-    }
-    if (requestedColor && hasAny("\\bfill\\b") && !requestedNoFill) {
-        upsertModifier("Fill", { color: requestedColor });
+    const adjustedRequestedColor = requestedColor ? adjustColorForTone(requestedColor, requestedColorTone) : null;
+    const currentColor = getCurrentModifierColor("Foreground Color", "Tint", "Fill", "Background Color", "Stroke", "Border");
+    const adjustedCurrentColor = currentColor ? adjustColorForTone(currentColor, requestedColorTone) : null;
+    const resolvedColor = adjustedRequestedColor ?? adjustedCurrentColor;
+
+    if (resolvedColor) {
+        if (hasAny("\\btint\\b")) {
+            upsertModifier("Tint", { color: resolvedColor });
+        }
+        if (hasAny("\\bbackground\\b", "\\bbg\\b")) {
+            upsertModifier("Background Color", { color: resolvedColor });
+        }
+        if (hasAny("\\bfill\\b") && !requestedNoFill) {
+            upsertModifier("Fill", { color: resolvedColor });
+        }
+        if (component.type === "Text" || component.type === "SF Symbol" || hasAny("\\bcolor\\b", "\\bforeground\\b", "\\btext color\\b")) {
+            upsertModifier("Foreground Color", { color: resolvedColor });
+        } else if (hasShapeLikeType || hasCornerRadiusNow) {
+            upsertModifier("Fill", { color: resolvedColor });
+        }
     }
 
     const supportsFont = component.type === "Text" || component.type === "SF Symbol";
@@ -576,7 +686,7 @@ export function applyDeterministicModifierEdits(component: AnyComponent, prompt:
 
     // Border / Stroke
     const lineWidth = extractNumber(/\bline\s*width\s*(?:to|=|:)?\s*(\d+(?:\.\d+)?)/, /\bborder\s*width\s*(?:to|=|:)?\s*(\d+(?:\.\d+)?)/, /\bstroke\s*width\s*(?:to|=|:)?\s*(\d+(?:\.\d+)?)/);
-    const borderColor = parseRequestedColor(prompt);
+    const borderColor = resolvedColor ?? parseRequestedColor(prompt);
     if (/\bborder\b/.test(p) && !requestedNoBorder) {
         if (preferStroke) {
             upsertModifier("Stroke", {
@@ -695,7 +805,7 @@ export function applyDeterministicModifierEdits(component: AnyComponent, prompt:
 
 export async function applyStylePatch(component: AnyComponent, prompt: string): Promise<AnyComponent | null> {
     const response = await callOpenAI({
-        model: SELECTION_MODEL,
+        model: STANDARD_TOKENS_MODEL,
         messages: [
             { role: "system", content: STYLE_PATCH_SYSTEM_PROMPT },
             { role: "system", content: `CURRENT MODIFIERS:\n${JSON.stringify(component.modifiers ?? [])}` },

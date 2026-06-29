@@ -134,16 +134,17 @@ struct DesignPost: Identifiable, Codable, Equatable {
     }
     
     static func == (lhs: DesignPost, rhs: DesignPost) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.slug == rhs.slug &&
-        lhs.preview_image_url == rhs.preview_image_url &&
-        lhs.title == rhs.title &&
-        lhs.description == rhs.description &&
-        lhs.code_snippet == rhs.code_snippet &&
-        lhs.created_at == rhs.created_at &&
-        lhs.profiles == rhs.profiles &&
-        lhs.isPremium == rhs.isPremium &&
-        lhs.post_type == rhs.post_type &&
-        lhs.status == rhs.status
+        guard lhs.id == rhs.id else { return false }
+        guard lhs.slug == rhs.slug else { return false }
+        guard lhs.preview_image_url == rhs.preview_image_url else { return false }
+        guard lhs.title == rhs.title else { return false }
+        guard lhs.description == rhs.description else { return false }
+        guard lhs.code_snippet == rhs.code_snippet else { return false }
+        guard lhs.created_at == rhs.created_at else { return false }
+        guard lhs.profiles == rhs.profiles else { return false }
+        guard lhs.isPremium == rhs.isPremium else { return false }
+        guard lhs.post_type == rhs.post_type else { return false }
+        guard lhs.status == rhs.status else { return false }
+        return true
     }
 }

@@ -30,13 +30,15 @@ struct SFSymbolSandboxView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    header
                     symbolGridCard
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
             }
             .navigationTitle("SF Symbols")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .searchable(text: $searchText, prompt: "Search SF Symbols")
             .onChange(of: searchText) { oldValue, newValue in
                 handleSearchTextChange(oldValue: oldValue, newValue: newValue)
@@ -48,21 +50,6 @@ struct SFSymbolSandboxView: View {
         }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Interactive Sandbox")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-
-            Text("Browse the full symbol library, then tap any symbol to open a detail view with live preview controls and copyable SwiftUI code.")
-                .font(.system(size: 15, weight: .regular))
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 8) {
-                infoChip(title: symbolCountLabel, icon: "square.grid.2x2")
-                infoChip(title: "Tap a symbol", icon: "hand.tap")
-            }
-        }
-    }
 
     private func infoChip(title: String, icon: String) -> some View {
         HStack(spacing: 6) {
@@ -80,11 +67,6 @@ struct SFSymbolSandboxView: View {
     private var symbolGridCard: some View {
         symbolGridContent
         .padding(16)
-        .background(.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-        )
     }
 
     private var symbolGridContent: some View {

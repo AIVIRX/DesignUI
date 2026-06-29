@@ -160,13 +160,14 @@ GENERAL RULES:
 - Maximum ONE nav_bar.
 - Maximum ONE media_player.
 - Avoid duplicate slotTypes unless the intent is clearly different (e.g., two horizontal_rails with different content categories is fine).
-- For the given archetype, use the DEFAULT TEMPLATE as a starting point but ADAPT it to the specific prompt and theme.
+- Treat the DEFAULT TEMPLATE as a loose reference only. Do not mirror its slot order, count, or composition unless the user's prompt explicitly asks for that structure.
 - For music_player archetype: do NOT add hero_banner unless the user explicitly asks for a hero/featured/banner section.
 - For social_feed / Instagram-style home screens: do NOT add a dashboard hero, gauge, stats summary, streak block, or follower-count intro unless the user explicitly asks for analytics/profile metrics.
 - variant_hint should guide the slot generator toward creative, theme-appropriate layouts. Be specific: "overlapping circular rings" not just "rings". "asymmetric poster cards with tag overlay" not just "cards".
 - The plan should include one clear focal section and one supporting section with deliberate contrast (e.g., dense vs airy, editorial vs utility).
 - Prefer intentional composition over safe defaults: asymmetry, overlap opportunities, or mixed section rhythms when appropriate.
 - Do not create generic/repetitive plans where every section is the same card/list pattern.
+- Favor the smallest plan that still fully satisfies the prompt. Fewer, stronger slots are better than filler slots.
 
 CREATIVITY RULES (read these last, they override defaults):
 - Reference patterns and templates above show common structures. Do NOT copy them slot-for-slot.
@@ -210,6 +211,10 @@ export async function planSlots(
     manifest?: DesignManifest,
     designSpec?: PromptDesignSpec,
     contractHint?: ScreenContract,
+    options?: {
+        maxTokens?: number;
+        temperature?: number;
+    },
 ): Promise<ScreenPlan> {
     const template = ARCHETYPE_SLOT_TEMPLATES[archetype];
     const templateStr = JSON.stringify(template, null, 1);
@@ -235,10 +240,12 @@ IMPORTANT: The user's actual words override this reference entirely. If they ask
         model: SLOT_PLANNER_MODEL,
         messages: [
             { role: "system", content: SLOT_PLANNER_SYSTEM_PROMPT },
-            { role: "system", content: `ARCHETYPE: ${archetype}\nDEFAULT TEMPLATE:\n${templateStr}\n\nTHEME: appName="${theme.appName}" voiceTone="${theme.voiceTone}" surfaceStyle="${theme.surfaceStyle}" density="${theme.density}" itemNoun="${theme.itemNoun}" domainTags=[${theme.domainTags.join(",")}] accentColor="${theme.accentColor}" cornerRadiusScale="${theme.cornerRadiusScale}"\n\n${contractHintBlock}\n${referenceStyleBlock}\n\nPROMPT LOCKS (MUST HONOR):\n${requirementsBlock}\n\nDESIGN MANIFEST HARD RULES:\n${hardRulesBlock}\n\nPROMPT DSL SPEC (STRICT):\n${formatPromptDesignSpec(resolvedSpec)}\n\nIf prompt locks conflict with archetype template, prompt locks win.` },
+            { role: "system", content: `ARCHETYPE: ${archetype}\nREFERENCE TEMPLATE (for inspiration only, do not copy literally):\n${templateStr}\n\nTHEME: appName="${theme.appName}" voiceTone="${theme.voiceTone}" surfaceStyle="${theme.surfaceStyle}" density="${theme.density}" itemNoun="${theme.itemNoun}" domainTags=[${theme.domainTags.join(",")}] accentColor="${theme.accentColor}" cornerRadiusScale="${theme.cornerRadiusScale}"\n\n${contractHintBlock}\n${referenceStyleBlock}\n\nPROMPT LOCKS (MUST HONOR):\n${requirementsBlock}\n\nDESIGN MANIFEST HARD RULES:\n${hardRulesBlock}\n\nPROMPT DSL SPEC (STRICT):\n${formatPromptDesignSpec(resolvedSpec)}\n\nIf prompt locks conflict with archetype template, prompt locks win.` },
             { role: "user", content: prompt },
         ],
-        temperature: 0.3, maxTokens: SLOT_PLANNER_MAX_TOKENS, responseFormat: { type: "json_object" },
+        temperature: options?.temperature ?? 0.45,
+        maxTokens: options?.maxTokens ?? SLOT_PLANNER_MAX_TOKENS,
+        responseFormat: { type: "json_object" },
     });
 
     if (!response.ok) {

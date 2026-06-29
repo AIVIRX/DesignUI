@@ -421,9 +421,6 @@ struct CanvasView: View {
         .overlay(alignment: .top) {
             statusBarOverlay(deviceSize: deviceSize, isWidget: isWidget)
         }
-        .overlay(alignment: .top) {
-            previewToolbarOverlay(deviceSize: deviceSize, isWidget: isWidget)
-        }
         .overlay(deviceBorder(cornerRadius: cornerRadius))
         .frame(width: deviceSize.width, height: deviceSize.height)
         .background(Color.clear)
@@ -466,20 +463,6 @@ struct CanvasView: View {
         }
     }
 
-    @ViewBuilder
-    private func previewToolbarOverlay(deviceSize _: CGSize, isWidget: Bool) -> some View {
-        if shouldShowPreviewToolbar && !isWidget {
-            PreviewToolbarChrome(
-                title: canvasManager.designName,
-                backgroundOpacity: toolbarBackgroundOpacity
-            )
-            .padding(.top, previewToolbarTopOffset)
-            .padding(.horizontal, previewToolbarHorizontalPadding)
-            .frame(maxWidth: .infinity, alignment: .top)
-            .allowsHitTesting(false)
-        }
-    }
-    
     private func deviceBorder(cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
@@ -497,79 +480,9 @@ struct CanvasView: View {
         colorScheme == .light ? .white : .black
     }
 
-    private var shouldShowPreviewToolbar: Bool {
-        selectedDevice.category == .iphone
-    }
-
-    private var toolbarBackgroundOpacity: Double {
-        colorScheme == .dark ? 0.92 : 0.94
-    }
-
-    private var previewToolbarHorizontalPadding: CGFloat {
-        switch selectedDevice.category {
-        case .iphone:
-            return 14
-        default:
-            return 16
-        }
-    }
-
-    private var previewToolbarTopOffset: CGFloat {
-        canvasManager.statusBarTopSafeArea ? 50 : 0
-    }
-
     private func previewTopContentInset(isWidget: Bool) -> CGFloat {
         guard !isWidget else { return 0 }
         let safeAreaInset: CGFloat = canvasManager.statusBarTopSafeArea ? 50 : 0
-        let toolbarInset: CGFloat = shouldShowPreviewToolbar ? 44 : 0
-        return safeAreaInset + toolbarInset
-    }
-    
-}
-
-private struct PreviewToolbarChrome: View {
-    let title: String
-    let backgroundOpacity: Double
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color.primary.opacity(backgroundOpacity * 0.04))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5)
-                )
-
-            HStack(spacing: 12) {
-                toolbarButton("chevron.left")
-
-                Spacer(minLength: 0)
-
-                Text(title.isEmpty ? "Title" : title)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .foregroundStyle(.primary)
-
-                Spacer(minLength: 0)
-
-                toolbarButton("ellipsis")
-            }
-            .padding(.horizontal, 14)
-        }
-        .frame(height: 44)
-        .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
-    }
-
-    private func toolbarButton(_ symbol: String) -> some View {
-        Image(systemName: symbol)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(.primary)
-            .frame(width: 28, height: 28)
-            .background(Color.primary.opacity(0.04), in: Circle())
+        return safeAreaInset
     }
 }

@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import type { AnyComponent, DesignManifest, Exemplar, LayoutSketch, LayoutSketchNode, PromptDesignSpec, PromptRequirement, RailVariant, ScreenPlan, SketchPrimitive, SlotMemory, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens } from "./types.ts";
-import { GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS, REPAIR_MAX_TOKENS, REPAIR_MODEL, SLOT_BATCH_GRACE_MS, SLOT_BATCH_SIZE, SLOT_DESIGN_PASSES, SLOT_GENERATION_MAX_ATTEMPTS, SLOT_GENERATOR_MAX_TOKENS, SLOT_GENERATOR_MODEL, callOpenAI } from "./openai.ts";
+import type { AnyComponent, DesignManifest, Exemplar, GenerationMode, LayoutSketch, LayoutSketchNode, PromptDesignSpec, PromptRequirement, RailVariant, ScreenPlan, SketchPrimitive, SlotMemory, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens } from "./types.ts";
+import { FULL_CANVAS_SLOT_BATCH_SIZE, FULL_CANVAS_SLOT_DESIGN_PASSES, FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS, FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS, REPAIR_MAX_TOKENS, REPAIR_MODEL, SLOT_BATCH_GRACE_MS, SLOT_BATCH_SIZE, SLOT_DESIGN_PASSES, SLOT_GENERATION_MAX_ATTEMPTS, SLOT_GENERATOR_MAX_TOKENS, SLOT_GENERATOR_MODEL, callOpenAI } from "./openai.ts";
 import { SLOT_CONSTRAINTS } from "./schema.ts";
 import { buildDesignManifest, compilePromptDesignSpec, formatPromptDesignSpec } from "./manifest.ts";
 import { isJsonParseError, isObject, parseJsonSafe } from "./utils.ts";
@@ -152,6 +152,7 @@ Design principles (priority order):
 2) Real content from provided data; never placeholder copy.
 3) Purposeful spacing rhythm; avoid uniform padding everywhere.
 4) Component variety; avoid repeated identical row/card structures.
+5) Prefer a single strong visual idea over multiple weak filler sections.
 
 LAYER 3 — CONTENT DATA
 FACTS: greeting="${theme.sharedFacts.greeting}" user="${theme.sharedFacts.userName}" metric1="${theme.sharedFacts.primaryMetricValue}" metric2="${theme.sharedFacts.secondaryMetricValue}" streak="${theme.sharedFacts.streakValue}" progress=${theme.sharedFacts.progressPercent}% date="${theme.sharedFacts.todayDate}"
@@ -202,6 +203,7 @@ export async function generateSlot(params: {
     designSpec?: PromptDesignSpec;
     memory?: SlotMemory;
     blockers?: string[];
+    generationMode?: GenerationMode;
 }): Promise<{ component: AnyComponent; exemplarIds: string[] }> {
     const { prompt, theme, plan, slot } = params;
     const manifest = params.manifest ?? buildDesignManifest(prompt);
@@ -227,8 +229,13 @@ export async function generateSlot(params: {
     const systemPrompt = buildSlotGeneratorSystemPrompt(theme, slot, plan.slots, slotPromptRequirements, designSpec, prompt, params.memory);
     let critiqueGuidance = "";
     let lastHardIssues: string[] = [];
+    const isFullCanvas = params.generationMode === "full_canvas";
+    const designPasses = isFullCanvas ? FULL_CANVAS_SLOT_DESIGN_PASSES : SLOT_DESIGN_PASSES;
+    const firstPassTemperature = isFullCanvas ? 0.58 : 0.5;
+    const firstPassMaxTokens = isFullCanvas ? FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS : SLOT_GENERATOR_MAX_TOKENS;
+    const generationMaxAttempts = isFullCanvas ? FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS : SLOT_GENERATION_MAX_ATTEMPTS;
 
-    for (let designPass = 0; designPass < SLOT_DESIGN_PASSES; designPass++) {
+    for (let designPass = 0; designPass < designPasses; designPass++) {
         const messages: Array<Record<string, unknown>> = [
             { role: "system", content: systemPrompt },
             ...(exemplars.length > 0 ? [{ role: "system", content: buildExemplarsBlock(exemplars) }] : []),
@@ -246,7 +253,13 @@ Keep the same slot intent, but improve visual hierarchy/composition/contrast/spa
             { role: "user", content: `Generate the ${slot.slotType} component for: ${prompt}` },
         ];
 
-        const result = await compileSlotWithRepair({ messages, slot, maxAttempts: SLOT_GENERATION_MAX_ATTEMPTS });
+        const result = await compileSlotWithRepair({
+            messages,
+            slot,
+            maxAttempts: generationMaxAttempts,
+            firstPassTemperature,
+            firstPassMaxTokens,
+        });
         if (result.ok === false) continue;
 
         const hardIssues = validateSlotAgainstPromptRequirements(slot, result.component, slotPromptRequirements);
@@ -273,6 +286,9 @@ export async function compileSlotWithRepair(params: {
     messages: Array<Record<string, unknown>>;
     slot: SlotPlan;
     maxAttempts: number;
+    firstPassTemperature?: number;
+    firstPassMaxTokens?: number;
+    repairMaxTokens?: number;
 }): Promise<{ ok: true; component: AnyComponent } | { ok: false; error: string }> {
     const constraint = SLOT_CONSTRAINTS[params.slot.slotType];
     let lastError = "";
@@ -288,8 +304,8 @@ export async function compileSlotWithRepair(params: {
         const response = await callOpenAI({
             model: isFirst ? SLOT_GENERATOR_MODEL : REPAIR_MODEL,
             messages,
-            temperature: isFirst ? 0.35 : 0,
-            maxTokens: isFirst ? SLOT_GENERATOR_MAX_TOKENS : REPAIR_MAX_TOKENS,
+            temperature: isFirst ? (params.firstPassTemperature ?? 0.5) : 0,
+            maxTokens: isFirst ? (params.firstPassMaxTokens ?? SLOT_GENERATOR_MAX_TOKENS) : (params.repairMaxTokens ?? REPAIR_MAX_TOKENS),
             responseFormat: { type: "json_object" },
         });
 
@@ -1948,8 +1964,11 @@ export async function generateSlotsParallel(params: {
     deadlineAt: number;
     withDeadline: <T>(work: Promise<T>, stage: string) => Promise<T>;
     surfaces: ThemeSurfaces;
+    generationMode?: GenerationMode;
 }): Promise<Array<{ component: AnyComponent; exemplarIds: string[] }>> {
     const deterministicRenderMode = GEN_V3_SKETCH_RENDER;
+    const isFullCanvas = params.generationMode === "full_canvas";
+    const batchSize = isFullCanvas ? FULL_CANVAS_SLOT_BATCH_SIZE : SLOT_BATCH_SIZE;
     if (deterministicRenderMode) {
         return params.plannedSlots.map((slot) => {
             const sketchNode: LayoutSketchNode = { slotType: slot.slotType, position: slot.position, intent: slot.intent, itemCount: slot.itemCount, primitive: inferSketchPrimitive(slot, params.designSpec), emphasis: "medium" };
@@ -1966,15 +1985,36 @@ export async function generateSlotsParallel(params: {
     const usedMorphologies = new Map<SlotType, Set<string>>();
     const usedRailVariants = new Set<RailVariant>();
 
-    for (let start = 0; start < params.plannedSlots.length; start += SLOT_BATCH_SIZE) {
-        const batch = params.plannedSlots.slice(start, start + SLOT_BATCH_SIZE);
+    for (let start = 0; start < params.plannedSlots.length; start += batchSize) {
+        const batch = params.plannedSlots.slice(start, start + batchSize);
         const tasks = batch.map((slot) => params.withDeadline((async () => {
             const requirements = selectPromptRequirementsForSlot(slot, params.manifest.requirements);
-            let result = await generateSlot({ supabase: params.supabase, prompt: params.prompt, theme: params.theme, plan: params.plan, slot, manifest: params.manifest, designSpec: params.designSpec, memory });
+            let result = await generateSlot({
+                supabase: params.supabase,
+                prompt: params.prompt,
+                theme: params.theme,
+                plan: params.plan,
+                slot,
+                manifest: params.manifest,
+                designSpec: params.designSpec,
+                memory,
+                generationMode: params.generationMode,
+            });
             const score = scoreSlotOutput(slot, result.component, requirements, usedMorphologies, usedRailVariants, params.designSpec);
             if (!score.pass && (params.deadlineAt - Date.now()) > 3500) {
                 const fixedSlot: SlotPlan = { ...slot, variant_hint: `${slot.variant_hint ?? ""} STRICT FIX REQUIRED: ${score.blockers.join(" | ")}`.trim() };
-                result = await generateSlot({ supabase: params.supabase, prompt: params.prompt, theme: params.theme, plan: params.plan, slot: fixedSlot, manifest: params.manifest, designSpec: params.designSpec, memory, blockers: score.blockers });
+                result = await generateSlot({
+                    supabase: params.supabase,
+                    prompt: params.prompt,
+                    theme: params.theme,
+                    plan: params.plan,
+                    slot: fixedSlot,
+                    manifest: params.manifest,
+                    designSpec: params.designSpec,
+                    memory,
+                    blockers: score.blockers,
+                    generationMode: params.generationMode,
+                });
             }
             return { slot, result };
         })(), `slot:${slot.slotType}`));

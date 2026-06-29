@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { AnyComponent, CanvasSettings, GenerationMode, ScreenArchetype, ScreenPlan, SlotPosition, ThemeTokens } from "./types.ts";
-import { GENERATION_DEADLINE_MS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS } from "./openai.ts";
+import { FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS, GENERATION_DEADLINE_MS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS } from "./openai.ts";
 import { buildDesignManifest, compilePromptDesignSpec } from "./manifest.ts";
 import { classifyArchetype, defaultPlanFromArchetype, planSlots, refineScreenPlan, resolveScreenContract } from "./planner.ts";
 import { buildFallbackSlot, buildLayoutSketch, generateSlotsParallel, materializeSlotFromSketchNode } from "./slot-generator.ts";
@@ -45,7 +45,10 @@ export async function buildGeneratedScreen(
         const contract = resolveScreenContract(prompt, designSpec);
         // Step 2: Plan slots (informed by archetype + theme)
         const rawPlan = await withDeadline(
-            planSlots(prompt, archetype, theme, context, manifest, designSpec, contract ?? undefined),
+            planSlots(prompt, archetype, theme, context, manifest, designSpec, contract ?? undefined, {
+                maxTokens: FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS,
+                temperature: 0.52,
+            }),
             "slot planning",
         );
         const plan = refineScreenPlan(rawPlan, manifest, designSpec);
@@ -65,6 +68,7 @@ export async function buildGeneratedScreen(
             deadlineAt,
             withDeadline,
             surfaces,
+            generationMode: "full_canvas",
         });
         const slotComponents = slotResults.map((r, i) => ({
             position: plannedSlots[i].position,
@@ -110,6 +114,7 @@ export async function buildGeneratedScreen(
         deadlineAt,
         withDeadline,
         surfaces,
+        generationMode: "standard",
     });
     const slotComponents = slotResults.map((r, i) => ({
         position: plannedSlots[i].position,

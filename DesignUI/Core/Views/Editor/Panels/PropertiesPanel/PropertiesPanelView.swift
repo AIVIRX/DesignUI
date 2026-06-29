@@ -31,15 +31,12 @@ struct PropertiesPanelView: View {
     var body: some View {
         #if os(iOS)
         if useNavigationStack {
-                navigationContent
-        } else {
             navigationContent
+        } else {
+            plainContent
         }
         #else
-        content
-            .sheet(isPresented: $showImageGallery) {
-                ImageGalleryView(selectedImageName: $galleryImageName)
-            }
+        plainContent
         #endif
     }
     
@@ -50,6 +47,16 @@ struct PropertiesPanelView: View {
                 ImageGalleryView(selectedImageName: $galleryImageName)
             }
             .navigationDestination(isPresented: $showColorEditor) {
+                colorEditorDestinationView
+            }
+    }
+
+    private var plainContent: some View {
+        content
+            .sheet(isPresented: $showImageGallery) {
+                ImageGalleryView(selectedImageName: $galleryImageName)
+            }
+            .sheet(isPresented: $showColorEditor) {
                 colorEditorDestinationView
             }
     }
@@ -2883,11 +2890,16 @@ private struct FastInspectorView: View {
             if let menuTypes {
                 Menu {
                     ForEach(menuTypes) { t in
+                        let isAlreadyAdded = component.modifiers.contains(where: { $0.type == t })
                         Button {
-                            ensureModifier(t)
+                            if !isAlreadyAdded {
+                                ensureModifier(t)
+                            }
                         } label: {
                             Label(t.rawValue, systemImage: t.icon)
                         }
+                        .disabled(isAlreadyAdded)
+                        .opacity(isAlreadyAdded ? 0.45 : 1.0)
                     }
                 } label: {
                     plusCircle

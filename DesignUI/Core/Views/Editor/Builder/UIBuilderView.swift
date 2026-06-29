@@ -546,6 +546,7 @@ struct UIBuilderView: View {
             .toolbar { toolbarButtons }
 #if os(macOS)
             .toolbarBackground(.hidden, for: .windowToolbar)
+            .toolbarRole(.editor)
 #endif
     }
 
@@ -906,7 +907,6 @@ struct UIBuilderView: View {
                     .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
                 }
             }
-
         }
     }
     #endif
@@ -1505,9 +1505,23 @@ struct UIBuilderView: View {
         }
     }
 
-
     @ToolbarContentBuilder
     private var toolbarButtons: some ToolbarContent {
+#if os(macOS)
+        ToolbarItemGroup(placement: .navigation) {
+            layersToolbarToggleButton
+        }
+
+        ToolbarItemGroup(placement: .primaryAction) {
+            Spacer()
+            devicePresetMenu
+            colorSchemeMenu
+            pageMenu
+            undoToolbarButton
+            redoToolbarButton
+            exportMenu
+        }
+#else
         ToolbarItemGroup(placement: .navigation) {
             layersToolbarToggleButton
         }
@@ -1519,10 +1533,11 @@ struct UIBuilderView: View {
             undoToolbarButton
             redoToolbarButton
         }
-        
+
         ToolbarItemGroup(placement: .primaryAction) {
             exportMenu
         }
+#endif
     }
 
     private var layersToolbarToggleButton: some View {
@@ -1778,9 +1793,7 @@ struct UIBuilderView: View {
             deviceSize: canvasManager.devicePreset.size,
             colorScheme: canvasManager.colorScheme ?? .light,
             statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
-            statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea,
-            previewToolbarVisible: !isWidget && canvasManager.devicePreset.category == .iphone,
-            previewToolbarTitle: canvasManager.designName
+            statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
         )
         
         guard let imageData = ScreenshotUtility.shared.captureThumbnail(
@@ -1870,9 +1883,7 @@ struct UIBuilderView: View {
                 deviceSize: canvasManager.devicePreset.size,
                 colorScheme: canvasManager.colorScheme ?? .light,
                 statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
-                statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea,
-                previewToolbarVisible: !isWidget && canvasManager.devicePreset.category == .iphone,
-                previewToolbarTitle: canvasManager.designName
+                statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
             )
             if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
                 of: screenshotView,
@@ -2716,9 +2727,7 @@ struct UIBuilderView: View {
             deviceSize: self.canvasManager.devicePreset.size,
             colorScheme: self.canvasManager.colorScheme ?? .light,
             statusBarVisible: isWidget ? false : self.canvasManager.statusBarVisible,
-            statusBarTopSafeArea: isWidget ? false : self.canvasManager.statusBarTopSafeArea,
-            previewToolbarVisible: !isWidget && self.canvasManager.devicePreset.category == .iphone,
-            previewToolbarTitle: self.canvasManager.designName
+            statusBarTopSafeArea: isWidget ? false : self.canvasManager.statusBarTopSafeArea
         )
         
         if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
