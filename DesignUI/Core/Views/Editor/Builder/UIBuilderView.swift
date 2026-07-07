@@ -222,6 +222,8 @@ struct UIBuilderView: View {
     @State private var showComponentLibrary = false
     @State private var componentLibraryMode: ComponentLibraryMode = .add
     @State private var showCommunitySubmission = false
+    @State private var showAISignInSheet = false
+    @StateObject private var aiAuthViewModel = AuthViewModel()
     
     // Free tier limit
     private let freePageLimit = 3
@@ -630,8 +632,32 @@ struct UIBuilderView: View {
             .sheet(item: $activeSheet) { sheet in
                 iOSActiveSheetContent(sheet)
             }
+            .sheet(isPresented: $showAISignInSheet) {
+                SignInView()
+                    .environmentObject(aiAuthViewModel)
+                    .onChange(of: aiAuthViewModel.isAuthenticated) { _, isAuthenticated in
+                        if isAuthenticated {
+                            Task {
+                                await aiService.refreshQuota()
+                            }
+                            showAISignInSheet = false
+                        }
+                    }
+            }
 #else
         content
+            .sheet(isPresented: $showAISignInSheet) {
+                SignInView()
+                    .environmentObject(aiAuthViewModel)
+                    .onChange(of: aiAuthViewModel.isAuthenticated) { _, isAuthenticated in
+                        if isAuthenticated {
+                            Task {
+                                await aiService.refreshQuota()
+                            }
+                            showAISignInSheet = false
+                        }
+                    }
+            }
 #endif
     }
 
@@ -1379,6 +1405,9 @@ struct UIBuilderView: View {
             onGenerate: { prompt in
                 await generateWithAI(prompt: prompt)
             },
+            onRequestSignIn: {
+                showAISignInSheet = true
+            },
             selectedLabel: selectedComponentLabel(),
             quotaRemaining: aiService.lastQuotaRemaining,
             requiresSignIn: SupabaseManager.shared.client.auth.currentUser == nil
@@ -2106,6 +2135,7 @@ struct UIBuilderView: View {
                 await MainActor.run {
                     applyAIComponents(components, prompt: trimmed, operations: operations)
                 }
+                return
             } else if !settingsApplied {
                 toastManager.showToast(ToastData(title: "No components returned", icon: "exclamationmark.triangle"))
             }

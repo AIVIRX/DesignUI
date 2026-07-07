@@ -44,6 +44,7 @@ serve(async (req) => {
         const currentCount = usage?.count ?? 0;
         const { prompt, selected_component, context } = await req.json();
         const safePrompt = typeof prompt === "string" ? prompt : "";
+        const safeContext = isObject(context) ? context as Record<string, unknown> : {};
         const makeReset = () => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString();
         const makeQuota = (count: number) => ({ remaining: Math.max(0, dailyLimit - count), limit: dailyLimit, reset: makeReset(), rate_limit_seconds: RATE_LIMIT_SECONDS });
 
@@ -53,14 +54,13 @@ serve(async (req) => {
         if (currentCount >= dailyLimit) return json({ error: "Daily AI limit reached", quota: makeQuota(currentCount) }, 429);
 
         let resolvedSelection = normalizeSelectedComponent(selected_component);
-        if (!resolvedSelection && isObject(context)) resolvedSelection = normalizeSelectedComponent((context as Record<string, unknown>).selected_component_json);
+        if (!resolvedSelection) resolvedSelection = normalizeSelectedComponent(safeContext.selected_component_json);
         const forceFullCanvas = isFullCanvasPrompt(safePrompt);
         const hasSelection = resolvedSelection != null && !forceFullCanvas;
         const selectedComponentType = isObject(resolvedSelection) && typeof resolvedSelection.type === "string" ? String(resolvedSelection.type) : null;
         await logPrompt(supabaseAdmin, userId, safePrompt, selectedComponentType, hasSelection, forceFullCanvas, currentCount, dailyLimit, now);
         if (!openaiApiKey) return json({ error: "OpenAI API key not configured" }, 500);
         const saveUsage = (count: number) => supabaseAdmin.from("ai_usage").upsert({ user_id: userId, day, count, last_request_at: now.toISOString(), updated_at: now.toISOString() }, { onConflict: "user_id,day" });
-
         if (!hasSelection) {
             const generationMode: GenerationMode = forceFullCanvas ? "full_canvas" : "standard";
             const generated = await buildGeneratedScreen(supabaseAdmin, safePrompt, context, generationMode).catch((err) => { console.error("Generation pipeline timed out; returning emergency fallback", err); return buildEmergencyGeneratedScreen(safePrompt); });

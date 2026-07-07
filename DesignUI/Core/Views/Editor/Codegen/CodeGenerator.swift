@@ -598,18 +598,18 @@ struct CodeGenerator {
 
         switch shapeName {
         case "Circle":
-            return "\(indent).glassEffect(.regular, in: Circle())"
+            return "\(indent).glassEffect(.regular.interactive(), in: Circle())"
         case "Capsule":
-            return "\(indent).glassEffect(.regular, in: Capsule())"
+            return "\(indent).glassEffect(.regular.interactive(), in: Capsule())"
         case "RoundedRectangle":
             let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 10)
-            return "\(indent).glassEffect(.regular, in: RoundedRectangle(cornerRadius: \(formatNumber(Double(radius)))))"
+            return "\(indent).glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: \(formatNumber(Double(radius)))))"
         case "Ellipse":
-            return "\(indent).glassEffect(.regular, in: Ellipse())"
+            return "\(indent).glassEffect(.regular.interactive(), in: Ellipse())"
         case "Rectangle":
-            return "\(indent).glassEffect(.regular, in: Rectangle())"
+            return "\(indent).glassEffect(.regular.interactive(), in: Rectangle())"
         default:
-            return "\(indent).glassEffect()"
+            return "\(indent).glassEffect(.regular.interactive())"
         }
     }
 

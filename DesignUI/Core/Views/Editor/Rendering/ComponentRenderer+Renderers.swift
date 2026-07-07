@@ -987,21 +987,60 @@ extension View {
                 let shapeName = normalizedGlassShapeName(from: modifier)
                 switch shapeName {
                 case "Circle":
-                    return AnyView(baseView.glassEffect(.regular, in: Circle()))
+                    return glassEffectRenderedView(baseView: baseView, shape: Circle(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
                 case "Capsule":
-                    return AnyView(baseView.glassEffect(.regular, in: Capsule()))
+                    return glassEffectRenderedView(baseView: baseView, shape: Capsule(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
                 case "RoundedRectangle":
                     let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 10)
-                    return AnyView(baseView.glassEffect(.regular, in: RoundedRectangle(cornerRadius: radius)))
+                    return glassEffectRenderedView(baseView: baseView, shape: RoundedRectangle(cornerRadius: radius), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
                 case "Ellipse":
-                    return AnyView(baseView.glassEffect(.regular, in: Ellipse()))
+                    return glassEffectRenderedView(baseView: baseView, shape: Ellipse(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
                 case "Rectangle":
-                    return AnyView(baseView.glassEffect(.regular, in: Rectangle()))
+                    return glassEffectRenderedView(baseView: baseView, shape: Rectangle(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
                 default:
-                    return AnyView(baseView.glassEffect())
+                    return glassEffectRenderedView(baseView: baseView, shape: RoundedRectangle(cornerRadius: 10), useOverlayForShape: false, colorScheme: colorScheme, componentType: component.type)
                 }
             }
             return view
+        }
+    }
+
+    private func glassEffectRenderedView<S: Shape>(baseView: AnyView, shape: S, useOverlayForShape: Bool, colorScheme: ColorScheme?, componentType: ComponentType) -> AnyView {
+        if #available(iOS 26.0, macOS 26.0, *) {
+            let isDarkMode = colorScheme == .dark
+            let isContainer = [.stack, .vstack, .hstack, .zstack, .scrollView].contains(componentType)
+            let rendered: AnyView
+
+            if isDarkMode {
+                let glassView = Color.clear.glassEffect(.regular.interactive(), in: shape)
+                if useOverlayForShape {
+                    rendered = AnyView(baseView.overlay(glassView))
+                } else if isContainer {
+                    rendered = AnyView(baseView.background(glassView))
+                } else {
+                    rendered = AnyView(baseView.glassEffect(.regular.interactive(), in: shape))
+                }
+            } else {
+                let glassView = Color.clear.glassEffect(.regular.tint(.gray.opacity(0.45)).interactive(), in: shape)
+                if useOverlayForShape {
+                    rendered = AnyView(baseView.overlay(glassView))
+                } else if isContainer {
+                    rendered = AnyView(baseView.background(glassView))
+                } else {
+                    rendered = AnyView(baseView.glassEffect(.regular.tint(.gray.opacity(0.45)).interactive(), in: shape))
+                }
+            }
+            let borderOpacity = isDarkMode ? 0.28 : 0.18
+            let glowOpacity = isDarkMode ? 0.14 : 0.08
+
+            return AnyView(
+                rendered
+                    .overlay(shape.stroke(.white.opacity(borderOpacity), lineWidth: 1))
+                    .overlay(shape.stroke(.white.opacity(glowOpacity), lineWidth: 3).blur(radius: 6))
+                    .shadow(color: .black.opacity(isDarkMode ? 0.12 : 0.08), radius: 10, y: 2)
+            )
+        } else {
+            return baseView
         }
     }
 

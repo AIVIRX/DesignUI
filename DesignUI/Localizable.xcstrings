@@ -5584,6 +5584,9 @@
         }
       }
     },
+    "1 image" : {
+
+    },
     "9:41" : {
       "localizations" : {
         "ar" : {
@@ -28229,6 +28232,9 @@
     "Featured" : {
 
     },
+    "Files" : {
+
+    },
     "Font Size" : {
       "localizations" : {
         "ar" : {
@@ -42339,6 +42345,9 @@
           }
         }
       }
+    },
+    "Photos" : {
+
     },
     "Placeholder" : {
       "localizations" : {

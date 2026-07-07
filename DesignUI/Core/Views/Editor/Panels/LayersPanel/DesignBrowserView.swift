@@ -454,22 +454,17 @@ private struct DesignBrowserChromeModifier: ViewModifier {
                 Label("Settings", systemImage: "gear")
             }
         }
-        #else
-        ToolbarItem(placement: .navigation) {
-            Button(action: { showingSettings = true }) {
-                Label("Settings", systemImage: "gear")
-            }
-        }
-        #endif
-
-        #if os(iOS)
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: onCreateNewTapped) {
                 Label("New Design", systemImage: "plus")
             }
         }
         #else
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button(action: { showingSettings = true }) {
+                Label("Settings", systemImage: "gear")
+            }
+
             Button(action: onCreateNewTapped) {
                 Label("New Design", systemImage: "plus")
             }

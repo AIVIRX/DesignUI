@@ -417,6 +417,12 @@ enum AIServiceError: Error {
     case emptyComponents
 }
 
+enum AIGenerationMode: String, Codable {
+    case standard
+    case fastPreview = "fast_preview"
+    case refine
+}
+
 final class AIService: ObservableObject {
     static let shared = AIService()
 
@@ -428,10 +434,22 @@ final class AIService: ObservableObject {
     @Published private(set) var lastRateLimitSeconds: Int? = nil
     @Published private(set) var lastCanvasSettings: CanvasSettings? = nil
     @Published private(set) var lastOperations: [AIEditOperation] = []
+    private var responseCache: [String: ResponsePayload] = [:]
 
     private struct Payload: Codable {
         let prompt: String
         let context: [String: AnyCodable]
+    }
+
+    private struct CacheKeyEntry: Codable {
+        let key: String
+        let value: AnyCodable
+    }
+
+    private struct GenerationCacheKey: Codable {
+        let prompt: String
+        let generationMode: String
+        let context: [CacheKeyEntry]
     }
 
     private struct QuotaPayload: Codable {
@@ -484,7 +502,7 @@ final class AIService: ObservableObject {
     }
 
     @MainActor
-    func generateComponents(prompt: String, context: [String: AnyCodable]) async throws -> [UIComponent] {
+    func generateComponents(prompt: String, context: [String: AnyCodable], generationMode: AIGenerationMode = .standard) async throws -> [UIComponent] {
         let supabase = SupabaseManager.shared.client
         guard supabase.auth.currentUser != nil else {
             print("AIService.generateComponents: not authenticated")
@@ -503,15 +521,25 @@ final class AIService: ObservableObject {
         let endpoint = baseURL.appendingPathComponent("functions/v1/StudioAI")
         print("AIService.generateComponents: POST \(endpoint.absoluteString)")
 
+        var requestContext = context
+        requestContext["generation_mode"] = AnyCodable(generationMode.rawValue)
+
+        let cacheKey = try cacheKeyForRequest(prompt: prompt, context: requestContext, generationMode: generationMode)
+        if let cachedResponse = responseCache[cacheKey] {
+            print("AIService.generateComponents: cache hit mode=\(generationMode.rawValue)")
+            applyResponsePayload(cachedResponse)
+            return try components(from: cachedResponse)
+        }
+
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.timeoutInterval = 60
 
-        let payload = Payload(prompt: prompt, context: context)
+        let payload = Payload(prompt: prompt, context: requestContext)
         request.httpBody = try JSONEncoder().encode(payload)
-        print("AIService.generateComponents: promptLength=\(prompt.count) contextKeys=\(context.keys.count)")
+        print("AIService.generateComponents: promptLength=\(prompt.count) contextKeys=\(requestContext.keys.count) mode=\(generationMode.rawValue)")
 
         let sessionConfig = URLSessionConfiguration.default
         sessionConfig.timeoutIntervalForRequest = 60
@@ -555,6 +583,29 @@ final class AIService: ObservableObject {
             print("AIService.generateComponents: error message=\(message)")
             throw AIServiceError.requestFailed(message)
         }
+        applyResponsePayload(decoded)
+        responseCache[cacheKey] = decoded
+        return try components(from: decoded)
+    }
+
+    private func components(from payload: ResponsePayload) throws -> [UIComponent] {
+        if payload.mode == "component", let component = payload.component {
+            print("AIService.generateComponents: success single component")
+            return [component]
+        }
+        if let components = payload.components, !components.isEmpty {
+            print("AIService.generateComponents: success components=\(components.count)")
+            return components
+        }
+        if payload.canvasSettings != nil {
+            print("AIService.generateComponents: canvas settings only")
+            return []
+        }
+        print("AIService.generateComponents: empty components")
+        throw AIServiceError.emptyComponents
+    }
+
+    private func applyResponsePayload(_ decoded: ResponsePayload) {
         if let quota = decoded.quota {
             lastQuotaRemaining = quota.remaining ?? lastQuotaRemaining
             lastQuotaLimit = quota.limit ?? lastQuotaLimit
@@ -565,20 +616,17 @@ final class AIService: ObservableObject {
             lastCanvasSettings = canvasSettings
         }
         lastOperations = decoded.ops ?? []
-        if decoded.mode == "component", let component = decoded.component {
-            print("AIService.generateComponents: success single component")
-            return [component]
-        }
-        if let components = decoded.components, !components.isEmpty {
-            print("AIService.generateComponents: success components=\(components.count)")
-            return components
-        }
-        if decoded.canvasSettings != nil {
-            print("AIService.generateComponents: canvas settings only")
-            return []
-        }
-        print("AIService.generateComponents: empty components")
-        throw AIServiceError.emptyComponents
+    }
+
+    private func cacheKeyForRequest(prompt: String, context: [String: AnyCodable], generationMode: AIGenerationMode) throws -> String {
+        let entries = context
+            .compactMap { key, value -> CacheKeyEntry? in
+                return CacheKeyEntry(key: key, value: value)
+            }
+            .sorted { $0.key < $1.key }
+        let key = GenerationCacheKey(prompt: prompt, generationMode: generationMode.rawValue, context: entries)
+        let data = try JSONEncoder().encode(key)
+        return data.base64EncodedString()
     }
 
     @MainActor

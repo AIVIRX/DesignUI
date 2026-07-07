@@ -4,6 +4,7 @@ struct AICommandBar: View {
     @ObservedObject var canvasManager: CanvasManager
     @Binding var isGenerating: Bool
     var onGenerate: (String) async -> Void
+    var onRequestSignIn: (() -> Void)? = nil
     var selectedLabel: String?
     var quotaRemaining: Int
     var requiresSignIn: Bool = false
@@ -165,13 +166,20 @@ struct AICommandBar: View {
     
     private func generate() {
         guard canSend else { return }
+        if requiresSignIn {
+            onRequestSignIn?()
+            return
+        }
         
         isGenerating = true
         let currentPrompt = prompt
-        prompt = ""
         
         Task {
             await onGenerate(currentPrompt)
+            await MainActor.run {
+                isGenerating = false
+                prompt = ""
+            }
         }
     }
 }
