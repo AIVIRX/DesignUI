@@ -98,7 +98,6 @@ struct CodePreviewView: View {
         )
         
         // Code content with syntax highlighting
-        // Code content with syntax highlighting
         VStack(alignment: .leading, spacing: 0) {
             CompleteFileCode(canvasManager: canvasManager)
         }

@@ -1,7 +1,7 @@
 {
     "name": "Hello World",
     "description": "Start with a simple Hello World text",
-    "thumbnail": "blank",
+    "thumbnail": "Blank",
     "devicePreset": "iPhone 16 Pro",
     "canvasColorScheme": "light",
     "components": [

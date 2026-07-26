@@ -83,9 +83,9 @@ struct ContentView: View {
                         onSubmit: { _ in }
                     ),
                     FormStep(
-                        icon: "person.3.fill",
-                        title: "Share to Community",
-                        description: "Inspire others by sharing your best designs.",
+                        icon: "square.and.arrow.up",
+                        title: "Export Quickly",
+                        description: "Save screenshots and copy code when your design is ready.",
                         type: .button(title: "Continue", icon: "arrow.right"),
                         gradient: (.green, .green, .green),
                         onSubmit: { _ in }

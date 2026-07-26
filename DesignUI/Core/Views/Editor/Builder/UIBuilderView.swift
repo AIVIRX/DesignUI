@@ -221,7 +221,6 @@ struct UIBuilderView: View {
 
     @State private var showComponentLibrary = false
     @State private var componentLibraryMode: ComponentLibraryMode = .add
-    @State private var showCommunitySubmission = false
     @State private var showAISignInSheet = false
     @StateObject private var aiAuthViewModel = AuthViewModel()
     
@@ -378,10 +377,6 @@ struct UIBuilderView: View {
         }
     }
     
-    private func openCommunitySubmissionSheet() {
-        showCommunitySubmission = true
-    }
-
     private func presentRenameCurrentPage() {
         guard currentPageIndex >= 0, currentPageIndex < designFile.pages.count else { return }
         renamePageText = designFile.pages[currentPageIndex].name
@@ -434,11 +429,9 @@ struct UIBuilderView: View {
                     withComponentChangeHandlers(
                         withLifecycleHandlers(
                             withEditorSheets(
-                                withCommunitySheet(
-                                    withRenamePageSheet(
-                                        withCodePreviewSheet(
-                                            withToolbar(baseNavigationContent)
-                                        )
+                                withRenamePageSheet(
+                                    withCodePreviewSheet(
+                                        withToolbar(baseNavigationContent)
                                     )
                                 )
                             )
@@ -528,10 +521,6 @@ struct UIBuilderView: View {
                 saveAsScreenshot()
             }
             .tint(.blue)
-            Button("Share to Community", systemImage: "person.2.fill") {
-                openCommunitySubmissionSheet()
-            }
-            .tint(.green)
         }
     }
 
@@ -574,13 +563,6 @@ struct UIBuilderView: View {
                     .presentationDragIndicator(.visible)
             }
 #endif
-    }
-
-    private func withCommunitySheet<Content: View>(_ content: Content) -> some View {
-        content
-            .sheet(isPresented: $showCommunitySubmission) {
-                SubmitToCommunityView(designFile: designFile)
-            }
     }
 
     private func withRenamePageSheet<Content: View>(_ content: Content) -> some View {
@@ -1102,10 +1084,6 @@ struct UIBuilderView: View {
             Divider()
             Button(action: { saveAsScreenshot() }) {
                 Label("Save as Screenshot", systemImage: "photo")
-            }
-            Divider()
-            Button(action: { openCommunitySubmissionSheet() }) {
-                Label("Share to Community", systemImage: "paperplane")
             }
         } label: {
             Image(systemName: "square.and.arrow.up")
@@ -1749,12 +1727,6 @@ struct UIBuilderView: View {
             
             Button(action: { saveAsScreenshot() }) {
                 Label("Save as Screenshot", systemImage: "photo")
-            }
-            
-            Divider()
-            
-            Button(action: { openCommunitySubmissionSheet() }) {
-                Label("Share to Community", systemImage: "paperplane")
             }
             
             Divider()
