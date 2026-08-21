@@ -28,7 +28,9 @@ struct OnboardingFlowView: View {
     
     var body: some View {
         content
-        .background(.white)
+        .background(
+            Color(red: 0.07, green: 0.09, blue: 0.14)
+        )
         .ignoresSafeArea(.container)
         .onAppear {
             if let startGradient {
@@ -59,6 +61,16 @@ struct OnboardingFlowView: View {
 
     private var animatedGradientBackground: some View {
         ZStack {
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.2),
+                    .clear,
+                    Color.black.opacity(0.28)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
             gradientLayer(
                 color: gradient.0,
                 center: phase > 0 ? .top : .bottom,
@@ -82,6 +94,11 @@ struct OnboardingFlowView: View {
                 endRadius: 350,
                 delay: 0.4
             )
+        }
+        .overlay(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 40, style: .continuous)
+                .stroke(.white.opacity(0.08), lineWidth: 1)
+                .padding(18)
         }
     }
 

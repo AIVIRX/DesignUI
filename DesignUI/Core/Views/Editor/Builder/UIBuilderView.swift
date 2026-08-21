@@ -2084,10 +2084,24 @@ struct UIBuilderView: View {
         }
         let selectedJSON = canvasManager.getSelectedComponentJSON()
         let componentCount = selectedComponent != nil ? canvasManager.countComponents(in: selectedComponent!) : canvasManager.components.count
+        let topLevelComponentTypes = Array(canvasManager.components.prefix(8)).map { $0.type.rawValue }
+        let currentPageName: String = {
+            guard !designFile.pages.isEmpty,
+                  designFile.currentPageIndex >= 0,
+                  designFile.currentPageIndex < designFile.pages.count else {
+                return designFile.name
+            }
+            return designFile.pages[designFile.currentPageIndex].name
+        }()
+
         let context: [String: AnyCodable] = [
+            "designName": AnyCodable(designFile.name),
+            "currentPageName": AnyCodable(currentPageName),
+            "pageCount": AnyCodable(designFile.pages.isEmpty ? 1 : designFile.pages.count),
             "devicePreset": AnyCodable(canvasManager.devicePreset.rawValue),
             "colorScheme": AnyCodable(canvasManager.colorScheme == .dark ? "dark" : (canvasManager.colorScheme == .light ? "light" : "system")),
             "componentCount": AnyCodable(componentCount),
+            "topLevelComponentTypes": AnyCodable(topLevelComponentTypes),
             "selected_component_json": AnyCodable(selectedJSON ?? ""),
             "selected_component_type": AnyCodable(selectedComponent?.type.rawValue ?? ""),
             "selected_component": AnyCodable(selectedComponent?.type.rawValue ?? ""),

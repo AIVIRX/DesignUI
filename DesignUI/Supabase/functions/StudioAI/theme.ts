@@ -1,5 +1,6 @@
 import type { Density, ScreenTokens, ThemeSurfaces, ThemeTokens } from "./types.ts";
 import { callOpenAI, STANDARD_TOKENS_MODEL, THEME_EXTRACT_MAX_TOKENS, THEME_MODEL } from "./openai.ts";
+import { THEME_RESPONSE_FORMAT } from "./structured-output.ts";
 import { isJsonParseError, isObject, normalizeDensity, normalizeSurfaceStyle, parseJsonSafe } from "./utils.ts";
 
 // ─── Theme extraction ────────────────────────────────────────────────────────
@@ -125,7 +126,7 @@ export async function extractThemeTokens(prompt: string): Promise<ThemeTokens> {
             { role: "system", content: `DOMAIN DEFAULTS (starting point, refine for this app):\n${JSON.stringify(domainDefaults)}` },
             { role: "user", content: prompt },
         ],
-        temperature: 0.2, maxTokens: THEME_EXTRACT_MAX_TOKENS, responseFormat: { type: "json_object" },
+        temperature: 0.2, maxTokens: THEME_EXTRACT_MAX_TOKENS, responseFormat: THEME_RESPONSE_FORMAT,
     });
 
     if (!response.ok) return baseline;
@@ -188,6 +189,32 @@ export function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
     }
     if (/\btravel\b|\bitinerary\b|\btrip\b|\bflight\b|\bhotel\b/.test(p)) {
         return { accentColor: "orange:1.0", secondaryColor: "blue:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["travel", "planning"], ctaText: "View Trip" };
+    }
+    if (/\buber\b|\blyft\b|\brideshare\b|\bride share\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p)) {
+        return {
+            accentColor: "blue:1.0",
+            secondaryColor: "teal:1.0",
+            surfaceStyle: "utility",
+            density: "regular",
+            voiceTone: "professional",
+            cornerRadiusScale: "medium",
+            domainTags: ["transport", "rideshare", "map"],
+            ctaText: "Confirm Ride",
+            itemNoun: "rides",
+            sampleRailItems: ["UberX", "Comfort", "Black", "XL", "Reserve"],
+            sampleItems: [
+                "UberX:4 min away:$14.90",
+                "Comfort:6 min away:$18.40",
+                "Black:8 min away:$34.20",
+                "Reserve:Schedule ahead:Tomorrow",
+            ],
+            sampleMetrics: [
+                "ETA:4 min:-1 min",
+                "Pickup:2 min walk:On time",
+                "Driver:4.93:+0.02",
+                "Surge:1.0x:Stable",
+            ],
+        };
     }
     if (/\bcoffee\b|\bcafe\b|\bcafé\b|\blatte\b|\bespresso\b|\broaster\b|\bbrew\b/.test(p)) {
         return {

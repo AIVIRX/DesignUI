@@ -23297,6 +23297,9 @@
         }
       }
     },
+    "DESIGN FASTER. SHIP CLEANER." : {
+
+    },
     "Design Name" : {
       "localizations" : {
         "ar" : {
@@ -24280,6 +24283,9 @@
           }
         }
       }
+    },
+    "DockUI Studio" : {
+
     },
     "Done" : {
       "localizations" : {
@@ -27560,6 +27566,9 @@
           }
         }
       }
+    },
+    "Enter Workspace" : {
+
     },
     "Error" : {
       "localizations" : {
@@ -36089,6 +36098,9 @@
         }
       }
     },
+    "NEW" : {
+
+    },
     "New Design" : {
       "localizations" : {
         "ar" : {
@@ -40681,6 +40693,9 @@
         }
       }
     },
+    "Opening workspace" : {
+
+    },
     "Options" : {
       "localizations" : {
         "ar" : {
@@ -43960,6 +43975,9 @@
           }
         }
       }
+    },
+    "Preparing canvas" : {
+
     },
     "Preview" : {
       "localizations" : {
@@ -58392,6 +58410,9 @@
           }
         }
       }
+    },
+    "SwiftUI generation with structure" : {
+
     },
     "Symbol Size" : {
       "localizations" : {

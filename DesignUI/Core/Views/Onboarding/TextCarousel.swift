@@ -48,23 +48,43 @@ struct TextCarousel: View {
         let isHighlighted = item.id == highlightID
 
         return HStack(spacing: 16) {
-            if isHighlighted {
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(isHighlighted ? .white : .white.opacity(0.12))
+                    .frame(width: 58, height: 58)
+
                 Image(item.image)
                     .resizable()
                     .scaledToFit()
-                    .frame(maxHeight: 38)
-                    .font(.system(size: 48))
-                    .transition(
-                        .move(edge: .leading).combined(with: .opacity).combined(with: .scale)
-                    )
+                    .frame(width: 34, height: 34)
+                    .scaleEffect(isHighlighted ? 1 : 0.92)
             }
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(.white.opacity(isHighlighted ? 0.0 : 0.12), lineWidth: 1)
+            )
+            .transition(
+                .move(edge: .leading).combined(with: .opacity).combined(with: .scale)
+            )
 
             Text(item.text)
-                .foregroundStyle(isHighlighted ? .black : .black.opacity(0.2))
-                .font(.system(size: 40, weight: .medium))
+                .foregroundStyle(isHighlighted ? .white : .white.opacity(0.38))
+                .font(
+                    .system(
+                        size: isHighlighted ? 42 : 34,
+                        weight: isHighlighted ? .bold : .semibold,
+                        design: .rounded
+                    )
+                )
         }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .drawingGroup()
         .frame(height: rowHeight)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(isHighlighted ? .black.opacity(0.18) : .clear)
+        )
         .transaction { transaction in
             if item.id == window.first?.id {
                 transaction.animation = nil
@@ -76,8 +96,8 @@ struct TextCarousel: View {
         LinearGradient(
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0),
-                .init(color: .black, location: 0.3),
-                .init(color: .black, location: 0.7),
+                .init(color: .black, location: 0.22),
+                .init(color: .black, location: 0.78),
                 .init(color: .clear, location: 1)
             ]),
             startPoint: .top,

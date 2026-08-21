@@ -3,6 +3,8 @@ import type { AnyComponent, CanvasSettings, GenerationMode, ScreenArchetype, Scr
 import { FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS, GENERATION_DEADLINE_MS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS } from "./openai.ts";
 import { buildDesignManifest, compilePromptDesignSpec } from "./manifest.ts";
 import { classifyArchetype, defaultPlanFromArchetype, planSlots, refineScreenPlan, resolveScreenContract } from "./planner.ts";
+import { extractSemanticIntent } from "./semantic-intent.ts";
+import { compileScreenIRToPlan, extractScreenIR } from "./screen-ir.ts";
 import { buildFallbackSlot, buildLayoutSketch, generateSlotsParallel, materializeSlotFromSketchNode } from "./slot-generator.ts";
 import { buildBaselineTheme, computeThemeSurfaces, extractThemeTokens } from "./theme.ts";
 import { postProcessComponents } from "./postprocess.ts";
@@ -37,21 +39,26 @@ export async function buildGeneratedScreen(
         const manifest = buildDesignManifest(prompt);
         const designSpec = compilePromptDesignSpec(prompt, manifest);
         // Step 1: Archetype + Theme in parallel
-        const [theme, archetype] = await withDeadline(
-            Promise.all([extractThemeTokens(prompt), classifyArchetype(prompt)]),
-            "theme/archetype",
+        const [theme, archetype, semanticIntent] = await withDeadline(
+            Promise.all([extractThemeTokens(prompt), classifyArchetype(prompt), extractSemanticIntent(prompt)]),
+            "theme/archetype/semantic-intent",
         );
         const surfaces = computeThemeSurfaces(theme);
-        const contract = resolveScreenContract(prompt, designSpec);
+        const contract = resolveScreenContract(prompt, designSpec, semanticIntent);
         // Step 2: Plan slots (informed by archetype + theme)
         const rawPlan = await withDeadline(
-            planSlots(prompt, archetype, theme, context, manifest, designSpec, contract ?? undefined, {
+            planSlots(prompt, archetype, theme, context, semanticIntent, manifest, designSpec, contract ?? undefined, {
                 maxTokens: FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS,
                 temperature: 0.52,
             }),
             "slot planning",
         );
-        const plan = refineScreenPlan(rawPlan, manifest, designSpec);
+        const refinedPlan = refineScreenPlan(rawPlan, manifest, designSpec, semanticIntent);
+        const screenIR = await withDeadline(
+            extractScreenIR({ prompt, theme, plan: refinedPlan, semanticIntent, designSpec }),
+            "screen ir",
+        );
+        const plan = compileScreenIRToPlan(screenIR, refinedPlan);
         const sketch = GEN_V3_SKETCH_RENDER ? buildLayoutSketch(plan, designSpec) : null;
         const plannedSlots = (sketch ? sketch.nodes.map(materializeSlotFromSketchNode) : plan.slots).slice(0, MAX_GENERATION_SLOTS);
         const renderPlan: ScreenPlan = { ...plan, slots: plannedSlots };
@@ -86,19 +93,25 @@ export async function buildGeneratedScreen(
 
     // Standard mode — still use full prompt-aware theme extraction
     // to avoid generic "Workspace"/default content outputs.
-    const [theme, archetype] = await withDeadline(Promise.all([
+    const [theme, archetype, semanticIntent] = await withDeadline(Promise.all([
         extractThemeTokens(prompt),
         classifyArchetype(prompt),
-    ]), "theme/archetype");
+        extractSemanticIntent(prompt),
+    ]), "theme/archetype/semantic-intent");
     const surfaces = computeThemeSurfaces(theme);
     const manifest = buildDesignManifest(prompt);
     const designSpec = compilePromptDesignSpec(prompt, manifest);
-    const contract = resolveScreenContract(prompt, designSpec);
+    const contract = resolveScreenContract(prompt, designSpec, semanticIntent);
     const rawPlan = await withDeadline(
-        planSlots(prompt, archetype, theme, context, manifest, designSpec, contract ?? undefined),
+        planSlots(prompt, archetype, theme, context, semanticIntent, manifest, designSpec, contract ?? undefined),
         "slot planning",
     );
-    const plan = refineScreenPlan(rawPlan, manifest, designSpec);
+    const refinedPlan = refineScreenPlan(rawPlan, manifest, designSpec, semanticIntent);
+    const screenIR = await withDeadline(
+        extractScreenIR({ prompt, theme, plan: refinedPlan, semanticIntent, designSpec }),
+        "screen ir",
+    );
+    const plan = compileScreenIRToPlan(screenIR, refinedPlan);
     const sketch = GEN_V3_SKETCH_RENDER ? buildLayoutSketch(plan, designSpec) : null;
     const plannedSlots = (sketch ? sketch.nodes.map(materializeSlotFromSketchNode) : plan.slots).slice(0, MAX_GENERATION_SLOTS);
     const renderPlan: ScreenPlan = { ...plan, slots: plannedSlots };

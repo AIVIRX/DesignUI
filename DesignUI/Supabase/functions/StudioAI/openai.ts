@@ -1,11 +1,16 @@
+import type { JsonSchemaFormat } from "./structured-output.ts";
+
 // ─── Model routing ───────────────────────────────────────────────────────────
-export const THEME_MODEL = "gpt-4o-mini";
-export const ARCHETYPE_MODEL = "gpt-4o-mini";
-export const SLOT_PLANNER_MODEL = "gpt-4o";
-export const SLOT_GENERATOR_MODEL = "gpt-4o";    // prioritize first-pass visual quality
-export const STANDARD_TOKENS_MODEL = "gpt-4o-mini";
-export const SELECTION_MODEL = "gpt-4o";
-export const REPAIR_MODEL = "gpt-4o-mini";
+const DEFAULT_MINI_MODEL = Deno.env.get("OPENAI_MINI_MODEL") ?? "gpt-5.4-mini";
+const DEFAULT_MAIN_MODEL = Deno.env.get("OPENAI_MAIN_MODEL") ?? "gpt-5.4";
+
+export const THEME_MODEL = Deno.env.get("OPENAI_THEME_MODEL") ?? DEFAULT_MINI_MODEL;
+export const ARCHETYPE_MODEL = Deno.env.get("OPENAI_ARCHETYPE_MODEL") ?? DEFAULT_MINI_MODEL;
+export const SLOT_PLANNER_MODEL = Deno.env.get("OPENAI_SLOT_PLANNER_MODEL") ?? DEFAULT_MAIN_MODEL;
+export const SLOT_GENERATOR_MODEL = Deno.env.get("OPENAI_SLOT_GENERATOR_MODEL") ?? DEFAULT_MAIN_MODEL;
+export const STANDARD_TOKENS_MODEL = Deno.env.get("OPENAI_STANDARD_TOKENS_MODEL") ?? DEFAULT_MINI_MODEL;
+export const SELECTION_MODEL = Deno.env.get("OPENAI_SELECTION_MODEL") ?? DEFAULT_MAIN_MODEL;
+export const REPAIR_MODEL = Deno.env.get("OPENAI_REPAIR_MODEL") ?? DEFAULT_MINI_MODEL;
 export const EMBEDDING_MODEL = "text-embedding-3-small";
 
 export const REPAIR_MAX_TOKENS = 2400;
@@ -17,6 +22,8 @@ export const SLOT_GENERATOR_MAX_TOKENS = 3000;
 export const FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS = 1100;
 export const FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS = 4200;
 export const THEME_EXTRACT_MAX_TOKENS = 600;
+export const SEMANTIC_INTENT_MAX_TOKENS = 320;
+export const SCREEN_IR_MAX_TOKENS = 700;
 export const OPENAI_TIMEOUT_MS = 14000;
 export const EMBEDDING_TIMEOUT_MS = 6000;
 export const GENERATION_DEADLINE_MS = 30000;
@@ -40,18 +47,95 @@ export async function callOpenAI(params: {
     messages: Array<Record<string, unknown>>;
     temperature: number;
     maxTokens?: number;
-    responseFormat?: { type: "json_object" };
+    responseFormat?: { type: "json_object" } | JsonSchemaFormat;
     timeoutMs?: number;
 }) {
+    const normalizeMessageContent = (value: unknown): string => {
+        if (typeof value === "string") return value;
+        if (Array.isArray(value)) {
+            return value
+                .map((item) => {
+                    if (typeof item === "string") return item;
+                    if (item && typeof item === "object" && "text" in item && typeof item.text === "string") {
+                        return item.text;
+                    }
+                    return "";
+                })
+                .filter((item) => item.length > 0)
+                .join("\n");
+        }
+        return "";
+    };
+
+    const extractResponseText = (data: Record<string, unknown>): string | null => {
+        if (typeof data.output_text === "string" && data.output_text.length > 0) return data.output_text;
+        const output = Array.isArray(data.output) ? data.output : [];
+        const chunks: string[] = [];
+        for (const item of output) {
+            if (!item || typeof item !== "object") continue;
+            const content = Array.isArray((item as Record<string, unknown>).content)
+                ? (item as Record<string, unknown>).content as Array<Record<string, unknown>>
+                : [];
+            for (const part of content) {
+                if (typeof part?.text === "string" && part.text.length > 0) {
+                    chunks.push(part.text);
+                }
+            }
+        }
+        return chunks.length > 0 ? chunks.join("\n") : null;
+    };
+
+    const systemMessages = params.messages
+        .filter((message) => message.role === "system")
+        .map((message) => normalizeMessageContent(message.content))
+        .filter((content) => content.length > 0);
+
+    const inputMessages = params.messages
+        .filter((message) => message.role !== "system")
+        .map((message) => {
+            const rawRole = typeof message.role === "string" ? message.role : "user";
+            const role = rawRole === "assistant" ? "assistant" : "user";
+            return {
+                role,
+                content: [
+                    {
+                        type: "input_text",
+                        text: normalizeMessageContent(message.content),
+                    },
+                ],
+            };
+        })
+        .filter((message) => message.content[0].text.length > 0);
+
     const controller = new AbortController();
     const timeoutMs = params.timeoutMs ?? OPENAI_TIMEOUT_MS;
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     let response: Response;
     try {
-        response = await fetch("https://api.openai.com/v1/chat/completions", {
+        response = await fetch("https://api.openai.com/v1/responses", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${openaiApiKey}` },
-            body: JSON.stringify({ model: params.model, messages: params.messages, temperature: params.temperature, max_tokens: params.maxTokens, response_format: params.responseFormat ?? { type: "json_object" } }),
+            body: JSON.stringify({
+                model: params.model,
+                instructions: systemMessages.length > 0 ? systemMessages.join("\n\n") : undefined,
+                input: inputMessages.length > 0
+                    ? inputMessages
+                    : [
+                        {
+                            role: "user",
+                            content: [
+                                {
+                                    type: "input_text",
+                                    text: "Return the requested result.",
+                                },
+                            ],
+                        },
+                    ],
+                temperature: params.temperature,
+                max_output_tokens: params.maxTokens,
+                text: { format: params.responseFormat ?? { type: "json_object" } },
+                store: false,
+            }),
             signal: controller.signal,
         });
     } catch (err) {
@@ -61,9 +145,9 @@ export async function callOpenAI(params: {
     }
     clearTimeout(timer);
     if (!response.ok) return { ok: false as const, error: await response.text() };
-    let data: any;
+    let data: Record<string, unknown>;
     try { data = await response.json(); } catch (err) { return { ok: false as const, error: `OpenAI JSON decode error: ${err instanceof Error ? err.message : String(err)}` }; }
-    const content = data?.choices?.[0]?.message?.content;
+    const content = extractResponseText(data);
     if (!content || typeof content !== "string") return { ok: false as const, error: "OpenAI returned empty content" };
     return { ok: true as const, content };
 }

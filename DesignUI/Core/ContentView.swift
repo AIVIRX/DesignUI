@@ -61,7 +61,7 @@ struct ContentView: View {
                 carousel: [
                     .init(text: "Design", image: "AppLogo"),
                     .init(text: "Preview", image: "AppLogo"),
-                    .init(text: "Share", image: "AppLogo"),
+                    .init(text: "Ship", image: "AppLogo"),
                     .init(text: "Export", image: "AppLogo"),
                     .init(text: "Iterate", image: "AppLogo"),
                 ],

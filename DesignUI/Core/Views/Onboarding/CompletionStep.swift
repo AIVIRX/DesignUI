@@ -23,16 +23,16 @@ struct CompletionStep: View {
             Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle.dashed")
                 .id(isCompleted)
                 .rotationEffect(.degrees(isCompleted ? 0 : isInProgress ? 360 : 0))
-                .font(.system(size: 24))
-                .foregroundStyle(isCompleted ? .green : .purple)
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundStyle(isCompleted ? Color.green : .white.opacity(0.8))
                 .transition(.scale)
             
             VStack(alignment: .leading, spacing: 12) {
                 Text(isCompleted ? completionTitle : title)
                     .id(isCompleted)
-                    .font(.system(size: 24))
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .bold()
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .transition(
                         .asymmetric(
@@ -43,8 +43,8 @@ struct CompletionStep: View {
                 
                 Text(isCompleted ? completionDescription : description)
                     .id(isCompleted)
-                    .foregroundStyle(.black.opacity(0.3))
-                    .fontWeight(.medium)
+                    .foregroundStyle(.white.opacity(0.68))
+                    .font(.system(.body, design: .rounded).weight(.medium))
                     .transition(
                         .asymmetric(
                             insertion: .offset(y: 30).combined(with: .opacity),
@@ -54,6 +54,13 @@ struct CompletionStep: View {
             }
             .drawingGroup()
         }
+        .padding(22)
+        .background(.white.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(.white.opacity(0.12), lineWidth: 1)
+        )
         .onAppear {
             withAnimation(.linear(duration: 1).speed(0.3).repeatForever(autoreverses: false)) {
                 isInProgress = true

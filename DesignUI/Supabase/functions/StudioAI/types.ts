@@ -210,6 +210,96 @@ export type ScreenTokens = {
     fontDesign: string;
 };
 
+export type SemanticDomain =
+    | "productivity"
+    | "social"
+    | "media"
+    | "commerce"
+    | "finance"
+    | "transport"
+    | "travel"
+    | "health"
+    | "education"
+    | "utility"
+    | "lifestyle"
+    | "creative"
+    | "general";
+
+export type InteractionModel =
+    | "dashboard"
+    | "list_first"
+    | "map_first"
+    | "form_flow"
+    | "feed"
+    | "comparison"
+    | "detail"
+    | "media_browse"
+    | "search_results";
+
+export type UICapability =
+    | "live_context_surface"
+    | "map_surface"
+    | "location_flow"
+    | "compare_options"
+    | "status_tracking"
+    | "identity_header"
+    | "content_feed"
+    | "settings_controls"
+    | "media_playback"
+    | "data_summary"
+    | "search_refinement"
+    | "commerce_listing"
+    | "timeline_flow";
+
+export type SemanticIntent = {
+    domain: SemanticDomain;
+    interactionModel: InteractionModel;
+    primaryGoal: string;
+    entities: string[];
+    capabilities: UICapability[];
+    preferredFocalSlot?: SlotType;
+    preferredSupportSlots: SlotType[];
+    avoidSlots: SlotType[];
+};
+
+export type ScreenIRSectionKind =
+    | "header"
+    | "search"
+    | "hero"
+    | "map_surface"
+    | "input_group"
+    | "option_list"
+    | "content_list"
+    | "content_grid"
+    | "rail"
+    | "chart"
+    | "progress"
+    | "settings_group"
+    | "feed"
+    | "timeline"
+    | "profile_summary"
+    | "action_strip"
+    | "media_controls"
+    | "empty_state";
+
+export type ScreenIRSection = {
+    kind: ScreenIRSectionKind;
+    slotType: SlotType;
+    position: SlotPosition;
+    goal: string;
+    entities: string[];
+    emphasis: "low" | "medium" | "high";
+    itemCount?: number;
+    variant?: string;
+};
+
+export type ScreenIR = {
+    version: "screen_ir_v1";
+    layoutMode: InteractionModel;
+    primaryGoal: string;
+    sections: ScreenIRSection[];
+};
+
 export type AnyComponent = {
     type: string;
     properties?: Record<string, unknown>;
@@ -243,6 +333,7 @@ export type ScreenContract =
     | "chat_inbox_v1"
     | "chat_thread_v1"
     | "maps_explore_v1"
+    | "rideshare_home_v1"
     | "video_feed_v1"
     | "checkout_flow_v1"
     | "settings_account_v1"

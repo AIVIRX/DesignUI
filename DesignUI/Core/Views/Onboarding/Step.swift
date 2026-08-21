@@ -23,22 +23,27 @@ struct Step: View {
         layout {
             Group {
                 Image(systemName: icon)
-                    .font(.system(size: isExpanded ? 32 : 20))
+                    .font(.system(size: isExpanded ? 30 : 18, weight: .bold, design: .rounded))
                     .bold()
-                    .foregroundStyle(isExpanded ? iconColour : .gray)
+                    .foregroundStyle(isExpanded ? .white : .white.opacity(0.58))
+                    .frame(width: isExpanded ? 58 : 40, height: isExpanded ? 58 : 40)
+                    .background(
+                        RoundedRectangle(cornerRadius: isExpanded ? 18 : 14, style: .continuous)
+                            .fill(isExpanded ? iconColour.opacity(0.9) : .white.opacity(0.08))
+                    )
                 
                 Text(title)
-                    .font(.system(size: isExpanded ? 42 : 24))
+                    .font(.system(size: isExpanded ? 38 : 22, weight: .bold, design: .rounded))
                     .bold()
-                    .foregroundStyle(isExpanded ? .black : .gray)
+                    .foregroundStyle(.white.opacity(isExpanded ? 1 : 0.58))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .drawingGroup()
             
             if isExpanded {
                 Text(description)
-                    .foregroundStyle(.black.opacity(0.3))
-                    .fontWeight(.medium)
+                    .foregroundStyle(.white.opacity(0.72))
+                    .font(.system(.body, design: .rounded).weight(.medium))
                     .transition(
                         .asymmetric(
                             insertion: .offset(y: 30).combined(with: .opacity),
@@ -48,5 +53,14 @@ struct Step: View {
                     )
             }
         }
+        .padding(isExpanded ? 22 : 0)
+        .background(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(isExpanded ? .white.opacity(0.1) : .clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(isExpanded ? .white.opacity(0.12) : .clear, lineWidth: 1)
+        )
     }
 }

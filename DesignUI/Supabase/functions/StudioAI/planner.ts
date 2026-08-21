@@ -1,7 +1,8 @@
 import { SCREEN_ARCHETYPES, SLOT_TYPES, VALID_SLOT_TYPES } from "./types.ts";
-import type { AnyComponent, CanvasSettings, DesignManifest, PromptDesignSpec, RailVariant, ScreenArchetype, ScreenContract, ScreenPlan, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens } from "./types.ts";
+import type { AnyComponent, CanvasSettings, DesignManifest, PromptDesignSpec, RailVariant, ScreenArchetype, ScreenContract, ScreenPlan, SemanticIntent, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens } from "./types.ts";
 import { ARCHETYPE_SLOT_TEMPLATES, CAPABILITY_MATRIX } from "./schema.ts";
 import { ARCHETYPE_MAX_TOKENS, ARCHETYPE_MODEL, MAX_GENERATION_SLOTS, SLOT_PLANNER_MAX_TOKENS, SLOT_PLANNER_MODEL, callOpenAI } from "./openai.ts";
+import { ARCHETYPE_RESPONSE_FORMAT, SCREEN_PLAN_RESPONSE_FORMAT } from "./structured-output.ts";
 import { buildDesignManifest, compilePromptDesignSpec, enforcePlanRequirements, formatPromptDesignSpec } from "./manifest.ts";
 import { isJsonParseError, isObject, parseJsonSafe } from "./utils.ts";
 import { postProcessComponents } from "./postprocess.ts";
@@ -120,7 +121,7 @@ export async function classifyArchetype(prompt: string): Promise<ScreenArchetype
             { role: "system", content: ARCHETYPE_CLASSIFIER_SYSTEM_PROMPT },
             { role: "user", content: prompt },
         ],
-        temperature: 0, maxTokens: ARCHETYPE_MAX_TOKENS, responseFormat: { type: "json_object" },
+        temperature: 0, maxTokens: ARCHETYPE_MAX_TOKENS, responseFormat: ARCHETYPE_RESPONSE_FORMAT,
     });
     if (!response.ok) return "dashboard";
     const parsed = parseJsonSafe(response.content);
@@ -208,6 +209,7 @@ export async function planSlots(
     archetype: ScreenArchetype,
     theme: ThemeTokens,
     context: unknown,
+    semanticIntent?: SemanticIntent,
     manifest?: DesignManifest,
     designSpec?: PromptDesignSpec,
     contractHint?: ScreenContract,
@@ -227,6 +229,7 @@ export async function planSlots(
     const hardRulesBlock = resolvedManifest.hardRules.length > 0
         ? resolvedManifest.hardRules.map((r) => `- ${r}`).join("\n")
         : "- none";
+    const contextBlock = formatPlannerContext(context);
 
     const contractHintBlock = contractHint ? `
 REFERENCE PATTERN (inspiration only — do not copy slot-for-slot):
@@ -235,29 +238,135 @@ Typical slots for this pattern: ${JSON.stringify(resolveContractAsPlan(contractH
 IMPORTANT: The user's actual words override this reference entirely. If they asked for something different, give them that.
 ` : "";
     const referenceStyleBlock = buildReferenceStyleBlock(resolvedSpec);
+    const semanticIntentBlock = semanticIntent ? `
+SEMANTIC UI INTENT:
+- domain: ${semanticIntent.domain}
+- interaction model: ${semanticIntent.interactionModel}
+- primary goal: ${semanticIntent.primaryGoal}
+- entities: ${semanticIntent.entities.join(", ") || "none"}
+- capabilities: ${semanticIntent.capabilities.join(", ") || "none"}
+- preferred focal slot: ${semanticIntent.preferredFocalSlot ?? "none"}
+- preferred support slots: ${semanticIntent.preferredSupportSlots.join(", ") || "none"}
+- avoid slots: ${semanticIntent.avoidSlots.join(", ") || "none"}
+Use this semantic contract as the primary planning signal. Brand/style references are secondary.
+` : "";
 
-    const response = await callOpenAI({
-        model: SLOT_PLANNER_MODEL,
-        messages: [
-            { role: "system", content: SLOT_PLANNER_SYSTEM_PROMPT },
-            { role: "system", content: `ARCHETYPE: ${archetype}\nREFERENCE TEMPLATE (for inspiration only, do not copy literally):\n${templateStr}\n\nTHEME: appName="${theme.appName}" voiceTone="${theme.voiceTone}" surfaceStyle="${theme.surfaceStyle}" density="${theme.density}" itemNoun="${theme.itemNoun}" domainTags=[${theme.domainTags.join(",")}] accentColor="${theme.accentColor}" cornerRadiusScale="${theme.cornerRadiusScale}"\n\n${contractHintBlock}\n${referenceStyleBlock}\n\nPROMPT LOCKS (MUST HONOR):\n${requirementsBlock}\n\nDESIGN MANIFEST HARD RULES:\n${hardRulesBlock}\n\nPROMPT DSL SPEC (STRICT):\n${formatPromptDesignSpec(resolvedSpec)}\n\nIf prompt locks conflict with archetype template, prompt locks win.` },
-            { role: "user", content: prompt },
-        ],
-        temperature: options?.temperature ?? 0.45,
-        maxTokens: options?.maxTokens ?? SLOT_PLANNER_MAX_TOKENS,
-        responseFormat: { type: "json_object" },
+    const plannerMessages: Array<Record<string, unknown>> = [
+        { role: "system", content: SLOT_PLANNER_SYSTEM_PROMPT },
+        { role: "system", content: `ARCHETYPE: ${archetype}\nREFERENCE TEMPLATE (for inspiration only, do not copy literally):\n${templateStr}\n\nTHEME: appName="${theme.appName}" voiceTone="${theme.voiceTone}" surfaceStyle="${theme.surfaceStyle}" density="${theme.density}" itemNoun="${theme.itemNoun}" domainTags=[${theme.domainTags.join(",")}] accentColor="${theme.accentColor}" cornerRadiusScale="${theme.cornerRadiusScale}"\n\nEDITOR CONTEXT:\n${contextBlock}\n\n${semanticIntentBlock}\n${contractHintBlock}\n${referenceStyleBlock}\n\nPROMPT LOCKS (MUST HONOR):\n${requirementsBlock}\n\nDESIGN MANIFEST HARD RULES:\n${hardRulesBlock}\n\nPROMPT DSL SPEC (STRICT):\n${formatPromptDesignSpec(resolvedSpec)}\n\nIf prompt locks conflict with archetype template, prompt locks win.` },
+        { role: "user", content: prompt },
+    ];
+
+    const runPlanner = async (extraGuidance?: string): Promise<ScreenPlan | null> => {
+        const response = await callOpenAI({
+            model: SLOT_PLANNER_MODEL,
+            messages: extraGuidance
+                ? [...plannerMessages.slice(0, 2), { role: "system", content: extraGuidance }, plannerMessages[2]]
+                : plannerMessages,
+            temperature: options?.temperature ?? 0.45,
+            maxTokens: options?.maxTokens ?? SLOT_PLANNER_MAX_TOKENS,
+            responseFormat: SCREEN_PLAN_RESPONSE_FORMAT,
+        });
+
+        if (!response.ok) return null;
+        const parsed = parseJsonSafe(response.content);
+        if (isJsonParseError(parsed) || !isObject(parsed.value)) return null;
+        return parseScreenPlan(parsed.value, archetype, theme, prompt);
+    };
+
+    const finalize = (plan: ScreenPlan): ScreenPlan =>
+        applyArchetypeGuardrails(enforcePlanRequirements(plan, promptRequirements), prompt);
+
+    const firstPlan = runPlanner();
+    const resolvedFirst = await firstPlan;
+    if (!resolvedFirst) {
+        const base = defaultPlanFromArchetype(archetype, theme, prompt);
+        return finalize(base);
+    }
+
+    const planQualityIssues = validateScreenPlanQuality(resolvedFirst);
+    if (planQualityIssues.length === 0) {
+        return finalize(resolvedFirst);
+    }
+
+    const revisedPlan = await runPlanner(
+        `PREVIOUS PLAN REJECTED FOR LOW QUALITY:\n- ${planQualityIssues.join("\n- ")}\n\nRevise the slot plan so each section is specific to the user's request, avoids filler/generic structure, and includes stronger variant hints for the focal areas.`,
+    );
+
+    return finalize(revisedPlan ?? resolvedFirst);
+}
+
+function validateScreenPlanQuality(plan: ScreenPlan): string[] {
+    const issues: string[] = [];
+    const genericIntentPatterns = [
+        /\bshow (content|items|stats|data)\b/i,
+        /\bdisplay (content|items|stats|data)\b/i,
+        /\bsupporting (list|section|content)\b/i,
+        /\bmain (section|content|area)\b/i,
+        /\brecent items?\b/i,
+        /\bkey metrics overview\b/i,
+        /\bsection title\b/i,
+    ];
+
+    const veryShortIntents = plan.slots.filter((slot) => slot.intent.trim().split(/\s+/).length < 4);
+    if (veryShortIntents.length > 0) {
+        issues.push(`some slot intents are too vague or too short (${veryShortIntents.map((slot) => slot.slotType).join(", ")})`);
+    }
+
+    const genericIntents = plan.slots.filter((slot) => genericIntentPatterns.some((pattern) => pattern.test(slot.intent)));
+    if (genericIntents.length >= 2) {
+        issues.push(`too many generic slot intents (${genericIntents.map((slot) => slot.slotType).join(", ")})`);
+    }
+
+    const focalSlots = plan.slots.filter((slot) => ["hero_banner", "card_detail", "chart_section", "progress_section", "floating_card"].includes(slot.slotType));
+    const weakFocalSlots = focalSlots.filter((slot) => !slot.variant_hint || slot.variant_hint.trim().split(/\s+/).length < 3);
+    if (focalSlots.length > 0 && weakFocalSlots.length > 0) {
+        issues.push(`focal slots need stronger variant hints (${weakFocalSlots.map((slot) => slot.slotType).join(", ")})`);
+    }
+
+    const bodySlots = plan.slots.filter((slot) => slot.position === "body");
+    const repeatedMorphology = bodySlots.filter((slot) => {
+        const hint = (slot.variant_hint ?? "").toLowerCase();
+        return hint === "" || hint === "cards" || hint === "list" || hint === "rows";
     });
+    if (bodySlots.length >= 3 && repeatedMorphology.length >= 2) {
+        issues.push("body sections are too repetitive or underspecified");
+    }
 
-    if (!response.ok) {
-        const base = defaultPlanFromArchetype(archetype, theme, prompt);
-        return applyArchetypeGuardrails(enforcePlanRequirements(base, promptRequirements), prompt);
+    return issues;
+}
+
+function formatPlannerContext(context: unknown): string {
+    if (!context || typeof context !== "object" || Array.isArray(context)) return "- none";
+    const ctx = context as Record<string, unknown>;
+    const lines: string[] = [];
+
+    const push = (label: string, value: unknown) => {
+        if (typeof value === "string" && value.trim().length > 0) {
+            lines.push(`- ${label}: ${value.trim()}`);
+        } else if (typeof value === "number" || typeof value === "boolean") {
+            lines.push(`- ${label}: ${String(value)}`);
+        }
+    };
+
+    push("design name", ctx.designName);
+    push("current page", ctx.currentPageName);
+    push("page count", ctx.pageCount);
+    push("device preset", ctx.devicePreset);
+    push("color scheme", ctx.colorScheme);
+    push("component count", ctx.componentCount);
+    push("selected component type", ctx.selected_component_type);
+    push("status bar visible", ctx.statusBarVisible);
+    push("status bar top safe area", ctx.statusBarTopSafeArea);
+
+    const topLevelComponentTypes = Array.isArray(ctx.topLevelComponentTypes)
+        ? ctx.topLevelComponentTypes.filter((item) => typeof item === "string").slice(0, 8)
+        : [];
+    if (topLevelComponentTypes.length > 0) {
+        lines.push(`- current top-level components: ${topLevelComponentTypes.join(", ")}`);
     }
-    const parsed = parseJsonSafe(response.content);
-    if (isJsonParseError(parsed) || !isObject(parsed.value)) {
-        const base = defaultPlanFromArchetype(archetype, theme, prompt);
-        return applyArchetypeGuardrails(enforcePlanRequirements(base, promptRequirements), prompt);
-    }
-    return applyArchetypeGuardrails(enforcePlanRequirements(parseScreenPlan(parsed.value, archetype, theme, prompt), promptRequirements), prompt);
+
+    return lines.length > 0 ? lines.join("\n") : "- none";
 }
 
 export function defaultPlanFromArchetype(archetype: ScreenArchetype, theme: ThemeTokens, prompt?: string): ScreenPlan {
@@ -339,7 +448,7 @@ export function withDistinctRailHints(slot: SlotPlan, railIndex: number): SlotPl
     };
 }
 
-export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest, designSpec?: PromptDesignSpec): ScreenPlan {
+export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest, designSpec?: PromptDesignSpec, semanticIntent?: SemanticIntent): ScreenPlan {
     const originalSlots = Array.isArray(basePlan.slots) ? basePlan.slots : [];
     if (originalSlots.length === 0) return basePlan;
 
@@ -347,6 +456,7 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
     const deduped: SlotPlan[] = [];
 
     for (const slot of originalSlots) {
+        if (semanticIntent?.avoidSlots.includes(slot.slotType)) continue;
         if (manifest?.forbiddenSlotTypes?.includes(slot.slotType)) continue;
         const intentKey = normalizeIntentKey(slot.intent);
         const dedupeKey = `${slot.position}|${slot.slotType}|${intentKey}`;
@@ -364,6 +474,11 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
     const isInstagramHomeLike =
         designSpec?.content.conceptTag === "instagram_home" ||
         /\binstagram\b.*\bhome\b|\bhome feed\b|\bstor(y|ies)\b.*\bfeed\b/.test(rawPrompt);
+    const isMapOrTransportLike =
+        semanticIntent?.interactionModel === "map_first" ||
+        semanticIntent?.capabilities.includes("map_surface") ||
+        semanticIntent?.capabilities.includes("location_flow") ||
+        /\buber\b|\blyft\b|\brideshare\b|\bride share\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\bnearby cars?\b|\broute\b|\bmap\b|\bdirections\b|\beta\b/.test(rawPrompt);
     const effectiveTopSlots = isProfileLike
         ? topSlots.filter((s) => s.slotType !== "app_header" && s.slotType !== "search_bar")
         : topSlots;
@@ -413,24 +528,60 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
     let refinedBody = [...bodySlots];
     const hasFocal = refinedBody.some((s) => focalSlotTypes.has(s.slotType));
     const hasSupport = refinedBody.some((s) => supportSlotTypes.has(s.slotType));
+    const semanticFocal = semanticIntent?.preferredFocalSlot;
+    const semanticSupport = semanticIntent?.preferredSupportSlots.find((slot) => slot !== semanticFocal);
 
     if (!designSpec?.isSearchResultsMode && !isInstagramHomeLike && basePlan.archetype !== "social_feed" && !hasFocal && refinedBody.length > 0) {
-        refinedBody.unshift({
-            slotType: "hero_banner",
-            position: "body",
-            intent: "primary focal section with headline + key value + CTA",
-            variant_hint: "editorial focal block with strong hierarchy",
-        });
+        refinedBody.unshift(
+            semanticFocal
+                ? {
+                    slotType: semanticFocal,
+                    position: "body",
+                    intent: semanticIntent?.primaryGoal ?? "primary focal section",
+                    variant_hint: `semantic focal area for ${semanticIntent?.interactionModel ?? "the requested flow"}`,
+                }
+                : isMapOrTransportLike
+                ? {
+                    slotType: "map_preview",
+                    position: "body",
+                    intent: "live map context with pickup route and nearby drivers",
+                    variant_hint: "map-first rideshare focal area with route and motion context",
+                }
+                : {
+                    slotType: "hero_banner",
+                    position: "body",
+                    intent: "primary focal section with headline + key value + CTA",
+                    variant_hint: "editorial focal block with strong hierarchy",
+                }
+        );
     }
 
     if (!hasSupport && refinedBody.length > 0) {
-        refinedBody.push({
-            slotType: "content_list",
-            position: "body",
-            intent: "supporting list of recent items",
-            itemCount: 4,
-            variant_hint: "compact supporting rows with clear secondary information",
-        });
+        refinedBody.push(
+            semanticSupport
+                ? {
+                    slotType: semanticSupport,
+                    position: "body",
+                    intent: `support the primary goal: ${semanticIntent?.primaryGoal ?? "complete the flow"}`,
+                    itemCount: semanticSupport === "content_list" ? 4 : undefined,
+                    variant_hint: `semantic support section for ${semanticIntent?.interactionModel ?? "the requested flow"}`,
+                }
+                : isMapOrTransportLike
+                ? {
+                    slotType: "content_list",
+                    position: "body",
+                    intent: "ride option rows with vehicle type eta and fare",
+                    itemCount: 4,
+                    variant_hint: "rideshare tiers not generic recent items",
+                }
+                : {
+                    slotType: "content_list",
+                    position: "body",
+                    intent: "supporting list of recent items",
+                    itemCount: 4,
+                    variant_hint: "compact supporting rows with clear secondary information",
+                }
+        );
     }
 
     if (isProfileLike) {
@@ -471,6 +622,51 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
                 keptStoryRail = true;
                 return true;
             });
+    }
+
+    if (isMapOrTransportLike || semanticIntent?.domain === "transport" || semanticIntent?.interactionModel === "map_first") {
+        refinedBody = refinedBody.filter((slot) =>
+            slot.slotType !== "calendar_strip" &&
+            slot.slotType !== "hero_banner" &&
+            slot.slotType !== "progress_section" &&
+            slot.slotType !== "stat_group" &&
+            slot.slotType !== "chart_section"
+        );
+
+        const hasMapPreview = refinedBody.some((slot) => slot.slotType === "map_preview");
+        const hasRideOptions = refinedBody.some((slot) => slot.slotType === "content_list");
+        const hasActionBar = refinedBottom.some((slot) => slot.slotType === "action_bar");
+
+        if (!hasMapPreview) {
+            refinedBody.unshift({
+                slotType: "map_preview",
+                position: "body",
+                intent: "live pickup route map with nearby drivers and pickup pin",
+                variant_hint: "map-first transport surface with route line and live driver markers",
+            });
+        }
+
+        if (!hasRideOptions) {
+            refinedBody.push({
+                slotType: "content_list",
+                position: "body",
+                intent: "ride options ranked by eta fare and comfort",
+                itemCount: 4,
+                variant_hint: "rideshare bottom sheet rows with eta pricing capacity and service badges",
+            });
+        }
+
+        if (!hasActionBar && designSpec?.layout.forbidBottomControls !== true) {
+            refinedBottom = [
+                ...refinedBottom,
+                {
+                    slotType: "action_bar",
+                    position: "bottom",
+                    intent: "confirm pickup and primary booking action",
+                    variant_hint: "large transport booking CTA with secondary reserve option",
+                },
+            ];
+        }
     }
 
     if (designSpec?.content.wantsSettingsToggles) {
@@ -657,8 +853,19 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
     };
 }
 
-export function resolveScreenContract(prompt: string, spec: PromptDesignSpec): ScreenContract | null {
+export function resolveScreenContract(prompt: string, spec: PromptDesignSpec, semanticIntent?: SemanticIntent): ScreenContract | null {
     const p = prompt.toLowerCase();
+    if (
+        semanticIntent?.interactionModel === "map_first" &&
+        semanticIntent.capabilities.includes("map_surface") &&
+        semanticIntent.capabilities.includes("compare_options")
+    ) return "rideshare_home_v1";
+    if (
+        semanticIntent?.interactionModel === "map_first" &&
+        semanticIntent.capabilities.includes("map_surface")
+    ) return "maps_explore_v1";
+    if (semanticIntent?.capabilities.includes("settings_controls")) return "settings_account_v1";
+    if (semanticIntent?.interactionModel === "search_results") return "search_results_native_v1";
     if (/\bsocial profile\b|\bprofile page\b|\bavatar\b.*\bstats?\b|\bstats?\b.*\bavatar\b|\brecent content\b/.test(p)) return "profile_social_v1";
     if (/\bcamera\b|\bcapture\b|\bphoto app\b/.test(p)) return "camera_capture_v1";
     if (/\badmin\b|\bdata table\b|\btable view\b/.test(p)) return "admin_table_v1";
@@ -672,6 +879,7 @@ export function resolveScreenContract(prompt: string, spec: PromptDesignSpec): S
     if (/\bkanban\b|\bboard\b|\bcolumns?\b.*\bcards?\b/.test(p)) return "kanban_board_v1";
     if (/\bcalendar\b|\bweek view\b|\bschedule week\b/.test(p)) return "calendar_week_v1";
     if (/\bdelivery\b|\brestaurant\b|\bfood app\b/.test(p)) return "restaurant_delivery_v1";
+    if (/\buber\b|\blyft\b|\brideshare\b|\bride share\b|\brequest a ride\b|\bbook a ride\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p)) return "rideshare_home_v1";
     if (/\bloading\b|\bempty state\b|\berror state\b|\bskeleton\b/.test(p)) return "state_pack_v1";
     if (/\b2fa\b|\bone-time code\b|\bverification code\b|\bmagic link\b/.test(p)) return "auth_2fa_v1";
     if (/\bsettings\b|\bprivacy\b|\baccount\b/.test(p)) return "settings_account_v1";
@@ -774,6 +982,12 @@ export function resolveContractAsPlan(contract: ScreenContract, _spec: PromptDes
             make("map_preview", "body", "nearby places map context"),
             make("horizontal_rail", "body", "nearby places cards", 5),
             make("action_bar", "bottom", "route and save actions"),
+        ]},
+        rideshare_home_v1: { ...base, archetype: "travel", slots: [
+            make("search_bar", "top", "pickup and destination planner"),
+            make("map_preview", "body", "live map with pickup route and nearby drivers"),
+            make("content_list", "body", "ride tiers with eta and fare options", 4),
+            make("action_bar", "bottom", "confirm ride and schedule actions"),
         ]},
         video_feed_v1: { ...base, archetype: "social_feed", slots: [
             make("social_feed_slot", "body", "full-bleed short video feed cards", 4),

@@ -3,6 +3,7 @@ import type { AnyComponent, DesignManifest, Exemplar, GenerationMode, LayoutSket
 import { FULL_CANVAS_SLOT_BATCH_SIZE, FULL_CANVAS_SLOT_DESIGN_PASSES, FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS, FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS, REPAIR_MAX_TOKENS, REPAIR_MODEL, SLOT_BATCH_GRACE_MS, SLOT_BATCH_SIZE, SLOT_DESIGN_PASSES, SLOT_GENERATION_MAX_ATTEMPTS, SLOT_GENERATOR_MAX_TOKENS, SLOT_GENERATOR_MODEL, callOpenAI } from "./openai.ts";
 import { SLOT_CONSTRAINTS } from "./schema.ts";
 import { buildDesignManifest, compilePromptDesignSpec, formatPromptDesignSpec } from "./manifest.ts";
+import { SLOT_COMPONENT_RESPONSE_FORMAT } from "./structured-output.ts";
 import { isJsonParseError, isObject, parseJsonSafe } from "./utils.ts";
 import { retrieveSlotExemplars } from "./retrieval.ts";
 import { buildRepairPrompt, cheapRepair } from "./repair.ts";
@@ -306,7 +307,7 @@ export async function compileSlotWithRepair(params: {
             messages,
             temperature: isFirst ? (params.firstPassTemperature ?? 0.5) : 0,
             maxTokens: isFirst ? (params.firstPassMaxTokens ?? SLOT_GENERATOR_MAX_TOKENS) : (params.repairMaxTokens ?? REPAIR_MAX_TOKENS),
-            responseFormat: { type: "json_object" },
+            responseFormat: SLOT_COMPONENT_RESPONSE_FORMAT,
         });
 
         if (!response.ok) { lastError = response.error; continue; }
@@ -393,9 +394,327 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
     const fingerprint = `${theme.appName}|${theme.itemNoun}|${slot.slotType}|${slot.intent || ""}`;
     const hash = Array.from(fingerprint).reduce((acc, ch) => ((acc * 31) + ch.charCodeAt(0)) >>> 0, 7);
     const pick = (count: number) => hash % Math.max(1, count);
+    const transportContext = `${theme.appName} ${theme.itemNoun} ${theme.domainTags.join(" ")} ${slot.intent || ""} ${theme.sampleItems.join(" ")}`.toLowerCase();
+    const isTransportLike = /\b(uber|lyft|rideshare|ride share|pickup|dropoff|drop-off|destination|driver|eta|fare|route|trip|vehicle|cab|taxi)\b/.test(transportContext)
+        || theme.domainTags.includes("transport");
+    const isTransportOptionIntent = isTransportLike && /\b(ride|fare|eta|vehicle|trip|option|pickup|reserve)\b/.test(loweredIntent);
+    const transportAccent = theme.accentColor || "blue:1.0";
+    const transportSheetFill = theme.surfaceStyle === "immersive" ? "white:0.08" : "white:0.96";
+    const transportInsetFill = theme.surfaceStyle === "immersive" ? "white:0.12" : "gray:0.06";
+    const transportSecondary = theme.surfaceStyle === "immersive" ? "white:0.72" : "gray:0.62";
+
+    const buildTransportMapPreview = (): AnyComponent => ({
+        type: "ZStack",
+        properties: { alignment: "topLeading" },
+        modifiers: [fullW],
+        children: [
+            {
+                type: "RoundedRectangle",
+                properties: { cornerRadius: r + 8 },
+                modifiers: [
+                    { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 318 } },
+                    { type: "Fill", properties: { color: theme.surfaceStyle === "immersive" ? "gray:0.18" : "gray:0.08" } },
+                ],
+            },
+            {
+                type: "VStack",
+                properties: { alignment: "leading", spacing: 18 },
+                modifiers: [
+                    { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 318 } },
+                    { type: "Padding", properties: { amount: 18, location: "all" } },
+                ],
+                children: [
+                    {
+                        type: "HStack",
+                        properties: { spacing: 10, alignment: "center" },
+                        modifiers: [fullW],
+                        children: [
+                            {
+                                type: "HStack",
+                                properties: { spacing: 8, alignment: "center" },
+                                modifiers: [
+                                    { type: "Padding", properties: { amount: 10, location: "all" } },
+                                    { type: "Background Color", properties: { color: transportSheetFill } },
+                                    { type: "Corner Radius", properties: { radius: 999 } },
+                                ],
+                                children: [
+                                    mkSym("clock.fill", transportAccent, "caption", "semibold"),
+                                    mkText(items[0]?.subtitle || "Pickup in 4 min", "caption", "semibold", transportAccent),
+                                ],
+                            },
+                            { type: "Spacer" },
+                            mkIconCircle("location.north.line.fill", transportInsetFill, transportAccent, 40),
+                        ],
+                    },
+                    { type: "Spacer" },
+                    {
+                        type: "ZStack",
+                        properties: { alignment: "center" },
+                        modifiers: [fullW],
+                        children: [
+                            {
+                                type: "RoundedRectangle",
+                                properties: { cornerRadius: 6 },
+                                modifiers: [
+                                    { type: "Frame", properties: { widthType: "Custom", width: 188, heightType: "Custom", height: 10 } },
+                                    { type: "Fill", properties: { color: `${ab}:0.20` } },
+                                    { type: "Rotation", properties: { degrees: -18 } },
+                                ],
+                            },
+                            {
+                                type: "RoundedRectangle",
+                                properties: { cornerRadius: 6 },
+                                modifiers: [
+                                    { type: "Frame", properties: { widthType: "Custom", width: 188, heightType: "Custom", height: 10 } },
+                                    { type: "Fill", properties: { color: transportAccent } },
+                                    { type: "Rotation", properties: { degrees: -18 } },
+                                    { type: "Opacity", properties: { value: 0.85 } },
+                                ],
+                            },
+                            {
+                                type: "Circle",
+                                properties: {},
+                                modifiers: [
+                                    { type: "Frame", properties: { widthType: "Custom", width: 18, heightType: "Custom", height: 18 } },
+                                    { type: "Fill", properties: { color: "green:0.90" } },
+                                    { type: "Offset", properties: { x: -86, y: 44 } },
+                                ],
+                            },
+                            {
+                                type: "Circle",
+                                properties: {},
+                                modifiers: [
+                                    { type: "Frame", properties: { widthType: "Custom", width: 22, heightType: "Custom", height: 22 } },
+                                    { type: "Fill", properties: { color: transportAccent } },
+                                    { type: "Offset", properties: { x: 84, y: -44 } },
+                                ],
+                            },
+                            {
+                                type: "Circle",
+                                properties: {},
+                                modifiers: [
+                                    { type: "Frame", properties: { widthType: "Custom", width: 14, heightType: "Custom", height: 14 } },
+                                    { type: "Fill", properties: { color: "orange:0.95" } },
+                                    { type: "Offset", properties: { x: -18, y: 4 } },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        type: "VStack",
+                        properties: { alignment: "leading", spacing: 10 },
+                        modifiers: [
+                            fullW,
+                            { type: "Padding", properties: { amount: 16, location: "all" } },
+                            { type: "Background Color", properties: { color: transportSheetFill } },
+                            { type: "Corner Radius", properties: { radius: 22 } },
+                        ],
+                        children: [
+                            {
+                                type: "HStack",
+                                properties: { spacing: 10, alignment: "center" },
+                                modifiers: [fullW],
+                                children: [
+                                    mkIconCircle("circle.fill", "green:0.18", "green:0.95", 28),
+                                    {
+                                        type: "VStack",
+                                        properties: { alignment: "leading", spacing: 2 },
+                                        modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                                        children: [
+                                            mkText(items[0]?.title || "Pickup", "subheadline", "bold"),
+                                            mkText(items[0]?.subtitle || "14th St & Avenue C", "caption", "regular", transportSecondary),
+                                        ],
+                                    },
+                                ],
+                            },
+                            {
+                                type: "HStack",
+                                properties: { spacing: 10, alignment: "center" },
+                                modifiers: [fullW],
+                                children: [
+                                    mkIconCircle("mappin.circle.fill", `${ab}:0.14`, transportAccent, 28),
+                                    {
+                                        type: "VStack",
+                                        properties: { alignment: "leading", spacing: 2 },
+                                        modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                                        children: [
+                                            mkText(items[1]?.title || "Destination", "subheadline", "bold"),
+                                            mkText(items[1]?.subtitle || "SoHo House, Manhattan", "caption", "regular", transportSecondary),
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    });
+
+    const buildTransportRideOptions = (): AnyComponent => {
+        const rowCount = Math.max(1, Math.min(12, slot.itemCount ?? 4));
+        const fallbackRideRows = [
+            { title: "UberX", subtitle: "4 min away", trailing: "$14.90" },
+            { title: "Comfort", subtitle: "6 min away", trailing: "$18.40" },
+            { title: "Black", subtitle: "8 min away", trailing: "$34.20" },
+            { title: "Reserve", subtitle: "Leave at 8:40 PM", trailing: "Schedule" },
+        ];
+        const rideRows = [...items.slice(0, rowCount), ...fallbackRideRows].slice(0, rowCount);
+        const badges = ["Best value", "Quiet ride", "Premium", "Later"];
+
+        return {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 10 },
+            children: rideRows.map((item, index) => ({
+                type: "HStack",
+                properties: { spacing: 12, alignment: "center" },
+                modifiers: [
+                    fullW,
+                    { type: "Padding", properties: { amount: 14, location: "all" } },
+                    { type: "Background Color", properties: { color: index === 0 ? transportSheetFill : transportInsetFill } },
+                    { type: "Corner Radius", properties: { radius: 22 } },
+                ],
+                children: [
+                    mkIconCircle(index === 0 ? "car.fill" : index === 1 ? "figure.seated.side.air.upper" : index === 2 ? "sparkles" : "calendar.badge.clock", `${ab}:0.12`, transportAccent, 44),
+                    {
+                        type: "VStack",
+                        properties: { alignment: "leading", spacing: 3 },
+                        modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                        children: [
+                            {
+                                type: "HStack",
+                                properties: { spacing: 8, alignment: "center" },
+                                modifiers: [fullW],
+                                children: [
+                                    mkText(item.title, "headline", "bold"),
+                                    {
+                                        type: "Text",
+                                        properties: { text: badges[index] || "Fastest" },
+                                        modifiers: [
+                                            { type: "Padding", properties: { amount: 8, location: "horizontal" } },
+                                            { type: "Padding", properties: { amount: 4, location: "vertical" } },
+                                            { type: "Background Color", properties: { color: `${ab}:0.12` } },
+                                            { type: "Corner Radius", properties: { radius: 999 } },
+                                            { type: "Font", properties: { fontSize: "caption2", fontWeight: "semibold" } },
+                                            { type: "Foreground Color", properties: { color: transportAccent } },
+                                        ],
+                                    },
+                                    { type: "Spacer" },
+                                    mkText(item.trailing || "$18.00", "headline", "bold", transportAccent),
+                                ],
+                            },
+                            {
+                                type: "HStack",
+                                properties: { spacing: 8, alignment: "center" },
+                                children: [
+                                    mkText(item.subtitle || "4 min away", "subheadline", "regular", transportSecondary),
+                                    mkText("•", "subheadline", "regular", transportSecondary),
+                                    mkText(index === 0 ? "4 seats" : index === 1 ? "Quiet cabin" : index === 2 ? "Top-rated" : "Plan ahead", "caption", "semibold", transportSecondary),
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            }) as AnyComponent),
+        };
+    };
+
+    const buildTransportActionBar = (): AnyComponent => ({
+        type: "VStack",
+        properties: { alignment: "leading", spacing: 12 },
+        modifiers: [
+            fullW,
+            { type: "Padding", properties: { amount: 14, location: "all" } },
+            { type: "Background Color", properties: { color: transportSheetFill } },
+        ],
+        children: [
+            {
+                type: "HStack",
+                properties: { spacing: 10, alignment: "center" },
+                modifiers: [fullW],
+                children: [
+                    {
+                        type: "VStack",
+                        properties: { alignment: "leading", spacing: 2 },
+                        modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                        children: [
+                            mkText("Pickup now", "subheadline", "bold"),
+                            mkText("Driver arrives in 4 min", "caption", "regular", transportSecondary),
+                        ],
+                    },
+                    mkText("$14.90", "title3", "bold", transportAccent),
+                ],
+            },
+            {
+                type: "HStack",
+                properties: { spacing: 10, alignment: "center" },
+                modifiers: [fullW],
+                children: [
+                    {
+                        type: "Button",
+                        properties: { buttonStyle: "plain" },
+                        modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                        children: [{
+                            type: "Text",
+                            properties: { text: "Reserve" },
+                            modifiers: [
+                                fullW,
+                                { type: "Padding", properties: { amount: 16, location: "all" } },
+                                { type: "Background Color", properties: { color: transportInsetFill } },
+                                { type: "Foreground Color", properties: { color: "primary:1.0" } },
+                                { type: "Font", properties: { fontSize: "headline", fontWeight: "semibold" } },
+                                { type: "Corner Radius", properties: { radius: 18 } },
+                            ],
+                        }],
+                    },
+                    {
+                        type: "Button",
+                        properties: { buttonStyle: "plain" },
+                        modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                        children: [{
+                            type: "Text",
+                            properties: { text: "Confirm UberX" },
+                            modifiers: [
+                                fullW,
+                                { type: "Padding", properties: { amount: 16, location: "all" } },
+                                { type: "Background Color", properties: { color: transportAccent } },
+                                { type: "Foreground Color", properties: { color: "white:1.0" } },
+                                { type: "Font", properties: { fontSize: "headline", fontWeight: "bold" } },
+                                { type: "Corner Radius", properties: { radius: 18 } },
+                            ],
+                        }],
+                    },
+                ],
+            },
+        ],
+    });
 
     switch (slot.slotType) {
         case "app_header":
+            if (isTransportLike) {
+                return {
+                    type: "HStack",
+                    properties: { spacing: 12, alignment: "center" },
+                    modifiers: [
+                        fullW,
+                        { type: "Padding", properties: { amount: 8, location: "horizontal" } },
+                        { type: "Padding", properties: { amount: 10, location: "vertical" } },
+                    ],
+                    children: [
+                        mkIconCircle("line.3.horizontal", "gray:0.14", "primary:1.0", 40),
+                        {
+                            type: "VStack",
+                            properties: { alignment: "leading", spacing: 2 },
+                            modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                            children: [
+                                mkText("Pickup", "caption", "semibold", transportSecondary),
+                                mkText(items[0]?.subtitle || "14th St & Avenue C", "headline", "bold"),
+                            ],
+                        },
+                        mkIconCircle("person.crop.circle.fill", `${ab}:0.12`, transportAccent, 42),
+                    ],
+                };
+            }
             if (nativePattern === "apple_store") {
                 return {
                     type: "HStack", properties: { spacing: 10, alignment: "center" }, modifiers: [fullW, { type: "Padding", properties: { amount: 12, location: "vertical" } }],
@@ -580,6 +899,9 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
         }
 
         case "content_list": {
+            if (isTransportOptionIntent) {
+                return buildTransportRideOptions();
+            }
             const rowCount = Math.max(1, Math.min(12, slot.itemCount ?? 4));
             const fallbackRows = Array.from({ length: rowCount }, (_, i) => ({
                 title: `${theme.itemNoun.charAt(0).toUpperCase() + theme.itemNoun.slice(1)} ${i + 1}`,
@@ -942,6 +1264,9 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
         }
 
         case "action_bar":
+            if (isTransportLike) {
+                return buildTransportActionBar();
+            }
             return {
                 type: "VStack", properties: { alignment: "center", spacing: 0 },
                 modifiers: [fullW, { type: "Padding", properties: { amount: pad, location: "all" } }],
@@ -958,6 +1283,55 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         },
                     ]
                 }],
+            };
+
+        case "map_preview":
+            if (isTransportLike) {
+                return buildTransportMapPreview();
+            }
+            return {
+                type: "VStack",
+                properties: { alignment: "leading", spacing: 12 },
+                modifiers: [fullW],
+                children: [
+                    {
+                        type: "ZStack",
+                        properties: { alignment: "center" },
+                        children: [
+                            {
+                                type: "RoundedRectangle",
+                                properties: { cornerRadius: r + 6 },
+                                modifiers: [
+                                    { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 248 } },
+                                    { type: "Fill", properties: { color: `${ab}:0.08` } },
+                                ],
+                            },
+                            mkIconCircle("mappin.and.ellipse", `${ab}:0.12`, theme.accentColor, 54),
+                        ],
+                    },
+                    {
+                        type: "HStack",
+                        properties: { spacing: 10, alignment: "center" },
+                        modifiers: [
+                            fullW,
+                            { type: "Padding", properties: { amount: 14, location: "all" } },
+                            { type: "Background Color", properties: { color: cardBg } },
+                            { type: "Corner Radius", properties: { radius: rSmall } },
+                        ],
+                        children: [
+                            {
+                                type: "VStack",
+                                properties: { alignment: "leading", spacing: 2 },
+                                modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                                children: [
+                                    mkText(items[0]?.title || "Location", "subheadline", "bold"),
+                                    mkText(items[0]?.subtitle || "Map context preview", "caption", "regular", "secondary:1.0"),
+                                ],
+                            },
+                            mkText("Directions", "subheadline", "semibold", theme.accentColor),
+                        ],
+                    },
+                ],
             };
 
         case "section_header":
@@ -1575,7 +1949,11 @@ export function buildLayoutSketch(plan: ScreenPlan, designSpec?: PromptDesignSpe
             intent: slot.intent,
             itemCount: slot.itemCount,
             primitive: inferSketchPrimitive(slot, designSpec),
-            emphasis: idx === 0 ? "high" : idx <= 2 ? "medium" : "low",
+            emphasis: slot.slotType === "hero_banner" || slot.slotType === "card_detail"
+                ? "high"
+                : idx <= 2
+                ? "medium"
+                : "low",
         })),
     };
 }
@@ -1853,6 +2231,34 @@ export function renderPrimitiveDeterministically(
     return buildFallbackSlot(fallbackSlot, theme, designSpec);
 }
 
+export function shouldRenderSlotDeterministically(
+    node: LayoutSketchNode,
+    designSpec?: PromptDesignSpec,
+): boolean {
+    if (GEN_V3_SKETCH_RENDER) return true;
+
+    const nativePattern = designSpec?.style.nativePattern;
+    const conceptTag = designSpec?.content.conceptTag;
+
+    if (node.primitive === "SearchBarNative" || node.primitive === "SuggestionRow") {
+        return nativePattern === "appstore_search";
+    }
+
+    if (node.primitive === "AuthHero" || node.primitive === "CredentialForm" || node.primitive === "SocialSignInRow") {
+        return conceptTag === "modern_login";
+    }
+
+    if (node.primitive === "ToggleRow") {
+        return Boolean(designSpec?.content.wantsSettingsToggles);
+    }
+
+    if (node.primitive === "StoryRail") {
+        return conceptTag === "instagram_home";
+    }
+
+    return false;
+}
+
 
 export function emptySlotMemory(): SlotMemory {
     return { colorsUsed: [], symbolsUsed: [], layoutPatterns: [], dataPointsShown: [], sectionCount: 0 };
@@ -1966,15 +2372,8 @@ export async function generateSlotsParallel(params: {
     surfaces: ThemeSurfaces;
     generationMode?: GenerationMode;
 }): Promise<Array<{ component: AnyComponent; exemplarIds: string[] }>> {
-    const deterministicRenderMode = GEN_V3_SKETCH_RENDER;
     const isFullCanvas = params.generationMode === "full_canvas";
     const batchSize = isFullCanvas ? FULL_CANVAS_SLOT_BATCH_SIZE : SLOT_BATCH_SIZE;
-    if (deterministicRenderMode) {
-        return params.plannedSlots.map((slot) => {
-            const sketchNode: LayoutSketchNode = { slotType: slot.slotType, position: slot.position, intent: slot.intent, itemCount: slot.itemCount, primitive: inferSketchPrimitive(slot, params.designSpec), emphasis: "medium" };
-            return { component: renderPrimitiveDeterministically(sketchNode, params.theme, params.surfaces, params.designSpec), exemplarIds: [] };
-        });
-    }
 
     if ((params.deadlineAt - Date.now()) <= SLOT_BATCH_GRACE_MS) {
         return params.plannedSlots.map((slot) => ({ component: buildFallbackSlot(slot, params.theme, params.designSpec), exemplarIds: [] }));
@@ -1988,6 +2387,25 @@ export async function generateSlotsParallel(params: {
     for (let start = 0; start < params.plannedSlots.length; start += batchSize) {
         const batch = params.plannedSlots.slice(start, start + batchSize);
         const tasks = batch.map((slot) => params.withDeadline((async () => {
+            const sketchNode: LayoutSketchNode = {
+                slotType: slot.slotType,
+                position: slot.position,
+                intent: slot.intent,
+                itemCount: slot.itemCount,
+                primitive: inferSketchPrimitive(slot, params.designSpec),
+                emphasis: slot.slotType === "hero_banner" ? "high" : "medium",
+            };
+
+            if (shouldRenderSlotDeterministically(sketchNode, params.designSpec)) {
+                return {
+                    slot,
+                    result: {
+                        component: renderPrimitiveDeterministically(sketchNode, params.theme, params.surfaces, params.designSpec),
+                        exemplarIds: [],
+                    },
+                };
+            }
+
             const requirements = selectPromptRequirementsForSlot(slot, params.manifest.requirements);
             let result = await generateSlot({
                 supabase: params.supabase,

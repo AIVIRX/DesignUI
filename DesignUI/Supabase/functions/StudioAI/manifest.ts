@@ -164,6 +164,38 @@ export function buildDesignManifest(prompt: string): DesignManifest {
         hardRules.push("Settings prompts with toggles must use settings list rows with Switch controls; do not use hero banners.");
     }
 
+    const rideshareMode = /\buber\b|\blyft\b|\brideshare\b|\bride share\b|\bbook a ride\b|\brequest a ride\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p);
+    if (rideshareMode) {
+        requirements.push({
+            requirementKey: "rideshare_map",
+            slotType: "map_preview",
+            position: "body",
+            mustInclude: "a large live ride map area as the primary focal section",
+            variantHint: "map-first composition with route context and nearby cars",
+            sourceIndex: p.search(/\buber\b|\blyft\b|\brideshare\b|\bmap\b|\bpickup\b|\bdestination\b/),
+        });
+        requirements.push({
+            requirementKey: "rideshare_trip_inputs",
+            slotType: "form_section",
+            position: "body",
+            mustInclude: "pickup and destination inputs with clear trip planning hierarchy",
+            variantHint: "origin and destination fields above ride options",
+            itemCount: 2,
+            sourceIndex: p.search(/\bpickup\b|\bdestination\b|\bdrop[\s-]*off\b/),
+        });
+        requirements.push({
+            requirementKey: "rideshare_tiers",
+            slotType: "content_list",
+            position: "body",
+            mustInclude: "ride tiers with ETA and price per option",
+            variantHint: "vehicle options like UberX Comfort and Black with eta and fare",
+            itemCount: 4,
+            sourceIndex: p.search(/\bride\b|\bcar\b|\btiers?\b|\boptions?\b|\beta\b/),
+        });
+        hardRules.push("Rideshare screens must be map-first with pickup/destination planning and ride options.");
+        hardRules.push("Do not use dashboard hero banners, KPI stat groups, streak cards, or generic productivity sections for rideshare screens.");
+    }
+
     // Generic rail style extraction (not domain-specific):
     // supports prompts like "varied rails (posters then circular artists)".
     type RailStyleHit = {

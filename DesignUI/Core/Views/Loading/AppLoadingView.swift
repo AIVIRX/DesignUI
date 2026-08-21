@@ -67,60 +67,106 @@ struct EditorLoadingOverlay: View {
     
     var body: some View {
         ZStack {
-            // Blurred background
             Rectangle()
-                .fill(.ultraThinMaterial)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 32) {
-                // App Logo with subtle animation
-                Image("AppLogo")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 22))
-                    .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
-                    .scaleEffect(animateLogo ? 1.02 : 1.0)
-                    .animation(
-                        .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
-                        value: animateLogo
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.black.opacity(colorScheme == .dark ? 0.66 : 0.32),
+                            Color.black.opacity(colorScheme == .dark ? 0.42 : 0.18)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
-                
-                // Progress bar and message
-                VStack(spacing: 16) {
-                    // Progress bar
+                )
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea()
+
+            Circle()
+                .fill(Color.blue.opacity(0.18))
+                .frame(width: 280, height: 280)
+                .blur(radius: 42)
+                .offset(x: -120, y: -170)
+
+            Circle()
+                .fill(Color.cyan.opacity(0.16))
+                .frame(width: 240, height: 240)
+                .blur(radius: 48)
+                .offset(x: 140, y: 190)
+
+            VStack(spacing: 28) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill(.white.opacity(0.1))
+                        .frame(width: 124, height: 124)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                                .stroke(.white.opacity(0.12), lineWidth: 1)
+                        )
+
+                    Image("AppLogo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 94, height: 94)
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .shadow(color: Color.black.opacity(0.18), radius: 24, x: 0, y: 14)
+                        .scaleEffect(animateLogo ? 1.03 : 0.98)
+                        .animation(
+                            .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
+                            value: animateLogo
+                        )
+                }
+
+                VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Opening workspace")
+                            .font(.system(.title3, design: .rounded).weight(.bold))
+                            .foregroundStyle(.white)
+
+                        Text(message)
+                            .font(.system(.subheadline, design: .rounded).weight(.medium))
+                            .foregroundStyle(.white.opacity(0.72))
+                            .animation(.easeInOut(duration: 0.2), value: message)
+                    }
+
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
-                            // Background track
                             Capsule()
-                                .fill(colorScheme == .dark ? 
-                                    Color.white.opacity(0.15) : 
-                                    Color.black.opacity(0.1))
-                            
-                            // Progress fill
+                                .fill(.white.opacity(0.12))
+
                             Capsule()
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color.blue, Color.purple],
+                                        colors: [Color.cyan, Color.blue],
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
                                 )
-                                .frame(width: max(8, geometry.size.width * progress))
+                                .frame(width: max(12, geometry.size.width * progress))
                                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: progress)
                         }
                     }
-                    .frame(height: 6)
-                    .frame(maxWidth: 220)
-                    
-                    // Loading message
-                    Text(message)
-                        .font(.subheadline)
-                        .foregroundColor(colorScheme == .dark ? 
-                            .white.opacity(0.7) : 
-                            .black.opacity(0.6))
-                        .animation(.easeInOut(duration: 0.2), value: message)
+                    .frame(height: 8)
+
+                    HStack {
+                        Text("Preparing canvas")
+                            .font(.system(.caption, design: .rounded).weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.55))
+
+                        Spacer()
+
+                        Text("\(Int((progress * 100).rounded()))%")
+                            .font(.system(.caption, design: .rounded).weight(.bold))
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
                 }
+                .padding(24)
+                .frame(maxWidth: 320)
+                .background(.white.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                )
             }
         }
         .onAppear {
