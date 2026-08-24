@@ -166,6 +166,10 @@ export function buildDesignManifest(prompt: string): DesignManifest {
 
     const rideshareMode = /\buber\b|\blyft\b|\brideshare\b|\bride share\b|\bbook a ride\b|\brequest a ride\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p);
     if (rideshareMode) {
+        const compareMode = /\bcompare\b|\boptions?\b|\bfares?\b|\btiers?\b|\bprice\b|\bpricing\b/.test(p);
+        const plannerMode = /\bpickup\b|\bdestination\b|\bwhere to\b|\broute\b|\btrip plan\b/.test(p);
+        const reserveMode = /\breserve\b|\bschedule\b|\blater\b|\btomorrow\b|\bdeparture\b|\bleave at\b/.test(p);
+        const mapMode = /\bmap\b|\broute\b|\bnearby\b|\bdrivers?\b|\blive\b/.test(p);
         requirements.push({
             requirementKey: "rideshare_map",
             slotType: "map_preview",
@@ -174,25 +178,40 @@ export function buildDesignManifest(prompt: string): DesignManifest {
             variantHint: "map-first composition with route context and nearby cars",
             sourceIndex: p.search(/\buber\b|\blyft\b|\brideshare\b|\bmap\b|\bpickup\b|\bdestination\b/),
         });
-        requirements.push({
-            requirementKey: "rideshare_trip_inputs",
-            slotType: "form_section",
-            position: "body",
-            mustInclude: "pickup and destination inputs with clear trip planning hierarchy",
-            variantHint: "origin and destination fields above ride options",
-            itemCount: 2,
-            sourceIndex: p.search(/\bpickup\b|\bdestination\b|\bdrop[\s-]*off\b/),
-        });
-        requirements.push({
-            requirementKey: "rideshare_tiers",
-            slotType: "content_list",
-            position: "body",
-            mustInclude: "ride tiers with ETA and price per option",
-            variantHint: "vehicle options like UberX Comfort and Black with eta and fare",
-            itemCount: 4,
-            sourceIndex: p.search(/\bride\b|\bcar\b|\btiers?\b|\boptions?\b|\beta\b/),
-        });
-        hardRules.push("Rideshare screens must be map-first with pickup/destination planning and ride options.");
+        if (plannerMode) {
+            requirements.push({
+                requirementKey: "rideshare_trip_inputs",
+                slotType: "form_section",
+                position: "body",
+                mustInclude: "pickup and destination planning with clear origin and destination hierarchy",
+                variantHint: "trip planning inputs may appear as fields, floating cards, or a compact route planner surface",
+                itemCount: 2,
+                sourceIndex: p.search(/\bpickup\b|\bdestination\b|\bdrop[\s-]*off\b|\bwhere to\b/),
+            });
+        }
+        if (compareMode) {
+            requirements.push({
+                requirementKey: "rideshare_tiers",
+                slotType: "content_list",
+                position: "body",
+                mustInclude: "ride options with ETA and price comparison",
+                variantHint: "vehicle choices should reflect the user's requested tone rather than fixed brand tier names",
+                itemCount: 4,
+                sourceIndex: p.search(/\bride\b|\bcar\b|\btiers?\b|\boptions?\b|\bfares?\b|\bprice\b|\beta\b/),
+            });
+        }
+        if (reserveMode) {
+            requirements.push({
+                requirementKey: "rideshare_reserve_action",
+                slotType: "action_bar",
+                position: "bottom",
+                mustInclude: "reserve or schedule ride controls with clear primary and secondary actions",
+                variantHint: "time-aware booking controls for later departures",
+                sourceIndex: p.search(/\breserve\b|\bschedule\b|\blater\b|\bdeparture\b|\bleave at\b/),
+            });
+        }
+        hardRules.push("Rideshare screens should stay grounded in live location context, trip planning, or option comparison instead of generic dashboard cards.");
+        if (mapMode) hardRules.push("If the prompt emphasizes live map context, keep the map as the dominant focal surface.");
         hardRules.push("Do not use dashboard hero banners, KPI stat groups, streak cards, or generic productivity sections for rideshare screens.");
     }
 

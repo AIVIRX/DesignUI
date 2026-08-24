@@ -15,14 +15,14 @@ import { analyzeRailItem, computeMorphologySignature, countListLikeItems, detect
 // Condensed schema for slot generation — much shorter than full SCHEMA_RULES.
 // Only includes the rules the generator actually needs (full rules are for editing).
 export const SLOT_SCHEMA_COMPACT = `CONTAINERS(must have children[]): VStack HStack ZStack ScrollView Button
-LEAVES(no children): Text Image "SF Symbol" Spacer Divider Rectangle Circle RoundedRectangle Capsule Ellipse "Linear Gradient" "Text Field" Switch Slider "Progress View" Gauge Chart
-Text:{text:string} "SF Symbol":{symbolName:string} VStack:{alignment:"leading"|"center"|"trailing",spacing:num} HStack:{alignment:"top"|"center"|"bottom",spacing:num} ZStack:{alignment:"center"|"topLeading"|"bottomTrailing"...} Button:{buttonStyle:"plain"|"bordered"|"borderedProminent"} ScrollView:{axis:"vertical"|"horizontal",showsIndicators:bool} RoundedRectangle:{cornerRadius:num} "Progress View":{value:num,total:num,color:string} Gauge:{value:num,min:num,max:num,gaugeType:"linear"|"circular"|"circular range",showValue:bool,color:string}
-MODIFIERS: Frame Padding "Background Color" "Foreground Color" Font "Corner Radius" Shadow Opacity Stroke Fill "Clip Shape" "Text Alignment" Tint
+LEAVES(no children): Text Image "SF Symbol" Spacer Divider Rectangle Circle RoundedRectangle Capsule Ellipse "Linear Gradient" "Text Field" Switch Slider "Progress View" Gauge Chart Map
+Text:{text:string} "SF Symbol":{symbolName:string} "Text Field":{text?:string,placeholder?:string,semanticRole?:"input"|"search"|"email"|"password"} VStack:{alignment:"leading"|"center"|"trailing",spacing:num} HStack:{alignment:"top"|"center"|"bottom",spacing:num} ZStack:{alignment:"center"|"topLeading"|"bottomTrailing"...} Button:{buttonStyle:"plain"|"bordered"|"borderedProminent",interactionRole?:"select_tab"|"select_filter"|"set_selection",interactionKey?:string,interactionValue?:string,interactionDefault?:bool} ScrollView:{axis:"vertical"|"horizontal",showsIndicators:bool} RoundedRectangle:{cornerRadius:num} "Progress View":{value:num,total:num,color:string} Gauge:{value:num,min:num,max:num,gaugeType:"linear"|"circular"|"circular range",showValue:bool,color:string} Map:{latitude:num,longitude:num,latitudeDelta?:num,longitudeDelta?:num,mapStyle?:"standard"|"imagery"|"hybrid",interactionModes?:"all"|"none"|"pan"|"zoom"|"rotate"|"pitch"|"pan+zoom"|"pan+zoom+rotate"|"pan+zoom+rotate+pitch",showsCompass?:bool,showsScale?:bool,showsPitchToggle?:bool,showsUserLocation?:bool,showsUserLocationButton?:bool,showsTraffic?:bool,locationName?:string,markers?:string}
+MODIFIERS: Frame Padding "Background Color" "Foreground Color" Font "Corner Radius" Shadow Opacity Stroke Fill "Clip Shape" "Text Alignment" Tint "Glass Effect"
 Font:{fontSize:"largeTitle"|"title"|"title2"|"title3"|"headline"|"body"|"callout"|"subheadline"|"footnote"|"caption"|"caption2",fontWeight:"bold"|"semibold"|"medium"|"regular"|"light",fontDesign?:string}
 Frame:{widthType:"Custom"|"Default"|"Full",heightType:"Custom"|"Default"|"Full",width?:num,height?:num}
 Padding:{amount:num,location:"all"|"horizontal"|"vertical"}
 Colors: "colorname:opacity" e.g. "blue:1.0" "gray:0.12"
-RULES: Shapes use "Fill" not "Background Color". Corner Radius present → use "Stroke" not "Border". Button with bg-colored label → buttonStyle:"plain". SF Symbol names must be real. For circular progress/rings, prefer Gauge with gaugeType:"circular".`;
+RULES: Shapes use "Fill" not "Background Color". Corner Radius present → use "Stroke" not "Border". Button with bg-colored label → buttonStyle:"plain". SF Symbol names must be real. For circular progress/rings, prefer Gauge with gaugeType:"circular". Use "Glass Effect" for translucent overlay chips/cards/controls when the screen sits on top of imagery, maps, or immersive surfaces. Glass Effect supports optional tint via properties like { tint:"blue:0.18" }. IMPORTANT: when using "Glass Effect", do NOT also add "Fill" or "Background Color" on that same glass surface. For maps, prefer a real Map component with tuned camera span, markers, interaction modes, and controls instead of faking a map with plain shapes. SPACING SCALE: use only 4, 8, 12, 16, 24, 32 for VStack/HStack spacing and Padding amounts unless a very special layout truly requires 0. Avoid random values like 5, 7, 10, 14, 18, 20, 22.`;
 
 export function detectRailVariantFromText(text: string): RailVariant | null {
     const t = text.toLowerCase();
@@ -105,7 +105,7 @@ export function buildSlotGeneratorSystemPrompt(
     const accentBase = theme.accentColor.split(":")[0];
 
     const radiusMap = { pill: "cards:22 rows:18 icons:999 cta:999", sharp: "cards:8 rows:6 icons:4 cta:4", medium: "cards:16 rows:12 icons:10 cta:10" };
-    const spacingMap = { compact: "4/8/12/16", regular: "4/8/12/16/24", airy: "6/10/16/24/32" };
+    const spacingMap = { compact: "4/8/12/16", regular: "4/8/12/16/24/32", airy: "4/8/12/16/24/32" };
     const paletteMap: Record<string, string> = {
         immersive: `card:"${accentBase}:0.18" row:"${accentBase}:0.12" text2:"white:0.72"`,
         calm: `card:"${accentBase}:0.05" row:"${accentBase}:0.04" text2:"secondary:1.0"`,
@@ -119,6 +119,15 @@ export function buildSlotGeneratorSystemPrompt(
     const selectedRailVariant = slot.slotType === "horizontal_rail" ? chooseRailVariant(slot, slotPromptRequirements) : null;
     const likelyDetail = promptLikelyDetailScreen(slot.intent);
     const likelyRoot = promptLikelyRootScreen(slot.intent);
+    const promptLower = (rawPrompt || "").toLowerCase();
+    const slotIntentLower = (slot.intent || "").toLowerCase();
+    const shouldPreferGlassOverlay = designSpec?.style.preferGlass
+        || theme.surfaceStyle === "immersive"
+        || slot.position === "overlay"
+        || slot.slotType === "floating_card"
+        || slot.slotType === "fab_button"
+        || slot.slotType === "map_preview"
+        || /\b(map|route|rideshare|ride share|transport|driver|pickup|destination|immersive|glass|overlay)\b/.test(`${promptLower} ${slotIntentLower}`);
     const promptContext = rawPrompt ? `
 USER'S ORIGINAL REQUEST: "${rawPrompt}"
 Your component must feel like a direct response to these specific words.
@@ -151,9 +160,15 @@ ${railVariantGuide ? `\n${railVariantGuide}` : ""}
 Design principles (priority order):
 1) Clear visual hierarchy with one focal element.
 2) Real content from provided data; never placeholder copy.
-3) Purposeful spacing rhythm; avoid uniform padding everywhere.
+3) Use a disciplined spacing scale. Preferred values are 4/8/12/16/24/32. You may use 0 only when layers must visually lock together.
 4) Component variety; avoid repeated identical row/card structures.
 5) Prefer a single strong visual idea over multiple weak filler sections.
+
+Spacing rules:
+- VStack/HStack spacing and Padding amounts should come from this scale: 4, 8, 12, 16, 24, 32.
+- Match density by choosing fewer/lower steps for compact screens and more breathing room for airy screens.
+- Do not invent in-between values like 6, 10, 14, 18, 20, or 22 unless a hard visual reason truly demands it.
+- Keep sibling surfaces on the same cadence so the screen feels intentional and uniform.
 
 LAYER 3 — CONTENT DATA
 FACTS: greeting="${theme.sharedFacts.greeting}" user="${theme.sharedFacts.userName}" metric1="${theme.sharedFacts.primaryMetricValue}" metric2="${theme.sharedFacts.secondaryMetricValue}" streak="${theme.sharedFacts.streakValue}" progress=${theme.sharedFacts.progressPercent}% date="${theme.sharedFacts.todayDate}"
@@ -178,6 +193,9 @@ Critical rules:
             ? "Media-track rail is mandatory: each rail item must be square artwork + primary title + secondary artist/subtitle."
             : "If a rail variant is specified, honor its morphology exactly."}
 - App header rule: back chevron only for detail/drill-in screens (likelyDetail=${likelyDetail}, likelyRoot=${likelyRoot}).
+- ${shouldPreferGlassOverlay
+            ? "This section should prefer Glass Effect on compact overlay surfaces like floating chips, map controls, top utility buttons, and translucent CTA trays instead of defaulting to flat gray pills. If colored glass helps, use Glass Effect tint instead of Fill or Background Color. Glass surfaces must not also have Fill or Background Color on the same node."
+            : "Use Glass Effect only when it helps an overlay/surface feel intentionally translucent; do not add it to every card by default. If you want colored glass, use the Glass Effect tint property, and never combine Glass Effect with Fill or Background Color on the same node."}
 
 LAYER 5 — OUTPUT SCHEMA
 ${SLOT_SCHEMA_COMPACT}`;
@@ -401,7 +419,31 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
     const transportAccent = theme.accentColor || "blue:1.0";
     const transportSheetFill = theme.surfaceStyle === "immersive" ? "white:0.08" : "white:0.96";
     const transportInsetFill = theme.surfaceStyle === "immersive" ? "white:0.12" : "gray:0.06";
+    const transportSecondaryButtonFill = theme.surfaceStyle === "immersive" ? "white:0.16" : "gray:0.14";
     const transportSecondary = theme.surfaceStyle === "immersive" ? "white:0.72" : "gray:0.62";
+    const transportReserveMode = /\breserve\b|\bschedule\b|\blater\b|\bdeparture\b|\bleave at\b/.test(transportContext);
+    const transportCompareMode = /\bcompare\b|\boptions?\b|\bfares?\b|\btiers?\b|\bprice\b|\bpricing\b/.test(transportContext);
+    const transportMapMode = /\bmap\b|\broute\b|\bnearby\b|\bdriver\b|\blive\b/.test(transportContext);
+    const fallbackTransportRows = [
+        { title: "Go", subtitle: "Fast pickup", trailing: "$14.90" },
+        { title: "Priority", subtitle: "Shorter wait", trailing: "$18.40" },
+        { title: "Comfort", subtitle: "More space", trailing: "$24.20" },
+        { title: transportReserveMode ? "Reserve" : "Shared", subtitle: transportReserveMode ? "Leave later" : "Lower fare", trailing: transportReserveMode ? "Schedule" : "$11.60" },
+    ];
+    const fallbackTransportBadges = transportReserveMode
+        ? ["Soonest", "Flexible", "Premium", "Scheduled"]
+        : transportCompareMode
+        ? ["Best value", "Fastest", "Extra room", "Lowest fare"]
+        : ["Nearby", "Popular", "Comfort", "Flexible"];
+    const transportPrimaryOption = items[0]?.title || fallbackTransportRows[0].title;
+    const transportPrimaryPrice = items.find((item) => item.trailing)?.trailing || fallbackTransportRows[0].trailing;
+    const transportPrimaryStatus = items[0]?.subtitle || (transportReserveMode ? "Pickup window ready" : transportMapMode ? "Driver arrives in 4 min" : "Trip ready");
+    const transportPrimaryCTA = transportReserveMode ? "Reserve Ride" : `Choose ${transportPrimaryOption}`;
+    const transportSecondaryCTA = transportReserveMode ? "Ride Now" : "Reserve";
+    const transportPickupLabel = items[0]?.title || "Pickup";
+    const transportPickupDetail = items[0]?.subtitle || "Apple Park Visitor Center";
+    const transportDestinationLabel = items[1]?.title || "Destination";
+    const transportDestinationDetail = items[1]?.subtitle || "Infinite Loop";
 
     const buildTransportMapPreview = (): AnyComponent => ({
         type: "ZStack",
@@ -409,11 +451,25 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
         modifiers: [fullW],
         children: [
             {
-                type: "RoundedRectangle",
-                properties: { cornerRadius: r + 8 },
+                type: "Map",
+                properties: {
+                    latitude: 37.3346,
+                    longitude: -122.0090,
+                    latitudeDelta: 0.018,
+                    longitudeDelta: 0.018,
+                    mapStyle: "standard",
+                    interactionModes: "all",
+                    showsCompass: true,
+                    showsScale: false,
+                    showsUserLocation: false,
+                    showsTraffic: true,
+                    locationName: "Apple Park, Cupertino",
+                    markers: "[{\"latitude\":37.3329,\"longitude\":-122.0054,\"title\":\"Pickup\",\"tint\":\"green:1.0\"},{\"latitude\":37.3388,\"longitude\":-122.0112,\"title\":\"Destination\",\"tint\":\"blue:1.0\"}]",
+                },
                 modifiers: [
                     { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 318 } },
-                    { type: "Fill", properties: { color: theme.surfaceStyle === "immersive" ? "gray:0.18" : "gray:0.08" } },
+                    { type: "Corner Radius", properties: { radius: r + 8 } },
+                    { type: "Clip Shape", properties: { shape: "Rectangle" } },
                 ],
             },
             {
@@ -434,8 +490,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                 properties: { spacing: 8, alignment: "center" },
                                 modifiers: [
                                     { type: "Padding", properties: { amount: 10, location: "all" } },
-                                    { type: "Background Color", properties: { color: transportSheetFill } },
                                     { type: "Corner Radius", properties: { radius: 999 } },
+                                    { type: "Glass Effect", properties: { shape: "Capsule" } },
                                 ],
                                 children: [
                                     mkSym("clock.fill", transportAccent, "caption", "semibold"),
@@ -448,66 +504,13 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     },
                     { type: "Spacer" },
                     {
-                        type: "ZStack",
-                        properties: { alignment: "center" },
-                        modifiers: [fullW],
-                        children: [
-                            {
-                                type: "RoundedRectangle",
-                                properties: { cornerRadius: 6 },
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 188, heightType: "Custom", height: 10 } },
-                                    { type: "Fill", properties: { color: `${ab}:0.20` } },
-                                    { type: "Rotation", properties: { degrees: -18 } },
-                                ],
-                            },
-                            {
-                                type: "RoundedRectangle",
-                                properties: { cornerRadius: 6 },
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 188, heightType: "Custom", height: 10 } },
-                                    { type: "Fill", properties: { color: transportAccent } },
-                                    { type: "Rotation", properties: { degrees: -18 } },
-                                    { type: "Opacity", properties: { value: 0.85 } },
-                                ],
-                            },
-                            {
-                                type: "Circle",
-                                properties: {},
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 18, heightType: "Custom", height: 18 } },
-                                    { type: "Fill", properties: { color: "green:0.90" } },
-                                    { type: "Offset", properties: { x: -86, y: 44 } },
-                                ],
-                            },
-                            {
-                                type: "Circle",
-                                properties: {},
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 22, heightType: "Custom", height: 22 } },
-                                    { type: "Fill", properties: { color: transportAccent } },
-                                    { type: "Offset", properties: { x: 84, y: -44 } },
-                                ],
-                            },
-                            {
-                                type: "Circle",
-                                properties: {},
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 14, heightType: "Custom", height: 14 } },
-                                    { type: "Fill", properties: { color: "orange:0.95" } },
-                                    { type: "Offset", properties: { x: -18, y: 4 } },
-                                ],
-                            },
-                        ],
-                    },
-                    {
                         type: "VStack",
                         properties: { alignment: "leading", spacing: 10 },
                         modifiers: [
                             fullW,
                             { type: "Padding", properties: { amount: 16, location: "all" } },
-                            { type: "Background Color", properties: { color: transportSheetFill } },
                             { type: "Corner Radius", properties: { radius: 22 } },
+                            { type: "Glass Effect", properties: { shape: "RoundedRectangle" } },
                         ],
                         children: [
                             {
@@ -521,8 +524,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                         properties: { alignment: "leading", spacing: 2 },
                                         modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
                                         children: [
-                                            mkText(items[0]?.title || "Pickup", "subheadline", "bold"),
-                                            mkText(items[0]?.subtitle || "14th St & Avenue C", "caption", "regular", transportSecondary),
+                                            mkText(transportPickupLabel, "subheadline", "bold"),
+                                            mkText(transportPickupDetail, "caption", "regular", transportSecondary),
                                         ],
                                     },
                                 ],
@@ -538,8 +541,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                         properties: { alignment: "leading", spacing: 2 },
                                         modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
                                         children: [
-                                            mkText(items[1]?.title || "Destination", "subheadline", "bold"),
-                                            mkText(items[1]?.subtitle || "SoHo House, Manhattan", "caption", "regular", transportSecondary),
+                                            mkText(transportDestinationLabel, "subheadline", "bold"),
+                                            mkText(transportDestinationDetail, "caption", "regular", transportSecondary),
                                         ],
                                     },
                                 ],
@@ -553,14 +556,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
 
     const buildTransportRideOptions = (): AnyComponent => {
         const rowCount = Math.max(1, Math.min(12, slot.itemCount ?? 4));
-        const fallbackRideRows = [
-            { title: "UberX", subtitle: "4 min away", trailing: "$14.90" },
-            { title: "Comfort", subtitle: "6 min away", trailing: "$18.40" },
-            { title: "Black", subtitle: "8 min away", trailing: "$34.20" },
-            { title: "Reserve", subtitle: "Leave at 8:40 PM", trailing: "Schedule" },
-        ];
-        const rideRows = [...items.slice(0, rowCount), ...fallbackRideRows].slice(0, rowCount);
-        const badges = ["Best value", "Quiet ride", "Premium", "Later"];
+        const rideRows = [...items.slice(0, rowCount), ...fallbackTransportRows].slice(0, rowCount);
+        const badges = fallbackTransportBadges;
 
         return {
             type: "VStack",
@@ -593,8 +590,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                         modifiers: [
                                             { type: "Padding", properties: { amount: 8, location: "horizontal" } },
                                             { type: "Padding", properties: { amount: 4, location: "vertical" } },
-                                            { type: "Background Color", properties: { color: `${ab}:0.12` } },
                                             { type: "Corner Radius", properties: { radius: 999 } },
+                                            { type: "Glass Effect", properties: { shape: "Capsule" } },
                                             { type: "Font", properties: { fontSize: "caption2", fontWeight: "semibold" } },
                                             { type: "Foreground Color", properties: { color: transportAccent } },
                                         ],
@@ -625,7 +622,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
         modifiers: [
             fullW,
             { type: "Padding", properties: { amount: 14, location: "all" } },
-            { type: "Background Color", properties: { color: transportSheetFill } },
+            { type: "Glass Effect", properties: { shape: "RoundedRectangle" } },
         ],
         children: [
             {
@@ -639,10 +636,10 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
                         children: [
                             mkText("Pickup now", "subheadline", "bold"),
-                            mkText("Driver arrives in 4 min", "caption", "regular", transportSecondary),
+                            mkText(transportPrimaryStatus, "caption", "regular", transportSecondary),
                         ],
                     },
-                    mkText("$14.90", "title3", "bold", transportAccent),
+                    mkText(transportPrimaryPrice, "title3", "bold", transportAccent),
                 ],
             },
             {
@@ -656,11 +653,11 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
                         children: [{
                             type: "Text",
-                            properties: { text: "Reserve" },
+                            properties: { text: transportSecondaryCTA },
                             modifiers: [
                                 fullW,
                                 { type: "Padding", properties: { amount: 16, location: "all" } },
-                                { type: "Background Color", properties: { color: transportInsetFill } },
+                                { type: "Background Color", properties: { color: transportSecondaryButtonFill } },
                                 { type: "Foreground Color", properties: { color: "primary:1.0" } },
                                 { type: "Font", properties: { fontSize: "headline", fontWeight: "semibold" } },
                                 { type: "Corner Radius", properties: { radius: 18 } },
@@ -673,7 +670,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
                         children: [{
                             type: "Text",
-                            properties: { text: "Confirm UberX" },
+                            properties: { text: transportPrimaryCTA },
                             modifiers: [
                                 fullW,
                                 { type: "Padding", properties: { amount: 16, location: "all" } },
@@ -707,8 +704,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                             properties: { alignment: "leading", spacing: 2 },
                             modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
                             children: [
-                                mkText("Pickup", "caption", "semibold", transportSecondary),
-                                mkText(items[0]?.subtitle || "14th St & Avenue C", "headline", "bold"),
+                                mkText(transportPickupLabel, "caption", "semibold", transportSecondary),
+                                mkText(transportPickupDetail, "headline", "bold"),
                             ],
                         },
                         mkIconCircle("person.crop.circle.fill", `${ab}:0.12`, transportAccent, 42),
@@ -762,7 +759,6 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                 properties: {},
                                 modifiers: [
                                     { type: "Frame", properties: { widthType: "Custom", width: 36, heightType: "Custom", height: 36 } },
-                                    { type: "Fill", properties: { color: "gray:0.14" } },
                                     { type: "Glass Effect", properties: { shape: "Circle" } },
                                 ],
                             },
@@ -787,7 +783,6 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                 properties: {},
                                 modifiers: [
                                     { type: "Frame", properties: { widthType: "Custom", width: 36, heightType: "Custom", height: 36 } },
-                                    { type: "Fill", properties: { color: "gray:0.14" } },
                                     { type: "Glass Effect", properties: { shape: "Circle" } },
                                 ],
                             },
@@ -927,10 +922,18 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                 "magnifyingglass",
             ];
             const listRows = sourceItems.map((item, i) => {
+                const filterTag = isSearchResultsIntent
+                    ? "all"
+                    : (item.trailing || item.subtitle || "").toLowerCase().includes("done")
+                        ? "done"
+                        : i % 3 === 2
+                            ? "done"
+                            : "active";
+                const interactionTags = `all,${filterTag}`;
                 if (isSearchSuggestionIntent || nativePattern === "appstore_search") {
                     return {
                         type: "VStack",
-                        properties: { alignment: "leading", spacing: 0 },
+                        properties: { alignment: "leading", spacing: 0, interactionTags },
                         modifiers: [fullW],
                         children: [
                             {
@@ -957,7 +960,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     const denseVariant = pick(2) === 0;
                     return {
                         type: "VStack",
-                        properties: { alignment: "leading", spacing: 0 },
+                        properties: { alignment: "leading", spacing: 0, interactionTags },
                         modifiers: [fullW],
                         children: [
                             {
@@ -981,7 +984,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     } as AnyComponent;
                 }
                 return {
-                    type: "HStack", properties: { spacing: 12, alignment: "center" },
+                    type: "HStack", properties: { spacing: 12, alignment: "center", interactionTags },
                     modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: rowBg } }, { type: "Corner Radius", properties: { radius: rSmall } }],
                     children: [
                         mkIconCircle(isSearchResultsIntent ? "magnifyingglass" : (theme.mascotSymbol || "circle.fill"), `${ab}:0.15`, theme.accentColor),
@@ -1299,11 +1302,25 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         properties: { alignment: "center" },
                         children: [
                             {
-                                type: "RoundedRectangle",
-                                properties: { cornerRadius: r + 6 },
+                                type: "Map",
+                                properties: {
+                                    latitude: 37.3346,
+                                    longitude: -122.0090,
+                                    latitudeDelta: 0.024,
+                                    longitudeDelta: 0.024,
+                                    mapStyle: "standard",
+                                    interactionModes: "all",
+                                    showsCompass: true,
+                                    showsScale: false,
+                                    showsUserLocation: false,
+                                    showsTraffic: false,
+                                    locationName: "Apple Park, Cupertino",
+                                    markers: "[{\"latitude\":37.3346,\"longitude\":-122.0090,\"title\":\"Apple Park\",\"tint\":\"red:1.0\"}]",
+                                },
                                 modifiers: [
                                     { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 248 } },
-                                    { type: "Fill", properties: { color: `${ab}:0.08` } },
+                                    { type: "Corner Radius", properties: { radius: r + 6 } },
+                                    { type: "Clip Shape", properties: { shape: "Rectangle" } },
                                 ],
                             },
                             mkIconCircle("mappin.and.ellipse", `${ab}:0.12`, theme.accentColor, 54),
@@ -1352,7 +1369,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     modifiers: [fullW, { type: "Padding", properties: { amount: 10, location: "all" } }, { type: "Background Color", properties: { color: "gray:0.10" } }, { type: "Corner Radius", properties: { radius: 18 } }],
                     children: [
                         mkSym("magnifyingglass", "gray:0.62", "title3", "regular"),
-                        mkText("Search", "title3", "regular", "gray:0.72"),
+                        { type: "Text Field", properties: { placeholder: "Search", text: "", semanticRole: "search" }, modifiers: [fullW] },
                         { type: "Spacer" },
                         mkSym("mic", "gray:0.62", "title3", "regular"),
                     ],
@@ -1374,7 +1391,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         ],
                         children: [
                             mkSym("magnifyingglass", "gray:0.60", "body", "regular"),
-                            mkText(`Search ${theme.itemNoun}`, "title3", "regular", "gray:0.70"),
+                            { type: "Text Field", properties: { placeholder: `Search ${theme.itemNoun}`, text: "", semanticRole: "search" }, modifiers: [fullW] },
                             { type: "Spacer" },
                             {
                                 type: "ZStack",
@@ -1447,15 +1464,26 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                 type: "HStack", properties: { spacing: 0, alignment: "center" },
                 modifiers: [fullW, { type: "Padding", properties: { amount: 4, location: "all" } }, { type: "Background Color", properties: { color: "gray:0.08" } }, { type: "Corner Radius", properties: { radius: rSmall } }],
                 children: ["All", "Active", "Done"].map((label, i) => ({
-                    type: "Text", properties: { text: label },
-                    modifiers: [
-                        { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
-                        { type: "Padding", properties: { amount: 10, location: "all" } },
-                        ...(i === 0 ? [{ type: "Background Color", properties: { color: "white:1.0" } }, { type: "Corner Radius", properties: { radius: rSmall - 2 } }] : []),
-                        { type: "Font", properties: { fontSize: "subheadline", fontWeight: i === 0 ? "bold" : "regular" } },
-                        { type: "Foreground Color", properties: { color: i === 0 ? theme.accentColor : "secondary:1.0" } },
-                        { type: "Text Alignment", properties: { alignment: "center" } },
-                    ],
+                    type: "Button",
+                    properties: {
+                        buttonStyle: "plain",
+                        interactionRole: "select_filter",
+                        interactionKey: "primaryFilter",
+                        interactionValue: label.toLowerCase(),
+                        interactionDefault: i === 0,
+                    },
+                    modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
+                    children: [{
+                        type: "Text", properties: { text: label },
+                        modifiers: [
+                            { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
+                            { type: "Padding", properties: { amount: 10, location: "all" } },
+                            ...(i === 0 ? [{ type: "Background Color", properties: { color: "white:1.0" } }, { type: "Corner Radius", properties: { radius: rSmall - 2 } }] : []),
+                            { type: "Font", properties: { fontSize: "subheadline", fontWeight: i === 0 ? "bold" : "regular" } },
+                            { type: "Foreground Color", properties: { color: i === 0 ? theme.accentColor : "secondary:1.0" } },
+                            { type: "Text Alignment", properties: { alignment: "center" } },
+                        ],
+                    }],
                 } as AnyComponent)),
             };
 
@@ -1920,6 +1948,13 @@ export async function enforceSlotVarietyAcrossSlots(params: {
 }
 
 export function inferSketchPrimitive(slot: SlotPlan, designSpec?: PromptDesignSpec): SketchPrimitive {
+    const intent = (slot.intent || "").toLowerCase();
+    const transportLike = /\b(uber|lyft|rideshare|pickup|dropoff|drop-off|destination|driver|eta|fare|route|trip|vehicle|cab|taxi)\b/.test(intent);
+    const optionCompareLike = /\b(option|options|compare|fare|eta|tier|tiers|vehicle|ride)\b/.test(intent);
+    const mapLike = /\b(map|route|pickup|destination|drivers?)\b/.test(intent);
+    const actionLike = /\b(confirm|book|reserve|pickup|ride)\b/.test(intent);
+
+    if (slot.slotType === "app_header" && transportLike) return "ContextHeader";
     if (slot.slotType === "app_header") return "SectionHeader";
     if (slot.slotType === "search_bar") return "SearchBarNative";
     if (slot.slotType === "stat_group") return "MetricCard";
@@ -1929,6 +1964,9 @@ export function inferSketchPrimitive(slot: SlotPlan, designSpec?: PromptDesignSp
     if (slot.slotType === "social_feed_slot") return "PostCardFeed";
     if (slot.slotType === "content_grid") return "ProductTileGrid";
     if (slot.slotType === "form_section") return "CredentialForm";
+    if (slot.slotType === "map_preview" && mapLike) return "MapRouteStage";
+    if (slot.slotType === "content_list" && optionCompareLike) return "OptionCompareStack";
+    if (slot.slotType === "action_bar" && actionLike) return "StickyActionSplit";
     if (slot.slotType === "action_bar" && designSpec?.content.conceptTag === "modern_login") return "SocialSignInRow";
     if (slot.slotType === "hero_banner" && designSpec?.content.conceptTag === "modern_login") return "AuthHero";
     if (slot.slotType === "settings_list" && designSpec?.content.wantsSettingsToggles) return "ToggleRow";
@@ -1976,6 +2014,10 @@ export function materializeSlotFromSketchNode(node: LayoutSketchNode): SlotPlan 
         SparklinePanel: "sparkline/chart panel with summary labels",
         TimelineSteps: "timeline progression steps with connector rhythm",
         ProductTileGrid: "product tile grid with media and price metadata",
+        ContextHeader: "context-aware header with location and identity metadata",
+        MapRouteStage: "map-first live route stage with pickup and destination layers",
+        OptionCompareStack: "comparative option cards with price eta and service badges",
+        StickyActionSplit: "dual-action booking bar with secondary reserve and primary confirm",
     };
     return {
         slotType: node.slotType,
@@ -2012,7 +2054,40 @@ export function renderPrimitiveDeterministically(
             type: "HStack",
             properties: { spacing: 10, alignment: "center" },
             modifiers: [fullW, { type: "Padding", properties: { amount: 10, location: "all" } }, { type: "Background Color", properties: { color: surfaces.subtleFill } }, { type: "Corner Radius", properties: { radius: surfaces.cornerRow + 6 } }],
-            children: [mkSym("magnifyingglass", surfaces.iconTint, "title3"), mkText("Search", "title3", "regular", "gray:0.72"), { type: "Spacer" }, mkSym("mic", surfaces.iconTint, "title3")],
+            children: [mkSym("magnifyingglass", surfaces.iconTint, "title3"), { type: "Text Field", properties: { placeholder: "Search", text: "", semanticRole: "search" }, modifiers: [fullW] }, { type: "Spacer" }, mkSym("mic", surfaces.iconTint, "title3")],
+        };
+    }
+
+    if (node.primitive === "ContextHeader") {
+        return {
+            type: "HStack",
+            properties: { spacing: 12, alignment: "center" },
+            modifiers: [fullW, { type: "Padding", properties: { amount: 8, location: "horizontal" } }, { type: "Padding", properties: { amount: 10, location: "vertical" } }],
+            children: [
+                {
+                    type: "ZStack",
+                    children: [
+                        { type: "Circle", properties: {}, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 40, heightType: "Custom", height: 40 } }, { type: "Fill", properties: { color: surfaces.rowFill } }] },
+                        mkSym("line.3.horizontal", surfaces.primaryText, "subheadline"),
+                    ],
+                },
+                {
+                    type: "VStack",
+                    properties: { alignment: "leading", spacing: 2 },
+                    modifiers: [fullW],
+                    children: [
+                        mkText("Pickup", "caption", "semibold", surfaces.secondaryText),
+                        mkText("Apple Park Visitor Center", "headline", "bold"),
+                    ],
+                },
+                {
+                    type: "ZStack",
+                    children: [
+                        { type: "Circle", properties: {}, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 42, heightType: "Custom", height: 42 } }, { type: "Fill", properties: { color: surfaces.cardFill } }] },
+                        mkSym("person.crop.circle.fill", theme.accentColor, "title3"),
+                    ],
+                },
+            ],
         };
     }
 
@@ -2071,6 +2146,67 @@ export function renderPrimitiveDeterministically(
                         properties: { text: "Sign In" },
                         modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: theme.accentColor } }, { type: "Foreground Color", properties: { color: "white:1.0" } }, { type: "Corner Radius", properties: { radius: surfaces.cornerRow } }, { type: "Font", properties: { fontSize: "headline", fontWeight: "bold" } }],
                     }],
+                },
+            ],
+        };
+    }
+
+    if (node.primitive === "MapRouteStage") {
+        return {
+            type: "ZStack",
+            properties: { alignment: "topLeading" },
+            modifiers: [fullW],
+            children: [
+                {
+                    type: "Map",
+                    properties: {
+                        latitude: 37.3346,
+                        longitude: -122.0090,
+                        latitudeDelta: 0.018,
+                        longitudeDelta: 0.018,
+                        mapStyle: "standard",
+                        interactionModes: "all",
+                        showsCompass: true,
+                        showsScale: false,
+                        showsUserLocation: false,
+                        showsTraffic: true,
+                        locationName: "Apple Park, Cupertino",
+                        markers: "[{\"latitude\":37.3329,\"longitude\":-122.0054,\"title\":\"Pickup\",\"tint\":\"green:1.0\"},{\"latitude\":37.3388,\"longitude\":-122.0112,\"title\":\"Destination\",\"tint\":\"blue:1.0\"}]",
+                    },
+                    modifiers: [
+                        { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 306 } },
+                        { type: "Corner Radius", properties: { radius: surfaces.cornerCard + 8 } },
+                        { type: "Clip Shape", properties: { shape: "Rectangle" } },
+                    ],
+                },
+                {
+                    type: "VStack",
+                    properties: { alignment: "leading", spacing: 16 },
+                    modifiers: [
+                        { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 306 } },
+                        { type: "Padding", properties: { amount: 18, location: "all" } },
+                    ],
+                    children: [
+                        {
+                            type: "HStack",
+                            properties: { spacing: 8, alignment: "center" },
+                            children: [
+                                mkText("Pickup in 4 min", "caption", "semibold", theme.accentColor),
+                                { type: "Spacer" },
+                                mkSym("location.north.line.fill", theme.accentColor, "body"),
+                            ],
+                        },
+                        { type: "Spacer" },
+                        {
+                            type: "VStack",
+                            properties: { alignment: "leading", spacing: 10 },
+                            modifiers: [fullW, { type: "Padding", properties: { amount: 16, location: "all" } }, { type: "Background Color", properties: { color: "white:0.92" } }, { type: "Corner Radius", properties: { radius: 22 } }],
+                            children: [
+                                { type: "HStack", properties: { spacing: 10, alignment: "center" }, children: [mkSym("circle.fill", "green:0.95", "caption"), { type: "VStack", properties: { alignment: "leading", spacing: 2 }, modifiers: [fullW], children: [mkText("Pickup", "subheadline", "bold"), mkText("Apple Park Visitor Center", "caption", "regular", surfaces.secondaryText)] }] },
+                                { type: "HStack", properties: { spacing: 10, alignment: "center" }, children: [mkSym("mappin.circle.fill", theme.accentColor, "body"), { type: "VStack", properties: { alignment: "leading", spacing: 2 }, modifiers: [fullW], children: [mkText("Destination", "subheadline", "bold"), mkText("Infinite Loop", "caption", "regular", surfaces.secondaryText)] }] },
+                            ],
+                        },
+                    ],
                 },
             ],
         };
@@ -2135,6 +2271,64 @@ export function renderPrimitiveDeterministically(
                     ],
                 } as AnyComponent;
             }),
+        };
+    }
+
+    if (node.primitive === "OptionCompareStack") {
+        const optionRows = [
+            { title: "Go", subtitle: "Fast pickup", trailing: "$14.90", badge: "Best value" },
+            { title: "Priority", subtitle: "Shorter wait", trailing: "$18.40", badge: "Fastest" },
+            { title: "Comfort", subtitle: "More space", trailing: "$24.20", badge: "Premium" },
+            { title: "Reserve", subtitle: "Leave later", trailing: "Schedule", badge: "Planned" },
+        ];
+        const options = optionRows.slice(0, Math.max(3, Math.min(4, node.itemCount ?? 4)));
+        return {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 10 },
+            children: options.map((option, idx) => ({
+                type: "HStack",
+                properties: { spacing: 12, alignment: "center" },
+                modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: idx === 0 ? surfaces.cardFill : surfaces.rowFill } }, { type: "Corner Radius", properties: { radius: 22 } }],
+                children: [
+                    {
+                        type: "ZStack",
+                        children: [
+                            { type: "Circle", properties: {}, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 44, heightType: "Custom", height: 44 } }, { type: "Fill", properties: { color: `${theme.accentColor.split(":")[0]}:0.12` } }] },
+                            mkSym(idx === 0 ? "car.fill" : idx === 1 ? "figure.seated.side.air.upper" : idx === 2 ? "sparkles" : "calendar.badge.clock", theme.accentColor, "body"),
+                        ],
+                    },
+                    {
+                        type: "VStack",
+                        properties: { alignment: "leading", spacing: 3 },
+                        modifiers: [fullW],
+                        children: [
+                            {
+                                type: "HStack",
+                                properties: { spacing: 8, alignment: "center" },
+                                modifiers: [fullW],
+                                children: [
+                                    mkText(option.title, "headline", "bold"),
+                                    {
+                                        type: "Text",
+                                        properties: { text: option.badge },
+                                        modifiers: [
+                                            { type: "Padding", properties: { amount: 8, location: "horizontal" } },
+                                            { type: "Padding", properties: { amount: 4, location: "vertical" } },
+                                            { type: "Background Color", properties: { color: `${theme.accentColor.split(":")[0]}:0.10` } },
+                                            { type: "Corner Radius", properties: { radius: 999 } },
+                                            { type: "Font", properties: { fontSize: "caption2", fontWeight: "semibold" } },
+                                            { type: "Foreground Color", properties: { color: theme.accentColor } },
+                                        ],
+                                    },
+                                    { type: "Spacer" },
+                                    mkText(option.trailing, "headline", "bold", theme.accentColor),
+                                ],
+                            },
+                            mkText(option.subtitle, "subheadline", "regular", surfaces.secondaryText),
+                        ],
+                    },
+                ],
+            }) as AnyComponent),
         };
     }
 
@@ -2215,6 +2409,27 @@ export function renderPrimitiveDeterministically(
                 modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: surfaces.rowFill } }, { type: "Corner Radius", properties: { radius: surfaces.cornerRow } }],
                 children: [mkSym(r.sym, theme.accentColor, "body"), mkText(r.label, "body", "regular"), { type: "Spacer" }, { type: "Switch", properties: { isOn: r.on } }],
             } as AnyComponent)),
+        };
+    }
+
+    if (node.primitive === "StickyActionSplit") {
+        const primaryPrice = theme.sampleItems.find((item) => item.includes("$"))?.split(":")[2]?.trim() || "$14.90";
+        return {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 12 },
+            modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: "white:0.94" } }],
+            children: [
+                { type: "HStack", properties: { spacing: 10, alignment: "center" }, modifiers: [fullW], children: [{ type: "VStack", properties: { alignment: "leading", spacing: 2 }, modifiers: [fullW], children: [mkText("Pickup now", "subheadline", "bold"), mkText("Trip ready to confirm", "caption", "regular", surfaces.secondaryText)] }, mkText(primaryPrice, "title3", "bold", theme.accentColor)] },
+                {
+                    type: "HStack",
+                    properties: { spacing: 10, alignment: "center" },
+                    modifiers: [fullW],
+                    children: [
+                        { type: "Text", properties: { text: "Reserve" }, modifiers: [fullW, { type: "Padding", properties: { amount: 16, location: "all" } }, { type: "Background Color", properties: { color: theme.surfaceStyle === "immersive" ? "white:0.16" : "gray:0.14" } }, { type: "Corner Radius", properties: { radius: 18 } }, { type: "Font", properties: { fontSize: "headline", fontWeight: "semibold" } }, { type: "Text Alignment", properties: { alignment: "center" } }] },
+                        { type: "Text", properties: { text: "Choose Ride" }, modifiers: [fullW, { type: "Padding", properties: { amount: 16, location: "all" } }, { type: "Background Color", properties: { color: theme.accentColor } }, { type: "Foreground Color", properties: { color: "white:1.0" } }, { type: "Corner Radius", properties: { radius: 18 } }, { type: "Font", properties: { fontSize: "headline", fontWeight: "bold" } }, { type: "Text Alignment", properties: { alignment: "center" } }] },
+                    ],
+                },
+            ],
         };
     }
 

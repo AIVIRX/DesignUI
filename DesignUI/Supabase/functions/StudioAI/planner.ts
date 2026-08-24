@@ -635,9 +635,19 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
 
         const hasMapPreview = refinedBody.some((slot) => slot.slotType === "map_preview");
         const hasRideOptions = refinedBody.some((slot) => slot.slotType === "content_list");
+        const hasPlannerSurface = refinedBody.some((slot) => slot.slotType === "form_section" || slot.slotType === "floating_card");
+        const hasSuggestionRail = refinedBody.some((slot) => slot.slotType === "horizontal_rail" || slot.slotType === "segmented_tabs");
         const hasActionBar = refinedBottom.some((slot) => slot.slotType === "action_bar");
+        const promptRules = (manifest?.hardRules ?? []).join(" ").toLowerCase();
+        const prefersMapDominant = semanticIntent?.preferredFocalSlot === "map_preview"
+            || /dominant focal surface/.test(promptRules)
+            || semanticIntent?.interactionModel === "map_first";
+        const prefersPlannerSurface = semanticIntent?.preferredSupportSlots.includes("form_section")
+            || /\bpickup\b|\bdestination\b|\btrip planning\b/.test(promptRules);
+        const prefersSelectionSupport = semanticIntent?.preferredSupportSlots.some((slot) => slot === "segmented_tabs" || slot === "horizontal_rail")
+            || semanticIntent?.interactionModel === "comparison";
 
-        if (!hasMapPreview) {
+        if (!hasMapPreview && prefersMapDominant) {
             refinedBody.unshift({
                 slotType: "map_preview",
                 position: "body",
@@ -646,7 +656,27 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
             });
         }
 
-        if (!hasRideOptions) {
+        if (!hasPlannerSurface && prefersPlannerSurface) {
+            refinedBody.splice(Math.min(1, refinedBody.length), 0, {
+                slotType: semanticIntent?.preferredSupportSlots.includes("floating_card") ? "floating_card" : "form_section",
+                position: "body",
+                intent: "trip planning surface for pickup destination and route context",
+                itemCount: 2,
+                variant_hint: "route planner surface that feels specific to transportation, not a generic form",
+            });
+        }
+
+        if (!hasSuggestionRail && prefersSelectionSupport) {
+            refinedBody.push({
+                slotType: semanticIntent?.preferredSupportSlots.includes("horizontal_rail") ? "horizontal_rail" : "segmented_tabs",
+                position: "body",
+                intent: "selection aids that help compare ride tradeoffs",
+                itemCount: 4,
+                variant_hint: "compact filters or suggestion chips that reshape the transport options below",
+            });
+        }
+
+        if (!hasRideOptions && (semanticIntent?.capabilities.includes("compare_options") || prefersSelectionSupport || !prefersPlannerSurface)) {
             refinedBody.push({
                 slotType: "content_list",
                 position: "body",
@@ -855,6 +885,27 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
 
 export function resolveScreenContract(prompt: string, spec: PromptDesignSpec, semanticIntent?: SemanticIntent): ScreenContract | null {
     const p = prompt.toLowerCase();
+    const asksForNativeClone = /\blike\b|\binspired by\b|\bsimilar to\b|\bclone\b|\bmatch\b|\brecreate\b/.test(p);
+    const asksForExactStructuredFlow = /\b2fa\b|\bone-time code\b|\bverification code\b|\bmagic link\b|\bonboarding\b|\bweek view\b|\bkanban\b|\bboard\b|\bdata table\b|\btable view\b|\bcheckout\b|\bcart\b|\bpayment\b|\bcamera\b|\bcapture\b|\bchat thread\b|\bdm thread\b|\bconversation\b/.test(p);
+    const isRideshareLike = /\buber\b|\blyft\b|\brideshare\b|\bride share\b|\brequest a ride\b|\bbook a ride\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p);
+    const wantsReserveFlow = /\breserve\b|\bschedule\b|\blater\b|\btomorrow\b|\bdeparture\b|\bleave at\b/.test(p);
+    const wantsFareCompare = /\bcompare\b|\boptions?\b|\bfares?\b|\btiers?\b|\bpricing\b|\bprice\b/.test(p);
+    const wantsTripPlanner = /\bpickup\b|\bdestination\b|\bwhere to\b|\btrip plan\b|\broute\b/.test(p);
+    const wantsMapSheet = /\bbottom sheet\b|\boverlay\b|\bfloating\b|\blive route map\b|\bnearby drivers\b/.test(p);
+    const shouldPreferOpenPlanning = !asksForNativeClone && !asksForExactStructuredFlow;
+
+    if (isRideshareLike) {
+        if (wantsReserveFlow) return "rideshare_reserve_v1";
+        if (wantsFareCompare || semanticIntent?.interactionModel === "comparison") return "rideshare_fare_compare_v1";
+        if (wantsTripPlanner && !wantsMapSheet && !/\blive map\b|\bnearby drivers\b/.test(p)) return "rideshare_trip_planner_v1";
+        if (wantsMapSheet || semanticIntent?.interactionModel === "map_first") return "rideshare_map_sheet_v1";
+        return "rideshare_home_v1";
+    }
+    if (shouldPreferOpenPlanning) {
+        if (semanticIntent?.capabilities.includes("settings_controls")) return "settings_account_v1";
+        if (semanticIntent?.interactionModel === "search_results") return "search_results_native_v1";
+        return null;
+    }
     if (
         semanticIntent?.interactionModel === "map_first" &&
         semanticIntent.capabilities.includes("map_surface") &&
@@ -864,41 +915,38 @@ export function resolveScreenContract(prompt: string, spec: PromptDesignSpec, se
         semanticIntent?.interactionModel === "map_first" &&
         semanticIntent.capabilities.includes("map_surface")
     ) return "maps_explore_v1";
-    if (semanticIntent?.capabilities.includes("settings_controls")) return "settings_account_v1";
-    if (semanticIntent?.interactionModel === "search_results") return "search_results_native_v1";
     if (/\bsocial profile\b|\bprofile page\b|\bavatar\b.*\bstats?\b|\bstats?\b.*\bavatar\b|\brecent content\b/.test(p)) return "profile_social_v1";
     if (/\bcamera\b|\bcapture\b|\bphoto app\b/.test(p)) return "camera_capture_v1";
     if (/\badmin\b|\bdata table\b|\btable view\b/.test(p)) return "admin_table_v1";
     if (/\bsupport\b|\bhelp center\b|\bcustomer support\b/.test(p)) return "customer_support_v1";
     if (/\bhotel\b|\broom booking\b|\bstay booking\b/.test(p)) return "booking_hotel_v1";
-    if (/\bnews\b|\breader\b|\barticles?\b/.test(p)) return "news_reader_v1";
-    if (/\bhealth\b|\bactivity\b|\bsteps\b|\bworkout history\b/.test(p)) return "health_activity_v1";
-    if (/\bprofile\b|\bfollowers?\b/.test(p)) return "profile_social_v1";
+    if (/\bnews\b|\breader\b|\barticles?\b/.test(p) && asksForNativeClone) return "news_reader_v1";
+    if (/\bhealth\b|\bactivity\b|\bsteps\b|\bworkout history\b/.test(p) && asksForNativeClone) return "health_activity_v1";
+    if (/\bprofile\b|\bfollowers?\b/.test(p) && asksForNativeClone) return "profile_social_v1";
     if (/\bnotifications?\b|\bactivity inbox\b/.test(p)) return "notification_center_v1";
     if (/\bonboarding\b|\bget started flow\b/.test(p)) return "onboarding_flow_v1";
     if (/\bkanban\b|\bboard\b|\bcolumns?\b.*\bcards?\b/.test(p)) return "kanban_board_v1";
     if (/\bcalendar\b|\bweek view\b|\bschedule week\b/.test(p)) return "calendar_week_v1";
-    if (/\bdelivery\b|\brestaurant\b|\bfood app\b/.test(p)) return "restaurant_delivery_v1";
-    if (/\buber\b|\blyft\b|\brideshare\b|\bride share\b|\brequest a ride\b|\bbook a ride\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p)) return "rideshare_home_v1";
+    if (/\bdelivery\b|\brestaurant\b|\bfood app\b/.test(p) && asksForNativeClone) return "restaurant_delivery_v1";
     if (/\bloading\b|\bempty state\b|\berror state\b|\bskeleton\b/.test(p)) return "state_pack_v1";
     if (/\b2fa\b|\bone-time code\b|\bverification code\b|\bmagic link\b/.test(p)) return "auth_2fa_v1";
     if (/\bsettings\b|\bprivacy\b|\baccount\b/.test(p)) return "settings_account_v1";
     if (/\bcheckout\b|\bcart\b|\bpayment\b/.test(p)) return "checkout_flow_v1";
     if (/\bshorts?\b|\breels?\b|\btiktok\b|\bvideo feed\b/.test(p)) return "video_feed_v1";
-    if (/\bmap\b|\blocation\b|\bnearby\b|\bdirections\b/.test(p)) return "maps_explore_v1";
+    if (/\bmap\b|\blocation\b|\bnearby\b|\bdirections\b/.test(p) && asksForNativeClone) return "maps_explore_v1";
     if (/\bchat thread\b|\bdm thread\b|\bconversation\b/.test(p)) return "chat_thread_v1";
-    if (/\binbox\b|\bmessages\b|\bdms?\b/.test(p)) return "chat_inbox_v1";
+    if (/\binbox\b|\bmessages\b|\bdms?\b/.test(p) && asksForNativeClone) return "chat_inbox_v1";
     if (/\bspotify\b/.test(p)) return "music_discovery_v1";
-    if (/\bcreator\b|\bcontent performance\b|\bdashboard\b.*\bcreator\b|\banalytics\b.*\bcreator\b/.test(p)) return "creator_dashboard_v1";
-    if (/\becommerce\b|\bshop\b|\bstorefront\b|\bproduct grid\b|\bcart\b/.test(p)) return "ecommerce_home_v1";
-    if (/\btravel\b|\bitinerary\b|\btrip planner\b|\bbooking\b|\bflights?\b|\bhotels?\b/.test(p)) return "travel_planner_v1";
-    if (/\bfinance\b|\bportfolio\b|\bwatchlist\b|\ballocation\b|\binvest(ing|ment)?\b/.test(p)) return "finance_portfolio_v1";
-    if (/\blearning\b|\bcourse\b|\blesson\b|\bstreak\b|\bstudy\b|\bpath\b/.test(p)) return "learning_path_v1";
+    if (/\bcreator\b|\bcontent performance\b|\bdashboard\b.*\bcreator\b|\banalytics\b.*\bcreator\b/.test(p) && asksForNativeClone) return "creator_dashboard_v1";
+    if (/\becommerce\b|\bshop\b|\bstorefront\b|\bproduct grid\b|\bcart\b/.test(p) && asksForNativeClone) return "ecommerce_home_v1";
+    if (/\btravel\b|\bitinerary\b|\btrip planner\b|\bbooking\b|\bflights?\b|\bhotels?\b/.test(p) && asksForNativeClone) return "travel_planner_v1";
+    if (/\bfinance\b|\bportfolio\b|\bwatchlist\b|\ballocation\b|\binvest(ing|ment)?\b/.test(p) && asksForNativeClone) return "finance_portfolio_v1";
+    if (/\blearning\b|\bcourse\b|\blesson\b|\bstreak\b|\bstudy\b|\bpath\b/.test(p) && asksForNativeClone) return "learning_path_v1";
     if (spec.content.conceptTag === "instagram_home") return "instagram_feed_v1";
     if (spec.content.conceptTag === "modern_login") return "modern_login_v1";
     if (spec.isSearchResultsMode || spec.style.nativePattern === "appstore_search") return "search_results_native_v1";
     if (/\binstagram\b/.test(p)) return "instagram_feed_v1";
-    if (/\bmusic\b|\bplaylist\b|\bplaylists\b|\brecommendations?\b|\bdiscover(y)?\b/.test(p)) return "music_discovery_v1";
+    if (/\bmusic\b|\bplaylist\b|\bplaylists\b|\brecommendations?\b|\bdiscover(y)?\b/.test(p) && asksForNativeClone) return "music_discovery_v1";
     return null;
 }
 
@@ -988,6 +1036,34 @@ export function resolveContractAsPlan(contract: ScreenContract, _spec: PromptDes
             make("map_preview", "body", "live map with pickup route and nearby drivers"),
             make("content_list", "body", "ride tiers with eta and fare options", 4),
             make("action_bar", "bottom", "confirm ride and schedule actions"),
+        ]},
+        rideshare_map_sheet_v1: { ...base, archetype: "travel", slots: [
+            make("app_header", "top", "live ride context and quick controls"),
+            make("map_preview", "body", "immersive live route map with nearby drivers and pickup context"),
+            make("floating_card", "overlay", "floating pickup and destination summary card"),
+            make("content_list", "body", "ride options presented like a bottom sheet", 4),
+            make("action_bar", "bottom", "primary booking action with one secondary choice"),
+        ]},
+        rideshare_fare_compare_v1: { ...base, archetype: "travel", slots: [
+            make("app_header", "top", "trip summary with compare context"),
+            make("map_preview", "body", "route preview supporting fare comparison"),
+            make("segmented_tabs", "body", "compare modes like fastest comfort premium reserve"),
+            make("content_list", "body", "option comparison cards with eta fare and service differences", 4),
+            make("action_bar", "bottom", "select a ride option and continue"),
+        ]},
+        rideshare_trip_planner_v1: { ...base, archetype: "travel", slots: [
+            make("app_header", "top", "trip planning context and account actions"),
+            make("form_section", "body", "pickup and destination planning fields with route details", 3),
+            make("map_preview", "body", "route preview that responds to the selected trip"),
+            make("horizontal_rail", "body", "smart trip suggestions like saved places or recent destinations", 4),
+            make("action_bar", "bottom", "continue to ride selection"),
+        ]},
+        rideshare_reserve_v1: { ...base, archetype: "travel", slots: [
+            make("app_header", "top", "reserve ride planning header"),
+            make("map_preview", "body", "scheduled pickup map with route context"),
+            make("form_section", "body", "pickup destination time and day planning", 3),
+            make("calendar_strip", "body", "date selection for scheduled departure", 7),
+            make("action_bar", "bottom", "reserve ride CTA with schedule details"),
         ]},
         video_feed_v1: { ...base, archetype: "social_feed", slots: [
             make("social_feed_slot", "body", "full-bleed short video feed cards", 4),

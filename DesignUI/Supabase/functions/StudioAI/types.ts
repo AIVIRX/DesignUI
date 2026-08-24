@@ -134,7 +134,11 @@ export type SketchPrimitive =
     | "SearchBarNative"
     | "SparklinePanel"
     | "TimelineSteps"
-    | "ProductTileGrid";
+    | "ProductTileGrid"
+    | "ContextHeader"
+    | "MapRouteStage"
+    | "OptionCompareStack"
+    | "StickyActionSplit";
 
 export type LayoutSketchNode = {
     slotType: SlotType;
@@ -334,6 +338,10 @@ export type ScreenContract =
     | "chat_thread_v1"
     | "maps_explore_v1"
     | "rideshare_home_v1"
+    | "rideshare_map_sheet_v1"
+    | "rideshare_fare_compare_v1"
+    | "rideshare_trip_planner_v1"
+    | "rideshare_reserve_v1"
     | "video_feed_v1"
     | "checkout_flow_v1"
     | "settings_account_v1"

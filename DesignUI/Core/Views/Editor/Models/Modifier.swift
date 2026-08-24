@@ -276,7 +276,8 @@ struct ComponentModifier: Identifiable, Codable, Equatable {
         case .glassEffect:
             defaultProperties = [
                 "shape": "RoundedRectangle",
-                "cornerRadius": CGFloat(10)
+                "cornerRadius": CGFloat(10),
+                "tint": ""
             ]
         }
         

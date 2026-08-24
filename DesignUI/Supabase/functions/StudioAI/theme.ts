@@ -86,6 +86,12 @@ sampleRailItems: EXACTLY 5 rail card titles. Domain-specific.
 ctaText: match voiceTone — playful:"Keep the Streak! 🔥" | calm:"Begin Session" | professional:"Review Now" | urgent:"Start Run"
 domainTags: lowercase single words, 2-4 of them.
 
+Specificity rules:
+- Echo the user's actual nouns, entities, places, moods, and product language when present.
+- Do not default to familiar app clichés like "Featured", "Popular", "Saved", "Recent", "Item 1", or generic dashboard wording unless the user explicitly asked for that.
+- Do not inject famous brand feature names unless the user explicitly asked for them.
+- If the prompt is niche or unusual, make sampleItems and sampleRailItems feel equally niche and unusual.
+
 sharedFacts: these are CONSISTENT VALUES that every section of the screen should reference.
 - greeting: personalized "Good morning, Alex" style or "Welcome back"
 - userName: a realistic first name
@@ -109,10 +115,10 @@ export async function extractThemeTokens(prompt: string): Promise<ThemeTokens> {
         density: "regular", fontDesign: "default", cornerRadiusScale: "medium", usesGradient: false,
         appName: "MyApp", voiceTone: "professional", mascotSymbol: "", itemNoun: "items",
         ctaVerb: "Start", primaryMetricLabel: "Progress", primaryMetricUnit: "%",
-        sampleItems: ["First task:Get started:Open", "Second task:Keep going:In Progress", "Third task:Almost there:Due Soon", "Fourth task:Finish strong:Pending"],
+        sampleItems: ["Core flow:Primary path:Ready", "Secondary path:Needs review:Queued", "Live context:Updated now:Active", "Next step:Awaiting choice:Open"],
         sampleMetrics: ["Progress:68%:+12%", "Streak:5 days:+1", "Completed:12:+3", "Score:840:+60"],
-        sampleRailItems: ["Featured", "Continue", "New", "Popular", "Saved"],
-        ctaText: "Get Started", domainTags: ["productivity"],
+        sampleRailItems: ["Overview", "Live", "Compare", "Recent", "Explore"],
+        ctaText: "Continue", domainTags: ["productivity"],
         sharedFacts: { greeting: "Welcome back", userName: "Alex", primaryMetricValue: "68%", secondaryMetricValue: "12 completed", streakValue: "5 days", progressPercent: 68, todayDate: "Mon, Jan 15" },
     };
     const domainDefaults = inferDomainDefaults(prompt);
@@ -179,16 +185,16 @@ export async function extractThemeTokens(prompt: string): Promise<ThemeTokens> {
 export function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
     const p = prompt.toLowerCase();
     if (/\bmeditation\b|\bmindful\b|\bcalm\b|\bbreathe\b|\bzen\b/.test(p)) {
-        return { accentColor: "purple:1.0", secondaryColor: "indigo:1.0", surfaceStyle: "calm", density: "airy", voiceTone: "calm", cornerRadiusScale: "pill", domainTags: ["meditation", "wellness"], ctaText: "Begin Session" };
+        return { accentColor: "purple:1.0", secondaryColor: "indigo:1.0", surfaceStyle: "calm", density: "airy", voiceTone: "calm", cornerRadiusScale: "pill", domainTags: ["meditation", "wellness"], itemNoun: "sessions", ctaText: "Begin Session" };
     }
     if (/\bfinance\b|\bbank\b|\binvest\b|\bportfolio\b|\bstock\b/.test(p)) {
-        return { accentColor: "blue:1.0", secondaryColor: "teal:1.0", surfaceStyle: "utility", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["finance", "analytics"], ctaText: "Review Now" };
+        return { accentColor: "blue:1.0", secondaryColor: "teal:1.0", surfaceStyle: "utility", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["finance", "analytics"], itemNoun: "positions", ctaText: "Review Now" };
     }
     if (/\bmusic\b|\bplaylist\b|\bspotify\b|\bartist\b|\balbum\b/.test(p)) {
-        return { accentColor: "green:1.0", secondaryColor: "purple:1.0", surfaceStyle: "immersive", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["music", "media"], ctaText: "Play Now" };
+        return { accentColor: "green:1.0", secondaryColor: "purple:1.0", surfaceStyle: "immersive", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["music", "media"], itemNoun: "tracks", ctaText: "Play Now" };
     }
     if (/\btravel\b|\bitinerary\b|\btrip\b|\bflight\b|\bhotel\b/.test(p)) {
-        return { accentColor: "orange:1.0", secondaryColor: "blue:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["travel", "planning"], ctaText: "View Trip" };
+        return { accentColor: "orange:1.0", secondaryColor: "blue:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["travel", "planning"], itemNoun: "stops", ctaText: "View Trip" };
     }
     if (/\buber\b|\blyft\b|\brideshare\b|\bride share\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p)) {
         return {
@@ -201,19 +207,6 @@ export function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
             domainTags: ["transport", "rideshare", "map"],
             ctaText: "Confirm Ride",
             itemNoun: "rides",
-            sampleRailItems: ["UberX", "Comfort", "Black", "XL", "Reserve"],
-            sampleItems: [
-                "UberX:4 min away:$14.90",
-                "Comfort:6 min away:$18.40",
-                "Black:8 min away:$34.20",
-                "Reserve:Schedule ahead:Tomorrow",
-            ],
-            sampleMetrics: [
-                "ETA:4 min:-1 min",
-                "Pickup:2 min walk:On time",
-                "Driver:4.93:+0.02",
-                "Surge:1.0x:Stable",
-            ],
         };
     }
     if (/\bcoffee\b|\bcafe\b|\bcafé\b|\blatte\b|\bespresso\b|\broaster\b|\bbrew\b/.test(p)) {
@@ -227,26 +220,19 @@ export function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
             domainTags: ["coffee", "cafe", "local"],
             ctaText: "Find a Cafe",
             itemNoun: "cafes",
-            sampleRailItems: ["Morning", "Latte Lab", "Roasters", "Cozy Nook", "Pour Over"],
-            sampleItems: [
-                "Morning Brew:Fresh pastries today:4.8",
-                "Cozy Corner:Window seats open:2 blocks",
-                "Latte Art:Honey oat latte:New",
-                "Daily Grind:Single-origin pour over:Open",
-            ],
         };
     }
     if (/\bfitness\b|\bworkout\b|\btraining\b|\brun\b|\bactivity\b/.test(p)) {
-        return { accentColor: "red:1.0", secondaryColor: "orange:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "urgent", cornerRadiusScale: "medium", domainTags: ["fitness", "health"], ctaText: "Start Run" };
+        return { accentColor: "red:1.0", secondaryColor: "orange:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "urgent", cornerRadiusScale: "medium", domainTags: ["fitness", "health"], itemNoun: "workouts", ctaText: "Start Run" };
     }
     if (/\bshopping\b|\bstore\b|\becommerce\b|\bcheckout\b|\bcart\b/.test(p)) {
-        return { accentColor: "indigo:1.0", secondaryColor: "pink:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["commerce", "retail"], ctaText: "Shop Now" };
+        return { accentColor: "indigo:1.0", secondaryColor: "pink:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["commerce", "retail"], itemNoun: "products", ctaText: "Shop Now" };
     }
     if (/\bnews\b|\barticle\b|\breader\b|\bmagazine\b/.test(p)) {
-        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "sharp", domainTags: ["news", "content"], ctaText: "Read More" };
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "sharp", domainTags: ["news", "content"], itemNoun: "stories", ctaText: "Read More" };
     }
     if (/\bchat\b|\bmessage\b|\binbox\b|\bdm\b/.test(p)) {
-        return { accentColor: "blue:1.0", secondaryColor: "green:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "playful", cornerRadiusScale: "pill", domainTags: ["messaging", "social"], ctaText: "Send Message" };
+        return { accentColor: "blue:1.0", secondaryColor: "green:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "playful", cornerRadiusScale: "pill", domainTags: ["messaging", "social"], itemNoun: "messages", ctaText: "Send Message" };
     }
     return {};
 }
@@ -326,9 +312,9 @@ export function buildBaselineTheme(tokens: ScreenTokens): ThemeTokens {
         ctaVerb: "Open",
         primaryMetricLabel: "Progress",
         primaryMetricUnit: "%",
-        sampleItems: ["Priority item:Start here:Open", "Follow up:Keep momentum:In Progress", "Review:End of day:Soon", "Wrap up:Final check:Pending"],
+        sampleItems: ["Core flow:Ready to begin:Open", "Selection state:Waiting input:Active", "Supporting context:Updated now:Live", "Next step:Needs decision:Queued"],
         sampleMetrics: ["Progress:72%:+6%", "Focus:14:+2", "Active:9:+1", "Done:5:+1"],
-        sampleRailItems: ["Featured", "Continue", "New", "Popular", "Saved"],
+        sampleRailItems: ["Overview", "Current", "Nearby", "Compare", "Explore"],
         ctaText: "Continue",
         domainTags: ["productivity"],
         sharedFacts: {

@@ -6,10 +6,12 @@
 
 import SwiftUI
 import Charts
+import MapKit
 
 
 struct ComponentRenderer: View {
     @ObservedObject var component: UIComponent
+    @Environment(\.previewInteractionStore) var inheritedInteractionStore
     let deviceSize: CGSize?
     let colorScheme: ColorScheme?
     let onTap: ((Bool) -> Void)?
@@ -21,6 +23,7 @@ struct ComponentRenderer: View {
     
     @State private var isHovered: Bool = false
     @State private var hasAppliedModifiers: Bool = false
+    @StateObject var localInteractionStore = PreviewInteractionStore()
     
     init(component: UIComponent, deviceSize: CGSize? = nil, colorScheme: ColorScheme? = nil, onTap: ((Bool) -> Void)? = nil, onSelectChild: ((UIComponent, Bool) -> Void)? = nil, selectedComponentIds: Set<UUID> = [], isScreenshotCapture: Bool = false, canvasManager: CanvasManager? = nil) {
         self.component = component
@@ -34,10 +37,12 @@ struct ComponentRenderer: View {
     }
     
     var body: some View {
+        let activeInteractionStore = inheritedInteractionStore ?? localInteractionStore
         renderedComponent
         .opacity(component.isVisible ? 1.0 : 0.0)
         .applyModifiers(component.modifiers, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture)
         .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+        .environment(\.previewInteractionStore, activeInteractionStore)
         .colorScheme(colorScheme ?? .light)
         .applyInteractionContentShapeIfNeeded(component: component)
         .id(component.id)
@@ -101,6 +106,8 @@ struct ComponentRenderer: View {
             return AnyView(renderButton())
         case .gauge:
             return AnyView(renderGauge())
+        case .map:
+            return AnyView(renderMap())
         default:
             return AnyView(renderPlaceholder())
         }

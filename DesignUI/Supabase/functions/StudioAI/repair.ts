@@ -47,7 +47,7 @@ export function cheapRepair(component: AnyComponent): { component: AnyComponent;
 
 export const REPAIR_SYSTEM_PROMPT = `Fix schema errors in the SwiftUI JSON. Output ONLY the corrected JSON: { "component": <UIComponent> }
 CONTAINERS (must have children[]): VStack, HStack, ZStack, ScrollView, Button
-LEAVES (delete children if present): Text, Image, SF Symbol, Shape, Chart, Spacer, Divider, Rectangle, Circle, RoundedRectangle, Capsule, Ellipse, Linear Gradient, Text Field, Switch, Slider, Progress View, Status Bar, Gauge
+LEAVES (delete children if present): Text, Image, SF Symbol, Shape, Chart, Spacer, Divider, Rectangle, Circle, RoundedRectangle, Capsule, Ellipse, Linear Gradient, Text Field, Switch, Slider, Progress View, Status Bar, Gauge, Map
 Invalid type: row/cell->HStack | card/stat->VStack | label/title->Text | icon->SF Symbol | graph->Chart | progress/progressbar->Progress View
 Invalid modifier: remove it. Button with Background Color on label: buttonStyle="plain"
 Shape color rule: Background Color on shape -> convert to Fill. Text.properties.text must be non-empty. Fix ALL errors.

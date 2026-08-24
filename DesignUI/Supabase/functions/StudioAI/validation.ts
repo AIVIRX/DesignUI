@@ -3,6 +3,8 @@ import type { SlotConstraint } from "./schema.ts";
 import { isObject } from "./utils.ts";
 import { INSTRUCTIONAL_COPY_PATTERNS } from "./manifest.ts";
 
+const ALLOWED_SPACING_SCALE = new Set([0, 4, 8, 12, 16, 24, 32]);
+
 function getComponentDepth(component: AnyComponent): number {
     if (!Array.isArray(component.children) || component.children.length === 0) return 1;
     return 1 + Math.max(...component.children.map(getComponentDepth));
@@ -80,6 +82,7 @@ export function detectLowQualitySlotOutput(component: AnyComponent): string[] {
     }
     if (questionMarkSymbolCount >= 2) issues.push(`too many unknown symbols (${questionMarkSymbolCount})`);
     if (genericFallbackCopyCount >= 2) issues.push(`generic fallback copy detected (${genericFallbackCopyCount})`);
+    issues.push(...findSpacingScaleViolations(component));
     return issues;
 }
 
@@ -165,9 +168,54 @@ export function slotHasBlurTreatment(component: AnyComponent): boolean {
     let found = false;
     walkComponentTree(component, (n) => {
         if (found || !Array.isArray(n.modifiers)) return;
-        if (n.modifiers.some((m) => isObject(m) && m.type === "Blur")) found = true;
+        if (n.modifiers.some((m) => isObject(m) && (m.type === "Blur" || m.type === "Glass Effect"))) found = true;
     });
     return found;
+}
+
+export function findInvalidGlassSurfaceUsage(component: AnyComponent): string[] {
+    const issues: string[] = [];
+    walkComponentTree(component, (n) => {
+        if (!Array.isArray(n.modifiers) || n.modifiers.length === 0) return;
+        const hasGlass = n.modifiers.some((m) => isObject(m) && m.type === "Glass Effect");
+        if (!hasGlass) return;
+        const hasFill = n.modifiers.some((m) => isObject(m) && m.type === "Fill");
+        const hasBackground = n.modifiers.some((m) => isObject(m) && m.type === "Background Color");
+        if (hasFill || hasBackground) {
+            issues.push(`${n.type} uses Glass Effect together with ${[hasFill ? "Fill" : null, hasBackground ? "Background Color" : null].filter(Boolean).join(" + ")}`);
+        }
+    });
+    return issues;
+}
+
+export function findSpacingScaleViolations(component: AnyComponent): string[] {
+    let stackSpacingViolations = 0;
+    let paddingViolations = 0;
+
+    walkComponentTree(component, (n) => {
+        if (
+            (n.type === "VStack" || n.type === "HStack") &&
+            isObject(n.properties) &&
+            typeof n.properties.spacing === "number" &&
+            !ALLOWED_SPACING_SCALE.has(n.properties.spacing)
+        ) {
+            stackSpacingViolations += 1;
+        }
+
+        if (!Array.isArray(n.modifiers)) return;
+        for (const mod of n.modifiers) {
+            if (!isObject(mod) || mod.type !== "Padding" || !isObject(mod.properties)) continue;
+            const amount = mod.properties.amount;
+            if (typeof amount === "number" && !ALLOWED_SPACING_SCALE.has(amount)) {
+                paddingViolations += 1;
+            }
+        }
+    });
+
+    const issues: string[] = [];
+    if (stackSpacingViolations > 0) issues.push(`off-scale stack spacing values detected (${stackSpacingViolations})`);
+    if (paddingViolations > 0) issues.push(`off-scale padding values detected (${paddingViolations})`);
+    return issues;
 }
 
 export function estimateGridCardCount(component: AnyComponent): { rows: number; cards: number } {
@@ -385,7 +433,7 @@ export function containsInstructionalDisplayText(component: AnyComponent): boole
 }
 
 export function validateSlotAgainstPromptRequirements(slot: SlotPlan, component: AnyComponent, promptRequirements: PromptRequirement[]): string[] {
-    const issues: string[] = [];
+    const issues: string[] = [...findInvalidGlassSurfaceUsage(component), ...findSpacingScaleViolations(component)];
     if (containsInstructionalDisplayText(component)) {
         issues.push("Instruction/spec language leaked into visible text labels; use natural UI copy instead.");
     }
@@ -400,7 +448,7 @@ export function validateSlotAgainstPromptRequirements(slot: SlotPlan, component:
         }
         if (slot.slotType === "timeline_list") {
             if (must.includes("blur") && !slotHasBlurTreatment(component)) {
-                issues.push("Timeline/feed requested blurred treatment but no Blur modifier found.");
+                issues.push("Timeline/feed requested translucent treatment but no Blur or Glass Effect modifier found.");
             }
         }
         if (slot.slotType === "stat_group") {

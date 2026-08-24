@@ -1,8 +1,144 @@
 
 import SwiftUI
 import Charts
+import MapKit
 
 extension ComponentRenderer {
+    private var activeInteractionStore: PreviewInteractionStore {
+        inheritedInteractionStore ?? localInteractionStore
+    }
+
+    private func stringComponentProperty(_ key: String, defaultValue: String = "") -> String {
+        component.getProperty(key: key) as? String ?? defaultValue
+    }
+
+    private func textFieldSemanticRole() -> String {
+        stringComponentProperty("semanticRole", defaultValue: "input")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+    }
+
+    private func currentTextFieldValue() -> String {
+        activeInteractionStore.textValue(for: component.id, fallback: stringComponentProperty("text"))
+    }
+
+    private func isSearchFieldComponent(_ node: UIComponent) -> Bool {
+        guard node.type == .textField else { return false }
+        let semanticRole = (node.getProperty(key: "semanticRole") as? String ?? "").lowercased()
+        let placeholder = (node.getProperty(key: "placeholder") as? String ?? "").lowercased()
+        let text = (node.getProperty(key: "text") as? String ?? "").lowercased()
+        return semanticRole == "search" || placeholder.contains("search") || text.contains("search")
+    }
+
+    private func searchQueryForCurrentTree() -> String? {
+        activeInteractionStore.activeSearchQuery()
+    }
+
+    private func interactionValue(_ key: String) -> String {
+        stringComponentProperty(key)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+    }
+
+    private func rowInteractionTags(_ node: UIComponent) -> [String] {
+        let raw = (node.getProperty(key: "interactionTags") as? String ?? "")
+        return raw
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty }
+    }
+
+    private func selectionFiltersMatch(_ node: UIComponent) -> Bool {
+        if activeInteractionStore.selectionValues.isEmpty {
+            return true
+        }
+
+        let tags = rowInteractionTags(node)
+        if tags.isEmpty {
+            return true
+        }
+
+        for (_, selectedValue) in activeInteractionStore.selectionValues {
+            let normalized = selectedValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            if normalized.isEmpty || normalized == "all" {
+                continue
+            }
+            if !tags.contains(normalized) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private func nodeContainsInteractiveInput(_ node: UIComponent) -> Bool {
+        if node.type == .textField || node.type == .toggle || node.type == .slider {
+            return true
+        }
+        return node.children.contains(where: nodeContainsInteractiveInput)
+    }
+
+    private func displayTextFragments(in node: UIComponent) -> [String] {
+        var fragments: [String] = []
+
+        if node.type == .text, let value = node.getProperty(key: "text") as? String {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                fragments.append(trimmed)
+            }
+        }
+
+        if isSearchFieldComponent(node) {
+            let value = activeInteractionStore.textValue(for: node.id, fallback: node.getProperty(key: "text") as? String ?? "")
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                fragments.append(trimmed)
+            }
+        }
+
+        for child in node.children {
+            fragments.append(contentsOf: displayTextFragments(in: child))
+        }
+
+        return fragments
+    }
+
+    private func isLikelyFilterableRow(_ node: UIComponent) -> Bool {
+        guard !nodeContainsInteractiveInput(node) else { return false }
+        guard node.type == .hstack || node.type == .vstack || node.type == .zstack else { return false }
+        return !displayTextFragments(in: node).isEmpty
+    }
+
+    private func filteredChildrenForCurrentContainer(_ children: [UIComponent]) -> (children: [UIComponent], filtered: Bool) {
+        guard !nodeContainsInteractiveInput(component) else { return (children, false) }
+
+        let baseChildren = children.filter(selectionFiltersMatch)
+        let selectionFiltered = baseChildren.count != children.count
+        let query = (searchQueryForCurrentTree() ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !query.isEmpty else { return (baseChildren, selectionFiltered) }
+
+        if let first = baseChildren.first, first.type == .text {
+            let candidateRows = Array(baseChildren.dropFirst())
+            let filterableRows = candidateRows.filter(isLikelyFilterableRow)
+            if candidateRows.count >= 2 && filterableRows.count == candidateRows.count {
+                let matched = candidateRows.filter { row in
+                    let haystack = displayTextFragments(in: row).joined(separator: " ").lowercased()
+                    return haystack.contains(query)
+                }
+                return ([first] + matched, true)
+            }
+        }
+
+        let filterableRows = baseChildren.filter(isLikelyFilterableRow)
+        guard baseChildren.count >= 2, filterableRows.count == baseChildren.count else { return (baseChildren, baseChildren.count != children.count) }
+        let matched = baseChildren.filter { row in
+            let haystack = displayTextFragments(in: row).joined(separator: " ").lowercased()
+            return haystack.contains(query)
+        }
+        return (matched, true)
+    }
+
     func renderText() -> some View {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
         return Text(text)
@@ -258,11 +394,21 @@ extension ComponentRenderer {
     
     func renderButton() -> some View {
         let buttonStyle = component.getProperty(key: "buttonStyle") as? String ?? "borderedProminent"
+        let interactionRole = interactionValue("interactionRole")
+        let interactionKey = stringComponentProperty("interactionKey")
+        let interactionSelectionValue = stringComponentProperty("interactionValue")
+        let interactionDefault = component.getBoolProperty(key: "interactionDefault", defaultValue: false)
+        let isSelectable = !interactionRole.isEmpty && !interactionKey.isEmpty && !interactionSelectionValue.isEmpty
+        let isSelected = isSelectable && activeInteractionStore.selectionValue(for: interactionKey) == interactionSelectionValue
         
         let contentChildren = component.children.filter { $0.modifierId == nil }
         
         return AnyView(
-            Button(action: {}) {
+            Button(action: {
+                if isSelectable && (interactionRole == "select_filter" || interactionRole == "select_tab" || interactionRole == "set_selection") {
+                    activeInteractionStore.setSelectionValue(interactionSelectionValue, for: interactionKey)
+                }
+            }) {
                 if contentChildren.isEmpty {
                     EmptyView()
                 } else {
@@ -274,6 +420,14 @@ extension ComponentRenderer {
                 }
             }
             .applyButtonStyle(buttonStyle)
+            .opacity(isSelectable ? (isSelected ? 1.0 : 0.72) : 1.0)
+            .scaleEffect(isSelectable ? (isSelected ? 1.0 : 0.985) : 1.0)
+            .animation(.spring(response: 0.24, dampingFraction: 0.82), value: isSelected)
+            .onAppear {
+                if isSelectable && interactionDefault {
+                    activeInteractionStore.registerDefaultSelection(interactionSelectionValue, for: interactionKey)
+                }
+            }
         )
     }
     
@@ -317,6 +471,235 @@ extension ComponentRenderer {
         (component.getProperty(key: key) as? Double)
             ?? (component.getProperty(key: key) as? Int).map(Double.init)
             ?? defaultValue
+    }
+
+    private struct ParsedMapMarker: Identifiable {
+        let id: String
+        let latitude: Double
+        let longitude: Double
+        let title: String
+        let tint: String?
+
+        var coordinate: CLLocationCoordinate2D {
+            CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+    }
+
+    private struct DecodedMapMarker: Decodable {
+        let latitude: Double
+        let longitude: Double
+        let title: String?
+        let tint: String?
+    }
+
+    private func parsedMapMarkers(centerLatitude: Double, centerLongitude: Double, fallbackTitle: String) -> [ParsedMapMarker] {
+        if let rawMarkers = component.getProperty(key: "markers") {
+            if let markerArray = rawMarkers as? [[String: Any]] {
+                let parsed = markerArray.compactMap { markerDict -> ParsedMapMarker? in
+                    guard
+                        let latitude = numericValue(markerDict["latitude"]),
+                        let longitude = numericValue(markerDict["longitude"])
+                    else { return nil }
+
+                    let title = (markerDict["title"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    let tint = markerDict["tint"] as? String
+                    let id = "\(latitude),\(longitude),\(title),\(tint ?? "")"
+                    return ParsedMapMarker(id: id, latitude: latitude, longitude: longitude, title: title, tint: tint)
+                }
+                if !parsed.isEmpty {
+                    return parsed
+                }
+            }
+
+            if let markerString = rawMarkers as? String {
+                let trimmed = markerString.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty, let data = trimmed.data(using: .utf8) {
+                    if let decoded = try? JSONDecoder().decode([DecodedMapMarker].self, from: data) {
+                        let parsed = decoded.map { marker in
+                            ParsedMapMarker(
+                                id: "\(marker.latitude),\(marker.longitude),\(marker.title ?? ""),\(marker.tint ?? "")",
+                                latitude: marker.latitude,
+                                longitude: marker.longitude,
+                                title: marker.title ?? "",
+                                tint: marker.tint
+                            )
+                        }
+                        if !parsed.isEmpty {
+                            return parsed
+                        }
+                    }
+                }
+            }
+        }
+
+        let trimmedTitle = fallbackTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else { return [] }
+        return [
+            ParsedMapMarker(
+                id: "\(centerLatitude),\(centerLongitude),\(trimmedTitle)",
+                latitude: centerLatitude,
+                longitude: centerLongitude,
+                title: trimmedTitle,
+                tint: "red:1.0"
+            )
+        ]
+    }
+
+    private func numericValue(_ raw: Any?) -> Double? {
+        if let doubleValue = raw as? Double { return doubleValue }
+        if let intValue = raw as? Int { return Double(intValue) }
+        if let stringValue = raw as? String { return Double(stringValue) }
+        return nil
+    }
+
+    private func mapInteractionModes(from rawValue: String) -> MapInteractionModes {
+        let normalized = rawValue
+            .lowercased()
+            .replacingOccurrences(of: " ", with: "")
+
+        switch normalized {
+        case "none":
+            return []
+        case "pan":
+            return .pan
+        case "zoom":
+            return .zoom
+        case "rotate":
+            return .rotate
+        case "pitch":
+            return .pitch
+        case "pan+zoom":
+            return [.pan, .zoom]
+        case "pan+zoom+rotate":
+            return [.pan, .zoom, .rotate]
+        case "pan+zoom+rotate+pitch":
+            return [.pan, .zoom, .rotate, .pitch]
+        default:
+            return .all
+        }
+    }
+
+    private func mapMarkerTint(_ tint: String?) -> Color {
+        guard let tint, !tint.isEmpty else { return .red }
+        return ComponentProperty.colorStringToColor(tint)
+    }
+
+    @ViewBuilder
+    private func mapMarkerView(_ marker: ParsedMapMarker) -> some View {
+        VStack(spacing: 4) {
+            ZStack {
+                Circle()
+                    .fill(mapMarkerTint(marker.tint))
+                    .frame(width: 18, height: 18)
+
+                Circle()
+                    .fill(.white.opacity(0.95))
+                    .frame(width: 6, height: 6)
+            }
+
+            if !marker.title.isEmpty {
+                Text(marker.title)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.ultraThinMaterial, in: Capsule())
+            }
+        }
+        .shadow(color: .black.opacity(0.14), radius: 8, x: 0, y: 4)
+    }
+
+    func renderMap() -> some View {
+        let latitude = doubleComponentProperty("latitude", defaultValue: 37.3346)
+        let longitude = doubleComponentProperty("longitude", defaultValue: -122.0090)
+        let latitudeDelta = max(doubleComponentProperty("latitudeDelta", defaultValue: 0.018), 0.001)
+        let longitudeDelta = max(doubleComponentProperty("longitudeDelta", defaultValue: 0.018), 0.001)
+        let interactionModes = mapInteractionModes(from: component.getProperty(key: "interactionModes") as? String ?? "all")
+        let showsCompass = component.getBoolProperty(key: "showsCompass", defaultValue: true)
+        let showsScale = component.getBoolProperty(key: "showsScale", defaultValue: false)
+        let showsPitchToggle = component.getBoolProperty(key: "showsPitchToggle", defaultValue: false)
+        let showsUserLocation = component.getBoolProperty(key: "showsUserLocation", defaultValue: false)
+        let showsUserLocationButton = component.getBoolProperty(key: "showsUserLocationButton", defaultValue: false)
+        let showsTraffic = component.getBoolProperty(key: "showsTraffic", defaultValue: false)
+        let mapStyle = (component.getProperty(key: "mapStyle") as? String ?? "standard").lowercased()
+        let locationName = component.getProperty(key: "locationName") as? String ?? ""
+        let markers = parsedMapMarkers(centerLatitude: latitude, centerLongitude: longitude, fallbackTitle: locationName)
+
+        let region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+            span: MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
+        )
+
+        if #available(iOS 17.0, macOS 14.0, *) {
+            if markers.isEmpty {
+                return AnyView(
+                    Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation)
+                        .mapStyle(resolvedMapStyle(mapStyle, showsTraffic: showsTraffic))
+                        .mapControls {
+                            if showsCompass {
+                                MapCompass()
+                            }
+                            if showsScale {
+                                MapScaleView()
+                            }
+                            if showsPitchToggle {
+                                MapPitchToggle()
+                            }
+                            if showsUserLocationButton {
+                                MapUserLocationButton()
+                            }
+                        }
+                )
+            }
+
+            return AnyView(
+                Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation, annotationItems: markers) { marker in
+                    MapAnnotation(coordinate: marker.coordinate) {
+                        mapMarkerView(marker)
+                    }
+                }
+                .mapStyle(resolvedMapStyle(mapStyle, showsTraffic: showsTraffic))
+                .mapControls {
+                    if showsCompass {
+                        MapCompass()
+                    }
+                    if showsScale {
+                        MapScaleView()
+                    }
+                    if showsPitchToggle {
+                        MapPitchToggle()
+                    }
+                    if showsUserLocationButton {
+                        MapUserLocationButton()
+                    }
+                }
+            )
+        }
+
+        if !markers.isEmpty {
+            return AnyView(
+                Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation, annotationItems: markers) { marker in
+                    MapAnnotation(coordinate: marker.coordinate) {
+                        mapMarkerView(marker)
+                    }
+                }
+            )
+        }
+
+        return AnyView(
+            Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation)
+        )
+    }
+
+    private func resolvedMapStyle(_ style: String, showsTraffic: Bool) -> MapStyle {
+        switch style {
+        case "imagery":
+            return .imagery(elevation: .realistic)
+        case "hybrid":
+            return .hybrid(elevation: .realistic, showsTraffic: showsTraffic)
+        default:
+            return .standard(elevation: .realistic, showsTraffic: showsTraffic)
+        }
     }
 
     private func gaugeValueText(_ value: Double) -> String {
@@ -383,19 +766,28 @@ extension ComponentRenderer {
         let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
         
         let contentChildren = component.children.filter { $0.modifierId == nil }
+        let filteredChildren = filteredChildrenForCurrentContainer(contentChildren)
         
         let base = VStack(alignment: horizontalAlignmentFromString(alignment), spacing: spacing) {
-            if contentChildren.isEmpty {
-                EmptyView()
+            if filteredChildren.children.isEmpty {
+                if filteredChildren.filtered {
+                    Text("No matches")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 8)
+                } else {
+                    EmptyView()
+                }
             } else {
-                ForEach(contentChildren, id: \.id) { child in
+                ForEach(filteredChildren.children, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
                     }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture, canvasManager: canvasManager)
                 }
             }
         }
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: contentChildren.map { $0.id })
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: filteredChildren.children.map { $0.id })
         return base
     }
 
@@ -626,8 +1018,8 @@ extension ComponentRenderer {
     }
     
     private func textFieldRenderState() -> (displayText: String, isPlaceholder: Bool) {
-        let text = component.getProperty(key: "text") as? String ?? ""
-        let placeholder = component.getProperty(key: "placeholder") as? String ?? "Placeholder"
+        let text = currentTextFieldValue()
+        let placeholder = stringComponentProperty("placeholder", defaultValue: "Placeholder")
         
         let displayText = text.isEmpty ? placeholder : text
         let isPlaceholder = text.isEmpty
@@ -635,17 +1027,38 @@ extension ComponentRenderer {
     }
     
     private func textFieldView(state: (displayText: String, isPlaceholder: Bool)) -> some View {
-        Text(state.displayText)
-            .foregroundColor(state.isPlaceholder ? .secondary : .primary)
+        let placeholder = stringComponentProperty("placeholder", defaultValue: "Placeholder")
+        let semanticRole = textFieldSemanticRole()
+        let binding = Binding<String>(
+            get: { currentTextFieldValue() },
+            set: { newValue in
+                activeInteractionStore.setTextValue(newValue, for: component.id)
+            }
+        )
+
+        return TextField(placeholder, text: binding)
+            .textFieldStyle(.plain)
+            .foregroundColor(.primary)
+            .autocorrectionDisabled(semanticRole == "search")
+            #if os(iOS)
+            .textInputAutocapitalization(semanticRole == "search" ? .never : .sentences)
+            #endif
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .background(textFieldBackground)
             .padding(4)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                onTap?(false)
+            .onAppear {
+                if semanticRole == "search" || placeholder.lowercased().contains("search") {
+                    activeInteractionStore.registerSearchField(component.id)
+                }
             }
+            .contentShape(Rectangle())
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    onTap?(false)
+                }
+            )
     }
     
     private var textFieldBackground: some View {
@@ -985,49 +1398,56 @@ extension View {
                 }
 
                 let shapeName = normalizedGlassShapeName(from: modifier)
+                let tintString = (modifier.properties["tint"] as? String ?? "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
                 switch shapeName {
                 case "Circle":
-                    return glassEffectRenderedView(baseView: baseView, shape: Circle(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
+                    return glassEffectRenderedView(baseView: baseView, shape: Circle(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type, tintString: tintString)
                 case "Capsule":
-                    return glassEffectRenderedView(baseView: baseView, shape: Capsule(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
+                    return glassEffectRenderedView(baseView: baseView, shape: Capsule(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type, tintString: tintString)
                 case "RoundedRectangle":
                     let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 10)
-                    return glassEffectRenderedView(baseView: baseView, shape: RoundedRectangle(cornerRadius: radius), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
+                    return glassEffectRenderedView(baseView: baseView, shape: RoundedRectangle(cornerRadius: radius), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type, tintString: tintString)
                 case "Ellipse":
-                    return glassEffectRenderedView(baseView: baseView, shape: Ellipse(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
+                    return glassEffectRenderedView(baseView: baseView, shape: Ellipse(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type, tintString: tintString)
                 case "Rectangle":
-                    return glassEffectRenderedView(baseView: baseView, shape: Rectangle(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type)
+                    return glassEffectRenderedView(baseView: baseView, shape: Rectangle(), useOverlayForShape: component.type == .shape, colorScheme: colorScheme, componentType: component.type, tintString: tintString)
                 default:
-                    return glassEffectRenderedView(baseView: baseView, shape: RoundedRectangle(cornerRadius: 10), useOverlayForShape: false, colorScheme: colorScheme, componentType: component.type)
+                    return glassEffectRenderedView(baseView: baseView, shape: RoundedRectangle(cornerRadius: 10), useOverlayForShape: false, colorScheme: colorScheme, componentType: component.type, tintString: tintString)
                 }
             }
             return view
         }
     }
 
-    private func glassEffectRenderedView<S: Shape>(baseView: AnyView, shape: S, useOverlayForShape: Bool, colorScheme: ColorScheme?, componentType: ComponentType) -> AnyView {
+    private func glassEffectRenderedView<S: Shape>(baseView: AnyView, shape: S, useOverlayForShape: Bool, colorScheme: ColorScheme?, componentType: ComponentType, tintString: String) -> AnyView {
         if #available(iOS 26.0, macOS 26.0, *) {
             let isDarkMode = colorScheme == .dark
             let isContainer = [.stack, .vstack, .hstack, .zstack, .scrollView].contains(componentType)
+            let tintColor = tintString.isEmpty ? Color.gray.opacity(0.45) : ComponentProperty.colorStringToColor(tintString)
             let rendered: AnyView
 
             if isDarkMode {
-                let glassView = Color.clear.glassEffect(.regular.interactive(), in: shape)
+                let glassView = tintString.isEmpty
+                    ? Color.clear.glassEffect(.regular.interactive(), in: shape)
+                    : Color.clear.glassEffect(.regular.tint(tintColor).interactive(), in: shape)
                 if useOverlayForShape {
                     rendered = AnyView(baseView.overlay(glassView))
                 } else if isContainer {
                     rendered = AnyView(baseView.background(glassView))
                 } else {
-                    rendered = AnyView(baseView.glassEffect(.regular.interactive(), in: shape))
+                    rendered = tintString.isEmpty
+                        ? AnyView(baseView.glassEffect(.regular.interactive(), in: shape))
+                        : AnyView(baseView.glassEffect(.regular.tint(tintColor).interactive(), in: shape))
                 }
             } else {
-                let glassView = Color.clear.glassEffect(.regular.tint(.gray.opacity(0.45)).interactive(), in: shape)
+                let glassView = Color.clear.glassEffect(.regular.tint(tintColor).interactive(), in: shape)
                 if useOverlayForShape {
                     rendered = AnyView(baseView.overlay(glassView))
                 } else if isContainer {
                     rendered = AnyView(baseView.background(glassView))
                 } else {
-                    rendered = AnyView(baseView.glassEffect(.regular.tint(.gray.opacity(0.45)).interactive(), in: shape))
+                    rendered = AnyView(baseView.glassEffect(.regular.tint(tintColor).interactive(), in: shape))
                 }
             }
             let borderOpacity = isDarkMode ? 0.28 : 0.18
@@ -1035,6 +1455,7 @@ extension View {
 
             return AnyView(
                 rendered
+                    .contentShape(shape)
                     .overlay(shape.stroke(.white.opacity(borderOpacity), lineWidth: 1))
                     .overlay(shape.stroke(.white.opacity(glowOpacity), lineWidth: 3).blur(radius: 6))
                     .shadow(color: .black.opacity(isDarkMode ? 0.12 : 0.08), radius: 10, y: 2)

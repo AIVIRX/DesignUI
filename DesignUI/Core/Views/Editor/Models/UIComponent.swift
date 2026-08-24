@@ -6,6 +6,7 @@
 
 import SwiftUI
 import Foundation
+import MapKit
 #if os(macOS)
 import AppKit
 #else
@@ -39,6 +40,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     case shape = "Shape"
     case button = "Button"
     case gauge = "Gauge"
+    case map = "Map"
     
     var id: String { rawValue }
     
@@ -69,6 +71,7 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
         case .shape: return "square.on.circle"
         case .button: return "button.programmable"
         case .gauge: return "gauge.medium"
+        case .map: return "map.fill"
         }
     }
     
@@ -79,10 +82,6 @@ enum ComponentType: String, CaseIterable, Identifiable, Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let raw = try container.decode(String.self)
-        if raw == "Map" {
-            self = .shape
-            return
-        }
         self = ComponentType(rawValue: raw) ?? .text
     }
 
@@ -965,6 +964,15 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         }
     }
 
+    private static func shouldMigrateToMapComponent(
+        decodedType: ComponentType,
+        savedProperties: [ComponentProperty]
+    ) -> Bool {
+        guard decodedType == .text || decodedType == .shape else { return false }
+        let keys = Set(savedProperties.map(\.key))
+        return keys.contains("latitude") && keys.contains("longitude")
+    }
+
     private static func normalizedRestoredProperties(
         savedProperties: [ComponentProperty],
         type: ComponentType,
@@ -1050,9 +1058,12 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         let decodedType = try container.decode(ComponentType.self, forKey: .type)
-        let (migratedType, migratedStackType) = Self.migrateLegacyStackType(from: decodedType)
-        self.type = migratedType
         let savedProperties = Self.decodeRawProperties(from: container)
+        let effectiveDecodedType: ComponentType = Self.shouldMigrateToMapComponent(decodedType: decodedType, savedProperties: savedProperties)
+            ? .map
+            : decodedType
+        let (migratedType, migratedStackType) = Self.migrateLegacyStackType(from: effectiveDecodedType)
+        self.type = migratedType
         self.properties = savedProperties
         
         self.children = try container.decodeIfPresent([UIComponent].self, forKey: .children) ?? []
@@ -1242,7 +1253,8 @@ extension UIComponent {
         case .textField:
             return [
                 ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Text Value", defaultValue: "Text Value"),
-                ComponentProperty(key: "placeholder", displayName: "Placeholder", type: .string, value: "Placeholder", defaultValue: "Placeholder")
+                ComponentProperty(key: "placeholder", displayName: "Placeholder", type: .string, value: "Placeholder", defaultValue: "Placeholder"),
+                ComponentProperty(key: "semanticRole", displayName: "Semantic Role", type: .dropdown, value: "input", defaultValue: "input", options: ["input", "search", "email", "password"])
             ]
         case .toggle:
             return [
@@ -1270,7 +1282,28 @@ extension UIComponent {
             ]
         case .button:
             return [
-                ComponentProperty(key: "buttonStyle", displayName: "Button Style", type: .dropdown, value: "borderedProminent", defaultValue: "borderedProminent", options: ["bordered", "borderedProminent", "borderless", "plain"])
+                ComponentProperty(key: "buttonStyle", displayName: "Button Style", type: .dropdown, value: "borderedProminent", defaultValue: "borderedProminent", options: ["bordered", "borderedProminent", "borderless", "plain"]),
+                ComponentProperty(key: "interactionRole", displayName: "Interaction Role", type: .dropdown, value: "", defaultValue: "", options: ["", "select_tab", "select_filter", "set_selection"]),
+                ComponentProperty(key: "interactionKey", displayName: "Interaction Key", type: .string, value: "", defaultValue: ""),
+                ComponentProperty(key: "interactionValue", displayName: "Interaction Value", type: .string, value: "", defaultValue: ""),
+                ComponentProperty(key: "interactionDefault", displayName: "Default Selection", type: .boolean, value: false, defaultValue: false)
+            ]
+        case .map:
+            return [
+                ComponentProperty(key: "latitude", displayName: "Latitude", type: .number, value: 37.3346, defaultValue: 37.3346),
+                ComponentProperty(key: "longitude", displayName: "Longitude", type: .number, value: -122.0090, defaultValue: -122.0090),
+                ComponentProperty(key: "latitudeDelta", displayName: "Latitude Delta", type: .number, value: 0.018, defaultValue: 0.018),
+                ComponentProperty(key: "longitudeDelta", displayName: "Longitude Delta", type: .number, value: 0.018, defaultValue: 0.018),
+                ComponentProperty(key: "mapStyle", displayName: "Map Style", type: .dropdown, value: "standard", defaultValue: "standard", options: ["standard", "imagery", "hybrid"]),
+                ComponentProperty(key: "interactionModes", displayName: "Interaction Modes", type: .dropdown, value: "all", defaultValue: "all", options: ["all", "none", "pan", "zoom", "rotate", "pitch", "pan+zoom", "pan+zoom+rotate", "pan+zoom+rotate+pitch"]),
+                ComponentProperty(key: "showsCompass", displayName: "Shows Compass", type: .boolean, value: true, defaultValue: true),
+                ComponentProperty(key: "showsScale", displayName: "Shows Scale", type: .boolean, value: false, defaultValue: false),
+                ComponentProperty(key: "showsPitchToggle", displayName: "Shows Pitch Toggle", type: .boolean, value: false, defaultValue: false),
+                ComponentProperty(key: "showsUserLocation", displayName: "Shows User Location", type: .boolean, value: false, defaultValue: false),
+                ComponentProperty(key: "showsUserLocationButton", displayName: "Shows User Button", type: .boolean, value: false, defaultValue: false),
+                ComponentProperty(key: "showsTraffic", displayName: "Shows Traffic", type: .boolean, value: false, defaultValue: false),
+                ComponentProperty(key: "locationName", displayName: "Location Name", type: .string, value: "Apple Park, Cupertino", defaultValue: "Apple Park, Cupertino"),
+                ComponentProperty(key: "markers", displayName: "Markers JSON", type: .string, value: "", defaultValue: "")
             ]
         
         case .gauge:

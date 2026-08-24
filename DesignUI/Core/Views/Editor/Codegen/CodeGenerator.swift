@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import MapKit
 
 struct CodeGenerator {
     /// Formats a number cleanly: removes .0 for whole numbers, keeps decimals when needed
@@ -71,6 +72,8 @@ struct CodeGenerator {
             baseCode = generateChartCode(component: component, indent: indent, nextIndent: nextIndent)
         case .gauge:
             baseCode = generateGaugeCode(component: component, indent: indent, nextIndent: nextIndent)
+        case .map:
+            baseCode = generateMapCode(component: component, indent: indent, nextIndent: nextIndent)
             
         default:
             return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
@@ -337,6 +340,84 @@ struct CodeGenerator {
         // Use constant binding for generated code preview
         return "\(indent)TextField(\"\(placeholder)\", text: .constant(\"\(text)\"))"
     }
+
+    private static func generateMapCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
+        let latitude = doubleProperty(component, key: "latitude", defaultValue: 37.3346)
+        let longitude = doubleProperty(component, key: "longitude", defaultValue: -122.0090)
+        let latitudeDelta = max(doubleProperty(component, key: "latitudeDelta", defaultValue: 0.018), 0.001)
+        let longitudeDelta = max(doubleProperty(component, key: "longitudeDelta", defaultValue: 0.018), 0.001)
+        let interactionModes = mapInteractionModesCode(component.getProperty(key: "interactionModes") as? String ?? "all")
+        let showsUserLocation = boolProperty(component, key: "showsUserLocation", defaultValue: false)
+        let markerComment = mapMarkerSummaryComment(component)
+
+        var code = """
+\(indent)Map(coordinateRegion: .constant(
+\(indent)    MKCoordinateRegion(
+\(indent)        center: CLLocationCoordinate2D(latitude: \(formatNumber(latitude)), longitude: \(formatNumber(longitude))),
+\(indent)        span: MKCoordinateSpan(latitudeDelta: \(formatNumber(latitudeDelta)), longitudeDelta: \(formatNumber(longitudeDelta)))
+\(indent)    )
+\(indent)), interactionModes: \(interactionModes), showsUserLocation: \(showsUserLocation))
+"""
+        if !markerComment.isEmpty {
+            code += "\n\(indent)// Markers: \(markerComment)"
+        }
+        return code
+    }
+
+    private static func boolProperty(_ component: UIComponent, key: String, defaultValue: Bool) -> Bool {
+        if let boolValue = component.getProperty(key: key) as? Bool {
+            return boolValue
+        }
+        if let intValue = component.getProperty(key: key) as? Int {
+            return intValue != 0
+        }
+        if let doubleValue = component.getProperty(key: key) as? Double {
+            return doubleValue != 0
+        }
+        if let stringValue = component.getProperty(key: key) as? String {
+            switch stringValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            case "true", "1", "yes", "y", "on":
+                return true
+            case "false", "0", "no", "n", "off":
+                return false
+            default:
+                return defaultValue
+            }
+        }
+        return defaultValue
+    }
+
+    private static func mapInteractionModesCode(_ rawValue: String) -> String {
+        switch rawValue.lowercased().replacingOccurrences(of: " ", with: "") {
+        case "none":
+            return "[]"
+        case "pan":
+            return "[.pan]"
+        case "zoom":
+            return "[.zoom]"
+        case "rotate":
+            return "[.rotate]"
+        case "pitch":
+            return "[.pitch]"
+        case "pan+zoom":
+            return "[.pan, .zoom]"
+        case "pan+zoom+rotate":
+            return "[.pan, .zoom, .rotate]"
+        case "pan+zoom+rotate+pitch":
+            return "[.pan, .zoom, .rotate, .pitch]"
+        default:
+            return ".all"
+        }
+    }
+
+    private static func mapMarkerSummaryComment(_ component: UIComponent) -> String {
+        guard let rawMarkers = component.getProperty(key: "markers") else { return "" }
+        if let markerString = rawMarkers as? String {
+            let trimmed = markerString.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? "" : trimmed
+        }
+        return "\(rawMarkers)"
+    }
     
     private static func generateToggleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let isOn = component.getProperty(key: "isOn") as? Bool ?? true
@@ -584,9 +665,16 @@ struct CodeGenerator {
     
 
     private static func generateGlassEffectModifierCode(modifier: ComponentModifier, indent: String) -> String {
+        let tintString = (modifier.properties["tint"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let glassStyle = tintString.isEmpty
+            ? ".regular.interactive()"
+            : ".regular.tint(\(swiftUIColorLiteral(tintString))).interactive()"
+
         guard let rawShape = (modifier.properties["shape"] as? String) ?? (modifier.properties["shapeType"] as? String),
               !rawShape.isEmpty else {
-            return "\(indent).glassEffect()"
+            return tintString.isEmpty
+                ? "\(indent).glassEffect()"
+                : "\(indent).glassEffect(\(glassStyle))"
         }
 
         let shapeName: String
@@ -598,19 +686,52 @@ struct CodeGenerator {
 
         switch shapeName {
         case "Circle":
-            return "\(indent).glassEffect(.regular.interactive(), in: Circle())"
+            return "\(indent).glassEffect(\(glassStyle), in: Circle())"
         case "Capsule":
-            return "\(indent).glassEffect(.regular.interactive(), in: Capsule())"
+            return "\(indent).glassEffect(\(glassStyle), in: Capsule())"
         case "RoundedRectangle":
             let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 10)
-            return "\(indent).glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: \(formatNumber(Double(radius)))))"
+            return "\(indent).glassEffect(\(glassStyle), in: RoundedRectangle(cornerRadius: \(formatNumber(Double(radius)))))"
         case "Ellipse":
-            return "\(indent).glassEffect(.regular.interactive(), in: Ellipse())"
+            return "\(indent).glassEffect(\(glassStyle), in: Ellipse())"
         case "Rectangle":
-            return "\(indent).glassEffect(.regular.interactive(), in: Rectangle())"
+            return "\(indent).glassEffect(\(glassStyle), in: Rectangle())"
         default:
-            return "\(indent).glassEffect(.regular.interactive())"
+            return "\(indent).glassEffect(\(glassStyle))"
         }
+    }
+
+    private static func swiftUIColorLiteral(_ colorString: String) -> String {
+        let trimmed = colorString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return ".gray.opacity(0.45)" }
+
+        let parts = trimmed.split(separator: ":", maxSplits: 1).map(String.init)
+        let colorName = parts.first?.lowercased() ?? "gray"
+        let opacity = parts.count > 1 ? (Double(parts[1]) ?? 1.0) : 1.0
+        let baseColor: String
+
+        switch colorName {
+        case "black": baseColor = "Color.black"
+        case "white": baseColor = "Color.white"
+        case "gray", "grey": baseColor = "Color.gray"
+        case "red": baseColor = "Color.red"
+        case "orange": baseColor = "Color.orange"
+        case "yellow": baseColor = "Color.yellow"
+        case "green": baseColor = "Color.green"
+        case "mint": baseColor = "Color.mint"
+        case "teal": baseColor = "Color.teal"
+        case "cyan", "lightblue": baseColor = "Color.cyan"
+        case "blue": baseColor = "Color.blue"
+        case "indigo": baseColor = "Color.indigo"
+        case "purple": baseColor = "Color.purple"
+        case "pink": baseColor = "Color.pink"
+        case "brown": baseColor = "Color.brown"
+        case "primary": baseColor = "Color.primary"
+        case "secondary": baseColor = "Color.secondary"
+        default: baseColor = "Color.gray"
+        }
+
+        return "\(baseColor).opacity(\(formatNumber(opacity)))"
     }
 
     private static func generateFrameModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
