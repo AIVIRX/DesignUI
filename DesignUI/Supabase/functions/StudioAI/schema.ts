@@ -6,11 +6,11 @@ LEAVES (no children): Text, Image, SF Symbol, Shape, Chart, Spacer, Divider, Rec
 
 PROPERTIES:
 Text:{text:string} SF Symbol:{symbolName:string} — always add Font modifier
-Text Field:{text?:string,placeholder?:string,semanticRole?:"input"|"search"|"email"|"password"}
+Text Field:{text?:string,placeholder?:string}
 VStack:{alignment:"leading"|"center"|"trailing",spacing:number}
 HStack:{alignment:"top"|"center"|"bottom",spacing:number}
 ZStack:{alignment:"center"|"topLeading"|"top"|"topTrailing"|"leading"|"trailing"|"bottomLeading"|"bottom"|"bottomTrailing"}
-Button:{buttonStyle:"plain"|"bordered"|"borderedProminent",interactionRole?:"select_tab"|"select_filter"|"set_selection",interactionKey?:string,interactionValue?:string,interactionDefault?:boolean} — modifiers=[], all styling on label child
+Button:{buttonStyle:"plain"|"bordered"|"borderedProminent"} — modifiers=[], all styling on label child
 ScrollView:{axis:"vertical"|"horizontal",showsIndicators:boolean}
 RoundedRectangle:{cornerRadius:number} Switch:{isOn:boolean} Slider:{value:number,min:number,max:number} Progress View:{value:number,total:number,color:string} Gauge:{value:number,min:number,max:number,gaugeType:"linear"|"circular"|"circular range",showValue:boolean,color:string} Map:{latitude:number,longitude:number,latitudeDelta?:number,longitudeDelta?:number,mapStyle?:"standard"|"imagery"|"hybrid",interactionModes?:"all"|"none"|"pan"|"zoom"|"rotate"|"pitch"|"pan+zoom"|"pan+zoom+rotate"|"pan+zoom+rotate+pitch",showsCompass?:boolean,showsScale?:boolean,showsPitchToggle?:boolean,showsUserLocation?:boolean,showsUserLocationButton?:boolean,showsTraffic?:boolean,locationName?:string,markers?:string}
 
@@ -564,7 +564,7 @@ export const CONTAINER_TYPES = new Set(["Stack", "VStack", "HStack", "ZStack", "
 
 export const SLOT_SCHEMA_COMPACT = `CONTAINERS(must have children[]): VStack HStack ZStack ScrollView Button
 LEAVES(no children): Text Image "SF Symbol" Spacer Divider Rectangle Circle RoundedRectangle Capsule Ellipse "Linear Gradient" "Text Field" Switch Slider "Progress View" Gauge Chart Map
-Text:{text:string} "SF Symbol":{symbolName:string} "Text Field":{text?:string,placeholder?:string,semanticRole?:"input"|"search"|"email"|"password"} VStack:{alignment:"leading"|"center"|"trailing",spacing:num} HStack:{alignment:"top"|"center"|"bottom",spacing:num} ZStack:{alignment:"center"|"topLeading"|"bottomTrailing"...} Button:{buttonStyle:"plain"|"bordered"|"borderedProminent"} ScrollView:{axis:"vertical"|"horizontal",showsIndicators:bool} RoundedRectangle:{cornerRadius:num} "Progress View":{value:num,total:num,color:string} Gauge:{value:num,min:num,max:num,gaugeType:"linear"|"circular"|"circular range",showValue:bool,color:string} Map:{latitude:num,longitude:num,latitudeDelta?:num,longitudeDelta?:num,mapStyle?:"standard"|"imagery"|"hybrid",interactionModes?:"all"|"none"|"pan"|"zoom"|"rotate"|"pitch"|"pan+zoom"|"pan+zoom+rotate"|"pan+zoom+rotate+pitch",showsCompass?:bool,showsScale?:bool,showsPitchToggle?:bool,showsUserLocation?:bool,showsUserLocationButton?:bool,showsTraffic?:bool,locationName?:string,markers?:string}
+Text:{text:string} "SF Symbol":{symbolName:string} "Text Field":{text?:string,placeholder?:string} VStack:{alignment:"leading"|"center"|"trailing",spacing:num} HStack:{alignment:"top"|"center"|"bottom",spacing:num} ZStack:{alignment:"center"|"topLeading"|"bottomTrailing"...} Button:{buttonStyle:"plain"|"bordered"|"borderedProminent"} ScrollView:{axis:"vertical"|"horizontal",showsIndicators:bool} RoundedRectangle:{cornerRadius:num} "Progress View":{value:num,total:num,color:string} Gauge:{value:num,min:num,max:num,gaugeType:"linear"|"circular"|"circular range",showValue:bool,color:string} Map:{latitude:num,longitude:num,latitudeDelta?:num,longitudeDelta?:num,mapStyle?:"standard"|"imagery"|"hybrid",interactionModes?:"all"|"none"|"pan"|"zoom"|"rotate"|"pitch"|"pan+zoom"|"pan+zoom+rotate"|"pan+zoom+rotate+pitch",showsCompass?:bool,showsScale?:bool,showsPitchToggle?:bool,showsUserLocation?:bool,showsUserLocationButton?:bool,showsTraffic?:bool,locationName?:string,markers?:string}
 MODIFIERS: Frame Padding "Background Color" "Foreground Color" Font "Corner Radius" Shadow Opacity Stroke Fill "Clip Shape" "Text Alignment" Tint
 Font:{fontSize:"largeTitle"|"title"|"title2"|"title3"|"headline"|"body"|"callout"|"subheadline"|"footnote"|"caption"|"caption2",fontWeight:"bold"|"semibold"|"medium"|"regular"|"light",fontDesign?:string}
 Frame:{widthType:"Custom"|"Default"|"Full",heightType:"Custom"|"Default"|"Full",width?:num,height?:num}

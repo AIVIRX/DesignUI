@@ -4,141 +4,23 @@ import Charts
 import MapKit
 
 extension ComponentRenderer {
-    private var activeInteractionStore: PreviewInteractionStore {
-        inheritedInteractionStore ?? localInteractionStore
-    }
-
     private func stringComponentProperty(_ key: String, defaultValue: String = "") -> String {
         component.getProperty(key: key) as? String ?? defaultValue
     }
 
-    private func textFieldSemanticRole() -> String {
-        stringComponentProperty("semanticRole", defaultValue: "input")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
+    private func isSearchTextField() -> Bool {
+        let placeholder = stringComponentProperty("placeholder").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let text = stringComponentProperty("text").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return placeholder.contains("search") || text.contains("search")
     }
 
-    private func currentTextFieldValue() -> String {
-        activeInteractionStore.textValue(for: component.id, fallback: stringComponentProperty("text"))
-    }
-
-    private func isSearchFieldComponent(_ node: UIComponent) -> Bool {
-        guard node.type == .textField else { return false }
-        let semanticRole = (node.getProperty(key: "semanticRole") as? String ?? "").lowercased()
-        let placeholder = (node.getProperty(key: "placeholder") as? String ?? "").lowercased()
-        let text = (node.getProperty(key: "text") as? String ?? "").lowercased()
-        return semanticRole == "search" || placeholder.contains("search") || text.contains("search")
-    }
-
-    private func searchQueryForCurrentTree() -> String? {
-        activeInteractionStore.activeSearchQuery()
-    }
-
-    private func interactionValue(_ key: String) -> String {
-        stringComponentProperty(key)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-    }
-
-    private func rowInteractionTags(_ node: UIComponent) -> [String] {
-        let raw = (node.getProperty(key: "interactionTags") as? String ?? "")
-        return raw
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
-            .filter { !$0.isEmpty }
-    }
-
-    private func selectionFiltersMatch(_ node: UIComponent) -> Bool {
-        if activeInteractionStore.selectionValues.isEmpty {
-            return true
+    private func updateComponentProperty(_ key: String, value: Any) {
+        if let canvasManager = canvasManager {
+            canvasManager.updateComponentProperty(for: component, key: key, value: value)
+        } else {
+            component.setProperty(key: key, value: value)
         }
-
-        let tags = rowInteractionTags(node)
-        if tags.isEmpty {
-            return true
-        }
-
-        for (_, selectedValue) in activeInteractionStore.selectionValues {
-            let normalized = selectedValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            if normalized.isEmpty || normalized == "all" {
-                continue
-            }
-            if !tags.contains(normalized) {
-                return false
-            }
-        }
-
-        return true
     }
-
-    private func nodeContainsInteractiveInput(_ node: UIComponent) -> Bool {
-        if node.type == .textField || node.type == .toggle || node.type == .slider {
-            return true
-        }
-        return node.children.contains(where: nodeContainsInteractiveInput)
-    }
-
-    private func displayTextFragments(in node: UIComponent) -> [String] {
-        var fragments: [String] = []
-
-        if node.type == .text, let value = node.getProperty(key: "text") as? String {
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                fragments.append(trimmed)
-            }
-        }
-
-        if isSearchFieldComponent(node) {
-            let value = activeInteractionStore.textValue(for: node.id, fallback: node.getProperty(key: "text") as? String ?? "")
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                fragments.append(trimmed)
-            }
-        }
-
-        for child in node.children {
-            fragments.append(contentsOf: displayTextFragments(in: child))
-        }
-
-        return fragments
-    }
-
-    private func isLikelyFilterableRow(_ node: UIComponent) -> Bool {
-        guard !nodeContainsInteractiveInput(node) else { return false }
-        guard node.type == .hstack || node.type == .vstack || node.type == .zstack else { return false }
-        return !displayTextFragments(in: node).isEmpty
-    }
-
-    private func filteredChildrenForCurrentContainer(_ children: [UIComponent]) -> (children: [UIComponent], filtered: Bool) {
-        guard !nodeContainsInteractiveInput(component) else { return (children, false) }
-
-        let baseChildren = children.filter(selectionFiltersMatch)
-        let selectionFiltered = baseChildren.count != children.count
-        let query = (searchQueryForCurrentTree() ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !query.isEmpty else { return (baseChildren, selectionFiltered) }
-
-        if let first = baseChildren.first, first.type == .text {
-            let candidateRows = Array(baseChildren.dropFirst())
-            let filterableRows = candidateRows.filter(isLikelyFilterableRow)
-            if candidateRows.count >= 2 && filterableRows.count == candidateRows.count {
-                let matched = candidateRows.filter { row in
-                    let haystack = displayTextFragments(in: row).joined(separator: " ").lowercased()
-                    return haystack.contains(query)
-                }
-                return ([first] + matched, true)
-            }
-        }
-
-        let filterableRows = baseChildren.filter(isLikelyFilterableRow)
-        guard baseChildren.count >= 2, filterableRows.count == baseChildren.count else { return (baseChildren, baseChildren.count != children.count) }
-        let matched = baseChildren.filter { row in
-            let haystack = displayTextFragments(in: row).joined(separator: " ").lowercased()
-            return haystack.contains(query)
-        }
-        return (matched, true)
-    }
-
     func renderText() -> some View {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
         return Text(text)
@@ -394,21 +276,10 @@ extension ComponentRenderer {
     
     func renderButton() -> some View {
         let buttonStyle = component.getProperty(key: "buttonStyle") as? String ?? "borderedProminent"
-        let interactionRole = interactionValue("interactionRole")
-        let interactionKey = stringComponentProperty("interactionKey")
-        let interactionSelectionValue = stringComponentProperty("interactionValue")
-        let interactionDefault = component.getBoolProperty(key: "interactionDefault", defaultValue: false)
-        let isSelectable = !interactionRole.isEmpty && !interactionKey.isEmpty && !interactionSelectionValue.isEmpty
-        let isSelected = isSelectable && activeInteractionStore.selectionValue(for: interactionKey) == interactionSelectionValue
-        
         let contentChildren = component.children.filter { $0.modifierId == nil }
         
         return AnyView(
-            Button(action: {
-                if isSelectable && (interactionRole == "select_filter" || interactionRole == "select_tab" || interactionRole == "set_selection") {
-                    activeInteractionStore.setSelectionValue(interactionSelectionValue, for: interactionKey)
-                }
-            }) {
+            Button(action: {}) {
                 if contentChildren.isEmpty {
                     EmptyView()
                 } else {
@@ -420,14 +291,6 @@ extension ComponentRenderer {
                 }
             }
             .applyButtonStyle(buttonStyle)
-            .opacity(isSelectable ? (isSelected ? 1.0 : 0.72) : 1.0)
-            .scaleEffect(isSelectable ? (isSelected ? 1.0 : 0.985) : 1.0)
-            .animation(.spring(response: 0.24, dampingFraction: 0.82), value: isSelected)
-            .onAppear {
-                if isSelectable && interactionDefault {
-                    activeInteractionStore.registerDefaultSelection(interactionSelectionValue, for: interactionKey)
-                }
-            }
         )
     }
     
@@ -534,15 +397,7 @@ extension ComponentRenderer {
 
         let trimmedTitle = fallbackTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty else { return [] }
-        return [
-            ParsedMapMarker(
-                id: "\(centerLatitude),\(centerLongitude),\(trimmedTitle)",
-                latitude: centerLatitude,
-                longitude: centerLongitude,
-                title: trimmedTitle,
-                tint: "red:1.0"
-            )
-        ]
+        return []
     }
 
     private func numericValue(_ raw: Any?) -> Double? {
@@ -622,67 +477,39 @@ extension ComponentRenderer {
         let showsUserLocationButton = component.getBoolProperty(key: "showsUserLocationButton", defaultValue: false)
         let showsTraffic = component.getBoolProperty(key: "showsTraffic", defaultValue: false)
         let mapStyle = (component.getProperty(key: "mapStyle") as? String ?? "standard").lowercased()
-        let locationName = component.getProperty(key: "locationName") as? String ?? ""
-        let markers = parsedMapMarkers(centerLatitude: latitude, centerLongitude: longitude, fallbackTitle: locationName)
-
         let region = MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
             span: MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
         )
 
-        if #available(iOS 17.0, macOS 14.0, *) {
-            if markers.isEmpty {
-                return AnyView(
-                    Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation)
-                        .mapStyle(resolvedMapStyle(mapStyle, showsTraffic: showsTraffic))
-                        .mapControls {
-                            if showsCompass {
-                                MapCompass()
-                            }
-                            if showsScale {
-                                MapScaleView()
-                            }
-                            if showsPitchToggle {
-                                MapPitchToggle()
-                            }
-                            if showsUserLocationButton {
-                                MapUserLocationButton()
-                            }
-                        }
-                )
-            }
-
+        if isScreenshotCapture {
             return AnyView(
-                Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation, annotationItems: markers) { marker in
-                    MapAnnotation(coordinate: marker.coordinate) {
-                        mapMarkerView(marker)
-                    }
-                }
-                .mapStyle(resolvedMapStyle(mapStyle, showsTraffic: showsTraffic))
-                .mapControls {
-                    if showsCompass {
-                        MapCompass()
-                    }
-                    if showsScale {
-                        MapScaleView()
-                    }
-                    if showsPitchToggle {
-                        MapPitchToggle()
-                    }
-                    if showsUserLocationButton {
-                        MapUserLocationButton()
-                    }
-                }
+                ScreenshotMapSnapshotView(
+                    region: region,
+                    mapStyle: mapStyle,
+                    colorScheme: colorScheme ?? .light
+                )
             )
         }
 
-        if !markers.isEmpty {
+        if #available(iOS 17.0, macOS 14.0, *) {
             return AnyView(
-                Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation, annotationItems: markers) { marker in
-                    MapAnnotation(coordinate: marker.coordinate) {
-                        mapMarkerView(marker)
+                Map(initialPosition: .region(region), interactionModes: interactionModes)
+                    .mapStyle(resolvedMapStyle(mapStyle, showsTraffic: showsTraffic))
+                    .mapControls {
+                        if showsCompass {
+                            MapCompass()
+                        }
+                        if showsScale {
+                            MapScaleView()
+                        }
+                        if showsPitchToggle {
+                            MapPitchToggle()
+                        }
+                        if showsUserLocationButton {
+                            MapUserLocationButton()
+                        }
                     }
-                }
             )
         }
 
@@ -766,28 +593,19 @@ extension ComponentRenderer {
         let spacing = component.getProperty(key: "spacing") as? Double ?? 8.0
         
         let contentChildren = component.children.filter { $0.modifierId == nil }
-        let filteredChildren = filteredChildrenForCurrentContainer(contentChildren)
         
         let base = VStack(alignment: horizontalAlignmentFromString(alignment), spacing: spacing) {
-            if filteredChildren.children.isEmpty {
-                if filteredChildren.filtered {
-                    Text("No matches")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 8)
-                } else {
-                    EmptyView()
-                }
+            if contentChildren.isEmpty {
+                EmptyView()
             } else {
-                ForEach(filteredChildren.children, id: \.id) { child in
+                ForEach(contentChildren, id: \.id) { child in
                     ComponentRenderer(component: child, deviceSize: deviceSize, colorScheme: colorScheme, onTap: { additive in
                         onSelectChild?(child, additive)
                     }, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture, canvasManager: canvasManager)
                 }
             }
         }
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: filteredChildren.children.map { $0.id })
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: contentChildren.map { $0.id })
         return base
     }
 
@@ -1013,46 +831,27 @@ extension ComponentRenderer {
     }
     
     func renderTextField() -> some View {
-        let state = textFieldRenderState()
-        return textFieldView(state: state)
-    }
-    
-    private func textFieldRenderState() -> (displayText: String, isPlaceholder: Bool) {
-        let text = currentTextFieldValue()
         let placeholder = stringComponentProperty("placeholder", defaultValue: "Placeholder")
-        
-        let displayText = text.isEmpty ? placeholder : text
-        let isPlaceholder = text.isEmpty
-        return (displayText, isPlaceholder)
-    }
-    
-    private func textFieldView(state: (displayText: String, isPlaceholder: Bool)) -> some View {
-        let placeholder = stringComponentProperty("placeholder", defaultValue: "Placeholder")
-        let semanticRole = textFieldSemanticRole()
+        let isSearchField = isSearchTextField()
         let binding = Binding<String>(
-            get: { currentTextFieldValue() },
+            get: { stringComponentProperty("text") },
             set: { newValue in
-                activeInteractionStore.setTextValue(newValue, for: component.id)
+                updateComponentProperty("text", value: newValue)
             }
         )
 
         return TextField(placeholder, text: binding)
             .textFieldStyle(.plain)
             .foregroundColor(.primary)
-            .autocorrectionDisabled(semanticRole == "search")
+            .autocorrectionDisabled(isSearchField)
             #if os(iOS)
-            .textInputAutocapitalization(semanticRole == "search" ? .never : .sentences)
+            .textInputAutocapitalization(isSearchField ? .never : .sentences)
             #endif
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .background(textFieldBackground)
             .padding(4)
-            .onAppear {
-                if semanticRole == "search" || placeholder.lowercased().contains("search") {
-                    activeInteractionStore.registerSearchField(component.id)
-                }
-            }
             .contentShape(Rectangle())
             .simultaneousGesture(
                 TapGesture().onEnded {
@@ -1188,23 +987,24 @@ extension View {
     func applyModifiers(_ modifiers: [ComponentModifier], component: UIComponent, deviceSize: CGSize?, colorScheme: ColorScheme?, onSelectChild: ((UIComponent, Bool) -> Void)?, selectedComponentIds: Set<UUID>, isScreenshotCapture: Bool = false) -> some View {
         var view = AnyView(self)
 
-        for modifier in orderedModifiersForRendering(modifiers) {
+        for modifier in orderedModifiersForRendering(modifiers, component: component) {
             view = AnyView(applyModifier(modifier, to: view, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture))
         }
         
         return view
     }
 
-    private func orderedModifiersForRendering(_ modifiers: [ComponentModifier]) -> [ComponentModifier] {
+    private func orderedModifiersForRendering(_ modifiers: [ComponentModifier], component: UIComponent) -> [ComponentModifier] {
         let effectTypes: Set<ModifierType> = [.opacity, .shadow, .blur, .glassEffect, .clipShape]
         let fillTypes: Set<ModifierType> = [.fill, .foregroundColor, .tint]
         let layoutTypes: Set<ModifierType> = [.frame, .padding, .rotation, .offset]
+        let prioritizeShapeFrame = isShapeLikeSizingComponent(component)
 
         return modifiers
             .enumerated()
             .sorted { lhs, rhs in
-                let lhsPriority = modifierRenderPriority(lhs.element.type, fillTypes: fillTypes, layoutTypes: layoutTypes, effectTypes: effectTypes)
-                let rhsPriority = modifierRenderPriority(rhs.element.type, fillTypes: fillTypes, layoutTypes: layoutTypes, effectTypes: effectTypes)
+                let lhsPriority = modifierRenderPriority(lhs.element.type, fillTypes: fillTypes, layoutTypes: layoutTypes, effectTypes: effectTypes, prioritizeShapeFrame: prioritizeShapeFrame)
+                let rhsPriority = modifierRenderPriority(rhs.element.type, fillTypes: fillTypes, layoutTypes: layoutTypes, effectTypes: effectTypes, prioritizeShapeFrame: prioritizeShapeFrame)
                 if lhsPriority == rhsPriority {
                     return lhs.offset < rhs.offset
                 }
@@ -1213,13 +1013,25 @@ extension View {
             .map(\.element)
     }
 
+    private func isShapeLikeSizingComponent(_ component: UIComponent) -> Bool {
+        switch component.type {
+        case .rectangle, .circle, .roundedRectangle, .capsule, .ellipse, .shape:
+            return true
+        default:
+            return false
+        }
+    }
+
     private func modifierRenderPriority(
         _ type: ModifierType,
         fillTypes: Set<ModifierType>,
         layoutTypes: Set<ModifierType>,
-        effectTypes: Set<ModifierType>
+        effectTypes: Set<ModifierType>,
+        prioritizeShapeFrame: Bool
     ) -> Int {
         if fillTypes.contains(type) { return 0 }
+        if prioritizeShapeFrame && type == .frame { return 1 }
+        if prioritizeShapeFrame && type == .padding { return 2 }
         if layoutTypes.contains(type) { return 1 }
         if type == .backgroundColor { return 2 }
         if type == .cornerRadius { return 3 }
@@ -1379,10 +1191,20 @@ extension View {
             return AnyView(view.multilineTextAlignment(textAlignment))
 
         case .glassEffect:
-            if isScreenshotCapture, component.type == .shape {
+            if isScreenshotCapture {
                 let shapeName = normalizedGlassShapeName(from: modifier)
                 let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 10)
-                return AnyView(screenshotGlassShapeFallback(baseView: view, shapeName: shapeName, radius: radius))
+                let tintString = (modifier.properties["tint"] as? String ?? "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                return AnyView(
+                    screenshotGlassShapeFallback(
+                        baseView: view,
+                        shapeName: shapeName,
+                        radius: radius,
+                        colorScheme: colorScheme,
+                        tintString: tintString
+                    )
+                )
             }
 
             if #available(iOS 26.0, macOS 26.0, *) {
@@ -1465,40 +1287,172 @@ extension View {
         }
     }
 
-    private func screenshotGlassShapeFallback(baseView: AnyView, shapeName: String, radius: CGFloat) -> some View {
-        let fillColor = Color.white.opacity(0.16)
-        let strokeColor = Color.white.opacity(0.35)
+    private func screenshotGlassShapeFallback(
+        baseView: AnyView,
+        shapeName: String,
+        radius: CGFloat,
+        colorScheme: ColorScheme?,
+        tintString: String
+    ) -> some View {
+        let isDarkMode = colorScheme == .dark
+        let tintColor = tintString.isEmpty
+            ? (isDarkMode ? Color.white.opacity(0.16) : Color.white.opacity(0.34))
+            : ComponentProperty.colorStringToColor(tintString).opacity(isDarkMode ? 0.28 : 0.24)
+        let baseFillTop = isDarkMode ? Color.white.opacity(0.34) : Color.white.opacity(0.84)
+        let baseFillBottom = isDarkMode ? Color.white.opacity(0.18) : Color.white.opacity(0.56)
+        let centerWash = isDarkMode ? Color.white.opacity(0.12) : Color.white.opacity(0.30)
+        let innerGlow = isDarkMode ? Color.white.opacity(0.24) : Color.white.opacity(0.64)
+        let edgeStroke = isDarkMode ? Color.white.opacity(0.30) : Color.white.opacity(0.52)
+        let secondaryStroke = isDarkMode ? Color.white.opacity(0.12) : Color.white.opacity(0.24)
+        let shadowColor = isDarkMode ? Color.black.opacity(0.28) : Color.black.opacity(0.12)
 
         switch shapeName {
         case "Circle":
             return AnyView(
                 baseView
-                    .background(Circle().fill(fillColor))
-                    .overlay(Circle().stroke(strokeColor, lineWidth: 1))
+                    .background(
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [baseFillTop, baseFillBottom],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(Circle().fill(tintColor))
+                            .overlay(Circle().fill(centerWash))
+                            .overlay(
+                                Circle()
+                                    .fill(
+                                        RadialGradient(
+                                            colors: [innerGlow, .clear],
+                                            center: .topLeading,
+                                            startRadius: 2,
+                                            endRadius: 36
+                                        )
+                                    )
+                            )
+                    )
+                    .overlay(Circle().stroke(edgeStroke, lineWidth: 1))
+                    .overlay(Circle().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
+                    .shadow(color: shadowColor, radius: 14, y: 4)
             )
         case "Capsule":
             return AnyView(
                 baseView
-                    .background(Capsule().fill(fillColor))
-                    .overlay(Capsule().stroke(strokeColor, lineWidth: 1))
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [baseFillTop, baseFillBottom],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(Capsule().fill(tintColor))
+                            .overlay(Capsule().fill(centerWash))
+                            .overlay(
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [innerGlow, .clear],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                            )
+                    )
+                    .overlay(Capsule().stroke(edgeStroke, lineWidth: 1))
+                    .overlay(Capsule().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
+                    .shadow(color: shadowColor, radius: 14, y: 4)
             )
         case "RoundedRectangle":
             return AnyView(
                 baseView
-                    .background(RoundedRectangle(cornerRadius: radius).fill(fillColor))
-                    .overlay(RoundedRectangle(cornerRadius: radius).stroke(strokeColor, lineWidth: 1))
+                    .background(
+                        RoundedRectangle(cornerRadius: radius)
+                            .fill(
+                                LinearGradient(
+                                    colors: [baseFillTop, baseFillBottom],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(RoundedRectangle(cornerRadius: radius).fill(tintColor))
+                            .overlay(RoundedRectangle(cornerRadius: radius).fill(centerWash))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: radius)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [innerGlow, .clear],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                            )
+                    )
+                    .overlay(RoundedRectangle(cornerRadius: radius).stroke(edgeStroke, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: radius).stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
+                    .shadow(color: shadowColor, radius: 14, y: 4)
             )
         case "Ellipse":
             return AnyView(
                 baseView
-                    .background(Ellipse().fill(fillColor))
-                    .overlay(Ellipse().stroke(strokeColor, lineWidth: 1))
+                    .background(
+                        Ellipse()
+                            .fill(
+                                LinearGradient(
+                                    colors: [baseFillTop, baseFillBottom],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(Ellipse().fill(tintColor))
+                            .overlay(Ellipse().fill(centerWash))
+                            .overlay(
+                                Ellipse()
+                                    .fill(
+                                        RadialGradient(
+                                            colors: [innerGlow, .clear],
+                                            center: .topLeading,
+                                            startRadius: 2,
+                                            endRadius: 36
+                                        )
+                                    )
+                            )
+                    )
+                    .overlay(Ellipse().stroke(edgeStroke, lineWidth: 1))
+                    .overlay(Ellipse().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
+                    .shadow(color: shadowColor, radius: 14, y: 4)
             )
         default:
             return AnyView(
                 baseView
-                    .background(Rectangle().fill(fillColor))
-                    .overlay(Rectangle().stroke(strokeColor, lineWidth: 1))
+                    .background(
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [baseFillTop, baseFillBottom],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(Rectangle().fill(tintColor))
+                            .overlay(Rectangle().fill(centerWash))
+                            .overlay(
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [innerGlow, .clear],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                            )
+                    )
+                    .overlay(Rectangle().stroke(edgeStroke, lineWidth: 1))
+                    .overlay(Rectangle().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
+                    .shadow(color: shadowColor, radius: 14, y: 4)
             )
         }
     }
@@ -2056,6 +2010,107 @@ fileprivate struct CustomSliderView: View {
         }
         .frame(height: 30)
     }
+}
+
+private struct ScreenshotMapSnapshotView: View {
+    let region: MKCoordinateRegion
+    let mapStyle: String
+    let colorScheme: ColorScheme
+
+    var body: some View {
+        GeometryReader { geometry in
+            let size = CGSize(
+                width: max(geometry.size.width, 1),
+                height: max(geometry.size.height, 1)
+            )
+
+            Group {
+                if let image = makeSnapshot(size: size) {
+#if os(macOS)
+                    Image(nsImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+#else
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+#endif
+                } else {
+                    fallbackMapPlaceholder
+                }
+            }
+            .frame(width: size.width, height: size.height)
+            .clipped()
+        }
+    }
+
+    private var fallbackMapPlaceholder: some View {
+        let top = colorScheme == .dark ? Color(red: 0.16, green: 0.19, blue: 0.23) : Color(red: 0.90, green: 0.94, blue: 0.97)
+        let bottom = colorScheme == .dark ? Color(red: 0.10, green: 0.12, blue: 0.15) : Color(red: 0.82, green: 0.88, blue: 0.93)
+        let road = colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.08)
+        let accent = colorScheme == .dark ? Color(red: 0.25, green: 0.58, blue: 0.95) : Color(red: 0.12, green: 0.46, blue: 0.92)
+
+        return ZStack {
+            LinearGradient(colors: [top, bottom], startPoint: .topLeading, endPoint: .bottomTrailing)
+
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: 28))
+                path.addLine(to: CGPoint(x: 320, y: 160))
+                path.move(to: CGPoint(x: 24, y: 220))
+                path.addLine(to: CGPoint(x: 280, y: 8))
+                path.move(to: CGPoint(x: 84, y: 0))
+                path.addLine(to: CGPoint(x: 200, y: 280))
+            }
+            .stroke(road, style: StrokeStyle(lineWidth: 18, lineCap: .round, lineJoin: .round))
+
+            Circle()
+                .fill(accent)
+                .frame(width: 14, height: 14)
+
+            Circle()
+                .stroke(Color.white.opacity(0.6), lineWidth: 2)
+                .frame(width: 26, height: 26)
+        }
+    }
+
+    private func makeSnapshot(size: CGSize) -> PlatformImage? {
+        let options = MKMapSnapshotter.Options()
+        options.region = region
+        options.size = size
+
+#if os(macOS)
+        options.appearance = colorScheme == .dark ? NSAppearance(named: .darkAqua) : NSAppearance(named: .aqua)
+#else
+        options.traitCollection = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
+#endif
+
+        switch mapStyle {
+        case "imagery":
+            options.mapType = .satelliteFlyover
+        case "hybrid":
+            options.mapType = .hybridFlyover
+        default:
+            options.mapType = .standard
+        }
+
+        let snapshotter = MKMapSnapshotter(options: options)
+        let semaphore = DispatchSemaphore(value: 0)
+        var renderedImage: PlatformImage?
+
+        snapshotter.start(with: DispatchQueue.global(qos: .userInitiated)) { snapshot, _ in
+            renderedImage = snapshot?.image
+            semaphore.signal()
+        }
+
+        _ = semaphore.wait(timeout: .now() + 2.0)
+        return renderedImage
+    }
+
+#if os(macOS)
+    typealias PlatformImage = NSImage
+#else
+    typealias PlatformImage = UIImage
+#endif
 }
 
 fileprivate func fontDesignFromString(_ design: String?) -> Font.Design {

@@ -41,7 +41,7 @@ Shape:
   }
 }
 
-accentColor / secondaryColor: use "colorname:1.0" format. Pick from: blue:1.0 orange:1.0 green:1.0 red:1.0 purple:1.0 yellow:1.0 teal:1.0 pink:1.0
+accentColor / secondaryColor: use "colorname:1.0" format. Prefer restrained system-like colors such as gray:1.0, blue:1.0, or teal:1.0 unless the user explicitly asks for something louder.
 surfaceStyle: "minimal"|"editorial"|"utility"|"immersive"|"calm"
 density: "compact"|"regular"|"airy"
 fontDesign: "default"|"serif"|"rounded"|"monospaced"
@@ -64,6 +64,7 @@ Color rules:
 - Shopping → orange:1.0 or pink:1.0
 - News → red:1.0, editorial, serif
 - Weather → blue:1.0 or teal:1.0, calm
+- City guide / local discovery / premium travel → teal:1.0 or blue:1.0, minimal or editorial, airy, refined, never random purple unless explicitly requested
 
 cornerRadiusScale: pill=playful/consumer, medium=balanced/modern, sharp=professional/premium
 voiceTone: playful=gamified/social, calm=wellness/journal, professional=finance/productivity, urgent=fitness/timers
@@ -91,6 +92,8 @@ Specificity rules:
 - Do not default to familiar app clichés like "Featured", "Popular", "Saved", "Recent", "Item 1", or generic dashboard wording unless the user explicitly asked for that.
 - Do not inject famous brand feature names unless the user explicitly asked for them.
 - If the prompt is niche or unusual, make sampleItems and sampleRailItems feel equally niche and unusual.
+- If the prompt says premium, luxury, refined, editorial, or calm luxury, prefer restrained palettes and typography. Avoid loud purple/pink accents unless the user explicitly asked for them.
+- Default to Apple-like restraint: white, gray, black, and a single controlled accent. Do not wash cards and rows in tinted low-opacity accent fills unless the user explicitly wants a colorful expressive UI.
 
 sharedFacts: these are CONSISTENT VALUES that every section of the screen should reference.
 - greeting: personalized "Good morning, Alex" style or "Welcome back"
@@ -111,7 +114,7 @@ Examples:
 
 export async function extractThemeTokens(prompt: string): Promise<ThemeTokens> {
     const fallback: ThemeTokens = {
-        accentColor: "blue:1.0", secondaryColor: "purple:1.0", surfaceStyle: "utility",
+        accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "minimal",
         density: "regular", fontDesign: "default", cornerRadiusScale: "medium", usesGradient: false,
         appName: "MyApp", voiceTone: "professional", mascotSymbol: "", itemNoun: "items",
         ctaVerb: "Start", primaryMetricLabel: "Progress", primaryMetricUnit: "%",
@@ -172,35 +175,51 @@ export async function extractThemeTokens(prompt: string): Promise<ThemeTokens> {
             todayDate: typeof rawFacts.todayDate === "string" ? rawFacts.todayDate : baseline.sharedFacts.todayDate,
         },
     };
-    const merged = mergeThemeWithDefaults(extracted, domainDefaults);
+    let merged = mergeThemeWithDefaults(extracted, domainDefaults);
     if (explicitAccent) {
         merged.accentColor = explicitAccent;
         if (!merged.secondaryColor || merged.secondaryColor === domainDefaults.secondaryColor) {
             merged.secondaryColor = explicitAccent;
         }
     }
+    merged = applyPromptThemeCorrections(prompt, merged, explicitAccent);
     return merged;
 }
 
 export function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
     const p = prompt.toLowerCase();
+    if (/\bcity guide\b|\blocal discovery\b|\bneighborhood\b|\bcurated places\b|\bcity map\b|\bguide app\b/.test(p)) {
+        const luxuryLike = /\bpremium\b|\bluxury\b|\brefined\b|\bcalm luxury\b|\beditorial\b/.test(p);
+        return {
+            accentColor: luxuryLike ? "teal:1.0" : "blue:1.0",
+            secondaryColor: "gray:1.0",
+            surfaceStyle: luxuryLike ? "minimal" : "editorial",
+            density: luxuryLike ? "airy" : "regular",
+            voiceTone: "professional",
+            fontDesign: luxuryLike ? "serif" : "default",
+            cornerRadiusScale: luxuryLike ? "sharp" : "medium",
+            domainTags: ["city", "guide", "places", "map"],
+            itemNoun: "places",
+            ctaText: "Explore Places",
+        };
+    }
     if (/\bmeditation\b|\bmindful\b|\bcalm\b|\bbreathe\b|\bzen\b/.test(p)) {
-        return { accentColor: "purple:1.0", secondaryColor: "indigo:1.0", surfaceStyle: "calm", density: "airy", voiceTone: "calm", cornerRadiusScale: "pill", domainTags: ["meditation", "wellness"], itemNoun: "sessions", ctaText: "Begin Session" };
+        return { accentColor: "teal:1.0", secondaryColor: "gray:1.0", surfaceStyle: "calm", density: "airy", voiceTone: "calm", cornerRadiusScale: "medium", domainTags: ["meditation", "wellness"], itemNoun: "sessions", ctaText: "Begin Session" };
     }
     if (/\bfinance\b|\bbank\b|\binvest\b|\bportfolio\b|\bstock\b/.test(p)) {
-        return { accentColor: "blue:1.0", secondaryColor: "teal:1.0", surfaceStyle: "utility", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["finance", "analytics"], itemNoun: "positions", ctaText: "Review Now" };
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "minimal", density: "regular", voiceTone: "professional", cornerRadiusScale: "sharp", domainTags: ["finance", "analytics"], itemNoun: "positions", ctaText: "Review Now" };
     }
     if (/\bmusic\b|\bplaylist\b|\bspotify\b|\bartist\b|\balbum\b/.test(p)) {
-        return { accentColor: "green:1.0", secondaryColor: "purple:1.0", surfaceStyle: "immersive", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["music", "media"], itemNoun: "tracks", ctaText: "Play Now" };
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "immersive", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["music", "media"], itemNoun: "tracks", ctaText: "Play Now" };
     }
     if (/\btravel\b|\bitinerary\b|\btrip\b|\bflight\b|\bhotel\b/.test(p)) {
-        return { accentColor: "orange:1.0", secondaryColor: "blue:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["travel", "planning"], itemNoun: "stops", ctaText: "View Trip" };
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "minimal", density: "airy", voiceTone: "professional", cornerRadiusScale: "sharp", domainTags: ["travel", "planning"], itemNoun: "stops", ctaText: "View Trip" };
     }
     if (/\buber\b|\blyft\b|\brideshare\b|\bride share\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p)) {
         return {
             accentColor: "blue:1.0",
-            secondaryColor: "teal:1.0",
-            surfaceStyle: "utility",
+            secondaryColor: "gray:1.0",
+            surfaceStyle: "minimal",
             density: "regular",
             voiceTone: "professional",
             cornerRadiusScale: "medium",
@@ -211,9 +230,9 @@ export function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
     }
     if (/\bcoffee\b|\bcafe\b|\bcafé\b|\blatte\b|\bespresso\b|\broaster\b|\bbrew\b/.test(p)) {
         return {
-            accentColor: "brown:1.0",
-            secondaryColor: "orange:1.0",
-            surfaceStyle: "editorial",
+            accentColor: "blue:1.0",
+            secondaryColor: "gray:1.0",
+            surfaceStyle: "minimal",
             density: "regular",
             voiceTone: "calm",
             cornerRadiusScale: "medium",
@@ -223,16 +242,16 @@ export function inferDomainDefaults(prompt: string): Partial<ThemeTokens> {
         };
     }
     if (/\bfitness\b|\bworkout\b|\btraining\b|\brun\b|\bactivity\b/.test(p)) {
-        return { accentColor: "red:1.0", secondaryColor: "orange:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "urgent", cornerRadiusScale: "medium", domainTags: ["fitness", "health"], itemNoun: "workouts", ctaText: "Start Run" };
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "minimal", density: "compact", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["fitness", "health"], itemNoun: "workouts", ctaText: "Start Run" };
     }
     if (/\bshopping\b|\bstore\b|\becommerce\b|\bcheckout\b|\bcart\b/.test(p)) {
-        return { accentColor: "indigo:1.0", secondaryColor: "pink:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "playful", cornerRadiusScale: "medium", domainTags: ["commerce", "retail"], itemNoun: "products", ctaText: "Shop Now" };
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "minimal", density: "regular", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["commerce", "retail"], itemNoun: "products", ctaText: "Shop Now" };
     }
     if (/\bnews\b|\barticle\b|\breader\b|\bmagazine\b/.test(p)) {
         return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "editorial", density: "regular", voiceTone: "professional", cornerRadiusScale: "sharp", domainTags: ["news", "content"], itemNoun: "stories", ctaText: "Read More" };
     }
     if (/\bchat\b|\bmessage\b|\binbox\b|\bdm\b/.test(p)) {
-        return { accentColor: "blue:1.0", secondaryColor: "green:1.0", surfaceStyle: "utility", density: "compact", voiceTone: "playful", cornerRadiusScale: "pill", domainTags: ["messaging", "social"], itemNoun: "messages", ctaText: "Send Message" };
+        return { accentColor: "blue:1.0", secondaryColor: "gray:1.0", surfaceStyle: "minimal", density: "compact", voiceTone: "professional", cornerRadiusScale: "medium", domainTags: ["messaging", "social"], itemNoun: "messages", ctaText: "Send Message" };
     }
     return {};
 }
@@ -265,6 +284,47 @@ export function mergeThemeWithDefaults(base: ThemeTokens, defaults: Partial<Them
             ...(defaults.sharedFacts ?? {}),
         },
     };
+}
+
+function applyPromptThemeCorrections(prompt: string, theme: ThemeTokens, explicitAccent: string | null): ThemeTokens {
+    const p = prompt.toLowerCase();
+    const isCityGuideLike = /\bcity guide\b|\blocal discovery\b|\bcurated places\b|\bguide app\b|\bneighborhood\b/.test(p);
+    const wantsLuxury = /\bpremium\b|\bluxury\b|\brefined\b|\bcalm luxury\b/.test(p);
+    const wantsMapFirst = /\bmap-first\b|\bmap first\b|\blive search\b|\bglass overlays\b|\bbottom action tray\b/.test(p);
+
+    if (!explicitAccent && isCityGuideLike && (wantsLuxury || wantsMapFirst)) {
+        const loudAccent = ["purple:1.0", "pink:1.0", "indigo:1.0"].includes(theme.accentColor);
+        const loudSecondary = ["purple:1.0", "pink:1.0", "indigo:1.0"].includes(theme.secondaryColor);
+        return {
+            ...theme,
+            accentColor: loudAccent ? "teal:1.0" : theme.accentColor,
+            secondaryColor: loudSecondary ? "gray:1.0" : theme.secondaryColor,
+            surfaceStyle: theme.surfaceStyle === "calm" || theme.surfaceStyle === "utility"
+                ? (wantsLuxury ? "minimal" : "editorial")
+                : theme.surfaceStyle,
+            density: theme.density === "compact" ? "regular" : theme.density,
+            fontDesign: theme.fontDesign === "rounded" ? (wantsLuxury ? "serif" : "default") : theme.fontDesign,
+            cornerRadiusScale: theme.cornerRadiusScale === "pill" ? "sharp" : theme.cornerRadiusScale,
+            voiceTone: theme.voiceTone === "playful" ? "professional" : theme.voiceTone,
+            itemNoun: theme.itemNoun === "items" ? "places" : theme.itemNoun,
+        };
+    }
+
+    const wantsAppleRestraint = /\bapple\b|\bnative\b|\bclean\b|\bminimal\b|\bpremium\b|\brefined\b|\bluxury\b|\bcalm luxury\b/.test(p);
+    if (!explicitAccent && wantsAppleRestraint) {
+        const loudAccent = ["purple:1.0", "pink:1.0", "indigo:1.0", "orange:1.0", "red:1.0", "green:1.0", "yellow:1.0"].includes(theme.accentColor);
+        return {
+            ...theme,
+            accentColor: loudAccent ? "blue:1.0" : theme.accentColor,
+            secondaryColor: "gray:1.0",
+            surfaceStyle: theme.surfaceStyle === "utility" ? "minimal" : theme.surfaceStyle,
+            fontDesign: theme.fontDesign === "rounded" ? "default" : theme.fontDesign,
+            cornerRadiusScale: theme.cornerRadiusScale === "pill" ? "medium" : theme.cornerRadiusScale,
+            voiceTone: theme.voiceTone === "playful" ? "professional" : theme.voiceTone,
+        };
+    }
+
+    return theme;
 }
 
 // ─── Standard screen tokens (non-full-canvas mode) ──────────────────────────
@@ -330,20 +390,42 @@ export function buildBaselineTheme(tokens: ScreenTokens): ThemeTokens {
 }
 
 export function computeThemeSurfaces(theme: ThemeTokens): ThemeSurfaces {
-    const accentBase = theme.accentColor.split(":")[0];
-    const cornerCard = theme.cornerRadiusScale === "pill" ? 22 : theme.cornerRadiusScale === "sharp" ? 8 : 16;
-    const cornerRow = theme.cornerRadiusScale === "pill" ? 18 : theme.cornerRadiusScale === "sharp" ? 6 : 12;
+    const cornerCard = theme.cornerRadiusScale === "pill" ? 22 : theme.cornerRadiusScale === "sharp" ? 12 : 16;
+    const cornerRow = theme.cornerRadiusScale === "pill" ? 18 : theme.cornerRadiusScale === "sharp" ? 12 : 12;
     const spacing = theme.density === "compact" ? 8 : theme.density === "airy" ? 16 : 12;
-    const surfaceCard = theme.surfaceStyle === "immersive" ? 0.16 : theme.surfaceStyle === "minimal" ? 0.05 : 0.08;
-    const surfaceRow = theme.surfaceStyle === "immersive" ? 0.12 : theme.surfaceStyle === "minimal" ? 0.04 : 0.06;
+
+    let cardFill = "gray:0.10";
+    let rowFill = "gray:0.14";
+    let subtleFill = "gray:0.08";
+    let secondaryText = "secondary:1.0";
+    let iconTint = "gray:0.62";
+    let dividerTint = "gray:0.18";
+
+    if (theme.surfaceStyle === "immersive") {
+        cardFill = "white:0.12";
+        rowFill = "white:0.16";
+        subtleFill = "white:0.10";
+        secondaryText = "white:0.72";
+        iconTint = "white:0.68";
+        dividerTint = "white:0.16";
+    } else if (theme.surfaceStyle === "editorial") {
+        cardFill = "gray:0.10";
+        rowFill = "gray:0.14";
+        subtleFill = "gray:0.08";
+    } else if (theme.surfaceStyle === "calm") {
+        cardFill = "gray:0.08";
+        rowFill = "gray:0.12";
+        subtleFill = "gray:0.06";
+    }
+
     return {
-        cardFill: `${accentBase}:${surfaceCard.toFixed(2)}`,
-        rowFill: `${accentBase}:${surfaceRow.toFixed(2)}`,
-        subtleFill: "gray:0.10",
+        cardFill,
+        rowFill,
+        subtleFill,
         primaryText: "primary:1.0",
-        secondaryText: theme.surfaceStyle === "immersive" ? "white:0.72" : "secondary:1.0",
-        iconTint: "gray:0.62",
-        dividerTint: "gray:0.18",
+        secondaryText,
+        iconTint,
+        dividerTint,
         cornerCard,
         cornerRow,
         spacing,

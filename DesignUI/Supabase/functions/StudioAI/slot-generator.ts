@@ -16,7 +16,7 @@ import { analyzeRailItem, computeMorphologySignature, countListLikeItems, detect
 // Only includes the rules the generator actually needs (full rules are for editing).
 export const SLOT_SCHEMA_COMPACT = `CONTAINERS(must have children[]): VStack HStack ZStack ScrollView Button
 LEAVES(no children): Text Image "SF Symbol" Spacer Divider Rectangle Circle RoundedRectangle Capsule Ellipse "Linear Gradient" "Text Field" Switch Slider "Progress View" Gauge Chart Map
-Text:{text:string} "SF Symbol":{symbolName:string} "Text Field":{text?:string,placeholder?:string,semanticRole?:"input"|"search"|"email"|"password"} VStack:{alignment:"leading"|"center"|"trailing",spacing:num} HStack:{alignment:"top"|"center"|"bottom",spacing:num} ZStack:{alignment:"center"|"topLeading"|"bottomTrailing"...} Button:{buttonStyle:"plain"|"bordered"|"borderedProminent",interactionRole?:"select_tab"|"select_filter"|"set_selection",interactionKey?:string,interactionValue?:string,interactionDefault?:bool} ScrollView:{axis:"vertical"|"horizontal",showsIndicators:bool} RoundedRectangle:{cornerRadius:num} "Progress View":{value:num,total:num,color:string} Gauge:{value:num,min:num,max:num,gaugeType:"linear"|"circular"|"circular range",showValue:bool,color:string} Map:{latitude:num,longitude:num,latitudeDelta?:num,longitudeDelta?:num,mapStyle?:"standard"|"imagery"|"hybrid",interactionModes?:"all"|"none"|"pan"|"zoom"|"rotate"|"pitch"|"pan+zoom"|"pan+zoom+rotate"|"pan+zoom+rotate+pitch",showsCompass?:bool,showsScale?:bool,showsPitchToggle?:bool,showsUserLocation?:bool,showsUserLocationButton?:bool,showsTraffic?:bool,locationName?:string,markers?:string}
+Text:{text:string} "SF Symbol":{symbolName:string} "Text Field":{text?:string,placeholder?:string} VStack:{alignment:"leading"|"center"|"trailing",spacing:num} HStack:{alignment:"top"|"center"|"bottom",spacing:num} ZStack:{alignment:"center"|"topLeading"|"bottomTrailing"...} Button:{buttonStyle:"plain"|"bordered"|"borderedProminent"} ScrollView:{axis:"vertical"|"horizontal",showsIndicators:bool} RoundedRectangle:{cornerRadius:num} "Progress View":{value:num,total:num,color:string} Gauge:{value:num,min:num,max:num,gaugeType:"linear"|"circular"|"circular range",showValue:bool,color:string} Map:{latitude:num,longitude:num,latitudeDelta?:num,longitudeDelta?:num,mapStyle?:"standard"|"imagery"|"hybrid",interactionModes?:"all"|"none"|"pan"|"zoom"|"rotate"|"pitch"|"pan+zoom"|"pan+zoom+rotate"|"pan+zoom+rotate+pitch",showsCompass?:bool,showsScale?:bool,showsPitchToggle?:bool,showsUserLocation?:bool,showsUserLocationButton?:bool,showsTraffic?:bool,locationName?:string,markers?:string}
 MODIFIERS: Frame Padding "Background Color" "Foreground Color" Font "Corner Radius" Shadow Opacity Stroke Fill "Clip Shape" "Text Alignment" Tint "Glass Effect"
 Font:{fontSize:"largeTitle"|"title"|"title2"|"title3"|"headline"|"body"|"callout"|"subheadline"|"footnote"|"caption"|"caption2",fontWeight:"bold"|"semibold"|"medium"|"regular"|"light",fontDesign?:string}
 Frame:{widthType:"Custom"|"Default"|"Full",heightType:"Custom"|"Default"|"Full",width?:num,height?:num}
@@ -104,14 +104,14 @@ export function buildSlotGeneratorSystemPrompt(
     const constraint = SLOT_CONSTRAINTS[slot.slotType];
     const accentBase = theme.accentColor.split(":")[0];
 
-    const radiusMap = { pill: "cards:22 rows:18 icons:999 cta:999", sharp: "cards:8 rows:6 icons:4 cta:4", medium: "cards:16 rows:12 icons:10 cta:10" };
+    const radiusMap = { pill: "cards:22 rows:18 icons:999 cta:999", sharp: "cards:12 rows:12 icons:6 cta:12", medium: "cards:16 rows:12 icons:10 cta:10" };
     const spacingMap = { compact: "4/8/12/16", regular: "4/8/12/16/24/32", airy: "4/8/12/16/24/32" };
     const paletteMap: Record<string, string> = {
-        immersive: `card:"${accentBase}:0.18" row:"${accentBase}:0.12" text2:"white:0.72"`,
-        calm: `card:"${accentBase}:0.05" row:"${accentBase}:0.04" text2:"secondary:1.0"`,
-        minimal: `card:"gray:0.04" row:"gray:0.03" text2:"secondary:1.0"`,
-        editorial: `card:"${accentBase}:0.07" row:"${accentBase}:0.06" text2:"secondary:1.0"`,
-        utility: `card:"${accentBase}:0.07" row:"${accentBase}:0.06" text2:"secondary:1.0"`,
+        immersive: `card:"white:0.12" row:"white:0.16" text2:"white:0.72"`,
+        calm: `card:"gray:0.08" row:"gray:0.12" text2:"secondary:1.0"`,
+        minimal: `card:"gray:0.10" row:"gray:0.14" text2:"secondary:1.0"`,
+        editorial: `card:"gray:0.10" row:"gray:0.14" text2:"secondary:1.0"`,
+        utility: `card:"gray:0.10" row:"gray:0.14" text2:"secondary:1.0"`,
     };
 
     const contextSlots = allSlots.filter((s) => s !== slot).map((s) => s.slotType).join(", ");
@@ -128,6 +128,9 @@ export function buildSlotGeneratorSystemPrompt(
         || slot.slotType === "fab_button"
         || slot.slotType === "map_preview"
         || /\b(map|route|rideshare|ride share|transport|driver|pickup|destination|immersive|glass|overlay)\b/.test(`${promptLower} ${slotIntentLower}`);
+    const searchBarPlacementRule = slot.slotType === "search_bar"
+        ? "Search bars are standalone top-of-content slots. Render them inline at the top of the scrolling content as a single full-width row. Do not make them floating overlays, detached map chrome, or separate utility bubbles."
+        : "";
     const promptContext = rawPrompt ? `
 USER'S ORIGINAL REQUEST: "${rawPrompt}"
 Your component must feel like a direct response to these specific words.
@@ -193,9 +196,11 @@ Critical rules:
             ? "Media-track rail is mandatory: each rail item must be square artwork + primary title + secondary artist/subtitle."
             : "If a rail variant is specified, honor its morphology exactly."}
 - App header rule: back chevron only for detail/drill-in screens (likelyDetail=${likelyDetail}, likelyRoot=${likelyRoot}).
+- Do not invent toolbar buttons or utility chrome. No top-right ellipsis/profile/menu buttons and no extra mic/filter/clear controls in search bars unless the user explicitly asks for them.
 - ${shouldPreferGlassOverlay
             ? "This section should prefer Glass Effect on compact overlay surfaces like floating chips, map controls, top utility buttons, and translucent CTA trays instead of defaulting to flat gray pills. If colored glass helps, use Glass Effect tint instead of Fill or Background Color. Glass surfaces must not also have Fill or Background Color on the same node."
             : "Use Glass Effect only when it helps an overlay/surface feel intentionally translucent; do not add it to every card by default. If you want colored glass, use the Glass Effect tint property, and never combine Glass Effect with Fill or Background Color on the same node."}
+- ${searchBarPlacementRule || "Keep the section in normal content flow unless the slot itself is explicitly an overlay control."}
 
 LAYER 5 — OUTPUT SCHEMA
 ${SLOT_SCHEMA_COMPACT}`;
@@ -370,13 +375,13 @@ export async function compileSlotWithRepair(params: {
 export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec?: PromptDesignSpec): AnyComponent {
     const ab = theme.accentColor.split(":")[0];
     const sb = theme.secondaryColor.split(":")[0];
-    const r = theme.cornerRadiusScale === "pill" ? 22 : theme.cornerRadiusScale === "sharp" ? 8 : 16;
-    const rSmall = theme.cornerRadiusScale === "pill" ? 18 : theme.cornerRadiusScale === "sharp" ? 6 : 12;
-    const rIcon = theme.cornerRadiusScale === "pill" ? 999 : theme.cornerRadiusScale === "sharp" ? 4 : 10;
+    const r = theme.cornerRadiusScale === "pill" ? 22 : theme.cornerRadiusScale === "sharp" ? 12 : 16;
+    const rSmall = theme.cornerRadiusScale === "pill" ? 18 : theme.cornerRadiusScale === "sharp" ? 12 : 12;
+    const rIcon = theme.cornerRadiusScale === "pill" ? 999 : theme.cornerRadiusScale === "sharp" ? 6 : 10;
     const pad = theme.density === "compact" ? 12 : theme.density === "airy" ? 20 : 16;
     const sp = theme.density === "compact" ? 8 : theme.density === "airy" ? 16 : 12;
-    const cardBg = `${ab}:0.07`;
-    const rowBg = `${ab}:0.06`;
+    const cardBg = theme.surfaceStyle === "immersive" ? "white:0.12" : theme.surfaceStyle === "calm" ? "gray:0.08" : "gray:0.10";
+    const rowBg = theme.surfaceStyle === "immersive" ? "white:0.16" : theme.surfaceStyle === "calm" ? "gray:0.12" : "gray:0.14";
 
     const mkText = (text: string, size: string, weight: string, color?: string): AnyComponent => {
         const m: Array<Record<string, unknown>> = [{ type: "Font", properties: { fontSize: size, fontWeight: weight } }];
@@ -417,8 +422,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
         || theme.domainTags.includes("transport");
     const isTransportOptionIntent = isTransportLike && /\b(ride|fare|eta|vehicle|trip|option|pickup|reserve)\b/.test(loweredIntent);
     const transportAccent = theme.accentColor || "blue:1.0";
-    const transportSheetFill = theme.surfaceStyle === "immersive" ? "white:0.08" : "white:0.96";
-    const transportInsetFill = theme.surfaceStyle === "immersive" ? "white:0.12" : "gray:0.06";
+    const transportSheetFill = theme.surfaceStyle === "immersive" ? "white:0.08" : "gray:0.10";
+    const transportInsetFill = theme.surfaceStyle === "immersive" ? "white:0.12" : "gray:0.12";
     const transportSecondaryButtonFill = theme.surfaceStyle === "immersive" ? "white:0.16" : "gray:0.14";
     const transportSecondary = theme.surfaceStyle === "immersive" ? "white:0.72" : "gray:0.62";
     const transportReserveMode = /\breserve\b|\bschedule\b|\blater\b|\bdeparture\b|\bleave at\b/.test(transportContext);
@@ -698,7 +703,6 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         { type: "Padding", properties: { amount: 10, location: "vertical" } },
                     ],
                     children: [
-                        mkIconCircle("line.3.horizontal", "gray:0.14", "primary:1.0", 40),
                         {
                             type: "VStack",
                             properties: { alignment: "leading", spacing: 2 },
@@ -708,7 +712,6 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                 mkText(transportPickupDetail, "headline", "bold"),
                             ],
                         },
-                        mkIconCircle("person.crop.circle.fill", `${ab}:0.12`, transportAccent, 42),
                     ],
                 };
             }
@@ -717,8 +720,6 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     type: "HStack", properties: { spacing: 10, alignment: "center" }, modifiers: [fullW, { type: "Padding", properties: { amount: 12, location: "vertical" } }],
                     children: [
                         mkText("Products", "largeTitle", "bold"),
-                        { type: "Spacer" },
-                        mkIconCircle("person.fill", "blue:0.30", "white:1.0", 44),
                     ],
                 };
             }
@@ -727,22 +728,11 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     type: "HStack", properties: { spacing: 10, alignment: "center" }, modifiers: [fullW],
                     children: [
                         mkText("Dashboard", "title2", "bold"),
-                        { type: "Spacer" },
-                        {
-                            type: "Capsule",
-                            properties: {},
-                            modifiers: [
-                                { type: "Frame", properties: { widthType: "Custom", width: 168, heightType: "Custom", height: 46 } },
-                                { type: "Fill", properties: { color: "gray:0.12" } },
-                                { type: "Overlay", children: [{ type: "HStack", properties: { spacing: 20, alignment: "center" }, children: [mkSym("calendar", "white:0.9"), mkSym("line.3.horizontal", "white:0.9"), mkIconCircle("person.fill", "green:0.3", "white:1.0", 34)] }] },
-                            ],
-                        },
                     ],
                 };
             }
             const headerIntent = (slot.intent || "").toLowerCase();
             const isDetailHeader = /\bback\b|\bdetail\b|\bdrill\b|\binner\b|\bthread\b/.test(headerIntent);
-            const leadingSymbol = isDetailHeader ? "chevron.left" : "line.3.horizontal";
             return {
                 type: "HStack", properties: { spacing: 10, alignment: "center" },
                 modifiers: [
@@ -751,42 +741,14 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     { type: "Padding", properties: { amount: 10, location: "vertical" } },
                 ],
                 children: [
-                    {
-                        type: "ZStack",
-                        children: [
-                            {
-                                type: "Circle",
-                                properties: {},
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 36, heightType: "Custom", height: 36 } },
-                                    { type: "Glass Effect", properties: { shape: "Circle" } },
-                                ],
-                            },
-                            mkSym(leadingSymbol, undefined, "subheadline", "semibold"),
-                        ],
-                    },
-                    { type: "Spacer" },
+                    ...(isDetailHeader ? [mkSym("chevron.left", undefined, "subheadline", "semibold")] : []),
                     {
                         type: "Text",
                         properties: { text: theme.appName },
                         modifiers: [
+                            { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
                             { type: "Font", properties: { fontSize: "headline", fontWeight: "bold" } },
                             { type: "Text Alignment", properties: { alignment: "center" } },
-                        ],
-                    },
-                    { type: "Spacer" },
-                    {
-                        type: "ZStack",
-                        children: [
-                            {
-                                type: "Circle",
-                                properties: {},
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 36, heightType: "Custom", height: 36 } },
-                                    { type: "Glass Effect", properties: { shape: "Circle" } },
-                                ],
-                            },
-                            mkSym("ellipsis", undefined, "subheadline", "semibold"),
                         ],
                     },
                 ],
@@ -824,7 +786,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                     { type: "Background Color", properties: { color: theme.accentColor } },
                                     { type: "Foreground Color", properties: { color: "white:1.0" } },
                                     { type: "Font", properties: { fontSize: "subheadline", fontWeight: "bold" } },
-                                    { type: "Corner Radius", properties: { radius: theme.cornerRadiusScale === "pill" ? 999 : theme.cornerRadiusScale === "sharp" ? 4 : 10 } },
+                                    { type: "Corner Radius", properties: { radius: theme.cornerRadiusScale === "pill" ? 999 : theme.cornerRadiusScale === "sharp" ? 6 : 10 } },
                                 ]
                             },
                         ]
@@ -922,18 +884,10 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                 "magnifyingglass",
             ];
             const listRows = sourceItems.map((item, i) => {
-                const filterTag = isSearchResultsIntent
-                    ? "all"
-                    : (item.trailing || item.subtitle || "").toLowerCase().includes("done")
-                        ? "done"
-                        : i % 3 === 2
-                            ? "done"
-                            : "active";
-                const interactionTags = `all,${filterTag}`;
                 if (isSearchSuggestionIntent || nativePattern === "appstore_search") {
                     return {
                         type: "VStack",
-                        properties: { alignment: "leading", spacing: 0, interactionTags },
+                        properties: { alignment: "leading", spacing: 0 },
                         modifiers: [fullW],
                         children: [
                             {
@@ -960,7 +914,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     const denseVariant = pick(2) === 0;
                     return {
                         type: "VStack",
-                        properties: { alignment: "leading", spacing: 0, interactionTags },
+                        properties: { alignment: "leading", spacing: 0 },
                         modifiers: [fullW],
                         children: [
                             {
@@ -984,7 +938,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     } as AnyComponent;
                 }
                 return {
-                    type: "HStack", properties: { spacing: 12, alignment: "center", interactionTags },
+                    type: "HStack", properties: { spacing: 12, alignment: "center" },
                     modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: rowBg } }, { type: "Corner Radius", properties: { radius: rSmall } }],
                     children: [
                         mkIconCircle(isSearchResultsIntent ? "magnifyingglass" : (theme.mascotSymbol || "circle.fill"), `${ab}:0.15`, theme.accentColor),
@@ -1001,7 +955,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                 type: "VStack", properties: { alignment: "leading", spacing: sp },
                 children: (isSearchSuggestionIntent || nativePattern === "appstore_search" || nativePattern === "mail_inbox")
                     ? listRows
-                    : [mkText(isSearchResultsIntent ? "Results" : (theme.itemNoun.charAt(0).toUpperCase() + theme.itemNoun.slice(1)), "headline", "bold"), ...listRows],
+                    : listRows,
             };
         }
 
@@ -1080,6 +1034,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     .trim();
                 return cleaned ? cleaned.charAt(0).toUpperCase() + cleaned.slice(1) : "Highlights";
             })();
+            const shouldHideRailTitle = /^(chips?|results?|highlights?|places?|items?)$/i.test(railTitle.trim());
             const railCards = theme.sampleRailItems.slice(0, 5).map((title, idx) => {
                 if (railVariant === "circular_people") {
                     return {
@@ -1153,7 +1108,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
             return {
                 type: "VStack", properties: { alignment: "leading", spacing: sp },
                 children: [
-                    mkText(railTitle, "headline", "bold"),
+                    ...(shouldHideRailTitle ? [] : [mkText(railTitle, "headline", "bold")]),
                     {
                         type: "ScrollView", properties: { axis: "horizontal", showsIndicators: false }, children: [
                             { type: "HStack", properties: { spacing: sp, alignment: "top" }, children: railCards },
@@ -1323,7 +1278,6 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                                     { type: "Clip Shape", properties: { shape: "Rectangle" } },
                                 ],
                             },
-                            mkIconCircle("mappin.and.ellipse", `${ab}:0.12`, theme.accentColor, 54),
                         ],
                     },
                     {
@@ -1369,15 +1323,13 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                     modifiers: [fullW, { type: "Padding", properties: { amount: 10, location: "all" } }, { type: "Background Color", properties: { color: "gray:0.10" } }, { type: "Corner Radius", properties: { radius: 18 } }],
                     children: [
                         mkSym("magnifyingglass", "gray:0.62", "title3", "regular"),
-                        { type: "Text Field", properties: { placeholder: "Search", text: "", semanticRole: "search" }, modifiers: [fullW] },
-                        { type: "Spacer" },
-                        mkSym("mic", "gray:0.62", "title3", "regular"),
+                        { type: "Text Field", properties: { placeholder: "Search", text: "" }, modifiers: [fullW] },
                     ],
                 };
             }
             return {
                 type: "HStack",
-                properties: { spacing: 10, alignment: "center" },
+                properties: { spacing: 0, alignment: "center" },
                 modifiers: [fullW],
                 children: [
                     {
@@ -1391,36 +1343,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                         ],
                         children: [
                             mkSym("magnifyingglass", "gray:0.60", "body", "regular"),
-                            { type: "Text Field", properties: { placeholder: `Search ${theme.itemNoun}`, text: "", semanticRole: "search" }, modifiers: [fullW] },
-                            { type: "Spacer" },
-                            {
-                                type: "ZStack",
-                                children: [
-                                    {
-                                        type: "Circle",
-                                        properties: {},
-                                        modifiers: [
-                                            { type: "Frame", properties: { widthType: "Custom", width: 26, heightType: "Custom", height: 26 } },
-                                            { type: "Fill", properties: { color: "white:0.95" } },
-                                        ],
-                                    },
-                                    mkSym("xmark", "gray:0.85", "caption", "bold"),
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        type: "ZStack",
-                        children: [
-                            {
-                                type: "Circle",
-                                properties: {},
-                                modifiers: [
-                                    { type: "Frame", properties: { widthType: "Custom", width: 40, heightType: "Custom", height: 40 } },
-                                    { type: "Fill", properties: { color: "gray:0.10" } },
-                                ],
-                            },
-                            mkSym("xmark", "primary:1.0", "title3", "regular"),
+                            { type: "Text Field", properties: { placeholder: `Search ${theme.itemNoun}`, text: "" }, modifiers: [fullW] },
                         ],
                     },
                 ],
@@ -1465,13 +1388,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                 modifiers: [fullW, { type: "Padding", properties: { amount: 4, location: "all" } }, { type: "Background Color", properties: { color: "gray:0.08" } }, { type: "Corner Radius", properties: { radius: rSmall } }],
                 children: ["All", "Active", "Done"].map((label, i) => ({
                     type: "Button",
-                    properties: {
-                        buttonStyle: "plain",
-                        interactionRole: "select_filter",
-                        interactionKey: "primaryFilter",
-                        interactionValue: label.toLowerCase(),
-                        interactionDefault: i === 0,
-                    },
+                    properties: { buttonStyle: "plain" },
                     modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }],
                     children: [{
                         type: "Text", properties: { text: label },
@@ -2054,7 +1971,7 @@ export function renderPrimitiveDeterministically(
             type: "HStack",
             properties: { spacing: 10, alignment: "center" },
             modifiers: [fullW, { type: "Padding", properties: { amount: 10, location: "all" } }, { type: "Background Color", properties: { color: surfaces.subtleFill } }, { type: "Corner Radius", properties: { radius: surfaces.cornerRow + 6 } }],
-            children: [mkSym("magnifyingglass", surfaces.iconTint, "title3"), { type: "Text Field", properties: { placeholder: "Search", text: "", semanticRole: "search" }, modifiers: [fullW] }, { type: "Spacer" }, mkSym("mic", surfaces.iconTint, "title3")],
+            children: [mkSym("magnifyingglass", surfaces.iconTint, "title3"), { type: "Text Field", properties: { placeholder: "Search", text: "" }, modifiers: [fullW] }],
         };
     }
 
@@ -2065,26 +1982,12 @@ export function renderPrimitiveDeterministically(
             modifiers: [fullW, { type: "Padding", properties: { amount: 8, location: "horizontal" } }, { type: "Padding", properties: { amount: 10, location: "vertical" } }],
             children: [
                 {
-                    type: "ZStack",
-                    children: [
-                        { type: "Circle", properties: {}, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 40, heightType: "Custom", height: 40 } }, { type: "Fill", properties: { color: surfaces.rowFill } }] },
-                        mkSym("line.3.horizontal", surfaces.primaryText, "subheadline"),
-                    ],
-                },
-                {
                     type: "VStack",
                     properties: { alignment: "leading", spacing: 2 },
                     modifiers: [fullW],
                     children: [
                         mkText("Pickup", "caption", "semibold", surfaces.secondaryText),
                         mkText("Apple Park Visitor Center", "headline", "bold"),
-                    ],
-                },
-                {
-                    type: "ZStack",
-                    children: [
-                        { type: "Circle", properties: {}, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 42, heightType: "Custom", height: 42 } }, { type: "Fill", properties: { color: surfaces.cardFill } }] },
-                        mkSym("person.crop.circle.fill", theme.accentColor, "title3"),
                     ],
                 },
             ],
@@ -2438,7 +2341,7 @@ export function renderPrimitiveDeterministically(
             type: "HStack",
             properties: { spacing: 0, alignment: "center" },
             modifiers: [fullW],
-            children: [mkText(theme.appName, "headline", "bold"), { type: "Spacer" }, mkSym("ellipsis", surfaces.iconTint)],
+            children: [mkText(theme.appName, "headline", "bold")],
         };
     }
 

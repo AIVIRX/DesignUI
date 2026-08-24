@@ -79,6 +79,7 @@ export async function buildGeneratedScreen(
         });
         const slotComponents = slotResults.map((r, i) => ({
             position: plannedSlots[i].position,
+            slotType: plannedSlots[i].slotType,
             component: r.component,
         }));
 
@@ -131,6 +132,7 @@ export async function buildGeneratedScreen(
     });
     const slotComponents = slotResults.map((r, i) => ({
         position: plannedSlots[i].position,
+        slotType: plannedSlots[i].slotType,
         component: r.component,
     }));
 
@@ -163,6 +165,7 @@ export function buildEmergencyGeneratedScreen(prompt: string): {
     const fallbackSlots = plan.slots.slice(0, 4);
     const slotComponents = fallbackSlots.map((slot) => ({
         position: slot.position,
+        slotType: slot.slotType,
         component: buildFallbackSlot(slot, theme, designSpec),
     }));
     const screen = assembleScreen(slotComponents);
@@ -174,12 +177,14 @@ export function buildEmergencyGeneratedScreen(prompt: string): {
     };
 }
 
-export function assembleScreen(slotComponents: Array<{ position: SlotPosition; component: AnyComponent }>): { components: AnyComponent[] } {
-    const top = slotComponents.filter((s) => s.position === "top").map((s) => s.component);
+export function assembleScreen(slotComponents: Array<{ position: SlotPosition; slotType?: string; component: AnyComponent }>): { components: AnyComponent[] } {
+    const topSlots = slotComponents.filter((s) => s.position === "top");
+    const inlineTop = topSlots.filter((s) => s.slotType === "search_bar").map((s) => s.component);
+    const stickyTop = topSlots.filter((s) => s.slotType !== "search_bar").map((s) => s.component);
     const body = slotComponents.filter((s) => s.position === "body").map((s) => s.component);
     const bottom = slotComponents.filter((s) => s.position === "bottom").map((s) => s.component);
     const overlay = slotComponents.filter((s) => s.position === "overlay").map((s) => s.component);
-    const hasStickyTop = top.length > 0;
+    const hasStickyTop = stickyTop.length > 0;
     const estimateStickyTopInset = (components: AnyComponent[]): number => {
         if (components.length === 0) return 0;
         const first = components[0];
@@ -188,7 +193,7 @@ export function assembleScreen(slotComponents: Array<{ position: SlotPosition; c
         const stackedCount = Math.max(1, Math.min(components.length, 2));
         return base * stackedCount;
     };
-    const topOverlayHeight = hasStickyTop ? estimateStickyTopInset(top) : 0;
+    const topOverlayHeight = hasStickyTop ? estimateStickyTopInset(stickyTop) : 0;
     const bottomSafeInset = bottom.length > 0 ? 14 : 34;
     const liftedOverlay = bottom.length > 0
         ? overlay.map((component) => ({
@@ -216,41 +221,19 @@ export function assembleScreen(slotComponents: Array<{ position: SlotPosition; c
             { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
             { type: "Padding", properties: { amount: 16, location: "all" } },
         ],
-        children: [...(hasStickyTop ? [topInsetSpacer] : []), ...body, safeAreaSpacer],
+        children: [...inlineTop, ...(hasStickyTop ? [topInsetSpacer] : []), ...body, safeAreaSpacer],
     };
 
     const stickyTopBar: AnyComponent | null = hasStickyTop
         ? {
-            type: "ZStack",
-            properties: { alignment: "topLeading" },
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 0 },
             modifiers: [
                 { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
+                { type: "Padding", properties: { amount: 10, location: "horizontal" } },
+                { type: "Padding", properties: { amount: 4, location: "vertical" } },
             ],
-            children: [
-                {
-                    type: "Linear Gradient",
-                    properties: {
-                        colors: ["gray:0.14", "gray:0.06", "gray:0.00"],
-                        startPoint: "top",
-                        endPoint: "bottom",
-                    },
-                    modifiers: [
-                        { type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: Math.max(72, topOverlayHeight + 20) } },
-                        { type: "Opacity", properties: { value: 0.92 } },
-                        { type: "Blur", properties: { radius: 0.25 } },
-                    ],
-                },
-                {
-                    type: "VStack",
-                    properties: { alignment: "leading", spacing: 0 },
-                    modifiers: [
-                        { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
-                        { type: "Padding", properties: { amount: 10, location: "horizontal" } },
-                        { type: "Padding", properties: { amount: 4, location: "vertical" } },
-                    ],
-                    children: top,
-                },
-            ],
+            children: stickyTop,
         }
         : null;
 

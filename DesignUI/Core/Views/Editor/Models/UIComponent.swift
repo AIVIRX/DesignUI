@@ -1253,8 +1253,7 @@ extension UIComponent {
         case .textField:
             return [
                 ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Text Value", defaultValue: "Text Value"),
-                ComponentProperty(key: "placeholder", displayName: "Placeholder", type: .string, value: "Placeholder", defaultValue: "Placeholder"),
-                ComponentProperty(key: "semanticRole", displayName: "Semantic Role", type: .dropdown, value: "input", defaultValue: "input", options: ["input", "search", "email", "password"])
+                ComponentProperty(key: "placeholder", displayName: "Placeholder", type: .string, value: "Placeholder", defaultValue: "Placeholder")
             ]
         case .toggle:
             return [
@@ -1282,14 +1281,11 @@ extension UIComponent {
             ]
         case .button:
             return [
-                ComponentProperty(key: "buttonStyle", displayName: "Button Style", type: .dropdown, value: "borderedProminent", defaultValue: "borderedProminent", options: ["bordered", "borderedProminent", "borderless", "plain"]),
-                ComponentProperty(key: "interactionRole", displayName: "Interaction Role", type: .dropdown, value: "", defaultValue: "", options: ["", "select_tab", "select_filter", "set_selection"]),
-                ComponentProperty(key: "interactionKey", displayName: "Interaction Key", type: .string, value: "", defaultValue: ""),
-                ComponentProperty(key: "interactionValue", displayName: "Interaction Value", type: .string, value: "", defaultValue: ""),
-                ComponentProperty(key: "interactionDefault", displayName: "Default Selection", type: .boolean, value: false, defaultValue: false)
+                ComponentProperty(key: "buttonStyle", displayName: "Button Style", type: .dropdown, value: "borderedProminent", defaultValue: "borderedProminent", options: ["bordered", "borderedProminent", "borderless", "plain"])
             ]
         case .map:
             return [
+                ComponentProperty(key: "mapPreset", displayName: "Location Preset", type: .dropdown, value: "Apple Park", defaultValue: "Apple Park", options: ["Apple Park", "Cupertino", "San Francisco", "New York City", "London", "Paris", "Tokyo"]),
                 ComponentProperty(key: "latitude", displayName: "Latitude", type: .number, value: 37.3346, defaultValue: 37.3346),
                 ComponentProperty(key: "longitude", displayName: "Longitude", type: .number, value: -122.0090, defaultValue: -122.0090),
                 ComponentProperty(key: "latitudeDelta", displayName: "Latitude Delta", type: .number, value: 0.018, defaultValue: 0.018),

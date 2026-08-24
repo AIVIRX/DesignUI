@@ -72,9 +72,11 @@ class CanvasManager: ObservableObject {
     
     var hasPlatformViewComponent: Bool {
         // Some views do not update reliably when the entire canvas is flattened with drawingGroup.
+        // Maps are included because SwiftUI Map can fail in rasterized/offscreen preview paths.
         // Images are included here so live opacity changes stay visually in sync while editing.
         return containsComponent(ofType: .progressView, in: components)
             || containsComponent(ofType: .image, in: components)
+            || containsComponent(ofType: .map, in: components)
     }
     
     private func containsComponent(ofType type: ComponentType, in components: [UIComponent]) -> Bool {

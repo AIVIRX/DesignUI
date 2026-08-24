@@ -422,6 +422,7 @@ private struct DesignBrowserChromeModifier: ViewModifier {
             .toolbar { toolbarContent }
             #else
             .toolbarBackground(.hidden, for: .windowToolbar)
+            .toolbar { toolbarContent }
             #endif
             .sheet(isPresented: $showingNewDesignSheet) { newDesignSheet }
             .alert("Delete Design", isPresented: $showingDeleteAlert) {

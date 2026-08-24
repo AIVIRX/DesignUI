@@ -1,0 +1,1116 @@
+{
+  "name": "Flight Status Widget",
+  "description": "Map-first rideshare choose ride screen inspired by a dark Uber-style selection flow.",
+  "thumbnail": "rideshare",
+  "canvasColorScheme": "dark",
+  "statusBarVisible": false,
+  "components": [
+    {
+      "type": "ZStack",
+      "properties": {
+        "alignment": "topLeading"
+      },
+      "modifiers": [
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Full"
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Map",
+          "properties": {
+            "latitude": 40.8447,
+            "longitude": -73.9143,
+            "latitudeDelta": 0.045,
+            "longitudeDelta": 0.045,
+            "mapStyle": "standard",
+            "interactionModes": "all",
+            "showsCompass": false,
+            "showsScale": false,
+            "showsPitchToggle": false,
+            "showsUserLocation": false,
+            "showsUserLocationButton": false,
+            "showsTraffic": false,
+            "locationName": "Mount Eden, Bronx",
+            "markers": "[{\"latitude\":40.8447,\"longitude\":-73.9143,\"title\":\"Pickup\",\"tint\":\"white:1.0\"},{\"latitude\":40.8457,\"longitude\":-73.8868,\"title\":\"Destination\",\"tint\":\"white:1.0\"}]"
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Full"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Linear Gradient",
+          "properties": {
+            "colors": [
+              "black:0.36",
+              "black:0.10",
+              "black:0.00"
+            ],
+            "startPoint": "top",
+            "endPoint": "bottom"
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 180
+              }
+            }
+          ]
+        },
+        {
+          "type": "VStack",
+          "properties": {
+            "alignment": "leading",
+            "spacing": 16
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Default"
+              }
+            },
+            {
+              "type": "Padding",
+              "properties": {
+                "amount": 24,
+                "location": "horizontal"
+              }
+            },
+            {
+              "type": "Padding",
+              "properties": {
+                "amount": 12,
+                "location": "top"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "HStack",
+              "properties": {
+                "spacing": 0,
+                "alignment": "center"
+              },
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "9:43"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "largeTitle",
+                        "fontWeight": "bold"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Spacer"
+                }
+              ]
+            },
+            {
+              "type": "HStack",
+              "properties": {
+                "spacing": 18,
+                "alignment": "center"
+              },
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "ZStack",
+                  "properties": {
+                    "alignment": "center"
+                  },
+                  "children": [
+                    {
+                      "type": "Circle",
+                      "modifiers": [
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Custom",
+                            "width": 72,
+                            "heightType": "Custom",
+                            "height": 72
+                          }
+                        },
+                        {
+                          "type": "Fill",
+                          "properties": {
+                            "color": "black:0.92"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "SF Symbol",
+                      "properties": {
+                        "symbolName": "chevron.left"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title2",
+                            "fontWeight": "semibold"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "white:1.0"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Padding",
+                      "properties": {
+                        "amount": 14,
+                        "location": "horizontal"
+                      }
+                    },
+                    {
+                      "type": "Padding",
+                      "properties": {
+                        "amount": 12,
+                        "location": "vertical"
+                      }
+                    },
+                    {
+                      "type": "Background Color",
+                      "properties": {
+                        "color": "black:0.92"
+                      }
+                    },
+                    {
+                      "type": "Corner Radius",
+                      "properties": {
+                        "radius": 26
+                      }
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "HStack",
+                      "properties": {
+                        "spacing": 8,
+                        "alignment": "center"
+                      },
+                      "children": [
+                        {
+                          "type": "Circle",
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Custom",
+                                "width": 14,
+                                "heightType": "Custom",
+                                "height": 14
+                              }
+                            },
+                            {
+                              "type": "Fill",
+                              "properties": {
+                                "color": "blue:0.95"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "2404 Amsterdam Ave"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "body",
+                                "fontWeight": "regular"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "white:0.72"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "640 E 176th St"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title2",
+                            "fontWeight": "bold"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            }
+          ]
+        },
+        {
+          "type": "VStack",
+          "properties": {
+            "alignment": "leading",
+            "spacing": 0
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 0
+              },
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                },
+                {
+                  "type": "Background Color",
+                  "properties": {
+                    "color": "black:0.94"
+                  }
+                },
+                {
+                  "type": "Corner Radius",
+                  "properties": {
+                    "radius": 28
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "center",
+                    "spacing": 14
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Default"
+                      }
+                    },
+                    {
+                      "type": "Padding",
+                      "properties": {
+                        "amount": 12,
+                        "location": "top"
+                      }
+                    },
+                    {
+                      "type": "Padding",
+                      "properties": {
+                        "amount": 18,
+                        "location": "horizontal"
+                      }
+                    },
+                    {
+                      "type": "Padding",
+                      "properties": {
+                        "amount": 18,
+                        "location": "bottom"
+                      }
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "Capsule",
+                      "modifiers": [
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Custom",
+                            "width": 48,
+                            "heightType": "Custom",
+                            "height": 5
+                          }
+                        },
+                        {
+                          "type": "Fill",
+                          "properties": {
+                            "color": "gray:0.28"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Choose a ride"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title2",
+                            "fontWeight": "bold"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "Divider"
+                },
+                {
+                  "type": "ScrollView",
+                  "properties": {
+                    "axis": "vertical",
+                    "showsIndicators": false
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Custom",
+                        "height": 720
+                      }
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "VStack",
+                      "properties": {
+                        "alignment": "leading",
+                        "spacing": 22
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full",
+                            "heightType": "Default"
+                          }
+                        },
+                        {
+                          "type": "Padding",
+                          "properties": {
+                            "amount": 18,
+                            "location": "all"
+                          }
+                        }
+                      ],
+                      "children": [
+                        {
+                          "type": "VStack",
+                          "properties": {
+                            "alignment": "leading",
+                            "spacing": 12
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Default"
+                              }
+                            },
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 14,
+                                "location": "all"
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "white:0.04"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 24
+                              }
+                            },
+                            {
+                              "type": "Stroke",
+                              "properties": {
+                                "color": "white:0.85",
+                                "lineWidth": 2
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "HStack",
+                              "properties": {
+                                "spacing": 12,
+                                "alignment": "center"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Full",
+                                    "heightType": "Default"
+                                  }
+                                }
+                              ],
+                              "children": [
+                                {
+                                  "type": "RoundedRectangle",
+                                  "properties": {
+                                    "cornerRadius": 10
+                                  },
+                                  "modifiers": [
+                                    {
+                                      "type": "Frame",
+                                      "properties": {
+                                        "widthType": "Custom",
+                                        "width": 74,
+                                        "heightType": "Custom",
+                                        "height": 44
+                                      }
+                                    },
+                                    {
+                                      "type": "Fill",
+                                      "properties": {
+                                        "color": "white:0.10"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "VStack",
+                                  "properties": {
+                                    "alignment": "leading",
+                                    "spacing": 4
+                                  },
+                                  "modifiers": [
+                                    {
+                                      "type": "Frame",
+                                      "properties": {
+                                        "widthType": "Full",
+                                        "heightType": "Default"
+                                      }
+                                    }
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "HStack",
+                                      "properties": {
+                                        "spacing": 6,
+                                        "alignment": "center"
+                                      },
+                                      "modifiers": [
+                                        {
+                                          "type": "Frame",
+                                          "properties": {
+                                            "widthType": "Full",
+                                            "heightType": "Default"
+                                          }
+                                        }
+                                      ],
+                                      "children": [
+                                        {
+                                          "type": "Text",
+                                          "properties": {
+                                            "text": "UberX"
+                                          },
+                                          "modifiers": [
+                                            {
+                                              "type": "Font",
+                                              "properties": {
+                                                "fontSize": "title2",
+                                                "fontWeight": "semibold"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "SF Symbol",
+                                          "properties": {
+                                            "symbolName": "person.fill"
+                                          },
+                                          "modifiers": [
+                                            {
+                                              "type": "Font",
+                                              "properties": {
+                                                "fontSize": "caption",
+                                                "fontWeight": "regular"
+                                              }
+                                            },
+                                            {
+                                              "type": "Foreground Color",
+                                              "properties": {
+                                                "color": "white:0.72"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "Text",
+                                          "properties": {
+                                            "text": "4"
+                                          },
+                                          "modifiers": [
+                                            {
+                                              "type": "Font",
+                                              "properties": {
+                                                "fontSize": "caption",
+                                                "fontWeight": "semibold"
+                                              }
+                                            },
+                                            {
+                                              "type": "Foreground Color",
+                                              "properties": {
+                                                "color": "white:0.72"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "Spacer"
+                                        },
+                                        {
+                                          "type": "Text",
+                                          "properties": {
+                                            "text": "$22.93"
+                                          },
+                                          "modifiers": [
+                                            {
+                                              "type": "Font",
+                                              "properties": {
+                                                "fontSize": "title3",
+                                                "fontWeight": "semibold"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "Text",
+                                      "properties": {
+                                        "text": "9:59 PM · 2 min"
+                                      },
+                                      "modifiers": [
+                                        {
+                                          "type": "Font",
+                                          "properties": {
+                                            "fontSize": "body",
+                                            "fontWeight": "regular"
+                                          }
+                                        },
+                                        {
+                                          "type": "Foreground Color",
+                                          "properties": {
+                                            "color": "white:0.72"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "HStack",
+                                      "properties": {
+                                        "spacing": 6,
+                                        "alignment": "center"
+                                      },
+                                      "modifiers": [
+                                        {
+                                          "type": "Padding",
+                                          "properties": {
+                                            "amount": 8,
+                                            "location": "horizontal"
+                                          }
+                                        },
+                                        {
+                                          "type": "Padding",
+                                          "properties": {
+                                            "amount": 6,
+                                            "location": "vertical"
+                                          }
+                                        },
+                                        {
+                                          "type": "Background Color",
+                                          "properties": {
+                                            "color": "blue:0.75"
+                                          }
+                                        },
+                                        {
+                                          "type": "Corner Radius",
+                                          "properties": {
+                                            "radius": 10
+                                          }
+                                        }
+                                      ],
+                                      "children": [
+                                        {
+                                          "type": "SF Symbol",
+                                          "properties": {
+                                            "symbolName": "bolt.fill"
+                                          },
+                                          "modifiers": [
+                                            {
+                                              "type": "Font",
+                                              "properties": {
+                                                "fontSize": "caption",
+                                                "fontWeight": "semibold"
+                                              }
+                                            },
+                                            {
+                                              "type": "Foreground Color",
+                                              "properties": {
+                                                "color": "white:1.0"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "Text",
+                                          "properties": {
+                                            "text": "Faster"
+                                          },
+                                          "modifiers": [
+                                            {
+                                              "type": "Font",
+                                              "properties": {
+                                                "fontSize": "caption",
+                                                "fontWeight": "semibold"
+                                              }
+                                            },
+                                            {
+                                              "type": "Foreground Color",
+                                              "properties": {
+                                                "color": "white:1.0"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "UberXL      10:02 PM · 4 min      $29.99"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "title2",
+                                "fontWeight": "regular"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "Wait & Save      10:15 PM · 3–12 min      $18.23"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "title2",
+                                "fontWeight": "regular"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "UberXXL      $35.98"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "title2",
+                                "fontWeight": "regular"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "HStack",
+                          "properties": {
+                            "spacing": 12,
+                            "alignment": "center"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Default"
+                              }
+                            },
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 14,
+                                "location": "all"
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "white:0.08"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 16
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "Circle",
+                              "modifiers": [
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Custom",
+                                    "width": 32,
+                                    "heightType": "Custom",
+                                    "height": 32
+                                  }
+                                },
+                                {
+                                  "type": "Fill",
+                                  "properties": {
+                                    "color": "orange:0.90"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Earn 5% back with Uber One"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "regular"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Spacer"
+                            },
+                            {
+                              "type": "RoundedRectangle",
+                              "properties": {
+                                "cornerRadius": 6
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Custom",
+                                    "width": 28,
+                                    "heightType": "Custom",
+                                    "height": 28
+                                  }
+                                },
+                                {
+                                  "type": "Stroke",
+                                  "properties": {
+                                    "color": "white:0.60",
+                                    "lineWidth": 2
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "HStack",
+                          "properties": {
+                            "spacing": 12,
+                            "alignment": "center"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Default"
+                              }
+                            },
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 8,
+                                "location": "vertical"
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "RoundedRectangle",
+                              "properties": {
+                                "cornerRadius": 8
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Custom",
+                                    "width": 44,
+                                    "heightType": "Custom",
+                                    "height": 32
+                                  }
+                                },
+                                {
+                                  "type": "Fill",
+                                  "properties": {
+                                    "color": "white:0.95"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Apple Pay"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "title3",
+                                    "fontWeight": "semibold"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "Spacer"
+                            },
+                            {
+                              "type": "SF Symbol",
+                              "properties": {
+                                "symbolName": "chevron.right"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "semibold"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "white:0.72"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "HStack",
+                          "properties": {
+                            "spacing": 14,
+                            "alignment": "center"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Default"
+                              }
+                            },
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 6,
+                                "location": "top"
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Choose UberX"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Full",
+                                    "heightType": "Default"
+                                  }
+                                },
+                                {
+                                  "type": "Padding",
+                                  "properties": {
+                                    "amount": 18,
+                                    "location": "all"
+                                  }
+                                },
+                                {
+                                  "type": "Background Color",
+                                  "properties": {
+                                    "color": "white:0.82"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "black:1.0"
+                                  }
+                                },
+                                {
+                                  "type": "Corner Radius",
+                                  "properties": {
+                                    "radius": 18
+                                  }
+                                },
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "title2",
+                                    "fontWeight": "medium"
+                                  }
+                                },
+                                {
+                                  "type": "Text Alignment",
+                                  "properties": {
+                                    "alignment": "center"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "RoundedRectangle",
+                              "properties": {
+                                "cornerRadius": 14
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Frame",
+                                  "properties": {
+                                    "widthType": "Custom",
+                                    "width": 88,
+                                    "heightType": "Custom",
+                                    "height": 66
+                                  }
+                                },
+                                {
+                                  "type": "Fill",
+                                  "properties": {
+                                    "color": "white:0.08"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

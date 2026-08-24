@@ -314,6 +314,9 @@ private struct FastInspectorView: View {
         if hasSymbolProperty {
             sfSymbolSection
         }
+        if component.type == .map {
+            mapSection
+        }
         if component.type == .image {
             imageSection
         }
@@ -647,6 +650,102 @@ private struct FastInspectorView: View {
 
     private var scrollShowsIndicators: Bool {
         component.getBoolProperty(key: "showsIndicators", defaultValue: true)
+    }
+
+    private struct MapLocationPreset {
+        let name: String
+        let locationName: String
+        let latitude: Double
+        let longitude: Double
+        let latitudeDelta: Double
+        let longitudeDelta: Double
+    }
+
+    private let mapLocationPresets: [MapLocationPreset] = [
+        .init(name: "Apple Park", locationName: "Apple Park, Cupertino", latitude: 37.3346, longitude: -122.0090, latitudeDelta: 0.018, longitudeDelta: 0.018),
+        .init(name: "Cupertino", locationName: "Cupertino, California", latitude: 37.3229, longitude: -122.0322, latitudeDelta: 0.05, longitudeDelta: 0.05),
+        .init(name: "San Francisco", locationName: "San Francisco, California", latitude: 37.7749, longitude: -122.4194, latitudeDelta: 0.08, longitudeDelta: 0.08),
+        .init(name: "New York City", locationName: "New York, New York", latitude: 40.7128, longitude: -74.0060, latitudeDelta: 0.08, longitudeDelta: 0.08),
+        .init(name: "London", locationName: "London, United Kingdom", latitude: 51.5072, longitude: -0.1276, latitudeDelta: 0.08, longitudeDelta: 0.08),
+        .init(name: "Paris", locationName: "Paris, France", latitude: 48.8566, longitude: 2.3522, latitudeDelta: 0.08, longitudeDelta: 0.08),
+        .init(name: "Tokyo", locationName: "Tokyo, Japan", latitude: 35.6764, longitude: 139.6500, latitudeDelta: 0.08, longitudeDelta: 0.08)
+    ]
+
+    private var mapPresetValue: String {
+        let value = (component.getProperty(key: "mapPreset") as? String) ?? "Apple Park"
+        if mapLocationPresets.contains(where: { $0.name == value }) {
+            return value
+        }
+        return "Apple Park"
+    }
+
+    private var mapStyleValue: String {
+        let value = ((component.getProperty(key: "mapStyle") as? String) ?? "standard").lowercased()
+        switch value {
+        case "standard", "imagery", "hybrid":
+            return value
+        default:
+            return "standard"
+        }
+    }
+
+    private var mapShowsTraffic: Bool {
+        component.getBoolProperty(key: "showsTraffic", defaultValue: false)
+    }
+
+    private var mapSection: some View {
+        inspectorSection(
+            "Map",
+            plus: nil,
+            showActions: showComponentActions && component.type == .map
+        ) {
+            VStack(spacing: 10) {
+                compactMenuField(
+                    title: mapPresetValue,
+                    options: mapLocationPresets.map(\.name),
+                    helpText: "Location Preset"
+                ) { selected in
+                    applyMapPreset(named: selected)
+                }
+
+                compactMenuField(
+                    title: mapStyleValue.capitalized,
+                    options: ["Standard", "Imagery", "Hybrid"],
+                    helpText: "Map Style"
+                ) { selected in
+                    canvasManager.updateComponentProperty(
+                        for: component,
+                        key: "mapStyle",
+                        value: selected.lowercased()
+                    )
+                }
+
+                toggleField(
+                    title: "Shows Traffic",
+                    value: mapShowsTraffic,
+                    helpText: "Shows Traffic"
+                ) { enabled in
+                    canvasManager.updateComponentProperty(for: component, key: "showsTraffic", value: enabled)
+                }
+            }
+        }
+    }
+
+    private func applyMapPreset(named name: String) {
+        guard let preset = mapLocationPresets.first(where: { $0.name == name }) else { return }
+        canvasManager.updateComponentProperties(
+            for: component,
+            updates: [
+                (key: "mapPreset", value: preset.name),
+                (key: "locationName", value: preset.locationName),
+                (key: "latitude", value: preset.latitude),
+                (key: "longitude", value: preset.longitude),
+                (key: "latitudeDelta", value: preset.latitudeDelta),
+                (key: "longitudeDelta", value: preset.longitudeDelta)
+            ],
+            description: "Updated Map Location",
+            coalesceKey: "update_map_preset_\(component.id.uuidString)"
+        )
     }
 
     private var scrollViewSection: some View {
