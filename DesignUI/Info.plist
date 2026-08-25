@@ -36,8 +36,6 @@
 			</array>
 		</dict>
 	</array>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>DesignUI uses your location to preview map components with user location enabled.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

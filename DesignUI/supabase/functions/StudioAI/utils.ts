@@ -1,4 +1,4 @@
-import type { SurfaceStyle, Density } from "./types.ts";
+import type { SurfaceStyle, Density, RailVariant } from "./types.ts";
 
 const INSTRUCTIONAL_COPY_PATTERNS: RegExp[] = [
     /\ba horizontal rail of\b/i,
@@ -10,6 +10,17 @@ const INSTRUCTIONAL_COPY_PATTERNS: RegExp[] = [
     /\brail spec\b/i,
     /\bschema\/spec instructions?\b/i,
 ];
+
+export function detectRailVariantFromText(text: string): RailVariant | null {
+    const normalized = text.toLowerCase();
+    if (/\b(song|songs|track|tracks|artist|artists|now playing|playlist|playlists|music)\b/.test(normalized)) return "media_track";
+    if (/\bsquare\b.*\b(art|artwork|cover|thumbnail)\b|\b(art|artwork|cover|thumbnail)\b.*\bsquare\b/.test(normalized)) return "media_track";
+    if (/\b(poster|posters|album|albums|cover|covers|thumbnail|thumbnails)\b/.test(normalized)) return "poster";
+    if (/\b(circular|avatar|profile|people|creators?)\b/.test(normalized)) return "circular_people";
+    if (/\b(chip|chips|pill|pills|tags?)\b/.test(normalized)) return "chips";
+    if (/\b(landscape|wide|banner)\b/.test(normalized)) return "landscape";
+    return null;
+}
 
 export function sanitizeInstructionalDisplayText(text: string): string {
     const raw = text.trim();
@@ -26,6 +37,33 @@ export function sanitizeInstructionalDisplayText(text: string): string {
         return "Section";
     }
     return raw;
+}
+
+const INTERNAL_DIAGNOSTIC_PATTERNS: RegExp[] = [
+    /\bopenai\b/i,
+    /\b(?:request|generation) timed out\b/i,
+    /\btimed out after \d+ms\b/i,
+    /\bgeneration deadline exceeded\b/i,
+    /\bnetwork error\b/i,
+    /\bjson (?:decode|parse) error\b/i,
+    /\bresponse incomplete\b/i,
+    /\breturned empty content\b/i,
+    /\bmissing ['"]?component['"]? key\b/i,
+    /\bfailed after \d+ attempts?\b/i,
+    /\bsupabase\b/i,
+    /^undefined$/i,
+    /^null$/i,
+    /^\[object object\]$/i,
+];
+
+export function containsInternalDiagnostic(text: string): boolean {
+    const raw = text.trim();
+    return raw.length > 0 && INTERNAL_DIAGNOSTIC_PATTERNS.some((pattern) => pattern.test(raw));
+}
+
+export function sanitizeInternalDisplayText(text: string, fallback = "Content unavailable"): string {
+    const raw = text.trim();
+    return containsInternalDiagnostic(raw) ? fallback : raw;
 }
 
 export function cleanIntentLabel(text: string): string {

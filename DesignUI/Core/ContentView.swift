@@ -43,6 +43,10 @@ struct ContentView: View {
             }
         }
         .toast($toastManager.currentToast)
+        .task {
+            subscriptionManager.ensureLoaded()
+            designManager.refreshDesignFiles()
+        }
 #if os(iOS)
         .fullScreenCover(
             isPresented: Binding(

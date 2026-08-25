@@ -21,6 +21,8 @@ struct SettingsView: View {
     
     private let appStoreURL = URL(string: "https://apps.apple.com/us/app/dock-ui-swiftui-snippets/id6496860953")!
     private let stringCatalogTranslateURL = URL(string: "https://apps.apple.com/us/app/string-catalog-translate/id6761640833?mt=12")!
+    private let screenshotStudioURL = URL(string: "https://apps.apple.com/us/app/app-screenshot-studio-mockup/id6786118135?mt=12")!
+    private let metadataTranslatorURL = URL(string: "https://apps.apple.com/us/app/metadata-translator-aso/id6739471606")!
     private let websiteURL = URL(string: "https://dockui.com")!
     private let privacyURL = URL(string: "https://dockui.com/privacy")!
     private let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
@@ -44,29 +46,17 @@ struct SettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
             }
-            .navigationTitle("Settings")
 #if os(iOS)
+            .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
 #endif
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                        .fontWeight(.semibold)
-                }
-            }
         }
 #if os(macOS)
-        .frame(minWidth: 560, idealWidth: 640, minHeight: 620, idealHeight: 720)
+        .frame(width: 500, height: 750)
 #endif
-#if os(iOS)
-        .fullScreenCover(isPresented: $showPaywall) {
-            CustomPaywallView()
-        }
-#else
         .sheet(isPresented: $showPaywall) {
             CustomPaywallView()
         }
-#endif
         .task {
             await purchases.loadCustomerInfo()
         }
@@ -117,7 +107,28 @@ struct SettingsView: View {
 
     private var moreAppsSection: some View {
         section("More Apps") {
-            stringCatalogPromoRow
+            VStack(spacing: 0) {
+                appPromoRow(
+                    title: "String Catalog Translator",
+                    subtitle: "Translate your app strings",
+                    imageAssetName: "StringCatLogo",
+                    url: stringCatalogTranslateURL
+                )
+                promoRowDivider
+                appPromoRow(
+                    title: "App Screenshot Studio - Mockup",
+                    subtitle: "Create polished App Store screenshots",
+                    imageAssetName: "screenshotStudio",
+                    url: screenshotStudioURL
+                )
+                promoRowDivider
+                appPromoRow(
+                    title: "Metadata Translator: ASO",
+                    subtitle: "Localize App Store metadata",
+                    imageAssetName: "metadataTranslator",
+                    url: metadataTranslatorURL
+                )
+            }
         }
     }
 
@@ -221,22 +232,31 @@ struct SettingsView: View {
         Divider().padding(.leading, 36)
     }
 
-    private var stringCatalogPromoRow: some View {
+    private var promoRowDivider: some View {
+        Divider().padding(.leading, 62)
+    }
+
+    private func appPromoRow(
+        title: String,
+        subtitle: String,
+        imageAssetName: String,
+        url: URL
+    ) -> some View {
         Button {
-            openURL(stringCatalogTranslateURL)
+            openURL(url)
         } label: {
             HStack(spacing: 12) {
-                Image("StringCatLogo")
+                Image(imageAssetName)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 50, height: 50)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("String Catalog Translator")
+                    Text(title)
                         .font(.headline)
                         .foregroundColor(.primary)
-                    Text("Translate your app strings")
+                    Text(subtitle)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -253,6 +273,7 @@ struct SettingsView: View {
                             .fill(Color.blue)
                     )
             }
+            .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

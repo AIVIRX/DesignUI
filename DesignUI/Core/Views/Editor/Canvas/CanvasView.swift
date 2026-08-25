@@ -190,7 +190,7 @@ struct CanvasView: View {
             DragGesture()
                 .updating($dragOffset) { value, state, _ in
 #if os(iOS)
-                    let canPan = UIDevice.current.userInterfaceIdiom == .phone || !canvasManager.isOverlayPanelOpen
+                    let canPan = PlatformLayoutContext.canPanBehindOverlayPanels || !canvasManager.isOverlayPanelOpen
 #else
                     let canPan = !canvasManager.isOverlayPanelOpen
 #endif
@@ -199,7 +199,7 @@ struct CanvasView: View {
                 }
                 .onEnded { value in
 #if os(iOS)
-                    let canPan = UIDevice.current.userInterfaceIdiom == .phone || !canvasManager.isOverlayPanelOpen
+                    let canPan = PlatformLayoutContext.canPanBehindOverlayPanels || !canvasManager.isOverlayPanelOpen
 #else
                     let canPan = !canvasManager.isOverlayPanelOpen
 #endif
@@ -358,7 +358,7 @@ struct CanvasView: View {
                 #if os(iOS)
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 // On iPhone, minimize the sheet
-                if UIDevice.current.userInterfaceIdiom == .phone {
+                if PlatformLayoutContext.isPhone {
                     NotificationCenter.default.post(name: .minimizeSheet, object: nil)
                 }
                 #elseif os(macOS)

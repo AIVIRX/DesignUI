@@ -434,22 +434,19 @@ final class AIService: ObservableObject {
     @Published private(set) var lastRateLimitSeconds: Int? = nil
     @Published private(set) var lastCanvasSettings: CanvasSettings? = nil
     @Published private(set) var lastOperations: [AIEditOperation] = []
-    private var responseCache: [String: ResponsePayload] = [:]
+    private var lastGenerationID: String?
+    private var pendingOutcomeGenerationID: String?
+    private var outcomeTrackingStartedAt: Date?
+    private var firstOutcomeEditAt: Date?
+    private var lastCountedOutcomeEditAt: Date?
+    private var pendingOutcomeEditCount = 0
+    private var didReportOutcomeEdit = false
+    private var latestOutcomeScreen: GenerationScreenSnapshot?
+    private var keptOutcomeTask: Task<Void, Never>?
 
     private struct Payload: Codable {
         let prompt: String
         let context: [String: AnyCodable]
-    }
-
-    private struct CacheKeyEntry: Codable {
-        let key: String
-        let value: AnyCodable
-    }
-
-    private struct GenerationCacheKey: Codable {
-        let prompt: String
-        let generationMode: String
-        let context: [CacheKeyEntry]
     }
 
     private struct QuotaPayload: Codable {
@@ -465,11 +462,32 @@ final class AIService: ObservableObject {
         let canvasSettings: CanvasSettings?
         let quota: Quota?
         let error: String?
+        let generationID: String?
         
         enum CodingKeys: String, CodingKey {
             case components, component, ops, mode, quota, error
             case canvasSettings = "canvas_settings"
+            case generationID = "generation_id"
         }
+    }
+
+    private struct GenerationEventRequest: Encodable {
+        let generation_event: GenerationEvent
+    }
+
+    private struct GenerationEvent: Encodable {
+        let generation_id: String
+        let event_type: String
+        let final_screen: GenerationScreenSnapshot?
+        let edit_count: Int
+        let elapsed_ms: Int?
+        let time_to_first_edit_ms: Int?
+        let learning_consent: Bool
+    }
+
+    private struct GenerationScreenSnapshot: Encodable {
+        let components: [UIComponent]
+        let canvas_settings: CanvasSettings
     }
 
     private struct StreamResultPayload: Codable {
@@ -509,6 +527,8 @@ final class AIService: ObservableObject {
             throw AIServiceError.notAuthenticated
         }
 
+        markRegenerationStarted()
+
         let accessToken: String
         do {
             accessToken = try await fetchAccessToken(from: supabase)
@@ -523,13 +543,6 @@ final class AIService: ObservableObject {
 
         var requestContext = context
         requestContext["generation_mode"] = AnyCodable(generationMode.rawValue)
-
-        let cacheKey = try cacheKeyForRequest(prompt: prompt, context: requestContext, generationMode: generationMode)
-        if let cachedResponse = responseCache[cacheKey] {
-            print("AIService.generateComponents: cache hit mode=\(generationMode.rawValue)")
-            applyResponsePayload(cachedResponse)
-            return try components(from: cachedResponse)
-        }
 
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -566,7 +579,7 @@ final class AIService: ObservableObject {
             print("AIService.generateComponents: non-2xx status=\(httpResponse.statusCode) bodyBytes=\(data.count)")
             if let decoded = try? JSONDecoder().decode(ResponsePayload.self, from: data),
                let message = decoded.error {
-                throw AIServiceError.requestFailed(message)
+                throw AIServiceError.requestFailed(userFacingErrorMessage(message))
             }
             throw AIServiceError.requestFailed("AI failed (\(httpResponse.statusCode))")
         }
@@ -581,11 +594,21 @@ final class AIService: ObservableObject {
         }
         if let message = decoded.error {
             print("AIService.generateComponents: error message=\(message)")
-            throw AIServiceError.requestFailed(message)
+            throw AIServiceError.requestFailed(userFacingErrorMessage(message))
         }
         applyResponsePayload(decoded)
-        responseCache[cacheKey] = decoded
         return try components(from: decoded)
+    }
+
+    private func userFacingErrorMessage(_ message: String) -> String {
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lower = trimmed.lowercased()
+        let safeMessages = ["rate limit", "daily ai limit", "sign in", "session expired"]
+        if safeMessages.contains(where: lower.contains) {
+            return trimmed
+        }
+
+        return "AI couldn't complete that request. Please try again."
     }
 
     private func components(from payload: ResponsePayload) throws -> [UIComponent] {
@@ -616,17 +639,7 @@ final class AIService: ObservableObject {
             lastCanvasSettings = canvasSettings
         }
         lastOperations = decoded.ops ?? []
-    }
-
-    private func cacheKeyForRequest(prompt: String, context: [String: AnyCodable], generationMode: AIGenerationMode) throws -> String {
-        let entries = context
-            .compactMap { key, value -> CacheKeyEntry? in
-                return CacheKeyEntry(key: key, value: value)
-            }
-            .sorted { $0.key < $1.key }
-        let key = GenerationCacheKey(prompt: prompt, generationMode: generationMode.rawValue, context: entries)
-        let data = try JSONEncoder().encode(key)
-        return data.base64EncodedString()
+        lastGenerationID = decoded.generationID
     }
 
     @MainActor
@@ -642,6 +655,141 @@ final class AIService: ObservableObject {
         let current = lastOperations
         lastOperations = []
         return current
+    }
+
+    @MainActor
+    func markGenerationApplied(components: [UIComponent], canvasSettings: CanvasSettings) {
+        guard let generationID = lastGenerationID else { return }
+        lastGenerationID = nil
+        keptOutcomeTask?.cancel()
+        pendingOutcomeGenerationID = generationID
+        outcomeTrackingStartedAt = Date()
+        firstOutcomeEditAt = nil
+        lastCountedOutcomeEditAt = nil
+        pendingOutcomeEditCount = 0
+        didReportOutcomeEdit = false
+        latestOutcomeScreen = makeGenerationScreenSnapshot(components: components, canvasSettings: canvasSettings)
+        Task { await reportGenerationEvent(id: generationID, type: "applied") }
+        keptOutcomeTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(30))
+            guard !Task.isCancelled,
+                  let self,
+                  self.pendingOutcomeGenerationID == generationID else { return }
+            self.reportTrackedGenerationEvent(type: "kept", terminal: false)
+        }
+    }
+
+    @MainActor
+    func markCanvasEditedAfterGeneration(components: [UIComponent], canvasSettings: CanvasSettings) {
+        guard let generationID = pendingOutcomeGenerationID,
+              let startedAt = outcomeTrackingStartedAt,
+              Date().timeIntervalSince(startedAt) >= 1 else { return }
+        let now = Date()
+        if lastCountedOutcomeEditAt.map({ now.timeIntervalSince($0) >= 0.35 }) ?? true {
+            pendingOutcomeEditCount += 1
+            lastCountedOutcomeEditAt = now
+            latestOutcomeScreen = makeGenerationScreenSnapshot(components: components, canvasSettings: canvasSettings)
+        }
+        if firstOutcomeEditAt == nil { firstOutcomeEditAt = now }
+        guard !didReportOutcomeEdit else { return }
+        didReportOutcomeEdit = true
+        Task { await reportGenerationEvent(id: generationID, type: "edited") }
+    }
+
+    @MainActor
+    private func markRegenerationStarted() {
+        guard pendingOutcomeGenerationID != nil else { return }
+        reportTrackedGenerationEvent(type: "regenerated", terminal: true)
+    }
+
+    @MainActor
+    func markGenerationExported(components: [UIComponent], canvasSettings: CanvasSettings) {
+        guard pendingOutcomeGenerationID != nil else { return }
+        latestOutcomeScreen = makeGenerationScreenSnapshot(components: components, canvasSettings: canvasSettings)
+        reportTrackedGenerationEvent(type: "exported", terminal: true)
+    }
+
+    @MainActor
+    private func reportTrackedGenerationEvent(type: String, terminal: Bool) {
+        guard let generationID = pendingOutcomeGenerationID else { return }
+        let startedAt = outcomeTrackingStartedAt
+        let firstEditAt = firstOutcomeEditAt
+        let editCount = pendingOutcomeEditCount
+        let finalScreen = latestOutcomeScreen
+        let elapsedMs = startedAt.map { max(0, Int(Date().timeIntervalSince($0) * 1_000)) }
+        let firstEditMs = startedAt.flatMap { start in
+            firstEditAt.map { max(0, Int($0.timeIntervalSince(start) * 1_000)) }
+        }
+
+        if terminal {
+            resetOutcomeTracking()
+        }
+        Task {
+            await reportGenerationEvent(
+                id: generationID,
+                type: type,
+                finalScreen: finalScreen,
+                editCount: editCount,
+                elapsedMs: elapsedMs,
+                timeToFirstEditMs: firstEditMs
+            )
+        }
+    }
+
+    @MainActor
+    private func resetOutcomeTracking() {
+        keptOutcomeTask?.cancel()
+        keptOutcomeTask = nil
+        pendingOutcomeGenerationID = nil
+        outcomeTrackingStartedAt = nil
+        firstOutcomeEditAt = nil
+        lastCountedOutcomeEditAt = nil
+        pendingOutcomeEditCount = 0
+        didReportOutcomeEdit = false
+        latestOutcomeScreen = nil
+    }
+
+    @MainActor
+    private func makeGenerationScreenSnapshot(components: [UIComponent], canvasSettings: CanvasSettings) -> GenerationScreenSnapshot {
+        GenerationScreenSnapshot(components: components.map { $0.clone() }, canvas_settings: canvasSettings)
+    }
+
+    private func reportGenerationEvent(
+        id: String,
+        type: String,
+        finalScreen: GenerationScreenSnapshot? = nil,
+        editCount: Int = 0,
+        elapsedMs: Int? = nil,
+        timeToFirstEditMs: Int? = nil
+    ) async {
+        let supabase = SupabaseManager.shared.client
+        guard supabase.auth.currentUser != nil,
+              let accessToken = try? await fetchAccessToken(from: supabase) else { return }
+        let endpoint = SupabaseManager.shared.supabaseURL.appendingPathComponent("functions/v1/StudioAI")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 10
+        request.httpBody = try? JSONEncoder().encode(GenerationEventRequest(
+            generation_event: GenerationEvent(
+                generation_id: id,
+                event_type: type,
+                final_screen: finalScreen,
+                edit_count: editCount,
+                elapsed_ms: elapsedMs,
+                time_to_first_edit_ms: timeToFirstEditMs,
+                learning_consent: false
+            )
+        ))
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+                print("AIService.reportGenerationEvent failed status=\(httpResponse.statusCode) type=\(type)")
+            }
+        } catch {
+            print("AIService.reportGenerationEvent failed type=\(type) error=\(error.localizedDescription)")
+        }
     }
 
     @MainActor

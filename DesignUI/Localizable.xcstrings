@@ -7225,6 +7225,9 @@
         }
       }
     },
+    "Adapt automatically to the preview's light or dark appearance." : {
+
+    },
     "Add Background" : {
       "localizations" : {
         "ar" : {
@@ -25271,6 +25274,9 @@
         }
       }
     },
+    "Dynamic Colors" : {
+
+    },
     "Edit Profile" : {
       "localizations" : {
         "ar" : {
@@ -40693,7 +40699,7 @@
         }
       }
     },
-    "Opening workspace" : {
+    "Opening project" : {
 
     },
     "Options" : {

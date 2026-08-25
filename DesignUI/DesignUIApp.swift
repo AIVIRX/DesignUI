@@ -22,7 +22,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 @main
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    let client = SupabaseManager.shared.client
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var toastManager = ToastManager()
     @StateObject private var subscriptionManager = SubscriptionManager.shared

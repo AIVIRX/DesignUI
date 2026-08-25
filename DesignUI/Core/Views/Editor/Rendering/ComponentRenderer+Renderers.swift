@@ -473,7 +473,6 @@ extension ComponentRenderer {
         let showsCompass = component.getBoolProperty(key: "showsCompass", defaultValue: true)
         let showsScale = component.getBoolProperty(key: "showsScale", defaultValue: false)
         let showsPitchToggle = component.getBoolProperty(key: "showsPitchToggle", defaultValue: false)
-        let showsUserLocation = component.getBoolProperty(key: "showsUserLocation", defaultValue: false)
         let showsUserLocationButton = component.getBoolProperty(key: "showsUserLocationButton", defaultValue: false)
         let showsTraffic = component.getBoolProperty(key: "showsTraffic", defaultValue: false)
         let mapStyle = (component.getProperty(key: "mapStyle") as? String ?? "standard").lowercased()
@@ -481,6 +480,10 @@ extension ComponentRenderer {
             center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
             span: MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
         )
+        // `initialPosition` is read only when Map is created. Change only the map's
+        // identity when its saved camera changes so presets move the camera without
+        // fighting user pan/zoom gestures.
+        let mapCameraIdentity = "\(latitude)|\(longitude)|\(latitudeDelta)|\(longitudeDelta)|\(mapStyle)"
 
         if isScreenshotCapture {
             return AnyView(
@@ -510,11 +513,13 @@ extension ComponentRenderer {
                             MapUserLocationButton()
                         }
                     }
+                    .id(mapCameraIdentity)
             )
         }
 
         return AnyView(
-            Map(coordinateRegion: .constant(region), interactionModes: interactionModes, showsUserLocation: showsUserLocation)
+            Map(initialPosition: .region(region), interactionModes: interactionModes)
+                .id(mapCameraIdentity)
         )
     }
 
@@ -1192,19 +1197,148 @@ extension View {
 
         case .glassEffect:
             if isScreenshotCapture {
+                let hasExplicitTextColor = component.modifiers.contains { mod in
+                    mod.type == .fill || mod.type == .foregroundColor || mod.type == .tint
+                }
+                let screenshotBaseView: AnyView
+                if component.type == .text && !hasExplicitTextColor {
+                    let canvasPrimaryColor: Color = (colorScheme == .dark) ? .white : .black
+                    screenshotBaseView = AnyView(view.foregroundStyle(canvasPrimaryColor))
+                } else {
+                    screenshotBaseView = view
+                }
+
                 let shapeName = normalizedGlassShapeName(from: modifier)
                 let radius = modifier.getCGFloat(key: "cornerRadius", defaultValue: 10)
                 let tintString = (modifier.properties["tint"] as? String ?? "")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
-                return AnyView(
-                    screenshotGlassShapeFallback(
-                        baseView: view,
-                        shapeName: shapeName,
-                        radius: radius,
-                        colorScheme: colorScheme,
-                        tintString: tintString
+                let tintColor = tintString.isEmpty
+                    ? Color.white
+                    : ComponentProperty.colorStringToColor(tintString)
+                let screenshotMaterialOpacity = (colorScheme == .dark) ? 0.82 : 0.9
+                let screenshotGradientOpacity = (colorScheme == .dark) ? 0.34 : 0.42
+                // Keep the fallback glass edge-free; native Liquid Glass supplies its
+                // own optical edge without a drawn outline.
+                let screenshotStrokeWidth: CGFloat = 0
+                let screenshotShadowOpacity = (colorScheme == .dark) ? 0.28 : 0.18
+                let screenshotShadowRadius = max(radius, 14)
+
+                switch shapeName {
+                case "Circle":
+                    return AnyView(
+                        screenshotBaseView
+                            .glass(
+                                radius: max(radius, 999),
+                                color: tintColor,
+                                material: .regularMaterial,
+                                materialOpacity: screenshotMaterialOpacity,
+                                gradientOpacity: screenshotGradientOpacity,
+                                strokeWidth: screenshotStrokeWidth,
+                                shadowColor: .white,
+                                shadowOpacity: screenshotShadowOpacity,
+                                shadowRadius: screenshotShadowRadius,
+                                shadowX: 0,
+                                shadowY: 6
+                            )
+                            .clipShape(Circle())
+                            .contentShape(Circle())
                     )
-                )
+                case "Capsule":
+                    return AnyView(
+                        screenshotBaseView
+                            .glass(
+                                radius: max(radius, 999),
+                                color: tintColor,
+                                material: .regularMaterial,
+                                materialOpacity: screenshotMaterialOpacity,
+                                gradientOpacity: screenshotGradientOpacity,
+                                strokeWidth: screenshotStrokeWidth,
+                                shadowColor: .white,
+                                shadowOpacity: screenshotShadowOpacity,
+                                shadowRadius: screenshotShadowRadius,
+                                shadowX: 0,
+                                shadowY: 6
+                            )
+                            .clipShape(Capsule())
+                            .contentShape(Capsule())
+                    )
+                case "RoundedRectangle":
+                    return AnyView(
+                        screenshotBaseView
+                            .glass(
+                                radius: radius,
+                                color: tintColor,
+                                material: .regularMaterial,
+                                materialOpacity: screenshotMaterialOpacity,
+                                gradientOpacity: screenshotGradientOpacity,
+                                strokeWidth: screenshotStrokeWidth,
+                                shadowColor: .white,
+                                shadowOpacity: screenshotShadowOpacity,
+                                shadowRadius: screenshotShadowRadius,
+                                shadowX: 0,
+                                shadowY: 6
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: radius))
+                            .contentShape(RoundedRectangle(cornerRadius: radius))
+                    )
+                case "Ellipse":
+                    return AnyView(
+                        screenshotBaseView
+                            .glass(
+                                radius: max(radius, 999),
+                                color: tintColor,
+                                material: .regularMaterial,
+                                materialOpacity: screenshotMaterialOpacity,
+                                gradientOpacity: screenshotGradientOpacity,
+                                strokeWidth: screenshotStrokeWidth,
+                                shadowColor: .white,
+                                shadowOpacity: screenshotShadowOpacity,
+                                shadowRadius: screenshotShadowRadius,
+                                shadowX: 0,
+                                shadowY: 6
+                            )
+                            .clipShape(Ellipse())
+                            .contentShape(Ellipse())
+                    )
+                case "Rectangle":
+                    return AnyView(
+                        screenshotBaseView
+                            .glass(
+                                radius: 0,
+                                color: tintColor,
+                                material: .regularMaterial,
+                                materialOpacity: screenshotMaterialOpacity,
+                                gradientOpacity: screenshotGradientOpacity,
+                                strokeWidth: screenshotStrokeWidth,
+                                shadowColor: .white,
+                                shadowOpacity: screenshotShadowOpacity,
+                                shadowRadius: screenshotShadowRadius,
+                                shadowX: 0,
+                                shadowY: 6
+                            )
+                            .clipShape(Rectangle())
+                            .contentShape(Rectangle())
+                    )
+                default:
+                    return AnyView(
+                        screenshotBaseView
+                            .glass(
+                                radius: 10,
+                                color: tintColor,
+                                material: .regularMaterial,
+                                materialOpacity: screenshotMaterialOpacity,
+                                gradientOpacity: screenshotGradientOpacity,
+                                strokeWidth: screenshotStrokeWidth,
+                                shadowColor: .white,
+                                shadowOpacity: screenshotShadowOpacity,
+                                shadowRadius: screenshotShadowRadius,
+                                shadowX: 0,
+                                shadowY: 6
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .contentShape(RoundedRectangle(cornerRadius: 10))
+                    )
+                }
             }
 
             if #available(iOS 26.0, macOS 26.0, *) {
@@ -1272,14 +1406,9 @@ extension View {
                     rendered = AnyView(baseView.glassEffect(.regular.tint(tintColor).interactive(), in: shape))
                 }
             }
-            let borderOpacity = isDarkMode ? 0.28 : 0.18
-            let glowOpacity = isDarkMode ? 0.14 : 0.08
-
             return AnyView(
                 rendered
                     .contentShape(shape)
-                    .overlay(shape.stroke(.white.opacity(borderOpacity), lineWidth: 1))
-                    .overlay(shape.stroke(.white.opacity(glowOpacity), lineWidth: 3).blur(radius: 6))
                     .shadow(color: .black.opacity(isDarkMode ? 0.12 : 0.08), radius: 10, y: 2)
             )
         } else {
@@ -1287,175 +1416,6 @@ extension View {
         }
     }
 
-    private func screenshotGlassShapeFallback(
-        baseView: AnyView,
-        shapeName: String,
-        radius: CGFloat,
-        colorScheme: ColorScheme?,
-        tintString: String
-    ) -> some View {
-        let isDarkMode = colorScheme == .dark
-        let tintColor = tintString.isEmpty
-            ? (isDarkMode ? Color.white.opacity(0.16) : Color.white.opacity(0.34))
-            : ComponentProperty.colorStringToColor(tintString).opacity(isDarkMode ? 0.28 : 0.24)
-        let baseFillTop = isDarkMode ? Color.white.opacity(0.34) : Color.white.opacity(0.84)
-        let baseFillBottom = isDarkMode ? Color.white.opacity(0.18) : Color.white.opacity(0.56)
-        let centerWash = isDarkMode ? Color.white.opacity(0.12) : Color.white.opacity(0.30)
-        let innerGlow = isDarkMode ? Color.white.opacity(0.24) : Color.white.opacity(0.64)
-        let edgeStroke = isDarkMode ? Color.white.opacity(0.30) : Color.white.opacity(0.52)
-        let secondaryStroke = isDarkMode ? Color.white.opacity(0.12) : Color.white.opacity(0.24)
-        let shadowColor = isDarkMode ? Color.black.opacity(0.28) : Color.black.opacity(0.12)
-
-        switch shapeName {
-        case "Circle":
-            return AnyView(
-                baseView
-                    .background(
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [baseFillTop, baseFillBottom],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(Circle().fill(tintColor))
-                            .overlay(Circle().fill(centerWash))
-                            .overlay(
-                                Circle()
-                                    .fill(
-                                        RadialGradient(
-                                            colors: [innerGlow, .clear],
-                                            center: .topLeading,
-                                            startRadius: 2,
-                                            endRadius: 36
-                                        )
-                                    )
-                            )
-                    )
-                    .overlay(Circle().stroke(edgeStroke, lineWidth: 1))
-                    .overlay(Circle().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
-                    .shadow(color: shadowColor, radius: 14, y: 4)
-            )
-        case "Capsule":
-            return AnyView(
-                baseView
-                    .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [baseFillTop, baseFillBottom],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(Capsule().fill(tintColor))
-                            .overlay(Capsule().fill(centerWash))
-                            .overlay(
-                                Capsule()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [innerGlow, .clear],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                            )
-                    )
-                    .overlay(Capsule().stroke(edgeStroke, lineWidth: 1))
-                    .overlay(Capsule().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
-                    .shadow(color: shadowColor, radius: 14, y: 4)
-            )
-        case "RoundedRectangle":
-            return AnyView(
-                baseView
-                    .background(
-                        RoundedRectangle(cornerRadius: radius)
-                            .fill(
-                                LinearGradient(
-                                    colors: [baseFillTop, baseFillBottom],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(RoundedRectangle(cornerRadius: radius).fill(tintColor))
-                            .overlay(RoundedRectangle(cornerRadius: radius).fill(centerWash))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: radius)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [innerGlow, .clear],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                            )
-                    )
-                    .overlay(RoundedRectangle(cornerRadius: radius).stroke(edgeStroke, lineWidth: 1))
-                    .overlay(RoundedRectangle(cornerRadius: radius).stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
-                    .shadow(color: shadowColor, radius: 14, y: 4)
-            )
-        case "Ellipse":
-            return AnyView(
-                baseView
-                    .background(
-                        Ellipse()
-                            .fill(
-                                LinearGradient(
-                                    colors: [baseFillTop, baseFillBottom],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(Ellipse().fill(tintColor))
-                            .overlay(Ellipse().fill(centerWash))
-                            .overlay(
-                                Ellipse()
-                                    .fill(
-                                        RadialGradient(
-                                            colors: [innerGlow, .clear],
-                                            center: .topLeading,
-                                            startRadius: 2,
-                                            endRadius: 36
-                                        )
-                                    )
-                            )
-                    )
-                    .overlay(Ellipse().stroke(edgeStroke, lineWidth: 1))
-                    .overlay(Ellipse().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
-                    .shadow(color: shadowColor, radius: 14, y: 4)
-            )
-        default:
-            return AnyView(
-                baseView
-                    .background(
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [baseFillTop, baseFillBottom],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(Rectangle().fill(tintColor))
-                            .overlay(Rectangle().fill(centerWash))
-                            .overlay(
-                                Rectangle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [innerGlow, .clear],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                            )
-                    )
-                    .overlay(Rectangle().stroke(edgeStroke, lineWidth: 1))
-                    .overlay(Rectangle().stroke(secondaryStroke, lineWidth: 3).blur(radius: 8))
-                    .shadow(color: shadowColor, radius: 14, y: 4)
-            )
-        }
-    }
 
     private func applyFrameModifier(_ modifier: ComponentModifier, to view: AnyView, component: UIComponent, deviceSize: CGSize?) -> AnyView {
         let values = frameModifierValues(from: modifier)
@@ -2106,11 +2066,6 @@ private struct ScreenshotMapSnapshotView: View {
         return renderedImage
     }
 
-#if os(macOS)
-    typealias PlatformImage = NSImage
-#else
-    typealias PlatformImage = UIImage
-#endif
 }
 
 fileprivate func fontDesignFromString(_ design: String?) -> Font.Design {

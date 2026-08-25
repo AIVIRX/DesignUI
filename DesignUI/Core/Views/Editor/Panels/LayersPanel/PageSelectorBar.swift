@@ -216,15 +216,6 @@ struct PageTileView: View {
     }
     
     private func thumbnailImage(from data: Data) -> Image? {
-        #if os(macOS)
-        if let nsImage = NSImage(data: data) {
-            return Image(nsImage: nsImage)
-        }
-        #else
-        if let uiImage = UIImage(data: data) {
-            return Image(uiImage: uiImage)
-        }
-        #endif
-        return nil
+        swiftUIImage(from: data)
     }
 }

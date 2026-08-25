@@ -73,7 +73,7 @@ struct ImagePickerEditor: View {
             }
             else if !imageDataString.isEmpty,
                let imageData = Data(base64Encoded: imageDataString),
-               let image = createImage(from: imageData) {
+               let image = platformImage(from: imageData) {
                 styledImage(platformImageView(image))
             } else {
                 addPlaceholder
@@ -194,14 +194,4 @@ struct ImagePickerEditor: View {
             canvasManager.clearImageSelection(for: component, propertyKey: property.key)
         }
     }
-    
-    #if os(macOS)
-    private func createImage(from data: Data) -> NSImage? {
-        return NSImage(data: data)
-    }
-    #else
-    private func createImage(from data: Data) -> UIImage? {
-        return UIImage(data: data)
-    }
-    #endif
 }

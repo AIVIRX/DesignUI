@@ -1,10 +1,9 @@
 import { SCREEN_ARCHETYPES, SLOT_TYPES, VALID_SLOT_TYPES } from "./types.ts";
-import type { AnyComponent, CanvasSettings, DesignManifest, PromptDesignSpec, RailVariant, ScreenArchetype, ScreenContract, ScreenPlan, SemanticIntent, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens } from "./types.ts";
-import { ARCHETYPE_SLOT_TEMPLATES, CAPABILITY_MATRIX } from "./schema.ts";
-import { ARCHETYPE_MAX_TOKENS, ARCHETYPE_MODEL, MAX_GENERATION_SLOTS, SLOT_PLANNER_MAX_TOKENS, SLOT_PLANNER_MODEL, callOpenAI } from "./openai.ts";
-import { ARCHETYPE_RESPONSE_FORMAT, SCREEN_PLAN_RESPONSE_FORMAT } from "./structured-output.ts";
+import type { AnyComponent, CanvasSettings, DesignManifest, InteractionModel, PromptDesignSpec, RailVariant, ScreenArchetype, ScreenContract, ScreenIR, ScreenIRSection, ScreenIRSectionKind, ScreenPlan, SemanticDomain, SemanticIntent, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens, UICapability } from "./types.ts";
+import { ARCHETYPE_RESPONSE_FORMAT, ARCHETYPE_SLOT_TEMPLATES, CAPABILITY_MATRIX, SCREEN_IR_RESPONSE_FORMAT, SCREEN_PLAN_RESPONSE_FORMAT, SEMANTIC_INTENT_RESPONSE_FORMAT } from "./schema.ts";
+import { ARCHETYPE_MAX_TOKENS, ARCHETYPE_MODEL, MAX_GENERATION_SLOTS, SCREEN_IR_MAX_TOKENS, SEMANTIC_INTENT_MAX_TOKENS, SLOT_PLANNER_MAX_TOKENS, SLOT_PLANNER_MODEL, STANDARD_TOKENS_MODEL, callOpenAI } from "./openai.ts";
 import { buildDesignManifest, compilePromptDesignSpec, enforcePlanRequirements, formatPromptDesignSpec } from "./manifest.ts";
-import { isJsonParseError, isObject, parseJsonSafe } from "./utils.ts";
+import { isJsonParseError, isObject, parseJsonSafe, sanitizeInternalDisplayText } from "./utils.ts";
 import { postProcessComponents } from "./postprocess.ts";
 
 
@@ -395,9 +394,11 @@ export function parseScreenPlan(value: unknown, archetype: ScreenArchetype, them
         if (!isObject(item)) return null;
         const st = typeof item.slotType === "string" ? item.slotType : "";
         if (!VALID_SLOT_TYPES.has(st)) return null;
-        const position = typeof item.position === "string" && ["top", "body", "bottom", "overlay"].includes(item.position)
-            ? item.position as SlotPosition : inferSlotPosition(st as SlotType);
-        const intent = typeof item.intent === "string" ? item.intent : "";
+        const requestedPosition = typeof item.position === "string" && ["top", "body", "bottom", "overlay"].includes(item.position)
+            ? item.position as SlotPosition : undefined;
+        const position = normalizeSlotPosition(st as SlotType, requestedPosition);
+        const rawIntent = typeof item.intent === "string" ? item.intent : "";
+        const intent = sanitizeInternalDisplayText(rawIntent, `Show relevant ${theme.itemNoun} content`);
         const itemCount = typeof item.itemCount === "number" ? Math.max(2, Math.min(8, item.itemCount)) : undefined;
         const variant_hint = typeof item.variant_hint === "string" ? item.variant_hint : undefined;
 
@@ -428,6 +429,12 @@ export function inferSlotPosition(slotType: SlotType): SlotPosition {
     if (["nav_bar", "media_player", "action_bar"].includes(slotType)) return "bottom";
     if (["fab_button"].includes(slotType)) return "overlay";
     return "body";
+}
+
+export function normalizeSlotPosition(slotType: SlotType, requested?: SlotPosition): SlotPosition {
+    const canonical = inferSlotPosition(slotType);
+    if (slotType === "floating_card" && requested === "overlay") return "overlay";
+    return canonical;
 }
 
 export function normalizeIntentKey(input: string): string {
@@ -709,13 +716,30 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
         const settingsRows = refinedBody.find((s) => s.slotType === "settings_list") ?? {
             slotType: "settings_list" as SlotType,
             position: "body" as SlotPosition,
-            intent: "settings toggles for notifications dark mode and sound",
-            itemCount: 3,
-            variant_hint: "switch rows not chevrons",
+            intent: designSpec.content.wantsNotificationPreferences
+                ? "grouped notification preferences with appearance and notification controls"
+                : "settings toggles for notifications dark mode and sound",
+            itemCount: designSpec.content.wantsNotificationPreferences ? (designSpec.content.wantsDarkMode ? 5 : 4) : 3,
+            variant_hint: designSpec.content.wantsNotificationPreferences
+                ? "section headers with separate switch rows for push notifications email updates sounds badges and dark mode when requested"
+                : "switch rows not chevrons",
+        };
+        const normalizedSettingsRows: SlotPlan = {
+            ...settingsRows,
+            position: "body",
+            intent: designSpec.content.wantsNotificationPreferences
+                ? "grouped notification preferences with separate controls"
+                : settingsRows.intent,
+            itemCount: designSpec.content.wantsNotificationPreferences
+                ? (designSpec.content.wantsDarkMode ? 5 : 4)
+                : settingsRows.itemCount,
+            variant_hint: designSpec.content.wantsNotificationPreferences
+                ? "Appearance and Notifications section headers; distinct Switch rows for Push Notifications, Email Updates, Sounds, Badges, and Dark Mode when requested"
+                : settingsRows.variant_hint,
         };
         return {
             ...basePlan,
-            slots: [topHeader, settingsRows].slice(0, MAX_GENERATION_SLOTS),
+            slots: [topHeader, normalizedSettingsRows].slice(0, MAX_GENERATION_SLOTS),
         };
     }
 
@@ -1774,4 +1798,347 @@ export function buildContractScreen(contract: ScreenContract, theme: ThemeTokens
         ],
     };
     return { components: postProcessComponents([searchContractRoot]), canvas_settings: { statusBarVisible: true, statusBarTopSafeArea: true, canvasColorScheme: "dark" } };
+}
+
+
+// Semantic intent and screen IR are planning stages, kept beside the slot planner.
+const DOMAINS: SemanticDomain[] = [
+    "productivity", "social", "media", "commerce", "finance", "transport", "travel",
+    "health", "education", "utility", "lifestyle", "creative", "general",
+];
+const SEMANTIC_INTERACTIONS: InteractionModel[] = [
+    "dashboard", "list_first", "map_first", "form_flow", "feed", "comparison",
+    "detail", "media_browse", "search_results",
+];
+const CAPABILITIES: UICapability[] = [
+    "live_context_surface", "map_surface", "location_flow", "compare_options", "status_tracking",
+    "identity_header", "content_feed", "settings_controls", "media_playback", "data_summary",
+    "search_refinement", "commerce_listing", "timeline_flow",
+];
+const SEMANTIC_SLOT_TYPES: SlotType[] = [
+    "app_header", "hero_banner", "stat_group", "content_list", "content_grid",
+    "horizontal_rail", "action_bar", "nav_bar", "section_header", "media_player",
+    "profile_header", "form_section", "empty_state", "banner_alert", "segmented_tabs",
+    "timeline_list", "settings_list", "chart_section", "social_feed_slot", "gallery_grid",
+    "onboarding_step", "search_bar", "fab_button", "card_detail", "pricing_table",
+    "calendar_strip", "progress_section", "testimonial_rail", "feature_grid",
+    "comparison_table", "countdown_timer", "weather_widget", "map_preview",
+    "notification_list", "chat_bubble_list", "story_rail", "avatar_group",
+    "breadcrumb_nav", "split_view", "floating_card",
+];
+
+const SEMANTIC_INTENT_SYSTEM_PROMPT = `Extract a reusable semantic UI intent from the product prompt.
+Return only structured data.
+
+Focus on:
+- domain
+- dominant interaction model
+- concrete entities the screen must organize
+- reusable UI capabilities
+- which slot should anchor the screen
+- which slots would support the flow
+- which slots would distort the flow
+
+Think in product behavior, not just visual style or brand references.`;
+
+export async function extractSemanticIntent(prompt: string): Promise<SemanticIntent> {
+    const fallback = inferSemanticIntentFallback(prompt);
+    const response = await callOpenAI({
+        model: STANDARD_TOKENS_MODEL,
+        messages: [
+            { role: "system", content: SEMANTIC_INTENT_SYSTEM_PROMPT },
+            { role: "user", content: prompt },
+        ],
+        temperature: 0.1,
+        maxTokens: SEMANTIC_INTENT_MAX_TOKENS,
+        responseFormat: SEMANTIC_INTENT_RESPONSE_FORMAT,
+    });
+    if (!response.ok) return fallback;
+    const parsed = parseJsonSafe(response.content);
+    if (isJsonParseError(parsed) || !isObject(parsed.value)) return fallback;
+    return normalizeSemanticIntent(parsed.value as Record<string, unknown>, fallback);
+}
+
+function normalizeSemanticIntent(value: Record<string, unknown>, fallback: SemanticIntent): SemanticIntent {
+    const stringArray = (input: unknown): string[] =>
+        Array.isArray(input) ? input.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean) : [];
+
+    const domain = typeof value.domain === "string" && DOMAINS.includes(value.domain as SemanticDomain)
+        ? value.domain as SemanticDomain
+        : fallback.domain;
+    const interactionModel = typeof value.interactionModel === "string" && SEMANTIC_INTERACTIONS.includes(value.interactionModel as InteractionModel)
+        ? value.interactionModel as InteractionModel
+        : fallback.interactionModel;
+    const capabilities = stringArray(value.capabilities).filter((item): item is UICapability => CAPABILITIES.includes(item as UICapability));
+    const preferredSupportSlots = stringArray(value.preferredSupportSlots).filter((item): item is SlotType => SEMANTIC_SLOT_TYPES.includes(item as SlotType));
+    const avoidSlots = stringArray(value.avoidSlots).filter((item): item is SlotType => SEMANTIC_SLOT_TYPES.includes(item as SlotType));
+    const preferredFocalSlot = typeof value.preferredFocalSlot === "string" && SEMANTIC_SLOT_TYPES.includes(value.preferredFocalSlot as SlotType)
+        ? value.preferredFocalSlot as SlotType
+        : fallback.preferredFocalSlot;
+
+    return {
+        domain,
+        interactionModel,
+        primaryGoal: typeof value.primaryGoal === "string" && value.primaryGoal.trim().length > 0 ? value.primaryGoal.trim() : fallback.primaryGoal,
+        entities: (() => {
+            const entities = stringArray(value.entities).slice(0, 8);
+            return entities.length > 0 ? entities : fallback.entities;
+        })(),
+        capabilities: capabilities.length > 0 ? capabilities : fallback.capabilities,
+        preferredFocalSlot,
+        preferredSupportSlots: preferredSupportSlots.length > 0 ? preferredSupportSlots.slice(0, 4) : fallback.preferredSupportSlots,
+        avoidSlots: avoidSlots.length > 0 ? avoidSlots.slice(0, 5) : fallback.avoidSlots,
+    };
+}
+
+function inferSemanticIntentFallback(prompt: string): SemanticIntent {
+    const p = prompt.toLowerCase();
+    if (/\bmap\b|\bpickup\b|\bdestination\b|\broute\b|\beta\b|\bdriver\b|\bnearby\b/.test(p)) {
+        return {
+            domain: /\btrip\b|\btravel\b/.test(p) ? "travel" : "transport",
+            interactionModel: "map_first",
+            primaryGoal: "help the user understand location context and choose the best next option",
+            entities: ["pickup", "destination", "eta", "driver", "option"],
+            capabilities: ["map_surface", "location_flow", "compare_options", "status_tracking"],
+            preferredFocalSlot: "map_preview",
+            preferredSupportSlots: ["form_section", "content_list", "action_bar"],
+            avoidSlots: ["hero_banner", "stat_group"],
+        };
+    }
+    if (/\bsettings?\b|\bnotifications?\b|\bdark mode\b|\btoggle\b|\bswitch\b/.test(p)) {
+        return {
+            domain: "utility",
+            interactionModel: "list_first",
+            primaryGoal: "let the user inspect and change preferences quickly",
+            entities: ["setting", "toggle", "preference"],
+            capabilities: ["settings_controls", "identity_header"],
+            preferredFocalSlot: "settings_list",
+            preferredSupportSlots: ["app_header"],
+            avoidSlots: ["hero_banner", "stat_group"],
+        };
+    }
+    return {
+        domain: "general",
+        interactionModel: /\bsearch\b|\bresults?\b/.test(p) ? "search_results" : "dashboard",
+        primaryGoal: "show the most relevant information for the requested screen",
+        entities: [],
+        capabilities: /\bsearch\b|\bresults?\b/.test(p) ? ["search_refinement", "content_feed"] : ["data_summary", "content_feed"],
+        preferredFocalSlot: undefined,
+        preferredSupportSlots: ["content_list"],
+        avoidSlots: [],
+    };
+}
+
+const SCREEN_IR_SLOT_TYPES: SlotType[] = [
+    "app_header", "hero_banner", "stat_group", "content_list", "content_grid",
+    "horizontal_rail", "action_bar", "nav_bar", "section_header", "media_player",
+    "profile_header", "form_section", "empty_state", "banner_alert", "segmented_tabs",
+    "timeline_list", "settings_list", "chart_section", "social_feed_slot", "gallery_grid",
+    "onboarding_step", "search_bar", "fab_button", "card_detail", "pricing_table",
+    "calendar_strip", "progress_section", "testimonial_rail", "feature_grid",
+    "comparison_table", "countdown_timer", "weather_widget", "map_preview",
+    "notification_list", "chat_bubble_list", "story_rail", "avatar_group",
+    "breadcrumb_nav", "split_view", "floating_card",
+];
+const SECTION_KINDS: ScreenIRSectionKind[] = [
+    "header", "search", "hero", "map_surface", "input_group", "option_list",
+    "content_list", "content_grid", "rail", "chart", "progress", "settings_group",
+    "feed", "timeline", "profile_summary", "action_strip", "media_controls", "empty_state",
+];
+const SCREEN_IR_INTERACTIONS: InteractionModel[] = [
+    "dashboard", "list_first", "map_first", "form_flow", "feed", "comparison",
+    "detail", "media_browse", "search_results",
+];
+
+const SCREEN_IR_SYSTEM_PROMPT = `You are a senior product UI architect.
+Convert the prompt, semantic intent, and draft slot plan into a reusable screen intermediate representation.
+
+Rules:
+- Think in product flow and composition, not brand mimicry.
+- Choose sections that express the user's goal with as little filler as possible.
+- A map-first transport screen should become map_surface + input_group + option_list + action_strip, not hero/stats/list.
+- A settings screen should become header + settings_group, not hero/banner/stat sections.
+- Keep the IR reusable and implementation-oriented.`;
+
+export async function extractScreenIR(params: {
+    prompt: string;
+    theme: ThemeTokens;
+    plan: ScreenPlan;
+    semanticIntent: SemanticIntent;
+    designSpec?: PromptDesignSpec;
+}): Promise<ScreenIR> {
+    const fallback = buildFallbackScreenIR(params.plan, params.semanticIntent);
+    const response = await callOpenAI({
+        model: STANDARD_TOKENS_MODEL,
+        messages: [
+            { role: "system", content: SCREEN_IR_SYSTEM_PROMPT },
+            { role: "system", content: `SEMANTIC INTENT:\n${formatSemanticIntent(params.semanticIntent)}\n\nDRAFT SLOT PLAN:\n${JSON.stringify(params.plan.slots, null, 1)}\n\nTHEME:\nappName=${params.theme.appName} surface=${params.theme.surfaceStyle} tone=${params.theme.voiceTone} density=${params.theme.density}` },
+            ...(params.designSpec ? [{ role: "system", content: `DESIGN SPEC:\n${JSON.stringify(params.designSpec)}` }] : []),
+            { role: "user", content: params.prompt },
+        ],
+        temperature: 0.15,
+        maxTokens: SCREEN_IR_MAX_TOKENS,
+        responseFormat: SCREEN_IR_RESPONSE_FORMAT,
+    });
+    if (!response.ok) return fallback;
+    const parsed = parseJsonSafe(response.content);
+    if (isJsonParseError(parsed) || !isObject(parsed.value)) return fallback;
+    return normalizeScreenIR(parsed.value as Record<string, unknown>, fallback);
+}
+
+export function compileScreenIRToPlan(screenIR: ScreenIR, fallbackPlan: ScreenPlan): ScreenPlan {
+    const slots: SlotPlan[] = screenIR.sections.map((section) => ({
+        slotType: section.slotType,
+        position: normalizeSlotPosition(section.slotType, section.position),
+        intent: section.goal,
+        itemCount: section.itemCount,
+        variant_hint: buildVariantHint(section),
+    }));
+
+    const deduped: SlotPlan[] = [];
+    const seen = new Set<string>();
+    for (const slot of slots) {
+        const key = `${slot.position}|${slot.slotType}|${slot.intent}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(slot);
+    }
+
+    return {
+        ...fallbackPlan,
+        slots: deduped.length > 0 ? deduped : fallbackPlan.slots,
+    };
+}
+
+function buildFallbackScreenIR(plan: ScreenPlan, semanticIntent: SemanticIntent): ScreenIR {
+    return {
+        version: "screen_ir_v1",
+        layoutMode: semanticIntent.interactionModel,
+        primaryGoal: semanticIntent.primaryGoal,
+        sections: plan.slots.map((slot, index) => ({
+            kind: inferSectionKind(slot.slotType),
+            slotType: slot.slotType,
+            position: slot.position,
+            goal: slot.intent,
+            entities: semanticIntent.entities.slice(0, 4),
+            emphasis: index === 0 ? "high" : index <= 2 ? "medium" : "low",
+            itemCount: slot.itemCount,
+            variant: slot.variant_hint,
+        })),
+    };
+}
+
+function normalizeScreenIR(value: Record<string, unknown>, fallback: ScreenIR): ScreenIR {
+    const sections = Array.isArray(value.sections) ? value.sections : [];
+    const normalizedSections: ScreenIRSection[] = sections.map((item): ScreenIRSection | null => {
+        if (!isObject(item)) return null;
+        const kind = typeof item.kind === "string" && SECTION_KINDS.includes(item.kind as ScreenIRSectionKind)
+            ? item.kind as ScreenIRSectionKind
+            : null;
+        const slotType = typeof item.slotType === "string" && SCREEN_IR_SLOT_TYPES.includes(item.slotType as SlotType)
+            ? item.slotType as SlotType
+            : null;
+        const requestedPosition = typeof item.position === "string" && ["top", "body", "bottom", "overlay"].includes(item.position)
+            ? item.position as SlotPosition
+            : undefined;
+        const emphasis = typeof item.emphasis === "string" && ["low", "medium", "high"].includes(item.emphasis)
+            ? item.emphasis as "low" | "medium" | "high"
+            : "medium";
+        if (!kind || !slotType) return null;
+        const position = normalizeSlotPosition(slotType, requestedPosition);
+        return {
+            kind,
+            slotType,
+            position,
+            goal: typeof item.goal === "string" && item.goal.trim().length > 0 ? item.goal.trim() : fallback.primaryGoal,
+            entities: Array.isArray(item.entities) ? item.entities.filter((entry): entry is string => typeof entry === "string").slice(0, 8) : [],
+            emphasis,
+            itemCount: typeof item.itemCount === "number" ? item.itemCount : undefined,
+            variant: typeof item.variant === "string" ? item.variant : undefined,
+        };
+    }).filter((item): item is ScreenIRSection => item !== null);
+
+    return {
+        version: "screen_ir_v1",
+        layoutMode: typeof value.layoutMode === "string" && SCREEN_IR_INTERACTIONS.includes(value.layoutMode as InteractionModel)
+            ? value.layoutMode as InteractionModel
+            : fallback.layoutMode,
+        primaryGoal: typeof value.primaryGoal === "string" && value.primaryGoal.trim().length > 0 ? value.primaryGoal.trim() : fallback.primaryGoal,
+        sections: normalizedSections.length > 0 ? normalizedSections : fallback.sections,
+    };
+}
+
+function inferSectionKind(slotType: SlotType): ScreenIRSectionKind {
+    switch (slotType) {
+    case "app_header":
+    case "section_header":
+        return "header";
+    case "search_bar":
+        return "search";
+    case "hero_banner":
+    case "card_detail":
+        return "hero";
+    case "map_preview":
+        return "map_surface";
+    case "form_section":
+        return "input_group";
+    case "content_list":
+        return "option_list";
+    case "content_grid":
+    case "gallery_grid":
+    case "feature_grid":
+        return "content_grid";
+    case "horizontal_rail":
+    case "story_rail":
+    case "testimonial_rail":
+        return "rail";
+    case "chart_section":
+        return "chart";
+    case "progress_section":
+    case "stat_group":
+        return "progress";
+    case "settings_list":
+        return "settings_group";
+    case "social_feed_slot":
+    case "chat_bubble_list":
+    case "notification_list":
+        return "feed";
+    case "timeline_list":
+    case "calendar_strip":
+        return "timeline";
+    case "profile_header":
+        return "profile_summary";
+    case "action_bar":
+    case "nav_bar":
+        return "action_strip";
+    case "media_player":
+        return "media_controls";
+    case "empty_state":
+        return "empty_state";
+    default:
+        return "content_list";
+    }
+}
+
+function buildVariantHint(section: ScreenIRSection): string {
+    const parts = [
+        `${section.kind} section`,
+        section.variant ?? "",
+        section.entities.length > 0 ? `entities: ${section.entities.join(", ")}` : "",
+        section.emphasis === "high" ? "primary visual anchor" : section.emphasis === "medium" ? "supporting section with clear hierarchy" : "lightweight supporting section",
+    ].filter((part) => part.length > 0);
+    return parts.join(" | ");
+}
+
+function formatSemanticIntent(intent: SemanticIntent): string {
+    return [
+        `domain: ${intent.domain}`,
+        `interactionModel: ${intent.interactionModel}`,
+        `primaryGoal: ${intent.primaryGoal}`,
+        `entities: ${intent.entities.join(", ") || "none"}`,
+        `capabilities: ${intent.capabilities.join(", ") || "none"}`,
+        `preferredFocalSlot: ${intent.preferredFocalSlot ?? "none"}`,
+        `preferredSupportSlots: ${intent.preferredSupportSlots.join(", ") || "none"}`,
+        `avoidSlots: ${intent.avoidSlots.join(", ") || "none"}`,
+    ].join("\n");
 }

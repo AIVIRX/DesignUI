@@ -34,7 +34,6 @@ struct NewsDetailView: View {
             articleContent
         }
         .frame(maxWidth: .infinity)
-        .navigationTitle("")
     }
 
     private var articleContent: some View {

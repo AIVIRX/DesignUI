@@ -496,7 +496,7 @@ private struct SFSymbolPreviewCard<PreviewContent: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            ZStack(alignment: .topLeading) {
+            ZStack(alignment: .topTrailing) {
                 SFSymbolPreviewBackground()
 
                 playButton

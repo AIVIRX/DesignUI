@@ -16,12 +16,18 @@ class SubscriptionManager: ObservableObject {
     @Published var isLoading = false
     @Published var customerInfo: CustomerInfo?
     @Published var offerings: Offerings?
+    private var hasRequestedInitialStatus = false
     
-    private init() {
+    private init() {}
+
+    func ensureLoaded() {
+        guard !hasRequestedInitialStatus else { return }
+        hasRequestedInitialStatus = true
         checkSubscriptionStatus()
     }
     
     func checkSubscriptionStatus() {
+        hasRequestedInitialStatus = true
         isLoading = true
         
         Task {

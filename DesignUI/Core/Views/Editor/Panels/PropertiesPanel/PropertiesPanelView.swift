@@ -122,14 +122,12 @@ struct PropertiesPanelView: View {
     }
         
     private var propertiesTitle: String {
-#if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if PlatformLayoutContext.isPhone {
             return "Properties"
         }
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        if PlatformLayoutContext.isPad {
             return ""
         }
-#endif
         if let component = selectedComponent {
             return component.type.rawValue
         }
@@ -260,6 +258,7 @@ private struct FastInspectorView: View {
     @State private var shadowYInputs: [UUID: String] = [:]
     @State private var scrubStartValues: [String: Double] = [:]
     @State private var macFillPopoverModifierId: UUID?
+    @State private var isSyncingInspectorInputs = false
     @FocusState private var isTextInputFocused: Bool
     @FocusState private var focusedFillField: FillFieldFocus?
     @FocusState private var focusedBorderColorField: FillFieldFocus?
@@ -422,11 +421,7 @@ private struct FastInspectorView: View {
     }
 
     private var isPhone: Bool {
-#if os(iOS)
-        UIDevice.current.userInterfaceIdiom == .phone
-#else
-        false
-#endif
+        PlatformLayoutContext.isPhone
     }
 
     private var numericInputTitle: String {
@@ -501,7 +496,13 @@ private struct FastInspectorView: View {
     }
 
     private func syncInspectorInputs() {
-        enforceSingleFillModifiers()
+        guard !isSyncingInspectorInputs else { return }
+        isSyncingInspectorInputs = true
+        defer {
+            DispatchQueue.main.async {
+                isSyncingInspectorInputs = false
+            }
+        }
 
         if isCanvasSettingsSelection {
             return
@@ -958,7 +959,7 @@ private struct FastInspectorView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.secondary)
                 Spacer(minLength: 0)
-                Text("\(Int(chartPointCountValue.rounded()))")
+                Text(verbatim: "\(Int(chartPointCountValue.rounded()))")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.primary)
             }
@@ -1040,12 +1041,13 @@ private struct FastInspectorView: View {
 
             Spacer(minLength: 0)
 
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .frame(width: 64)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     updateProgressProperty(key: key, input: newValue, continuous: true)
                 }
                 .onSubmit {
@@ -1065,12 +1067,13 @@ private struct FastInspectorView: View {
 
             Spacer(minLength: 0)
 
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .frame(width: 64)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     updateSliderProperty(key: key, input: newValue, continuous: true)
                 }
                 .onSubmit {
@@ -1090,12 +1093,13 @@ private struct FastInspectorView: View {
 
             Spacer(minLength: 0)
 
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .frame(width: 64)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     updateGaugeProperty(key: key, input: newValue, continuous: true)
                 }
                 .onSubmit {
@@ -1159,6 +1163,7 @@ private struct FastInspectorView: View {
                     .padding(.vertical, 10)
                     .background(roundedFieldBackground)
                     .onChange(of: textFieldTextInput) { _, newValue in
+                        guard !isSyncingInspectorInputs else { return }
                         canvasManager.updateComponentPropertyContinuous(for: component, key: "text", value: newValue)
                     }
                     .onSubmit {
@@ -1174,6 +1179,7 @@ private struct FastInspectorView: View {
                     .padding(.vertical, 10)
                     .background(roundedFieldBackground)
                     .onChange(of: textFieldPlaceholderInput) { _, newValue in
+                        guard !isSyncingInspectorInputs else { return }
                         canvasManager.updateComponentPropertyContinuous(for: component, key: "placeholder", value: newValue)
                     }
                     .onSubmit {
@@ -1211,12 +1217,13 @@ private struct FastInspectorView: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
             Spacer(minLength: 0)
-            TextField("17", text: $textFontSizeInput)
+            TextField(text: $textFontSizeInput, prompt: Text(verbatim: "17")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 13, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .frame(width: 34)
                 .onChange(of: textFontSizeInput) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if isParsableNumberInput(newValue) {
                         applyTypingFontSize(newValue)
                     }
@@ -1817,7 +1824,7 @@ private struct FastInspectorView: View {
 
     private func fillHexEditor(for fill: ComponentModifier) -> some View {
         HStack(spacing: 6) {
-            Text("#")
+            Text(verbatim: "#")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
             TextField(
@@ -1880,7 +1887,7 @@ private struct FastInspectorView: View {
                 updateFillOpacity(fill, percent: percent, continuous: false)
                 fillOpacityInputs[fill.id] = String(Int(max(0, min(100, percent)).rounded()))
             }
-            Text("%")
+            Text(verbatim: "%")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
         }
@@ -1930,7 +1937,7 @@ private struct FastInspectorView: View {
 
     private func borderHexEditor(for border: ComponentModifier) -> some View {
         HStack(spacing: 6) {
-            Text("#")
+            Text(verbatim: "#")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
             TextField(
@@ -1998,7 +2005,7 @@ private struct FastInspectorView: View {
                 updateBorderOpacity(border, percent: percent, continuous: false)
                 borderOpacityInputs[border.id] = String(Int(max(0, min(100, percent)).rounded()))
             }
-            Text("%")
+            Text(verbatim: "%")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
         }
@@ -2697,7 +2704,7 @@ private struct FastInspectorView: View {
 
     private func shadowHexEditor(for effect: ComponentModifier) -> some View {
         HStack(spacing: 6) {
-            Text("#")
+            Text(verbatim: "#")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
             TextField(
@@ -2765,7 +2772,7 @@ private struct FastInspectorView: View {
                 updateShadowOpacity(effect, percent: percent, continuous: false)
                 shadowOpacityInputs[effect.id] = String(Int(max(0, min(100, percent)).rounded()))
             }
-            Text("%")
+            Text(verbatim: "%")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
         }
@@ -2786,7 +2793,7 @@ private struct FastInspectorView: View {
             Text(label)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
-            TextField("", text: text)
+            TextField(text: text) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.primary)
@@ -2916,7 +2923,7 @@ private struct FastInspectorView: View {
                         .foregroundColor(.primary)
                     Spacer(minLength: 0)
                     Button(action: onDirectInput) {
-                        Text("\(Int(clampedValue.rounded()))")
+                        Text(verbatim: "\(Int(clampedValue.rounded()))")
                             .font(.system(size: compact ? 15 : 16, weight: .semibold))
                             .foregroundColor(.primary)
                             .padding(.horizontal, compact ? 8 : 10)
@@ -3063,12 +3070,13 @@ private struct FastInspectorView: View {
                 onCommitPercent(clamped)
             }
 
-            TextField("", text: text)
+            TextField(text: text) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.trailing)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if let parsed = parsePercentInput(newValue) {
                         onCommitPercent(parsed)
                     }
@@ -3276,11 +3284,12 @@ private struct FastInspectorView: View {
             Spacer(minLength: 0)
 
             if currentType == "Custom" {
-                TextField("0", text: text)
+                TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                     .textFieldStyle(.plain)
                     .font(.system(size: 14, weight: .semibold))
                     .multilineTextAlignment(.trailing)
                     .onChange(of: text.wrappedValue) { _, newValue in
+                        guard !isSyncingInspectorInputs else { return }
                         if isParsableNumberInput(newValue) {
                             updateFrameDimension(key: axis == "width" ? "width" : "height", value: newValue)
                         }
@@ -3594,7 +3603,7 @@ private struct FastInspectorView: View {
                 .trim(from: 0, to: normalized)
                 .stroke(Color.blue, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-            Text("A")
+            Text(verbatim: "A")
                 .font(.system(size: 10, weight: .bold))
                 .foregroundColor(.primary)
         }
@@ -3728,11 +3737,12 @@ private struct FastInspectorView: View {
             }
             .frame(width: 16)
 
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if isParsableNumberInput(newValue) {
                         onCommit(newValue)
                     }
@@ -3760,11 +3770,12 @@ private struct FastInspectorView: View {
                 .foregroundColor(.secondary)
                 .frame(width: 14)
 
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if isParsableNumberInput(newValue) {
                         onCommit(newValue)
                     }
@@ -3782,11 +3793,12 @@ private struct FastInspectorView: View {
 
     private func pxInputField(text: Binding<String>, onCommit: @escaping (String) -> Void) -> some View {
         HStack(spacing: 8) {
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if isParsableNumberInput(newValue) {
                         onCommit(newValue)
                     }
@@ -3823,11 +3835,12 @@ private struct FastInspectorView: View {
                 onCommit(text.wrappedValue)
             }
 
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if isParsableNumberInput(newValue) {
                         onCommit(newValue)
                     }
@@ -3863,11 +3876,12 @@ private struct FastInspectorView: View {
                 onCommit(text.wrappedValue)
             }
 
-            TextField("0", text: text)
+            TextField(text: text, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .onChange(of: text.wrappedValue) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if isParsableNumberInput(newValue) {
                         onCommit(newValue)
                     }
@@ -4028,12 +4042,13 @@ private struct FastInspectorView: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
             Spacer(minLength: 0)
-            TextField("0", text: $stackSpacingInput)
+            TextField(text: $stackSpacingInput, prompt: Text(verbatim: "0")) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.trailing)
                 .frame(width: 40)
                 .onChange(of: stackSpacingInput) { _, newValue in
+                    guard !isSyncingInspectorInputs else { return }
                     if isParsableNumberInput(newValue) {
                         setStackSpacing(newValue)
                     }

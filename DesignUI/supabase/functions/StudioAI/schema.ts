@@ -1,3 +1,4 @@
+import { SCREEN_ARCHETYPES, SLOT_TYPES } from "./types.ts";
 import type { ScreenArchetype, SlotType, SlotPosition } from "./types.ts";
 
 export const SCHEMA_RULES = `
@@ -571,3 +572,507 @@ Frame:{widthType:"Custom"|"Default"|"Full",heightType:"Custom"|"Default"|"Full",
 Padding:{amount:num,location:"all"|"horizontal"|"vertical"}
 Colors: "colorname:opacity" e.g. "blue:1.0" "gray:0.12"
 RULES: Shapes use "Fill" not "Background Color". Corner Radius present → use "Stroke" not "Border". Button with bg-colored label → buttonStyle:"plain". SF Symbol names must be real. For circular progress/rings, prefer Gauge with gaugeType:"circular". SPACING SCALE: use only 4, 8, 12, 16, 24, 32 for VStack/HStack spacing and Padding amounts unless a special layout truly requires 0. Avoid random values like 5, 7, 10, 14, 18, 20, or 22.`;
+
+
+// Strict component vocabulary and OpenAI Structured Output formats.
+type JsonSchema = Record<string, unknown>;
+
+const SPACING_SCALE = [0, 4, 8, 12, 16, 24, 32];
+const ALIGNMENTS = ["leading", "center", "trailing"];
+const UNIT_POINTS = ["topLeading", "top", "topTrailing", "leading", "center", "trailing", "bottomLeading", "bottom", "bottomTrailing"];
+
+function strictObject(properties: Record<string, JsonSchema>): JsonSchema {
+    return {
+        type: "object",
+        additionalProperties: false,
+        properties,
+        required: Object.keys(properties),
+    };
+}
+
+function stringEnum(values: string[]): JsonSchema {
+    return { type: "string", enum: values };
+}
+
+function nullableString(values?: string[]): JsonSchema {
+    return values
+        ? { type: ["string", "null"], enum: [...values, null] }
+        : { type: ["string", "null"] };
+}
+
+function nullableNumber(): JsonSchema {
+    return { type: ["number", "null"] };
+}
+
+const componentProperties: Record<string, JsonSchema> = {
+    Text: strictObject({ text: { type: "string" } }),
+    Image: strictObject({
+        imageName: { type: "string" },
+        resizable: { type: "boolean" },
+        aspectRatio: stringEnum(["fit", "fill", "none"]),
+    }),
+    "SF Symbol": strictObject({ symbolName: { type: "string" } }),
+    Stack: strictObject({
+        stackType: stringEnum(["vertical", "horizontal", "z"]),
+        alignment: stringEnum([...UNIT_POINTS, "firstTextBaseline", "lastTextBaseline"]),
+        spacing: { type: "number", enum: SPACING_SCALE },
+    }),
+    VStack: strictObject({
+        alignment: stringEnum(ALIGNMENTS),
+        spacing: { type: "number", enum: SPACING_SCALE },
+    }),
+    HStack: strictObject({
+        alignment: stringEnum(["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"]),
+        spacing: { type: "number", enum: SPACING_SCALE },
+    }),
+    ZStack: strictObject({ alignment: stringEnum(UNIT_POINTS) }),
+    ScrollView: strictObject({
+        axis: stringEnum(["vertical", "horizontal"]),
+        showsIndicators: { type: "boolean" },
+    }),
+    Button: strictObject({ buttonStyle: stringEnum(["plain", "bordered", "borderedProminent", "borderless"]) }),
+    Shape: strictObject({
+        shapeType: stringEnum(["Rectangle", "Circle", "Rounded Rectangle", "Capsule", "Ellipse"]),
+        cornerRadius: { type: "number" },
+    }),
+    RoundedRectangle: strictObject({ cornerRadius: { type: "number" } }),
+    "Linear Gradient": strictObject({
+        colors: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+        startPoint: stringEnum(UNIT_POINTS),
+        endPoint: stringEnum(UNIT_POINTS),
+    }),
+    "Text Field": strictObject({ text: { type: "string" }, placeholder: { type: "string" } }),
+    Switch: strictObject({ isOn: { type: "boolean" } }),
+    Slider: strictObject({ value: { type: "number" }, min: { type: "number" }, max: { type: "number" } }),
+    "Progress View": strictObject({ value: { type: "number" }, total: { type: "number" }, color: nullableString() }),
+    Gauge: strictObject({
+        value: { type: "number" },
+        min: { type: "number" },
+        max: { type: "number" },
+        gaugeType: stringEnum(["linear", "circular", "circular range"]),
+        showValue: { type: "boolean" },
+        color: nullableString(),
+    }),
+    Chart: strictObject({
+        chartStyle: stringEnum(["Line + Area", "Line", "Area", "Bar"]),
+        dataPreset: stringEnum(["Increasing", "Decreasing", "Stable", "Volatile"]),
+        pointCount: { type: "number" },
+        showXAxis: { type: "boolean" },
+        showYAxis: { type: "boolean" },
+    }),
+    "Status Bar": strictObject({ showStatusBar: { type: "boolean" }, topSafeArea: { type: "boolean" } }),
+    Map: strictObject({
+        mapPreset: nullableString(["Apple Park", "Cupertino", "San Francisco", "New York City", "London", "Paris", "Tokyo"]),
+        latitude: { type: "number" },
+        longitude: { type: "number" },
+        latitudeDelta: { type: "number" },
+        longitudeDelta: { type: "number" },
+        mapStyle: stringEnum(["standard", "imagery", "hybrid"]),
+        interactionModes: stringEnum(["all", "none", "pan", "zoom", "rotate", "pitch", "pan+zoom", "pan+zoom+rotate", "pan+zoom+rotate+pitch"]),
+        showsCompass: { type: "boolean" },
+        showsScale: { type: "boolean" },
+        showsPitchToggle: { type: "boolean" },
+        showsUserLocation: { type: "boolean", enum: [false] },
+        showsUserLocationButton: { type: "boolean", enum: [false] },
+        showsTraffic: { type: "boolean" },
+        locationName: { type: "string" },
+        markers: { type: "string" },
+    }),
+};
+
+for (const type of ["Spacer", "Divider", "Rectangle", "Circle", "Capsule", "Ellipse"] as const) {
+    componentProperties[type] = strictObject({});
+}
+
+const modifierProperties: Record<string, JsonSchema> = {
+    Frame: strictObject({
+        widthType: stringEnum(["Custom", "Default", "Full"]),
+        heightType: stringEnum(["Custom", "Default", "Full"]),
+        width: nullableNumber(),
+        height: nullableNumber(),
+    }),
+    Padding: strictObject({
+        amount: { type: "number", enum: SPACING_SCALE },
+        location: stringEnum(["all", "horizontal", "vertical", "top", "bottom", "leading", "trailing"]),
+    }),
+    "Background Color": strictObject({ color: { type: "string" } }),
+    "Foreground Color": strictObject({ color: { type: "string" } }),
+    Fill: strictObject({ color: { type: "string" } }),
+    Tint: strictObject({ color: { type: "string" } }),
+    Font: strictObject({
+        fontSize: { type: "string" },
+        fontWeight: stringEnum(["black", "heavy", "bold", "semibold", "medium", "regular", "light", "thin", "ultraLight"]),
+        fontDesign: nullableString(["default", "serif", "rounded", "monospaced"]),
+    }),
+    "Corner Radius": strictObject({ radius: { type: "number" } }),
+    Shadow: strictObject({
+        radius: { type: "number" },
+        x: { type: "number" },
+        y: { type: "number" },
+        color: { type: "string" },
+        opacity: { type: "number" },
+    }),
+    Opacity: strictObject({ opacity: { type: "number" } }),
+    Border: strictObject({ color: { type: "string" }, lineWidth: { type: "number" } }),
+    Stroke: strictObject({ color: { type: "string" }, lineWidth: { type: "number" } }),
+    Blur: strictObject({ radius: { type: "number" } }),
+    Rotation: strictObject({ angle: { type: "number" } }),
+    Offset: strictObject({ x: { type: "number" }, y: { type: "number" } }),
+    "Clip Shape": strictObject({ shape: stringEnum(["Rectangle", "RoundedRectangle", "Circle", "Capsule", "Ellipse"]) }),
+    "Text Alignment": strictObject({ alignment: stringEnum(ALIGNMENTS) }),
+    "Glass Effect": strictObject({
+        shape: stringEnum(["Rectangle", "RoundedRectangle", "Circle", "Capsule", "Ellipse"]),
+        cornerRadius: nullableNumber(),
+        tint: nullableString(),
+    }),
+    Background: strictObject({ alignment: nullableString(UNIT_POINTS), opacity: nullableNumber() }),
+    Overlay: strictObject({ alignment: nullableString(UNIT_POINTS), opacity: nullableNumber() }),
+    Mask: strictObject({ alignment: nullableString(UNIT_POINTS), opacity: nullableNumber() }),
+};
+
+function componentVariant(type: string, properties: JsonSchema): JsonSchema {
+    const fields: Record<string, JsonSchema> = {
+        type: { type: "string", enum: [type] },
+        properties,
+        modifiers: { type: "array", items: { $ref: "#/$defs/modifier" } },
+    };
+    if (["Stack", "VStack", "HStack", "ZStack", "ScrollView", "Button"].includes(type)) {
+        fields.children = { type: "array", items: { $ref: "#/$defs/component" } };
+    }
+    return strictObject(fields);
+}
+
+function modifierVariant(type: string, properties: JsonSchema): JsonSchema {
+    const fields: Record<string, JsonSchema> = {
+        type: { type: "string", enum: [type] },
+        properties,
+    };
+    if (["Background", "Overlay", "Mask"].includes(type)) {
+        fields.children = { type: "array", items: { $ref: "#/$defs/component" } };
+    }
+    return strictObject(fields);
+}
+
+export const UI_COMPONENT_SCHEMA_DEFS: Record<string, JsonSchema> = {
+    component: {
+        anyOf: Object.entries(componentProperties).map(([type, properties]) => componentVariant(type, properties)),
+    },
+    modifier: {
+        anyOf: Object.entries(modifierProperties).map(([type, properties]) => modifierVariant(type, properties)),
+    },
+};
+
+export const UI_COMPONENT_SCHEMA_REF: JsonSchema = { $ref: "#/$defs/component" };
+
+export const UI_COMPONENT_SCHEMA_TYPES = Object.keys(componentProperties);
+export const UI_MODIFIER_SCHEMA_TYPES = Object.keys(modifierProperties);
+
+export type JsonSchemaFormat = {
+    type: "json_schema";
+    name: string;
+    description?: string;
+    strict?: boolean;
+    schema: Record<string, unknown>;
+};
+
+export function makeStrictSchemaFormat(
+    name: string,
+    schema: Record<string, unknown>,
+    description?: string,
+): JsonSchemaFormat {
+    return {
+        type: "json_schema",
+        name,
+        description,
+        strict: true,
+        schema,
+    };
+}
+
+export const ARCHETYPE_RESPONSE_FORMAT = makeStrictSchemaFormat(
+    "screen_archetype_v1",
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            archetype: {
+                type: "string",
+                enum: [...SCREEN_ARCHETYPES],
+            },
+        },
+        required: ["archetype"],
+    },
+    "Classify the prompt into exactly one supported screen archetype.",
+);
+
+export const THEME_RESPONSE_FORMAT = makeStrictSchemaFormat(
+    "theme_tokens_v1",
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            accentColor: { type: "string" },
+            secondaryColor: { type: "string" },
+            surfaceStyle: { type: "string", enum: ["minimal", "editorial", "utility", "immersive", "calm"] },
+            density: { type: "string", enum: ["compact", "regular", "airy"] },
+            fontDesign: { type: "string", enum: ["default", "serif", "rounded", "monospaced"] },
+            cornerRadiusScale: { type: "string", enum: ["sharp", "medium", "pill"] },
+            usesGradient: { type: "boolean" },
+            appName: { type: "string" },
+            voiceTone: { type: "string", enum: ["playful", "calm", "professional", "urgent"] },
+            mascotSymbol: { type: "string" },
+            itemNoun: { type: "string" },
+            ctaVerb: { type: "string" },
+            primaryMetricLabel: { type: "string" },
+            primaryMetricUnit: { type: "string" },
+            sampleItems: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 4,
+                maxItems: 4,
+            },
+            sampleMetrics: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 4,
+                maxItems: 4,
+            },
+            sampleRailItems: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 5,
+                maxItems: 5,
+            },
+            ctaText: { type: "string" },
+            domainTags: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 2,
+                maxItems: 4,
+            },
+            sharedFacts: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                    greeting: { type: "string" },
+                    userName: { type: "string" },
+                    primaryMetricValue: { type: "string" },
+                    secondaryMetricValue: { type: "string" },
+                    streakValue: { type: "string" },
+                    progressPercent: { type: "number" },
+                    todayDate: { type: "string" },
+                },
+                required: [
+                    "greeting",
+                    "userName",
+                    "primaryMetricValue",
+                    "secondaryMetricValue",
+                    "streakValue",
+                    "progressPercent",
+                    "todayDate",
+                ],
+            },
+        },
+        required: [
+            "accentColor",
+            "secondaryColor",
+            "surfaceStyle",
+            "density",
+            "fontDesign",
+            "cornerRadiusScale",
+            "usesGradient",
+            "appName",
+            "voiceTone",
+            "mascotSymbol",
+            "itemNoun",
+            "ctaVerb",
+            "primaryMetricLabel",
+            "primaryMetricUnit",
+            "sampleItems",
+            "sampleMetrics",
+            "sampleRailItems",
+            "ctaText",
+            "domainTags",
+            "sharedFacts",
+        ],
+    },
+    "Extract a complete set of design theme tokens for a mobile UI screen.",
+);
+
+export const SCREEN_PLAN_RESPONSE_FORMAT = makeStrictSchemaFormat(
+    "screen_plan_v1",
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            slots: {
+                type: "array",
+                minItems: 2,
+                maxItems: 7,
+                items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                        slotType: {
+                            type: "string",
+                            enum: [...SLOT_TYPES],
+                        },
+                        position: {
+                            type: "string",
+                            enum: ["top", "body", "bottom", "overlay"],
+                        },
+                        intent: { type: "string" },
+                        itemCount: { type: ["number", "null"] },
+                        variant_hint: { type: ["string", "null"] },
+                    },
+                    required: ["slotType", "position", "intent", "itemCount", "variant_hint"],
+                },
+            },
+            canvas_settings: {
+                anyOf: [
+                    {
+                        type: "object",
+                        additionalProperties: false,
+                        properties: {
+                            statusBarVisible: { type: "boolean" },
+                            statusBarTopSafeArea: { type: "boolean" },
+                            canvasColorScheme: {
+                                type: ["string", "null"],
+                                enum: ["light", "dark", null],
+                            },
+                        },
+                        required: ["statusBarVisible", "statusBarTopSafeArea", "canvasColorScheme"],
+                    },
+                    { type: "null" },
+                ],
+            },
+        },
+        required: ["slots", "canvas_settings"],
+    },
+    "Return an ordered, production-ready screen plan composed of valid UI slots.",
+);
+
+export const SLOT_COMPONENT_RESPONSE_FORMAT = makeStrictSchemaFormat(
+    "slot_component_v2",
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            component: UI_COMPONENT_SCHEMA_REF,
+        },
+        required: ["component"],
+        $defs: UI_COMPONENT_SCHEMA_DEFS,
+    },
+    "Return exactly one UI component tree for the requested slot.",
+);
+
+export const SEMANTIC_INTENT_RESPONSE_FORMAT = makeStrictSchemaFormat(
+    "semantic_intent_v1",
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            domain: {
+                type: "string",
+                enum: ["productivity", "social", "media", "commerce", "finance", "transport", "travel", "health", "education", "utility", "lifestyle", "creative", "general"],
+            },
+            interactionModel: {
+                type: "string",
+                enum: ["dashboard", "list_first", "map_first", "form_flow", "feed", "comparison", "detail", "media_browse", "search_results"],
+            },
+            primaryGoal: { type: "string" },
+            entities: {
+                type: "array",
+                items: { type: "string" },
+                maxItems: 8,
+            },
+            capabilities: {
+                type: "array",
+                items: {
+                    type: "string",
+                    enum: ["live_context_surface", "map_surface", "location_flow", "compare_options", "status_tracking", "identity_header", "content_feed", "settings_controls", "media_playback", "data_summary", "search_refinement", "commerce_listing", "timeline_flow"],
+                },
+                maxItems: 8,
+            },
+            preferredFocalSlot: {
+                type: ["string", "null"],
+                enum: [...SLOT_TYPES, null],
+            },
+            preferredSupportSlots: {
+                type: "array",
+                items: {
+                    type: "string",
+                    enum: [...SLOT_TYPES],
+                },
+                maxItems: 4,
+            },
+            avoidSlots: {
+                type: "array",
+                items: {
+                    type: "string",
+                    enum: [...SLOT_TYPES],
+                },
+                maxItems: 5,
+            },
+        },
+        required: ["domain", "interactionModel", "primaryGoal", "entities", "capabilities", "preferredFocalSlot", "preferredSupportSlots", "avoidSlots"],
+    },
+    "Return a semantic UI intent contract for the prompt.",
+);
+
+export const SCREEN_IR_RESPONSE_FORMAT = makeStrictSchemaFormat(
+    "screen_ir_v1",
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            version: {
+                type: "string",
+                enum: ["screen_ir_v1"],
+            },
+            layoutMode: {
+                type: "string",
+                enum: ["dashboard", "list_first", "map_first", "form_flow", "feed", "comparison", "detail", "media_browse", "search_results"],
+            },
+            primaryGoal: { type: "string" },
+            sections: {
+                type: "array",
+                minItems: 2,
+                maxItems: 8,
+                items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                        kind: {
+                            type: "string",
+                            enum: ["header", "search", "hero", "map_surface", "input_group", "option_list", "content_list", "content_grid", "rail", "chart", "progress", "settings_group", "feed", "timeline", "profile_summary", "action_strip", "media_controls", "empty_state"],
+                        },
+                        slotType: {
+                            type: "string",
+                            enum: [...SLOT_TYPES],
+                        },
+                        position: {
+                            type: "string",
+                            enum: ["top", "body", "bottom", "overlay"],
+                        },
+                        goal: { type: "string" },
+                        entities: {
+                            type: "array",
+                            items: { type: "string" },
+                            maxItems: 8,
+                        },
+                        emphasis: {
+                            type: "string",
+                            enum: ["low", "medium", "high"],
+                        },
+                        itemCount: { type: ["number", "null"] },
+                        variant: { type: ["string", "null"] },
+                    },
+                    required: ["kind", "slotType", "position", "goal", "entities", "emphasis", "itemCount", "variant"],
+                },
+            },
+        },
+        required: ["version", "layoutMode", "primaryGoal", "sections"],
+    },
+    "Return a screen intermediate representation describing the sections and behavior of the UI.",
+);

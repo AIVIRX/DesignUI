@@ -264,6 +264,9 @@ extension ComponentProperty: Codable {
         if color == .secondary { return "secondary" }
         if color == .primary.opacity(0.6) { return "tertiary" }
         if color == .primary.opacity(0.3) { return "quaternary" }
+        for token in ["systemBackground", "secondarySystemBackground", "tertiarySystemBackground", "systemFill", "secondarySystemFill", "tertiarySystemFill", "quaternarySystemFill"] {
+            if color == colorStringToColor(token) { return token }
+        }
         if color == .clear { return "clear" }
         
         // For custom colors, extract RGB values
@@ -315,11 +318,7 @@ extension ComponentProperty: Codable {
         // Handle common SwiftUI colors
         switch colorString {
         case "primary":
-            #if os(macOS)
-            return Color(nsColor: NSColor.labelColor.withAlphaComponent(1.0))
-            #else
             return .primary
-            #endif
         case "secondary":
             return .secondary
         case "tertiary": return .primary.opacity(0.6)
@@ -341,18 +340,40 @@ extension ComponentProperty: Codable {
              #else
              return Color(uiColor: .secondarySystemBackground)
              #endif
-        case "label":
-            #if os(macOS)
-            return Color(nsColor: .labelColor)
-            #else
-            return Color(uiColor: .label)
-            #endif
-        case "secondaryLabel":
+        case "tertiarySystemBackground":
              #if os(macOS)
-             return Color(nsColor: .secondaryLabelColor)
+             return Color(nsColor: .underPageBackgroundColor)
              #else
-             return Color(uiColor: .secondaryLabel)
+             return Color(uiColor: .tertiarySystemBackground)
              #endif
+        case "systemFill":
+             #if os(macOS)
+             return Color.primary.opacity(0.20)
+             #else
+             return Color(uiColor: .systemFill)
+             #endif
+        case "secondarySystemFill":
+             #if os(macOS)
+             return Color.primary.opacity(0.16)
+             #else
+             return Color(uiColor: .secondarySystemFill)
+             #endif
+        case "tertiarySystemFill":
+             #if os(macOS)
+             return Color.primary.opacity(0.12)
+             #else
+             return Color(uiColor: .tertiarySystemFill)
+             #endif
+        case "quaternarySystemFill":
+             #if os(macOS)
+             return Color.primary.opacity(0.08)
+             #else
+             return Color(uiColor: .quaternarySystemFill)
+             #endif
+        case "label":
+            return .primary
+        case "secondaryLabel":
+            return .secondary
              
         case "red": return .red
         case "orange": return .orange

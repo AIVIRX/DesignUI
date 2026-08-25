@@ -142,7 +142,7 @@ struct ProfileView: View {
                     .fontWeight(.bold)
             }
 
-            Text("@\(viewModel.profile?.username ?? "username")")
+            Text(verbatim: "@\(viewModel.profile?.username ?? "username")")
                 .font(.subheadline)
                 .foregroundColor(.gray)
 

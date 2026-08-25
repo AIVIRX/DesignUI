@@ -728,6 +728,15 @@ struct CodeGenerator {
         case "brown": baseColor = "Color.brown"
         case "primary": baseColor = "Color.primary"
         case "secondary": baseColor = "Color.secondary"
+        case "tertiary": baseColor = "Color.primary.opacity(0.6)"
+        case "quaternary": baseColor = "Color.primary.opacity(0.3)"
+        case "systembackground": baseColor = "Color(uiColor: .systemBackground)"
+        case "secondarysystembackground": baseColor = "Color(uiColor: .secondarySystemBackground)"
+        case "tertiarysystembackground": baseColor = "Color(uiColor: .tertiarySystemBackground)"
+        case "systemfill": baseColor = "Color(uiColor: .systemFill)"
+        case "secondarysystemfill": baseColor = "Color(uiColor: .secondarySystemFill)"
+        case "tertiarysystemfill": baseColor = "Color(uiColor: .tertiarySystemFill)"
+        case "quaternarysystemfill": baseColor = "Color(uiColor: .quaternarySystemFill)"
         default: baseColor = "Color.gray"
         }
 

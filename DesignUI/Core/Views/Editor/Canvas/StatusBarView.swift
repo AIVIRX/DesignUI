@@ -25,7 +25,7 @@ struct StatusBarView: View {
     var body: some View {
         HStack {
             // Left side - Time
-            Text("9:41")
+            Text(verbatim: "9:41")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(statusBarTextColor)
                 .frame(width: 100)

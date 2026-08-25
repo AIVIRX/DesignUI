@@ -1,20 +1,10 @@
 import type { EditIntent, DesignManifest, PromptDesignSpec, PromptRequirement, RailVariant, ScreenPlan, SlotType } from "./types.ts";
 import { MAX_GENERATION_SLOTS } from "./openai.ts";
-
-
-function detectRailVariantFromTextForManifest(text: string): RailVariant | null {
-    const t = text.toLowerCase();
-    if (/\b(song|songs|track|tracks|artist|artists|now playing|playlist|playlists|music)\b/.test(t)) return "media_track";
-    if (/\b(poster|posters|album|albums|cover|covers|thumbnail|thumbnails)\b/.test(t)) return "poster";
-    if (/\b(circular|avatar|profile|people|creators?)\b/.test(t)) return "circular_people";
-    if (/\b(chip|chips|pill|pills|tags?)\b/.test(t)) return "chips";
-    if (/\b(landscape|wide|banner)\b/.test(t)) return "landscape";
-    return null;
-}
+import { detectRailVariantFromText } from "./utils.ts";
 
 function detectRailVariantFromRequirement(req: PromptRequirement): RailVariant {
     if (req.railSpec?.variant) return req.railSpec.variant;
-    return detectRailVariantFromTextForManifest(req.mustInclude) ?? detectRailVariantFromTextForManifest(req.variantHint ?? "") ?? "poster";
+    return detectRailVariantFromText(req.mustInclude) ?? detectRailVariantFromText(req.variantHint ?? "") ?? "poster";
 }
 
 // ─── Prompt detection ────────────────────────────────────────────────────────
@@ -22,11 +12,14 @@ function detectRailVariantFromRequirement(req: PromptRequirement): RailVariant {
 export function classifyIntent(prompt: string): EditIntent {
     const p = prompt.toLowerCase();
     if (/status bar|dark mode|light mode|color scheme|safe area/.test(p)) return "canvas";
+    const requestsVisualStyle = /\b(color|fill|tint|shadow|opacity|blur|gradient|border|stroke|font|size|weight|bold|red|blue|green|orange|purple|yellow|teal|pink|gray|grey|white|black|mint|indigo|cyan|brown)\b/.test(p);
+    const modifierOperation = /\b(add|remove|delete|reset|clear|change|set|make)\s+(?:the\s+)?(?:background\s+)?(color|fill|tint|shadow|opacity|blur|gradient|border|stroke|font|weight)\b/.test(p);
+    if (modifierOperation) return "style";
     if (/\badd\b|\binsert\b|\bappend\b|\bremove\b|\bdelete\b|\bwrap\b|\bunwrap\b|\bnest\b/.test(p)) return "structure";
+    if (requestsVisualStyle) return "style";
     if (/\bsay\b|\btext\b|\blabel\b|\btitle\b|\brename\b|\bwrite\b|\bchange.*(what|wording|copy)\b|\bset.*(text|label)\b/.test(p)) return "content";
     if (/\bwrap\b|\bcard\b|\bcontainer\b|\bsurface\b/.test(p)) return "wrap";
     if (/\bpad\b|\bspac\b|\bframe\b|\bwidth\b|\bheight\b|\balign\b|\boffset\b|\binset\b/.test(p)) return "layout";
-    if (/\bcolor\b|\bfill\b|\btint\b|\bshadow\b|\bopacity\b|\bblur\b|\bgradient\b|\bborder\b|\bstroke\b|\bfont\b|\bsize\b|\bweight\b|\bbold\b/.test(p)) return "style";
     return "unknown";
 }
 
@@ -56,6 +49,8 @@ export function buildDesignManifest(prompt: string): DesignManifest {
     const hardRules: string[] = [];
     const forbiddenSlotTypes = new Set<SlotType>();
     const strictMode = /\b(exactly|must|only|strict|do not|don't|without|no)\b/.test(p);
+    const stickyTopRequested = /\b(sticky|pinned)\s+(header|top|nav(?:igation)?(?:\s+bar)?)\b|\bfixed\s+(header|top|top\s+bar|nav(?:igation)?(?:\s+bar)?)\b|\b(header|top\s+bar)\s+(always\s+visible|stays?\s+visible)\b/.test(p);
+    const overlayRequested = /\b(floating|overlay|overlaid)\b|\bfab\b|\bfloating action button\b|\bon top of (?:the )?(map|image|photo|video)\b/.test(p);
 
     if (/\bno\b.*\bnav\s*bar\b|\bwithout\b.*\bnav\s*bar\b|\bhide\b.*\bnav\s*bar\b/.test(p)) {
         forbiddenSlotTypes.add("nav_bar");
@@ -151,17 +146,24 @@ export function buildDesignManifest(prompt: string): DesignManifest {
         hardRules.push("Search/results screens should prioritize query + filters + results list, and avoid unrelated dashboard hero/stat sections unless explicitly requested.");
     }
 
-    const settingsToggleMode = /\bsettings?\b/.test(p) && /\btoggle|switch|notifications?|dark mode|sound\b/.test(p);
+    const notificationPreferenceMode = /\bnotification preferences?\b|\bnotifications?.{0,24}\b(preferences?|settings?|list)\b/.test(p);
+    const settingsToggleMode = notificationPreferenceMode || /\bdark mode\b/.test(p) || (/\bsettings?\b/.test(p) && /\btoggle|switch|notifications?|sound\b/.test(p));
     if (settingsToggleMode) {
+        const wantsNotificationPreferences = notificationPreferenceMode;
+        const wantsDarkMode = /\bdark mode\b/.test(p);
         requirements.push({
             requirementKey: "settings_toggles",
             slotType: "settings_list",
             position: "body",
-            mustInclude: "settings rows with Switch toggles for notifications, dark mode, and sound",
-            itemCount: 3,
-            sourceIndex: p.search(/\bsettings?\b/),
+            mustInclude: wantsNotificationPreferences
+                ? `grouped settings list with ${wantsDarkMode ? "an Appearance section containing Dark Mode and " : ""}a Notifications section containing Push Notifications, Email Updates, Sounds, and Badges, each as Switch rows`
+                : "settings rows with Switch toggles for notifications, dark mode, and sound",
+            itemCount: wantsNotificationPreferences ? (wantsDarkMode ? 5 : 4) : 3,
+            sourceIndex: Math.max(0, p.search(/\bsettings?\b|\bnotification|\bdark mode\b/)),
         });
-        hardRules.push("Settings prompts with toggles must use settings list rows with Switch controls; do not use hero banners.");
+        hardRules.push(wantsNotificationPreferences
+            ? "Notification preference requests must show separate notification controls grouped under a Notifications section; do not collapse them into one generic Notifications toggle."
+            : "Settings prompts with toggles must use settings list rows with Switch controls; do not use hero banners.");
     }
 
     const rideshareMode = /\buber\b|\blyft\b|\brideshare\b|\bride share\b|\bbook a ride\b|\brequest a ride\b|\bpickup\b|\bdrop[\s-]*off\b|\bdestination\b|\bdriver\b|\beta\b/.test(p);
@@ -307,6 +309,8 @@ export function buildDesignManifest(prompt: string): DesignManifest {
         hardRules: Array.from(new Set(hardRules)),
         strictMode,
         forbiddenSlotTypes: Array.from(forbiddenSlotTypes),
+        stickyTopRequested,
+        overlayRequested,
     };
 }
 
@@ -400,7 +404,9 @@ export function compilePromptDesignSpec(prompt: string, manifest: DesignManifest
         content: {
             emphasizedNouns,
             statePack: /\bstate pack\b|\bdefault loading empty error\b|\ball states\b|\bloading state\b|\bempty state\b|\berror state\b/.test(p),
-            wantsSettingsToggles: /\bsettings?\b/.test(p) && /\btoggle|switch|notifications?|dark mode|sound\b/.test(p),
+            wantsSettingsToggles: /\bnotification preferences?\b|\bnotifications?.{0,24}\b(preferences?|settings?|list)\b|\bdark mode\b/.test(p) || (/\bsettings?\b/.test(p) && /\btoggle|switch|notifications?|sound\b/.test(p)),
+            wantsNotificationPreferences: /\bnotification preferences?\b|\bnotifications?.{0,24}\b(preferences?|settings?|list)\b/.test(p),
+            wantsDarkMode: /\bdark mode\b/.test(p),
             conceptVariant,
             conceptTag,
         },

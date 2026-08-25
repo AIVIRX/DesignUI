@@ -215,6 +215,7 @@ struct UIBuilderView: View {
     
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
+    @State private var isRestoringInitialCanvas: Bool = false
     @State private var showRenamePageSheet: Bool = false
     @State private var renamePageText: String = ""
     @State private var isRestoringCanvasSettings: Bool = false
@@ -249,7 +250,7 @@ struct UIBuilderView: View {
     }
     
 #if os(iOS)
-    @State private var selection: PresentationDetent = UIDevice.current.userInterfaceIdiom == .phone ? .medium : .large
+    @State private var selection: PresentationDetent = PlatformLayoutContext.isPhone ? .medium : .large
     @State private var activeTab: AppTab? = nil // Optional to allow closing
     @State private var activeSheet: IOSSheet?
     @State private var showLayerPropertiesNavigation = false
@@ -302,7 +303,7 @@ struct UIBuilderView: View {
 
     private func openCodePreviewSheet() {
 #if os(iOS)
-        selection = UIDevice.current.userInterfaceIdiom == .phone ? .medium : .large
+        selection = PlatformLayoutContext.isPhone ? .medium : .large
 #endif
         showCodePreview = true
     }
@@ -340,7 +341,7 @@ struct UIBuilderView: View {
         baseZoomLevel = defaultCanvasZoom
 #else
         #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        if PlatformLayoutContext.isPad {
             canvasManager.zoomLevel = defaultCanvasZoom
             baseZoomLevel = defaultCanvasZoom
         } else {
@@ -461,7 +462,7 @@ struct UIBuilderView: View {
 #if os(iOS)
     @ViewBuilder
     private var cutoutAccessoryOverlay: some View {
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if PlatformLayoutContext.isPhone {
             if #available(iOS 26.0, macOS 26.0, *) {
                 glassCutoutAccessory
             } else {
@@ -552,12 +553,12 @@ struct UIBuilderView: View {
             .sheet(isPresented: $showCodePreview) {
                 CodePreviewView(canvasManager: canvasManager)
                     .presentationDetents(
-                        UIDevice.current.userInterfaceIdiom == .phone ? [.medium] : [.large],
+                        PlatformLayoutContext.isPhone ? [.medium] : [.large],
                         selection: $selection
                     )
                     .presentationBackgroundInteraction(
                         .enabled(
-                            upThrough: UIDevice.current.userInterfaceIdiom == .phone ? .medium : .large
+                            upThrough: PlatformLayoutContext.isPhone ? .medium : .large
                         )
                     )
                     .presentationDragIndicator(.visible)
@@ -648,7 +649,6 @@ struct UIBuilderView: View {
             .onAppear {
                 setupCanvas()
                 restoreCanvasSettings()
-                performScreenshotCapture()
             }
     }
 
@@ -696,8 +696,12 @@ struct UIBuilderView: View {
     }
 
     private func handleCanvasComponentsChange() {
-        if !isSwitchingPage {
+        if !isSwitchingPage && !isRestoringInitialCanvas {
             syncComponents()
+            aiService.markCanvasEditedAfterGeneration(
+                components: canvasManager.components,
+                canvasSettings: aiOutcomeCanvasSettings
+            )
         }
     }
 
@@ -824,6 +828,23 @@ struct UIBuilderView: View {
         }
     }
 
+    private var canvasExportConfiguration: CanvasExportConfiguration {
+        CanvasExportRenderer.configuration(
+            devicePreset: canvasManager.devicePreset,
+            colorScheme: canvasManager.colorScheme,
+            statusBarVisible: canvasManager.statusBarVisible,
+            statusBarTopSafeArea: canvasManager.statusBarTopSafeArea
+        )
+    }
+
+    private var aiOutcomeCanvasSettings: AIService.CanvasSettings {
+        AIService.CanvasSettings(
+            statusBarVisible: canvasManager.statusBarVisible,
+            statusBarTopSafeArea: canvasManager.statusBarTopSafeArea,
+            canvasColorScheme: canvasManager.colorScheme == .dark ? "dark" : "light"
+        )
+    }
+
     private var propertiesSheetTitle: String {
         if let selected = canvasManager.selectedComponent {
             return selected.type.rawValue
@@ -834,7 +855,7 @@ struct UIBuilderView: View {
     @ViewBuilder
     private var platformSpecificContent: some View {
         #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if PlatformLayoutContext.isPhone {
             // iPhone: Full screen canvas with bottom sheet
             iOSCanvasContent
                 .navigationBarTitleDisplayMode(.inline)
@@ -854,80 +875,52 @@ struct UIBuilderView: View {
     
     #if os(iOS)
     private var iPadCanvasContent: some View {
-        ZStack {
-            mainCanvasArea()
-            
-            // Floating panels with proper margins
-            HStack(spacing: 0) {
-                // Left side: Layers panel
-                if showLayersPanel {
-                    sidebarPanel
-                    .frame(width: fixedPanelWidth)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
-                    .padding()
-                }
-                
-                Spacer()
-                
-                if showPropertiesPanel && canvasManager.selectedComponent != nil {
-                    propertiesPanel
-                    .frame(width: fixedPanelWidth)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .trailing).combined(with: .opacity)
-                    ))
-                    .padding()
+        BuilderFloatingPanelsChrome(
+            panelWidth: fixedPanelWidth,
+            showSidebar: showLayersPanel,
+            showProperties: showPropertiesPanel && canvasManager.selectedComponent != nil,
+            mainContent: {
+                mainCanvasArea()
+            },
+            sidebarContent: {
+                sidebarPanel
+            },
+            propertiesContent: {
+                propertiesPanel
                     .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
                     .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
-                }
             }
-
-        }
+        )
     }
     #endif
     
     #if os(macOS)
     private var macOSCanvasContent: some View {
-        ZStack(alignment: .top) {
-            mainCanvasArea()
-            
-            // Floating panels with proper margins
-            HStack(spacing: 0) {
-                // Left side: Layers panel
-                if showLayersPanel {
-                    sidebarPanel
-                    .frame(width: fixedPanelWidth)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
-                    .padding()
-                }
-                
-                // Center Canvas Area (just a spacer)
-                Spacer()
-                
-                if showPropertiesPanel && canvasManager.selectedComponent != nil {
-                    propertiesPanel
-                    .frame(width: fixedPanelWidth)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .trailing).combined(with: .opacity)
-                    ))
-                    .padding()
+        BuilderFloatingPanelsChrome(
+            panelWidth: fixedPanelWidth,
+            showSidebar: showLayersPanel,
+            showProperties: showPropertiesPanel && canvasManager.selectedComponent != nil,
+            mainContent: {
+                mainCanvasArea()
+            },
+            sidebarContent: {
+                sidebarPanel
+            },
+            propertiesContent: {
+                propertiesPanel
                     .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
-                }
             }
-        }
+        )
     }
     #endif
     
 #if os(iOS)
     private var iOSCanvasContent: some View {
-        GeometryReader { _ in
-            ZStack {
-                mainCanvasArea(
-                    pushScale: 1.0,
-                    pushOffset: .zero
-                )
-            }
+        BuilderPhoneCanvasChrome {
+            mainCanvasArea(
+                pushScale: 1.0,
+                pushOffset: .zero
+            )
         }
         .onChange(of: activeSheet) { _, newValue in
             let isOverlayOpen = newValue == .layers || newValue == .properties
@@ -1118,12 +1111,12 @@ struct UIBuilderView: View {
                     canvasManager: canvasManager,
                     useNavigationStack: true,
                     showNavigationTitle: false,
-                    showComponentActionsSection: UIDevice.current.userInterfaceIdiom != .phone
+                    showComponentActionsSection: !PlatformLayoutContext.isPhone
                 )
                 .navigationTitle(propertiesSheetTitle)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    if UIDevice.current.userInterfaceIdiom == .phone {
+                    if PlatformLayoutContext.isPhone {
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             Button {
                                 duplicateSelectedComponentFromPropertiesSheet()
@@ -1143,7 +1136,7 @@ struct UIBuilderView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                if UIDevice.current.userInterfaceIdiom == .phone {
+                if PlatformLayoutContext.isPhone {
                     aiHubContent(inSheet: true)
                 }
             }
@@ -1277,6 +1270,8 @@ struct UIBuilderView: View {
         }
         .ignoresSafeArea()
         .task {
+            // Let the editor render before fetching account state for the AI controls.
+            await Task.yield()
             await aiService.refreshQuota()
         }
         .overlay(alignment: .bottom) {
@@ -1317,7 +1312,7 @@ struct UIBuilderView: View {
 
     private var shouldShowFloatingAIHubBar: Bool {
         #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone && activeSheet == .properties {
+        if PlatformLayoutContext.isPhone && activeSheet == .properties {
             return false
         }
         #endif
@@ -1448,9 +1443,9 @@ struct UIBuilderView: View {
                         canvasManager: canvasManager,
                         useNavigationStack: false,
                         showNavigationTitle: false,
-                        showComponentActionsSection: UIDevice.current.userInterfaceIdiom != .phone
+                        showComponentActionsSection: !PlatformLayoutContext.isPhone
                     )
-                    if UIDevice.current.userInterfaceIdiom == .phone {
+                    if PlatformLayoutContext.isPhone {
                         panel
                             .navigationTitle(propertiesSheetTitle)
                             .navigationBarTitleDisplayMode(.inline)
@@ -1788,19 +1783,9 @@ struct UIBuilderView: View {
     }
     
     private func saveAsScreenshot() {
-        let isWidget = canvasManager.devicePreset.category == .widget
-        let screenshotView = CanvasScreenshotView(
+        guard let imageData = CanvasExportRenderer.capturePNG(
             components: canvasManager.components,
-            deviceSize: canvasManager.devicePreset.size,
-            colorScheme: canvasManager.colorScheme ?? .light,
-            statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
-            statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
-        )
-        
-        guard let imageData = ScreenshotUtility.shared.captureThumbnail(
-            of: screenshotView,
-            size: canvasManager.devicePreset.size,
-            colorScheme: canvasManager.colorScheme ?? .light
+            configuration: canvasExportConfiguration
         ) else {
             debugLog("❌ Failed to capture screenshot for saving")
             return
@@ -1818,6 +1803,10 @@ struct UIBuilderView: View {
             if response == .OK, let url = savePanel.url {
                 do {
                     try imageData.write(to: url)
+                    aiService.markGenerationExported(
+                        components: canvasManager.components,
+                        canvasSettings: aiOutcomeCanvasSettings
+                    )
                     // Open in Finder
                     NSWorkspace.shared.activateFileViewerSelecting([url])
                     toastManager.showToast(
@@ -1833,8 +1822,12 @@ struct UIBuilderView: View {
         }
         #else
         // iOS: Save to Photos
-        if let uiImage = UIImage(data: imageData) {
+        if let uiImage = platformImage(from: imageData) as? UIImage {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+            aiService.markGenerationExported(
+                components: canvasManager.components,
+                canvasSettings: aiOutcomeCanvasSettings
+            )
             toastManager.showToast(
                 ToastData(title: "Saved to Photos", icon: "checkmark.circle.fill")
             )
@@ -1843,6 +1836,15 @@ struct UIBuilderView: View {
     }
     
     private func setupCanvas() {
+        // Loading a project is not an edit. Keep observers from saving or exporting the
+        // full component tree while SwiftUI builds the first editor frame.
+        isRestoringInitialCanvas = true
+        defer {
+            DispatchQueue.main.async {
+                isRestoringInitialCanvas = false
+            }
+        }
+
         // Initialize page index from design file
         currentPageIndex = designFile.currentPageIndex
         
@@ -1878,18 +1880,9 @@ struct UIBuilderView: View {
             oldPage.components = canvasManager.components
             
             // Capture fresh screenshot for page thumbnail
-            let isWidget = canvasManager.devicePreset.category == .widget
-            let screenshotView = CanvasScreenshotView(
+            if let thumbnailData = CanvasExportRenderer.capturePNG(
                 components: canvasManager.components,
-                deviceSize: canvasManager.devicePreset.size,
-                colorScheme: canvasManager.colorScheme ?? .light,
-                statusBarVisible: isWidget ? false : canvasManager.statusBarVisible,
-                statusBarTopSafeArea: isWidget ? false : canvasManager.statusBarTopSafeArea
-            )
-            if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
-                of: screenshotView,
-                size: canvasManager.devicePreset.size,
-                colorScheme: canvasManager.colorScheme ?? .light
+                configuration: canvasExportConfiguration
             ) {
                 oldPage.thumbnail = thumbnailData
             }
@@ -2049,6 +2042,17 @@ struct UIBuilderView: View {
         return nil
     }
 
+    private func localNamedTargetAction(for prompt: String) -> LocalSelectionPromptAction? {
+        let lower = prompt.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if lower.range(of: #"^(duplicate|copy|clone)\b"#, options: .regularExpression) != nil { return .duplicate }
+        let namesModifier = lower.range(
+            of: #"^(delete|remove)\s+(the\s+)?(background\s+)?(color|fill|tint|shadow|opacity|blur|gradient|border|stroke|font|weight)\b"#,
+            options: .regularExpression
+        ) != nil
+        if !namesModifier, lower.range(of: #"^(delete|remove)\b"#, options: .regularExpression) != nil { return .delete }
+        return nil
+    }
+
     private func generateWithAI(prompt: String) async {
         defer {
             Task { @MainActor in
@@ -2063,27 +2067,31 @@ struct UIBuilderView: View {
         }
 
         let selectedComponent = canvasManager.selectedComponent
-        if let selectedComponent, let action = localSelectionAction(for: trimmed) {
+        let implicitTarget = selectedComponent == nil ? resolveImplicitAIEditTarget(for: trimmed) : nil
+        let editTarget = selectedComponent ?? implicitTarget
+        let localAction = localSelectionAction(for: trimmed)
+            ?? (implicitTarget != nil ? localNamedTargetAction(for: trimmed) : nil)
+        if let editTarget, let action = localAction {
             Task {
                 await PromptLogManager.shared.logLocalPrompt(
                     trimmed,
-                    selectedComponentType: selectedComponent.type.rawValue
+                    selectedComponentType: editTarget.type.rawValue
                 )
             }
             switch action {
             case .duplicate:
-                canvasManager.duplicateComponent(selectedComponent)
+                canvasManager.duplicateComponent(editTarget)
                 toastManager.showToast(ToastData(title: "Duplicated selected component", icon: "doc.on.doc"))
             case .delete:
-                canvasManager.removeComponent(selectedComponent)
+                canvasManager.removeComponent(editTarget)
                 canvasManager.selectedComponent = nil
                 toastManager.showToast(ToastData(title: "Deleted selected component", icon: "trash"))
             }
             persistAIGeneratedPreview()
             return
         }
-        let selectedJSON = canvasManager.getSelectedComponentJSON()
-        let componentCount = selectedComponent != nil ? canvasManager.countComponents(in: selectedComponent!) : canvasManager.components.count
+        let selectedJSON = editTarget.flatMap(encodeAIComponent)
+        let componentCount = editTarget.map { canvasManager.countComponents(in: $0) } ?? canvasManager.components.count
         let topLevelComponentTypes = Array(canvasManager.components.prefix(8)).map { $0.type.rawValue }
         let currentPageName: String = {
             guard !designFile.pages.isEmpty,
@@ -2103,8 +2111,8 @@ struct UIBuilderView: View {
             "componentCount": AnyCodable(componentCount),
             "topLevelComponentTypes": AnyCodable(topLevelComponentTypes),
             "selected_component_json": AnyCodable(selectedJSON ?? ""),
-            "selected_component_type": AnyCodable(selectedComponent?.type.rawValue ?? ""),
-            "selected_component": AnyCodable(selectedComponent?.type.rawValue ?? ""),
+            "selected_component_type": AnyCodable(editTarget?.type.rawValue ?? ""),
+            "selected_component": AnyCodable(editTarget?.type.rawValue ?? ""),
             "statusBarVisible": AnyCodable(canvasManager.statusBarVisible),
             "statusBarTopSafeArea": AnyCodable(canvasManager.statusBarTopSafeArea)
         ]
@@ -2119,7 +2127,11 @@ struct UIBuilderView: View {
             }
             if !components.isEmpty {
                 await MainActor.run {
-                    applyAIComponents(components, prompt: trimmed, operations: operations)
+                    applyAIComponents(components, prompt: trimmed, operations: operations, targetComponent: editTarget)
+                    aiService.markGenerationApplied(
+                        components: canvasManager.components,
+                        canvasSettings: aiOutcomeCanvasSettings
+                    )
                 }
                 return
             } else if !settingsApplied {
@@ -2150,6 +2162,179 @@ struct UIBuilderView: View {
         }
     }
 
+    private func encodeAIComponent(_ component: UIComponent) -> String? {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        if let excludeIdsKey = CodingUserInfoKey(rawValue: "excludeIds") {
+            encoder.userInfo[excludeIdsKey] = true
+        }
+        guard let data = try? encoder.encode(component) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func resolveImplicitAIEditTarget(for prompt: String) -> UIComponent? {
+        let normalizedPrompt = normalizeAIReference(prompt)
+        guard isTargetedCanvasEditPrompt(normalizedPrompt) else { return nil }
+
+        let references = collectAIComponentReferences(from: canvasManager.components)
+        let requestedKind = requestedAIComponentKind(in: normalizedPrompt)
+        let anchors = strongestLabelAnchors(in: references, prompt: normalizedPrompt)
+
+        if let requestedKind {
+            let anchoredTargets = anchors.compactMap { resolveAnchoredTarget(kind: requestedKind, anchor: $0) }
+            if let unique = uniqueAIComponent(anchoredTargets) { return unique }
+            if !anchoredTargets.isEmpty { return nil }
+
+            let directTargets = references.map(\.component).filter { componentMatchesAIKind($0, kind: requestedKind) }
+            return uniqueAIComponent(directTargets)
+        }
+
+        return uniqueAIComponent(anchors.map(\.component))
+    }
+
+    private enum AIComponentKind: Equatable {
+        case text, button, image, symbol, map, textField, toggle, slider, progress, gauge, shape, divider, scrollView, container
+    }
+
+    private struct AIComponentReference {
+        let component: UIComponent
+        let ancestors: [UIComponent]
+        let labels: [String]
+    }
+
+    private func collectAIComponentReferences(
+        from components: [UIComponent],
+        ancestors: [UIComponent] = []
+    ) -> [AIComponentReference] {
+        var result: [AIComponentReference] = []
+        for component in components where component.isVisible {
+            var labels: [String] = []
+            for key in ["text", "placeholder", "title", "symbolName", "locationName"] {
+                guard let value = component.getProperty(key: key) as? String else { continue }
+                let normalized = normalizeAIReference(value)
+                if normalized.count >= 2 { labels.append(normalized) }
+            }
+            result.append(AIComponentReference(component: component, ancestors: ancestors, labels: labels))
+            result.append(contentsOf: collectAIComponentReferences(from: component.children, ancestors: [component] + ancestors))
+        }
+        return result
+    }
+
+    private func strongestLabelAnchors(
+        in references: [AIComponentReference],
+        prompt: String
+    ) -> [AIComponentReference] {
+        let genericLabels: Set<String> = ["text", "title", "subtitle", "label", "button", "item", "image", "icon"]
+        let paddedPrompt = " \(prompt) "
+        let scored: [(reference: AIComponentReference, length: Int)] = references.compactMap { reference in
+            let matchingLengths = reference.labels.compactMap { label -> Int? in
+                guard !genericLabels.contains(label) else { return nil }
+                if paddedPrompt.contains(" \(label) ") { return label.count }
+                if reference.component.type == .sfSymbol,
+                   let symbolRoot = label.split(separator: " ").first,
+                   paddedPrompt.contains(" \(symbolRoot) ") {
+                    return symbolRoot.count
+                }
+                return nil
+            }
+            guard let best = matchingLengths.max() else { return nil }
+            return (reference, best)
+        }
+        guard let longest = scored.map(\.length).max() else { return [] }
+        return scored.filter { $0.length == longest }.map(\.reference)
+    }
+
+    private func requestedAIComponentKind(in prompt: String) -> AIComponentKind? {
+        let patterns: [(AIComponentKind, String)] = [
+            (.button, #"\b(button|cta)\b"#),
+            (.map, #"\bmap\b"#),
+            (.textField, #"\b(search bar|search field|text field|input field|input)\b"#),
+            (.toggle, #"\b(toggle|switch)\b"#),
+            (.slider, #"\bslider\b"#),
+            (.gauge, #"\b(gauge|dial|meter)\b"#),
+            (.progress, #"\b(progress bar|progress view|progress indicator)\b"#),
+            (.shape, #"\b(shape|rectangle|circle|rounded rectangle|capsule|ellipse|oval)\b"#),
+            (.divider, #"\b(divider|separator)\b"#),
+            (.scrollView, #"\b(scroll view|scrollview|scroll area)\b"#),
+            (.image, #"\b(image|photo|picture|artwork|thumbnail|avatar)\b"#),
+            (.symbol, #"\b(icon|symbol|sf symbol)\b"#),
+            (.container, #"\b(card|container|row|section|panel|tile)\b"#),
+            (.text, #"\b(text|title|subtitle|label|headline|caption|copy)\b"#),
+        ]
+        return patterns.first { prompt.range(of: $0.1, options: .regularExpression) != nil }?.0
+    }
+
+    private func resolveAnchoredTarget(kind: AIComponentKind, anchor: AIComponentReference) -> UIComponent? {
+        if componentMatchesAIKind(anchor.component, kind: kind) { return anchor.component }
+
+        if kind == .container {
+            return anchor.ancestors.first(where: isCardLikeImplicitTarget)
+                ?? anchor.ancestors.first(where: { componentMatchesAIKind($0, kind: .container) })
+        }
+
+        for ancestor in anchor.ancestors {
+            let matches = descendantComponents(in: ancestor).filter { componentMatchesAIKind($0, kind: kind) }
+            if let unique = uniqueAIComponent(matches) { return unique }
+        }
+        return nil
+    }
+
+    private func componentMatchesAIKind(_ component: UIComponent, kind: AIComponentKind) -> Bool {
+        switch kind {
+        case .text: return component.type == .text
+        case .button: return component.type == .button
+        case .image: return component.type == .image
+        case .symbol: return component.type == .sfSymbol
+        case .map: return component.type == .map
+        case .textField: return component.type == .textField
+        case .toggle: return component.type == .toggle
+        case .slider: return component.type == .slider
+        case .progress: return component.type == .progressView
+        case .gauge: return component.type == .gauge
+        case .shape: return [.shape, .rectangle, .circle, .roundedRectangle, .capsule, .ellipse].contains(component.type)
+        case .divider: return component.type == .divider
+        case .scrollView: return component.type == .scrollView
+        case .container: return [.stack, .vstack, .hstack, .zstack].contains(component.type)
+        }
+    }
+
+    private func isCardLikeImplicitTarget(_ component: UIComponent) -> Bool {
+        guard componentMatchesAIKind(component, kind: .container) else { return false }
+        let cardModifiers = Set(["Background Color", "Background", "Corner Radius", "Shadow", "Border", "Stroke", "Glass Effect"])
+        return component.modifiers.contains { cardModifiers.contains($0.type.rawValue) }
+    }
+
+    private func descendantComponents(in component: UIComponent) -> [UIComponent] {
+        [component] + component.children.flatMap(descendantComponents(in:))
+    }
+
+    private func uniqueAIComponent(_ components: [UIComponent]) -> UIComponent? {
+        var seen = Set<UUID>()
+        let unique = components.filter { seen.insert($0.id).inserted }
+        return unique.count == 1 ? unique[0] : nil
+    }
+
+    private func normalizeAIReference(_ value: String) -> String {
+        value
+            .lowercased()
+            .replacingOccurrences(of: "[^a-z0-9]+", with: " ", options: .regularExpression)
+            .split(separator: " ")
+            .joined(separator: " ")
+    }
+
+    private func isTargetedCanvasEditPrompt(_ normalizedPrompt: String) -> Bool {
+        let hasScreenScope = normalizedPrompt.range(
+            of: #"\b(app|screen|page|dashboard|ui|interface|template|canvas|full design|whole design|entire design)\b"#,
+            options: .regularExpression
+        ) != nil
+        if hasScreenScope { return false }
+
+        return normalizedPrompt.range(
+            of: #"\b(make|change|set|turn|update|rename|replace|remove|delete|move|resize|color|fill|tint|font|bold|light|regular|semibold|opacity|shadow|orange|red|blue|green|purple|yellow|teal|pink|gray|grey|white|black|mint|indigo|cyan|brown)\b"#,
+            options: .regularExpression
+        ) != nil
+    }
+
     private func selectedComponentLabel() -> String? {
         guard let component = canvasManager.selectedComponent else { return nil }
         if component.type == .text {
@@ -2169,7 +2354,12 @@ struct UIBuilderView: View {
         }
     }
 
-    private func applyAIComponents(_ components: [UIComponent], prompt: String, operations: [AIEditOperation]? = nil) {
+    private func applyAIComponents(
+        _ components: [UIComponent],
+        prompt: String,
+        operations: [AIEditOperation]? = nil,
+        targetComponent: UIComponent? = nil
+    ) {
         guard !components.isEmpty else {
             toastManager.showToast(ToastData(title: "No components returned", icon: "exclamationmark.triangle"))
             return
@@ -2177,13 +2367,13 @@ struct UIBuilderView: View {
 
         let sanitizedComponents = sanitizeAIComponentsForDisplay(components, prompt: prompt)
         
-        if handleAISelectedSingleComponent(prompt: prompt, operations: operations, sanitizedComponents: sanitizedComponents) {
+        if handleAISelectedSingleComponent(prompt: prompt, operations: operations, sanitizedComponents: sanitizedComponents, targetComponent: targetComponent) {
             return
         }
-        if handleAISelectedMultipleComponents(prompt: prompt, sanitizedComponents: sanitizedComponents) {
+        if handleAISelectedMultipleComponents(prompt: prompt, sanitizedComponents: sanitizedComponents, targetComponent: targetComponent) {
             return
         }
-        if handleAINoSelectionSingleComponent(sanitizedComponents: sanitizedComponents) {
+        if handleAINoSelectionSingleComponent(sanitizedComponents: sanitizedComponents, targetComponent: targetComponent) {
             return
         }
 
@@ -2206,9 +2396,10 @@ struct UIBuilderView: View {
     private func handleAISelectedSingleComponent(
         prompt: String,
         operations: [AIEditOperation]?,
-        sanitizedComponents: [UIComponent]
+        sanitizedComponents: [UIComponent],
+        targetComponent: UIComponent?
     ) -> Bool {
-        guard let selected = canvasManager.selectedComponent, sanitizedComponents.count == 1 else { return false }
+        guard let selected = targetComponent ?? canvasManager.selectedComponent, sanitizedComponents.count == 1 else { return false }
         
         let candidate: UIComponent
         var appliedAIEditOperations = false
@@ -2246,8 +2437,8 @@ struct UIBuilderView: View {
         return true
     }
     
-    private func handleAISelectedMultipleComponents(prompt: String, sanitizedComponents: [UIComponent]) -> Bool {
-        guard let selected = canvasManager.selectedComponent, sanitizedComponents.count > 1 else { return false }
+    private func handleAISelectedMultipleComponents(prompt: String, sanitizedComponents: [UIComponent], targetComponent: UIComponent?) -> Bool {
+        guard let selected = targetComponent ?? canvasManager.selectedComponent, sanitizedComponents.count > 1 else { return false }
         guard let replacement = composeFilledSelectionReplacement(
             selected: selected,
             generated: sanitizedComponents,
@@ -2261,8 +2452,8 @@ struct UIBuilderView: View {
         return true
     }
     
-    private func handleAINoSelectionSingleComponent(sanitizedComponents: [UIComponent]) -> Bool {
-        guard canvasManager.selectedComponent == nil, sanitizedComponents.count == 1 else { return false }
+    private func handleAINoSelectionSingleComponent(sanitizedComponents: [UIComponent], targetComponent: UIComponent?) -> Bool {
+        guard targetComponent == nil, canvasManager.selectedComponent == nil, sanitizedComponents.count == 1 else { return false }
         let candidate = sanitizedComponents[0]
         let isLikelyFullScreenRoot =
             (candidate.type == .stack || candidate.type == .vstack || candidate.type == .zstack || candidate.type == .scrollView) &&
@@ -2309,6 +2500,16 @@ struct UIBuilderView: View {
     private func sanitizeInstructionalLabel(_ text: String) -> String {
         guard !text.isEmpty else { return text }
         let lower = text.lowercased()
+
+        let internalDiagnosticFragments = [
+            "openai", "request timed out", "generation timed out", "timed out after",
+            "generation deadline exceeded", "network error", "json decode error",
+            "json parse error", "response incomplete", "returned empty content",
+            "missing 'component' key", "failed after", "supabase", "[object object]"
+        ]
+        if lower == "undefined" || lower == "null" || internalDiagnosticFragments.contains(where: lower.contains) {
+            return "Content unavailable"
+        }
 
         if lower.contains("song cards with square artwork") { return "Songs" }
         if lower.contains("artist cards with square artwork") || lower.contains("circular profile/avatar items") { return "Artists" }
@@ -2735,28 +2936,14 @@ struct UIBuilderView: View {
         screenshotCaptureWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + screenshotDebounceInterval, execute: workItem)
     }
-    
+
     private func performScreenshotCapture() {
-        let isWidget = self.canvasManager.devicePreset.category == .widget
-        let screenshotView = CanvasScreenshotView(
+        if CanvasExportRenderer.captureAndAssignThumbnail(
             components: self.canvasManager.components,
-            deviceSize: self.canvasManager.devicePreset.size,
-            colorScheme: self.canvasManager.colorScheme ?? .light,
-            statusBarVisible: isWidget ? false : self.canvasManager.statusBarVisible,
-            statusBarTopSafeArea: isWidget ? false : self.canvasManager.statusBarTopSafeArea
-        )
-        
-        if let thumbnailData = ScreenshotUtility.shared.captureThumbnail(
-            of: screenshotView,
-            size: self.canvasManager.devicePreset.size,
-            colorScheme: self.canvasManager.colorScheme ?? .light
-        ) {
-            // This will overwrite the previous thumbnail and store device preset
-            self.designFile.setThumbnail(thumbnailData, devicePreset: self.canvasManager.devicePreset.rawValue)
-            
-            // Also save to current page for gallery preview
-            self.designFile.currentPage?.thumbnail = thumbnailData
-            
+            configuration: self.canvasExportConfiguration,
+            designFile: self.designFile,
+            page: self.designFile.currentPage
+        ) != nil {
             debugLog("📸 Screenshot captured and set on design file and current page")
         } else {
             debugLog("📸 Failed to capture screenshot")
@@ -3043,11 +3230,6 @@ private struct PagePreviewCard: View {
     }
 
     private func thumbnailImage(from data: Data) -> Image? {
-        #if os(macOS)
-        if let nsImage = NSImage(data: data) { return Image(nsImage: nsImage) }
-        #else
-        if let uiImage = UIImage(data: data) { return Image(uiImage: uiImage) }
-        #endif
-        return nil
+        swiftUIImage(from: data)
     }
 }

@@ -215,7 +215,7 @@ struct EditProfileView: View {
 
             Spacer()
 
-            Text("\(displayName.count)/50")
+            Text(verbatim: "\(displayName.count)/50")
                 .font(.caption)
                 .foregroundColor(displayNameCountColor)
         }
@@ -287,7 +287,7 @@ struct EditProfileView: View {
 
             Spacer()
 
-            Text("\(username.count)/15")
+            Text(verbatim: "\(username.count)/15")
                 .font(.caption)
                 .foregroundColor(usernameCountColor)
         }
@@ -354,7 +354,7 @@ struct EditProfileView: View {
                 
                 Spacer()
                 
-                Text("\(bio.count)/130")
+                Text(verbatim: "\(bio.count)/130")
                     .font(.caption)
                     .foregroundColor(bio.count > 130 ? .red : .secondary)
             }

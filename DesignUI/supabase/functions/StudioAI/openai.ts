@@ -1,16 +1,16 @@
-import type { JsonSchemaFormat } from "./structured-output.ts";
+import type { JsonSchemaFormat } from "./schema.ts";
 
 // ─── Model routing ───────────────────────────────────────────────────────────
-const DEFAULT_MINI_MODEL = Deno.env.get("OPENAI_MINI_MODEL") ?? "gpt-5.4-mini";
-const DEFAULT_MAIN_MODEL = Deno.env.get("OPENAI_MAIN_MODEL") ?? "gpt-5.4";
+const DEFAULT_MINI_MODEL = "gpt-5.4-mini";
+const DEFAULT_MAIN_MODEL = "gpt-5.4";
 
-export const THEME_MODEL = Deno.env.get("OPENAI_THEME_MODEL") ?? DEFAULT_MINI_MODEL;
-export const ARCHETYPE_MODEL = Deno.env.get("OPENAI_ARCHETYPE_MODEL") ?? DEFAULT_MINI_MODEL;
-export const SLOT_PLANNER_MODEL = Deno.env.get("OPENAI_SLOT_PLANNER_MODEL") ?? DEFAULT_MAIN_MODEL;
-export const SLOT_GENERATOR_MODEL = Deno.env.get("OPENAI_SLOT_GENERATOR_MODEL") ?? DEFAULT_MAIN_MODEL;
-export const STANDARD_TOKENS_MODEL = Deno.env.get("OPENAI_STANDARD_TOKENS_MODEL") ?? DEFAULT_MINI_MODEL;
-export const SELECTION_MODEL = Deno.env.get("OPENAI_SELECTION_MODEL") ?? DEFAULT_MAIN_MODEL;
-export const REPAIR_MODEL = Deno.env.get("OPENAI_REPAIR_MODEL") ?? DEFAULT_MINI_MODEL;
+export const THEME_MODEL = DEFAULT_MINI_MODEL;
+export const ARCHETYPE_MODEL = DEFAULT_MINI_MODEL;
+export const SLOT_PLANNER_MODEL = DEFAULT_MAIN_MODEL;
+export const SLOT_GENERATOR_MODEL = DEFAULT_MAIN_MODEL;
+export const STANDARD_TOKENS_MODEL = DEFAULT_MINI_MODEL;
+export const SELECTION_MODEL = DEFAULT_MAIN_MODEL;
+export const REPAIR_MODEL = DEFAULT_MINI_MODEL;
 export const EMBEDDING_MODEL = "text-embedding-3-small";
 
 export const REPAIR_MAX_TOKENS = 2400;
@@ -35,12 +35,67 @@ export const FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS = 3;
 export const MAX_GENERATION_SLOTS = 6;
 export const SLOT_DESIGN_PASSES = 1;
 export const FULL_CANVAS_SLOT_DESIGN_PASSES = 2;
-export const GEN_V3_SKETCH_RENDER = false;
+export const GEN_V3_SKETCH_RENDER = Deno.env.get("GEN_V3_SKETCH_RENDER") === "true";
 export const GEN_V3_CONTRACTS_AS_PLANS = true;
 
 export const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
 
 // ─── OpenAI client ───────────────────────────────────────────────────────────
+
+export type OpenAIResponseMeta = {
+    responseId: string | null;
+    status: string | null;
+    incompleteReason: string | null;
+    refusal: string | null;
+    inputTokens: number | null;
+    outputTokens: number | null;
+    totalTokens: number | null;
+};
+
+export function parseOpenAIResponse(data: Record<string, unknown>): {
+    content: string | null;
+    meta: OpenAIResponseMeta;
+} {
+    const output = Array.isArray(data.output) ? data.output : [];
+    const chunks: string[] = [];
+    let refusal: string | null = null;
+
+    if (typeof data.output_text === "string" && data.output_text.length > 0) {
+        chunks.push(data.output_text);
+    } else {
+        for (const item of output) {
+            if (!item || typeof item !== "object") continue;
+            const content = Array.isArray((item as Record<string, unknown>).content)
+                ? (item as Record<string, unknown>).content as Array<Record<string, unknown>>
+                : [];
+            for (const part of content) {
+                if (typeof part?.text === "string" && part.text.length > 0) chunks.push(part.text);
+                if (typeof part?.refusal === "string" && part.refusal.length > 0) refusal = part.refusal;
+            }
+        }
+    }
+
+    const incompleteDetails = data.incomplete_details && typeof data.incomplete_details === "object"
+        ? data.incomplete_details as Record<string, unknown>
+        : null;
+    const usage = data.usage && typeof data.usage === "object"
+        ? data.usage as Record<string, unknown>
+        : null;
+    const numberOrNull = (value: unknown): number | null => typeof value === "number" ? value : null;
+
+    return {
+        content: chunks.length > 0 ? chunks.join("\n") : null,
+        meta: {
+            responseId: typeof data.id === "string" ? data.id : null,
+            status: typeof data.status === "string" ? data.status : null,
+            incompleteReason: typeof incompleteDetails?.reason === "string" ? incompleteDetails.reason : null,
+            refusal,
+            inputTokens: numberOrNull(usage?.input_tokens),
+            outputTokens: numberOrNull(usage?.output_tokens),
+            totalTokens: numberOrNull(usage?.total_tokens),
+        },
+    };
+}
 
 export async function callOpenAI(params: {
     model: string;
@@ -65,24 +120,6 @@ export async function callOpenAI(params: {
                 .join("\n");
         }
         return "";
-    };
-
-    const extractResponseText = (data: Record<string, unknown>): string | null => {
-        if (typeof data.output_text === "string" && data.output_text.length > 0) return data.output_text;
-        const output = Array.isArray(data.output) ? data.output : [];
-        const chunks: string[] = [];
-        for (const item of output) {
-            if (!item || typeof item !== "object") continue;
-            const content = Array.isArray((item as Record<string, unknown>).content)
-                ? (item as Record<string, unknown>).content as Array<Record<string, unknown>>
-                : [];
-            for (const part of content) {
-                if (typeof part?.text === "string" && part.text.length > 0) {
-                    chunks.push(part.text);
-                }
-            }
-        }
-        return chunks.length > 0 ? chunks.join("\n") : null;
     };
 
     const systemMessages = params.messages
@@ -147,7 +184,16 @@ export async function callOpenAI(params: {
     if (!response.ok) return { ok: false as const, error: await response.text() };
     let data: Record<string, unknown>;
     try { data = await response.json(); } catch (err) { return { ok: false as const, error: `OpenAI JSON decode error: ${err instanceof Error ? err.message : String(err)}` }; }
-    const content = extractResponseText(data);
-    if (!content || typeof content !== "string") return { ok: false as const, error: "OpenAI returned empty content" };
-    return { ok: true as const, content };
+    const parsed = parseOpenAIResponse(data);
+    if (parsed.meta.refusal) {
+        return { ok: false as const, error: `OpenAI refusal: ${parsed.meta.refusal}`, meta: parsed.meta };
+    }
+    if (parsed.meta.status === "incomplete") {
+        const reason = parsed.meta.incompleteReason ?? "unknown_reason";
+        return { ok: false as const, error: `OpenAI response incomplete: ${reason}`, meta: parsed.meta };
+    }
+    if (!parsed.content) {
+        return { ok: false as const, error: "OpenAI returned empty content", meta: parsed.meta };
+    }
+    return { ok: true as const, content: parsed.content, meta: parsed.meta };
 }

@@ -1,16 +1,14 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { AnyComponent, CanvasSettings, GenerationMode, ScreenArchetype, ScreenPlan, SlotPosition, ThemeTokens } from "./types.ts";
 import { FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS, GENERATION_DEADLINE_MS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS } from "./openai.ts";
 import { buildDesignManifest, compilePromptDesignSpec } from "./manifest.ts";
-import { classifyArchetype, defaultPlanFromArchetype, planSlots, refineScreenPlan, resolveScreenContract } from "./planner.ts";
-import { extractSemanticIntent } from "./semantic-intent.ts";
-import { compileScreenIRToPlan, extractScreenIR } from "./screen-ir.ts";
+import { classifyArchetype, compileScreenIRToPlan, defaultPlanFromArchetype, extractScreenIR, extractSemanticIntent, planSlots, refineScreenPlan, resolveScreenContract } from "./planner.ts";
 import { buildFallbackSlot, buildLayoutSketch, generateSlotsParallel, materializeSlotFromSketchNode } from "./slot-generator.ts";
 import { buildBaselineTheme, computeThemeSurfaces, extractThemeTokens } from "./theme.ts";
 import { postProcessComponents } from "./postprocess.ts";
 
 export async function buildGeneratedScreen(
-    supabase: ReturnType<typeof createClient> | null,
+    supabase: SupabaseClient | null,
     prompt: string,
     context: unknown,
     mode: GenerationMode,
@@ -83,7 +81,10 @@ export async function buildGeneratedScreen(
             component: r.component,
         }));
 
-        const screen = assembleScreen(slotComponents);
+        const screen = assembleScreen(slotComponents, {
+            stickyTop: manifest.stickyTopRequested,
+            allowOverlay: manifest.overlayRequested,
+        });
         return {
             components: screen.components,
             canvas_settings: plan.canvas_settings ?? { statusBarVisible: true, statusBarTopSafeArea: true },
@@ -136,7 +137,10 @@ export async function buildGeneratedScreen(
         component: r.component,
     }));
 
-    const screen = assembleScreen(slotComponents);
+    const screen = assembleScreen(slotComponents, {
+        stickyTop: manifest.stickyTopRequested,
+        allowOverlay: manifest.overlayRequested,
+    });
     return {
         components: screen.components,
         canvas_settings: renderPlan.canvas_settings ?? { statusBarVisible: true, statusBarTopSafeArea: true },
@@ -168,7 +172,10 @@ export function buildEmergencyGeneratedScreen(prompt: string): {
         slotType: slot.slotType,
         component: buildFallbackSlot(slot, theme, designSpec),
     }));
-    const screen = assembleScreen(slotComponents);
+    const screen = assembleScreen(slotComponents, {
+        stickyTop: manifest.stickyTopRequested,
+        allowOverlay: manifest.overlayRequested,
+    });
     return {
         components: screen.components,
         canvas_settings: plan.canvas_settings ?? { statusBarVisible: true, statusBarTopSafeArea: true },
@@ -177,13 +184,52 @@ export function buildEmergencyGeneratedScreen(prompt: string): {
     };
 }
 
-export function assembleScreen(slotComponents: Array<{ position: SlotPosition; slotType?: string; component: AnyComponent }>): { components: AnyComponent[] } {
-    const topSlots = slotComponents.filter((s) => s.position === "top");
-    const inlineTop = topSlots.filter((s) => s.slotType === "search_bar").map((s) => s.component);
-    const stickyTop = topSlots.filter((s) => s.slotType !== "search_bar").map((s) => s.component);
-    const body = slotComponents.filter((s) => s.position === "body").map((s) => s.component);
-    const bottom = slotComponents.filter((s) => s.position === "bottom").map((s) => s.component);
-    const overlay = slotComponents.filter((s) => s.position === "overlay").map((s) => s.component);
+export type ScreenAssemblyOptions = {
+    stickyTop?: boolean;
+    allowOverlay?: boolean;
+};
+
+export function removeRepeatedCrossSlotGreetings(
+    slots: Array<{ position: SlotPosition; slotType?: string; component: AnyComponent }>,
+): Array<{ position: SlotPosition; slotType?: string; component: AnyComponent }> {
+    const seen = new Set<string>();
+    const isGreeting = (text: string): boolean => /^(welcome(?: back)?|hello|good (morning|afternoon|evening)|signed in as)\b/i.test(text.trim());
+    const prune = (component: AnyComponent): AnyComponent | null => {
+        if (component.type === "Text" && typeof component.properties?.text === "string" && isGreeting(component.properties.text)) {
+            const key = component.properties.text.trim().toLowerCase().replace(/\s+/g, " ");
+            if (seen.has(key)) return null;
+            seen.add(key);
+        }
+        if (!Array.isArray(component.children)) return component;
+        return { ...component, children: component.children.map(prune).filter((child): child is AnyComponent => child !== null) };
+    };
+    return slots.map((slot) => ({ ...slot, component: prune(slot.component) ?? { type: "Spacer", properties: {} } }));
+}
+
+export function assembleScreen(
+    slotComponents: Array<{ position: SlotPosition; slotType?: string; component: AnyComponent }>,
+    options: ScreenAssemblyOptions = {},
+): { components: AnyComponent[] } {
+    const normalizedSlots = removeRepeatedCrossSlotGreetings(slotComponents);
+    const topSlots = normalizedSlots.filter((s) => s.position === "top");
+    const stickyTop = options.stickyTop
+        ? topSlots.filter((s) => s.slotType === "app_header").map((s) => s.component)
+        : [];
+    const inlineTop = topSlots
+        .filter((s) => !options.stickyTop || s.slotType !== "app_header")
+        .map((s) => s.component);
+    const bottomCandidates = normalizedSlots.filter((s) => s.position === "bottom");
+    const fixedBottomTypes = new Set(["action_bar", "nav_bar", "media_player"]);
+    const bottom = bottomCandidates.filter((s) => fixedBottomTypes.has(s.slotType ?? "")).map((s) => s.component);
+    const misplacedBottom = bottomCandidates.filter((s) => !fixedBottomTypes.has(s.slotType ?? "")).map((s) => s.component);
+    const overlayCandidates = normalizedSlots.filter((s) => s.position === "overlay");
+    const overlay = options.allowOverlay ? overlayCandidates.map((s) => s.component) : [];
+    const misplacedOverlay = options.allowOverlay ? [] : overlayCandidates.map((s) => s.component);
+    const body = [
+        ...normalizedSlots.filter((s) => s.position === "body").map((s) => s.component),
+        ...misplacedBottom,
+        ...misplacedOverlay,
+    ];
     const hasStickyTop = stickyTop.length > 0;
     const estimateStickyTopInset = (components: AnyComponent[]): number => {
         if (components.length === 0) return 0;
@@ -221,7 +267,7 @@ export function assembleScreen(slotComponents: Array<{ position: SlotPosition; s
             { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
             { type: "Padding", properties: { amount: 16, location: "all" } },
         ],
-        children: [...inlineTop, ...(hasStickyTop ? [topInsetSpacer] : []), ...body, safeAreaSpacer],
+        children: [...(hasStickyTop ? [topInsetSpacer] : []), ...inlineTop, ...body, safeAreaSpacer],
     };
 
     const stickyTopBar: AnyComponent | null = hasStickyTop

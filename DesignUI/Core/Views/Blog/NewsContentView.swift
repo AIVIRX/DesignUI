@@ -232,7 +232,7 @@ struct NewsContentView: View {
                         VStack(alignment: .leading, spacing: 5) {
                             ForEach(items, id: \.self) { item in
                                 HStack(alignment: .top) {
-                                    Text("•")
+                                    Text(verbatim: "•")
                                     Text(item)
                                 }
                                 .font(.title2)

@@ -596,11 +596,7 @@ struct HeroHeaderView: View {
     }
 
     private func assetImageExists(named name: String) -> Bool {
-        #if os(macOS)
-        return NSImage(named: name) != nil
-        #else
-        return UIImage(named: name) != nil
-        #endif
+        bundledPlatformImage(named: name) != nil
     }
 
 }
@@ -675,7 +671,7 @@ struct DesignCardView: View {
                     Button(role: .destructive) {
                         onDelete()
                     } label: {
-                        Text("\(Image(systemName: "trash")) Delete Design")
+                        Label("Delete Design", systemImage: "trash")
                             .foregroundColor(.red)
                     }
                 } label: {
@@ -876,7 +872,7 @@ struct NewDesignSheet: View {
 
                 Spacer()
 
-                Text("\(designName.count)/\(maxNameLength)")
+                Text(verbatim: "\(designName.count)/\(maxNameLength)")
                     .font(.caption)
                     .foregroundColor(designName.count > maxNameLength ? .red : .secondary)
             }
@@ -1066,11 +1062,7 @@ struct TemplateCardView: View {
     }
     
     private func assetImageExists(named name: String) -> Bool {
-        #if os(macOS)
-        return NSImage(named: name) != nil
-        #else
-        return UIImage(named: name) != nil
-        #endif
+        bundledPlatformImage(named: name) != nil
     }
 }
 
@@ -1093,9 +1085,8 @@ struct CanvasPreviewView: View {
             .overlay(
                 Group {
                     if let thumbnailData = previewThumbnail,
-                       let image = createImage(from: thumbnailData) {
-#if os(macOS)
-                        Image(nsImage: image)
+                       let image = swiftUIImage(from: thumbnailData) {
+                        image
                             .renderingMode(.original)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -1103,16 +1094,6 @@ struct CanvasPreviewView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped()
                             .padding()
-#else
-                        Image(uiImage: image)
-                            .renderingMode(.original)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .clipped()
-                            .padding()
-#endif
                     } else if designFile.totalComponentCount == 0 {
                         VStack {
                             Image(systemName: "doc.text")
@@ -1140,14 +1121,4 @@ struct CanvasPreviewView: View {
                 }
             )
     }
-    
-#if os(macOS)
-    private func createImage(from data: Data) -> NSImage? {
-        return NSImage(data: data)
-    }
-#else
-    private func createImage(from data: Data) -> UIImage? {
-        return UIImage(data: data)
-    }
-#endif
 }

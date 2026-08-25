@@ -12,7 +12,7 @@ class GridConfiguration {
     private init() {}
     
     var columns: [GridItem] {
-        #if os(macOS)
+        if PlatformLayoutContext.isMac {
         return [
             GridItem(.flexible(), spacing: 16),
             GridItem(.flexible(), spacing: 16),
@@ -20,12 +20,10 @@ class GridConfiguration {
             GridItem(.flexible(), spacing: 16),
             GridItem(.flexible(), spacing: 16)
         ]
-        #else
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        } else if PlatformLayoutContext.isPhone {
             return [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
         } else {
             return [GridItem(.adaptive(minimum: 250), spacing: 16)]
         }
-        #endif
     }
 }

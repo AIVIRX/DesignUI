@@ -1,14 +1,11 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import type { AnyComponent, DesignManifest, Exemplar, GenerationMode, LayoutSketch, LayoutSketchNode, PromptDesignSpec, PromptRequirement, RailVariant, ScreenPlan, SketchPrimitive, SlotMemory, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens } from "./types.ts";
-import { FULL_CANVAS_SLOT_BATCH_SIZE, FULL_CANVAS_SLOT_DESIGN_PASSES, FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS, FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS, REPAIR_MAX_TOKENS, REPAIR_MODEL, SLOT_BATCH_GRACE_MS, SLOT_BATCH_SIZE, SLOT_DESIGN_PASSES, SLOT_GENERATION_MAX_ATTEMPTS, SLOT_GENERATOR_MAX_TOKENS, SLOT_GENERATOR_MODEL, callOpenAI } from "./openai.ts";
-import { SLOT_CONSTRAINTS } from "./schema.ts";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { AnyComponent, DesignManifest, Exemplar, GenerationMode, LayoutSketch, LayoutSketchNode, PromptDesignSpec, PromptRequirement, RailVariant, ScreenPlan, SketchPrimitive, SlotMemory, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens, VoiceTone } from "./types.ts";
+import { EMBEDDING_MODEL, EMBEDDING_TIMEOUT_MS, FULL_CANVAS_SLOT_BATCH_SIZE, FULL_CANVAS_SLOT_DESIGN_PASSES, FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS, FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS, REPAIR_MAX_TOKENS, REPAIR_MODEL, SELECTION_MAX_TOKENS, SELECTION_MODEL, SLOT_BATCH_GRACE_MS, SLOT_BATCH_SIZE, SLOT_DESIGN_PASSES, SLOT_GENERATION_MAX_ATTEMPTS, SLOT_GENERATOR_MAX_TOKENS, SLOT_GENERATOR_MODEL, callOpenAI, openaiApiKey } from "./openai.ts";
+import type { OpenAIResponseMeta } from "./openai.ts";
+import { SLOT_COMPONENT_RESPONSE_FORMAT, SLOT_CONSTRAINTS, VALID_COMPONENT_TYPES } from "./schema.ts";
 import { buildDesignManifest, compilePromptDesignSpec, formatPromptDesignSpec } from "./manifest.ts";
-import { SLOT_COMPONENT_RESPONSE_FORMAT } from "./structured-output.ts";
-import { isJsonParseError, isObject, parseJsonSafe } from "./utils.ts";
-import { retrieveSlotExemplars } from "./retrieval.ts";
-import { buildRepairPrompt, cheapRepair } from "./repair.ts";
-import { postProcessComponents } from "./postprocess.ts";
-import { analyzeRailItem, computeMorphologySignature, countListLikeItems, detectLowQualitySlotOutput, estimateGridCardCount, findHorizontalRailItems, detectRailVariantFromRequirement, inferRailVariantFromComponent, scoreRailItemForVariant, selectPromptRequirementsForSlot, slotHasBlurTreatment, slotHasCircularGauge, validateExactCountForSlot, validateRailStructure, validateSlotAgainstPromptRequirements, validateSlotConstraints, validateStrictIntentLocksForSlot, walkComponentTree } from "./validation.ts";
+import { detectRailVariantFromText, isJsonParseError, isObject, parseJsonSafe, sanitizeInternalDisplayText } from "./utils.ts";
+import { analyzeRailItem, computeMorphologySignature, countListLikeItems, detectLowQualitySlotOutput, estimateGridCardCount, findAccessibilityViolations, findHorizontalRailItems, detectRailVariantFromRequirement, inferRailVariantFromComponent, postProcessComponents, scoreRailItemForVariant, selectPromptRequirementsForSlot, slotHasBlurTreatment, slotHasCircularGauge, validateExactCountForSlot, validateRailStructure, validateSlotAgainstPromptRequirements, validateSlotConstraints, validateStrictIntentLocksForSlot, walkComponentTree } from "./postprocess.ts";
 
 // ─── Slot Generator ──────────────────────────────────────────────────────────
 
@@ -21,19 +18,8 @@ MODIFIERS: Frame Padding "Background Color" "Foreground Color" Font "Corner Radi
 Font:{fontSize:"largeTitle"|"title"|"title2"|"title3"|"headline"|"body"|"callout"|"subheadline"|"footnote"|"caption"|"caption2",fontWeight:"bold"|"semibold"|"medium"|"regular"|"light",fontDesign?:string}
 Frame:{widthType:"Custom"|"Default"|"Full",heightType:"Custom"|"Default"|"Full",width?:num,height?:num}
 Padding:{amount:num,location:"all"|"horizontal"|"vertical"}
-Colors: "colorname:opacity" e.g. "blue:1.0" "gray:0.12"
-RULES: Shapes use "Fill" not "Background Color". Corner Radius present → use "Stroke" not "Border". Button with bg-colored label → buttonStyle:"plain". SF Symbol names must be real. For circular progress/rings, prefer Gauge with gaugeType:"circular". Use "Glass Effect" for translucent overlay chips/cards/controls when the screen sits on top of imagery, maps, or immersive surfaces. Glass Effect supports optional tint via properties like { tint:"blue:0.18" }. IMPORTANT: when using "Glass Effect", do NOT also add "Fill" or "Background Color" on that same glass surface. For maps, prefer a real Map component with tuned camera span, markers, interaction modes, and controls instead of faking a map with plain shapes. SPACING SCALE: use only 4, 8, 12, 16, 24, 32 for VStack/HStack spacing and Padding amounts unless a very special layout truly requires 0. Avoid random values like 5, 7, 10, 14, 18, 20, 22.`;
-
-export function detectRailVariantFromText(text: string): RailVariant | null {
-    const t = text.toLowerCase();
-    if (/\b(song|songs|track|tracks|artist|artists|now playing|playlist|playlists|music)\b/.test(t)) return "media_track";
-    if (/\bsquare\b.*\b(art|artwork|cover|thumbnail)\b|\b(art|artwork|cover|thumbnail)\b.*\bsquare\b/.test(t)) return "media_track";
-    if (/\b(poster|posters|album|albums|cover|covers|thumbnail|thumbnails)\b/.test(t)) return "poster";
-    if (/\b(circular|avatar|profile|people|creators?)\b/.test(t)) return "circular_people";
-    if (/\b(chip|chips|pill|pills|tags?)\b/.test(t)) return "chips";
-    if (/\b(landscape|wide|banner)\b/.test(t)) return "landscape";
-    return null;
-}
+Colors: use adaptive semantic tokens for neutral UI: primary secondary tertiary quaternary systemBackground secondarySystemBackground tertiarySystemBackground systemFill secondarySystemFill tertiarySystemFill quaternarySystemFill. Reserve "colorname:opacity" literals for accents only.
+RULES: Cards/rows must use semantic background/fill tokens, never low-opacity gray/white/black literals. Shapes use "Fill" not "Background Color". Corner Radius present → use "Stroke" not "Border". Button with bg-colored label → buttonStyle:"plain". SF Symbol names must be real. For circular progress/rings, prefer Gauge with gaugeType:"circular". Use "Glass Effect" for translucent overlay chips/cards/controls when the screen sits on top of imagery, maps, or immersive surfaces. Glass Effect supports optional tint via properties like { tint:"blue:0.18" }. IMPORTANT: when using "Glass Effect", do NOT also add "Fill" or "Background Color" on that same glass surface. For maps, prefer a real Map component with tuned camera span, markers, interaction modes, and controls instead of faking a map with plain shapes. SPACING SCALE: use only 4, 8, 12, 16, 24, 32 for VStack/HStack spacing and Padding amounts unless a very special layout truly requires 0. Avoid random values like 5, 7, 10, 14, 18, 20, 22.`;
 
 export function chooseRailVariant(slot: SlotPlan, slotPromptRequirements: PromptRequirement[]): RailVariant {
     for (const req of slotPromptRequirements) {
@@ -107,11 +93,11 @@ export function buildSlotGeneratorSystemPrompt(
     const radiusMap = { pill: "cards:22 rows:18 icons:999 cta:999", sharp: "cards:12 rows:12 icons:6 cta:12", medium: "cards:16 rows:12 icons:10 cta:10" };
     const spacingMap = { compact: "4/8/12/16", regular: "4/8/12/16/24/32", airy: "4/8/12/16/24/32" };
     const paletteMap: Record<string, string> = {
-        immersive: `card:"white:0.12" row:"white:0.16" text2:"white:0.72"`,
-        calm: `card:"gray:0.08" row:"gray:0.12" text2:"secondary:1.0"`,
-        minimal: `card:"gray:0.10" row:"gray:0.14" text2:"secondary:1.0"`,
-        editorial: `card:"gray:0.10" row:"gray:0.14" text2:"secondary:1.0"`,
-        utility: `card:"gray:0.10" row:"gray:0.14" text2:"secondary:1.0"`,
+        immersive: `card:"secondarySystemFill:1.0" row:"tertiarySystemFill:1.0" text2:"secondary:1.0"`,
+        calm: `card:"secondarySystemBackground:1.0" row:"tertiarySystemBackground:1.0" text2:"secondary:1.0"`,
+        minimal: `card:"secondarySystemBackground:1.0" row:"tertiarySystemBackground:1.0" text2:"secondary:1.0"`,
+        editorial: `card:"secondarySystemBackground:1.0" row:"tertiarySystemBackground:1.0" text2:"secondary:1.0"`,
+        utility: `card:"secondarySystemBackground:1.0" row:"tertiarySystemBackground:1.0" text2:"secondary:1.0"`,
     };
 
     const contextSlots = allSlots.filter((s) => s !== slot).map((s) => s.slotType).join(", ");
@@ -218,7 +204,7 @@ ${JSON.stringify(shown, null, 1)}`;
 }
 
 export async function generateSlot(params: {
-    supabase: ReturnType<typeof createClient> | null;
+    supabase: SupabaseClient | null;
     prompt: string;
     theme: ThemeTokens;
     plan: ScreenPlan;
@@ -317,53 +303,110 @@ export async function compileSlotWithRepair(params: {
     const constraint = SLOT_CONSTRAINTS[params.slot.slotType];
     let lastError = "";
     let lastContent = "";
+    let repairError = "";
+    let repairAttempts = 0;
 
     for (let attempt = 0; attempt < params.maxAttempts; attempt++) {
-        const isFirst = attempt === 0;
-        const messages = isFirst ? params.messages : [
-            { role: "system", content: buildRepairPrompt(params.slot, lastError ? lastError.split("\n").filter(Boolean) : ["Fix schema and slot validation errors"]) },
-            { role: "user", content: `Previous JSON:\n${lastContent}\n\nErrors:\n${lastError}\n\nFix ALL errors and return corrected JSON: { "component": <UIComponent> }` },
+        // A transport failure has no JSON to repair. Retry the original request
+        // instead of exposing its diagnostic string to the model as UI context.
+        const isRepair = lastContent.trim().length > 0;
+        if (isRepair) repairAttempts += 1;
+        const messages = !isRepair ? params.messages : [
+            { role: "system", content: buildRepairPrompt(params.slot, repairError ? repairError.split("\n").filter(Boolean) : ["Fix schema and slot validation errors"]) },
+            { role: "user", content: `Previous JSON:\n${lastContent}\n\nValidation errors:\n${repairError}\n\nFix ALL errors and return corrected JSON: { "component": <UIComponent> }` },
         ];
 
         const response = await callOpenAI({
-            model: isFirst ? SLOT_GENERATOR_MODEL : REPAIR_MODEL,
+            model: isRepair ? REPAIR_MODEL : SLOT_GENERATOR_MODEL,
             messages,
-            temperature: isFirst ? (params.firstPassTemperature ?? 0.5) : 0,
-            maxTokens: isFirst ? (params.firstPassMaxTokens ?? SLOT_GENERATOR_MAX_TOKENS) : (params.repairMaxTokens ?? REPAIR_MAX_TOKENS),
+            temperature: isRepair ? 0 : (params.firstPassTemperature ?? 0.5),
+            maxTokens: isRepair ? (params.repairMaxTokens ?? REPAIR_MAX_TOKENS) : (params.firstPassMaxTokens ?? SLOT_GENERATOR_MAX_TOKENS),
             responseFormat: SLOT_COMPONENT_RESPONSE_FORMAT,
         });
 
-        if (!response.ok) { lastError = response.error; continue; }
+        if (!response.ok) {
+            lastError = response.error;
+            const meta = "meta" in response ? response.meta as OpenAIResponseMeta : null;
+            console.warn(JSON.stringify({
+                event: "slot_attempt_failed",
+                slot_type: params.slot.slotType,
+                attempt: attempt + 1,
+                is_repair: isRepair,
+                error: response.error.slice(0, 500),
+                response_id: meta?.responseId ?? null,
+                response_status: meta?.status ?? null,
+                incomplete_reason: meta?.incompleteReason ?? null,
+                refused: Boolean(meta?.refusal),
+                output_tokens: meta?.outputTokens ?? null,
+            }));
+            continue;
+        }
         lastContent = response.content;
 
         const parsed = parseJsonSafe(response.content);
-        if (isJsonParseError(parsed)) { lastError = parsed.error; continue; }
-        if (!isObject(parsed.value)) { lastError = "Response is not an object"; continue; }
+        if (isJsonParseError(parsed)) { lastError = parsed.error; repairError = parsed.error; continue; }
+        if (!isObject(parsed.value)) { lastError = "Response is not an object"; repairError = lastError; continue; }
 
         const result = parsed.value as Record<string, unknown>;
         const raw = result.component ?? (Array.isArray(result.components) ? result.components[0] : null);
-        if (!isObject(raw)) { lastError = "Missing 'component' key in response"; continue; }
+        if (!isObject(raw)) { lastError = "Missing 'component' key in response"; repairError = lastError; continue; }
 
         // Run cheap repair + post-processing
         const { component: cheapFixed, issues } = cheapRepair(raw as AnyComponent);
+        const diagnosticIssues = detectLowQualitySlotOutput(cheapFixed).filter((issue) => issue.includes("internal diagnostic"));
+        if (diagnosticIssues.length > 0) {
+            lastError = `Internal diagnostics rejected:\n${diagnosticIssues.join("\n")}`;
+            repairError = "Replace backend diagnostics with real, user-facing product copy that satisfies the original slot intent.";
+            continue;
+        }
         const fixed = postProcessComponents([cheapFixed])[0];
 
         // Validate against slot constraints
         const validation = validateSlotConstraints(fixed, constraint);
         if (!validation.valid) {
             lastError = `Slot constraint violations:\n${validation.issues.join("\n")}`;
+            repairError = lastError;
             continue;
         }
 
         const qualityIssues = detectLowQualitySlotOutput(fixed);
         if (qualityIssues.length > 0) {
             lastError = `Low-quality output rejected:\n${qualityIssues.join("\n")}`;
+            repairError = lastError;
             continue;
         }
 
+        const accessibilityIssues = findAccessibilityViolations(fixed);
+        if (accessibilityIssues.length > 0) {
+            lastError = `Accessibility violations:\n${accessibilityIssues.join("\n")}`;
+            repairError = lastError;
+            continue;
+        }
+
+        console.info(JSON.stringify({
+            event: "slot_compile",
+            slot_type: params.slot.slotType,
+            outcome: "accepted",
+            attempts: attempt + 1,
+            repair_attempts: repairAttempts,
+            first_pass_accepted: attempt === 0 && !isRepair,
+            response_id: response.meta.responseId,
+            response_status: response.meta.status,
+            input_tokens: response.meta.inputTokens,
+            output_tokens: response.meta.outputTokens,
+        }));
         return { ok: true, component: fixed };
     }
 
+    console.warn(JSON.stringify({
+        event: "slot_compile",
+        slot_type: params.slot.slotType,
+        outcome: "rejected",
+        attempts: params.maxAttempts,
+        repair_attempts: repairAttempts,
+        first_pass_accepted: false,
+        error: lastError.slice(0, 500),
+    }));
     return { ok: false, error: `Failed after ${params.maxAttempts} attempts: ${lastError}` };
 }
 
@@ -373,6 +416,10 @@ export async function compileSlotWithRepair(params: {
 // They use theme tokens to stay consistent with the generated slots.
 
 export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec?: PromptDesignSpec): AnyComponent {
+    slot = {
+        ...slot,
+        intent: sanitizeInternalDisplayText(slot.intent || "", `Show relevant ${theme.itemNoun} content`),
+    };
     const ab = theme.accentColor.split(":")[0];
     const sb = theme.secondaryColor.split(":")[0];
     const r = theme.cornerRadiusScale === "pill" ? 22 : theme.cornerRadiusScale === "sharp" ? 12 : 16;
@@ -380,8 +427,8 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
     const rIcon = theme.cornerRadiusScale === "pill" ? 999 : theme.cornerRadiusScale === "sharp" ? 6 : 10;
     const pad = theme.density === "compact" ? 12 : theme.density === "airy" ? 20 : 16;
     const sp = theme.density === "compact" ? 8 : theme.density === "airy" ? 16 : 12;
-    const cardBg = theme.surfaceStyle === "immersive" ? "white:0.12" : theme.surfaceStyle === "calm" ? "gray:0.08" : "gray:0.10";
-    const rowBg = theme.surfaceStyle === "immersive" ? "white:0.16" : theme.surfaceStyle === "calm" ? "gray:0.12" : "gray:0.14";
+    const cardBg = theme.surfaceStyle === "immersive" ? "secondarySystemFill:1.0" : "secondarySystemBackground:1.0";
+    const rowBg = theme.surfaceStyle === "immersive" ? "tertiarySystemFill:1.0" : "tertiarySystemBackground:1.0";
 
     const mkText = (text: string, size: string, weight: string, color?: string): AnyComponent => {
         const m: Array<Record<string, unknown>> = [{ type: "Font", properties: { fontSize: size, fontWeight: weight } }];
@@ -422,10 +469,10 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
         || theme.domainTags.includes("transport");
     const isTransportOptionIntent = isTransportLike && /\b(ride|fare|eta|vehicle|trip|option|pickup|reserve)\b/.test(loweredIntent);
     const transportAccent = theme.accentColor || "blue:1.0";
-    const transportSheetFill = theme.surfaceStyle === "immersive" ? "white:0.08" : "gray:0.10";
-    const transportInsetFill = theme.surfaceStyle === "immersive" ? "white:0.12" : "gray:0.12";
-    const transportSecondaryButtonFill = theme.surfaceStyle === "immersive" ? "white:0.16" : "gray:0.14";
-    const transportSecondary = theme.surfaceStyle === "immersive" ? "white:0.72" : "gray:0.62";
+    const transportSheetFill = "systemBackground:1.0";
+    const transportInsetFill = "secondarySystemBackground:1.0";
+    const transportSecondaryButtonFill = "tertiarySystemBackground:1.0";
+    const transportSecondary = "secondary:1.0";
     const transportReserveMode = /\breserve\b|\bschedule\b|\blater\b|\bdeparture\b|\bleave at\b/.test(transportContext);
     const transportCompareMode = /\bcompare\b|\boptions?\b|\bfares?\b|\btiers?\b|\bprice\b|\bpricing\b/.test(transportContext);
     const transportMapMode = /\bmap\b|\broute\b|\bnearby\b|\bdriver\b|\blive\b/.test(transportContext);
@@ -1450,21 +1497,38 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
 
         case "settings_list": {
             if (designSpec?.content.wantsSettingsToggles) {
-                const toggleRows = [
-                    { label: "Notifications", sym: "bell.fill", on: true },
-                    { label: "Dark Mode", sym: "moon.fill", on: false },
-                    { label: "Sound", sym: "speaker.wave.2.fill", on: true },
-                ].map((row) => ({
+                const makeToggleRow = (row: { label: string; sym: string; on: boolean }): AnyComponent => ({
                     type: "HStack",
                     properties: { spacing: 12, alignment: "center" },
-                    modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: rowBg } }, { type: "Corner Radius", properties: { radius: rSmall } }],
+                    modifiers: [fullW, { type: "Padding", properties: { amount: 16, location: "all" } }, { type: "Background Color", properties: { color: rowBg } }, { type: "Corner Radius", properties: { radius: rSmall } }],
                     children: [
                         mkIconCircle(row.sym, `${ab}:0.15`, theme.accentColor, 32),
                         mkText(row.label, "body", "regular"),
                         { type: "Spacer" },
                         { type: "Switch", properties: { isOn: row.on } },
                     ],
-                } as AnyComponent));
+                });
+                if (designSpec.content.wantsNotificationPreferences) {
+                    const notificationRows = [
+                        { label: "Push Notifications", sym: "bell.badge.fill", on: true },
+                        { label: "Email Updates", sym: "envelope.fill", on: true },
+                        { label: "Sounds", sym: "speaker.wave.2.fill", on: true },
+                        { label: "Badges", sym: "app.badge.fill", on: true },
+                    ].map(makeToggleRow);
+                    const children: AnyComponent[] = [];
+                    if (designSpec.content.wantsDarkMode) {
+                        children.push(mkText("Appearance", "caption", "semibold", "secondary:1.0"));
+                        children.push(makeToggleRow({ label: "Dark Mode", sym: "moon.fill", on: false }));
+                    }
+                    children.push(mkText("Notifications", "caption", "semibold", "secondary:1.0"));
+                    children.push(...notificationRows);
+                    return { type: "VStack", properties: { alignment: "leading", spacing: 12 }, children };
+                }
+                const toggleRows = [
+                    { label: "Notifications", sym: "bell.fill", on: true },
+                    { label: "Dark Mode", sym: "moon.fill", on: false },
+                    { label: "Sound", sym: "speaker.wave.2.fill", on: true },
+                ].map(makeToggleRow);
                 return { type: "VStack", properties: { alignment: "leading", spacing: 8 }, children: toggleRows };
             }
             const settingsRows = [
@@ -1473,7 +1537,7 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
                 { label: "Privacy", sym: "lock.fill", trailing: "chevron.right" },
             ].map(row => ({
                 type: "HStack", properties: { spacing: 12, alignment: "center" },
-                modifiers: [fullW, { type: "Padding", properties: { amount: 14, location: "all" } }, { type: "Background Color", properties: { color: rowBg } }, { type: "Corner Radius", properties: { radius: rSmall } }],
+                modifiers: [fullW, { type: "Padding", properties: { amount: 16, location: "all" } }, { type: "Background Color", properties: { color: rowBg } }, { type: "Corner Radius", properties: { radius: rSmall } }],
                 children: [
                     mkIconCircle(row.sym, `${ab}:0.15`, theme.accentColor, 32),
                     mkText(row.label, "body", "regular"),
@@ -1736,7 +1800,7 @@ export function pickDistinctRailVariant(used: Set<RailVariant>, preferred: RailV
 }
 
 export async function enforceRailDiversityAcrossSlots(params: {
-    supabase: ReturnType<typeof createClient> | null;
+    supabase: SupabaseClient | null;
     prompt: string;
     theme: ThemeTokens;
     plan: ScreenPlan;
@@ -1805,7 +1869,7 @@ export async function enforceRailDiversityAcrossSlots(params: {
 }
 
 export async function enforceSlotVarietyAcrossSlots(params: {
-    supabase: ReturnType<typeof createClient> | null;
+    supabase: SupabaseClient | null;
     prompt: string;
     theme: ThemeTokens;
     plan: ScreenPlan;
@@ -2478,7 +2542,7 @@ export function rememberAcceptedSlot(slot: SlotPlan, component: AnyComponent, us
 }
 
 export async function generateSlotsParallel(params: {
-    supabase: ReturnType<typeof createClient> | null;
+    supabase: SupabaseClient | null;
     prompt: string;
     theme: ThemeTokens;
     plan: ScreenPlan;
@@ -2565,4 +2629,281 @@ export async function generateSlotsParallel(params: {
         }
     }
     return results;
+}
+
+
+// Repair and exemplar retrieval are implementation stages of slot generation.
+// ─── Repair ──────────────────────────────────────────────────────────────────
+
+export function cheapRepair(component: AnyComponent): { component: AnyComponent; issues: string[] } {
+    const issues: string[] = [];
+    const visit = (node: AnyComponent): AnyComponent => {
+        if (node.type === "Button" && (!Array.isArray(node.children) || node.children.length === 0)) {
+            node.children = [{ type: "Text", properties: { text: "Button" }, modifiers: [{ type: "Font", properties: { fontSize: "body", fontWeight: "semibold" } }] }];
+            issues.push("Added missing Button child");
+        }
+        if (node.type === "ScrollView") {
+            if (!Array.isArray(node.children) || node.children.length === 0) {
+                node.children = [{ type: "VStack", properties: { alignment: "leading", spacing: 16 }, modifiers: [], children: [] }];
+                issues.push("Added missing ScrollView child");
+            } else if (node.children.length > 1) {
+                node.children = [{ type: "VStack", properties: { alignment: "leading", spacing: 16 }, modifiers: [], children: node.children }];
+                issues.push("Wrapped multiple ScrollView children");
+            }
+        }
+        if (node.type === "Text") {
+            const props = isObject(node.properties) ? node.properties : {};
+            if (typeof props.text !== "string" || props.text.trim() === "") {
+                props.text = "Text";
+                node.properties = props;
+                issues.push("Fixed empty Text");
+            }
+        }
+        if (Array.isArray(node.modifiers)) {
+            const hasCornerRadius = node.modifiers.some((m) => (m as Record<string, unknown>).type === "Corner Radius");
+            if (hasCornerRadius) {
+                node.modifiers = node.modifiers.map((m) => {
+                    const mod = m as Record<string, unknown>;
+                    return mod.type === "Border" ? { ...mod, type: "Stroke" } : mod;
+                });
+            }
+        }
+        if (Array.isArray(node.children)) node.children = node.children.map(visit);
+        return node;
+    };
+    return { component: visit(component), issues };
+}
+
+export const REPAIR_SYSTEM_PROMPT = `Fix schema errors in the SwiftUI JSON. Output ONLY the corrected JSON: { "component": <UIComponent> }
+CONTAINERS (must have children[]): VStack, HStack, ZStack, ScrollView, Button
+LEAVES (delete children if present): Text, Image, SF Symbol, Shape, Chart, Spacer, Divider, Rectangle, Circle, RoundedRectangle, Capsule, Ellipse, Linear Gradient, Text Field, Switch, Slider, Progress View, Status Bar, Gauge, Map
+Invalid type: row/cell->HStack | card/stat->VStack | label/title->Text | icon->SF Symbol | graph->Chart | progress/progressbar->Progress View
+Invalid modifier: remove it. Button with Background Color on label: buttonStyle="plain"
+Shape color rule: Background Color on shape -> convert to Fill. Text.properties.text must be non-empty. Fix ALL errors.
+Border vs Stroke rule: if a node has a Corner Radius modifier, convert any "Border" modifier to "Stroke" (keep same properties).
+Color format: always "colorname:opacity" e.g. "blue:1.0", "gray:0.12"`;
+
+export function buildRepairPrompt(slot: SlotPlan, issues: string[]): string {
+    const constraint = SLOT_CONSTRAINTS[slot.slotType];
+    return `${REPAIR_SYSTEM_PROMPT}
+
+TARGET SLOT: ${slot.slotType}
+SLOT ROLE: ${constraint.description}
+ALLOWED ROOT TYPES: ${constraint.allowedRoots.join(", ")}
+MAX DEPTH: ${constraint.maxDepth}
+
+SPECIFIC VIOLATIONS TO FIX:
+${issues.map((i) => `- ${i}`).join("\n")}
+
+Fix ONLY these violations. Preserve all other structure, content, and styling exactly.`;
+}
+
+export async function compileWithRepairMessages(params: {
+    messages: Array<Record<string, unknown>>;
+    maxAttempts: number;
+    model?: string;
+    maxTokens?: number;
+    repairModel?: string;
+    repairMaxTokens?: number;
+}) {
+    let lastError = "";
+    let lastContent = "";
+    let attempt = 0;
+
+    while (attempt < params.maxAttempts) {
+        const isFirst = attempt === 0;
+        const messages = isFirst ? params.messages : [
+            { role: "system", content: REPAIR_SYSTEM_PROMPT },
+            { role: "user", content: `Previous JSON:\n${lastContent}\n\nErrors:\n${lastError}` },
+        ];
+
+        const response = await callOpenAI({
+            model: isFirst ? (params.model ?? SELECTION_MODEL) : (params.repairModel ?? REPAIR_MODEL),
+            messages, temperature: 0,
+            maxTokens: isFirst ? (params.maxTokens ?? SELECTION_MAX_TOKENS) : (params.repairMaxTokens ?? REPAIR_MAX_TOKENS),
+            responseFormat: { type: "json_object" },
+        });
+
+        if (!response.ok) return { ok: false as const, error: response.error };
+        lastContent = response.content;
+        const parsed = parseJsonSafe(response.content);
+        if (isJsonParseError(parsed)) { lastError = parsed.error; attempt++; continue; }
+        if (!isObject(parsed.value)) { lastError = "Response is not an object"; attempt++; continue; }
+
+        const result = parsed.value as Record<string, unknown>;
+        const raw = result.component ?? (Array.isArray(result.components) ? result.components[0] : null);
+
+        if (!raw && isObject(result.canvas_settings)) {
+            return { ok: true as const, parsed: { mode: "canvas", canvas_settings: result.canvas_settings } };
+        }
+        if (!isObject(raw)) { lastError = "Missing component in response"; attempt++; continue; }
+
+        const { component: cheapFixed } = cheapRepair(raw as AnyComponent);
+        const fixed = postProcessComponents([cheapFixed])[0];
+        if (!VALID_COMPONENT_TYPES.has(fixed.type)) { lastError = `Invalid component type: ${fixed.type}`; attempt++; continue; }
+        return { ok: true as const, parsed: { mode: "component", component: fixed, canvas_settings: result.canvas_settings } };
+    }
+    return { ok: false as const, error: `Failed after ${params.maxAttempts} attempts: ${lastError}` };
+}
+
+const SEED_SLOT_EXEMPLARS: Exemplar[] = [
+    {
+        id: "seed_hero_banner_1",
+        slot_type: "hero_banner",
+        voice_tone: "friendly",
+        surface_style: "editorial",
+        domain_tags: ["general"],
+        description: "Editorial hero with focal value, support copy, and CTA row.",
+        component_tree: {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 12 },
+            modifiers: [
+                { type: "Frame", properties: { widthType: "Full", heightType: "Default" } },
+                { type: "Padding", properties: { amount: 16, location: "all" } },
+                { type: "Background Color", properties: { color: "blue:0.08" } },
+                { type: "Corner Radius", properties: { radius: 18 } },
+            ],
+            children: [
+                { type: "Text", properties: { text: "Weekly momentum" }, modifiers: [{ type: "Font", properties: { fontSize: "caption", fontWeight: "semibold" } }] },
+                { type: "Text", properties: { text: "24% growth" }, modifiers: [{ type: "Font", properties: { fontSize: "largeTitle", fontWeight: "bold" } }] },
+                { type: "Text", properties: { text: "Performance is trending up across your top segments." }, modifiers: [{ type: "Foreground Color", properties: { color: "secondary:1.0" } }] },
+            ],
+        },
+    },
+    {
+        id: "seed_stat_group_1",
+        slot_type: "stat_group",
+        voice_tone: "professional",
+        surface_style: "utility",
+        domain_tags: ["general"],
+        description: "Two-up metric cards with primary + secondary stats and trend label.",
+        component_tree: {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 10 },
+            children: [
+                {
+                    type: "HStack",
+                    properties: { spacing: 10, alignment: "top" },
+                    children: [
+                        { type: "RoundedRectangle", properties: { cornerRadius: 14 }, modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 110 } }, { type: "Fill", properties: { color: "gray:0.10" } }] },
+                        { type: "RoundedRectangle", properties: { cornerRadius: 14 }, modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Custom", height: 110 } }, { type: "Fill", properties: { color: "gray:0.10" } }] },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        id: "seed_horizontal_rail_1",
+        slot_type: "horizontal_rail",
+        voice_tone: "friendly",
+        surface_style: "immersive",
+        domain_tags: ["media"],
+        description: "Poster rail with visual-first cards and concise labels.",
+        component_tree: {
+            type: "ScrollView",
+            properties: { axis: "horizontal", showsIndicators: false },
+            children: [
+                {
+                    type: "HStack",
+                    properties: { spacing: 12, alignment: "top" },
+                    children: [
+                        { type: "RoundedRectangle", properties: { cornerRadius: 12 }, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 140, heightType: "Custom", height: 190 } }, { type: "Fill", properties: { color: "gray:0.16" } }] },
+                        { type: "RoundedRectangle", properties: { cornerRadius: 12 }, modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 140, heightType: "Custom", height: 190 } }, { type: "Fill", properties: { color: "gray:0.16" } }] },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        id: "seed_content_list_1",
+        slot_type: "content_list",
+        voice_tone: "professional",
+        surface_style: "utility",
+        domain_tags: ["general"],
+        description: "Scannable list rows with icon, title, subtitle, and right-aligned status.",
+        component_tree: {
+            type: "VStack",
+            properties: { alignment: "leading", spacing: 10 },
+            children: [
+                {
+                    type: "HStack",
+                    properties: { spacing: 10, alignment: "center" },
+                    modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }, { type: "Padding", properties: { amount: 12, location: "all" } }, { type: "Background Color", properties: { color: "gray:0.08" } }, { type: "Corner Radius", properties: { radius: 12 } }],
+                    children: [
+                        { type: "Circle", modifiers: [{ type: "Frame", properties: { widthType: "Custom", width: 32, heightType: "Custom", height: 32 } }, { type: "Fill", properties: { color: "gray:0.16" } }] },
+                        { type: "Text", properties: { text: "Primary row" }, modifiers: [{ type: "Frame", properties: { widthType: "Full", heightType: "Default" } }, { type: "Font", properties: { fontSize: "body", fontWeight: "semibold" } }] },
+                        { type: "Text", properties: { text: "Open" }, modifiers: [{ type: "Foreground Color", properties: { color: "blue:1.0" } }, { type: "Font", properties: { fontSize: "caption", fontWeight: "bold" } }] },
+                    ],
+                },
+            ],
+        },
+    },
+];
+
+// ─── Retrieval (pgvector + in-memory fallback) ───────────────────────────────
+
+export const EMBEDDING_DIM = 1536;
+
+export async function embedText(text: string): Promise<number[] | null> {
+    if (!openaiApiKey) return null;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), EMBEDDING_TIMEOUT_MS);
+    try {
+        const res = await fetch("https://api.openai.com/v1/embeddings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${openaiApiKey}` },
+            body: JSON.stringify({ model: EMBEDDING_MODEL, input: text.slice(0, 2000) }),
+            signal: controller.signal,
+        });
+        clearTimeout(timer);
+        if (!res.ok) return null;
+        const data = await res.json();
+        const v = data?.data?.[0]?.embedding;
+        return Array.isArray(v) && v.length === EMBEDDING_DIM ? v : null;
+    } catch {
+        clearTimeout(timer);
+        return null;
+    }
+}
+
+export async function retrieveSlotExemplars(params: {
+    supabase: SupabaseClient | null;
+    slotType: string;
+    voiceTone: VoiceTone;
+    domainTags: string[];
+    queryText: string;
+    k?: number;
+}): Promise<Exemplar[]> {
+    const k = params.k ?? 2;
+    const seedForSlot = SEED_SLOT_EXEMPLARS
+        .filter((ex) => ex.slot_type === params.slotType)
+        .slice(0, k);
+    if (params.supabase) {
+        try {
+            const embedding = await embedText(params.queryText);
+            if (embedding) {
+                const { data, error } = await params.supabase.rpc("match_slot_exemplars", {
+                    query_embedding: embedding,
+                    target_slot_type: params.slotType,
+                    target_voice_tone: params.voiceTone,
+                    match_count: k,
+                });
+                if (!error && Array.isArray(data) && data.length > 0) {
+                    return data.map((row: any) => ({
+                        id: String(row.id),
+                        slot_type: String(row.slot_type),
+                        voice_tone: String(row.voice_tone),
+                        surface_style: String(row.surface_style ?? ""),
+                        domain_tags: Array.isArray(row.domain_tags) ? row.domain_tags : [],
+                        description: String(row.description ?? ""),
+                        component_tree: isObject(row.component_tree) ? row.component_tree as AnyComponent : { type: "VStack", properties: {}, children: [] },
+                        similarity: typeof row.similarity === "number" ? row.similarity : undefined,
+                    }));
+                }
+            }
+        } catch (err) {
+            console.warn("slot exemplar retrieval failed:", err instanceof Error ? err.message : String(err));
+        }
+    }
+    return seedForSlot;
 }

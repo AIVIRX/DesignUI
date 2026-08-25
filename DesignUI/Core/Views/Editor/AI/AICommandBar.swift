@@ -68,7 +68,7 @@ struct AICommandBar: View {
     @ViewBuilder
     private var contextBadge: some View {
         if requiresSignIn {
-            Text("Sign in")
+            Text("Sign In")
                 .font(.system(size: 11, weight: .semibold))
                 .tint(.primary)
                 .padding(.horizontal, 10)

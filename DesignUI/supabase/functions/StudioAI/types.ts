@@ -62,6 +62,8 @@ export type DesignManifest = {
     hardRules: string[];
     strictMode: boolean;
     forbiddenSlotTypes: SlotType[];
+    stickyTopRequested: boolean;
+    overlayRequested: boolean;
 };
 
 export type PromptDesignSpec = {
@@ -88,6 +90,8 @@ export type PromptDesignSpec = {
         emphasizedNouns: string[];
         statePack: boolean;
         wantsSettingsToggles: boolean;
+        wantsNotificationPreferences: boolean;
+        wantsDarkMode: boolean;
         conceptVariant?: "clean" | "dense" | "cinematic";
         conceptTag?:
             | "instagram_home"

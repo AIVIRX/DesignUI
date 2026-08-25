@@ -112,7 +112,7 @@ struct ComponentsContainerWithStatusBar: View {
         canvasManager.deselectAll()
         #if os(iOS)
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if PlatformLayoutContext.isPhone {
             NotificationCenter.default.post(name: .minimizeSheet, object: nil)
         }
         #elseif os(macOS)
@@ -186,7 +186,7 @@ struct ComponentsContainerWithoutStatusBar: View {
         canvasManager.deselectAll()
         #if os(iOS)
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if PlatformLayoutContext.isPhone {
             NotificationCenter.default.post(name: .minimizeSheet, object: nil)
         }
         #elseif os(macOS)

@@ -1,6 +1,6 @@
 import type { Density, ScreenTokens, ThemeSurfaces, ThemeTokens } from "./types.ts";
 import { callOpenAI, STANDARD_TOKENS_MODEL, THEME_EXTRACT_MAX_TOKENS, THEME_MODEL } from "./openai.ts";
-import { THEME_RESPONSE_FORMAT } from "./structured-output.ts";
+import { THEME_RESPONSE_FORMAT } from "./schema.ts";
 import { isJsonParseError, isObject, normalizeDensity, normalizeSurfaceStyle, parseJsonSafe } from "./utils.ts";
 
 // ─── Theme extraction ────────────────────────────────────────────────────────
@@ -394,38 +394,19 @@ export function computeThemeSurfaces(theme: ThemeTokens): ThemeSurfaces {
     const cornerRow = theme.cornerRadiusScale === "pill" ? 18 : theme.cornerRadiusScale === "sharp" ? 12 : 12;
     const spacing = theme.density === "compact" ? 8 : theme.density === "airy" ? 16 : 12;
 
-    let cardFill = "gray:0.10";
-    let rowFill = "gray:0.14";
-    let subtleFill = "gray:0.08";
-    let secondaryText = "secondary:1.0";
-    let iconTint = "gray:0.62";
-    let dividerTint = "gray:0.18";
-
-    if (theme.surfaceStyle === "immersive") {
-        cardFill = "white:0.12";
-        rowFill = "white:0.16";
-        subtleFill = "white:0.10";
-        secondaryText = "white:0.72";
-        iconTint = "white:0.68";
-        dividerTint = "white:0.16";
-    } else if (theme.surfaceStyle === "editorial") {
-        cardFill = "gray:0.10";
-        rowFill = "gray:0.14";
-        subtleFill = "gray:0.08";
-    } else if (theme.surfaceStyle === "calm") {
-        cardFill = "gray:0.08";
-        rowFill = "gray:0.12";
-        subtleFill = "gray:0.06";
-    }
+    const immersive = theme.surfaceStyle === "immersive";
+    const cardFill = immersive ? "secondarySystemFill:1.0" : "secondarySystemBackground:1.0";
+    const rowFill = immersive ? "tertiarySystemFill:1.0" : "tertiarySystemBackground:1.0";
+    const subtleFill = "quaternarySystemFill:1.0";
 
     return {
         cardFill,
         rowFill,
         subtleFill,
         primaryText: "primary:1.0",
-        secondaryText,
-        iconTint,
-        dividerTint,
+        secondaryText: "secondary:1.0",
+        iconTint: "tertiary:1.0",
+        dividerTint: "quaternary:1.0",
         cornerCard,
         cornerRow,
         spacing,

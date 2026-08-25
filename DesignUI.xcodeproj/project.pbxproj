@@ -386,9 +386,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DockUI Studio";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DesignUI uses your location to preview map components with user location enabled.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DockUI needs permission to save screenshots to your photo library.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -411,7 +411,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 2026.5;
+				MARKETING_VERSION = 2026.6;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-function-bodies=100 -Xfrontend -warn-long-expression-type-checking=100";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
@@ -467,9 +467,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DesignUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DockUI Studio";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DesignUI uses your location to preview map components with user location enabled.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DockUI needs permission to save screenshots to your photo library.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -492,7 +492,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 2026.5;
+				MARKETING_VERSION = 2026.6;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;

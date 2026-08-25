@@ -21,6 +21,7 @@ struct LayersPanelView: View {
     @State private var draggingId: UUID?
     @State private var isDragOverBottom = false
     @State private var isUserInitiatedSelection = false
+    @State private var selectionScrollTask: Task<Void, Never>?
     @Environment(\.horizontalSizeClass) var hSizeClass
     
     private var isRegularSizeClass: Bool {
@@ -233,15 +234,24 @@ struct LayersPanelView: View {
     }
 
     private func handleSelectionChange(_ newId: UUID?, scrollProxy: ScrollViewProxy) {
-        if let id = newId {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                if !isUserInitiatedSelection {
-                    expandParentsOf(id)
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        scrollProxy.scrollTo(id, anchor: .center)
-                    }
-                }
-                isUserInitiatedSelection = false
+        selectionScrollTask?.cancel()
+        guard let id = newId else { return }
+
+        let shouldScroll = !isUserInitiatedSelection
+        isUserInitiatedSelection = false
+        guard shouldScroll else { return }
+
+        // Materialize an expanded parent chain before scrolling. Starting a spring
+        // scroll during that same layout update made canvas selections visibly hitch.
+        expandParentsOf(id)
+        selectionScrollTask = Task { @MainActor in
+            await Task.yield()
+            guard !Task.isCancelled, selectedComponent?.id == id else { return }
+
+            var transaction = Transaction()
+            transaction.animation = .easeOut(duration: 0.18)
+            withTransaction(transaction) {
+                scrollProxy.scrollTo(id, anchor: .center)
             }
         }
     }
@@ -545,12 +555,11 @@ private struct OutlineRow: View {
     }
     
     private var row: some View {
-        VStack(spacing: 0) {
-            rowSurface
+        rowSurface
             .onTapGesture {
 #if os(iOS)
                 UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                #endif
+#endif
                 onSelect(component)
             }
             .onHover { isHovered = $0 }
@@ -558,7 +567,6 @@ private struct OutlineRow: View {
             .onDrop(of: [UTType.plainText], delegate: dropDelegate)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
-        }
     }
     
     private var rowSurface: some View {
@@ -568,7 +576,7 @@ private struct OutlineRow: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(backgroundFill)
+                .background(backgroundFillColor, in: RoundedRectangle(cornerRadius: 8))
         }
         .overlay(dragOverlay)
         .overlay(dropZoneOverlay)
@@ -742,11 +750,8 @@ private struct OutlineRow: View {
     }
     
     private var indentationSpacers: some View {
-        HStack(spacing: 0) {
-            ForEach(0..<level, id: \.self) { _ in
-                Spacer().frame(width: 16)
-            }
-        }
+        Color.clear
+            .frame(width: CGFloat(level) * 16)
     }
     
     private var expandCollapseButton: some View {
@@ -767,19 +772,10 @@ private struct OutlineRow: View {
     }
     
     private var componentIcon: some View {
-        HStack(spacing: 2) {
-            // If this is a modifier parent, show the modifier icon instead
-            if let modifierType = component.modifierType {
-                Image(systemName: modifierType.icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(componentIconColor)
-            } else {
-                Image(systemName: component.type.icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(componentIconColor)
-            }
-        }
-        .frame(width: 20)
+        Image(systemName: component.modifierType?.icon ?? component.type.icon)
+            .font(.system(size: 14))
+            .foregroundColor(componentIconColor)
+            .frame(width: 20)
     }
     
     private var componentIconColor: Color {
@@ -805,11 +801,6 @@ private struct OutlineRow: View {
         }
         // Use primary for all components
         return .primary
-    }
-    
-    private var backgroundFill: some View {
-        RoundedRectangle(cornerRadius: 8)
-            .fill(backgroundFillColor)
     }
     
     private var backgroundFillColor: Color {

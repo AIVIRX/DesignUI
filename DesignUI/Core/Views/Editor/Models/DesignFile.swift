@@ -3,13 +3,6 @@ import SwiftUI
 import Foundation
 import CryptoKit
 import ImageIO
-#if os(macOS)
-import AppKit
-typealias PlatformImage = NSImage
-#else
-import UIKit
-typealias PlatformImage = UIImage
-#endif
 
 extension Notification.Name {
     static let imageDownloadsCompleted = Notification.Name("imageDownloadsCompleted")
@@ -432,8 +425,18 @@ class DesignManager: ObservableObject {
     
     private var metadataQuery: NSMetadataQuery?
     private var isQueryRunning = false
+    private var hasInitialized = false
     
     private init() {
+        let localDocuments = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        self.designsDirectory = localDocuments.appendingPathComponent("DockUI")
+        self.storageStatus = "📁 Local Only"
+    }
+
+    private func initializeIfNeeded() {
+        guard !hasInitialized else { return }
+        hasInitialized = true
+
         let containerIdentifier = "iCloud.com.Maicol.Dockui"
         
         debugLog("🔍 Checking iCloud availability...")
@@ -672,6 +675,7 @@ class DesignManager: ObservableObject {
     }
     
     func createNewDesign(name: String) -> DesignFile {
+        initializeIfNeeded()
         let uniqueFileName = generateUniqueFileName(baseName: name)
         let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
         
@@ -685,6 +689,7 @@ class DesignManager: ObservableObject {
     }
     
     func createDesignFromTemplate(template: DesignTemplate, name: String) -> DesignFile {
+        initializeIfNeeded()
         let uniqueFileName = generateUniqueFileName(baseName: name)
         let fileURL = designsDirectory.appendingPathComponent(uniqueFileName)
         let displayName = uniqueFileName.replacingOccurrences(of: ".dockui", with: "")
@@ -954,6 +959,7 @@ class DesignManager: ObservableObject {
     #endif
     
     func refreshDesignFiles() {
+        initializeIfNeeded()
         
         if storageStatus.contains("Local") {
             checkAndSwitchToICloud()

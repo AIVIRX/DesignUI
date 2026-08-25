@@ -355,7 +355,21 @@ struct UniversalColorPickerView: View {
         case gradient
     }
 
+    private enum ColorSource: String, CaseIterable {
+        case custom
+        case variables
+    }
+
+    private struct VariableColor: Identifiable {
+        let name: String
+        let displayName: String
+        let color: Color
+
+        var id: String { name }
+    }
+
     @State private var pickerMode: PickerMode = .solid
+    @State private var colorSource: ColorSource = .custom
     @State private var hue: Double = 0
     @State private var saturation: Double = 0
     @State private var brightness: Double = 1
@@ -392,6 +406,20 @@ struct UniversalColorPickerView: View {
         ("clear", "Clear", .clear)
     ]
 
+    private static let variableColors: [VariableColor] = [
+        .init(name: "primary", displayName: ".primary", color: .primary),
+        .init(name: "secondary", displayName: ".secondary", color: .secondary),
+        .init(name: "tertiary", displayName: ".tertiary", color: .primary.opacity(0.6)),
+        .init(name: "quaternary", displayName: ".quaternary", color: .primary.opacity(0.3)),
+        .init(name: "systemBackground", displayName: ".systemBackground", color: ComponentProperty.colorStringToColor("systemBackground")),
+        .init(name: "secondarySystemBackground", displayName: ".secondarySystemBackground", color: ComponentProperty.colorStringToColor("secondarySystemBackground")),
+        .init(name: "tertiarySystemBackground", displayName: ".tertiarySystemBackground", color: ComponentProperty.colorStringToColor("tertiarySystemBackground")),
+        .init(name: "systemFill", displayName: ".systemFill", color: ComponentProperty.colorStringToColor("systemFill")),
+        .init(name: "secondarySystemFill", displayName: ".secondarySystemFill", color: ComponentProperty.colorStringToColor("secondarySystemFill")),
+        .init(name: "tertiarySystemFill", displayName: ".tertiarySystemFill", color: ComponentProperty.colorStringToColor("tertiarySystemFill")),
+        .init(name: "quaternarySystemFill", displayName: ".quaternarySystemFill", color: ComponentProperty.colorStringToColor("quaternarySystemFill"))
+    ]
+
     private var customBaseColor: Color {
         Color(hue: hue, saturation: saturation, brightness: brightness)
     }
@@ -406,6 +434,8 @@ struct UniversalColorPickerView: View {
 
             if supportsGradientMode && pickerMode == .gradient {
                 gradientPlaceholder
+            } else if colorSource == .variables {
+                variableColorTab
             } else {
                 customColorTab
             }
@@ -435,7 +465,14 @@ struct UniversalColorPickerView: View {
     }
     
     private var topModeBar: some View {
-        HStack {
+        HStack(spacing: 8) {
+            HStack(spacing: 4) {
+                colorSourcePillButton(title: "Custom", source: .custom)
+                colorSourcePillButton(title: "Variables", source: .variables)
+            }
+            .padding(4)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.14)))
+
             if supportsGradientMode {
                 HStack(spacing: 4) {
                     modePillButton(title: "Solid", mode: .solid)
@@ -445,6 +482,23 @@ struct UniversalColorPickerView: View {
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.14)))
             }
         }
+    }
+
+    private func colorSourcePillButton(title: String, source: ColorSource) -> some View {
+        Button {
+            colorSource = source
+        } label: {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(colorSource == source ? .white : .secondary)
+                .frame(height: 30)
+                .padding(.horizontal, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(colorSource == source ? Color.blue.opacity(0.9) : Color.clear)
+                )
+        }
+        .buttonStyle(.plain)
     }
 
     private func modePillButton(title: String, mode: PickerMode) -> some View {
@@ -485,6 +539,65 @@ struct UniversalColorPickerView: View {
             alphaSlider
             hexAndAlphaRow
         }
+    }
+
+    private var variableColorTab: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Dynamic Colors")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+            
+            LazyVGrid(
+                columns: [GridItem(.flexible())],
+                spacing: 8
+            ) {
+                ForEach(Self.variableColors) { variable in
+                    variableColorButton(variable)
+                }
+            }
+        }
+    }
+
+    private func variableColorButton(_ variable: VariableColor) -> some View {
+        let isSelected = selectedColorName
+            .split(separator: ":", maxSplits: 1)
+            .first
+            .map { $0.caseInsensitiveCompare(variable.name) == .orderedSame } ?? false
+
+        return Button {
+            isApplyingInternalUpdate = true
+            selectedColorName = variable.name
+            isApplyingInternalUpdate = false
+            colorSource = .variables
+            onColorChanged?()
+            onColorConfirmed?()
+        } label: {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(variable.color)
+                    .frame(width: 18, height: 18)
+                    .overlay(Circle().stroke(Color.primary.opacity(0.16), lineWidth: 1))
+
+                Text(variable.displayName)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .bold))
+                }
+            }
+            .foregroundStyle(isSelected ? .white : .primary)
+            .padding(.horizontal, 10)
+            .frame(height: 40)
+            .background(
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .fill(isSelected ? Color.blue : Color.secondary.opacity(0.12))
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var satBrightnessField: some View {
@@ -597,7 +710,7 @@ struct UniversalColorPickerView: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
 
-            TextField("", text: text)
+            TextField(text: text) { EmptyView() }
                 .textFieldStyle(.plain)
                 .font(.system(size: 13, weight: .semibold, design: isHex ? .monospaced : .default))
                 .foregroundColor(.primary)
@@ -622,6 +735,14 @@ struct UniversalColorPickerView: View {
     }
 
     private func loadFromSelection() {
+        let token = selectedColorName
+            .split(separator: ":", maxSplits: 1)
+            .first
+            .map(String.init) ?? selectedColorName
+        colorSource = Self.variableColors.contains { $0.name.caseInsensitiveCompare(token) == .orderedSame }
+            ? .variables
+            : .custom
+
         let resolved = ComponentProperty.colorStringToColor(selectedColorName)
         let rgba = rgbaComponents(from: resolved)
         let hsv = rgbToHSV(r: rgba.r, g: rgba.g, b: rgba.b)
