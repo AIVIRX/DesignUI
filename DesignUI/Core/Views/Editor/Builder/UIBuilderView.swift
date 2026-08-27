@@ -212,6 +212,9 @@ struct UIBuilderView: View {
     @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
     private let fixedPanelWidth: CGFloat = 300
+#if os(macOS)
+    @State private var macColumnVisibility: NavigationSplitViewVisibility = .all
+#endif
     
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
@@ -444,20 +447,25 @@ struct UIBuilderView: View {
     }
 
     private var baseNavigationContent: some View {
+#if os(macOS)
+        ZStack(alignment: .top) {
+            platformSpecificContent
+        }
+        .onAppear {
+            canvasManager.validateStatusBarProperties()
+        }
+#else
         NavigationStack {
             ZStack(alignment: .top) {
                 platformSpecificContent
-#if os(iOS)
                 cutoutAccessoryOverlay
-                #endif
             }
             .onAppear {
                 canvasManager.validateStatusBarProperties()
             }
         }
-        #if os(iOS)
         .statusBarHidden()
-        #endif
+#endif
     }
 #if os(iOS)
     @ViewBuilder
@@ -537,7 +545,6 @@ struct UIBuilderView: View {
             .navigationTitle(designFile.name)
             .toolbar { toolbarButtons }
 #if os(macOS)
-            .toolbarBackground(.hidden, for: .windowToolbar)
             .toolbarRole(.editor)
 #endif
     }
@@ -896,21 +903,79 @@ struct UIBuilderView: View {
     
     #if os(macOS)
     private var macOSCanvasContent: some View {
-        BuilderFloatingPanelsChrome(
-            panelWidth: fixedPanelWidth,
-            showSidebar: showLayersPanel,
-            showProperties: showPropertiesPanel && canvasManager.selectedComponent != nil,
-            mainContent: {
-                mainCanvasArea()
-            },
-            sidebarContent: {
-                sidebarPanel
-            },
-            propertiesContent: {
-                propertiesPanel
-                    .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
+        NavigationSplitView(columnVisibility: $macColumnVisibility) {
+            macSidebarPanel
+                .navigationSplitViewColumnWidth(min: 220, ideal: 280, max: 380)
+        } detail: {
+            mainCanvasArea()
+                .inspector(isPresented: $showPropertiesPanel) {
+                    macInspectorPanel
+                        .inspectorColumnWidth(min: 280, ideal: 320, max: 440)
+                }
+        }
+        .navigationSplitViewStyle(.balanced)
+    }
+
+    private var macSidebarPanel: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Label("Layers", systemImage: "square.3.layers.3d.top.filled")
+                    .font(.headline)
+
+                Spacer()
+
+                Button {
+                    componentLibraryMode = .add
+                    showComponentLibrary = true
+                } label: {
+                    Label("Add Component", systemImage: "plus")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Add Component")
             }
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+
+            Divider()
+            layersPanel
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var macInspectorPanel: some View {
+        PropertiesPanelView(
+            selectedComponent: $canvasManager.selectedComponent,
+            canvasManager: canvasManager
         )
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(propertiesSheetTitle)
+                    .font(.headline.weight(.semibold))
+                    .lineLimit(1)
+            }
+
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    duplicateSelectedComponentFromPropertiesSheet()
+                } label: {
+                    Label("Duplicate", systemImage: "doc.on.doc")
+                        .labelStyle(.iconOnly)
+                }
+                .disabled(!canPerformComponentToolbarActions)
+                .help("Duplicate Component")
+
+                Button {
+                    deleteSelectedComponentFromPropertiesSheet()
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                        .labelStyle(.iconOnly)
+                }
+                .disabled(!canPerformComponentToolbarActions)
+                .help("Delete Component")
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     #endif
     
@@ -1510,18 +1575,14 @@ struct UIBuilderView: View {
     @ToolbarContentBuilder
     private var toolbarButtons: some ToolbarContent {
 #if os(macOS)
-        ToolbarItemGroup(placement: .navigation) {
-            layersToolbarToggleButton
-        }
-
         ToolbarItemGroup(placement: .primaryAction) {
-            Spacer()
             devicePresetMenu
             colorSchemeMenu
             pageMenu
             undoToolbarButton
             redoToolbarButton
             exportMenu
+            propertiesToolbarToggleButton
         }
 #else
         ToolbarItemGroup(placement: .navigation) {
@@ -1541,6 +1602,22 @@ struct UIBuilderView: View {
         }
 #endif
     }
+
+#if os(macOS)
+    private var propertiesToolbarToggleButton: some View {
+        Button {
+            showPropertiesPanel.toggle()
+        } label: {
+            Label(
+                showPropertiesPanel ? "Hide Inspector" : "Show Inspector",
+                systemImage: "sidebar.right"
+            )
+            .labelStyle(.iconOnly)
+        }
+        .help(showPropertiesPanel ? "Hide Inspector" : "Show Inspector")
+        .keyboardShortcut("i", modifiers: [.command, .option])
+    }
+#endif
 
     private var layersToolbarToggleButton: some View {
         Button(action: {
@@ -1822,7 +1899,7 @@ struct UIBuilderView: View {
         }
         #else
         // iOS: Save to Photos
-        if let uiImage = platformImage(from: imageData) as? UIImage {
+        if let uiImage = platformImage(from: imageData) {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
             aiService.markGenerationExported(
                 components: canvasManager.components,

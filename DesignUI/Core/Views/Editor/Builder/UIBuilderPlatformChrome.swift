@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if os(iOS)
 struct BuilderFloatingPanelsChrome<MainContent: View, SidebarContent: View, PropertiesContent: View>: View {
     let panelWidth: CGFloat
     let showSidebar: Bool
@@ -36,7 +37,6 @@ struct BuilderFloatingPanelsChrome<MainContent: View, SidebarContent: View, Prop
     }
 }
 
-#if os(iOS)
 struct BuilderPhoneCanvasChrome<CanvasContent: View>: View {
     @ViewBuilder let canvasContent: () -> CanvasContent
 

@@ -11,6 +11,7 @@ import SwiftUI
 struct EditorLoadingView: View {
     @ObservedObject var designFile: DesignFile
     @EnvironmentObject private var designManager: DesignManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     @State private var isLoading = true
     @State private var isEditorMounted = false
@@ -25,7 +26,7 @@ struct EditorLoadingView: View {
                 UIBuilderView(designFile: designFile)
                     .environmentObject(designManager)
                     .opacity(isLoading ? 0 : 1)
-                    .scaleEffect(isLoading ? 0.98 : 1)
+                    .scaleEffect(isLoading && !reduceMotion ? 0.98 : 1)
             }
             
             // Loading overlay with blur
@@ -37,7 +38,7 @@ struct EditorLoadingView: View {
                 .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.4), value: isLoading)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.4), value: isLoading)
         .task {
             await loadDesign()
         }
@@ -56,109 +57,56 @@ struct EditorLoadingView: View {
         try? await Task.sleep(nanoseconds: 150_000_000)
         loadingProgress = 1
 
-        withAnimation(.easeInOut(duration: 0.4)) {
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.4)) {
             isLoading = false
         }
     }
 }
 
-/// Loading overlay with AppLogo, blur background, and progress bar
+/// Lightweight loading state that adapts to the current appearance and accessibility settings.
 struct EditorLoadingOverlay: View {
     let progress: Double
     let message: String
-    
-    @State private var animateLogo = false
-    
+
     var body: some View {
-        VStack(spacing: 28) {
-            logoMark
-            progressCard
-        }
-        .onAppear {
-            animateLogo = true
-        }
-    }
-
-    private var logoMark: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(.white.opacity(0.1))
-                .frame(width: 124, height: 124)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .stroke(.white.opacity(0.12), lineWidth: 1)
-                )
+            Color.platformWindowBackground
+                .ignoresSafeArea()
 
-            Image("AppLogo")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 94, height: 94)
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                .shadow(color: Color.black.opacity(0.18), radius: 24, x: 0, y: 14)
-                .scaleEffect(animateLogo ? 1.03 : 0.98)
-                .animation(
-                    .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
-                    value: animateLogo
-                )
-        }
-    }
+            VStack(spacing: 24) {
+                Image("AppLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .accessibilityHidden(true)
 
-    private var progressCard: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            loadingHeader
-            progressTrack
-            progressStatus
-        }
-        .padding(24)
-        .frame(maxWidth: 320)
-        .background(.white.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
-        )
-    }
+                VStack(spacing: 12) {
+                    Text("Opening project")
+                        .font(.headline)
 
-    private var loadingHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Opening project")
-                .font(.system(.title3, design: .rounded).weight(.bold))
-                .foregroundStyle(.white)
-        }
-    }
+                    ProgressView(value: progress)
+                        .progressViewStyle(.linear)
+                        .frame(maxWidth: 240)
+                        .accessibilityLabel("Opening project")
+                        .accessibilityValue(Text(verbatim: "\(Int((progress * 100).rounded()))%"))
 
-    private var progressTrack: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(.white.opacity(0.12))
-
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.cyan, Color.blue],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: max(12, geometry.size.width * progress))
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: progress)
+                    Text(message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
+            .padding(32)
         }
-        .frame(height: 8)
     }
+}
 
-    private var progressStatus: some View {
-        HStack {
-            Text("Preparing canvas")
-                .font(.system(.caption, design: .rounded).weight(.semibold))
-                .foregroundStyle(.white.opacity(0.55))
-
-            Spacer()
-
-            Text(verbatim: "\(Int((progress * 100).rounded()))%")
-                .font(.system(.caption, design: .rounded).weight(.bold))
-                .foregroundStyle(.white.opacity(0.8))
-        }
+private extension Color {
+    static var platformWindowBackground: Color {
+#if os(macOS)
+        Color(nsColor: .windowBackgroundColor)
+#else
+        Color(uiColor: .systemBackground)
+#endif
     }
 }

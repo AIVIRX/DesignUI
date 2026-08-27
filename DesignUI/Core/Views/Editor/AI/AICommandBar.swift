@@ -31,19 +31,18 @@ struct AICommandBar: View {
                 contextBadge
                 sendButton
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .glassEffect()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .glassEffect(.regular.interactive(), in: .capsule)
             .overlay(borderOverlay)
-            .clipShape(Capsule(style: .continuous))
         } else {
             HStack(spacing: 10) {
                 promptField
                 contextBadge
                 sendButton
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
             .background(barBackground)
             .overlay(borderOverlay)
             .clipShape(Capsule(style: .continuous))
@@ -69,25 +68,25 @@ struct AICommandBar: View {
     private var contextBadge: some View {
         if requiresSignIn {
             Text("Sign In")
-                .font(.system(size: 11, weight: .semibold))
-                .tint(.primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
                 .background(Capsule().fill(Color.red.opacity(0.14)))
         } else if let selectedLabel, !selectedLabel.isEmpty {
             Text(selectedLabel)
-                .font(.system(size: 11, weight: .semibold))
+                .font(.caption2.weight(.semibold))
                 .lineLimit(1)
-                .tint(.primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
                 .background(Capsule().fill(Color.secondary.opacity(0.16)))
         } else {
             Text("\(quotaRemaining) left")
-                .font(.system(size: 11, weight: .semibold))
-                .tint(.primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
                 .background(Capsule().fill(Color.secondary.opacity(0.16)))
         }
     }
@@ -110,6 +109,7 @@ struct AICommandBar: View {
         .clipShape(Circle())
         .buttonStyle(.plain)
         .disabled(!canSend)
+        .accessibilityLabel(isGenerating ? "Generating" : "Send request")
         #else
         if #available(iOS 26.0, macOS 26.0, *) {
             Button(action: generate) {
@@ -125,6 +125,8 @@ struct AICommandBar: View {
             }
             .buttonStyle(.glass)
             .disabled(!canSend)
+            .frame(minWidth: 44, minHeight: 44)
+            .accessibilityLabel(isGenerating ? "Generating" : "Send request")
         } else {
             Button(action: generate) {
                 if isGenerating {
@@ -140,6 +142,9 @@ struct AICommandBar: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSend)
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+            .accessibilityLabel(isGenerating ? "Generating" : "Send request")
         }
         #endif
     }

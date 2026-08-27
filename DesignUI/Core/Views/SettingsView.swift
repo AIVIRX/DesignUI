@@ -33,26 +33,30 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    subscriptionSection
-                    appearanceSection
-                    moreAppsSection
-                    appSection
-                    supportSection
-                    legalSection
-                    versionSection
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+            Form {
+                subscriptionSection
+                appearanceSection
+                moreAppsSection
+                appSection
+                supportSection
+                legalSection
+                versionSection
             }
-#if os(iOS)
+            .formStyle(.grouped)
             .navigationTitle("Settings")
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
 #if os(macOS)
-        .frame(width: 500, height: 750)
+        .frame(width: 520, height: 720)
 #endif
         .sheet(isPresented: $showPaywall) {
             CustomPaywallView()
@@ -63,34 +67,31 @@ struct SettingsView: View {
     }
 
     private var subscriptionSection: some View {
-        section("Subscription") {
+        Section("Subscription") {
             HStack(spacing: 12) {
                 Image(systemName: purchases.hasPremium ? "checkmark.seal.fill" : "xmark.seal.fill")
-                    .foregroundColor(purchases.hasPremium ? .green : .red)
+                    .foregroundStyle(purchases.hasPremium ? Color.green : Color.red)
                     .frame(width: 24)
                 Text("Premium")
-                    .fontWeight(.semibold)
                 Spacer()
                 if !purchases.hasPremium {
                     Button("Subscribe") {
                         showPaywall = true
                     }
                     .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
                 } else {
                     Text("Active")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
     }
 
     private var appearanceSection: some View {
-        section("Appearance") {
+        Section("Appearance") {
             HStack(spacing: 12) {
                 Image(systemName: "circle.lefthalf.filled")
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.tint)
                     .frame(width: 24)
                 Text("Theme")
                 Spacer()
@@ -106,134 +107,72 @@ struct SettingsView: View {
     }
 
     private var moreAppsSection: some View {
-        section("More Apps") {
-            VStack(spacing: 0) {
-                appPromoRow(
-                    title: "String Catalog Translator",
-                    subtitle: "Translate your app strings",
-                    imageAssetName: "StringCatLogo",
-                    url: stringCatalogTranslateURL
-                )
-                promoRowDivider
-                appPromoRow(
-                    title: "App Screenshot Studio - Mockup",
-                    subtitle: "Create polished App Store screenshots",
-                    imageAssetName: "screenshotStudio",
-                    url: screenshotStudioURL
-                )
-                promoRowDivider
-                appPromoRow(
-                    title: "Metadata Translator: ASO",
-                    subtitle: "Localize App Store metadata",
-                    imageAssetName: "metadataTranslator",
-                    url: metadataTranslatorURL
-                )
-            }
+        Section("More Apps") {
+            appPromoRow(
+                title: "String Catalog Translator",
+                subtitle: "Translate your app strings",
+                imageAssetName: "StringCatLogo",
+                url: stringCatalogTranslateURL
+            )
+            appPromoRow(
+                title: "App Screenshot Studio - Mockup",
+                subtitle: "Create polished App Store screenshots",
+                imageAssetName: "screenshotStudio",
+                url: screenshotStudioURL
+            )
+            appPromoRow(
+                title: "Metadata Translator: ASO",
+                subtitle: "Localize App Store metadata",
+                imageAssetName: "metadataTranslator",
+                url: metadataTranslatorURL
+            )
         }
     }
 
     private var appSection: some View {
-        section("App") {
-            VStack {
-                Button {
-                    openURL(appStoreURL)
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
-                            .frame(width: 24)
-                        Text("Rate App")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.primary)
+        Section("App") {
+            Button {
+                openURL(appStoreURL)
+            } label: {
+                settingsRow(title: "Rate App", icon: "star.fill")
+            }
 
-                rowDivider
-
-                ShareLink(item: appStoreURL) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.blue)
-                            .frame(width: 24)
-                        Text("Share App")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.primary)
+            ShareLink(item: appStoreURL) {
+                settingsRow(title: "Share App", icon: "square.and.arrow.up")
             }
         }
     }
 
     private var supportSection: some View {
-        section("Support") {
-            VStack {
-                settingsLinkRow(title: "Website", icon: "globe", iconColor: .blue) {
-                    openURL(websiteURL)
-                }
-                rowDivider
-                Button(action: sendEmail) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "envelope.fill")
-                            .foregroundColor(.green)
-                            .frame(width: 24)
-                        Text("Send Feedback")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.primary)
-#if os(iOS)
-                .disabled(!MFMailComposeViewController.canSendMail())
-#endif
+        Section("Support") {
+            settingsLinkRow(title: "Website", icon: "globe") {
+                openURL(websiteURL)
             }
+            Button(action: sendEmail) {
+                settingsRow(title: "Send Feedback", icon: "envelope.fill")
+            }
+#if os(iOS)
+            .disabled(!MFMailComposeViewController.canSendMail())
+#endif
         }
     }
 
     private var legalSection: some View {
-        section("Legal") {
-            VStack {
-                settingsLinkRow(title: "Privacy Policy", icon: "hand.raised.fill", iconColor: .purple) {
-                    openURL(privacyURL)
-                }
-                rowDivider
-                settingsLinkRow(title: "Terms of Service", icon: "doc.text.fill", iconColor: .gray) {
-                    openURL(termsURL)
-                }
+        Section("Legal") {
+            settingsLinkRow(title: "Privacy Policy", icon: "hand.raised.fill") {
+                openURL(privacyURL)
+            }
+            settingsLinkRow(title: "Terms of Service", icon: "doc.text.fill") {
+                openURL(termsURL)
             }
         }
     }
 
     private var versionSection: some View {
-        HStack {
-            Spacer()
-            Text("Version \(versionString)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Spacer()
+        Section {
+            LabeledContent("Version", value: versionString)
+                .foregroundStyle(.secondary)
         }
-        .padding(.top, 4)
-    }
-
-    private var rowDivider: some View {
-        Divider().padding(.leading, 36)
-    }
-
-    private var promoRowDivider: some View {
-        Divider().padding(.leading, 62)
     }
 
     private func appPromoRow(
@@ -249,86 +188,63 @@ struct SettingsView: View {
                 Image(imageAssetName)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 50, height: 50)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .frame(width: 48, height: 48)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
                     Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
 
                 Spacer(minLength: 10)
 
                 Text("Get")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 22)
-                    .padding(.vertical, 8)
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(.tint)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color.blue)
+                            .fill(.quaternary)
                     )
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        Group {
-            Text(title.uppercased())
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.top)
-
-            VStack(spacing: 0) {
-                content()
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.secondary.opacity(0.1))
-            )
+    private func settingsRow(title: String, icon: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(.tint)
+                .frame(width: 24)
+            Text(title)
+            Spacer()
+            Image(systemName: "chevron.forward")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
         }
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
     private func settingsLinkRow(
         title: String,
         icon: String,
-        iconColor: Color,
-        imageAssetName: String? = nil,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                if let imageAssetName {
-                    Image(imageAssetName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 24, height: 24)
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                } else {
-                    Image(systemName: icon)
-                        .foregroundColor(iconColor)
-                        .frame(width: 24)
-                }
-                Text(title)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-            }
-            .contentShape(Rectangle())
+            settingsRow(title: title, icon: icon)
         }
         .buttonStyle(.plain)
-        .foregroundColor(.primary)
+        .foregroundStyle(.primary)
     }
     
     private var versionString: String {
