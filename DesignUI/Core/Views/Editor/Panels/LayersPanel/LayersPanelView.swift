@@ -62,9 +62,6 @@ struct LayersPanelView: View {
         }
 #else
         base
-            .popover(isPresented: $showComponentLibrary) {
-                componentLibraryPopoverView(width: 500, height: 400)
-            }
 #endif
     }
     
@@ -85,9 +82,7 @@ struct LayersPanelView: View {
                 }
             }
         }
-        .onAppear {
-            expandAllParents()
-        }
+        .onAppear(perform: handleComponentsChanged)
         .onChange(of: canvasManager.components) { _, _ in
             handleComponentsChanged()
         }
@@ -111,8 +106,8 @@ struct LayersPanelView: View {
     }
 
     private var layersListView: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 0) {
+        LazyVStack(spacing: 0) {
+            LazyVStack(spacing: 0) {
                 statusBarRowView
                 ForEach(canvasManager.components) { component in
                     componentGroup(for: component)
@@ -297,22 +292,6 @@ struct LayersPanelView: View {
         canvasManager.wrapComponent(component, in: type)
     }
 
-    private func expandAllParents() {
-        var allParentIds: Set<UUID> = []
-        
-        func collectParentIds(from components: [UIComponent]) {
-            for component in components {
-                if !component.children.isEmpty {
-                    allParentIds.insert(component.id)
-                    collectParentIds(from: component.children)
-                }
-            }
-        }
-        
-        collectParentIds(from: canvasManager.components)
-        expanded = allParentIds
-    }
-    
     private func expandParentsOf(_ componentId: UUID) {
         // Only expand the direct parent chain to the selected component
         // This ensures the selected component is visible without expanding everything
@@ -594,11 +573,25 @@ private struct OutlineRow: View {
             Label("Duplicate", systemImage: "doc.on.doc")
         }
 
-        Button(action: {
+#if os(macOS)
+        Menu {
+            ForEach(ComponentLibraryCatalog.availableComponents) { componentType in
+                Button {
+                    replaceComponent(with: componentType)
+                } label: {
+                    Label(componentType.rawValue, systemImage: componentType.icon)
+                }
+            }
+        } label: {
+            Label("Replace", systemImage: "arrow.triangle.2.circlepath")
+        }
+#else
+        Button {
             onReplace(component)
-        }) {
+        } label: {
             Label("Replace…", systemImage: "arrow.triangle.2.circlepath")
         }
+#endif
 
         if canAddLayerModifiers {
             Divider()
@@ -646,6 +639,21 @@ private struct OutlineRow: View {
     private var canAddLayerModifiers: Bool {
         component.modifierType == nil
     }
+
+#if os(macOS)
+    private func replaceComponent(with componentType: ComponentType) {
+        let replacement = ComponentLibraryCatalog.makeComponent(
+            type: componentType,
+            isFirstComponent: false
+        )
+        canvasManager.replaceComponent(
+            component,
+            with: replacement,
+            registerUndo: true,
+            undoDescription: "Replace Component"
+        )
+    }
+#endif
 
     private func addLayerModifier(_ type: ModifierType) {
         let modifier = ComponentModifier.createWithDefaults(type: type)

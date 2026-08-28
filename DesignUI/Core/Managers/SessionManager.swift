@@ -6,10 +6,17 @@
 
 import Foundation
 
-class SessionManager {
+@MainActor
+final class SessionManager {
     static let shared = SessionManager()
-    
-    var hasRequestedReview = false
-    
+
+    private var hasRequestedReview = false
+
     private init() {}
+
+    func requestReviewAfterSuccessfulExport(_ request: () -> Void) {
+        guard !hasRequestedReview else { return }
+        hasRequestedReview = true
+        request()
+    }
 }

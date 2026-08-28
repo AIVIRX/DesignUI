@@ -16,7 +16,7 @@ struct LikeButton: View {
     @State private var isLoading = false
     @State private var showAlert = false
     private let supabase = SupabaseManager.shared.client
-    @Environment(\.requestReview) private var requestReview
+
     init(postId: String) {
         self.postId = postId
     }
@@ -108,12 +108,6 @@ struct LikeButton: View {
                     "postId": postId,
                     "isLiked": true
                 ])
-                
-                // Request review when user favorites a post (only once per session)
-                if !SessionManager.shared.hasRequestedReview {
-                    requestReview()
-                    SessionManager.shared.hasRequestedReview = true
-                }
             }
         } catch {
             print("Error toggling like:", error)

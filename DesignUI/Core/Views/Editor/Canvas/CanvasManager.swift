@@ -201,6 +201,41 @@ class CanvasManager: ObservableObject {
         }
     }
 
+    func insertComponent(_ component: UIComponent, relativeTo selected: UIComponent?) {
+        guard let selected else {
+            addComponent(component)
+            return
+        }
+
+        if canAcceptChildren(selected) {
+            registerUndoAction("Added \(component.type.rawValue) to \(selected.type.rawValue)")
+            beginLayoutTransition(duration: 0.35)
+            component.frame = .zero
+            withAnimation(layoutAnimation) {
+                selected.addChild(component)
+                selectedComponent = component
+            }
+            return
+        }
+
+        guard let parent = findParentComponent(of: selected.id) else {
+            addComponent(component)
+            return
+        }
+
+        registerUndoAction("Added \(component.type.rawValue)")
+        beginLayoutTransition(duration: 0.35)
+        component.frame = .zero
+        withAnimation(layoutAnimation) {
+            if let index = parent.children.firstIndex(where: { $0.id == selected.id }) {
+                parent.children.insert(component, at: index + 1)
+            } else {
+                parent.addChild(component)
+            }
+            selectedComponent = component
+        }
+    }
+
     func replaceComponent(_ component: UIComponent, with replacement: UIComponent, registerUndo: Bool = true, undoDescription: String = "AI Edit") {
         if registerUndo {
             registerUndoAction(undoDescription)

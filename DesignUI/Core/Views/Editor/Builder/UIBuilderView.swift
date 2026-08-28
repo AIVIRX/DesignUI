@@ -9,6 +9,7 @@ import SwiftUI
 import AppKit
 #else
 import UIKit
+import Photos
 import NotchMyProblem
 #endif
 
@@ -195,12 +196,14 @@ enum DevicePreset: String, CaseIterable, Identifiable {
 
 struct UIBuilderView: View {
     @EnvironmentObject private var toastManager: ToastManager
+    @Environment(\.requestReview) private var requestReview
     @ObservedObject var designFile: DesignFile
+    private let onInitialRender: () -> Void
     #if os(iOS)
     @EnvironmentObject private var designManager: DesignManager
     #endif
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @StateObject private var canvasManager = CanvasManager()
+    @StateObject private var canvasManager: CanvasManager
     @StateObject private var aiService = AIService.shared
     
     @State private var showCodePreview = false
@@ -212,16 +215,13 @@ struct UIBuilderView: View {
     @State private var showLayersPanel = true
     @State private var showPropertiesPanel = true
     private let fixedPanelWidth: CGFloat = 300
-#if os(macOS)
-    @State private var macColumnVisibility: NavigationSplitViewVisibility = .all
-#endif
-    
     @State private var currentPageIndex: Int = 0
     @State private var isSwitchingPage: Bool = false
     @State private var isRestoringInitialCanvas: Bool = false
     @State private var showRenamePageSheet: Bool = false
     @State private var renamePageText: String = ""
     @State private var isRestoringCanvasSettings: Bool = false
+    @State private var didReportInitialRender = false
 
     @State private var showComponentLibrary = false
     @State private var componentLibraryMode: ComponentLibraryMode = .add
@@ -230,6 +230,37 @@ struct UIBuilderView: View {
     
     // Free tier limit
     private let freePageLimit = 3
+
+    init(designFile: DesignFile, onInitialRender: @escaping () -> Void = {}) {
+        self._designFile = ObservedObject(wrappedValue: designFile)
+        self.onInitialRender = onInitialRender
+
+        let manager = CanvasManager()
+        manager.components = designFile.components
+        manager.setDesignName(designFile.name)
+
+        if let savedDevicePreset = designFile.selectedDevicePreset ?? designFile.devicePreset,
+           let devicePreset = DevicePreset.allCases.first(where: { $0.rawValue == savedDevicePreset }) {
+            manager.devicePreset = devicePreset
+        }
+
+        if let savedColorScheme = designFile.canvasColorScheme?.lowercased() {
+            manager.colorScheme = savedColorScheme == "light" ? .light : (savedColorScheme == "dark" ? .dark : nil)
+        }
+
+        if let savedStatusBar = designFile.currentPage?.statusBarComponent {
+            manager.statusBarComponent = savedStatusBar.clone()
+        } else {
+            manager.statusBarVisible = designFile.statusBarVisible
+            manager.statusBarTopSafeArea = designFile.currentPage?.statusBarTopSafeArea
+                ?? designFile.statusBarTopSafeArea
+        }
+        manager.validateStatusBarProperties()
+        manager.saveInitialState()
+
+        self._canvasManager = StateObject(wrappedValue: manager)
+        self._currentPageIndex = State(initialValue: designFile.currentPageIndex)
+    }
 
     // AI
     @State private var isAIGenerating = false
@@ -369,18 +400,6 @@ struct UIBuilderView: View {
         hasAppliedInitialCanvasView = true
     }
 
-    private func animateRecenterCanvas() {
-        canvasManager.isLayoutTransitioning = true
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            applyInitialCanvasView()
-            canvasManager.centerCanvasTrigger.toggle()
-        }
-        baseZoomLevel = canvasManager.zoomLevel
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            canvasManager.isLayoutTransitioning = false
-        }
-    }
-    
     private func presentRenameCurrentPage() {
         guard currentPageIndex >= 0, currentPageIndex < designFile.pages.count else { return }
         renamePageText = designFile.pages[currentPageIndex].name
@@ -541,11 +560,13 @@ struct UIBuilderView: View {
     }
 
     private func withToolbar<Content: View>(_ content: Content) -> some View {
+#if os(macOS)
         content
             .navigationTitle(designFile.name)
-            .toolbar { toolbarButtons }
-#if os(macOS)
             .toolbarRole(.editor)
+#else
+        content
+            .navigationTitle(designFile.name)
 #endif
     }
 
@@ -655,8 +676,20 @@ struct UIBuilderView: View {
         content
             .onAppear {
                 setupCanvas()
-                restoreCanvasSettings()
+                reportInitialRenderWhenReady()
             }
+    }
+
+    private func reportInitialRenderWhenReady() {
+        guard !didReportInitialRender else { return }
+
+        Task { @MainActor in
+            // Resume only after SwiftUI has completed the editor's first render pass.
+            await Task.yield()
+            guard !didReportInitialRender else { return }
+            didReportInitialRender = true
+            onInitialRender()
+        }
     }
 
     private func withComponentChangeHandlers<Content: View>(_ content: Content) -> some View {
@@ -861,294 +894,138 @@ struct UIBuilderView: View {
     
     @ViewBuilder
     private var platformSpecificContent: some View {
-        #if os(iOS)
+#if os(iOS)
         if PlatformLayoutContext.isPhone {
-            // iPhone: Full screen canvas with bottom sheet
-            iOSCanvasContent
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { iOSToolbarContent }
+            PhoneEditorShell(
+                layersIcon: AppTab.layers.icon,
+                commands: editorShellCommands,
+                canvasContent: {
+                    mainCanvasArea(pushScale: 1.0, pushOffset: .zero)
+                },
+                pageMenu: {
+                    pageMenu
+                }
+            )
+            .onChange(of: activeSheet) { _, newValue in
+                handlePhoneSheetChange(newValue)
+            }
         } else {
-            // iPad: macOS-style floating panels
-            iPadCanvasContent
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle(designFile.name)
-                .toolbar { iPadToolbarContent }
+            PadEditorShell(
+                designName: designFile.name,
+                panelWidth: fixedPanelWidth,
+                showSidebar: showLayersPanel,
+                showProperties: showPropertiesPanel && canvasManager.selectedComponent != nil,
+                commands: editorShellCommands,
+                canvasContent: {
+                    mainCanvasArea()
+                },
+                sidebarContent: {
+                    sidebarPanel
+                },
+                propertiesContent: {
+                    propertiesPanel
+                        .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
+                        .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
+                },
+                deviceMenu: {
+                    devicePresetMenu
+                },
+                pageMenu: {
+                    pageMenu
+                },
+                colorSchemeMenu: {
+                    colorSchemeMenu
+                },
+                exportMenu: {
+                    exportMenu
+                }
+            )
         }
-        #else
-        // macOS: Normal canvas layout with overlaid panels
-        macOSCanvasContent
-        #endif
-    }
-    
-    #if os(iOS)
-    private var iPadCanvasContent: some View {
-        BuilderFloatingPanelsChrome(
-            panelWidth: fixedPanelWidth,
-            showSidebar: showLayersPanel,
-            showProperties: showPropertiesPanel && canvasManager.selectedComponent != nil,
-            mainContent: {
+#else
+        MacEditorShell(
+            showInspector: $showPropertiesPanel,
+            commands: editorShellCommands,
+            canvasContent: {
                 mainCanvasArea()
             },
             sidebarContent: {
-                sidebarPanel
+                layersPanel
             },
-            propertiesContent: {
-                propertiesPanel
-                    .animation(.easeInOut(duration: 0.3), value: showPropertiesPanel)
-                    .animation(.easeInOut(duration: 0.3), value: canvasManager.selectedComponent)
+            inspectorContent: {
+                PropertiesPanelView(
+                    selectedComponent: $canvasManager.selectedComponent,
+                    canvasManager: canvasManager,
+                    showComponentActionsSection: false
+                )
+            },
+            deviceMenu: {
+                devicePresetMenu
+            },
+            pageMenu: {
+                pageMenu
+            },
+            colorSchemeMenu: {
+                colorSchemeMenu
+            },
+            exportMenu: {
+                exportMenu
             }
         )
-    }
-    #endif
-    
-    #if os(macOS)
-    private var macOSCanvasContent: some View {
-        NavigationSplitView(columnVisibility: $macColumnVisibility) {
-            macSidebarPanel
-                .navigationSplitViewColumnWidth(min: 220, ideal: 280, max: 380)
-        } detail: {
-            mainCanvasArea()
-                .inspector(isPresented: $showPropertiesPanel) {
-                    macInspectorPanel
-                        .inspectorColumnWidth(min: 280, ideal: 320, max: 440)
-                }
-        }
-        .navigationSplitViewStyle(.balanced)
+#endif
     }
 
-    private var macSidebarPanel: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Label("Layers", systemImage: "square.3.layers.3d.top.filled")
-                    .font(.headline)
-
-                Spacer()
-
-                Button {
-                    componentLibraryMode = .add
-                    showComponentLibrary = true
-                } label: {
-                    Label("Add Component", systemImage: "plus")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Add Component")
-            }
-            .padding(.horizontal, 12)
-            .frame(height: 44)
-
-            Divider()
-            layersPanel
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var macInspectorPanel: some View {
-        PropertiesPanelView(
-            selectedComponent: $canvasManager.selectedComponent,
-            canvasManager: canvasManager
-        )
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(propertiesSheetTitle)
-                    .font(.headline.weight(.semibold))
-                    .lineLimit(1)
-            }
-
-            ToolbarItemGroup(placement: .primaryAction) {
-                Button {
-                    duplicateSelectedComponentFromPropertiesSheet()
-                } label: {
-                    Label("Duplicate", systemImage: "doc.on.doc")
-                        .labelStyle(.iconOnly)
-                }
-                .disabled(!canPerformComponentToolbarActions)
-                .help("Duplicate Component")
-
-                Button {
-                    deleteSelectedComponentFromPropertiesSheet()
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                        .labelStyle(.iconOnly)
-                }
-                .disabled(!canPerformComponentToolbarActions)
-                .help("Delete Component")
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    #endif
-    
+    private var editorShellCommands: EditorShellCommands {
+        EditorShellCommands(
+            undo: handleCanvasUndo,
+            redo: handleCanvasRedo,
+            dismissEditor: handleCutoutCancel,
+            toggleLayers: toggleLayersPanel,
+            openCanvasSettings: {
 #if os(iOS)
-    private var iOSCanvasContent: some View {
-        BuilderPhoneCanvasChrome {
-            mainCanvasArea(
-                pushScale: 1.0,
-                pushOffset: .zero
-            )
-        }
-        .onChange(of: activeSheet) { _, newValue in
-            let isOverlayOpen = newValue == .layers || newValue == .properties
-            canvasManager.isOverlayPanelOpen = isOverlayOpen
-            canvasManager.isPropertiesSheetPresented = newValue == .properties
-            if newValue != .layers {
-                showLayerPropertiesNavigation = false
-            }
-        }
+                openCanvasSettingsSheet()
+#endif
+            },
+            openLayers: {
+#if os(iOS)
+                openLayersSheet()
+#endif
+            },
+            duplicateSelection: duplicateSelectedComponentFromPropertiesSheet,
+            deleteSelection: deleteSelectedComponentFromPropertiesSheet,
+            toggleInspector: togglePropertiesPanel,
+            addComponent: addComponentFromLibrary,
+            canUndo: canvasManager.canUndo || !aiOperationUndoStack.isEmpty,
+            canRedo: canvasManager.canRedo || !aiOperationRedoStack.isEmpty,
+            canEditSelection: canPerformComponentToolbarActions
+        )
     }
-    
-    @ToolbarContentBuilder
-    private var iOSToolbarContent: some ToolbarContent {
-        ToolbarItemGroup(placement: .topBarLeading) {
-            Button(action: { handleCanvasUndo() }) {
-                Image(systemName: "arrow.uturn.backward")
-            }
-            .disabled(!(canvasManager.canUndo || !aiOperationUndoStack.isEmpty))
-            
-            Button(action: { handleCanvasRedo() }) {
-                Image(systemName: "arrow.uturn.forward")
-            }
-            .disabled(!(canvasManager.canRedo || !aiOperationRedoStack.isEmpty))
-        }
-        
-        ToolbarItem(placement: .principal){
-            pageMenu
-        }
-        
-        ToolbarItemGroup(placement: .topBarTrailing) {
-            Button(action: { openCanvasSettingsSheet() }) {
-                Image(systemName: "iphone")
-            }
-            Button(action: { openLayersSheet() }) {
-                Image(systemName: AppTab.layers.icon)
-            }
+
+    private func toggleLayersPanel() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showLayersPanel.toggle()
         }
     }
 
-    @ToolbarContentBuilder
-    private var iPadToolbarContent: some ToolbarContent {
-        ToolbarItemGroup(placement: .topBarLeading) {
-            iPadDismissButton
-            layersToolbarToggleButton
-        }
-        
-        ToolbarItemGroup(placement: .primaryAction) {
-            iPadDeviceMenu
-            iPadColorSchemeMenu
-            
-            // Recenter button
-            pageMenu
-            
-            // Undo/Redo
-            Button(action: { handleCanvasUndo() }) {
-                Image(systemName: "arrow.uturn.backward")
-            }
-            .disabled(!(canvasManager.canUndo || !aiOperationUndoStack.isEmpty))
-            
-            Button(action: { handleCanvasRedo() }) {
-                Image(systemName: "arrow.uturn.forward")
-            }
-            .disabled(!(canvasManager.canRedo || !aiOperationRedoStack.isEmpty))
-        }
-        
-        ToolbarItemGroup(placement: .primaryAction) {
-            iPadExportMenu
-        }
-
-        ToolbarItem(placement: .principal) {
-            Text(designFile.name)
-                .font(.system(size: 14, weight: .semibold))
-        }
+    private func togglePropertiesPanel() {
+        showPropertiesPanel.toggle()
     }
 
-    private var iPadDismissButton: some View {
-        Button(action: {
-            designFile.save()
-            designManager.closeCurrentDesign()
-        }) {
-            Image(systemName: "chevron.left")
-        }
+    private func addComponentFromLibrary(_ componentType: ComponentType) {
+        let component = ComponentLibraryCatalog.makeComponent(
+            type: componentType,
+            isFirstComponent: canvasManager.components.isEmpty
+        )
+        canvasManager.insertComponent(component, relativeTo: canvasManager.selectedComponent)
     }
 
-    private var iPadDeviceMenu: some View {
-        Menu {
-            iPadDeviceSection("iPhone", presets: DevicePreset.iphones)
-            Divider()
-            iPadDeviceSection("iPad", presets: DevicePreset.ipads)
-            iPadDeviceSection("Widgets", presets: DevicePreset.widgets)
-            iPadDeviceSection("Custom", presets: DevicePreset.custom)
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: deviceIcon)
-                    .font(.system(size: 11))
-                Text(canvasManager.devicePreset.rawValue)
-                    .font(.system(size: 11, weight: .medium))
-                    .frame(maxWidth: 100)
-                    .lineLimit(1)
-            }
+#if os(iOS)
+    private func handlePhoneSheetChange(_ newValue: IOSSheet?) {
+        let isOverlayOpen = newValue == .layers || newValue == .properties
+        canvasManager.isOverlayPanelOpen = isOverlayOpen
+        canvasManager.isPropertiesSheetPresented = newValue == .properties
+        if newValue != .layers {
+            showLayerPropertiesNavigation = false
         }
-        .help("Choose Device")
-    }
-
-    @ViewBuilder
-    private func iPadDeviceSection(_ title: String, presets: [DevicePreset]) -> some View {
-        Section(title) {
-            ForEach(presets) { preset in
-                iPadDevicePresetRow(preset)
-            }
-        }
-    }
-
-    private func iPadDevicePresetRow(_ preset: DevicePreset) -> some View {
-        Button {
-            canvasManager.setDevicePreset(preset)
-        } label: {
-            iPadMenuRowLabel(preset.rawValue, isSelected: canvasManager.devicePreset == preset)
-        }
-    }
-
-    private var iPadColorSchemeMenu: some View {
-        Menu {
-            iPadColorSchemeRow(.light, title: "Light Mode")
-            iPadColorSchemeRow(.dark, title: "Dark Mode")
-        } label: {
-            Image(systemName: canvasManager.colorScheme == .light ? "sun.max.fill" : "moon.fill")
-        }
-    }
-
-    private func iPadColorSchemeRow(_ scheme: ColorScheme, title: String) -> some View {
-        Button {
-            canvasManager.setColorScheme(scheme)
-        } label: {
-            iPadMenuRowLabel(title, isSelected: canvasManager.colorScheme == scheme)
-        }
-    }
-
-    private func iPadMenuRowLabel(_ title: String, isSelected: Bool) -> some View {
-        HStack {
-            Text(title)
-            if isSelected {
-                Image(systemName: "checkmark")
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var iPadExportMenu: some View {
-        Menu {
-            Button(action: { openCodePreviewSheet() }) {
-                Label("View Code", systemImage: "chevron.left.forwardslash.chevron.right")
-            }
-            Divider()
-            Button(action: { saveAsScreenshot() }) {
-                Label("Save as Screenshot", systemImage: "photo")
-            }
-        } label: {
-            Image(systemName: "square.and.arrow.up")
-                .font(.system(size: 14, weight: .medium))
-        }
-        .menuIndicator(.hidden)
-        .help("Export")
     }
 
     @ViewBuilder
@@ -1333,7 +1210,9 @@ struct UIBuilderView: View {
         ZStack(alignment: .top) {
             canvasView(pushScale: pushScale, pushOffset: pushOffset)
         }
+#if os(iOS)
         .ignoresSafeArea()
+#endif
         .task {
             // Let the editor render before fetching account state for the AI controls.
             await Task.yield()
@@ -1540,96 +1419,6 @@ struct UIBuilderView: View {
     }
     #endif
     
-    @ViewBuilder
-    private var devicePresetsListSections: some View {
-        devicePresetListSection(title: "iPhone", presets: DevicePreset.iphones)
-        devicePresetListSection(title: "iPad", presets: DevicePreset.ipads)
-        devicePresetListSection(title: "Widgets", presets: DevicePreset.widgets)
-        devicePresetListSection(title: "Custom", presets: DevicePreset.custom)
-    }
-
-    private func devicePresetListSection(title: String, presets: [DevicePreset]) -> some View {
-        Section(title) {
-            ForEach(presets) { preset in
-                devicePresetListRow(for: preset)
-            }
-        }
-    }
-
-    private func devicePresetListRow(for preset: DevicePreset) -> some View {
-        Button {
-            canvasManager.setDevicePreset(preset)
-        } label: {
-            HStack {
-                Text(preset.rawValue)
-                    .foregroundColor(.primary)
-                Spacer()
-                if canvasManager.devicePreset == preset {
-                    Image(systemName: "checkmark")
-                        .foregroundColor(.blue)
-                }
-            }
-        }
-    }
-
-    @ToolbarContentBuilder
-    private var toolbarButtons: some ToolbarContent {
-#if os(macOS)
-        ToolbarItemGroup(placement: .primaryAction) {
-            devicePresetMenu
-            colorSchemeMenu
-            pageMenu
-            undoToolbarButton
-            redoToolbarButton
-            exportMenu
-            propertiesToolbarToggleButton
-        }
-#else
-        ToolbarItemGroup(placement: .navigation) {
-            layersToolbarToggleButton
-        }
-
-        ToolbarItemGroup(placement: .primaryAction) {
-            devicePresetMenu
-            colorSchemeMenu
-            pageMenu
-            undoToolbarButton
-            redoToolbarButton
-        }
-
-        ToolbarItemGroup(placement: .primaryAction) {
-            exportMenu
-        }
-#endif
-    }
-
-#if os(macOS)
-    private var propertiesToolbarToggleButton: some View {
-        Button {
-            showPropertiesPanel.toggle()
-        } label: {
-            Label(
-                showPropertiesPanel ? "Hide Inspector" : "Show Inspector",
-                systemImage: "sidebar.right"
-            )
-            .labelStyle(.iconOnly)
-        }
-        .help(showPropertiesPanel ? "Hide Inspector" : "Show Inspector")
-        .keyboardShortcut("i", modifiers: [.command, .option])
-    }
-#endif
-
-    private var layersToolbarToggleButton: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                showLayersPanel.toggle()
-            }
-        }) {
-            Image(systemName: "sidebar.left")
-        }
-        .help(showLayersPanel ? "Hide Layers Panel" : "Show Layers Panel")
-    }
-    
     private var devicePresetMenu: some View {
         Menu {
             devicePresetMenuContent
@@ -1756,41 +1545,6 @@ struct UIBuilderView: View {
         .help("Color Scheme")
     }
     
-    private var centerCanvasButton: some View {
-        Button(action: {
-            animateRecenterCanvas()
-        }) {
-            Image(systemName: "arrow.down.right.and.arrow.up.left")
-                .font(.system(size: 14, weight: .medium))
-        }
-        .keyboardShortcut("1", modifiers: .command)
-        .help("Center Canvas")
-    }
-    
-    private var undoToolbarButton: some View {
-        Button(action: {
-            handleCanvasUndo()
-        }) {
-            Image(systemName: "arrow.uturn.backward")
-                .font(.system(size: 14, weight: .medium))
-        }
-        .keyboardShortcut("z", modifiers: .command)
-        .disabled(!(canvasManager.canUndo || !aiOperationUndoStack.isEmpty))
-        .help("Undo")
-    }
-    
-    private var redoToolbarButton: some View {
-        Button(action: {
-            handleCanvasRedo()
-        }) {
-            Image(systemName: "arrow.uturn.forward")
-                .font(.system(size: 14, weight: .medium))
-        }
-        .keyboardShortcut("z", modifiers: [.command, .shift])
-        .disabled(!(canvasManager.canRedo || !aiOperationRedoStack.isEmpty))
-        .help("Redo")
-    }
-    
     private var exportMenu: some View {
         Menu {
             Button(action: { openCodePreviewSheet() }) {
@@ -1889,6 +1643,7 @@ struct UIBuilderView: View {
                     toastManager.showToast(
                         ToastData(title: "Screenshot saved", icon: "checkmark.circle.fill")
                     )
+                    scheduleReviewRequestAfterSuccessfulExport()
                 } catch {
                     debugLog("❌ Failed to save screenshot: \(error)")
                     toastManager.showToast(
@@ -1898,23 +1653,44 @@ struct UIBuilderView: View {
             }
         }
         #else
-        // iOS: Save to Photos
+        // iOS: Save to Photos and wait for a confirmed write before reporting success.
         if let uiImage = platformImage(from: imageData) {
-            UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
-            aiService.markGenerationExported(
-                components: canvasManager.components,
-                canvasSettings: aiOutcomeCanvasSettings
-            )
-            toastManager.showToast(
-                ToastData(title: "Saved to Photos", icon: "checkmark.circle.fill")
-            )
+            Task { @MainActor in
+                do {
+                    try await PHPhotoLibrary.shared().performChanges {
+                        PHAssetChangeRequest.creationRequestForAsset(from: uiImage)
+                    }
+                    aiService.markGenerationExported(
+                        components: canvasManager.components,
+                        canvasSettings: aiOutcomeCanvasSettings
+                    )
+                    toastManager.showToast(
+                        ToastData(title: "Saved to Photos", icon: "checkmark.circle.fill")
+                    )
+                    scheduleReviewRequestAfterSuccessfulExport()
+                } catch {
+                    debugLog("❌ Failed to save screenshot: \(error)")
+                    toastManager.showToast(
+                        ToastData(title: "Save failed", icon: "xmark.circle.fill")
+                    )
+                }
+            }
         }
         #endif
     }
+
+    private func scheduleReviewRequestAfterSuccessfulExport() {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled else { return }
+            SessionManager.shared.requestReviewAfterSuccessfulExport {
+                requestReview()
+            }
+        }
+    }
     
     private func setupCanvas() {
-        // Loading a project is not an edit. Keep observers from saving or exporting the
-        // full component tree while SwiftUI builds the first editor frame.
+        // The manager is preloaded in init so SwiftUI builds the project only once.
         isRestoringInitialCanvas = true
         defer {
             DispatchQueue.main.async {
@@ -1922,18 +1698,7 @@ struct UIBuilderView: View {
             }
         }
 
-        // Initialize page index from design file
-        currentPageIndex = designFile.currentPageIndex
-        
-        // Load components from current page
-        canvasManager.components = designFile.components
-        canvasManager.setDesignName(designFile.name)
-
         applyInitialCanvasViewIfReady()
-        
-        // Save the initial loaded state as the base state (but don't allow undo to this)
-        // This ensures we can undo back to the loaded state, but undo is disabled until we make a change
-        canvasManager.saveInitialState()
     }
     
     private func switchToPage(_ pageIndex: Int) {

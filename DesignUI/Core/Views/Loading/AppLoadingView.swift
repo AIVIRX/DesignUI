@@ -23,7 +23,7 @@ struct EditorLoadingView: View {
             // Mount the expensive editor only after the loading state has rendered.
             // This lets the new window present immediately for complex projects.
             if isEditorMounted {
-                UIBuilderView(designFile: designFile)
+                UIBuilderView(designFile: designFile, onInitialRender: finishLoading)
                     .environmentObject(designManager)
                     .opacity(isLoading ? 0 : 1)
                     .scaleEffect(isLoading && !reduceMotion ? 0.98 : 1)
@@ -54,7 +54,10 @@ struct EditorLoadingView: View {
 
         loadingMessage = "Almost ready..."
         loadingProgress = 0.75
-        try? await Task.sleep(nanoseconds: 150_000_000)
+    }
+
+    private func finishLoading() {
+        guard isLoading else { return }
         loadingProgress = 1
 
         withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.4)) {

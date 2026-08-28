@@ -15,7 +15,6 @@ import UIKit
 struct DesignBrowserView: View {
     @EnvironmentObject private var designManager: DesignManager
     @EnvironmentObject private var toastManager: ToastManager
-    @Environment(\.requestReview) private var requestReview
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var communityViewModel = LatestPostsViewModel()
@@ -98,9 +97,6 @@ struct DesignBrowserView: View {
             if communityViewModel.posts.isEmpty {
                 await communityViewModel.fetchPostsByType(postType: nil, isAllPosts: true)
             }
-        }
-        .task {
-            await requestReviewAfterDelayIfNeeded()
         }
     }
     
@@ -379,18 +375,6 @@ struct DesignBrowserView: View {
         await communityViewModel.refreshPosts(filterType: nil, isAllPosts: true)
     }
     
-    @MainActor
-    private func requestReviewAfterDelayIfNeeded() async {
-        guard !SessionManager.shared.hasRequestedReview else { return }
-        
-        try? await Task.sleep(for: .seconds(30))
-        
-        guard !Task.isCancelled else { return }
-        guard !SessionManager.shared.hasRequestedReview else { return }
-        
-        requestReview()
-        SessionManager.shared.hasRequestedReview = true
-    }
 }
 
 private struct DesignBrowserChromeModifier: ViewModifier {

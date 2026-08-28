@@ -130,16 +130,16 @@ struct SettingsView: View {
     }
 
     private var appSection: some View {
-        Section("App") {
-            Button {
+        Section("More apps") {
+            settingsLinkRow(title: "Rate App", icon: "star.fill") {
                 openURL(appStoreURL)
-            } label: {
-                settingsRow(title: "Rate App", icon: "star.fill")
             }
 
             ShareLink(item: appStoreURL) {
                 settingsRow(title: "Share App", icon: "square.and.arrow.up")
             }
+            .buttonStyle(.plain)
+            .foregroundStyle(.primary)
         }
     }
 
@@ -148,8 +148,8 @@ struct SettingsView: View {
             settingsLinkRow(title: "Website", icon: "globe") {
                 openURL(websiteURL)
             }
-            Button(action: sendEmail) {
-                settingsRow(title: "Send Feedback", icon: "envelope.fill")
+            settingsLinkRow(title: "Send Feedback", icon: "envelope.fill") {
+                sendEmail()
             }
 #if os(iOS)
             .disabled(!MFMailComposeViewController.canSendMail())

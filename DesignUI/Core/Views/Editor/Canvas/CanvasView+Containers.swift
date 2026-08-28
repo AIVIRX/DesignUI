@@ -101,11 +101,6 @@ struct ComponentsContainerWithStatusBar: View {
             canvasManager: canvasManager
         )
         .id(componentViewId(component))
-        .onAppear {
-            // Force a refresh after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            }
-        }
     }
     
     private func handleBackgroundTap() {
@@ -175,11 +170,6 @@ struct ComponentsContainerWithoutStatusBar: View {
             canvasManager: canvasManager
         )
         .id(componentViewId(component))
-        .onAppear {
-            // Force a refresh after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            }
-        }
     }
     
     private func handleBackgroundTap() {
@@ -281,7 +271,7 @@ class CanvasScrollNSView: NSView {
     private func setupEventMonitors() {
         // Monitor scroll wheel events
         scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
-            guard let self = self, self.isEnabled else { return event }
+            guard let self, self.shouldHandle(event) else { return event }
             
             if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.option) {
                 // Zoom with Cmd/Option + scroll
@@ -305,12 +295,18 @@ class CanvasScrollNSView: NSView {
         
         // Monitor pinch/magnify gestures
         magnifyMonitor = NSEvent.addLocalMonitorForEvents(matching: .magnify) { [weak self] event in
-            guard let self = self, self.isEnabled else { return event }
+            guard let self, self.shouldHandle(event) else { return event }
             
             let locationInView = self.convert(event.locationInWindow, from: nil)
             self.onZoom?(event.magnification, locationInView)
             return nil // Consume event
         }
+    }
+
+    private func shouldHandle(_ event: NSEvent) -> Bool {
+        guard isEnabled, let window, event.window === window else { return false }
+        let location = convert(event.locationInWindow, from: nil)
+        return bounds.contains(location)
     }
     
     deinit {

@@ -10514,9 +10514,6 @@
         }
       }
     },
-    "App" : {
-
-    },
     "Appearance" : {
 
     },
@@ -14457,6 +14454,7 @@
       }
     },
     "Center Canvas" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -37431,6 +37429,9 @@
         }
       }
     },
+    "More apps" : {
+
+    },
     "More Apps" : {
 
     },
@@ -50226,6 +50227,9 @@
           }
         }
       }
+    },
+    "Replace" : {
+
     },
     "Replace…" : {
       "localizations" : {

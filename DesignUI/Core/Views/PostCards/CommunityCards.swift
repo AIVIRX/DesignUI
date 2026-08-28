@@ -38,11 +38,7 @@ struct CommunityCards: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-#if os(macOS)
-            macOSCard
-#else
-            iOSCard
-#endif
+            preview
             footer
         }
         .contentShape(Rectangle()) // Keep the whole card clickable
@@ -68,33 +64,37 @@ struct CommunityCards: View {
         )
     }
 
-    #if os(macOS)
-    private var macOSCard: some View {
+    private var preview: some View {
         ZStack(alignment: .topTrailing) {
-            NavigationLink(destination: destinationView) {
-                imageView
-            }
-            .buttonStyle(PlainButtonStyle())
-            .accentColor(.clear)
+            previewNavigationLink
 
             if isPremium || showDeleteButton {
-                premiumDeleteBadge
+                previewAccessoryBadge
             }
         }
+#if os(macOS)
         .animation(.easeInOut(duration: 0.2), value: isImageHovered)
         .zIndex(isImageHovered ? 10 : 0)
+#endif
     }
-    #else
-    private var iOSCard: some View {
-        NavigationLink(destination: destinationView) {
-            imageView
+
+    @ViewBuilder
+    private var previewNavigationLink: some View {
+        let link = NavigationLink(destination: destinationView) {
+            previewImage
         }
-        .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(TapGesture().onEnded {
-            HapticManager.shared.triggerImpact(style: .soft)
-        })
+        .buttonStyle(.plain)
+
+#if os(macOS)
+        link
+            .accentColor(.clear)
+#else
+        link
+            .simultaneousGesture(TapGesture().onEnded {
+                HapticManager.shared.triggerImpact(style: .soft)
+            })
+#endif
     }
-    #endif
 
     private var footer: some View {
         HStack(alignment: .center, spacing: 8) {
@@ -144,8 +144,7 @@ struct CommunityCards: View {
         .contentShape(Capsule())
     }
 
-    #if os(macOS)
-    private var premiumDeleteBadge: some View {
+    private var previewAccessoryBadge: some View {
         HStack(spacing: 6) {
             if isPremium {
                 crownIcon
@@ -166,7 +165,6 @@ struct CommunityCards: View {
         .allowsHitTesting(true)
         .offset(x: -6, y: 6)
     }
-    #endif
 
     private var crownIcon: some View {
         Image(systemName: "crown.fill")
@@ -212,42 +210,18 @@ struct CommunityCards: View {
             .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
     }
     
-#if os(macOS)
-    private var imageView: some View {
-        macImageView
-    }
-    
-    private var macImageView: some View {
+    private var previewImage: some View {
         baseImageCard
+#if os(macOS)
             .shadow(color: .black.opacity(isImageHovered ? 0.15 : 0.05), radius: isImageHovered ? 8 : 4, y: isImageHovered ? 4 : 2)
             .scaleEffect(isImageHovered ? 1.02 : 1.0)
             .onHover { hovering in
                 isImageHovered = hovering
             }
-    }
 #else
-    private var imageView: some View {
-        iosImageView
-    }
-    
-    private var iosImageView: some View {
-        baseImageCard
             .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-            .overlay(alignment: .topTrailing) {
-                if isPremium {
-                    premiumBadge
-                }
-            }
-    }
-    
-    private var premiumBadge: some View {
-        crownIcon
-            .padding(6)
-            .background(.black.opacity(0.8), in: Capsule())
-            .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 2)
-            .offset(x: -6, y: 6)
-    }
 #endif
+    }
 }
 
 struct ScaleButtonStyle: ButtonStyle {

@@ -11,45 +11,74 @@ enum ComponentLibraryMode {
     case replace
 }
 
+enum ComponentLibraryCatalog {
+    static let componentOrder: [ComponentType] = [
+        .text, .image, .map, .sfSymbol,
+        .stack, .scrollView, .spacer, .divider,
+        .shape,
+        .button, .textField, .toggle, .slider, .progressView, .gauge
+    ]
+
+    private static let legacyShapeTypes: Set<ComponentType> = [
+        .rectangle, .circle, .roundedRectangle, .capsule, .ellipse
+    ]
+
+    static var availableComponents: [ComponentType] {
+        ComponentType.allCases
+            .filter { type in
+                type != .statusBar &&
+                type != .vstack &&
+                type != .hstack &&
+                type != .zstack &&
+                type != .linearGradient &&
+                !legacyShapeTypes.contains(type)
+            }
+            .sorted { lhs, rhs in
+                let lhsPriority = componentOrder.firstIndex(of: lhs) ?? Int.max
+                let rhsPriority = componentOrder.firstIndex(of: rhs) ?? Int.max
+                return lhsPriority == rhsPriority ? lhs.rawValue < rhs.rawValue : lhsPriority < rhsPriority
+            }
+    }
+
+    static func makeComponent(type: ComponentType, isFirstComponent: Bool) -> UIComponent {
+        let defaultOrigin = isFirstComponent ? CGPoint(x: 0, y: 0) : CGPoint(x: 100, y: 100)
+        let component = UIComponent(
+            type: type,
+            properties: UIComponent.defaultProperties(for: type),
+            frame: CGRect(origin: defaultOrigin, size: .zero),
+            modifiers: []
+        )
+
+        if type == .button {
+            component.addChild(
+                UIComponent(
+                    type: .text,
+                    properties: [
+                        ComponentProperty(
+                            key: "text",
+                            displayName: "Text",
+                            type: .string,
+                            value: "Continue",
+                            defaultValue: "Continue"
+                        )
+                    ],
+                    frame: .zero
+                )
+            )
+        }
+
+        return component
+    }
+}
+
 struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
     var mode: ComponentLibraryMode = .add
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    
-    // Define the custom sort order for prioritization
-    private let componentOrder: [ComponentType] = [
-        .text, .image, .map, .sfSymbol, // Core Content
-        .stack, .scrollView, .spacer, .divider, // Layout
-        .shape, // Shapes
-        .button, .textField, .toggle, .slider, .progressView, .gauge // Controls
-    ]
 
-    private let legacyShapeTypes: [ComponentType] = [
-        .rectangle, .circle, .roundedRectangle, .capsule, .ellipse
-    ]
-    
     private var availableComponents: [ComponentType] {
-        let filtered = ComponentType.allCases.filter(shouldIncludeComponent)
-        return filtered.sorted { lhs, rhs in
-            let lhsPriority = componentSortPriority(lhs)
-            let rhsPriority = componentSortPriority(rhs)
-            if lhsPriority != rhsPriority {
-                return lhsPriority < rhsPriority
-            }
-            return lhs.rawValue < rhs.rawValue
-        }
-    }
-
-    private func shouldIncludeComponent(_ type: ComponentType) -> Bool {
-        guard type != .statusBar else { return false }
-        guard type != .vstack && type != .hstack && type != .zstack else { return false }
-        guard type != .linearGradient else { return false }
-        return !legacyShapeTypes.contains(type)
-    }
-
-    private func componentSortPriority(_ type: ComponentType) -> Int {
-        componentOrder.firstIndex(of: type) ?? Int.max
+        ComponentLibraryCatalog.availableComponents
     }
 
     private var gridColumns: [GridItem] {
@@ -103,33 +132,7 @@ struct ComponentLibraryView: View {
             return
         }
 
-        if let selected = selectedComponent {
-            if canvasManager.canAcceptChildren(selected) {
-                // Selected is a container - add as child
-                canvasManager.registerUndoAction("Added \(component.type.rawValue) to \(selected.type.rawValue)")
-                component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
-                selected.addChild(component)
-                canvasManager.selectedComponent = component
-            } else if let parent = canvasManager.findParentComponent(of: selected.id) {
-                // Selected is not a container but has a parent - add as sibling
-                canvasManager.registerUndoAction("Added \(component.type.rawValue)")
-                component.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: .zero)
-                
-                // Insert after the selected component
-                if let index = parent.children.firstIndex(where: { $0.id == selected.id }) {
-                    parent.children.insert(component, at: index + 1)
-                } else {
-                    parent.addChild(component)
-                }
-                canvasManager.selectedComponent = component
-            } else {
-                // Selected is at root level and can't accept children - add to root
-                canvasManager.addComponent(component)
-            }
-        } else {
-            // No selection - add to root
-            canvasManager.addComponent(component)
-        }
+        canvasManager.insertComponent(component, relativeTo: selectedComponent)
     }
 }
 
@@ -244,7 +247,10 @@ struct ComponentLibraryItem: View {
         UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         #endif
 
-        let component = makeComponent()
+        let component = ComponentLibraryCatalog.makeComponent(
+            type: componentType,
+            isFirstComponent: isFirstComponent
+        )
         onAdd(component)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -252,27 +258,4 @@ struct ComponentLibraryItem: View {
         }
     }
 
-    private func makeComponent() -> UIComponent {
-        let defaultOrigin = isFirstComponent ? CGPoint(x: 0, y: 0) : CGPoint(x: 100, y: 100)
-
-        let component = UIComponent(
-            type: componentType,
-            properties: UIComponent.defaultProperties(for: componentType),
-            frame: CGRect(origin: defaultOrigin, size: .zero),
-            modifiers: []
-        )
-
-        if componentType == .button {
-            let textChild = UIComponent(
-                type: .text,
-                properties: [
-                    ComponentProperty(key: "text", displayName: "Text", type: .string, value: "Continue", defaultValue: "Continue")
-                ],
-                frame: .zero
-            )
-            component.addChild(textChild)
-        }
-
-        return component
-    }
 }

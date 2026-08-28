@@ -65,11 +65,12 @@ struct DetailView: View {
         }
         .navigationTitle(title)
         .toolbar {
-            ToolbarItem {
+            ToolbarItemGroup(placement: .primaryAction) {
+                LikeButton(postId: id)
+
                 ShareLink(item: shareURL) {
                     Image(systemName: "square.and.arrow.up")
                 }
-                .padding(.horizontal, 3)
             }
         }
         .overlay { premiumOverlay }
@@ -106,12 +107,6 @@ struct DetailView: View {
             .frame(height: 450)
 #endif
             .overlay(DetailWebImage(url: mediaURL))
-            .overlay(alignment: .bottomTrailing) {
-                LikeButton(postId: id)
-                    .padding(8)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .padding(12)
-            }
     }
 
     private var descriptionView: some View {
