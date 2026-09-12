@@ -1,10 +1,13 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { AnyComponent, CanvasSettings, GenerationMode, ScreenArchetype, ScreenPlan, SlotPosition, ThemeTokens } from "./types.ts";
 import { FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS, GENERATION_DEADLINE_MS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS } from "./openai.ts";
-import { buildDesignManifest, compilePromptDesignSpec } from "./manifest.ts";
+import { buildDesignManifest, compilePromptDesignSpec, enforcePlanRequirements } from "./manifest.ts";
 import { classifyArchetype, compileScreenIRToPlan, defaultPlanFromArchetype, extractScreenIR, extractSemanticIntent, planSlots, refineScreenPlan, resolveScreenContract } from "./planner.ts";
 import { buildFallbackSlot, buildLayoutSketch, generateSlotsParallel, materializeSlotFromSketchNode } from "./slot-generator.ts";
 import { buildBaselineTheme, computeThemeSurfaces, extractThemeTokens } from "./theme.ts";
+import { reviewScreen } from "./screen-quality.ts";
+import type { ScreenIssue } from "./screen-quality.ts";
+import { generateSlot } from "./slot-generator.ts";
 import { postProcessComponents } from "./postprocess.ts";
 
 export async function buildGeneratedScreen(
@@ -17,9 +20,11 @@ export async function buildGeneratedScreen(
     canvas_settings: CanvasSettings;
     theme?: ThemeTokens;
     exemplarsUsed?: string[];
+    quality?: ScreenIssue[];
 }> {
     const deadlineAt = Date.now() + GENERATION_DEADLINE_MS;
     const withDeadline = async <T>(work: Promise<T>, stage: string): Promise<T> => {
+        const startedAt = Date.now();
         const remaining = deadlineAt - Date.now();
         if (remaining <= 0) throw new Error(`Generation deadline exceeded before ${stage}`);
         let timer: ReturnType<typeof setTimeout> | undefined;
@@ -30,6 +35,7 @@ export async function buildGeneratedScreen(
             return await Promise.race([work, timeout]);
         } finally {
             if (timer !== undefined) clearTimeout(timer);
+            console.info(JSON.stringify({ event: "generation_stage", stage, elapsed_ms: Date.now() - startedAt, remaining_ms: Math.max(0, deadlineAt - Date.now()) }));
         }
     };
 
@@ -48,6 +54,7 @@ export async function buildGeneratedScreen(
             planSlots(prompt, archetype, theme, context, semanticIntent, manifest, designSpec, contract ?? undefined, {
                 maxTokens: FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS,
                 temperature: 0.52,
+                deadlineAt: deadlineAt - 24000,
             }),
             "slot planning",
         );
@@ -56,10 +63,10 @@ export async function buildGeneratedScreen(
             extractScreenIR({ prompt, theme, plan: refinedPlan, semanticIntent, designSpec }),
             "screen ir",
         );
-        const plan = compileScreenIRToPlan(screenIR, refinedPlan);
+        const plan = enforcePlanRequirements(compileScreenIRToPlan(screenIR, refinedPlan), manifest.requirements);
         const sketch = GEN_V3_SKETCH_RENDER ? buildLayoutSketch(plan, designSpec) : null;
         const plannedSlots = (sketch ? sketch.nodes.map(materializeSlotFromSketchNode) : plan.slots).slice(0, MAX_GENERATION_SLOTS);
-        const renderPlan: ScreenPlan = { ...plan, slots: plannedSlots };
+        const renderPlan: ScreenPlan = { ...plan, slots: plannedSlots, viewport: resolveViewport(context), chartSchemaVersion: context && typeof context === "object" && (context as Record<string, unknown>).chartSchemaVersion === 2 ? 2 : 1 };
 
         // Step 3: Generate all slots in parallel (Sketch -> Render path).
         const slotResults = await generateSlotsParallel({
@@ -70,14 +77,24 @@ export async function buildGeneratedScreen(
             plannedSlots,
             manifest,
             designSpec,
-            deadlineAt,
+            deadlineAt: deadlineAt - 8500,
             withDeadline,
             surfaces,
             generationMode: "full_canvas",
         });
-        const slotComponents = slotResults.map((r, i) => ({
-            position: plannedSlots[i].position,
-            slotType: plannedSlots[i].slotType,
+        const reviewed = await reviewScreen({
+            sections: slotResults.map((r, i) => ({ slot: plannedSlots[i], ...r })),
+            plan: renderPlan, manifest, theme, deadlineAt,
+            repair: async (section, issues) => ({
+                slot: section.slot,
+                ...await generateSlot({ supabase, prompt, theme, plan: renderPlan, slot: section.slot,
+                    manifest, designSpec, deadlineAt, generationMode: mode, blockers: issues, repairComponent: section.component }),
+            }),
+        });
+        console.info(JSON.stringify({ event: "screen_quality", issues: reviewed.issues, section_count: reviewed.sections.length }));
+        const slotComponents = reviewed.sections.map((r) => ({
+            position: r.slot.position,
+            slotType: r.slot.slotType,
             component: r.component,
         }));
 
@@ -89,7 +106,8 @@ export async function buildGeneratedScreen(
             components: screen.components,
             canvas_settings: plan.canvas_settings ?? { statusBarVisible: true, statusBarTopSafeArea: true },
             theme,
-            exemplarsUsed: slotResults.flatMap((r) => r.exemplarIds),
+            exemplarsUsed: reviewed.sections.flatMap((r) => r.exemplarIds),
+            quality: reviewed.issues,
         };
     }
 
@@ -105,7 +123,7 @@ export async function buildGeneratedScreen(
     const designSpec = compilePromptDesignSpec(prompt, manifest);
     const contract = resolveScreenContract(prompt, designSpec, semanticIntent);
     const rawPlan = await withDeadline(
-        planSlots(prompt, archetype, theme, context, semanticIntent, manifest, designSpec, contract ?? undefined),
+        planSlots(prompt, archetype, theme, context, semanticIntent, manifest, designSpec, contract ?? undefined, { deadlineAt: deadlineAt - 24000 }),
         "slot planning",
     );
     const refinedPlan = refineScreenPlan(rawPlan, manifest, designSpec, semanticIntent);
@@ -113,10 +131,10 @@ export async function buildGeneratedScreen(
         extractScreenIR({ prompt, theme, plan: refinedPlan, semanticIntent, designSpec }),
         "screen ir",
     );
-    const plan = compileScreenIRToPlan(screenIR, refinedPlan);
+    const plan = enforcePlanRequirements(compileScreenIRToPlan(screenIR, refinedPlan), manifest.requirements);
     const sketch = GEN_V3_SKETCH_RENDER ? buildLayoutSketch(plan, designSpec) : null;
     const plannedSlots = (sketch ? sketch.nodes.map(materializeSlotFromSketchNode) : plan.slots).slice(0, MAX_GENERATION_SLOTS);
-    const renderPlan: ScreenPlan = { ...plan, slots: plannedSlots };
+    const renderPlan: ScreenPlan = { ...plan, slots: plannedSlots, viewport: resolveViewport(context), chartSchemaVersion: context && typeof context === "object" && (context as Record<string, unknown>).chartSchemaVersion === 2 ? 2 : 1 };
 
     const slotResults = await generateSlotsParallel({
         supabase,
@@ -126,14 +144,24 @@ export async function buildGeneratedScreen(
         plannedSlots,
         manifest,
         designSpec,
-        deadlineAt,
+        deadlineAt: deadlineAt - 8500,
         withDeadline,
         surfaces,
         generationMode: "standard",
     });
-    const slotComponents = slotResults.map((r, i) => ({
-        position: plannedSlots[i].position,
-        slotType: plannedSlots[i].slotType,
+    const reviewed = await reviewScreen({
+            sections: slotResults.map((r, i) => ({ slot: plannedSlots[i], ...r })),
+            plan: renderPlan, manifest, theme, deadlineAt,
+            repair: async (section, issues) => ({
+                slot: section.slot,
+                ...await generateSlot({ supabase, prompt, theme, plan: renderPlan, slot: section.slot,
+                    manifest, designSpec, deadlineAt, generationMode: mode, blockers: issues, repairComponent: section.component }),
+            }),
+        });
+        console.info(JSON.stringify({ event: "screen_quality", issues: reviewed.issues, section_count: reviewed.sections.length }));
+        const slotComponents = reviewed.sections.map((r) => ({
+        position: r.slot.position,
+        slotType: r.slot.slotType,
         component: r.component,
     }));
 
@@ -144,6 +172,9 @@ export async function buildGeneratedScreen(
     return {
         components: screen.components,
         canvas_settings: renderPlan.canvas_settings ?? { statusBarVisible: true, statusBarTopSafeArea: true },
+        theme,
+        exemplarsUsed: reviewed.sections.flatMap((r) => r.exemplarIds),
+        quality: reviewed.issues,
     };
 }
 
@@ -153,6 +184,12 @@ export function inferFallbackArchetype(prompt: string): ScreenArchetype {
     if (/\bshop\b|\bstore\b|\bcart\b|\bcheckout\b/.test(p)) return "marketplace";
     if (/\bchat\b|\bmessage\b|\binbox\b/.test(p)) return "chat";
     return "dashboard";
+}
+
+export function resolveViewport(context: unknown): { width: number; height: number } {
+    const ctx = context && typeof context === "object" ? context as Record<string, unknown> : {};
+    const dimension = (value: unknown, fallback: number) => typeof value === "number" && Number.isFinite(value) && value >= 240 && value <= 4096 ? value : fallback;
+    return { width: dimension(ctx.canvasWidth, 390), height: dimension(ctx.canvasHeight, 844) };
 }
 
 export function buildEmergencyGeneratedScreen(prompt: string): {

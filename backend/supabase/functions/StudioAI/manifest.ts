@@ -52,6 +52,18 @@ export function buildDesignManifest(prompt: string): DesignManifest {
     const stickyTopRequested = /\b(sticky|pinned)\s+(header|top|nav(?:igation)?(?:\s+bar)?)\b|\bfixed\s+(header|top|top\s+bar|nav(?:igation)?(?:\s+bar)?)\b|\b(header|top\s+bar)\s+(always\s+visible|stays?\s+visible)\b/.test(p);
     const overlayRequested = /\b(floating|overlay|overlaid)\b|\bfab\b|\bfloating action button\b|\bon top of (?:the )?(map|image|photo|video)\b/.test(p);
 
+    // Reserve common explicit content before optional archetype sections consume the budget.
+    const metrics = prompt.match(/\b(?:exactly\s+)?(\d+)\s+(?:compact\s+)?(?:metrics|stats|kpis)\b(?:\s*\([^)]*\)|\s+for\s+[^.!;]+)?/i);
+    if (metrics) requirements.push({ requirementKey: "explicit_metrics", slotType: "stat_group", position: "body", itemCount: Math.max(1, Math.min(12, Number(metrics[1]))), mustInclude: metrics[0], sourceIndex: metrics.index ?? 0 });
+    const navigation = prompt.match(/\bbottom\s+(?:tabs|navigation|nav(?:igation)?\s+bar)\b[^.!;]*/i);
+    if (navigation && !/\b(no|without|hide)\s*$/i.test(prompt.slice(0, navigation.index))) {
+        requirements.push({ requirementKey: "explicit_navigation", slotType: "nav_bar", position: "bottom", mustInclude: navigation[0], sourceIndex: navigation.index ?? 0 });
+    }
+    const featured = prompt.match(/(?:\b(?:a\s+)?featured\s+[^.!;]*?\bcard\b|[“"][^”"]+[”"]\s+card\b)[^.!;]*/i);
+    if (featured) requirements.push({ requirementKey: "explicit_feature", slotType: "hero_banner", position: "body", mustInclude: featured[0], sourceIndex: featured.index ?? 0 });
+    const chart = prompt.match(/\b(?:(?:weekly|monthly|daily|activity|spending|revenue)\s+){0,2}(?:chart|graph)\b/i);
+    if (chart && [...prompt.matchAll(/\b(?:chart|graph)s?\b/gi)].length === 1 && !/\b(no|without|hide|\d+)\s*$/i.test(prompt.slice(0, chart.index))) requirements.push({ requirementKey: "explicit_chart", slotType: "chart_section", position: "body", mustInclude: `one ${chart[0]}, without repeating metrics assigned to another section`, sourceIndex: chart.index ?? 0 });
+
     if (/\bno\b.*\bnav\s*bar\b|\bwithout\b.*\bnav\s*bar\b|\bhide\b.*\bnav\s*bar\b/.test(p)) {
         forbiddenSlotTypes.add("nav_bar");
         hardRules.push("Do not include a bottom nav bar.");
@@ -485,6 +497,7 @@ export function enforcePlanRequirements(plan: ScreenPlan, promptRequirements: Pr
     if (promptRequirements.length === 0) return plan;
 
     const slots = [...plan.slots];
+    const requiredSlots = new Set<number>();
     const sortedRequirements = [...promptRequirements].sort((a, b) => a.sourceIndex - b.sourceIndex);
 
     const availableByType = new Map<SlotType, number[]>();
@@ -500,20 +513,23 @@ export function enforcePlanRequirements(plan: ScreenPlan, promptRequirements: Pr
         availableByType.set(req.slotType, queue);
 
         if (existingIndex >= 0) {
+            requiredSlots.add(existingIndex);
             const existing = slots[existingIndex];
             slots[existingIndex] = {
                 ...existing,
-                intent: intentLabelFromRequirement(req),
+                position: req.position,
+                intent: req.requirementKey?.startsWith("explicit_") ? req.mustInclude : (existing.intent.includes(req.mustInclude) ? existing.intent : `${existing.intent}. Required: ${req.mustInclude}`),
                 itemCount: req.itemCount ?? existing.itemCount,
                 variant_hint: req.variantHint ?? existing.variant_hint ?? "strictly honor the prompt detail",
             };
             continue;
         }
 
+        requiredSlots.add(slots.length);
         slots.push({
             slotType: req.slotType,
             position: req.position,
-            intent: intentLabelFromRequirement(req),
+            intent: req.mustInclude,
             itemCount: req.itemCount,
             variant_hint: req.variantHint ?? "strictly honor the prompt detail",
         });
@@ -524,7 +540,15 @@ export function enforcePlanRequirements(plan: ScreenPlan, promptRequirements: Pr
         .map((r) => `${r.slotType}::${r.mustInclude}`);
     const bodyPriority = new Map<string, number>(requestedBodyOrder.map((key, index) => [key, index]));
 
-    const bodySlots = slots
+    // Budget optional sections only after reserving explicit requirements.
+    const chosen = new Set([...requiredSlots].slice(0, MAX_GENERATION_SLOTS));
+    const exclusiveTypes = new Set(sortedRequirements.filter((r) => r.requirementKey?.startsWith("explicit_")).map((r) => r.slotType));
+    for (let i = 0; i < slots.length && chosen.size < MAX_GENERATION_SLOTS; i++) {
+        if (exclusiveTypes.has(slots[i].slotType) && !requiredSlots.has(i)) continue;
+        chosen.add(i);
+    }
+    const selectedSlots = slots.filter((_, index) => chosen.has(index));
+    const bodySlots = selectedSlots
         .map((slot, index) => ({ slot, index }))
         .filter(({ slot }) => slot.position === "body")
         .sort((a, b) => {
@@ -538,9 +562,9 @@ export function enforcePlanRequirements(plan: ScreenPlan, promptRequirements: Pr
             return a.index - b.index;
         })
         .map(({ slot }) => slot);
-    const topSlots = slots.filter((s) => s.position === "top");
-    const bottomSlots = slots.filter((s) => s.position === "bottom");
-    const overlaySlots = slots.filter((s) => s.position === "overlay");
+    const topSlots = selectedSlots.filter((s) => s.position === "top");
+    const bottomSlots = selectedSlots.filter((s) => s.position === "bottom");
+    const overlaySlots = selectedSlots.filter((s) => s.position === "overlay");
 
     return {
         ...plan,

@@ -1,84 +1,113 @@
-
 import SwiftUI
 import Charts
 
-// Helper for Chart Data
-private struct ChartDataPoint: Identifiable {
-    let id: Int
-    let value: Double
-}
-
-private struct ComponentChartView: View {
-    let data: [ChartDataPoint]
-    let showsLine: Bool
-    let showsArea: Bool
-    let showsBar: Bool
-    let lineWidth: Double
-    let showXAxis: Bool
-    let showYAxis: Bool
+struct DesignChartView: View {
+    let configuration: ChartConfiguration
     let mainColor: Color
 
-    private func barWidthRatio(for count: Int) -> MarkDimension {
-        switch max(1, count) {
-        case 1...4:
-            return .ratio(0.94)
-        case 5...8:
-            return .ratio(0.88)
-        case 9...14:
-            return .ratio(0.80)
-        default:
-            return .ratio(0.72)
-        }
+    private var palette: [Color] {
+        let colors: [Color] = [mainColor, .teal, .orange, .purple, .pink, .indigo, .mint, .brown]
+        return configuration.groups.indices.map { colors[$0 % colors.count] }
     }
 
     var body: some View {
         Chart {
-            ForEach(data) { point in
-                if showsLine {
-                    LineMark(
-                        x: .value("Index", point.id),
-                        y: .value("Value", point.value)
-                    )
-                    .interpolationMethod(.catmullRom)
-                    .foregroundStyle(mainColor)
-                    .lineStyle(StrokeStyle(lineWidth: lineWidth))
-                }
-
-                if showsArea {
-                    AreaMark(
-                        x: .value("Index", point.id),
-                        y: .value("Value", point.value)
-                    )
-                    .interpolationMethod(.catmullRom)
-                    .foregroundStyle(mainColor.opacity(0.5))
-                }
-
-                if showsBar {
-                    BarMark(
-                        x: .value("Index", "\(point.id + 1)"),
-                        y: .value("Value", point.value),
-                        width: barWidthRatio(for: data.count)
-                    )
-                    .foregroundStyle(mainColor)
-                    .cornerRadius(4)
-                }
+            ForEach(configuration.samples) { point in
+                marks(for: point)
+            }
+            if configuration.showGoal && !configuration.isDonut {
+                RuleMark(y: .value("Goal", configuration.goalValue))
+                    .foregroundStyle(Color.secondary)
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                    .annotation(position: .top, alignment: .trailing) {
+                        Text(configuration.goalLabel).font(.caption2).foregroundStyle(.secondary)
+                    }
             }
         }
+        .chartForegroundStyleScale(domain: configuration.groups, range: palette)
+        .chartXScale(range: .plotDimension(padding: 12))
+        .chartLegend(configuration.showLegend && configuration.groups.count > 1 && configuration.style != "Sparkline" ? .visible : .hidden)
         .chartXAxis {
-            if showXAxis {
-                AxisMarks(values: .automatic) { _ in
-                    AxisGridLine()
-                    AxisTick()
+            if configuration.showXAxis && configuration.isBar {
+                AxisMarks(values: configuration.labels) { _ in
+                    if configuration.showGrid { AxisGridLine() }
                     AxisValueLabel()
+                }
+            } else if configuration.showXAxis {
+                AxisMarks(values: Array(configuration.labels.indices)) { axis in
+                    if configuration.showGrid { AxisGridLine() }
+                    AxisValueLabel(anchor: .top) {
+                        if let index = axis.as(Int.self), configuration.labels.indices.contains(index) {
+                            Text(configuration.labels[index])
+                        }
+                    }
                 }
             }
         }
         .chartYAxis {
-            if showYAxis {
-                AxisMarks(position: .leading, values: .automatic) { _ in
-                    AxisGridLine()
-                    AxisTick()
-                    AxisValueLabel()
+            if configuration.showYAxis {
+                AxisMarks(position: .leading) { axis in
+                    if configuration.showGrid { AxisGridLine() }
+                    AxisValueLabel {
+                        if let value = axis.as(Double.self) {
+                            Text(configuration.valuePrefix + value.formatted(.number.notation(.compactName)) + configuration.valueSuffix)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ChartContentBuilder
+    private func marks(for point: ChartSample) -> some ChartContent {
+        let index = configuration.labels.firstIndex(of: point.label) ?? 0
+        let group = configuration.isDonut ? point.label : (point.series ?? "Value")
+        if configuration.isDonut {
+            SectorMark(angle: .value("Value", point.value), innerRadius: .ratio(0.65), angularInset: 2)
+                .foregroundStyle(by: .value("Category", group))
+                .opacity(point.highlighted == false ? 0.65 : 1)
+                .cornerRadius(3)
+        } else {
+            if configuration.hasArea {
+                AreaMark(x: .value("Index", index), y: .value("Value", point.value), stacking: .unstacked)
+                    .interpolationMethod(.monotone)
+                    .foregroundStyle(by: .value("Series", group))
+                    .opacity(configuration.areaOpacity)
+            }
+            if configuration.hasLine {
+                LineMark(x: .value("Index", index), y: .value("Value", point.value))
+                    .interpolationMethod(.monotone)
+                    .foregroundStyle(by: .value("Series", group))
+                    .lineStyle(StrokeStyle(lineWidth: configuration.lineWidth, lineCap: .round, lineJoin: .round))
+            }
+            if configuration.isBar {
+                if configuration.style == "Stacked Bar" {
+                    BarMark(x: .value("Category", point.label), y: .value("Value", point.value), width: .ratio(configuration.barWidthRatio))
+                        .foregroundStyle(by: .value("Series", group))
+                        .cornerRadius(3)
+                } else {
+                    BarMark(x: .value("Category", point.label), y: .value("Value", point.value), width: .ratio(configuration.barWidthRatio))
+                        .foregroundStyle(by: .value("Series", group))
+                        .position(by: .value("Series", group))
+                        .cornerRadius(3)
+                }
+            }
+            if point.highlighted == true {
+                if configuration.isBar {
+                    if configuration.style == "Stacked Bar" {
+                        PointMark(x: .value("Category", point.label), y: .value("Value", configuration.stackedValue(for: point)))
+                            .foregroundStyle(Color.primary)
+                            .symbolSize(70)
+                    } else {
+                        PointMark(x: .value("Category", point.label), y: .value("Value", point.value))
+                            .foregroundStyle(Color.primary)
+                            .position(by: .value("Series", group))
+                            .symbolSize(70)
+                    }
+                } else {
+                    PointMark(x: .value("Index", index), y: .value("Value", point.value))
+                        .foregroundStyle(Color.primary)
+                        .symbolSize(70)
                 }
             }
         }
@@ -86,81 +115,10 @@ private struct ComponentChartView: View {
 }
 
 extension ComponentRenderer {
-
-    /// Resolve chart color from fill-style modifiers so charts follow the fills workflow.
-    private func resolveChartColorFromFills(defaultName: String = "blue") -> Color {
-        let candidate = component.modifiers
-            .reversed()
-            .first { modifier in
-                modifier.type == .fill || modifier.type == .foregroundColor || modifier.type == .tint
-            }
-
-        if let token = candidate?.properties["color"] as? String {
-            let normalized = token.hasPrefix("color:") ? String(token.dropFirst(6)) : token
-            return ComponentProperty.colorStringToColor(normalized)
-        }
-
-        return ComponentProperty.colorStringToColor(defaultName)
-    }
-    
-    @ViewBuilder
     func renderChart() -> some View {
-        let style = component.getProperty(key: "chartStyle") as? String ?? "Line + Area"
-        let normalizedStyle = style
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: "-", with: "")
-        let dataPreset = component.getProperty(key: "dataPreset") as? String ?? "Increasing"
-        let pointCount = Int(component.getProperty(key: "pointCount") as? Double ?? 20.0)
-        let lineWidth = 5.0
-        let showXAxis = component.getProperty(key: "showXAxis") as? Bool ?? true
-        let showYAxis = component.getProperty(key: "showYAxis") as? Bool ?? true
-        let showsLine = normalizedStyle == "line" || normalizedStyle == "line+area"
-        let showsArea = normalizedStyle == "area" || normalizedStyle == "line+area"
-        let showsBar = normalizedStyle.contains("bar")
-
-        let mainColor = resolveChartColorFromFills()
-        let data = buildChartData(preset: dataPreset, count: pointCount)
-        ComponentChartView(
-            data: data,
-            showsLine: showsLine,
-            showsArea: showsArea,
-            showsBar: showsBar,
-            lineWidth: lineWidth,
-            showXAxis: showXAxis,
-            showYAxis: showYAxis,
-            mainColor: mainColor
-        )
-    }
-
-    private func buildChartData(preset: String, count: Int) -> [ChartDataPoint] {
-        (0..<count).map { i in
-            let progress = Double(i) / Double(max(1, count - 1))
-            let value = chartValue(for: preset, index: i, progress: progress)
-            return ChartDataPoint(id: i, value: value)
-        }
-    }
-
-    private func chartValue(for preset: String, index: Int, progress: Double) -> Double {
-        let value: Double
-
-        switch preset {
-        case "Decreasing":
-            value = 90 - (progress * 80) + volatility(for: index)
-        case "Stable":
-            value = 50 + 4 * sin(Double(index) * 0.6) + 2 * sin(Double(index) * 0.19 + 1.1)
-        case "Volatile":
-            value = 50 + 30 * sin(Double(index) * 1.1) + 20 * sin(Double(index) * 2.3 + 0.7)
-        default:
-            value = 10 + (progress * 80) + volatility(for: index)
-        }
-
-        return max(0, min(100, value))
-    }
-
-    private func volatility(for index: Int) -> Double {
-        18 * sin(Double(index) * 0.9)
-        + 10 * sin(Double(index) * 0.37 + 1.2)
-        + 6 * sin(Double(index) * 0.17 + 2.4)
+        let modifier = component.modifiers.reversed().first { $0.type == .fill || $0.type == .foregroundColor || $0.type == .tint }
+        let token = modifier?.properties["color"] as? String ?? "blue"
+        let normalized = token.hasPrefix("color:") ? String(token.dropFirst(6)) : token
+        return DesignChartView(configuration: ChartConfiguration(component: component), mainColor: ComponentProperty.colorStringToColor(normalized))
     }
 }

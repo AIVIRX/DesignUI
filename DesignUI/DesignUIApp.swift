@@ -19,7 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 }
 
+#if !DESIGNUI_VISUAL_TEST
 @main
+#endif
 struct DesignUIApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var colorSchemeManager = ColorSchemeManager()
@@ -85,7 +87,9 @@ struct DesignUIApp: App {
 import UniformTypeIdentifiers
 import Foundation
 
+#if !DESIGNUI_VISUAL_TEST
 @main
+#endif
 struct DesignUIApp: App {
     @StateObject private var colorSchemeManager = ColorSchemeManager()
     @StateObject private var subscriptionManager = SubscriptionManager.shared

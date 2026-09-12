@@ -917,7 +917,7 @@ private struct FastInspectorView: View {
             VStack(spacing: 10) {
                 compactMenuField(
                     title: chartStyleValue,
-                    options: ["Line + Area", "Line", "Area", "Bar"],
+                    options: ["Line + Area", "Line", "Area", "Bar", "Stacked Bar", "Donut", "Sparkline"],
                     helpText: "Chart Style"
                 ) { selected in
                     canvasManager.updateComponentProperty(for: component, key: "chartStyle", value: selected)
@@ -925,13 +925,16 @@ private struct FastInspectorView: View {
 
                 compactMenuField(
                     title: chartDataPatternValue,
-                    options: ["Increasing", "Decreasing", "Stable", "Volatile"],
+                    options: ["Increasing", "Decreasing", "Stable", "Volatile", "Weekly Activity", "Spending", "Revenue"],
                     helpText: "Data Pattern"
                 ) { selected in
-                    canvasManager.updateComponentProperty(for: component, key: "dataPreset", value: selected)
+                    canvasManager.updateComponentProperties(for: component, updates: [(key: "dataPreset", value: selected), (key: "dataPoints", value: "")], description: "Change Chart Preset")
                 }
 
-                chartPointCountSlider
+                if (component.getProperty(key: "dataPoints") as? String ?? "").isEmpty && ["Increasing", "Decreasing", "Stable", "Volatile"].contains(chartDataPatternValue) {
+                    chartPointCountSlider
+                }
+                ChartInspectorControls(component: component, canvasManager: canvasManager)
 
                 toggleField(
                     title: "Show X Axis",

@@ -2,27 +2,69 @@ import SwiftUI
 
 extension CodeGenerator {
     static func generateChartCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let config = chartConfig(component: component)
-        let loopIndent = nextIndent + "    "
-        let loopHeader = "\(nextIndent)ForEach(0..<\(config.pointCount), id: \\.self) { index in\n"
-        let valueLogic = chartValueLogic(dataPreset: config.dataPreset, pointCount: config.pointCount, loopIndent: loopIndent)
-        let loopFooter = "\(nextIndent)}"
-
-        var lines: [String] = ["\(indent)Chart {"]
-        lines.append(contentsOf: chartMarkLayers(config: config, loopHeader: loopHeader, loopFooter: loopFooter, loopIndent: loopIndent, valueLogic: valueLogic))
+        let config = ChartConfiguration(component: component)
+        func strings(_ values: [String]) -> String { "[" + values.map { String(reflecting: $0) }.joined(separator: ", ") + "]" }
+        let values = "[" + config.samples.map { String($0.value) }.joined(separator: ", ") + "]"
+        let labels = strings(config.labels)
+        let categories = strings(config.samples.map(\.label))
+        let series = strings(config.samples.map { config.isDonut ? $0.label : ($0.series ?? "Value") })
+        let positions = "[" + config.samples.map { String(config.labels.firstIndex(of: $0.label) ?? 0) }.joined(separator: ", ") + "]"
+        let highlights = "[" + config.samples.map { $0.highlighted == true ? "true" : "false" }.joined(separator: ", ") + "]"
+        let stackedValues = "[" + config.samples.map { String(config.stackedValue(for: $0)) }.joined(separator: ", ") + "]"
+        let dimmed = "[" + config.samples.map { $0.highlighted == false ? "0.65" : "1.0" }.joined(separator: ", ") + "]"
+        let inner = nextIndent + "    "
+        var lines = ["\(indent)Chart {", "\(nextIndent)ForEach(0..<\(config.samples.count), id: \\.self) { index in"]
+        lines += ["\(inner)let value = \(values)[index]", "\(inner)let series = \(series)[index]"]
+        if config.isBar { lines.append("\(inner)let category = \(categories)[index]") }
+        if !config.isBar && !config.isDonut { lines.append("\(inner)let x = \(positions)[index]") }
+        let foreground = "\(inner)    .foregroundStyle(by: .value(\"Series\", series))"
+        if config.isDonut {
+            lines += ["\(inner)SectorMark(angle: .value(\"Value\", value), innerRadius: .ratio(0.65), angularInset: 2)", foreground, "\(inner)    .opacity(\(dimmed)[index])", "\(inner)    .cornerRadius(3)"]
+        } else {
+            if config.hasArea {
+                lines += ["\(inner)AreaMark(x: .value(\"Index\", x), y: .value(\"Value\", value), stacking: .unstacked)", "\(inner)    .interpolationMethod(.monotone)", foreground, "\(inner)    .opacity(\(config.areaOpacity))"]
+            }
+            if config.hasLine {
+                lines += ["\(inner)LineMark(x: .value(\"Index\", x), y: .value(\"Value\", value))", "\(inner)    .interpolationMethod(.monotone)", foreground, "\(inner)    .lineStyle(StrokeStyle(lineWidth: \(config.lineWidth), lineCap: .round, lineJoin: .round))"]
+            }
+            if config.isBar {
+                lines += ["\(inner)BarMark(x: .value(\"Category\", category), y: .value(\"Value\", value), width: .ratio(\(config.barWidthRatio)))", foreground]
+                if config.style == "Bar" { lines.append("\(inner)    .position(by: .value(\"Series\", series))") }
+                lines.append("\(inner)    .cornerRadius(3)")
+            }
+            if config.samples.contains(where: { $0.highlighted == true }) {
+                let x = config.isBar ? ".value(\"Category\", category)" : ".value(\"Index\", x)"
+                let y = config.style == "Stacked Bar" ? "\(stackedValues)[index]" : "value"
+                lines += ["\(inner)if \(highlights)[index] {", "\(inner)    PointMark(x: \(x), y: .value(\"Value\", \(y)))", "\(inner)        .foregroundStyle(Color.primary)"]
+                if config.style == "Bar" { lines.append("\(inner)        .position(by: .value(\"Series\", series))") }
+                lines += ["\(inner)        .symbolSize(70)", "\(inner)}"]
+            }
+        }
+        lines.append("\(nextIndent)}")
+        if config.showGoal && !config.isDonut {
+            lines += ["\(nextIndent)RuleMark(y: .value(\"Goal\", \(config.goalValue)))", "\(nextIndent)    .foregroundStyle(Color.secondary)", "\(nextIndent)    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))", "\(nextIndent)    .annotation(position: .top, alignment: .trailing) { Text(\(String(reflecting: config.goalLabel))).font(.caption2).foregroundStyle(.secondary) }"]
+        }
         lines.append("\(indent)}")
-        lines.append(contentsOf: chartAxes(config: config, indent: indent, nextIndent: nextIndent))
+        let palette = [chartColorCode(component: component), "Color.teal", "Color.orange", "Color.purple", "Color.pink", "Color.indigo", "Color.mint", "Color.brown"]
+        let colors = "[" + config.groups.indices.map { palette[$0 % palette.count] }.joined(separator: ", ") + "]"
+        lines.append("\(indent).chartForegroundStyleScale(domain: \(strings(config.groups)), range: \(colors))")
+        lines.append("\(indent).chartXScale(range: .plotDimension(padding: 12))")
+        let legend = config.showLegend && config.groups.count > 1 && config.style != "Sparkline" ? ".visible" : ".hidden"
+        lines.append("\(indent).chartLegend(\(legend))")
+        if config.showXAxis {
+            let axisValues = config.isBar ? labels : "Array(0..<\(config.labels.count))"
+            lines += ["\(indent).chartXAxis {", "\(nextIndent)AxisMarks(values: \(axisValues)) { axis in"]
+            if config.showGrid { lines.append("\(inner)AxisGridLine()") }
+            if config.isBar { lines.append("\(inner)AxisValueLabel()") }
+            else { lines += ["\(inner)AxisValueLabel(anchor: .top) {", "\(inner)    if let index = axis.as(Int.self), (0..<\(config.labels.count)).contains(index) { Text(\(labels)[index]) }", "\(inner)}"] }
+            lines += ["\(nextIndent)}", "\(indent)}"]
+        } else { lines.append("\(indent).chartXAxis(.hidden)") }
+        if config.showYAxis {
+            lines += ["\(indent).chartYAxis {", "\(nextIndent)AxisMarks(position: .leading) { axis in"]
+            if config.showGrid { lines.append("\(inner)AxisGridLine()") }
+            lines += ["\(inner)AxisValueLabel {", "\(inner)    if let value = axis.as(Double.self) { Text(\(String(reflecting: config.valuePrefix)) + value.formatted(.number.notation(.compactName)) + \(String(reflecting: config.valueSuffix))) }", "\(inner)}", "\(nextIndent)}", "\(indent)}"]
+        } else { lines.append("\(indent).chartYAxis(.hidden)") }
         return lines.joined(separator: "\n")
-    }
-
-    private static func chartConfig(component: UIComponent) -> (style: String, dataPreset: String, pointCount: Int, colorCode: String, lineWidth: Double, showXAxis: Bool, showYAxis: Bool) {
-        let style = component.getProperty(key: "chartStyle") as? String ?? "Line + Area"
-        let dataPreset = component.getProperty(key: "dataPreset") as? String ?? "Increasing"
-        let pointCount = Int(component.getProperty(key: "pointCount") as? Double ?? 20.0)
-        let colorCode = chartColorCode(component: component)
-        let showXAxis = component.getProperty(key: "showXAxis") as? Bool ?? true
-        let showYAxis = component.getProperty(key: "showYAxis") as? Bool ?? true
-        return (style, dataPreset, pointCount, colorCode, 5.0, showXAxis, showYAxis)
     }
 
     private static func chartColorCode(component: UIComponent) -> String {
@@ -111,147 +153,7 @@ extension CodeGenerator {
         }
     }
 
-    private static func chartValueLogic(dataPreset: String, pointCount: Int, loopIndent: String) -> String {
-        let denominator = Double(max(1, pointCount - 1))
-        let noiseExpr = "12 * sin(Double(index) * 0.7) + 8 * sin(Double(index) * 0.23 + 1.5)"
-
-        let valueLine: String
-        switch dataPreset {
-        case "Decreasing":
-            valueLine = "\(loopIndent)let value = max(0, min(100, 90 - (progress * 80) + \(noiseExpr)))"
-        case "Stable":
-            valueLine = "\(loopIndent)let value = 50 + 5 * sin(Double(index) * 0.5)"
-        case "Volatile":
-            valueLine = "\(loopIndent)let value = 50 + 40 * sin(Double(index) * 1.7 + sin(Double(index) * 5.5))"
-        default:
-            valueLine = "\(loopIndent)let value = max(0, min(100, 10 + (progress * 80) + \(noiseExpr)))"
-        }
-
-        return [
-            "\(loopIndent)let progress = Double(index) / \(denominator)",
-            valueLine
-        ].joined(separator: "\n") + "\n"
-    }
-
-    private static func chartMarkLayers(config: (style: String, dataPreset: String, pointCount: Int, colorCode: String, lineWidth: Double, showXAxis: Bool, showYAxis: Bool), loopHeader: String, loopFooter: String, loopIndent: String, valueLogic: String) -> [String] {
-        var lines: [String] = []
-        let normalizedStyle = normalizeChartStyle(config.style)
-
-        if normalizedStyle == "area" || normalizedStyle == "line+area" {
-            lines.append(chartAreaLayer(loopHeader: loopHeader, loopFooter: loopFooter, loopIndent: loopIndent, valueLogic: valueLogic, colorCode: config.colorCode))
-        }
-
-        if normalizedStyle == "line" || normalizedStyle == "line+area" {
-            lines.append(chartLineLayer(loopHeader: loopHeader, loopFooter: loopFooter, loopIndent: loopIndent, valueLogic: valueLogic, colorCode: config.colorCode, lineWidth: config.lineWidth))
-        }
-
-        if normalizedStyle.contains("bar") {
-            lines.append(
-                chartBarLayer(
-                    loopHeader: loopHeader,
-                    loopFooter: loopFooter,
-                    loopIndent: loopIndent,
-                    valueLogic: valueLogic,
-                    colorCode: config.colorCode,
-                    pointCount: config.pointCount
-                )
-            )
-        }
-
-        return lines
-    }
-
-    private static func chartAreaLayer(loopHeader: String, loopFooter: String, loopIndent: String, valueLogic: String, colorCode: String) -> String {
-        return """
-\(loopHeader)\(valueLogic)\(loopIndent)AreaMark(
-\(loopIndent)    x: .value("Index", index),
-\(loopIndent)    y: .value("Value", value)
-\(loopIndent))
-\(loopIndent).interpolationMethod(.catmullRom)
-\(loopIndent).foregroundStyle(\(colorCode).opacity(0.5))
-\(loopFooter)
-"""
-    }
-
-    private static func chartLineLayer(loopHeader: String, loopFooter: String, loopIndent: String, valueLogic: String, colorCode: String, lineWidth: Double) -> String {
-        return """
-\(loopHeader)\(valueLogic)\(loopIndent)LineMark(
-\(loopIndent)    x: .value("Index", index),
-\(loopIndent)    y: .value("Value", value)
-\(loopIndent))
-\(loopIndent).interpolationMethod(.catmullRom)
-\(loopIndent).foregroundStyle(\(colorCode))
-\(loopIndent).lineStyle(StrokeStyle(lineWidth: \(formatNumber(lineWidth))))
-\(loopFooter)
-"""
-    }
-
-    private static func chartBarLayer(loopHeader: String, loopFooter: String, loopIndent: String, valueLogic: String, colorCode: String, pointCount: Int) -> String {
-        let widthRatio = barWidthRatio(for: pointCount)
-        return """
-\(loopHeader)\(valueLogic)\(loopIndent)BarMark(
-\(loopIndent)    x: .value("Index", "\\(index + 1)"),
-\(loopIndent)    y: .value("Value", value),
-\(loopIndent)    width: .ratio(\(formatNumber(widthRatio)))
-\(loopIndent))
-\(loopIndent).foregroundStyle(\(colorCode))
-\(loopIndent).cornerRadius(4)
-\(loopFooter)
-"""
-    }
-
     private static func normalizeChartStyle(_ style: String) -> String {
-        style
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: "-", with: "")
-    }
-
-    private static func barWidthRatio(for pointCount: Int) -> Double {
-        switch max(1, pointCount) {
-        case 1...4:
-            return 0.94
-        case 5...8:
-            return 0.88
-        case 9...14:
-            return 0.80
-        default:
-            return 0.72
-        }
-    }
-
-    private static func chartAxes(config: (style: String, dataPreset: String, pointCount: Int, colorCode: String, lineWidth: Double, showXAxis: Bool, showYAxis: Bool), indent: String, nextIndent: String) -> [String] {
-        [xAxisCode(show: config.showXAxis, indent: indent, nextIndent: nextIndent),
-         yAxisCode(show: config.showYAxis, indent: indent, nextIndent: nextIndent)]
-    }
-
-    private static func xAxisCode(show: Bool, indent: String, nextIndent: String) -> String {
-        if show {
-            return """
-\(indent).chartXAxis {
-\(nextIndent)AxisMarks(values: .automatic) { _ in
-\(nextIndent)    AxisGridLine()
-\(nextIndent)    AxisTick()
-\(nextIndent)    AxisValueLabel()
-\(nextIndent)}
-\(indent)}
-"""
-        }
-        return "\(indent).chartXAxis(.hidden)"
-    }
-
-    private static func yAxisCode(show: Bool, indent: String, nextIndent: String) -> String {
-        if show {
-            return """
-\(indent).chartYAxis {
-\(nextIndent)AxisMarks(position: .leading, values: .automatic) { _ in
-\(nextIndent)    AxisGridLine()
-\(nextIndent)    AxisTick()
-\(nextIndent)    AxisValueLabel()
-\(nextIndent)}
-\(indent)}
-"""
-        }
-        return "\(indent).chartYAxis(.hidden)"
+        style.lowercased().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "-", with: "")
     }
 }

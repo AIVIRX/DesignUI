@@ -17,24 +17,25 @@ export const REPAIR_MAX_TOKENS = 2400;
 export const SELECTION_MAX_TOKENS = 900;
 export const STYLE_PATCH_MAX_TOKENS = 400;
 export const ARCHETYPE_MAX_TOKENS = 200;
-export const SLOT_PLANNER_MAX_TOKENS = 800;
+export const SLOT_PLANNER_MAX_TOKENS = 1800;
 export const SLOT_GENERATOR_MAX_TOKENS = 3000;
-export const FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS = 1100;
+export const FULL_CANVAS_SLOT_PLANNER_MAX_TOKENS = 2200;
 export const FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS = 4200;
-export const THEME_EXTRACT_MAX_TOKENS = 600;
-export const SEMANTIC_INTENT_MAX_TOKENS = 320;
+export const THEME_EXTRACT_MAX_TOKENS = 1200;
+export const SEMANTIC_INTENT_MAX_TOKENS = 700;
 export const SCREEN_IR_MAX_TOKENS = 700;
 export const OPENAI_TIMEOUT_MS = 14000;
 export const EMBEDDING_TIMEOUT_MS = 6000;
-export const GENERATION_DEADLINE_MS = 30000;
-export const SLOT_BATCH_SIZE = 3;
-export const FULL_CANVAS_SLOT_BATCH_SIZE = 4;
+// Leave room for auth, persistence and transfer inside the app's 60s timeout.
+export const GENERATION_DEADLINE_MS = 48000;
+export const SLOT_BATCH_SIZE = 6;
+export const FULL_CANVAS_SLOT_BATCH_SIZE = 6;
 export const SLOT_BATCH_GRACE_MS = 1200;
 export const SLOT_GENERATION_MAX_ATTEMPTS = 2;
-export const FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS = 3;
+export const FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS = 2;
 export const MAX_GENERATION_SLOTS = 6;
 export const SLOT_DESIGN_PASSES = 1;
-export const FULL_CANVAS_SLOT_DESIGN_PASSES = 2;
+export const FULL_CANVAS_SLOT_DESIGN_PASSES = 1;
 export const GEN_V3_SKETCH_RENDER = Deno.env.get("GEN_V3_SKETCH_RENDER") === "true";
 export const GEN_V3_CONTRACTS_AS_PLANS = true;
 
@@ -148,12 +149,14 @@ export async function callOpenAI(params: {
     const timeoutMs = params.timeoutMs ?? OPENAI_TIMEOUT_MS;
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     let response: Response;
+    let data: Record<string, unknown>;
     try {
         response = await fetch("https://api.openai.com/v1/responses", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${openaiApiKey}` },
             body: JSON.stringify({
                 model: params.model,
+                reasoning: { effort: "none" },
                 instructions: systemMessages.length > 0 ? systemMessages.join("\n\n") : undefined,
                 input: inputMessages.length > 0
                     ? inputMessages
@@ -175,15 +178,16 @@ export async function callOpenAI(params: {
             }),
             signal: controller.signal,
         });
+        // The response body can stall after headers arrive. Keep the abort
+        // timer alive until the body is consumed, including error responses.
+        if (!response.ok) return { ok: false as const, error: await response.text() };
+        data = await response.json();
     } catch (err) {
-        clearTimeout(timer);
         const msg = err instanceof Error ? err.message : String(err);
-        return { ok: false as const, error: msg.toLowerCase().includes("abort") ? `OpenAI request timed out after ${timeoutMs}ms` : `OpenAI network error: ${msg}` };
+        return { ok: false as const, error: controller.signal.aborted ? `OpenAI request timed out after ${timeoutMs}ms` : `OpenAI network or JSON error: ${msg}` };
+    } finally {
+        clearTimeout(timer);
     }
-    clearTimeout(timer);
-    if (!response.ok) return { ok: false as const, error: await response.text() };
-    let data: Record<string, unknown>;
-    try { data = await response.json(); } catch (err) { return { ok: false as const, error: `OpenAI JSON decode error: ${err instanceof Error ? err.message : String(err)}` }; }
     const parsed = parseOpenAIResponse(data);
     if (parsed.meta.refusal) {
         return { ok: false as const, error: `OpenAI refusal: ${parsed.meta.refusal}`, meta: parsed.meta };

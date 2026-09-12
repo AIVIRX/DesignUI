@@ -1293,8 +1293,19 @@ extension UIComponent {
             ]
         case .chart:
             return [
-                ComponentProperty(key: "chartStyle", displayName: "Chart Style", type: .dropdown, value: "Line + Area", defaultValue: "Line + Area", options: ["Line + Area", "Line", "Area", "Bar"]),
-                ComponentProperty(key: "dataPreset", displayName: "Data Pattern", type: .dropdown, value: "Increasing", defaultValue: "Increasing", options: ["Increasing", "Decreasing", "Stable", "Volatile"]),
+                ComponentProperty(key: "dataPoints", displayName: "Data Points JSON", type: .string, value: "", defaultValue: ""),
+                ComponentProperty(key: "lineWidth", displayName: "Line Width", type: .slider, value: 2.5, defaultValue: 2.5, options: [1.0, 8.0]),
+                ComponentProperty(key: "barWidthRatio", displayName: "Bar Width", type: .slider, value: 0.6, defaultValue: 0.6, options: [0.2, 0.95]),
+                ComponentProperty(key: "areaOpacity", displayName: "Area Opacity", type: .slider, value: 0.14, defaultValue: 0.14, options: [0.0, 1.0]),
+                ComponentProperty(key: "showGrid", displayName: "Show Grid", type: .boolean, value: false, defaultValue: false),
+                ComponentProperty(key: "chartStyle", displayName: "Chart Style", type: .dropdown, value: "Line + Area", defaultValue: "Line + Area", options: ["Line + Area", "Line", "Area", "Bar", "Stacked Bar", "Donut", "Sparkline"]),
+                ComponentProperty(key: "dataPreset", displayName: "Data Pattern", type: .dropdown, value: "Increasing", defaultValue: "Increasing", options: ["Increasing", "Decreasing", "Stable", "Volatile", "Weekly Activity", "Spending", "Revenue"]),
+                ComponentProperty(key: "showLegend", displayName: "Show Legend", type: .boolean, value: true, defaultValue: true),
+                ComponentProperty(key: "showGoal", displayName: "Show Goal", type: .boolean, value: false, defaultValue: false),
+                ComponentProperty(key: "goalValue", displayName: "Goal Value", type: .number, value: 75.0, defaultValue: 75.0),
+                ComponentProperty(key: "goalLabel", displayName: "Goal Label", type: .string, value: "Goal", defaultValue: "Goal"),
+                ComponentProperty(key: "valuePrefix", displayName: "Value Prefix", type: .string, value: "", defaultValue: ""),
+                ComponentProperty(key: "valueSuffix", displayName: "Value Unit", type: .string, value: "", defaultValue: ""),
 
                 ComponentProperty(key: "pointCount", displayName: "Point Count", type: .slider, value: 20.0, defaultValue: 20.0, options: [5.0, 30.0]),
                 ComponentProperty(key: "showXAxis", displayName: "Show X Axis", type: .boolean, value: true, defaultValue: true),

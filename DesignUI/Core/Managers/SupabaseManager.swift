@@ -21,7 +21,7 @@ class SupabaseManager {
             supabaseKey: supabaseKey,
             options: SupabaseClientOptions(
                 auth: .init(
-                    storage: KeychainLocalStorage(service: "com.Maicol.Dockui"),
+                    storage: DataProtectionKeychainLocalStorage(service: "com.Maicol.Dockui"),
                     flowType: .pkce,
                     autoRefreshToken: true,
                     emitLocalSessionAsInitialSession: true

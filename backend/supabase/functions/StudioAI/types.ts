@@ -120,6 +120,8 @@ export type ScreenPlan = {
     archetype: ScreenArchetype;
     slots: SlotPlan[];
     canvas_settings?: CanvasSettings;
+    viewport?: { width: number; height: number };
+    chartSchemaVersion?: number;
 };
 
 export type SketchPrimitive =

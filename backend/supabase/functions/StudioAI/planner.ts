@@ -215,6 +215,7 @@ export async function planSlots(
     options?: {
         maxTokens?: number;
         temperature?: number;
+        deadlineAt?: number;
     },
 ): Promise<ScreenPlan> {
     const template = ARCHETYPE_SLOT_TEMPLATES[archetype];
@@ -257,6 +258,8 @@ Use this semantic contract as the primary planning signal. Brand/style reference
     ];
 
     const runPlanner = async (extraGuidance?: string): Promise<ScreenPlan | null> => {
+        const remaining = (options?.deadlineAt ?? (Date.now() + 14000)) - Date.now();
+        if (remaining < 1200) return null;
         const response = await callOpenAI({
             model: SLOT_PLANNER_MODEL,
             messages: extraGuidance
@@ -265,6 +268,7 @@ Use this semantic contract as the primary planning signal. Brand/style reference
             temperature: options?.temperature ?? 0.45,
             maxTokens: options?.maxTokens ?? SLOT_PLANNER_MAX_TOKENS,
             responseFormat: SCREEN_PLAN_RESPONSE_FORMAT,
+            timeoutMs: Math.min(14000, remaining),
         });
 
         if (!response.ok) return null;
@@ -399,7 +403,7 @@ export function parseScreenPlan(value: unknown, archetype: ScreenArchetype, them
         const position = normalizeSlotPosition(st as SlotType, requestedPosition);
         const rawIntent = typeof item.intent === "string" ? item.intent : "";
         const intent = sanitizeInternalDisplayText(rawIntent, `Show relevant ${theme.itemNoun} content`);
-        const itemCount = typeof item.itemCount === "number" ? Math.max(2, Math.min(8, item.itemCount)) : undefined;
+        const itemCount = typeof item.itemCount === "number" && Number.isFinite(item.itemCount) ? Math.max(1, Math.min(8, Math.round(item.itemCount))) : undefined;
         const variant_hint = typeof item.variant_hint === "string" ? item.variant_hint : undefined;
 
         // Allow duplicate slotTypes only for body slots with different intents
@@ -490,10 +494,8 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
         ? topSlots.filter((s) => s.slotType !== "app_header" && s.slotType !== "search_bar")
         : topSlots;
 
-    const primaryTop = effectiveTopSlots.find((s) => s.slotType === "search_bar")
-        ?? effectiveTopSlots.find((s) => s.slotType === "app_header")
-        ?? effectiveTopSlots[0];
-    const refinedTop = primaryTop ? [primaryTop] : [];
+    // A title and a search field have different roles; both may be requested.
+    const refinedTop = effectiveTopSlots;
 
     const keepSingleBottomType = (slots: SlotPlan[], type: SlotType): SlotPlan[] => {
         let kept = false;
@@ -538,7 +540,7 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
     const semanticFocal = semanticIntent?.preferredFocalSlot;
     const semanticSupport = semanticIntent?.preferredSupportSlots.find((slot) => slot !== semanticFocal);
 
-    if (!designSpec?.isSearchResultsMode && !isInstagramHomeLike && basePlan.archetype !== "social_feed" && !hasFocal && refinedBody.length > 0) {
+    if (semanticFocal && !semanticIntent?.avoidSlots.includes(semanticFocal) && !manifest?.forbiddenSlotTypes.includes(semanticFocal) && !designSpec?.isSearchResultsMode && !isInstagramHomeLike && basePlan.archetype !== "social_feed" && !hasFocal && !refinedBody.some((s) => s.slotType === semanticFocal) && refinedBody.length > 0) {
         refinedBody.unshift(
             semanticFocal
                 ? {
@@ -563,7 +565,7 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
         );
     }
 
-    if (!hasSupport && refinedBody.length > 0) {
+    if (semanticSupport && !semanticIntent?.avoidSlots.includes(semanticSupport) && !manifest?.forbiddenSlotTypes.includes(semanticSupport) && !hasSupport && !refinedBody.some((s) => s.slotType === semanticSupport) && refinedBody.length > 0) {
         refinedBody.push(
             semanticSupport
                 ? {
@@ -891,14 +893,8 @@ export function refineScreenPlan(basePlan: ScreenPlan, manifest?: DesignManifest
         merged = [...primary, ...overlays];
     }
 
-    if (merged.length < 3) {
-        merged = [...merged, {
-            slotType: "content_list",
-            position: "body",
-            intent: "supporting list content",
-            itemCount: 4,
-        }];
-    }
+    // Simple forms, settings and empty states are complete with one or two
+    // sections. Never pad a valid plan with unrelated content to meet a quota.
     if (merged.length > MAX_GENERATION_SLOTS) merged = merged.slice(0, MAX_GENERATION_SLOTS);
 
     return {
@@ -1961,6 +1957,20 @@ Rules:
 - Keep the IR reusable and implementation-oriented.`;
 
 export async function extractScreenIR(params: {
+    prompt: string;
+    theme: ThemeTokens;
+    plan: ScreenPlan;
+    semanticIntent: SemanticIntent;
+    designSpec?: PromptDesignSpec;
+}): Promise<ScreenIR> {
+    // The slot planner already returns a strict, refined semantic plan. A second
+    // model rewrite cost another round trip and could erase explicit sections,
+    // counts and variants. Compile that accepted plan losslessly instead.
+    return buildFallbackScreenIR(params.plan, params.semanticIntent);
+}
+
+// Kept for offline experiments; not on the user-facing generation critical path.
+export async function proposeScreenIR(params: {
     prompt: string;
     theme: ThemeTokens;
     plan: ScreenPlan;

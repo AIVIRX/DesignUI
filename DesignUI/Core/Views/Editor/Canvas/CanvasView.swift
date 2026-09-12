@@ -27,6 +27,7 @@ struct CanvasView: View {
     let pushScale: CGFloat
     let pushOffset: CGSize
     let enableScrollHandler: Bool
+    let isGenerating: Bool
     @Environment(\.colorScheme) private var appColorScheme
     @Environment(\.displayScale) private var displayScale
     
@@ -62,7 +63,8 @@ struct CanvasView: View {
         colorScheme: Binding<ColorScheme?>,
         pushScale: CGFloat = 1.0,
         pushOffset: CGSize = .zero,
-        enableScrollHandler: Bool = true
+        enableScrollHandler: Bool = true,
+        isGenerating: Bool = false
     ) {
         self.canvasManager = canvasManager
         self._selectedComponent = selectedComponent
@@ -72,6 +74,7 @@ struct CanvasView: View {
         self.pushScale = pushScale
         self.pushOffset = pushOffset
         self.enableScrollHandler = enableScrollHandler
+        self.isGenerating = isGenerating
     }
     
     var body: some View {
@@ -402,6 +405,7 @@ struct CanvasView: View {
             canvasManager: canvasManager
         )
         .colorScheme(colorScheme ?? .light)
+        .overlay { if isGenerating { CanvasGenerationOverlay() } }
         .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: selectedDevice)
         .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: canvasManager.components.map(\.id))
     }
@@ -423,6 +427,12 @@ struct CanvasView: View {
         }
         .overlay(deviceBorder(cornerRadius: cornerRadius))
         .frame(width: deviceSize.width, height: deviceSize.height)
+        .overlay {
+            if isGenerating {
+                CanvasGenerationOverlay()
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            }
+        }
         .background(Color.clear)
         .colorScheme(colorScheme ?? .light)
         .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: selectedDevice)

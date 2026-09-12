@@ -1,0 +1,302 @@
+{
+  "name": "Circle",
+  "source": "deterministic-pattern-fixture",
+  "prompt": "Design Circle, a messaging screen with an incoming message \"Are we still on for tomorrow?\", an outgoing reply, and a message composer. Use clearly differentiated chat bubbles.",
+  "expectedTexts": [
+    "Circle",
+    "Are we still on for tomorrow?"
+  ],
+  "primaryAction": null,
+  "components": [
+    {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 0
+      },
+      "modifiers": [
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Full"
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "ScrollView",
+          "properties": {
+            "axis": "vertical",
+            "showsIndicators": false
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 16
+              },
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                },
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "amount": 16,
+                    "location": "all"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Circle"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title",
+                            "fontWeight": "bold",
+                            "fontDesign": "default"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Default"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "HStack",
+                      "properties": {
+                        "alignment": "center",
+                        "spacing": 12
+                      },
+                      "children": [
+                        {
+                          "type": "VStack",
+                          "properties": {
+                            "alignment": "leading",
+                            "spacing": 12
+                          },
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Are we still on for tomorrow?"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "regular",
+                                    "fontDesign": "default"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "primary"
+                                  }
+                                }
+                              ]
+                            }
+                          ],
+                          "modifiers": [
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 16,
+                                "location": "all"
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "secondarySystemBackground"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 16
+                              }
+                            },
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Default"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Spacer",
+                          "properties": {},
+                          "modifiers": []
+                        }
+                      ],
+                      "modifiers": []
+                    },
+                    {
+                      "type": "HStack",
+                      "properties": {
+                        "alignment": "center",
+                        "spacing": 12
+                      },
+                      "children": [
+                        {
+                          "type": "Spacer",
+                          "properties": {},
+                          "modifiers": []
+                        },
+                        {
+                          "type": "VStack",
+                          "properties": {
+                            "alignment": "leading",
+                            "spacing": 12
+                          },
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Absolutely! See you at 10."
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "regular",
+                                    "fontDesign": "default"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "primary"
+                                  }
+                                }
+                              ]
+                            }
+                          ],
+                          "modifiers": [
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "amount": 12,
+                                "location": "all"
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "blue:0.12"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 16
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "modifiers": []
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Delivered · 9:41"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "caption2",
+                            "fontWeight": "regular",
+                            "fontDesign": "default"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "secondary"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "modifiers": []
+                },
+                {
+                  "type": "Text Field",
+                  "properties": {
+                    "placeholder": "Message",
+                    "text": ""
+                  },
+                  "modifiers": []
+                },
+                {
+                  "type": "Spacer",
+                  "properties": {},
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Default",
+                        "heightType": "Custom",
+                        "height": 34
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -39,6 +39,7 @@ struct ComponentRenderer: View {
         .opacity(component.isVisible ? 1.0 : 0.0)
         .applyModifiers(component.modifiers, component: component, deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds, isScreenshotCapture: isScreenshotCapture)
         .applyOverlayChildren(component.getOverlayChildren(), deviceSize: deviceSize, colorScheme: colorScheme, onSelectChild: onSelectChild, selectedComponentIds: selectedComponentIds)
+        .modifier(DesignLayoutProbe(component: component))
         .colorScheme(colorScheme ?? .light)
         .applyInteractionContentShapeIfNeeded(component: component)
         .id(component.id)

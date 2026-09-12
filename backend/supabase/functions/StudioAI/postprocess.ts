@@ -143,7 +143,7 @@ export function postProcessComponents(
             const rawTitle = typeof props.title === "string" ? props.title.trim() : "";
             const hasTextChild = Array.isArray(node.children)
                 && node.children.some((child) => isObject(child) && child.type === "Text");
-            if (!hasTextChild && rawTitle.length > 0) {
+            if (!hasTextChild && (node.children?.length ?? 0) === 0 && rawTitle.length > 0) {
                 node.children = [{
                     type: "Text",
                     properties: { text: rawTitle },
@@ -186,14 +186,15 @@ export function postProcessComponents(
             let modObj = modValue as Record<string, unknown>;
             if (!isObject(modObj.properties)) modObj.properties = {};
             modObj.properties = withoutNulls(modObj.properties as Record<string, unknown>);
+            const normalizedProperties = modObj.properties as Record<string, unknown>;
             modObj.type = normalizeModifierType(modObj.type);
 
             if (modObj.type === "Padding") {
-                const amount = modObj.properties.amount;
-                if (typeof amount === "number") modObj.properties.amount = snapToSpacingScale(amount);
+                const amount = normalizedProperties.amount;
+                if (typeof amount === "number") normalizedProperties.amount = snapToSpacingScale(amount);
             }
-            const semanticSurface = adaptiveNeutralSurface(String(modObj.type), modObj.properties.color);
-            if (semanticSurface) modObj.properties.color = semanticSurface;
+            const semanticSurface = adaptiveNeutralSurface(String(modObj.type), normalizedProperties.color);
+            if (semanticSurface) normalizedProperties.color = semanticSurface;
 
             if (modObj.type === "fontSize" || modObj.type === "fontWeight") {
                 const fp = modObj.properties as Record<string, unknown>;
@@ -459,7 +460,11 @@ export function findEmptyTexts(node: AnyComponent): number {
 export function walkComponentTree(node: AnyComponent, visit: (n: AnyComponent) => void): void {
     visit(node);
     if (Array.isArray(node.children)) {
-        for (const child of node.children) walkComponentTree(child, visit);
+        // Editor bridge nodes duplicate the content already owned by modifiers.
+        for (const child of node.children) {
+            if (typeof child.modifierId === "string" && typeof child.modifierType === "string") continue;
+            walkComponentTree(child, visit);
+        }
     }
     if (Array.isArray(node.modifiers)) {
         for (const mod of node.modifiers) {
@@ -637,15 +642,21 @@ export function findAccessibilityViolations(component: AnyComponent, colorScheme
         ? { r: 0, g: 0, b: 0, a: 1 }
         : { r: 255, g: 255, b: 255, a: 1 };
 
-    const visit = (node: AnyComponent, inheritedBackground: RGBA): void => {
+    const visit = (node: AnyComponent, inheritedBackground: RGBA, inheritedForeground: RGBA | null, inheritedFont: Record<string, unknown>): void => {
         const ownBackground = modifierColor(node, "Background Color", colorScheme);
         const background = ownBackground ? composite(ownBackground, inheritedBackground) : inheritedBackground;
+        const foreground = modifierColor(node, "Foreground Color", colorScheme) ?? inheritedForeground;
+        const fontModifier = [...(node.modifiers ?? [])].reverse().find((m) => m.type === "Font");
+        const font = isObject(fontModifier?.properties) ? { ...inheritedFont, ...fontModifier.properties } : inheritedFont;
         if (node.type === "Text") {
-            const foreground = modifierColor(node, "Foreground Color", colorScheme);
             if (foreground) {
                 const renderedForeground = composite(foreground, background);
                 const ratio = contrastRatio(renderedForeground, background);
-                if (ratio < 3) issues.push(`Text contrast ${ratio.toFixed(2)}:1 is below 3:1`);
+                const sizes: Record<string, number> = { largeTitle: 34, title: 28, title2: 22, title3: 20, headline: 17, body: 17, callout: 16, subheadline: 15, footnote: 13, caption: 12, caption2: 11 };
+                const size = sizes[String(font.fontSize)] ?? (Number(font.fontSize) || 17);
+                const bold = ["bold", "heavy", "black"].includes(String(font.fontWeight));
+                const minimum = size >= 24 || (size >= 18.66 && bold) ? 3 : 4.5;
+                if (ratio < minimum) issues.push(`Text contrast ${ratio.toFixed(2)}:1 is below ${minimum}:1`);
             }
         }
         if (node.type === "Button" && Array.isArray(node.modifiers)) {
@@ -659,18 +670,21 @@ export function findAccessibilityViolations(component: AnyComponent, colorScheme
             }
         }
         if (Array.isArray(node.children)) {
-            for (const child of node.children) visit(child, background);
+            for (const child of node.children) {
+                if (typeof child.modifierId === "string" && typeof child.modifierType === "string") continue;
+                visit(child, background, foreground, font);
+            }
         }
         if (Array.isArray(node.modifiers)) {
             for (const modifier of node.modifiers) {
                 if (!isObject(modifier) || !Array.isArray(modifier.children)) continue;
                 for (const child of modifier.children) {
-                    if (isObject(child) && typeof child.type === "string") visit(child as AnyComponent, background);
+                    if (isObject(child) && typeof child.type === "string") visit(child as AnyComponent, background, foreground, font);
                 }
             }
         }
     };
-    visit(component, canvas);
+    visit(component, canvas, null, {});
     return [...new Set(issues)];
 }
 
@@ -897,6 +911,26 @@ export function validateSlotAgainstPromptRequirements(slot: SlotPlan, component:
 
     for (const req of promptRequirements) {
         const must = req.mustInclude.toLowerCase();
+        if (req.requirementKey === "explicit_chart") {
+            let count = 0;
+            walkComponentTree(component, (node) => { if (node.type === "Chart") count++; });
+            if (count !== 1) issues.push(`Expected one Chart, found ${count}.`);
+        }
+        if (req.requirementKey === "explicit_feature" || req.requirementKey === "explicit_navigation") {
+            const texts: string[] = [];
+            let buttons = 0;
+            walkComponentTree(component, (node) => {
+                if (node.type === "Text" && typeof node.properties?.text === "string") texts.push(node.properties.text.toLowerCase());
+                if (node.type === "Button") buttons++;
+            });
+            const quoted = [...req.mustInclude.matchAll(/[“"]([^”"]+)[”"]/g)].map((match) => match[1].toLowerCase());
+            for (const label of quoted) if (!texts.some((text) => text.includes(label))) issues.push(`Missing requested text: ${label}`);
+            if (/\bbutton\b/i.test(req.mustInclude) && buttons === 0) issues.push("Featured content requires a Button for the requested action.");
+            if (req.requirementKey === "explicit_navigation" && req.mustInclude.includes(":")) {
+                const labels = req.mustInclude.split(":").slice(1).join(":").split(/,|\band\b/i).map((s) => s.trim().toLowerCase()).filter(Boolean);
+                for (const label of labels) if (!texts.includes(label)) issues.push(`Missing navigation label: ${label}`);
+            }
+        }
         if (slot.slotType === "progress_section") {
             if (must.includes("gauge") && !slotHasCircularGauge(component)) {
                 issues.push("Missing required circular Gauge progress element.");
@@ -909,6 +943,9 @@ export function validateSlotAgainstPromptRequirements(slot: SlotPlan, component:
         }
         if (slot.slotType === "stat_group") {
             const grid = estimateGridCardCount(component);
+            if (req.requirementKey === "explicit_metrics" && /\bexactly\b/.test(must) && grid.cards !== req.itemCount) {
+                issues.push(`Expected exactly ${req.itemCount} metrics, found ${grid.cards}.`);
+            }
             if (typeof req.itemCount === "number" && grid.cards < req.itemCount) {
                 issues.push(`Stat group has ~${grid.cards} cards; requires at least ${req.itemCount}.`);
             }

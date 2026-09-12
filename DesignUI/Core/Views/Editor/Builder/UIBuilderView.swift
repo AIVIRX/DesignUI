@@ -1272,7 +1272,8 @@ struct UIBuilderView: View {
             colorScheme: $canvasManager.colorScheme,
             pushScale: pushScale,
             pushOffset: pushOffset,
-            enableScrollHandler: true
+            enableScrollHandler: true,
+            isGenerating: isAIGenerating
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
@@ -1949,6 +1950,9 @@ struct UIBuilderView: View {
             "currentPageName": AnyCodable(currentPageName),
             "pageCount": AnyCodable(designFile.pages.isEmpty ? 1 : designFile.pages.count),
             "devicePreset": AnyCodable(canvasManager.devicePreset.rawValue),
+            "canvasWidth": AnyCodable(Double(canvasManager.devicePreset.size.width)),
+            "chartSchemaVersion": AnyCodable(2),
+            "canvasHeight": AnyCodable(Double(canvasManager.devicePreset.size.height)),
             "colorScheme": AnyCodable(canvasManager.colorScheme == .dark ? "dark" : (canvasManager.colorScheme == .light ? "light" : "system")),
             "componentCount": AnyCodable(componentCount),
             "topLevelComponentTypes": AnyCodable(topLevelComponentTypes),

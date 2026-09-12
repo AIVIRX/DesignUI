@@ -1,0 +1,508 @@
+{
+  "name": "Studio",
+  "source": "deterministic-pattern-fixture",
+  "prompt": "Design a premium shopping home called Studio with search, filters and a headphones product card. Include \"Studio headphones\", \"$129\" and an \"Add to bag\" button.",
+  "expectedTexts": [
+    "Studio headphones",
+    "$129",
+    "Add to bag"
+  ],
+  "primaryAction": "Add to bag",
+  "components": [
+    {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 0
+      },
+      "modifiers": [
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Full"
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "ScrollView",
+          "properties": {
+            "axis": "vertical",
+            "showsIndicators": false
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 16
+              },
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                },
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "amount": 16,
+                    "location": "all"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Studio"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title",
+                            "fontWeight": "bold",
+                            "fontDesign": "default"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Default"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "HStack",
+                      "properties": {
+                        "alignment": "center",
+                        "spacing": 12
+                      },
+                      "children": [
+                        {
+                          "type": "SF Symbol",
+                          "properties": {
+                            "symbolName": "magnifyingglass"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "blue"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Text Field",
+                          "properties": {
+                            "placeholder": "Search",
+                            "text": ""
+                          },
+                          "modifiers": []
+                        }
+                      ],
+                      "modifiers": []
+                    },
+                    {
+                      "type": "HStack",
+                      "properties": {
+                        "alignment": "center",
+                        "spacing": 12
+                      },
+                      "children": [
+                        {
+                          "type": "Button",
+                          "properties": {
+                            "buttonStyle": "plain"
+                          },
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "All"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "semibold",
+                                    "fontDesign": "default"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "primary"
+                                  }
+                                }
+                              ]
+                            }
+                          ],
+                          "modifiers": [
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "location": "all",
+                                "amount": 12
+                              }
+                            },
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Custom",
+                                "height": 48
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "blue:0.16"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 12
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Button",
+                          "properties": {
+                            "buttonStyle": "plain"
+                          },
+                          "children": [
+                            {
+                              "type": "Text",
+                              "properties": {
+                                "text": "Favorites"
+                              },
+                              "modifiers": [
+                                {
+                                  "type": "Font",
+                                  "properties": {
+                                    "fontSize": "body",
+                                    "fontWeight": "semibold",
+                                    "fontDesign": "default"
+                                  }
+                                },
+                                {
+                                  "type": "Foreground Color",
+                                  "properties": {
+                                    "color": "primary"
+                                  }
+                                }
+                              ]
+                            }
+                          ],
+                          "modifiers": [
+                            {
+                              "type": "Padding",
+                              "properties": {
+                                "location": "all",
+                                "amount": 12
+                              }
+                            },
+                            {
+                              "type": "Frame",
+                              "properties": {
+                                "widthType": "Full",
+                                "heightType": "Custom",
+                                "height": 48
+                              }
+                            },
+                            {
+                              "type": "Background Color",
+                              "properties": {
+                                "color": "systemFill"
+                              }
+                            },
+                            {
+                              "type": "Corner Radius",
+                              "properties": {
+                                "radius": 12
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "modifiers": []
+                    }
+                  ],
+                  "modifiers": []
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "ZStack",
+                      "properties": {
+                        "alignment": "center"
+                      },
+                      "children": [
+                        {
+                          "type": "RoundedRectangle",
+                          "properties": {
+                            "cornerRadius": 16
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Fill",
+                              "properties": {
+                                "color": "blue:0.10"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "SF Symbol",
+                          "properties": {
+                            "symbolName": "headphones"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "largeTitle",
+                                "fontWeight": "regular",
+                                "fontDesign": "default"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "blue"
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "modifiers": [
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full",
+                            "heightType": "Custom",
+                            "height": 120
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Studio headphones"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title3",
+                            "fontWeight": "semibold",
+                            "fontDesign": "default"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "primary"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Wireless · Midnight"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular",
+                            "fontDesign": "default"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "secondary"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "$129"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title2",
+                            "fontWeight": "bold",
+                            "fontDesign": "default"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "primary"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Button",
+                      "properties": {
+                        "buttonStyle": "plain"
+                      },
+                      "children": [
+                        {
+                          "type": "Text",
+                          "properties": {
+                            "text": "Add to bag"
+                          },
+                          "modifiers": [
+                            {
+                              "type": "Font",
+                              "properties": {
+                                "fontSize": "body",
+                                "fontWeight": "semibold",
+                                "fontDesign": "default"
+                              }
+                            },
+                            {
+                              "type": "Foreground Color",
+                              "properties": {
+                                "color": "primary"
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "modifiers": [
+                        {
+                          "type": "Padding",
+                          "properties": {
+                            "location": "all",
+                            "amount": 12
+                          }
+                        },
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full",
+                            "heightType": "Custom",
+                            "height": 48
+                          }
+                        },
+                        {
+                          "type": "Background Color",
+                          "properties": {
+                            "color": "blue:0.16"
+                          }
+                        },
+                        {
+                          "type": "Corner Radius",
+                          "properties": {
+                            "radius": 12
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Padding",
+                      "properties": {
+                        "amount": 16,
+                        "location": "all"
+                      }
+                    },
+                    {
+                      "type": "Background Color",
+                      "properties": {
+                        "color": "secondarySystemBackground"
+                      }
+                    },
+                    {
+                      "type": "Corner Radius",
+                      "properties": {
+                        "radius": 16
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Default"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Spacer",
+                  "properties": {},
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Default",
+                        "heightType": "Custom",
+                        "height": 34
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

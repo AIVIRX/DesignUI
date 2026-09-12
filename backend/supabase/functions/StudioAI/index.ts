@@ -92,7 +92,7 @@ serve(async (req) => {
             });
             const newCount = currentCount + 1;
             await saveUsage(newCount);
-            return json({ generation_id: generationId, components: normalizedComponents, mode: generationMode === "full_canvas" ? "full_canvas" : "blocks", canvas_settings: generated.canvas_settings, ...(generated.theme ? { theme: { appName: generated.theme.appName, accentColor: generated.theme.accentColor, secondaryColor: generated.theme.secondaryColor, voiceTone: generated.theme.voiceTone, cornerRadiusScale: generated.theme.cornerRadiusScale } } : {}), quota: makeQuota(newCount) });
+            return json({ generation_id: generationId, components: normalizedComponents, generation_quality: "quality" in generated ? generated.quality : [{ code: "fallback", severity: "warning", message: "Generation used the emergency fallback." }], mode: generationMode === "full_canvas" ? "full_canvas" : "blocks", canvas_settings: generated.canvas_settings, ...(generated.theme ? { theme: { appName: generated.theme.appName, accentColor: generated.theme.accentColor, secondaryColor: generated.theme.secondaryColor, voiceTone: generated.theme.voiceTone, cornerRadiusScale: generated.theme.cornerRadiusScale } } : {}), quota: makeQuota(newCount) });
         }
 
         const selectedComponent = resolvedSelection as AnyComponent;

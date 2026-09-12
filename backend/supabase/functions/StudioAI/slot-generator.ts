@@ -2,6 +2,8 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { AnyComponent, DesignManifest, Exemplar, GenerationMode, LayoutSketch, LayoutSketchNode, PromptDesignSpec, PromptRequirement, RailVariant, ScreenPlan, SketchPrimitive, SlotMemory, SlotPlan, SlotPosition, SlotType, ThemeSurfaces, ThemeTokens, VoiceTone } from "./types.ts";
 import { EMBEDDING_MODEL, EMBEDDING_TIMEOUT_MS, FULL_CANVAS_SLOT_BATCH_SIZE, FULL_CANVAS_SLOT_DESIGN_PASSES, FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS, FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS, GEN_V3_SKETCH_RENDER, MAX_GENERATION_SLOTS, REPAIR_MAX_TOKENS, REPAIR_MODEL, SELECTION_MAX_TOKENS, SELECTION_MODEL, SLOT_BATCH_GRACE_MS, SLOT_BATCH_SIZE, SLOT_DESIGN_PASSES, SLOT_GENERATION_MAX_ATTEMPTS, SLOT_GENERATOR_MAX_TOKENS, SLOT_GENERATOR_MODEL, callOpenAI, openaiApiKey } from "./openai.ts";
 import type { OpenAIResponseMeta } from "./openai.ts";
+import { validateComponentSchema } from "./validation.ts";
+import { patternGuidance } from "./patterns.ts";
 import { SLOT_COMPONENT_RESPONSE_FORMAT, SLOT_CONSTRAINTS, VALID_COMPONENT_TYPES } from "./schema.ts";
 import { buildDesignManifest, compilePromptDesignSpec, formatPromptDesignSpec } from "./manifest.ts";
 import { detectRailVariantFromText, isJsonParseError, isObject, parseJsonSafe, sanitizeInternalDisplayText } from "./utils.ts";
@@ -15,6 +17,7 @@ export const SLOT_SCHEMA_COMPACT = `CONTAINERS(must have children[]): VStack HSt
 LEAVES(no children): Text Image "SF Symbol" Spacer Divider Rectangle Circle RoundedRectangle Capsule Ellipse "Linear Gradient" "Text Field" Switch Slider "Progress View" Gauge Chart Map
 Text:{text:string} "SF Symbol":{symbolName:string} "Text Field":{text?:string,placeholder?:string} VStack:{alignment:"leading"|"center"|"trailing",spacing:num} HStack:{alignment:"top"|"center"|"bottom",spacing:num} ZStack:{alignment:"center"|"topLeading"|"bottomTrailing"...} Button:{buttonStyle:"plain"|"bordered"|"borderedProminent"} ScrollView:{axis:"vertical"|"horizontal",showsIndicators:bool} RoundedRectangle:{cornerRadius:num} "Progress View":{value:num,total:num,color:string} Gauge:{value:num,min:num,max:num,gaugeType:"linear"|"circular"|"circular range",showValue:bool,color:string} Map:{latitude:num,longitude:num,latitudeDelta?:num,longitudeDelta?:num,mapStyle?:"standard"|"imagery"|"hybrid",interactionModes?:"all"|"none"|"pan"|"zoom"|"rotate"|"pitch"|"pan+zoom"|"pan+zoom+rotate"|"pan+zoom+rotate+pitch",showsCompass?:bool,showsScale?:bool,showsPitchToggle?:bool,showsUserLocation?:bool,showsUserLocationButton?:bool,showsTraffic?:bool,locationName?:string,markers?:string}
 MODIFIERS: Frame Padding "Background Color" "Foreground Color" Font "Corner Radius" Shadow Opacity Stroke Fill "Clip Shape" "Text Alignment" Tint "Glass Effect"
+Chart:{chartStyle:"Line + Area"|"Line"|"Area"|"Bar",dataPreset:"Increasing"|"Decreasing"|"Stable"|"Volatile",pointCount:num,showXAxis:bool,showYAxis:bool,dataPoints?:string,lineWidth?:num,barWidthRatio?:num,areaOpacity?:num,showGrid?:bool}. dataPoints is a JSON string of [{"label":"Mon","value":42},...]. Prefer meaningful labels and plausible values matching nearby copy. Let Chart draw axis labels; never construct a separate weekday label row. Use restrained grid lines and hide axes for sparklines.
 Font:{fontSize:"largeTitle"|"title"|"title2"|"title3"|"headline"|"body"|"callout"|"subheadline"|"footnote"|"caption"|"caption2",fontWeight:"bold"|"semibold"|"medium"|"regular"|"light",fontDesign?:string}
 Frame:{widthType:"Custom"|"Default"|"Full",heightType:"Custom"|"Default"|"Full",width?:num,height?:num}
 Padding:{amount:num,location:"all"|"horizontal"|"vertical"}
@@ -100,7 +103,7 @@ export function buildSlotGeneratorSystemPrompt(
         utility: `card:"secondarySystemBackground:1.0" row:"tertiarySystemBackground:1.0" text2:"secondary:1.0"`,
     };
 
-    const contextSlots = allSlots.filter((s) => s !== slot).map((s) => s.slotType).join(", ");
+    const contextSlots = allSlots.filter((s) => s !== slot).map((s) => `${s.slotType}: ${s.intent}`).join("; ");
     const railVariantGuide = buildRailVariantGuide(slot, slotPromptRequirements);
     const selectedRailVariant = slot.slotType === "horizontal_rail" ? chooseRailVariant(slot, slotPromptRequirements) : null;
     const likelyDetail = promptLikelyDetailScreen(slot.intent);
@@ -135,6 +138,7 @@ ${promptContext}
 ${memoryContext}
 You are designing the "${slot.slotType}" section for "${theme.appName}".
 Section role: ${constraint.description}
+COMPOSITION RECIPE: ${patternGuidance(slot.slotType, slot.intent)}
 Intent: ${slot.intent}
 ${slot.itemCount ? `Items target: ${slot.itemCount}` : ""}
 ${slot.variant_hint ? `Creative hint: ${slot.variant_hint}` : ""}
@@ -175,6 +179,12 @@ Prompt locks for this section: ${locksText}
 ${designSpec ? `Prompt DSL spec: ${formatPromptDesignSpec(designSpec)}` : ""}
 
 Critical rules:
+- Make this section specific to its assigned intent; the other sections own their content. Never repeat the screen title, greeting, primary action or metrics in every section.
+- Content ownership is exclusive: when a stat_group exists, only that section displays the metric summary; when a chart_section exists, only it renders Chart. A featured card owns its requested title and action. Shared facts are available data, not a checklist to render in every section.
+- Use natural-height text and rows. Avoid fixed text heights, negative offsets and full-height children inside the vertical scrolling body. Use flexible full-width frames for rows; custom dimensions are for artwork, icons and deliberate focal media.
+- Keep only one level of elevated card surface: do not wrap every label and row in another card. Headings align to a shared leading edge. Use title/title2 for focal copy, headline for section labels, body for content and caption only for metadata.
+- Use Image only with a supplied asset name or a known HTTPS image URL; never invent bundled asset names or photo URLs. If imagery is unavailable, compose intentional artwork from supported shapes, gradients and SF Symbols.
+- Use readable foreground/background pairs. Normal text needs 4.5:1 contrast; large text needs 3:1. Buttons must have at least 44pt touch targets. Choose dark text on light yellow/orange accents instead of assuming white works on every accent.
 - Never render planning/spec language as UI text.
 - Use real SF Symbol names only.
 - Use Gauge for circular progress/rings; do not fake rings with layered full-stroke circles.
@@ -214,6 +224,8 @@ export async function generateSlot(params: {
     memory?: SlotMemory;
     blockers?: string[];
     generationMode?: GenerationMode;
+    deadlineAt?: number;
+    repairComponent?: AnyComponent;
 }): Promise<{ component: AnyComponent; exemplarIds: string[] }> {
     const { prompt, theme, plan, slot } = params;
     const manifest = params.manifest ?? buildDesignManifest(prompt);
@@ -227,13 +239,14 @@ export async function generateSlot(params: {
 
     // Only attempt retrieval if we have a DB connection — skip the embedding
     // call entirely on cold starts to save ~400ms per slot.
-    const exemplars: Exemplar[] = await retrieveSlotExemplars({
+    const exemplars: Exemplar[] = params.repairComponent ? [] : await retrieveSlotExemplars({
         supabase: params.supabase,
         slotType: slot.slotType,
         voiceTone: theme.voiceTone,
         domainTags: theme.domainTags,
         queryText,
         k: designSpec?.strictOneToOne ? 3 : 2,
+        deadlineAt: params.deadlineAt,
     });
 
     const systemPrompt = buildSlotGeneratorSystemPrompt(theme, slot, plan.slots, slotPromptRequirements, designSpec, prompt, params.memory);
@@ -243,11 +256,16 @@ export async function generateSlot(params: {
     const designPasses = isFullCanvas ? FULL_CANVAS_SLOT_DESIGN_PASSES : SLOT_DESIGN_PASSES;
     const firstPassTemperature = isFullCanvas ? 0.58 : 0.5;
     const firstPassMaxTokens = isFullCanvas ? FULL_CANVAS_SLOT_GENERATOR_MAX_TOKENS : SLOT_GENERATOR_MAX_TOKENS;
-    const generationMaxAttempts = isFullCanvas ? FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS : SLOT_GENERATION_MAX_ATTEMPTS;
+    const generationMaxAttempts = params.repairComponent ? 1 : (isFullCanvas ? FULL_CANVAS_SLOT_GENERATION_MAX_ATTEMPTS : SLOT_GENERATION_MAX_ATTEMPTS);
 
     for (let designPass = 0; designPass < designPasses; designPass++) {
+        if (params.deadlineAt && params.deadlineAt - Date.now() < 1200) break;
         const messages: Array<Record<string, unknown>> = [
             { role: "system", content: systemPrompt },
+            { role: "system", content: (plan.chartSchemaVersion ?? 1) >= 2
+                ? 'CHART V2: chartStyle also supports "Donut", "Stacked Bar", "Sparkline". dataPoints entries may include series:string and highlighted:boolean. Use repeated labels with different series for comparisons. Donuts need nonnegative values and unique categories. Optional controls: showLegend:boolean, showGoal:boolean, goalValue:number, goalLabel:string, valuePrefix:string, valueSuffix:string. Presets: "Weekly Activity", "Spending", "Revenue". Use Sparkline for compact trends; show units and legends when they clarify the data.'
+                : 'CHART COMPATIBILITY: this client supports only Line + Area, Line, Area and Bar; single-series data only. Use Increasing, Decreasing, Stable or Volatile presets. Do not use V2 chart properties or series.' },
+            { role: "system", content: `CANVAS: ${plan.viewport?.width ?? 390} x ${plan.viewport?.height ?? 844}pt. Scrolling content has 16pt margins on both sides. This section has ${(plan.viewport?.width ?? 390) - 32}pt available width. Use flexible layouts; never hard-code a phone-width row. Canvas appearance: ${plan.canvas_settings?.canvasColorScheme ?? "adaptive light and dark"}.` },
             ...(exemplars.length > 0 ? [{ role: "system", content: buildExemplarsBlock(exemplars) }] : []),
             { role: "system", content: `DESIGN MANIFEST HARD RULES: ${hardRulesBlock}` },
             ...(critiqueGuidance
@@ -261,6 +279,7 @@ Keep the same slot intent, but improve visual hierarchy/composition/contrast/spa
             ...((params.blockers && params.blockers.length > 0) ? [{ role: "system", content: `STRICT FIX REQUIRED BEFORE ACCEPTANCE:
 - ${params.blockers.join("\n- ")}` }] : []),
             { role: "user", content: `Generate the ${slot.slotType} component for: ${prompt}` },
+            ...(params.repairComponent ? [{ role: "user", content: `Repair ONLY this existing section. Keep correct content, structure and style; fix the listed issues. Existing section: ${JSON.stringify(params.repairComponent)}` }] : []),
         ];
 
         const result = await compileSlotWithRepair({
@@ -269,6 +288,29 @@ Keep the same slot intent, but improve visual hierarchy/composition/contrast/spa
             maxAttempts: generationMaxAttempts,
             firstPassTemperature,
             firstPassMaxTokens,
+            deadlineAt: params.deadlineAt,
+            canvasColorScheme: plan.canvas_settings?.canvasColorScheme,
+            promptRequirements: slotPromptRequirements,
+            additionalValidation: (component) => {
+                const issues = validateStrictIntentLocksForSlot(slot, component, designSpec);
+                if ((plan.chartSchemaVersion ?? 1) < 2) walkComponentTree(component, (node) => {
+                    if (node.type !== "Chart") return;
+                    if (!["Line + Area", "Line", "Area", "Bar"].includes(String(node.properties?.chartStyle ?? "Line + Area"))) issues.push("Use a chart style supported by this client: Line + Area, Line, Area or Bar.");
+                    if (["Weekly Activity", "Spending", "Revenue"].includes(String(node.properties?.dataPreset))) issues.push("This client needs a legacy dataPreset or explicit single-series dataPoints.");
+                    if (typeof node.properties?.dataPoints === "string" && node.properties.dataPoints.trim()) {
+                        try {
+                            const data = JSON.parse(node.properties.dataPoints);
+                            if (Array.isArray(data) && data.some((p) => p.series)) issues.push("This client supports only single-series chart data; remove series fields.");
+                        } catch { /* Schema validation reports malformed data. */ }
+                    }
+                });
+                if (slot.slotType !== "chart_section" && plan.slots.some((s) => s.slotType === "chart_section")) {
+                    walkComponentTree(component, (node) => {
+                        if (node.type === "Chart") issues.push("Chart belongs to the separate chart_section; remove it from this section.");
+                    });
+                }
+                return issues;
+            },
         });
         if (result.ok === false) continue;
 
@@ -299,6 +341,10 @@ export async function compileSlotWithRepair(params: {
     firstPassTemperature?: number;
     firstPassMaxTokens?: number;
     repairMaxTokens?: number;
+    deadlineAt?: number;
+    canvasColorScheme?: "light" | "dark";
+    promptRequirements?: PromptRequirement[];
+    additionalValidation?: (component: AnyComponent) => string[];
 }): Promise<{ ok: true; component: AnyComponent } | { ok: false; error: string }> {
     const constraint = SLOT_CONSTRAINTS[params.slot.slotType];
     let lastError = "";
@@ -307,11 +353,14 @@ export async function compileSlotWithRepair(params: {
     let repairAttempts = 0;
 
     for (let attempt = 0; attempt < params.maxAttempts; attempt++) {
+        const remaining = (params.deadlineAt ?? (Date.now() + 14000)) - Date.now();
+        if (remaining < 1200) break;
         // A transport failure has no JSON to repair. Retry the original request
         // instead of exposing its diagnostic string to the model as UI context.
         const isRepair = lastContent.trim().length > 0;
         if (isRepair) repairAttempts += 1;
         const messages = !isRepair ? params.messages : [
+            ...params.messages,
             { role: "system", content: buildRepairPrompt(params.slot, repairError ? repairError.split("\n").filter(Boolean) : ["Fix schema and slot validation errors"]) },
             { role: "user", content: `Previous JSON:\n${lastContent}\n\nValidation errors:\n${repairError}\n\nFix ALL errors and return corrected JSON: { "component": <UIComponent> }` },
         ];
@@ -320,8 +369,9 @@ export async function compileSlotWithRepair(params: {
             model: isRepair ? REPAIR_MODEL : SLOT_GENERATOR_MODEL,
             messages,
             temperature: isRepair ? 0 : (params.firstPassTemperature ?? 0.5),
-            maxTokens: isRepair ? (params.repairMaxTokens ?? REPAIR_MAX_TOKENS) : (params.firstPassMaxTokens ?? SLOT_GENERATOR_MAX_TOKENS),
+            maxTokens: isRepair ? Math.max(params.repairMaxTokens ?? REPAIR_MAX_TOKENS, params.firstPassMaxTokens ?? SLOT_GENERATOR_MAX_TOKENS) : (params.firstPassMaxTokens ?? SLOT_GENERATOR_MAX_TOKENS),
             responseFormat: SLOT_COMPONENT_RESPONSE_FORMAT,
+            timeoutMs: Math.min(14000, remaining),
         });
 
         if (!response.ok) {
@@ -351,6 +401,9 @@ export async function compileSlotWithRepair(params: {
         const raw = result.component ?? (Array.isArray(result.components) ? result.components[0] : null);
         if (!isObject(raw)) { lastError = "Missing 'component' key in response"; repairError = lastError; continue; }
 
+        const schemaIssues = validateComponentSchema(raw as AnyComponent);
+        if (schemaIssues.length > 0) { lastError = schemaIssues.join("\n"); repairError = lastError; continue; }
+
         // Run cheap repair + post-processing
         const { component: cheapFixed, issues } = cheapRepair(raw as AnyComponent);
         const diagnosticIssues = detectLowQualitySlotOutput(cheapFixed).filter((issue) => issue.includes("internal diagnostic"));
@@ -376,9 +429,19 @@ export async function compileSlotWithRepair(params: {
             continue;
         }
 
-        const accessibilityIssues = findAccessibilityViolations(fixed);
+        const accessibilityIssues = findAccessibilityViolations(fixed, params.canvasColorScheme ?? "both");
         if (accessibilityIssues.length > 0) {
             lastError = `Accessibility violations:\n${accessibilityIssues.join("\n")}`;
+            repairError = lastError;
+            continue;
+        }
+
+        const requirementIssues = [
+            ...validateSlotAgainstPromptRequirements(params.slot, fixed, params.promptRequirements ?? []),
+            ...(params.additionalValidation?.(fixed) ?? []),
+        ];
+        if (requirementIssues.length > 0) {
+            lastError = requirementIssues.join("\n");
             repairError = lastError;
             continue;
         }
@@ -2568,6 +2631,10 @@ export async function generateSlotsParallel(params: {
 
     for (let start = 0; start < params.plannedSlots.length; start += batchSize) {
         const batch = params.plannedSlots.slice(start, start + batchSize);
+        if (params.deadlineAt - Date.now() <= SLOT_BATCH_GRACE_MS) {
+            results.push(...params.plannedSlots.slice(start).map((slot) => ({ component: buildFallbackSlot(slot, params.theme, params.designSpec), exemplarIds: [] })));
+            break;
+        }
         const tasks = batch.map((slot) => params.withDeadline((async () => {
             const sketchNode: LayoutSketchNode = {
                 slotType: slot.slotType,
@@ -2589,7 +2656,7 @@ export async function generateSlotsParallel(params: {
             }
 
             const requirements = selectPromptRequirementsForSlot(slot, params.manifest.requirements);
-            let result = await generateSlot({
+            const result = await generateSlot({
                 supabase: params.supabase,
                 prompt: params.prompt,
                 theme: params.theme,
@@ -2599,23 +2666,12 @@ export async function generateSlotsParallel(params: {
                 designSpec: params.designSpec,
                 memory,
                 generationMode: params.generationMode,
+                deadlineAt: params.deadlineAt,
             });
             const score = scoreSlotOutput(slot, result.component, requirements, usedMorphologies, usedRailVariants, params.designSpec);
-            if (!score.pass && (params.deadlineAt - Date.now()) > 3500) {
-                const fixedSlot: SlotPlan = { ...slot, variant_hint: `${slot.variant_hint ?? ""} STRICT FIX REQUIRED: ${score.blockers.join(" | ")}`.trim() };
-                result = await generateSlot({
-                    supabase: params.supabase,
-                    prompt: params.prompt,
-                    theme: params.theme,
-                    plan: params.plan,
-                    slot: fixedSlot,
-                    manifest: params.manifest,
-                    designSpec: params.designSpec,
-                    memory,
-                    blockers: score.blockers,
-                    generationMode: params.generationMode,
-                });
-            }
+            // Hard constraints are repaired inside the same bounded compile pass.
+            // A second full generation here repeated retrieval and all model attempts.
+            if (!score.pass) console.warn(JSON.stringify({ event: "slot_quality_notes", slot_type: slot.slotType, issues: score.blockers }));
             return { slot, result };
         })(), `slot:${slot.slotType}`));
         const settled = await Promise.allSettled(tasks);
@@ -2713,6 +2769,7 @@ export async function compileWithRepairMessages(params: {
     while (attempt < params.maxAttempts) {
         const isFirst = attempt === 0;
         const messages = isFirst ? params.messages : [
+            ...params.messages,
             { role: "system", content: REPAIR_SYSTEM_PROMPT },
             { role: "user", content: `Previous JSON:\n${lastContent}\n\nErrors:\n${lastError}` },
         ];
@@ -2844,10 +2901,10 @@ const SEED_SLOT_EXEMPLARS: Exemplar[] = [
 
 export const EMBEDDING_DIM = 1536;
 
-export async function embedText(text: string): Promise<number[] | null> {
+export async function embedText(text: string, timeoutMs = EMBEDDING_TIMEOUT_MS): Promise<number[] | null> {
     if (!openaiApiKey) return null;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), EMBEDDING_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
         const res = await fetch("https://api.openai.com/v1/embeddings", {
             method: "POST",
@@ -2855,14 +2912,14 @@ export async function embedText(text: string): Promise<number[] | null> {
             body: JSON.stringify({ model: EMBEDDING_MODEL, input: text.slice(0, 2000) }),
             signal: controller.signal,
         });
-        clearTimeout(timer);
         if (!res.ok) return null;
         const data = await res.json();
         const v = data?.data?.[0]?.embedding;
         return Array.isArray(v) && v.length === EMBEDDING_DIM ? v : null;
     } catch {
-        clearTimeout(timer);
         return null;
+    } finally {
+        clearTimeout(timer);
     }
 }
 
@@ -2873,6 +2930,7 @@ export async function retrieveSlotExemplars(params: {
     domainTags: string[];
     queryText: string;
     k?: number;
+    deadlineAt?: number;
 }): Promise<Exemplar[]> {
     const k = params.k ?? 2;
     const seedForSlot = SEED_SLOT_EXEMPLARS
@@ -2880,14 +2938,16 @@ export async function retrieveSlotExemplars(params: {
         .slice(0, k);
     if (params.supabase) {
         try {
-            const embedding = await embedText(params.queryText);
+            // Retrieval is optional: reserve the available time for rendering.
+            if (params.deadlineAt && params.deadlineAt - Date.now() < 16000) return seedForSlot;
+            const embedding = await embedText(params.queryText, 1500);
             if (embedding) {
                 const { data, error } = await params.supabase.rpc("match_slot_exemplars", {
                     query_embedding: embedding,
                     target_slot_type: params.slotType,
                     target_voice_tone: params.voiceTone,
                     match_count: k,
-                });
+                }).abortSignal(AbortSignal.timeout(1500));
                 if (!error && Array.isArray(data) && data.length > 0) {
                     return data.map((row: any) => ({
                         id: String(row.id),

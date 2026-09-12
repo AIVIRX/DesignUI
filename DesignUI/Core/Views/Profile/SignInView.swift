@@ -6,7 +6,6 @@
 
 import SwiftUI
 import AuthenticationServices
-import FluidGradient
 
 struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -26,50 +25,90 @@ struct SignInView: View {
 
     private var signInScreen: some View {
         ZStack {
-            signInBackground
-            signInContent
+            signInBackground.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer(minLength: 32)
+                signInCard
+                Spacer(minLength: 32)
+            }
+            .padding(.horizontal, 24)
         }
-        .ignoresSafeArea(edges: .top)
+        .navigationTitle("Account")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
-    private var signInBackground: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            signInGradientBackground
-        }
-    }
-
-    private var signInContent: some View {
-        VStack(spacing: 20) {
+    private var signInCard: some View {
+        VStack(spacing: 0) {
             appLogo
+                .padding(.bottom, 24)
             signInTitle
             signInSubtitle
+                .padding(.top, 10)
+            benefits
+                .padding(.top, 28)
             appleSignInButton
+                .padding(.top, 28)
+            privacyNote
+                .padding(.top, 16)
         }
-        .padding(42)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(32)
+        .frame(maxWidth: 420)
+        .background(.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(.separator.opacity(0.45), lineWidth: 0.5)
+        }
+        .shadow(color: .black.opacity(colorScheme == .dark ? 0.18 : 0.08), radius: 20, y: 8)
+    }
+
+    private var signInBackground: Color {
+        #if os(macOS)
+        Color(nsColor: .windowBackgroundColor)
+        #else
+        Color(uiColor: .systemGroupedBackground)
+        #endif
     }
 
     private var appLogo: some View {
         Image("AppLogo")
             .resizable()
             .scaledToFit()
-            .frame(width: 90)
+            .frame(width: 76, height: 76)
+            .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
     }
 
     private var signInTitle: some View {
-        Text("Sign In")
-            .font(.largeTitle)
-            .bold()
-            .foregroundStyle(.black)
+        Text("Sign in to Dock UI")
+            .font(.title2.weight(.semibold))
             .multilineTextAlignment(.center)
     }
 
     private var signInSubtitle: some View {
-        Text("Create your account to save favorites, sync across devices, and access exclusive features.")
-            .foregroundStyle(.black.opacity(0.7))
+        Text("Keep your work, preferences, and saved designs available wherever you use Dock UI.")
+            .font(.body)
+            .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
-            .padding(.horizontal, 8)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var benefits: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            benefit("arrow.triangle.2.circlepath", "Sync your workspace across devices")
+            benefit("bookmark", "Save designs and favorite components")
+            benefit("lock", "Your session is stored securely on this device")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func benefit(_ symbol: String, _ title: String) -> some View {
+        Label(title, systemImage: symbol)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .labelStyle(.titleAndIcon)
+            .symbolRenderingMode(.hierarchical)
     }
 
     private var appleSignInButton: some View {
@@ -81,37 +120,20 @@ struct SignInView: View {
             }
         }
         .id(signInAppleButtonId)
-        .signInWithAppleButtonStyle(.black)
+        .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
         .onChange(of: colorScheme) { _, _ in
             signInAppleButtonId = UUID().uuidString
         }
         .frame(height: 50)
         .frame(maxWidth: 500)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
-    
-    private var signInGradientBackground: some View {
-        ZStack {
-            RadialGradient(
-                colors: [Color(red: 0.004, green: 0.373, blue: 1, opacity: 1), .clear],
-                center: .top,
-                startRadius: 0,
-                endRadius: 500
-            )
-            
-            RadialGradient(
-                colors: [Color(red: 0, green: 0.875, blue: 1, opacity: 1), .clear],
-                center: .top,
-                startRadius: 50,
-                endRadius: 450
-            )
-            
-            RadialGradient(
-                colors: [Color(red: 0.004, green: 0.678, blue: 1, opacity: 1), .clear],
-                center: .init(x: 0.5, y: -0.2),
-                startRadius: 0,
-                endRadius: 350
-            )
-        }
+
+    private var privacyNote: some View {
+        Text("Dock UI uses Sign in with Apple. Your email address is never shared without your permission.")
+            .font(.footnote)
+            .foregroundStyle(.tertiary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

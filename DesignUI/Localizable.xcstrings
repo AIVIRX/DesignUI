@@ -4935,6 +4935,9 @@
         }
       }
     },
+    "%llds" : {
+
+    },
     "•" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7562,6 +7565,9 @@
         }
       }
     },
+    "Add %@ pattern" : {
+
+    },
     "Add Background" : {
       "localizations" : {
         "ar" : {
@@ -8545,6 +8551,9 @@
           }
         }
       }
+    },
+    "Add data point" : {
+
     },
     "Add Mask" : {
       "localizations" : {
@@ -9857,6 +9866,9 @@
           }
         }
       }
+    },
+    "AI is generating your design" : {
+
     },
     "Alignment" : {
       "localizations" : {
@@ -14453,6 +14465,9 @@
         }
       }
     },
+    "Category" : {
+
+    },
     "Center Canvas" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -14781,6 +14796,9 @@
           }
         }
       }
+    },
+    "Chart Data" : {
+
     },
     "Choose Device" : {
       "localizations" : {
@@ -19703,6 +19721,7 @@
       }
     },
     "Create your account to save favorites, sync across devices, and access exclusive features." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -24953,6 +24972,9 @@
         }
       }
     },
+    "Dock UI uses Sign in with Apple. Your email address is never shared without your permission." : {
+
+    },
     "DockUI Studio" : {
       "localizations" : {
         "ar" : {
@@ -26595,6 +26617,12 @@
           }
         }
       }
+    },
+    "Edit chart data…" : {
+
+    },
+    "Edit labels and values. Add a series name to compare groups; star a point to highlight it." : {
+
     },
     "Edit Profile" : {
       "localizations" : {
@@ -29547,6 +29575,9 @@
           }
         }
       }
+    },
+    "Every point needs a label and numeric value. Label and series pairs must be unique." : {
+
     },
     "Export" : {
       "localizations" : {
@@ -32503,6 +32534,9 @@
     "Generating" : {
 
     },
+    "Generating your design" : {
+
+    },
     "Get" : {
       "localizations" : {
         "ar" : {
@@ -33159,6 +33193,15 @@
         }
       }
     },
+    "Goal" : {
+
+    },
+    "Goal label" : {
+
+    },
+    "Goal line" : {
+
+    },
     "Gradient Editor" : {
       "localizations" : {
         "ar" : {
@@ -33486,6 +33529,9 @@
           }
         }
       }
+    },
+    "Grid lines" : {
+
     },
     "Hide Inspector" : {
 
@@ -33817,6 +33863,9 @@
           }
         }
       }
+    },
+    "Highlight %@" : {
+
     },
     "Home" : {
       "localizations" : {
@@ -36114,6 +36163,12 @@
         }
       }
     },
+    "Keep your work, preferences, and saved designs available wherever you use Dock UI." : {
+
+    },
+    "Label" : {
+
+    },
     "Layers" : {
       "localizations" : {
         "ar" : {
@@ -36443,6 +36498,12 @@
       }
     },
     "Legal" : {
+
+    },
+    "Legend" : {
+
+    },
+    "Library" : {
 
     },
     "Light" : {
@@ -44323,6 +44384,9 @@
         }
       }
     },
+    "Patterns" : {
+
+    },
     "Pending" : {
       "localizations" : {
         "ar" : {
@@ -45634,6 +45698,9 @@
           }
         }
       }
+    },
+    "Prefix ($)" : {
+
     },
     "Premium" : {
       "localizations" : {
@@ -48915,6 +48982,9 @@
           }
         }
       }
+    },
+    "Remove %@" : {
+
     },
     "Rename" : {
       "localizations" : {
@@ -54498,6 +54568,12 @@
     "Send request" : {
 
     },
+    "Series" : {
+
+    },
+    "Series (optional)" : {
+
+    },
     "Settings" : {
       "localizations" : {
         "ar" : {
@@ -58438,6 +58514,9 @@
         }
       }
     },
+    "Sign in to Dock UI" : {
+
+    },
     "Sign Out" : {
       "localizations" : {
         "ar" : {
@@ -60077,6 +60156,9 @@
           }
         }
       }
+    },
+    "Still working on your screen…" : {
+
     },
     "String Catalog Translator" : {
       "localizations" : {
@@ -65004,6 +65086,9 @@
         }
       }
     },
+    "Unit (km)" : {
+
+    },
     "Unsplash" : {
       "localizations" : {
         "ar" : {
@@ -65331,6 +65416,9 @@
           }
         }
       }
+    },
+    "Use distinct labels, nonnegative values and a total above zero." : {
+
     },
     "Use this as a preview intensity control while testing variable color symbols." : {
       "localizations" : {
@@ -68615,6 +68703,9 @@
           }
         }
       }
+    },
+    "Your canvas will update when it’s ready." : {
+
     }
   },
   "version" : "1.2"

@@ -76,6 +76,7 @@ struct ComponentLibraryView: View {
     @ObservedObject var canvasManager: CanvasManager
     var mode: ComponentLibraryMode = .add
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var showingPatterns = false
 
     private var availableComponents: [ComponentType] {
         ComponentLibraryCatalog.availableComponents
@@ -89,7 +90,34 @@ struct ComponentLibraryView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            componentGrid
+            Picker("Library", selection: $showingPatterns) {
+                Text("Components").tag(false)
+                Text("Patterns").tag(true)
+            }
+            .pickerStyle(.segmented)
+            .padding(12)
+            if showingPatterns {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(DesignPatternCatalog.templates) { pattern in
+                            Button { addComponent(pattern.component.clone()) } label: {
+                                HStack {
+                                    Image(systemName: "square.stack.3d.up")
+                                    Text(pattern.name).font(.subheadline.weight(.medium))
+                                    Spacer()
+                                    Image(systemName: "plus.circle").foregroundStyle(.secondary)
+                                }
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Add \(pattern.name) pattern")
+                        }
+                    }
+                    .padding(12)
+                }
+            } else { componentGrid }
         }
         .background(libraryBackground)
         #if os(iOS)
