@@ -4,6 +4,10 @@ struct ChartInspectorControls: View {
     @ObservedObject var component: UIComponent
     let canvasManager: CanvasManager
     @State private var draft: Draft?
+    private var configuration: ChartConfiguration { ChartConfiguration(component: component) }
+    private var supportsAxes: Bool { !configuration.isDonut && configuration.style != "Sparkline" }
+    private var supportsGrid: Bool { supportsAxes }
+    private var supportsGoal: Bool { configuration.hasLine || configuration.isBar }
 
     private struct Draft: Identifiable {
         let id = UUID()
@@ -19,10 +23,16 @@ struct ChartInspectorControls: View {
                 draft = Draft(component: component, samples: configuration.samples, isDonut: configuration.isDonut)
             }
             .buttonStyle(.bordered)
-            Toggle("Legend", isOn: boolean("showLegend", default: true))
-            Toggle("Grid lines", isOn: boolean("showGrid", default: false))
-            Toggle("Goal line", isOn: boolean("showGoal", default: false))
-            if component.getProperty(key: "showGoal") as? Bool == true {
+            if !configuration.isDonut || configuration.groups.count > 1 {
+                Toggle("Legend", isOn: boolean("showLegend", default: true))
+            }
+            if supportsGrid {
+                Toggle("Grid lines", isOn: boolean("showGrid", default: false))
+            }
+            if supportsGoal {
+                Toggle("Goal line", isOn: boolean("showGoal", default: false))
+            }
+            if supportsGoal && component.getProperty(key: "showGoal") as? Bool == true {
                 numberField("Goal value", key: "goalValue", fallback: 75, range: -1e12...1e12)
                 TextField("Goal label", text: string("goalLabel", default: "Goal"))
             }
@@ -30,9 +40,9 @@ struct ChartInspectorControls: View {
                 TextField("Prefix ($)", text: string("valuePrefix"))
                 TextField("Unit (km)", text: string("valueSuffix"))
             }
-            numberField("Line width", key: "lineWidth", fallback: 2.5, range: 1...8)
-            numberField("Bar width", key: "barWidthRatio", fallback: 0.6, range: 0.2...0.95)
-            numberField("Area opacity", key: "areaOpacity", fallback: 0.14, range: 0...1)
+            if configuration.hasLine { numberField("Line width", key: "lineWidth", fallback: 2.5, range: 1...8) }
+            if configuration.isBar { numberField("Bar width", key: "barWidthRatio", fallback: 0.6, range: 0.2...0.95) }
+            if configuration.hasArea { numberField("Area opacity", key: "areaOpacity", fallback: 0.14, range: 0...1) }
         }
         .font(.subheadline)
         .textFieldStyle(.roundedBorder)

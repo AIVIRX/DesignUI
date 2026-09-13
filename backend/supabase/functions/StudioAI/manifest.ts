@@ -53,15 +53,19 @@ export function buildDesignManifest(prompt: string): DesignManifest {
     const overlayRequested = /\b(floating|overlay|overlaid)\b|\bfab\b|\bfloating action button\b|\bon top of (?:the )?(map|image|photo|video)\b/.test(p);
 
     // Reserve common explicit content before optional archetype sections consume the budget.
-    const metrics = prompt.match(/\b(?:exactly\s+)?(\d+)\s+(?:compact\s+)?(?:metrics|stats|kpis)\b(?:\s*\([^)]*\)|\s+for\s+[^.!;]+)?/i);
+    const metrics = prompt.replace(/\bthree\b/gi, "3").match(/\b(?:exactly\s+)?(\d+)\s+(?:compact\s+)?(?:metrics|metric cards|stats|kpis)\b(?:\s*\([^)]*\)|\s+for\s+[^.!;]+)?/i);
     if (metrics) requirements.push({ requirementKey: "explicit_metrics", slotType: "stat_group", position: "body", itemCount: Math.max(1, Math.min(12, Number(metrics[1]))), mustInclude: metrics[0], sourceIndex: metrics.index ?? 0 });
-    const navigation = prompt.match(/\bbottom\s+(?:tabs|navigation|nav(?:igation)?\s+bar)\b[^.!;]*/i);
+    const navigation = prompt.match(/\bbottom\s+(?:tabs|tab bar|navigation|nav(?:igation)?\s+bar)\b[^.!;]*/i);
     if (navigation && !/\b(no|without|hide)\s*$/i.test(prompt.slice(0, navigation.index))) {
         requirements.push({ requirementKey: "explicit_navigation", slotType: "nav_bar", position: "bottom", mustInclude: navigation[0], sourceIndex: navigation.index ?? 0 });
     }
     const featured = prompt.match(/(?:\b(?:a\s+)?featured\s+[^.!;]*?\bcard\b|[“"][^”"]+[”"]\s+card\b)[^.!;]*/i);
     if (featured) requirements.push({ requirementKey: "explicit_feature", slotType: "hero_banner", position: "body", mustInclude: featured[0], sourceIndex: featured.index ?? 0 });
     const chart = prompt.match(/\b(?:(?:weekly|monthly|daily|activity|spending|revenue)\s+){0,2}(?:chart|graph)\b/i);
+    const typedCharts = [...prompt.matchAll(/\b(?:(?:weekly|monthly|daily|activity|spending|revenue)\s+)*(?:donut|doughnut|line|stacked bar|bar|area)\s+(?:chart|graph)\b/gi)];
+    if (typedCharts.length > 1) requirements.push({ requirementKey: "explicit_charts", slotType: "chart_section", position: "body", mustInclude: `Separate editable charts: ${typedCharts.map((m) => m[0]).join(" and ")}. Preserve each chart's data purpose; goal lines belong to trend charts.`, sourceIndex: typedCharts[0].index ?? 0 });
+    const transactions = prompt.match(/\b(?:recent\s+)?transactions(?:\s+list)?\b/i);
+    if (transactions) requirements.push({ requirementKey: "explicit_transactions", slotType: "content_list", position: "body", mustInclude: "Recent transactions with merchant names, dates and currency amounts", sourceIndex: transactions.index ?? 0 });
     if (chart && [...prompt.matchAll(/\b(?:chart|graph)s?\b/gi)].length === 1 && !/\b(no|without|hide|\d+)\s*$/i.test(prompt.slice(0, chart.index))) requirements.push({ requirementKey: "explicit_chart", slotType: "chart_section", position: "body", mustInclude: `one ${chart[0]}, without repeating metrics assigned to another section`, sourceIndex: chart.index ?? 0 });
 
     if (/\bno\b.*\bnav\s*bar\b|\bwithout\b.*\bnav\s*bar\b|\bhide\b.*\bnav\s*bar\b/.test(p)) {
@@ -119,7 +123,7 @@ export function buildDesignManifest(prompt: string): DesignManifest {
             requirementKey: "rail_chips_count",
             slotType: "horizontal_rail",
             position: "body",
-            mustInclude: `${count} selectable mood chips`,
+            mustInclude: `${count} selectable ${/\bmood\b/.test(p) ? "mood " : "filter "}chips`,
             railSpec: { variant: "chips", itemShape: "pill", textRows: 1 },
             itemCount: count,
             sourceIndex: chipsIndex,
@@ -141,7 +145,8 @@ export function buildDesignManifest(prompt: string): DesignManifest {
         if (blurred) hardRules.push("Timeline/feed section should include a blurred surface treatment.");
     }
 
-    const searchMode = /\bsearch\b|\bresults?\b|\bdiscover\b/.test(p);
+    const searchMode = /\bresults?\b|\bdiscover\b|\bsearch\s+(?:screen|page|interface)\b/.test(p)
+        || (/\bsearch\b/.test(p) && !/\b(dashboard|transactions|spending|revenue)\b/.test(p));
     if (searchMode) {
         const exactResultsMatch = p.match(/\b(?:exactly|only|just)\s*(\d+)\s*(?:results?|items?)\b/);
         const listCount = exactResultsMatch ? Math.max(1, Math.min(12, Number(exactResultsMatch[1]) || 6)) : undefined;

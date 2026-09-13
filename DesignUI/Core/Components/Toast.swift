@@ -7,24 +7,28 @@
 import SwiftUI
 
 struct ToastData: Equatable {
+    let id = UUID()
     let title: String
     let icon: String
     let duration: Double
+    let isLoading: Bool
     
     init(
         title: String,
         icon: String = "document.on.document",
-        duration: Double = 2.0
+        duration: Double = 2.0,
+        isLoading: Bool = false
     ) {
         self.title = title
         self.icon = icon
         self.duration = duration
+        self.isLoading = isLoading
     }
     
     static func == (lhs: ToastData, rhs: ToastData) -> Bool {
         return lhs.title == rhs.title &&
                lhs.icon == rhs.icon &&
-               lhs.duration == rhs.duration
+               lhs.duration == rhs.duration && lhs.isLoading == rhs.isLoading && lhs.id == rhs.id
     }
 }
 
@@ -38,10 +42,12 @@ struct ToastView: View {
             HStack(spacing: 8) {
                 // Icon
                 HStack {
-                    Image(systemName: toast.icon)
+                    if toast.isLoading { ProgressView().controlSize(.small) }
+                    else { Image(systemName: toast.icon)
                         .font(.system(size: 16))
                         .tint(.primary)
                         .imageScale(.medium)
+                    }
                     
                     Text(toast.title)
                         .font(.title3)
@@ -88,10 +94,12 @@ struct ToastView: View {
             HStack(spacing: 8) {
                 // Icon
                 HStack {
-                    Image(systemName: toast.icon)
+                    if toast.isLoading { ProgressView().controlSize(.small) }
+                    else { Image(systemName: toast.icon)
                         .font(.system(size: 16))
                         .tint(.primary)
                         .imageScale(.medium)
+                    }
                     
                     Text(toast.title)
                         .font(.title3)
@@ -142,9 +150,7 @@ struct ToastView: View {
             offset = 0
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + toast.duration) {
-            dismissToast()
-        }
+        // Zero duration is used for progress that lasts until the operation finishes.
     }
     
     private func dismissToast() {
@@ -184,9 +190,18 @@ struct ToastModifier: ViewModifier {
                         toast: toast,
                         isPresented: Binding(
                             get: { self.toast != nil },
-                            set: { if !$0 { self.toast = nil } }
+                            set: { if !$0 && self.toast?.id == toast.id { self.toast = nil } }
                         )
                     )
+                    .id(toast.id)
+                    .task(id: toast.id) {
+                        guard toast.duration > 0 else { return }
+                        do {
+                            try await Task.sleep(for: .seconds(toast.duration))
+                            guard self.toast?.id == toast.id else { return }
+                            withAnimation { self.toast = nil }
+                        } catch { /* Replacement or disappearance cancels dismissal. */ }
+                    }
                 }
             }
     }

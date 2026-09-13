@@ -25,6 +25,7 @@ export function detectRailVariantFromText(text: string): RailVariant | null {
 export function sanitizeInstructionalDisplayText(text: string): string {
     const raw = text.trim();
     if (!raw) return raw;
+    if (/\bRequired:\s|\b(?:offer|include|render|display)\s+\d+\s+selectable\b/i.test(raw)) return /\bchips?\b/i.test(raw) ? "Filters" : "Overview";
 
     if (/^song cards with square artwork/i.test(raw)) return "Songs";
     if (/^circular profile\/?avatar items/i.test(raw)) return "Artists";

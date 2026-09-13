@@ -4,6 +4,7 @@ import { EMBEDDING_MODEL, EMBEDDING_TIMEOUT_MS, FULL_CANVAS_SLOT_BATCH_SIZE, FUL
 import type { OpenAIResponseMeta } from "./openai.ts";
 import { validateComponentSchema } from "./validation.ts";
 import { patternGuidance } from "./patterns.ts";
+import { validateChartAssignment } from "./content-contract.ts";
 import { SLOT_COMPONENT_RESPONSE_FORMAT, SLOT_CONSTRAINTS, VALID_COMPONENT_TYPES } from "./schema.ts";
 import { buildDesignManifest, compilePromptDesignSpec, formatPromptDesignSpec } from "./manifest.ts";
 import { detectRailVariantFromText, isJsonParseError, isObject, parseJsonSafe, sanitizeInternalDisplayText } from "./utils.ts";
@@ -292,6 +293,7 @@ Keep the same slot intent, but improve visual hierarchy/composition/contrast/spa
             canvasColorScheme: plan.canvas_settings?.canvasColorScheme,
             promptRequirements: slotPromptRequirements,
             additionalValidation: (component) => {
+                const chartAssignmentIssues = (plan.chartSchemaVersion ?? 1) >= 2 ? validateChartAssignment(component, slot.intent) : [];
                 const issues = validateStrictIntentLocksForSlot(slot, component, designSpec);
                 if ((plan.chartSchemaVersion ?? 1) < 2) walkComponentTree(component, (node) => {
                     if (node.type !== "Chart") return;
@@ -309,7 +311,7 @@ Keep the same slot intent, but improve visual hierarchy/composition/contrast/spa
                         if (node.type === "Chart") issues.push("Chart belongs to the separate chart_section; remove it from this section.");
                     });
                 }
-                return issues;
+                return [...issues, ...chartAssignmentIssues];
             },
         });
         if (result.ok === false) continue;
@@ -1089,7 +1091,9 @@ export function buildFallbackSlot(slot: SlotPlan, theme: ThemeTokens, designSpec
         case "horizontal_rail": {
             if (nativePattern === "spotify_browse") {
                 const variant = pick(3);
-                const chipLabels = ["All", "Music", "Podcasts", "Audiobooks"];
+                const chipLabels = /\b(finance|spending|revenue|budget|money)\b/i.test(slot.intent)
+                    ? ["All", "Spending", "Revenue"]
+                    : ["All", "Music", "Podcasts", "Audiobooks"];
                 const chips = chipLabels.map((label, idx) => ({
                     type: "Capsule",
                     properties: {},

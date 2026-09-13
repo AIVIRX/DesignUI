@@ -936,20 +936,23 @@ private struct FastInspectorView: View {
                 }
                 ChartInspectorControls(component: component, canvasManager: canvasManager)
 
-                toggleField(
-                    title: "Show X Axis",
-                    value: chartShowXAxis,
-                    helpText: "Show X Axis"
-                ) { enabled in
-                    canvasManager.updateComponentProperty(for: component, key: "showXAxis", value: enabled)
-                }
+                let style = ChartConfiguration(component: component).style
+                if style != "Donut" && style != "Sparkline" {
+                    toggleField(
+                        title: "Show X Axis",
+                        value: chartShowXAxis,
+                        helpText: "Show X Axis"
+                    ) { enabled in
+                        canvasManager.updateComponentProperty(for: component, key: "showXAxis", value: enabled)
+                    }
 
-                toggleField(
-                    title: "Show Y Axis",
-                    value: chartShowYAxis,
-                    helpText: "Show Y Axis"
-                ) { enabled in
-                    canvasManager.updateComponentProperty(for: component, key: "showYAxis", value: enabled)
+                    toggleField(
+                        title: "Show Y Axis",
+                        value: chartShowYAxis,
+                        helpText: "Show Y Axis"
+                    ) { enabled in
+                        canvasManager.updateComponentProperty(for: component, key: "showYAxis", value: enabled)
+                    }
                 }
             }
         }

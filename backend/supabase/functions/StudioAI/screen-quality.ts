@@ -1,6 +1,7 @@
 import type { AnyComponent, DesignManifest, ScreenPlan, SlotPlan, ThemeTokens } from "./types.ts";
 import { selectPromptRequirementsForSlot, validateSlotAgainstPromptRequirements, walkComponentTree } from "./postprocess.ts";
 import { validateComponentSchema } from "./validation.ts";
+import { validateChartAssignment } from "./content-contract.ts";
 
 export type ScreenSection = { slot: SlotPlan; component: AnyComponent; exemplarIds: string[] };
 export type ScreenIssue = { section: number; code: string; message: string; severity: "error" | "warning" };
@@ -61,6 +62,13 @@ export function auditScreen(sections: ScreenSection[], plan: ScreenPlan, manifes
         for (const message of validateComponentSchema(section.component)) add(index, "schema", message);
         for (const message of validateSlotAgainstPromptRequirements(section.slot, section.component, requirements)) add(index, "requirement", message);
         const texts = textValues(section.component);
+        if (section.slot.slotType === "horizontal_rail" && /\b(?:filter|chip|mood)\b/i.test(section.slot.intent)) {
+            const navigation = sections.find((candidate) => candidate.slot.slotType === "nav_bar");
+            const navLabels = navigation ? new Set(textValues(navigation.component)) : new Set<string>();
+            if ([...new Set(texts)].filter((text) => navLabels.has(text)).length >= 2) add(index, "filter_navigation_collision", "Use filter labels distinct from the bottom navigation labels; the navigation section owns those tabs.");
+        }
+        if ((plan.chartSchemaVersion ?? 1) >= 2) for (const message of validateChartAssignment(section.component, section.slot.intent)) add(index, "chart_assignment", message);
+        for (const text of texts) if (/\brequired:\s|\b(?:offer|include|render|display)\s+\d+\s+selectable\b/i.test(text)) add(index, "instruction_copy", "Replace planner instructions with concise product copy.");
         // Whole-section duplication is stronger evidence than a common label such as "See all".
         const signature = texts.filter((s) => s.length > 2).sort().join("|");
         if (texts.length >= 3 && previous.has(signature)) add(index, "duplicate_section", `This section duplicates section ${previous.get(signature)! + 1}; replace it with its own assigned content: ${section.slot.intent}.`);
@@ -109,6 +117,35 @@ export async function reviewScreen(params: {
     repair: (section: ScreenSection, issues: string[]) => Promise<ScreenSection>;
 }): Promise<{ sections: ScreenSection[]; issues: ScreenIssue[] }> {
     let sections = params.sections.map((s) => ({ ...s, component: unifyScreenStyle(s.component, params.theme) }));
+    // Preserve the first instance of an identical rail/section. This catches
+    // model retries that return the same filter group twice.
+    const seenSections = new Set<string>();
+    let filterRailSeen = false;
+    sections = sections.filter((section) => {
+        if (section.slot.slotType !== "horizontal_rail" || !/\b(?:filter|chip|mood)\b/i.test(section.slot.intent)) return true;
+        if (filterRailSeen) return false;
+        filterRailSeen = true;
+        const signature = `${section.slot.slotType}|${textValues(section.component).join("|")}`;
+        if (signature.length < 12 || !seenSections.has(signature)) { seenSections.add(signature); return true; }
+        return false;
+    });
+    // A dedicated navigation section owns its labels. Remove only complete duplicate
+    // label groups elsewhere; preserve individual shared words and unrelated content.
+    const nav = sections.find((s) => s.slot.slotType === "nav_bar");
+    const labels = nav ? new Set(textValues(nav.component)) : new Set<string>();
+    if (labels.size >= 3) {
+        const prune = (node: AnyComponent): AnyComponent | null => {
+            const texts = textValues(node);
+            if (texts.length >= labels.size && new Set(texts).size === labels.size && texts.every((t) => labels.has(t))) return null;
+            if (node.children) node.children = node.children.map(prune).filter((n): n is AnyComponent => n !== null);
+            return node;
+        };
+        sections = sections.flatMap((s) => {
+            if (s === nav) return [s];
+            const component = prune(s.component);
+            return component ? [{ ...s, component }] : [];
+        });
+    }
     const initial = auditScreen(sections, params.plan, params.manifest);
     const targets = [...new Set(initial.filter((i) => i.section >= 0 && i.severity === "error").map((i) => i.section))].slice(0, 2);
     if (params.deadlineAt - Date.now() > 8000) {

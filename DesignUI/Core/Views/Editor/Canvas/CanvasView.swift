@@ -27,17 +27,19 @@ struct CanvasView: View {
     let pushScale: CGFloat
     let pushOffset: CGSize
     let enableScrollHandler: Bool
-    let isGenerating: Bool
     @Environment(\.colorScheme) private var appColorScheme
     @Environment(\.displayScale) private var displayScale
     
     // State for pan gesture
     @State private var currentOffset: CGSize = .zero
+    #if os(iOS)
+    @State private var dragOffset: CGSize = .zero
+    @State private var magnifyScale: CGFloat = 1.0
+    #else
     @GestureState private var dragOffset: CGSize = .zero
-    @State private var viewportSize: CGSize = .zero
-    
-    // State for zoom gesture  
     @GestureState private var magnifyScale: CGFloat = 1.0
+    #endif
+    @State private var viewportSize: CGSize = .zero
     
     // Track if mouse is hovering over canvas (macOS)
     @State private var isCanvasHovered: Bool = false
@@ -63,8 +65,7 @@ struct CanvasView: View {
         colorScheme: Binding<ColorScheme?>,
         pushScale: CGFloat = 1.0,
         pushOffset: CGSize = .zero,
-        enableScrollHandler: Bool = true,
-        isGenerating: Bool = false
+        enableScrollHandler: Bool = true
     ) {
         self.canvasManager = canvasManager
         self._selectedComponent = selectedComponent
@@ -74,7 +75,6 @@ struct CanvasView: View {
         self.pushScale = pushScale
         self.pushOffset = pushOffset
         self.enableScrollHandler = enableScrollHandler
-        self.isGenerating = isGenerating
     }
     
     var body: some View {
@@ -95,7 +95,30 @@ struct CanvasView: View {
 
     private func baseCanvasView(in geometry: GeometryProxy) -> some View {
         canvasContent(in: geometry)
+            #if os(iOS)
+            .background(IOSCanvasGestures(
+                canPan: PlatformLayoutContext.canPanBehindOverlayPanels || !canvasManager.isOverlayPanelOpen,
+                onPan: { translation, ended in
+                    if ended {
+                        currentOffset.width += translation.width
+                        currentOffset.height += translation.height
+                        dragOffset = .zero
+                    } else { dragOffset = translation }
+                },
+                onZoom: { scale, ended in
+                    let zoom = min(max(localZoomLevel * scale, 0.1), 5.0)
+                    if ended {
+                        localZoomLevel = zoom
+                        magnifyScale = 1
+                        stableZoomLevel = zoom
+                        baseZoomLevel = zoom
+                        canvasManager.zoomLevel = zoom
+                    } else { magnifyScale = zoom / localZoomLevel }
+                }
+            ))
+            #else
             .gesture(canvasGestures)
+            #endif
             .onAppear {
                 initializeZoom(geometry: geometry)
             }
@@ -179,7 +202,9 @@ struct CanvasView: View {
                     )
                 )
                 // Force view recreation when zoom completes for sharp rendering
+                #if os(macOS)
                 .id("canvas-\(zoomGeneration)")
+                #endif
                 // Apply transaction to disable animation caching when stable
                 .transaction { transaction in
                     // Only suppress animations during active zoom gestures to avoid jitter.
@@ -188,6 +213,7 @@ struct CanvasView: View {
         }
     }
     
+    #if os(macOS)
     private var canvasGestures: some Gesture {
         SimultaneousGesture(
             DragGesture()
@@ -227,6 +253,7 @@ struct CanvasView: View {
                 }
         )
     }
+    #endif
 
     private func handleMacZoom(delta: CGFloat, mouseLocation: CGPoint, geometry: GeometryProxy) {
         let oldZoom = localZoomLevel
@@ -405,7 +432,6 @@ struct CanvasView: View {
             canvasManager: canvasManager
         )
         .colorScheme(colorScheme ?? .light)
-        .overlay { if isGenerating { CanvasGenerationOverlay() } }
         .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: selectedDevice)
         .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: canvasManager.components.map(\.id))
     }
@@ -427,12 +453,6 @@ struct CanvasView: View {
         }
         .overlay(deviceBorder(cornerRadius: cornerRadius))
         .frame(width: deviceSize.width, height: deviceSize.height)
-        .overlay {
-            if isGenerating {
-                CanvasGenerationOverlay()
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            }
-        }
         .background(Color.clear)
         .colorScheme(colorScheme ?? .light)
         .animation(.interpolatingSpring(stiffness: 170, damping: 15), value: selectedDevice)

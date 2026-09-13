@@ -1272,8 +1272,7 @@ struct UIBuilderView: View {
             colorScheme: $canvasManager.colorScheme,
             pushScale: pushScale,
             pushOffset: pushOffset,
-            enableScrollHandler: true,
-            isGenerating: isAIGenerating
+            enableScrollHandler: true
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
@@ -1897,9 +1896,13 @@ struct UIBuilderView: View {
     }
 
     private func generateWithAI(prompt: String) async {
+        let progressToast = ToastData(title: "Generating design…", icon: "sparkles", duration: 0, isLoading: true)
         defer {
             Task { @MainActor in
                 isAIGenerating = false
+                if toastManager.currentToast?.id == progressToast.id {
+                    toastManager.dismissToast()
+                }
             }
         }
 
@@ -1963,6 +1966,7 @@ struct UIBuilderView: View {
             "statusBarTopSafeArea": AnyCodable(canvasManager.statusBarTopSafeArea)
         ]
 
+        toastManager.showToast(progressToast)
         do {
             let components = try await AIService.shared.generateComponents(prompt: trimmed, context: context)
             let operations = await MainActor.run {
