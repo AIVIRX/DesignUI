@@ -115,7 +115,7 @@ struct SettingsView: View {
                 url: stringCatalogTranslateURL
             )
             appPromoRow(
-                title: "App Screenshot Studio - Mockup",
+                title: "ScreenBud: Screenshot Studio",
                 subtitle: "Create polished App Store screenshots",
                 imageAssetName: "screenshotStudio",
                 url: screenshotStudioURL

@@ -18,32 +18,8 @@ struct SymbolButton: View {
     @State private var isHovered: Bool = false
     
     var body: some View {
-        Button(action: {
-            onCopy(symbol)
-            #if os(iOS)
-            HapticManager.shared.triggerImpact(style: .medium)
-            #endif
-        }) {
-            VStack(spacing: 8) {
-                Image(systemName: symbol)
-                    .resizable()
-                    .scaledToFit()
-                    .symbolRenderingMode(.monochrome)
-                    .frame(width: 40, height: 40)
-                    .contentShape(Rectangle())
-                
-                Text(symbol)
-                    .font(.caption)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, minHeight: 96)
-            .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .contentShape(Rectangle())
+        Button(action: copySymbol) {
+            SymbolButtonLabel(symbol: symbol, isHovered: isHovered)
         }
         .buttonStyle(.plain)
         .contextMenu {
@@ -57,6 +33,41 @@ struct SymbolButton: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(symbol.replacingOccurrences(of: ".", with: " ").replacingOccurrences(of: "-", with: " ")))
         .accessibilityAddTraits(.isButton)
+    }
+
+    private func copySymbol() {
+        onCopy(symbol)
+        #if os(iOS)
+        HapticManager.shared.triggerImpact(style: .medium)
+        #endif
+    }
+}
+
+private struct SymbolButtonLabel: View {
+    let symbol: String
+    let isHovered: Bool
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: symbol)
+                .resizable()
+                .scaledToFit()
+                .symbolRenderingMode(.monochrome)
+                .frame(width: 40, height: 40)
+                .contentShape(Rectangle())
+
+            Text(symbol)
+                .font(.caption)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 96)
+        .background(isHovered ? Color.gray.opacity(0.15) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .contentShape(Rectangle())
     }
 }
 

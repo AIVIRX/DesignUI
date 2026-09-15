@@ -400,9 +400,6 @@ private struct DesignBrowserChromeModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             #if os(iOS)
-            .navigationTitle("Design Browser")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar { toolbarContent }
             #else
             .toolbarBackground(.hidden, for: .windowToolbar)
@@ -819,12 +816,10 @@ struct NewDesignSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Text("Create New Design")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                
                 nameField
             }
+            .navigationTitle("Create New Design")
+            .navigationBarTitleDisplayMode(.inline)
             .padding()
             .frame(width: 400)
             .toolbar {

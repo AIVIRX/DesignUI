@@ -23333,6 +23333,7 @@
       }
     },
     "Design Browser" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -23661,6 +23662,7 @@
       }
     },
     "DESIGN FASTER. SHIP CLEANER." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -24976,6 +24978,7 @@
 
     },
     "DockUI Studio" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -28921,6 +28924,7 @@
       }
     },
     "Enter Workspace" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -37825,6 +37829,7 @@
       }
     },
     "NEW" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -61151,6 +61156,7 @@
 
     },
     "SwiftUI generation with structure" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
