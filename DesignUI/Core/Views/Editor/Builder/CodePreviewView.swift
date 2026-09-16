@@ -29,12 +29,10 @@ struct CodePreviewView: View {
     }
     
     var body: some View {
-        let content = VStack(spacing: 0) {
-            codePreviewContent
-        }
-        
         #if os(macOS)
-        return content
+        return VStack(spacing: 0) {
+            macOSCodePreviewContent
+        }
             .frame(minWidth: 1000, idealWidth: 1400, minHeight: 600, idealHeight: 900)
             .background(systemBackgroundColor)
             .cornerRadius(20)
@@ -48,16 +46,30 @@ struct CodePreviewView: View {
                     )
             )
         #else
-        return content
+        return NavigationStack {
+            codeContent
+                .navigationTitle("Generated Code")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done", action: dismiss.callAsFunction)
+                    }
+
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Copy", systemImage: "doc.on.doc") {
+                            copyToClipboard(completeFileCode)
+                            toastManager.showCopyToast()
+                        }
+                    }
+                }
+        }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(systemBackgroundColor)
-            .ignoresSafeArea(.container, edges: .bottom)
         #endif
     }
     
     @ViewBuilder
-    private var codePreviewContent: some View {
-        // Header with styling matching CodeSnippets
+    private var macOSCodePreviewContent: some View {
         HStack {
             Text("Generated Code")
                 .font(.system(size: 14, weight: .semibold))
@@ -96,8 +108,11 @@ struct CodePreviewView: View {
             Rectangle()
                 .fill(secondaryBackgroundColor)
         )
-        
-        // Code content with syntax highlighting
+
+        codeContent
+    }
+
+    private var codeContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             CompleteFileCode(canvasManager: canvasManager)
         }

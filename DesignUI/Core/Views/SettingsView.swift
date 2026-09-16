@@ -56,7 +56,7 @@ struct SettingsView: View {
             }
         }
 #if os(macOS)
-        .frame(width: 520, height: 720)
+        .frame(width: 520, height: 650)
 #endif
         .sheet(isPresented: $showPaywall) {
             CustomPaywallView()

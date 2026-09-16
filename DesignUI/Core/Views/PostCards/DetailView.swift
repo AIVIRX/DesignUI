@@ -1,6 +1,7 @@
 import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
+import Supabase
 
 struct DetailWebImage: View {
     let url: String

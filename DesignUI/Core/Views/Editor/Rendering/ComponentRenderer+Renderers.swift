@@ -497,7 +497,15 @@ extension ComponentRenderer {
 
         if #available(iOS 17.0, macOS 14.0, *) {
             return AnyView(
-                Map(initialPosition: .region(region), interactionModes: interactionModes)
+                Map(initialPosition: .region(region), interactionModes: interactionModes) {
+                    ForEach(parsedMapMarkers(centerLatitude: latitude, centerLongitude: longitude, fallbackTitle: "")) { marker in
+                        Marker(marker.title, coordinate: marker.coordinate)
+                            .tint(ComponentProperty.colorStringToColor(marker.tint ?? "red:1.0"))
+                    }
+                    if component.getBoolProperty(key: "showsUserLocation", defaultValue: false) {
+                        UserAnnotation()
+                    }
+                }
                     .mapStyle(resolvedMapStyle(mapStyle, showsTraffic: showsTraffic))
                     .mapControls {
                         if showsCompass {

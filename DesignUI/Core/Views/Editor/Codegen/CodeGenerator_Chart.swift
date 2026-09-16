@@ -13,13 +13,29 @@ extension CodeGenerator {
         let stackedValues = "[" + config.samples.map { String(config.stackedValue(for: $0)) }.joined(separator: ", ") + "]"
         let dimmed = "[" + config.samples.map { $0.highlighted == false ? "0.65" : "1.0" }.joined(separator: ", ") + "]"
         let inner = nextIndent + "    "
-        var lines = ["\(indent)Chart {", "\(nextIndent)ForEach(0..<\(config.samples.count), id: \\.self) { index in"]
-        lines += ["\(inner)let value = \(values)[index]", "\(inner)let series = \(series)[index]"]
-        if config.isBar { lines.append("\(inner)let category = \(categories)[index]") }
-        if !config.isBar && !config.isDonut { lines.append("\(inner)let x = \(positions)[index]") }
+        let palette = [chartColorCode(component: component), "Color.teal", "Color.orange", "Color.purple", "Color.pink", "Color.indigo", "Color.mint", "Color.brown"]
+        let colors = "[" + config.groups.indices.map { palette[$0 % palette.count] }.joined(separator: ", ") + "]"
+        var lines = [
+            "\(indent)Group {",
+            "\(nextIndent)let chartGroups: [String] = \(strings(config.groups))",
+            "\(nextIndent)let chartColors: [Color] = \(colors)",
+            "\(nextIndent)let chartValues: [Double] = \(values)",
+            "\(nextIndent)let chartSeries: [String] = \(series)"
+        ]
+        if config.isBar { lines.append("\(nextIndent)let chartCategories: [String] = \(categories)") }
+        if !config.isBar && !config.isDonut { lines.append("\(nextIndent)let chartPositions: [Int] = \(positions)") }
+        if !config.isDonut && config.samples.contains(where: { $0.highlighted == true }) {
+            lines.append("\(nextIndent)let chartHighlights: [Bool] = \(highlights)")
+            if config.style == "Stacked Bar" { lines.append("\(nextIndent)let chartStackedValues: [Double] = \(stackedValues)") }
+        }
+        if config.isDonut { lines.append("\(nextIndent)let chartOpacities: [Double] = \(dimmed)") }
+        lines += ["\(indent)Chart {", "\(nextIndent)ForEach(0..<\(config.samples.count), id: \\.self) { index in"]
+        lines += ["\(inner)let value: Double = chartValues[index]", "\(inner)let series: String = chartSeries[index]"]
+        if config.isBar { lines.append("\(inner)let category = chartCategories[index]") }
+        if !config.isBar && !config.isDonut { lines.append("\(inner)let x = chartPositions[index]") }
         let foreground = "\(inner)    .foregroundStyle(by: .value(\"Series\", series))"
         if config.isDonut {
-            lines += ["\(inner)SectorMark(angle: .value(\"Value\", value), innerRadius: .ratio(0.65), angularInset: 2)", foreground, "\(inner)    .opacity(\(dimmed)[index])", "\(inner)    .cornerRadius(3)"]
+            lines += ["\(inner)SectorMark(angle: .value(\"Value\", value), innerRadius: .ratio(0.65), angularInset: 2)", foreground, "\(inner)    .opacity(chartOpacities[index])", "\(inner)    .cornerRadius(3)"]
         } else {
             if config.hasArea {
                 lines += ["\(inner)AreaMark(x: .value(\"Index\", x), y: .value(\"Value\", value), stacking: .unstacked)", "\(inner)    .interpolationMethod(.monotone)", foreground, "\(inner)    .opacity(\(config.areaOpacity))"]
@@ -34,8 +50,8 @@ extension CodeGenerator {
             }
             if config.samples.contains(where: { $0.highlighted == true }) {
                 let x = config.isBar ? ".value(\"Category\", category)" : ".value(\"Index\", x)"
-                let y = config.style == "Stacked Bar" ? "\(stackedValues)[index]" : "value"
-                lines += ["\(inner)if \(highlights)[index] {", "\(inner)    PointMark(x: \(x), y: .value(\"Value\", \(y)))", "\(inner)        .foregroundStyle(Color.primary)"]
+                let y = config.style == "Stacked Bar" ? "chartStackedValues[index]" : "value"
+                lines += ["\(inner)if chartHighlights[index] {", "\(inner)    PointMark(x: \(x), y: .value(\"Value\", \(y)))", "\(inner)        .foregroundStyle(Color.primary)"]
                 if config.style == "Bar" { lines.append("\(inner)        .position(by: .value(\"Series\", series))") }
                 lines += ["\(inner)        .symbolSize(70)", "\(inner)}"]
             }
@@ -45,9 +61,7 @@ extension CodeGenerator {
             lines += ["\(nextIndent)RuleMark(y: .value(\"Goal\", \(config.goalValue)))", "\(nextIndent)    .foregroundStyle(Color.secondary)", "\(nextIndent)    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))", "\(nextIndent)    .annotation(position: .top, alignment: .trailing) { Text(\(String(reflecting: config.goalLabel))).font(.caption2).foregroundStyle(.secondary) }"]
         }
         lines.append("\(indent)}")
-        let palette = [chartColorCode(component: component), "Color.teal", "Color.orange", "Color.purple", "Color.pink", "Color.indigo", "Color.mint", "Color.brown"]
-        let colors = "[" + config.groups.indices.map { palette[$0 % palette.count] }.joined(separator: ", ") + "]"
-        lines.append("\(indent).chartForegroundStyleScale(domain: \(strings(config.groups)), range: \(colors))")
+        lines.append("\(indent).chartForegroundStyleScale(domain: chartGroups, range: chartColors)")
         lines.append("\(indent).chartXScale(range: .plotDimension(padding: 12))")
         let legend = config.showLegend && config.groups.count > 1 && config.style != "Sparkline" ? ".visible" : ".hidden"
         lines.append("\(indent).chartLegend(\(legend))")
@@ -64,6 +78,7 @@ extension CodeGenerator {
             if config.showGrid { lines.append("\(inner)AxisGridLine()") }
             lines += ["\(inner)AxisValueLabel {", "\(inner)    if let value = axis.as(Double.self) { Text(\(String(reflecting: config.valuePrefix)) + value.formatted(.number.notation(.compactName)) + \(String(reflecting: config.valueSuffix))) }", "\(inner)}", "\(nextIndent)}", "\(indent)}"]
         } else { lines.append("\(indent).chartYAxis(.hidden)") }
+        lines.append("\(indent)}")
         return lines.joined(separator: "\n")
     }
 
@@ -96,61 +111,7 @@ extension CodeGenerator {
     }
 
     private static func colorTokenToCode(_ token: String) -> String {
-        var normalized = token
-        if normalized.hasPrefix("color:") {
-            normalized = String(normalized.dropFirst(6))
-        }
-
-        let parts = normalized.split(separator: ":")
-        let rawName = parts.first.map(String.init) ?? "blue"
-        let opacity = parts.count > 1 ? (Double(parts[1]) ?? 1.0) : 1.0
-        let clampedOpacity = max(0, min(1, opacity))
-
-        if rawName.hasPrefix("#") {
-            let hex = String(rawName.dropFirst())
-            return "Color(hex: \"\(hex)\").opacity(\(formatNumber(clampedOpacity)))"
-        }
-
-        switch rawName.lowercased() {
-        case "primary":
-            return "Color.primary.opacity(\(formatNumber(clampedOpacity)))"
-        case "secondary":
-            return "Color.secondary.opacity(\(formatNumber(clampedOpacity)))"
-        case "clear":
-            return "Color.clear.opacity(\(formatNumber(clampedOpacity)))"
-        case "black":
-            return "Color.black.opacity(\(formatNumber(clampedOpacity)))"
-        case "white":
-            return "Color.white.opacity(\(formatNumber(clampedOpacity)))"
-        case "gray", "grey":
-            return "Color.gray.opacity(\(formatNumber(clampedOpacity)))"
-        case "red":
-            return "Color.red.opacity(\(formatNumber(clampedOpacity)))"
-        case "orange":
-            return "Color.orange.opacity(\(formatNumber(clampedOpacity)))"
-        case "yellow":
-            return "Color.yellow.opacity(\(formatNumber(clampedOpacity)))"
-        case "green":
-            return "Color.green.opacity(\(formatNumber(clampedOpacity)))"
-        case "mint":
-            return "Color.mint.opacity(\(formatNumber(clampedOpacity)))"
-        case "teal":
-            return "Color.teal.opacity(\(formatNumber(clampedOpacity)))"
-        case "cyan":
-            return "Color.cyan.opacity(\(formatNumber(clampedOpacity)))"
-        case "blue":
-            return "Color.blue.opacity(\(formatNumber(clampedOpacity)))"
-        case "indigo":
-            return "Color.indigo.opacity(\(formatNumber(clampedOpacity)))"
-        case "purple":
-            return "Color.purple.opacity(\(formatNumber(clampedOpacity)))"
-        case "pink":
-            return "Color.pink.opacity(\(formatNumber(clampedOpacity)))"
-        case "brown":
-            return "Color.brown.opacity(\(formatNumber(clampedOpacity)))"
-        default:
-            return "Color.blue.opacity(\(formatNumber(clampedOpacity)))"
-        }
+        colorToString(token)
     }
 
     private static func normalizeChartStyle(_ style: String) -> String {

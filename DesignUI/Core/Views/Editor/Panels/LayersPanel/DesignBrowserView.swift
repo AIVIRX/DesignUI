@@ -810,73 +810,114 @@ struct NewDesignSheet: View {
     @Binding var designName: String
     let onCreate: (String) -> Void
     let onCancel: () -> Void
+
+    var body: some View {
+        DesignNameSheet(
+            title: "Create New Design",
+            actionTitle: "Create",
+            designName: $designName,
+            allowsEmptyName: true,
+            onConfirm: { onCreate($0.isEmpty ? "Untitled" : $0) },
+            onCancel: onCancel
+        )
+    }
+}
+
+struct RenameDesignSheet: View {
+    @Binding var designName: String
+    let onRename: (String) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        DesignNameSheet(
+            title: "Rename Design",
+            actionTitle: "Rename",
+            designName: $designName,
+            onConfirm: onRename,
+            onCancel: onCancel
+        )
+    }
+}
+
+private struct DesignNameSheet: View {
+    let title: String
+    let actionTitle: String
+    @Binding var designName: String
+    let allowsEmptyName: Bool
+    let onConfirm: (String) -> Void
+    let onCancel: () -> Void
     @FocusState private var isFocused: Bool
+
     private let maxNameLength = 50
-    
+
+    init(
+        title: String,
+        actionTitle: String,
+        designName: Binding<String>,
+        allowsEmptyName: Bool = false,
+        onConfirm: @escaping (String) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        self.title = title
+        self.actionTitle = actionTitle
+        self._designName = designName
+        self.allowsEmptyName = allowsEmptyName
+        self.onConfirm = onConfirm
+        self.onCancel = onCancel
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
                 nameField
             }
-            .navigationTitle("Create New Design")
+            .navigationTitle(title)
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .padding()
-            .frame(width: 400)
+            .frame(width: 300)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        onCancel()
-                    }
+                    Button("Cancel", action: onCancel)
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        onCreate(designName.isEmpty ? "Untitled" : designName)
-                    }
+                    Button(actionTitle, action: confirm)
+                        .disabled(!allowsEmptyName && designName.isEmpty)
                 }
             }
             .onAppear {
                 isFocused = true
             }
         }
+        #if os(macOS)
+        .frame(width: 300)
+        #endif
     }
 
     private var nameField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Design Name")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-
-                Spacer()
-
-                Text(verbatim: "\(designName.count)/\(maxNameLength)")
-                    .font(.caption)
-                    .foregroundColor(designName.count > maxNameLength ? .red : .secondary)
+        TextField("Design Name", text: $designName)
+            .autocorrectionDisabled()
+            .focused($isFocused)
+            .onSubmit(confirm)
+            .textFieldStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(fieldBackgroundColor)
+            .cornerRadius(12)
+            .overlay(nameFieldBorder)
+            .shadow(
+                color: isFocused ? Color.black.opacity(0.1) : .clear,
+                radius: 4,
+                x: 0,
+                y: 2
+            )
+            .onChange(of: designName) { _, newValue in
+                if newValue.count > maxNameLength {
+                    designName = String(newValue.prefix(maxNameLength))
+                }
             }
-
-            TextField("Design Name", text: $designName)
-                .autocorrectionDisabled()
-                .focused($isFocused)
-                .onSubmit {
-                    if !designName.isEmpty {
-                        onCreate(designName)
-                    }
-                }
-                .textFieldStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(fieldBackgroundColor)
-                .cornerRadius(12)
-                .overlay(nameFieldBorder)
-                .shadow(color: isFocused ? Color.black.opacity(0.1) : Color.clear, radius: 4, x: 0, y: 2)
-                .onChange(of: designName) { _, newValue in
-                    if newValue.count > maxNameLength {
-                        designName = String(newValue.prefix(maxNameLength))
-                    }
-                }
-        }
     }
 
     private var nameFieldBorder: some View {
@@ -894,56 +935,10 @@ struct NewDesignSheet: View {
         Color(NSColor.controlBackgroundColor)
         #endif
     }
-}
 
-struct RenameDesignSheet: View {
-    @Binding var designName: String
-    let onRename: (String) -> Void
-    let onCancel: () -> Void
-    @FocusState private var isFocused: Bool
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Rename Design")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                
-                TextField("Design Name", text: $designName)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isFocused)
-                    .onSubmit {
-                        if !designName.isEmpty {
-                            onRename(designName)
-                        }
-                    }
-                
-                Text("Enter a new name for this design.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding()
-            .frame(width: 400)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        onCancel()
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Rename") {
-                        if !designName.isEmpty {
-                            onRename(designName)
-                        }
-                    }
-                }
-            }
-            .onAppear {
-                isFocused = true
-            }
-        }
+    private func confirm() {
+        guard allowsEmptyName || !designName.isEmpty else { return }
+        onConfirm(designName)
     }
 }
 

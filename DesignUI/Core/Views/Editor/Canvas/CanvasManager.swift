@@ -1082,51 +1082,13 @@ class CanvasManager: ObservableObject {
     }
     
     func exportCode() -> String {
-        CodeGenerator.resetImageCounter()
-        
-        let cleanedName = designName.filter { $0.isLetter || $0.isNumber }
-        let viewName = "\(cleanedName.isEmpty ? "Generated" : cleanedName)View"
-        
-        var imports = ["import SwiftUI"]
-        if containsComponent(ofType: .chart, in: components) {
-            imports.append("import Charts")
-        }
-        var code = imports.joined(separator: "\n")
-        code += "\n\nstruct \(viewName): View {\n    var body: some View {"
-        
-        var bodyContent = ""
-        
-        let showStatusBar = statusBarComponent?.getProperty(key: "showStatusBar") as? Bool ?? true
-        let shouldIgnoreSafeArea = !showStatusBar
-        
-        if components.isEmpty {
-            bodyContent = "        Text(\"No components added yet\")"
-        } else if shouldIgnoreSafeArea {
-            if components.count == 1 {
-                let component = components[0]
-                var componentCode = CodeGenerator.generateCode(for: component, indentLevel: 2)
-                componentCode += "\n            .ignoresSafeArea()"
-                bodyContent = componentCode
-            } else {
-                bodyContent = "        Group {"
-                for component in components {
-                    let componentCode = CodeGenerator.generateCode(for: component, indentLevel: 3)
-                    bodyContent += "\n" + componentCode
-                }
-                bodyContent += "\n        }"
-                bodyContent += "\n        .ignoresSafeArea()"
-            }
-        } else {
-            for (index, component) in components.enumerated() {
-                let componentCode = CodeGenerator.generateCode(for: component, indentLevel: 2)
-                bodyContent += (index > 0 ? "\n" : "") + componentCode
-            }
-        }
-        
-        code += "\n" + bodyContent
-        code += "\n    }\n}\n\n#Preview {\n    \(viewName)()\n}"
-        
-        return code
+        CodeGenerator.generateFile(
+            components: components,
+            designName: designName,
+            colorScheme: colorScheme,
+            statusBarVisible: statusBarVisible,
+            topSafeArea: statusBarTopSafeArea
+        )
     }
 
     private func withActualComponent(_ component: UIComponent, log: String, _ body: (UIComponent) -> Void) {
@@ -1161,24 +1123,22 @@ class CanvasManager: ObservableObject {
 
     private func beginLayoutTransition(duration: TimeInterval) {
         if Thread.isMainThread {
-            isLayoutTransitioning = true
-            layoutTransitionWorkItem?.cancel()
-            let workItem = DispatchWorkItem { [weak self] in
-                self?.isLayoutTransitioning = false
-            }
-            layoutTransitionWorkItem = workItem
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
+            scheduleLayoutTransitionEnd(after: duration)
         } else {
-            DispatchQueue.main.async {
-                self.isLayoutTransitioning = true
-                self.layoutTransitionWorkItem?.cancel()
-                let workItem = DispatchWorkItem { [weak self] in
-                    self?.isLayoutTransitioning = false
-                }
-                self.layoutTransitionWorkItem = workItem
-                DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
+            DispatchQueue.main.async { [weak self] in
+                self?.scheduleLayoutTransitionEnd(after: duration)
             }
         }
+    }
+
+    private func scheduleLayoutTransitionEnd(after duration: TimeInterval) {
+        isLayoutTransitioning = true
+        layoutTransitionWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.isLayoutTransitioning = false
+        }
+        layoutTransitionWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
     }
 
     private func syncSelectionIfNeeded(_ component: UIComponent) {

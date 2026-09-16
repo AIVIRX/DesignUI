@@ -8,6 +8,40 @@ import SwiftUI
 import MapKit
 
 struct CodeGenerator {
+    static func generateFile(
+        components: [UIComponent],
+        designName: String,
+        colorScheme: ColorScheme?,
+        statusBarVisible: Bool,
+        topSafeArea: Bool
+    ) -> String {
+        resetImageCounter()
+        let cleaned = designName.filter { $0.isLetter || $0.isNumber }
+        let identifier = cleaned.isEmpty ? "Generated" : cleaned
+        let name = "\(identifier.first?.isNumber == true ? "Design" : "")\(identifier)View"
+        func contains(_ type: ComponentType, in nodes: [UIComponent]) -> Bool {
+            nodes.contains { $0.type == type || contains(type, in: $0.children) }
+        }
+        var imports = ["import SwiftUI"]
+        if contains(.chart, in: components) { imports.append("import Charts") }
+        if contains(.map, in: components) { imports.append("import MapKit") }
+        var lines = imports + ["", "struct \(name): View {", "    var body: some View {", "        VStack(spacing: 0) {"]
+        let content = components.filter { $0.type != .statusBar }
+        if content.isEmpty {
+            lines.append("            Text(\"No components added yet\")")
+        } else {
+            lines += content.map { generateCode(for: $0, indentLevel: 3) }
+        }
+        lines.append("        }")
+        if !topSafeArea { lines.append("        .ignoresSafeArea(.container, edges: .top)") }
+        lines += ["        #if os(iOS)", "        .statusBarHidden(\(!statusBarVisible))", "        #endif"]
+        if let colorScheme {
+            lines.append("        .preferredColorScheme(.\(colorScheme == .dark ? "dark" : "light"))")
+        }
+        lines += ["    }", "}", "", "#Preview {", "    \(name)()", "}"]
+        return lines.joined(separator: "\n")
+    }
+
     /// Formats a number cleanly: removes .0 for whole numbers, keeps decimals when needed
     static func formatNumber(_ value: Double) -> String {
         if value.truncatingRemainder(dividingBy: 1) == 0 {
@@ -75,8 +109,8 @@ struct CodeGenerator {
         case .map:
             baseCode = generateMapCode(component: component, indent: indent, nextIndent: nextIndent)
             
-        default:
-            return "\(indent)// \(component.type.rawValue) - Code generation not implemented yet"
+        case .statusBar:
+            return "\(indent)EmptyView()"
         }
         
         // Apply modifiers
@@ -97,9 +131,7 @@ struct CodeGenerator {
     
     private static func generateTextCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let text = component.getProperty(key: "text") as? String ?? "Hello World"
-        // Escape quotes in text
-        let escapedText = text.replacingOccurrences(of: "\"", with: "\\\"")
-        return "\(indent)Text(\"\(escapedText)\")"
+        return "\(indent)Text(\(String(reflecting: text)))"
     }
     
     /// Static counter for generating unique image placeholder names
@@ -122,9 +154,16 @@ struct CodeGenerator {
         imageCounter += 1
         let placeholderName = "image\(imageCounter)"
         
-        if !imageDataString.isEmpty || !imageName.isEmpty {
+        if let url = URL(string: imageName), ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
+            var imageCode = "\(nextIndent)image"
+            if resizable { imageCode += ".resizable()" }
+            if ["fit", "fill"].contains(aspectRatio) {
+                imageCode += ".aspectRatio(contentMode: .\(aspectRatio))"
+            }
+            return "\(indent)AsyncImage(url: URL(string: \(String(reflecting: imageName)))) { image in\n\(imageCode)\n\(indent)} placeholder: {\n\(nextIndent)Image(systemName: \"photo\")\n\(indent)}"
+        } else if !imageDataString.isEmpty || !imageName.isEmpty {
             // Has an image - generate code with clean placeholder name
-            code = "\(indent)Image(\"\(placeholderName)\")"
+            code = "\(indent)// Add the source image to Assets.xcassets as \(placeholderName).\n\(indent)Image(\"\(placeholderName)\")"
         } else {
             // Fallback to system placeholder
             code = "\(indent)Image(systemName: \"photo\")"
@@ -154,10 +193,10 @@ struct CodeGenerator {
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"
         } else {
-            for (index, child) in component.children.enumerated() {
+            for (index, child) in component.children.filter({ $0.modifierId == nil }).enumerated() {
                 code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
                 // Add empty line between siblings (but not after the last one)
-                if index < component.children.count - 1 {
+                if index < component.children.filter({ $0.modifierId == nil }).count - 1 {
                     code += "\n"
                 }
             }
@@ -187,10 +226,10 @@ struct CodeGenerator {
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"
         } else {
-            for (index, child) in component.children.enumerated() {
+            for (index, child) in component.children.filter({ $0.modifierId == nil }).enumerated() {
                 code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
                 // Add empty line between siblings (but not after the last one)
-                if index < component.children.count - 1 {
+                if index < component.children.filter({ $0.modifierId == nil }).count - 1 {
                     code += "\n"
                 }
             }
@@ -217,10 +256,10 @@ struct CodeGenerator {
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"
         } else {
-            for (index, child) in component.children.enumerated() {
+            for (index, child) in component.children.filter({ $0.modifierId == nil }).enumerated() {
                 code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
                 // Add empty line between siblings (but not after the last one)
-                if index < component.children.count - 1 {
+                if index < component.children.filter({ $0.modifierId == nil }).count - 1 {
                     code += "\n"
                 }
             }
@@ -239,10 +278,10 @@ struct CodeGenerator {
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"
         } else {
-            for (index, child) in component.children.enumerated() {
+            for (index, child) in component.children.filter({ $0.modifierId == nil }).enumerated() {
                 code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
                 // Add empty line between siblings (but not after the last one)
-                if index < component.children.count - 1 {
+                if index < component.children.filter({ $0.modifierId == nil }).count - 1 {
                     code += "\n"
                 }
             }
@@ -314,10 +353,10 @@ struct CodeGenerator {
         if component.children.isEmpty {
             code += "\n\(nextIndent)// Add components here"
         } else {
-            for (index, child) in component.children.enumerated() {
+            for (index, child) in component.children.filter({ $0.modifierId == nil }).enumerated() {
                 code += "\n" + generateCode(for: child, indentLevel: indentLevel + 1)
                 // Add empty line between siblings (but not after the last one)
-                if index < component.children.count - 1 {
+                if index < component.children.filter({ $0.modifierId == nil }).count - 1 {
                     code += "\n"
                 }
             }
@@ -331,36 +370,62 @@ struct CodeGenerator {
     private static func generateSFSymbolCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let symbolName = component.getProperty(key: "symbolName") as? String ?? "star"
         
-        return "\(indent)Image(systemName: \"\(symbolName)\")"
+        return "\(indent)Image(systemName: \(String(reflecting: symbolName)))"
     }
 
     private static func generateTextFieldCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
         let text = component.getProperty(key: "text") as? String ?? ""
         let placeholder = component.getProperty(key: "placeholder") as? String ?? "Placeholder"
         // Use constant binding for generated code preview
-        return "\(indent)TextField(\"\(placeholder)\", text: .constant(\"\(text)\"))"
+        return "\(indent)TextField(\(String(reflecting: placeholder)), text: .constant(\(String(reflecting: text))))"
     }
 
-    private static func generateMapCode(component: UIComponent, indent: String, nextIndent _: String) -> String {
+    private static func generateMapCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let latitude = doubleProperty(component, key: "latitude", defaultValue: 37.3346)
         let longitude = doubleProperty(component, key: "longitude", defaultValue: -122.0090)
         let latitudeDelta = max(doubleProperty(component, key: "latitudeDelta", defaultValue: 0.018), 0.001)
         let longitudeDelta = max(doubleProperty(component, key: "longitudeDelta", defaultValue: 0.018), 0.001)
-        let interactionModes = mapInteractionModesCode(component.getProperty(key: "interactionModes") as? String ?? "all")
-        let showsUserLocation = boolProperty(component, key: "showsUserLocation", defaultValue: false)
-        let markerComment = mapMarkerSummaryComment(component)
-
+        let modes = mapInteractionModesCode(component.getProperty(key: "interactionModes") as? String ?? "all")
         var code = """
-\(indent)Map(coordinateRegion: .constant(
-\(indent)    MKCoordinateRegion(
-\(indent)        center: CLLocationCoordinate2D(latitude: \(formatNumber(latitude)), longitude: \(formatNumber(longitude))),
-\(indent)        span: MKCoordinateSpan(latitudeDelta: \(formatNumber(latitudeDelta)), longitudeDelta: \(formatNumber(longitudeDelta)))
-\(indent)    )
-\(indent)), interactionModes: \(interactionModes), showsUserLocation: \(showsUserLocation))
+\(indent)Map(initialPosition: .region(MKCoordinateRegion(
+\(nextIndent)center: CLLocationCoordinate2D(latitude: \(formatNumber(latitude)), longitude: \(formatNumber(longitude))),
+\(nextIndent)span: MKCoordinateSpan(latitudeDelta: \(formatNumber(latitudeDelta)), longitudeDelta: \(formatNumber(longitudeDelta)))
+\(indent))), interactionModes: \(modes)) {
 """
-        if !markerComment.isEmpty {
-            code += "\n\(indent)// Markers: \(markerComment)"
+        var markers = component.getProperty(key: "markers") as? [[String: Any]] ?? []
+        if let json = component.getProperty(key: "markers") as? String, let data = json.data(using: .utf8),
+           let decoded = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+            markers = decoded
         }
+        for marker in markers {
+            guard let lat = marker["latitude"] as? Double, let lon = marker["longitude"] as? Double,
+                  lat.isFinite, lon.isFinite else { continue }
+            let title = marker["title"] as? String ?? ""
+            code += "\n\(nextIndent)Marker(\(String(reflecting: title)), coordinate: CLLocationCoordinate2D(latitude: \(formatNumber(lat)), longitude: \(formatNumber(lon))))"
+            if let tint = marker["tint"] as? String {
+                code += "\n\(nextIndent)    .tint(\(colorToString(tint)))"
+            }
+        }
+        if boolProperty(component, key: "showsUserLocation", defaultValue: false) {
+            code += "\n\(nextIndent)UserAnnotation()"
+        }
+        code += "\n\(indent)}"
+        let traffic = boolProperty(component, key: "showsTraffic", defaultValue: false)
+        switch (component.getProperty(key: "mapStyle") as? String ?? "standard").lowercased() {
+        case "imagery": code += "\n\(indent).mapStyle(.imagery(elevation: .realistic))"
+        case "hybrid": code += "\n\(indent).mapStyle(.hybrid(elevation: .realistic, showsTraffic: \(traffic)))"
+        default: code += "\n\(indent).mapStyle(.standard(elevation: .realistic, showsTraffic: \(traffic)))"
+        }
+        code += "\n\(indent).mapControls {"
+        for (key, control, fallback) in [
+            ("showsCompass", "MapCompass()", true),
+            ("showsScale", "MapScaleView()", false),
+            ("showsPitchToggle", "MapPitchToggle()", false),
+            ("showsUserLocationButton", "MapUserLocationButton()", false)
+        ] where boolProperty(component, key: key, defaultValue: fallback) {
+            code += "\n\(nextIndent)\(control)"
+        }
+        code += "\n\(indent)}"
         return code
     }
 
@@ -410,14 +475,6 @@ struct CodeGenerator {
         }
     }
 
-    private static func mapMarkerSummaryComment(_ component: UIComponent) -> String {
-        guard let rawMarkers = component.getProperty(key: "markers") else { return "" }
-        if let markerString = rawMarkers as? String {
-            let trimmed = markerString.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? "" : trimmed
-        }
-        return "\(rawMarkers)"
-    }
     
     private static func generateToggleCode(component: UIComponent, indent: String, nextIndent: String) -> String {
         let isOn = component.getProperty(key: "isOn") as? Bool ?? true
@@ -702,45 +759,7 @@ struct CodeGenerator {
     }
 
     private static func swiftUIColorLiteral(_ colorString: String) -> String {
-        let trimmed = colorString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return ".gray.opacity(0.45)" }
-
-        let parts = trimmed.split(separator: ":", maxSplits: 1).map(String.init)
-        let colorName = parts.first?.lowercased() ?? "gray"
-        let opacity = parts.count > 1 ? (Double(parts[1]) ?? 1.0) : 1.0
-        let baseColor: String
-
-        switch colorName {
-        case "black": baseColor = "Color.black"
-        case "white": baseColor = "Color.white"
-        case "gray", "grey": baseColor = "Color.gray"
-        case "red": baseColor = "Color.red"
-        case "orange": baseColor = "Color.orange"
-        case "yellow": baseColor = "Color.yellow"
-        case "green": baseColor = "Color.green"
-        case "mint": baseColor = "Color.mint"
-        case "teal": baseColor = "Color.teal"
-        case "cyan", "lightblue": baseColor = "Color.cyan"
-        case "blue": baseColor = "Color.blue"
-        case "indigo": baseColor = "Color.indigo"
-        case "purple": baseColor = "Color.purple"
-        case "pink": baseColor = "Color.pink"
-        case "brown": baseColor = "Color.brown"
-        case "primary": baseColor = "Color.primary"
-        case "secondary": baseColor = "Color.secondary"
-        case "tertiary": baseColor = "Color.primary.opacity(0.6)"
-        case "quaternary": baseColor = "Color.primary.opacity(0.3)"
-        case "systembackground": baseColor = "Color(uiColor: .systemBackground)"
-        case "secondarysystembackground": baseColor = "Color(uiColor: .secondarySystemBackground)"
-        case "tertiarysystembackground": baseColor = "Color(uiColor: .tertiarySystemBackground)"
-        case "systemfill": baseColor = "Color(uiColor: .systemFill)"
-        case "secondarysystemfill": baseColor = "Color(uiColor: .secondarySystemFill)"
-        case "tertiarysystemfill": baseColor = "Color(uiColor: .tertiarySystemFill)"
-        case "quaternarysystemfill": baseColor = "Color(uiColor: .quaternarySystemFill)"
-        default: baseColor = "Color.gray"
-        }
-
-        return "\(baseColor).opacity(\(formatNumber(opacity)))"
+        colorToString(colorString)
     }
 
     private static func generateFrameModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
@@ -759,6 +778,13 @@ struct CodeGenerator {
         
         var frameParts: [String] = []
         
+        // Fixed and flexible dimensions use different SwiftUI frame overloads.
+        if widthType == "Full" && heightType == "Custom" {
+            return "\(indent).frame(height: \(formatNumber(Double(height))))\n\(indent).frame(maxWidth: .infinity)"
+        }
+        if widthType == "Custom" && heightType == "Full" {
+            return "\(indent).frame(width: \(formatNumber(Double(width))))\n\(indent).frame(maxHeight: .infinity)"
+        }
         if widthType == "Full" {
             frameParts.append("maxWidth: .infinity")
         } else if widthType == "Custom" {
@@ -834,12 +860,12 @@ struct CodeGenerator {
     private static func generateFillModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
         // Check for gradient
         if let gradientCode = generateGradientCode(modifier: modifier) {
-            return "\(indent).fill(\(gradientCode))"
+            return "\(indent).foregroundStyle(\(gradientCode))"
         }
         
         // Parse unified "colorname:opacity" format
         let colorCode = parseColorWithOpacity(modifier: modifier)
-        return "\(indent).fill(\(colorCode))"
+        return "\(indent).foregroundStyle(\(colorCode))"
     }
     
     private static func generateForegroundColorModifierCode(modifier: ComponentModifier, indent: String, nextIndent _: String) -> String {
@@ -1014,19 +1040,6 @@ struct CodeGenerator {
         let lineWidth = modifier.getCGFloat(key: "lineWidth", defaultValue: 1)
         let color = modifier.properties["color"]
         
-        let isShapeComponent: Bool = {
-            switch component.type {
-            case .shape, .rectangle, .circle, .roundedRectangle, .capsule, .ellipse:
-                return true
-            default:
-                return false
-            }
-        }()
-        
-        let hasFillModifier = component.modifiers.contains { $0.type == .fill }
-        if isShapeComponent && !hasFillModifier {
-            return "\(indent).stroke(\(colorToString(color)), lineWidth: \(formatNumber(Double(lineWidth))))"
-        }
         
         let shapeCode = strokeShapeCode(for: component)
         return """
@@ -1183,31 +1196,42 @@ struct CodeGenerator {
     ]
 
     private static func colorStringToString(_ colorString: String) -> String {
-        let cleanString = colorString.hasPrefix("color:") ? String(colorString.dropFirst(6)) : colorString
-
-        let parts = cleanString.split(separator: ":", maxSplits: 1).map(String.init)
-        if parts.count == 2, let opacity = Double(parts[1]) {
-            let name = parts[0].lowercased()
-            if semanticColorNames.contains(name) {
-                if opacity >= 0.999 {
-                    return ".\(name)"
-                }
-                return ".\(name).opacity(\(formatNumber(opacity)))"
+        let clean = colorString.hasPrefix("color:") ? String(colorString.dropFirst(6)) : colorString
+        let parts = clean.split(separator: ":", maxSplits: 1).map(String.init)
+        if parts.count == 2, let opacity = Double(parts[1]), opacity.isFinite {
+            return "\(colorStringToString(parts[0])).opacity(\(formatNumber(min(1, max(0, opacity)))))"
+        }
+        let name = clean.lowercased()
+        if name == "tertiary" { return "Color.primary.opacity(0.6)" }
+        if name == "quaternary" { return "Color.primary.opacity(0.3)" }
+        if name == "grey" { return "Color.gray" }
+        if name == "lightblue" { return "Color.cyan" }
+        if semanticColorNames.contains(name) { return "Color.\(name)" }
+        let systemColors = [
+            "systembackground": ("systemBackground", "windowBackgroundColor"),
+            "secondarysystembackground": ("secondarySystemBackground", "controlBackgroundColor"),
+            "tertiarysystembackground": ("tertiarySystemBackground", "textBackgroundColor"),
+            "systemfill": ("systemFill", "quaternaryLabelColor"),
+            "secondarysystemfill": ("secondarySystemFill", "quaternaryLabelColor"),
+            "tertiarysystemfill": ("tertiarySystemFill", "quaternaryLabelColor"),
+            "quaternarysystemfill": ("quaternarySystemFill", "quaternaryLabelColor")
+        ]
+        if let (ios, mac) = systemColors[name] {
+            return "{ () -> Color in\n#if os(macOS)\nreturn Color(nsColor: .\(mac))\n#else\nreturn Color(uiColor: .\(ios))\n#endif\n}()"
+        }
+        if clean.hasPrefix("#") {
+            var hex = String(clean.dropFirst())
+            if hex.count == 3 { hex = hex.map { "\($0)\($0)" }.joined() }
+            if (hex.count == 6 || hex.count == 8), let number = UInt64(hex, radix: 16) {
+                let rgb = hex.count == 8 ? number >> 8 : number
+                let alpha = hex.count == 8 ? Double(number & 255) / 255 : 1
+                return "Color(red: \(Double((rgb >> 16) & 255) / 255), green: \(Double((rgb >> 8) & 255) / 255), blue: \(Double(rgb & 255) / 255), opacity: \(alpha))"
             }
         }
-
-        let lowercasedName = cleanString.lowercased()
-        if semanticColorNames.contains(lowercasedName) {
-            return ".\(lowercasedName)"
+        if clean.hasPrefix("rgb(") || clean.hasPrefix("rgba(") {
+            return swiftUIColorToString(ComponentProperty.colorStringToColor(clean))
         }
-
-        // RGB and hex strings can often collapse back to built-in SwiftUI colors.
-        if cleanString.hasPrefix("rgb(") || cleanString.hasPrefix("rgba(") || cleanString.hasPrefix("#") {
-            let color = ComponentProperty.colorStringToColor(cleanString)
-            return swiftUIColorToString(color)
-        }
-
-        return "Color(\"\(cleanString)\")"
+        return "Color(\(String(reflecting: clean)))"
     }
 
     private static func swiftUIColorToString(_ color: Color) -> String {

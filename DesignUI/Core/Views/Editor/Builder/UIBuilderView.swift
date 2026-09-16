@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import StoreKit
 #if os(macOS)
 import AppKit
 #else

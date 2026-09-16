@@ -124,9 +124,6 @@ struct ContentView: View {
 #endif
         .sheet(isPresented: $paywallManager.isPresenting) {
             CustomPaywallView()
-#if os(macOS)
-                .frame(minWidth: 760, minHeight: 560)
-#endif
                 .onDisappear {
                     subscriptionManager.checkSubscriptionStatus()
                 }

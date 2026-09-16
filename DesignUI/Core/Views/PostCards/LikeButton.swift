@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import Supabase
 
 extension Notification.Name {
     static let likesChanged = Notification.Name("likesChanged")
