@@ -29,7 +29,6 @@ struct DesignBrowserView: View {
     @State private var showingPaywall = false
     @State private var showingLimitAlert = false
     @State private var showingSettings = false
-    @State private var showingAIDrafts = false
     
     // Free tier limit
     private let freeDesignLimit = 3
@@ -99,12 +98,6 @@ struct DesignBrowserView: View {
                 await communityViewModel.fetchPostsByType(postType: nil, isAllPosts: true)
             }
         }
-        .sheet(isPresented: $showingAIDrafts) {
-            DesignDraftsSheet { draft in
-                let design = designManager.createDesignFromTemplate(template: draft.designJSON, name: draft.title)
-                openDesign(design)
-            }
-        }
     }
     
     private func featuredHero(topInset: CGFloat) -> some View {
@@ -144,15 +137,6 @@ struct DesignBrowserView: View {
             
             Spacer()
 
-            if DockUIDesignPublisher.shared.canPublish {
-                Button { showingAIDrafts = true } label: {
-                    Label("AI Drafts", systemImage: "sparkles")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                }
-                .buttonStyle(.bordered)
-                .accessibilityLabel("Open AI drafts")
-            }
-            
             if !subscriptionManager.isSubscribed {
                 premiumButton
             }
