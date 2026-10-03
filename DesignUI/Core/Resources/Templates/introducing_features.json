@@ -1,0 +1,420 @@
+{
+  "name": "Introducing Features",
+  "description": "Feature highlights with blue icons and buttons",
+  "thumbnail": "introducingFeatures",
+  "devicePreset": "iPhone 16 Pro",
+  "canvasColorScheme": "light",
+  "components": [
+    {
+      "type": "VStack",
+      "properties": {
+        "spacing": 24
+      },
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 20,
+            "location": "all"
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "properties": {
+            "text": "What's New"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "largeTitle",
+                "fontWeight": "bold"
+              }
+            },
+            {
+              "type": "Padding",
+              "properties": {
+                "amount": 80,
+                "location": "vertical"
+              }
+            }
+          ]
+        },
+        {
+          "type": "VStack",
+          "properties": {
+            "alignment": "leading",
+            "spacing": 24
+          },
+          "children": [
+            {
+              "type": "HStack",
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "sparkles"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "blue:1.0"
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Custom",
+                        "heightType": "Custom",
+                        "width": 32,
+                        "height": 32
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Smart Suggestions"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Get personalized recommendations based on your design style"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "color:secondary"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "HStack",
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "bolt.fill"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "blue:1.0"
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Custom",
+                        "heightType": "Custom",
+                        "width": 32,
+                        "height": 32
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Faster Performance"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Optimized rendering for smoother design experience"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "color:secondary"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "HStack",
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "paintpalette.fill"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "blue:1.0"
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Custom",
+                        "heightType": "Custom",
+                        "width": 32,
+                        "height": 32
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Theme Editor"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Customize your app's look and feel with ease"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "color:secondary"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "HStack",
+              "properties": {
+                "alignment": "top",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "lock.shield.fill"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "blue:1.0"
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Custom",
+                        "heightType": "Custom",
+                        "width": 32,
+                        "height": 32
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 4
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Secure Cloud"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Keep your designs safe with encrypted storage and backups"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "color:secondary"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Spacer"
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Continue"
+          },
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "amount": 16,
+                "location": "all"
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "width": 280,
+                "heightType": "Default",
+                "height": 100
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "blue:1.0"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "white:1.0"
+              }
+            },
+            {
+              "type": "Corner Radius",
+              "properties": {
+                "radius": 12
+              }
+            },
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "headline",
+                "fontWeight": "bold"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Spacer"
+        }
+      ]
+    }
+  ]
+}

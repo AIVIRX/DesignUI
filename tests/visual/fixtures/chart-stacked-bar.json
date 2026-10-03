@@ -1,0 +1,144 @@
+{
+  "name": "Stacked Bar",
+  "source": "deterministic-pattern-fixture",
+  "prompt": "Design a Stacked Bar comparison chart with Online and Retail series, highlighted February point and a goal line.",
+  "expectedTexts": [],
+  "primaryAction": null,
+  "components": [
+    {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 0
+      },
+      "modifiers": [
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Full"
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "ScrollView",
+          "properties": {
+            "axis": "vertical",
+            "showsIndicators": false
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 16
+              },
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                },
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "amount": 16,
+                    "location": "all"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Stacked Bar"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title",
+                            "fontWeight": "bold",
+                            "fontDesign": "default"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Default"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Chart",
+                  "properties": {
+                    "chartStyle": "Stacked Bar",
+                    "dataPreset": "Revenue",
+                    "pointCount": 7,
+                    "showXAxis": true,
+                    "showYAxis": true,
+                    "dataPoints": "[{\"label\":\"Jan\",\"value\":42,\"series\":\"Online\"},{\"label\":\"Jan\",\"value\":25,\"series\":\"Retail\"},{\"label\":\"Feb\",\"value\":65,\"series\":\"Online\",\"highlighted\":true},{\"label\":\"Feb\",\"value\":31,\"series\":\"Retail\"},{\"label\":\"Mar\",\"value\":80,\"series\":\"Online\"},{\"label\":\"Mar\",\"value\":48,\"series\":\"Retail\"}]",
+                    "showLegend": true,
+                    "showGoal": true,
+                    "goalValue": 100,
+                    "goalLabel": "Target",
+                    "valuePrefix": "$"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Custom",
+                        "height": 200
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Spacer",
+                  "properties": {},
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Default",
+                        "heightType": "Custom",
+                        "height": 34
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

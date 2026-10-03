@@ -1,0 +1,2615 @@
+[
+  {
+    "id": "navigation",
+    "name": "Bottom navigation",
+    "slotTypes": [
+      "nav_bar"
+    ],
+    "guidance": "3–5 equal-width labeled destinations, one selected accent; pin outside scrolling content. Use the exact requested labels.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "house.fill"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "blue"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Today"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "square.grid.2x2"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Explore"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "SF Symbol",
+                  "properties": {
+                    "symbolName": "person"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Profile"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "search_filters",
+    "name": "Search and filters",
+    "slotTypes": [
+      "search_bar",
+      "segmented_tabs"
+    ],
+    "guidance": "A real Text Field, compact filters with one selected state; no invented toolbar controls. Keep results in a separate section.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "magnifyingglass"
+              },
+              "modifiers": [
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Text Field",
+              "properties": {
+                "placeholder": "Search",
+                "text": ""
+              }
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "Button",
+              "properties": {
+                "buttonStyle": "plain"
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "All"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "semibold",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": [
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "location": "all",
+                    "amount": 12
+                  }
+                },
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Custom",
+                    "height": 48
+                  }
+                },
+                {
+                  "type": "Background Color",
+                  "properties": {
+                    "color": "blue:0.16"
+                  }
+                },
+                {
+                  "type": "Corner Radius",
+                  "properties": {
+                    "radius": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Button",
+              "properties": {
+                "buttonStyle": "plain"
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Favorites"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "semibold",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": [
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "location": "all",
+                    "amount": 12
+                  }
+                },
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Custom",
+                    "height": 48
+                  }
+                },
+                {
+                  "type": "Background Color",
+                  "properties": {
+                    "color": "systemFill"
+                  }
+                },
+                {
+                  "type": "Corner Radius",
+                  "properties": {
+                    "radius": 12
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "product",
+    "name": "Product card",
+    "slotTypes": [
+      "gallery_grid",
+      "horizontal_rail",
+      "hero_banner"
+    ],
+    "guidance": "Artwork or intentional symbol illustration, product name, concise descriptor, price and one purchase action. Keep metadata subordinate.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "ZStack",
+          "properties": {
+            "alignment": "center"
+          },
+          "children": [
+            {
+              "type": "RoundedRectangle",
+              "properties": {
+                "cornerRadius": 16
+              },
+              "modifiers": [
+                {
+                  "type": "Fill",
+                  "properties": {
+                    "color": "blue:0.10"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "headphones"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "largeTitle",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 120
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Studio headphones"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "title3",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Wireless · Midnight"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "subheadline",
+                "fontWeight": "regular",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "secondary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "$129"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "title2",
+                "fontWeight": "bold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Button",
+          "properties": {
+            "buttonStyle": "plain"
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Add to bag"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "semibold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "location": "all",
+                "amount": 12
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 48
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "blue:0.16"
+              }
+            },
+            {
+              "type": "Corner Radius",
+              "properties": {
+                "radius": 12
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "settings",
+    "name": "Settings group",
+    "slotTypes": [
+      "settings_list"
+    ],
+    "guidance": "Grouped headings and distinct native Switch rows for boolean preferences; use chevrons only for drill-in navigation.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Notifications"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "headline",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Push notifications"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "Switch",
+              "properties": {
+                "isOn": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Email updates"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "Switch",
+              "properties": {
+                "isOn": false
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "calendar",
+    "name": "Week and agenda",
+    "slotTypes": [
+      "calendar_strip",
+      "timeline_list"
+    ],
+    "guidance": "Seven evenly spaced dates with one selected day and chronological agenda rows. Preserve weekday order and avoid cramped month grids on phones.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "Text",
+          "properties": {
+            "text": "This week"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "headline",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "M 12"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "caption",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "T 13"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "caption",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "W 14"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "caption",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "T 15"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "caption",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "F 16"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "caption",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "S 17"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "caption",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "secondary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "S 18"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "caption",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "secondary"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "clock"
+              },
+              "modifiers": [
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Design review"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "medium",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "10:00–10:45"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "calendar"
+              },
+              "modifiers": [
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Team check-in"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "medium",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "14:00–14:30"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "chat",
+    "name": "Conversation",
+    "slotTypes": [
+      "chat_bubble_list"
+    ],
+    "guidance": "Alternate incoming and outgoing alignment, distinguish bubbles with semantic surfaces and one accent, include discreet timestamps. Composer belongs at the bottom.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Are we still on for tomorrow?"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": [
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "amount": 16,
+                    "location": "all"
+                  }
+                },
+                {
+                  "type": "Background Color",
+                  "properties": {
+                    "color": "secondarySystemBackground"
+                  }
+                },
+                {
+                  "type": "Corner Radius",
+                  "properties": {
+                    "radius": 16
+                  }
+                },
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Absolutely! See you at 10."
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": [
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "amount": 12,
+                    "location": "all"
+                  }
+                },
+                {
+                  "type": "Background Color",
+                  "properties": {
+                    "color": "blue:0.12"
+                  }
+                },
+                {
+                  "type": "Corner Radius",
+                  "properties": {
+                    "radius": 16
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Delivered · 9:41"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "caption2",
+                "fontWeight": "regular",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "secondary"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "pricing",
+    "name": "Pricing plan",
+    "slotTypes": [
+      "pricing_table",
+      "comparison_table"
+    ],
+    "guidance": "Clear plan name, price and billing interval, 3 concise benefits, one primary subscription action; avoid invented discounts.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Pro"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "headline",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "$12 / month"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "title",
+                "fontWeight": "bold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "checkmark"
+              },
+              "modifiers": [
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Unlimited projects"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "medium",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Room for every idea"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "checkmark"
+              },
+              "modifiers": [
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Export SwiftUI"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "medium",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Editable native code"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            }
+          ]
+        },
+        {
+          "type": "Button",
+          "properties": {
+            "buttonStyle": "plain"
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Choose Pro"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "semibold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "location": "all",
+                "amount": 12
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 48
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "blue:0.16"
+              }
+            },
+            {
+              "type": "Corner Radius",
+              "properties": {
+                "radius": 12
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "checkout",
+    "name": "Checkout summary",
+    "slotTypes": [
+      "form_section",
+      "action_bar"
+    ],
+    "guidance": "Item summary, subtotal, delivery and total that add up. Show payment choice and one clear purchase action; never fake card details.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Order summary"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "headline",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "shippingbox"
+              },
+              "modifiers": [
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 12
+              },
+              "children": [
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "Studio headphones"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "body",
+                        "fontWeight": "medium",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "primary"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Text",
+                  "properties": {
+                    "text": "$129.00"
+                  },
+                  "modifiers": [
+                    {
+                      "type": "Font",
+                      "properties": {
+                        "fontSize": "caption",
+                        "fontWeight": "regular",
+                        "fontDesign": "default"
+                      }
+                    },
+                    {
+                      "type": "Foreground Color",
+                      "properties": {
+                        "color": "secondary"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Delivery"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "$0.00"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "HStack",
+          "properties": {
+            "alignment": "center",
+            "spacing": 12
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Total"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "headline",
+                    "fontWeight": "bold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Spacer"
+            },
+            {
+              "type": "Text",
+              "properties": {
+                "text": "$129.00"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "headline",
+                    "fontWeight": "bold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Button",
+          "properties": {
+            "buttonStyle": "plain"
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Place order"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "semibold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "location": "all",
+                "amount": 12
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 48
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "blue:0.16"
+              }
+            },
+            {
+              "type": "Corner Radius",
+              "properties": {
+                "radius": 12
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "empty",
+    "name": "Empty state",
+    "slotTypes": [
+      "empty_state"
+    ],
+    "guidance": "One relevant symbol, a specific reason the view is empty and a useful action. Do not fabricate populated rows.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "SF Symbol",
+          "properties": {
+            "symbolName": "tray"
+          },
+          "modifiers": [
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "blue"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "No projects yet"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "title3",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Create your first project to get started."
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "body",
+                "fontWeight": "regular",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Button",
+          "properties": {
+            "buttonStyle": "plain"
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Create project"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "semibold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "location": "all",
+                "amount": 12
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 48
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "blue:0.16"
+              }
+            },
+            {
+              "type": "Corner Radius",
+              "properties": {
+                "radius": 12
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "loading",
+    "name": "Loading state",
+    "slotTypes": [
+      "empty_state",
+      "progress_section"
+    ],
+    "guidance": "Subtle placeholders and honest indeterminate loading copy; no fake percentage. Keep the future content structure stable.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Loading your content"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "headline",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "RoundedRectangle",
+          "properties": {
+            "cornerRadius": 8
+          },
+          "modifiers": [
+            {
+              "type": "Fill",
+              "properties": {
+                "color": "systemFill"
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 16
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "This may take a moment."
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "subheadline",
+                "fontWeight": "regular",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "secondary"
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "error",
+    "name": "Error and retry",
+    "slotTypes": [
+      "empty_state"
+    ],
+    "guidance": "Explain the recoverable problem in plain language, preserve user work, and show a retry action. Never show backend diagnostics.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "SF Symbol",
+          "properties": {
+            "symbolName": "wifi.exclamationmark"
+          },
+          "modifiers": [
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "blue"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Couldn’t load your content"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "title3",
+                "fontWeight": "semibold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Check your connection and try again."
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "body",
+                "fontWeight": "regular",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Button",
+          "properties": {
+            "buttonStyle": "plain"
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Try again"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "semibold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "location": "all",
+                "amount": 12
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 48
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "blue:0.16"
+              }
+            },
+            {
+              "type": "Corner Radius",
+              "properties": {
+                "radius": 12
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "onboarding",
+    "name": "Onboarding step",
+    "slotTypes": [
+      "hero_banner",
+      "feature_grid"
+    ],
+    "guidance": "One benefit per step, intentional illustration, concise supporting text, step count and clear Continue action.",
+    "component": {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 12
+      },
+      "children": [
+        {
+          "type": "ZStack",
+          "properties": {
+            "alignment": "center"
+          },
+          "children": [
+            {
+              "type": "RoundedRectangle",
+              "properties": {
+                "cornerRadius": 16
+              },
+              "modifiers": [
+                {
+                  "type": "Fill",
+                  "properties": {
+                    "color": "blue:0.10"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "SF Symbol",
+              "properties": {
+                "symbolName": "sparkles"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "largeTitle",
+                    "fontWeight": "regular",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "blue"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 120
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Make room for your ideas"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "title",
+                "fontWeight": "bold",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "Turn a quick thought into something you can build."
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "body",
+                "fontWeight": "regular",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "primary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "properties": {
+            "text": "1 of 3"
+          },
+          "modifiers": [
+            {
+              "type": "Font",
+              "properties": {
+                "fontSize": "caption",
+                "fontWeight": "regular",
+                "fontDesign": "default"
+              }
+            },
+            {
+              "type": "Foreground Color",
+              "properties": {
+                "color": "secondary"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Button",
+          "properties": {
+            "buttonStyle": "plain"
+          },
+          "children": [
+            {
+              "type": "Text",
+              "properties": {
+                "text": "Continue"
+              },
+              "modifiers": [
+                {
+                  "type": "Font",
+                  "properties": {
+                    "fontSize": "body",
+                    "fontWeight": "semibold",
+                    "fontDesign": "default"
+                  }
+                },
+                {
+                  "type": "Foreground Color",
+                  "properties": {
+                    "color": "primary"
+                  }
+                }
+              ]
+            }
+          ],
+          "modifiers": [
+            {
+              "type": "Padding",
+              "properties": {
+                "location": "all",
+                "amount": 12
+              }
+            },
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Custom",
+                "height": 48
+              }
+            },
+            {
+              "type": "Background Color",
+              "properties": {
+                "color": "blue:0.16"
+              }
+            },
+            {
+              "type": "Corner Radius",
+              "properties": {
+                "radius": 12
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "Padding",
+          "properties": {
+            "amount": 16,
+            "location": "all"
+          }
+        },
+        {
+          "type": "Background Color",
+          "properties": {
+            "color": "secondarySystemBackground"
+          }
+        },
+        {
+          "type": "Corner Radius",
+          "properties": {
+            "radius": 16
+          }
+        },
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Default"
+          }
+        }
+      ]
+    }
+  }
+]

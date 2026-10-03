@@ -1,0 +1,221 @@
+{
+  "name": "Loading",
+  "source": "deterministic-pattern-fixture",
+  "prompt": "Design a polished loading screen with appropriate content and controls.",
+  "expectedTexts": [],
+  "primaryAction": null,
+  "components": [
+    {
+      "type": "VStack",
+      "properties": {
+        "alignment": "leading",
+        "spacing": 0
+      },
+      "modifiers": [
+        {
+          "type": "Frame",
+          "properties": {
+            "widthType": "Full",
+            "heightType": "Full"
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "ScrollView",
+          "properties": {
+            "axis": "vertical",
+            "showsIndicators": false
+          },
+          "modifiers": [
+            {
+              "type": "Frame",
+              "properties": {
+                "widthType": "Full",
+                "heightType": "Full"
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "VStack",
+              "properties": {
+                "alignment": "leading",
+                "spacing": 16
+              },
+              "modifiers": [
+                {
+                  "type": "Frame",
+                  "properties": {
+                    "widthType": "Full",
+                    "heightType": "Default"
+                  }
+                },
+                {
+                  "type": "Padding",
+                  "properties": {
+                    "amount": 16,
+                    "location": "all"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Loading"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "title",
+                            "fontWeight": "bold",
+                            "fontDesign": "default"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Default"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "VStack",
+                  "properties": {
+                    "alignment": "leading",
+                    "spacing": 12
+                  },
+                  "children": [
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "Loading your content"
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "headline",
+                            "fontWeight": "semibold",
+                            "fontDesign": "default"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "primary"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "RoundedRectangle",
+                      "properties": {
+                        "cornerRadius": 8
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Fill",
+                          "properties": {
+                            "color": "systemFill"
+                          }
+                        },
+                        {
+                          "type": "Frame",
+                          "properties": {
+                            "widthType": "Full",
+                            "heightType": "Custom",
+                            "height": 16
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Text",
+                      "properties": {
+                        "text": "This may take a moment."
+                      },
+                      "modifiers": [
+                        {
+                          "type": "Font",
+                          "properties": {
+                            "fontSize": "subheadline",
+                            "fontWeight": "regular",
+                            "fontDesign": "default"
+                          }
+                        },
+                        {
+                          "type": "Foreground Color",
+                          "properties": {
+                            "color": "secondary"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "modifiers": [
+                    {
+                      "type": "Padding",
+                      "properties": {
+                        "amount": 16,
+                        "location": "all"
+                      }
+                    },
+                    {
+                      "type": "Background Color",
+                      "properties": {
+                        "color": "secondarySystemBackground"
+                      }
+                    },
+                    {
+                      "type": "Corner Radius",
+                      "properties": {
+                        "radius": 16
+                      }
+                    },
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Full",
+                        "heightType": "Default"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Spacer",
+                  "properties": {},
+                  "modifiers": [
+                    {
+                      "type": "Frame",
+                      "properties": {
+                        "widthType": "Default",
+                        "heightType": "Custom",
+                        "height": 34
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
