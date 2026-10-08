@@ -74,6 +74,7 @@ struct ComponentsContainerWithStatusBar: View {
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
     let topContentInset: CGFloat
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     private var animatedComponentIds: [UUID] {
         components.map(\.id)
@@ -107,7 +108,7 @@ struct ComponentsContainerWithStatusBar: View {
         canvasManager.deselectAll()
         #if os(iOS)
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        if PlatformLayoutContext.isPhone {
+        if horizontalSizeClass == .compact {
             NotificationCenter.default.post(name: .minimizeSheet, object: nil)
         }
         #elseif os(macOS)
@@ -143,6 +144,7 @@ struct ComponentsContainerWithoutStatusBar: View {
     let screenGeometry: GeometryProxy
     let canvasManager: CanvasManager
     let topContentInset: CGFloat
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     private var animatedComponentIds: [UUID] {
         components.map(\.id)
@@ -176,7 +178,7 @@ struct ComponentsContainerWithoutStatusBar: View {
         canvasManager.deselectAll()
         #if os(iOS)
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        if PlatformLayoutContext.isPhone {
+        if horizontalSizeClass == .compact {
             NotificationCenter.default.post(name: .minimizeSheet, object: nil)
         }
         #elseif os(macOS)
@@ -347,6 +349,7 @@ struct ContentAdaptiveComponentsView: View {
     let selectedDevice: DevicePreset
     let colorScheme: ColorScheme?
     let canvasManager: CanvasManager
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -388,7 +391,7 @@ struct ContentAdaptiveComponentsView: View {
             canvasManager.deselectAll()
             #if os(iOS)
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            if UIDevice.current.userInterfaceIdiom == .phone {
+            if horizontalSizeClass == .compact {
                 NotificationCenter.default.post(name: .minimizeSheet, object: nil)
             }
             #elseif os(macOS)

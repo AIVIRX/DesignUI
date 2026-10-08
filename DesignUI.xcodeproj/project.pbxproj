@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		EC26F3532F246D500035E1EA /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = EC26F3522F246D500035E1EA /* FluidGradient */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
-		EC95B1072F6B37B30045535D /* NotchMyProblem in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = EC95B1062F6B37B30045535D /* NotchMyProblem */; };
 		ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA42EB06B5D00420663 /* RevenueCat */; };
 		ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA62EB06B5D00420663 /* RevenueCatUI */; };
 		ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */; };
@@ -49,7 +48,6 @@
 				ECD787D02FC6594C0041F4DC /* Supabase in Frameworks */,
 				ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */,
 				EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */,
-				EC95B1072F6B37B30045535D /* NotchMyProblem in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,7 +103,6 @@
 				ECB10DA42EB06B5D00420663 /* RevenueCat */,
 				ECB10DA62EB06B5D00420663 /* RevenueCatUI */,
 				EC26F3522F246D500035E1EA /* FluidGradient */,
-				EC95B1062F6B37B30045535D /* NotchMyProblem */,
 				ECD787CD2FC6594C0041F4DC /* Auth */,
 				ECD787CF2FC6594C0041F4DC /* Supabase */,
 			);
@@ -184,7 +181,6 @@
 				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */,
-				EC95B1052F6B37B30045535D /* XCRemoteSwiftPackageReference "NotchMyProblem" */,
 				ECD787CC2FC6594C0041F4DC /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
@@ -406,8 +402,7 @@
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -487,8 +482,7 @@
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -549,14 +543,6 @@
 				minimumVersion = 1.0.0;
 			};
 		};
-		EC95B1052F6B37B30045535D /* XCRemoteSwiftPackageReference "NotchMyProblem" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Aeastr/NotchMyProblem.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.2;
-			};
-		};
 		ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
@@ -588,11 +574,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */;
 			productName = FluidGradient;
-		};
-		EC95B1062F6B37B30045535D /* NotchMyProblem */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC95B1052F6B37B30045535D /* XCRemoteSwiftPackageReference "NotchMyProblem" */;
-			productName = NotchMyProblem;
 		};
 		ECB10DA42EB06B5D00420663 /* RevenueCat */ = {
 			isa = XCSwiftPackageProductDependency;

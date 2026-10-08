@@ -13,10 +13,6 @@ import UIKit
 import Photos
 #endif
 
-#if os(iOS)
-import NotchMyProblem
-#endif
-
 extension Notification.Name {
     static let canvasUndo = Notification.Name("canvas.undo")
     static let canvasRedo = Notification.Name("canvas.redo")
@@ -201,6 +197,8 @@ enum DevicePreset: String, CaseIterable, Identifiable {
 struct UIBuilderView: View {
     @EnvironmentObject private var toastManager: ToastManager
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.self) private var environment
     @ObservedObject var designFile: DesignFile
     private let onInitialRender: () -> Void
     #if os(iOS)
@@ -276,6 +274,7 @@ struct UIBuilderView: View {
     @State private var lastScreenshotRequestTime: Date = Date()
     private let screenshotDebounceInterval: TimeInterval = 2.0
     @State private var screenshotCaptureWorkItem: DispatchWorkItem?
+    @State private var hasFlushedEditorForDismissal = false
     
     // Debounced design sync to avoid redundant saves/snapshots
     @State private var designSyncWorkItem: DispatchWorkItem?
@@ -289,9 +288,11 @@ struct UIBuilderView: View {
     }
     
 #if os(iOS)
-    @State private var selection: PresentationDetent = PlatformLayoutContext.isPhone ? .medium : .large
+    @State private var selection: PresentationDetent = .medium
     @State private var activeTab: AppTab? = nil // Optional to allow closing
     @State private var activeSheet: IOSSheet?
+    @State private var hasFoldDivision = false
+    @State private var showAIPromptBar = false
     @State private var showLayerPropertiesNavigation = false
     
     enum AppTab: String, CaseIterable, Identifiable {
@@ -321,7 +322,34 @@ struct UIBuilderView: View {
     }
     #endif
 
+    private var isCompactLayout: Bool {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return true
+        }
+        #endif
+        return horizontalSizeClass == .compact
+    }
+
 #if os(iOS)
+
+    private var usesInlinePhonePanels: Bool {
+        if #available(iOS 27.1, *) {
+            return UIDevice.current.userInterfaceIdiom == .phone
+                && horizontalSizeClass == .regular && hasFoldDivision
+        }
+        return false
+    }
+
+    private var phoneModalSheet: Binding<IOSSheet?> {
+        Binding(
+            get: { usesInlinePhonePanels ? nil : activeSheet },
+            set: { value in
+                // Moving a panel into the split must not dismiss its content.
+                if !usesInlinePhonePanels { activeSheet = value }
+            }
+        )
+    }
 
     
     private func openLayersSheet() {
@@ -338,11 +366,16 @@ struct UIBuilderView: View {
         selection = .medium
         activeSheet = .canvasSettings
     }
+
+    private func toggleAIPromptBar() {
+        activeSheet = nil
+        showAIPromptBar.toggle()
+    }
 #endif
 
     private func openCodePreviewSheet() {
 #if os(iOS)
-        selection = PlatformLayoutContext.isPhone ? .medium : .large
+        selection = isCompactLayout ? .medium : .large
 #endif
         showCodePreview = true
     }
@@ -380,7 +413,7 @@ struct UIBuilderView: View {
         baseZoomLevel = defaultCanvasZoom
 #else
         #if os(iOS)
-        if PlatformLayoutContext.isPad {
+        if !isCompactLayout {
             canvasManager.zoomLevel = defaultCanvasZoom
             baseZoomLevel = defaultCanvasZoom
         } else {
@@ -441,8 +474,18 @@ struct UIBuilderView: View {
             onAddPage: attemptAddPage,
             onDuplicatePage: duplicateCurrentPage,
             onRenamePage: presentRenameCurrentPage,
-            onDeletePage: deleteCurrentPage
+            onDeletePage: deleteCurrentPage,
+            showsIconOnly: showsSideToolbarPagePicker
         )
+    }
+
+    private var showsSideToolbarPagePicker: Bool {
+        #if os(iOS)
+        if #available(iOS 27.1, *) {
+            return environment.toolbarVerticalEdge != nil
+        }
+        #endif
+        return false
     }
 
     var body: some View {
@@ -482,84 +525,68 @@ struct UIBuilderView: View {
         NavigationStack {
             ZStack(alignment: .top) {
                 platformSpecificContent
-                cutoutAccessoryOverlay
             }
             .onAppear {
                 canvasManager.validateStatusBarProperties()
             }
         }
         .statusBarHidden()
+        .safeAreaInset(edge: .bottom) {
+            if showAIPromptBar {
+                if #available(iOS 26.0, *) {
+                    GlassEffectContainer(spacing: 12) {
+                        aiPromptControls
+                    }
+                } else {
+                    aiPromptControls
+                }
+            }
+        }
 #endif
     }
+
 #if os(iOS)
+    private var aiPromptControls: some View {
+        HStack(alignment: .center, spacing: 0) {
+            aiHubContent(focusPromptOnAppear: true)
+            aiPromptCloseButton
+                .padding(.trailing, 12)
+                .padding(.bottom, 16)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     @ViewBuilder
-    private var cutoutAccessoryOverlay: some View {
-        if PlatformLayoutContext.isPhone {
-            if #available(iOS 26.0, macOS 26.0, *) {
-                glassCutoutAccessory
-            } else {
-                legacyCutoutAccessory
-            }
-        }
-    }
-    #endif
-
-#if os(iOS)
-    @available(iOS 26.0, *)
-    private var glassCutoutAccessory: some View {
-        CutoutAccessoryView(
-            padding: .auto,
-            leadingContent: {
-                Button("Back") { handleCutoutCancel() }
-                    .buttonStyle(.glass)
-                    .bold()
-            },
-            trailingContent: {
-                cutoutDoneMenu
-                    .buttonStyle(.glassProminent)
-                    .tint(.yellow)
-                    .foregroundColor(.black)
-                    .bold()
-            }
-        )
-    }
-    #endif
-#if os(iOS)
-    private var legacyCutoutAccessory: some View {
-        CutoutAccessoryView(
-            padding: .auto,
-            leadingContent: {
-                Button("Back") { handleCutoutCancel() }
-                    .buttonStyle(.borderedProminent)
-                    .bold()
-            },
-            trailingContent: {
-                cutoutDoneMenu
-                    .buttonStyle(.borderedProminent)
-                    .tint(.yellow)
-                    .foregroundColor(.black)
-                    .bold()
-            }
-        )
-    }
-    #endif
-
-    private var cutoutDoneMenu: some View {
-        Menu("Done") {
-            Button("View Code", systemImage: "swift") {
-                openCodePreviewSheet()
-            }
-            .tint(.orange)
-            Button("Save as Screenshot", systemImage: "photo") {
-                saveAsScreenshot()
-            }
-            .tint(.blue)
+    private var aiPromptCloseButton: some View {
+        if #available(iOS 26.0, *) {
+            aiPromptDismissButton
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+        } else {
+            aiPromptDismissButton
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
         }
     }
 
-    private func handleCutoutCancel() {
+    private var aiPromptDismissButton: some View {
+        Button {
+            showAIPromptBar = false
+        } label: {
+            Label("Close AI Prompt", systemImage: "xmark")
+                .labelStyle(.iconOnly)
+                .font(.body.weight(.semibold))
+                .frame(minWidth: 28, minHeight: 28)
+        }
+        .tint(.primary)
+        .foregroundStyle(.primary)
+        .accessibilityLabel("Close AI Prompt")
+    }
+#endif
+
+    private func dismissEditor() {
         #if os(iOS)
-        designFile.save()
+        flushEditorPreviewBeforeClosing()
         designManager.closeCurrentDesign()
         #endif
     }
@@ -586,12 +613,12 @@ struct UIBuilderView: View {
             .sheet(isPresented: $showCodePreview) {
                 CodePreviewView(canvasManager: canvasManager)
                     .presentationDetents(
-                        PlatformLayoutContext.isPhone ? [.medium] : [.large],
+                        isCompactLayout ? [.medium] : [.large],
                         selection: $selection
                     )
                     .presentationBackgroundInteraction(
                         .enabled(
-                            upThrough: PlatformLayoutContext.isPhone ? .medium : .large
+                            upThrough: isCompactLayout ? .medium : .large
                         )
                     )
                     .presentationDragIndicator(.visible)
@@ -645,7 +672,7 @@ struct UIBuilderView: View {
     private func withEditorSheets<Content: View>(_ content: Content) -> some View {
 #if os(iOS)
         content
-            .sheet(item: $activeSheet) { sheet in
+            .sheet(item: phoneModalSheet) { sheet in
                 iOSActiveSheetContent(sheet)
             }
             .sheet(isPresented: $showAISignInSheet) {
@@ -680,8 +707,15 @@ struct UIBuilderView: View {
     private func withLifecycleHandlers<Content: View>(_ content: Content) -> some View {
         content
             .onAppear {
+                hasFlushedEditorForDismissal = false
                 setupCanvas()
                 reportInitialRenderWhenReady()
+                if designFile.thumbnail == nil {
+                    captureScreenshot()
+                }
+            }
+            .onDisappear {
+                flushEditorPreviewBeforeClosing()
             }
     }
 
@@ -755,10 +789,15 @@ struct UIBuilderView: View {
         syncSelection()
 
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if isCompactLayout {
             if newSelection != nil {
-                activeSheet = .layers
-                showLayerPropertiesNavigation = true
+                if usesInlinePhonePanels {
+                    activeSheet = .properties
+                    showLayerPropertiesNavigation = false
+                } else {
+                    activeSheet = .layers
+                    showLayerPropertiesNavigation = true
+                }
             } else {
                 showLayerPropertiesNavigation = false
                 activeSheet = nil
@@ -856,6 +895,7 @@ struct UIBuilderView: View {
             guard !isSwitchingPage else { return }
             saveCanvasSettings()
             scheduleDesignSync(captureScreenshot: false)
+            captureScreenshot()
         }
         designChangedWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + designChangedDebounceInterval, execute: workItem)
@@ -900,12 +940,12 @@ struct UIBuilderView: View {
     @ViewBuilder
     private var platformSpecificContent: some View {
 #if os(iOS)
-        if PlatformLayoutContext.isPhone {
+        if isCompactLayout {
             PhoneEditorShell(
                 layersIcon: AppTab.layers.icon,
                 commands: editorShellCommands,
                 canvasContent: {
-                    mainCanvasArea(pushScale: 1.0, pushOffset: .zero)
+                    phoneEditorCanvas
                 },
                 pageMenu: {
                     pageMenu
@@ -913,6 +953,12 @@ struct UIBuilderView: View {
             )
             .onChange(of: activeSheet) { _, newValue in
                 handlePhoneSheetChange(newValue)
+            }
+            .onChange(of: usesInlinePhonePanels) { _, _ in
+                if usesInlinePhonePanels && showLayerPropertiesNavigation {
+                    activeSheet = .properties
+                }
+                handlePhoneSheetChange(activeSheet)
             }
         } else {
             PadEditorShell(
@@ -983,7 +1029,7 @@ struct UIBuilderView: View {
         EditorShellCommands(
             undo: handleCanvasUndo,
             redo: handleCanvasRedo,
-            dismissEditor: handleCutoutCancel,
+            dismissEditor: dismissEditor,
             toggleLayers: toggleLayersPanel,
             openCanvasSettings: {
 #if os(iOS)
@@ -995,6 +1041,13 @@ struct UIBuilderView: View {
                 openLayersSheet()
 #endif
             },
+            openAI: {
+#if os(iOS)
+                toggleAIPromptBar()
+#endif
+            },
+            openCodePreview: openCodePreviewSheet,
+            saveScreenshot: saveAsScreenshot,
             duplicateSelection: duplicateSelectedComponentFromPropertiesSheet,
             deleteSelection: deleteSelectedComponentFromPropertiesSheet,
             toggleInspector: togglePropertiesPanel,
@@ -1024,10 +1077,119 @@ struct UIBuilderView: View {
     }
 
 #if os(iOS)
+    @ViewBuilder
+    private var phoneEditorCanvas: some View {
+        if #available(iOS 27.1, *) {
+            GeometryReader { _ in
+                if usesInlinePhonePanels, let sheet = activeSheet {
+                    // Native split puts primary content right in landscape and
+                    // above secondary content in portrait, respecting the fold.
+                    ArrangementView {
+                        mainCanvasArea()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipped()
+                    } secondary: {
+                        inlinePhonePanel(sheet)
+                    }
+                    .arrangementViewStyle(.split)
+                } else {
+                    mainCanvasArea()
+                }
+            }
+            .onGeometryChange(for: Bool.self) { proxy in
+                !proxy.reservedRegions(kind: .division, options: .includeInactive).isEmpty
+            } action: { hasDivision in
+                hasFoldDivision = hasDivision
+            }
+        } else {
+            mainCanvasArea()
+        }
+    }
+
+    private func inlinePhonePanel(_ sheet: IOSSheet) -> some View {
+        VStack(spacing: 0) {
+            inlinePhonePanelHeader(sheet)
+            Divider()
+            inlinePhonePanelContent(sheet)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(Color(uiColor: .systemBackground))
+        .tint(.primary)
+        .clipped()
+    }
+
+    private func inlinePhonePanelHeader(_ sheet: IOSSheet) -> some View {
+        HStack(spacing: 16) {
+            if sheet == .properties {
+                Button { activeSheet = .layers } label: {
+                    Label("Layers", systemImage: "chevron.backward")
+                        .labelStyle(.iconOnly)
+                }
+            }
+            Text(sheet == .layers ? "Layers" : sheet == .properties ? propertiesSheetTitle : "Canvas Settings")
+                .font(.headline)
+            Spacer()
+            if sheet == .layers {
+                Button {
+                    componentLibraryMode = .add
+                    showComponentLibrary = true
+                } label: {
+                    Label("Add Component", systemImage: "plus").labelStyle(.iconOnly)
+                }
+            } else if sheet == .properties {
+                Button(action: duplicateSelectedComponentFromPropertiesSheet) {
+                    Label("Duplicate", systemImage: "doc.on.doc").labelStyle(.iconOnly)
+                }
+                .disabled(!canPerformComponentToolbarActions)
+                Button(role: .destructive, action: deleteSelectedComponentFromPropertiesSheet) {
+                    Label("Delete", systemImage: "trash").labelStyle(.iconOnly)
+                }
+                .disabled(!canPerformComponentToolbarActions)
+            }
+            Button { activeSheet = nil } label: {
+                Label("Close Panel", systemImage: "xmark").labelStyle(.iconOnly)
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+        }
+        .padding(16)
+    }
+
+    @ViewBuilder
+    private func inlinePhonePanelContent(_ sheet: IOSSheet) -> some View {
+        switch sheet {
+        case .layers:
+            LayersPanelView(
+                canvasManager: canvasManager,
+                selectedComponent: $canvasManager.selectedComponent,
+                onLayerTapped: { _ in activeSheet = .properties },
+                showComponentLibrary: $showComponentLibrary,
+                componentLibraryMode: $componentLibraryMode,
+                onReplaceRequested: { component in
+                    canvasManager.selectedComponent = component
+                    componentLibraryMode = .replace
+                    showComponentLibrary = true
+                }
+            )
+        case .properties:
+            PropertiesPanelView(
+                selectedComponent: $canvasManager.selectedComponent,
+                canvasManager: canvasManager,
+                useNavigationStack: false,
+                showNavigationTitle: false,
+                showComponentActionsSection: false,
+                showComponentHeading: false
+            )
+            .safeAreaInset(edge: .bottom) { aiHubContent(inSheet: true) }
+        case .canvasSettings:
+            canvasSettingsContent
+        }
+    }
+
     private func handlePhoneSheetChange(_ newValue: IOSSheet?) {
-        let isOverlayOpen = newValue == .layers || newValue == .properties
+        let isOverlayOpen = !usesInlinePhonePanels && (newValue == .layers || newValue == .properties)
         canvasManager.isOverlayPanelOpen = isOverlayOpen
-        canvasManager.isPropertiesSheetPresented = newValue == .properties
+        canvasManager.isPropertiesSheetPresented = !usesInlinePhonePanels && newValue == .properties
         if newValue != .layers {
             showLayerPropertiesNavigation = false
         }
@@ -1058,12 +1220,13 @@ struct UIBuilderView: View {
                     canvasManager: canvasManager,
                     useNavigationStack: true,
                     showNavigationTitle: false,
-                    showComponentActionsSection: !PlatformLayoutContext.isPhone
+                    showComponentActionsSection: !isCompactLayout,
+                    showComponentHeading: false
                 )
                 .navigationTitle(propertiesSheetTitle)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    if PlatformLayoutContext.isPhone {
+                    if isCompactLayout {
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             Button {
                                 duplicateSelectedComponentFromPropertiesSheet()
@@ -1083,7 +1246,7 @@ struct UIBuilderView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                if PlatformLayoutContext.isPhone {
+                if isCompactLayout {
                     aiHubContent(inSheet: true)
                 }
             }
@@ -1098,13 +1261,7 @@ struct UIBuilderView: View {
 #if os(iOS)
     private var canvasSettingsSheet: some View {
         NavigationStack {
-            List {
-                canvasSchemeSection
-                devicePresetSection(title: "IPhone", presets: DevicePreset.iphones)
-                devicePresetSection(title: "iPad", presets: DevicePreset.ipads)
-                devicePresetSection(title: "Widgets", presets: DevicePreset.widgets)
-                devicePresetSection(title: "Custom", presets: DevicePreset.custom)
-            }
+            canvasSettingsContent
             .tint(.primary)
             .navigationTitle("Canvas Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -1113,6 +1270,16 @@ struct UIBuilderView: View {
                     Button("Done") { activeSheet = nil }
                 }
             }
+        }
+    }
+
+    private var canvasSettingsContent: some View {
+        List {
+            canvasSchemeSection
+            devicePresetSection(title: "IPhone", presets: DevicePreset.iphones)
+            devicePresetSection(title: "iPad", presets: DevicePreset.ipads)
+            devicePresetSection(title: "Widgets", presets: DevicePreset.widgets)
+            devicePresetSection(title: "Custom", presets: DevicePreset.custom)
         }
     }
 
@@ -1237,10 +1404,20 @@ struct UIBuilderView: View {
                     .onAppear {
                         canvasViewportSize = geometry.size
                         applyInitialCanvasViewIfReady()
+#if os(iOS)
+                        if usesInlinePhonePanels {
+                            applyInitialCanvasView()
+                        }
+#endif
                     }
                     .onChange(of: geometry.size) { _, newSize in
                         canvasViewportSize = newSize
                         applyInitialCanvasViewIfReady()
+#if os(iOS)
+                        if usesInlinePhonePanels {
+                            applyInitialCanvasView()
+                        }
+#endif
                     }
             }
         )
@@ -1260,8 +1437,11 @@ struct UIBuilderView: View {
     }
 
     private var shouldShowFloatingAIHubBar: Bool {
-        #if os(iOS)
-        if PlatformLayoutContext.isPhone && activeSheet == .properties {
+#if os(iOS)
+        if isCompactLayout {
+            return false
+        }
+        if isCompactLayout && activeSheet == .properties {
             return false
         }
         #endif
@@ -1293,7 +1473,7 @@ struct UIBuilderView: View {
             canvasManager: canvasManager,
             useNavigationStack: true
         )
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if isCompactLayout {
             panel
         } else {
             panel.editorPanelStyle()
@@ -1320,7 +1500,7 @@ struct UIBuilderView: View {
     }
 
     @ViewBuilder
-    private func aiHubContent(inSheet: Bool = false) -> some View {
+    private func aiHubContent(inSheet: Bool = false, focusPromptOnAppear: Bool = false) -> some View {
         AICommandBar(
             canvasManager: canvasManager,
             isGenerating: $isAIGenerating,
@@ -1332,7 +1512,8 @@ struct UIBuilderView: View {
             },
             selectedLabel: selectedComponentLabel(),
             quotaRemaining: aiService.lastQuotaRemaining,
-            requiresSignIn: SupabaseManager.shared.client.auth.currentUser == nil
+            requiresSignIn: SupabaseManager.shared.client.auth.currentUser == nil,
+            focusPromptOnAppear: focusPromptOnAppear
         )
         .frame(maxWidth: 400)
         .padding(.horizontal, 12)
@@ -1392,9 +1573,10 @@ struct UIBuilderView: View {
                         canvasManager: canvasManager,
                         useNavigationStack: false,
                         showNavigationTitle: false,
-                        showComponentActionsSection: !PlatformLayoutContext.isPhone
+                        showComponentActionsSection: !isCompactLayout,
+                        showComponentHeading: !isCompactLayout
                     )
-                    if PlatformLayoutContext.isPhone {
+                    if isCompactLayout {
                         panel
                             .navigationTitle(propertiesSheetTitle)
                             .navigationBarTitleDisplayMode(.inline)
@@ -2828,6 +3010,7 @@ struct UIBuilderView: View {
     }
 
     private func captureScreenshot() {
+        guard !hasFlushedEditorForDismissal else { return }
         // Update request time to now
         lastScreenshotRequestTime = Date()
 
@@ -2843,16 +3026,41 @@ struct UIBuilderView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + screenshotDebounceInterval, execute: workItem)
     }
 
-    private func performScreenshotCapture() {
+    private func flushEditorPreviewBeforeClosing() {
+        guard !hasFlushedEditorForDismissal else { return }
+        hasFlushedEditorForDismissal = true
+
+        // Finish synchronously before the editor and its pending work disappear.
+        screenshotCaptureWorkItem?.cancel()
+        screenshotCaptureWorkItem = nil
+        designSyncWorkItem?.cancel()
+        designSyncWorkItem = nil
+        designChangedWorkItem?.cancel()
+        designChangedWorkItem = nil
+        designFile.components = canvasManager.components
+        saveCanvasSettings()
+        if !performScreenshotCapture() {
+            // Rendering failure must never prevent saving the design itself.
+            designFile.save()
+        }
+    }
+
+    @discardableResult
+    private func performScreenshotCapture() -> Bool {
         if CanvasExportRenderer.captureAndAssignThumbnail(
             components: self.canvasManager.components,
             configuration: self.canvasExportConfiguration,
             designFile: self.designFile,
             page: self.designFile.currentPage
         ) != nil {
+            // Autosave may have run before the debounced capture finished.
+            // Persist only after both the design and page thumbnails are assigned.
+            designFile.save()
             debugLog("📸 Screenshot captured and set on design file and current page")
+            return true
         } else {
             debugLog("📸 Failed to capture screenshot")
+            return false
         }
     }
     
@@ -2913,23 +3121,14 @@ struct ComponentView: View {
 }
 
 struct EditorPanelStyle: ViewModifier {
-    @Environment(\.colorScheme) var colorScheme
-    var panelBackgroundColor: Color {
-        if colorScheme == .dark {
-            return Color(red: 28/255, green: 28/255, blue: 30/255) // #1C1C1E
-        } else {
-            return Color.white
-        }
-    }
-    
     func body(content: Content) -> some View {
         content
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(panelBackgroundColor)
-                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(.separator.opacity(0.45))
+            }
+            .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
 
@@ -2947,6 +3146,7 @@ private struct PageMenuView: View {
     let onDuplicatePage: () -> Void
     let onRenamePage: () -> Void
     let onDeletePage: () -> Void
+    var showsIconOnly = false
 
     var body: some View {
         Menu {
@@ -2991,17 +3191,24 @@ private struct PageMenuView: View {
         .disabled(currentPageIndex == 0)
     }
 
+    @ViewBuilder
     private var menuLabel: some View {
-        HStack(spacing: 4) {
-            Text("Pages")
-                .tint(.primary)
-            #if os(iOS)
-            Image(systemName: "chevron.up.chevron.down")
-                .tint(.secondary)
-                .font(.caption)
-            #endif
+        if showsIconOnly {
+            Label("Pages", systemImage: "square.stack")
+                .labelStyle(.iconOnly)
+                .accessibilityLabel("Pages")
+        } else {
+            HStack(spacing: 4) {
+                Text("Pages")
+                    .tint(.primary)
+                #if os(iOS)
+                Image(systemName: "chevron.up.chevron.down")
+                    .tint(.secondary)
+                    .font(.caption)
+                #endif
+            }
+            .bold()
         }
-        .bold()
     }
 }
 

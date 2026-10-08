@@ -47,7 +47,7 @@ struct LayersPanelView: View {
         let base = layersBaseView
 
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if hSizeClass == .compact {
             base
                 .navigationDestination(isPresented: $showComponentLibrary) {
                     phoneComponentLibraryView

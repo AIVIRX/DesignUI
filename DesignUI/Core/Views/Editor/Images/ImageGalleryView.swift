@@ -9,6 +9,7 @@ import PhotosUI
 import UniformTypeIdentifiers
 
 struct ImageGalleryView: View {
+    @Environment(\.displayScale) private var displayScale
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedImageName: String
     
@@ -317,6 +318,7 @@ private struct GalleryImageCell: View {
     let isEditing: Bool
     
     @State private var isHovering = false
+    @Environment(\.displayScale) private var displayScale
     @State private var loadedImage: PlatformImage?
     
     init(filename: String, isSelected: Bool, isEditing: Bool) {
@@ -344,7 +346,7 @@ private struct GalleryImageCell: View {
         } else {
             placeholderView
                 .task(id: filename) {
-                    ImageGalleryManager.shared.loadThumbnailAsync(filename: filename) { image in
+                    ImageGalleryManager.shared.loadThumbnailAsync(filename: filename, displayScale: displayScale) { image in
                         loadedImage = image
                     }
                 }

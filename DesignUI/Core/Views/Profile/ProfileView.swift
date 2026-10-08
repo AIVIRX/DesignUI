@@ -12,6 +12,7 @@ struct ProfileView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var likedViewModel = LikedPostsViewModel()
     @StateObject private var userViewModel = UserPostsViewModel()
     @StateObject private var viewModel = ProfileViewModel()
@@ -345,7 +346,7 @@ struct ProfileView: View {
     @ViewBuilder
     private var postsGridView: some View {
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if horizontalSizeClass == .compact {
             masonryGrid(columns: 2, spacing: 8, horizontalPadding: 8, verticalPadding: 8)
             
         } else {

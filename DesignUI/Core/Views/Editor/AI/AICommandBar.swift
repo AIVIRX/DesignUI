@@ -8,6 +8,8 @@ struct AICommandBar: View {
     var selectedLabel: String?
     var quotaRemaining: Int
     var requiresSignIn: Bool = false
+    var focusPromptOnAppear: Bool = false
+    @FocusState private var isPromptFocused: Bool
     @State private var prompt: String = ""
     
     private let maxCharacters = 600
@@ -52,6 +54,12 @@ struct AICommandBar: View {
     private var promptField: some View {
         HStack {
             TextField("Ask AI to perform edits...", text: $prompt)
+                .focused($isPromptFocused)
+                .task {
+                    if focusPromptOnAppear {
+                        isPromptFocused = true
+                    }
+                }
                 .textFieldStyle(.plain)
                 .tint(.primary)
                 .foregroundColor(.primary)
@@ -113,17 +121,22 @@ struct AICommandBar: View {
         #else
         if #available(iOS 26.0, macOS 26.0, *) {
             Button(action: generate) {
-                if isGenerating {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Image(systemName: "arrow.up")
-                        .font(.system(size: 12, weight: .bold))
-                        .tint(.primary)
-                        .padding(5)
+                Group {
+                    if isGenerating {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 12, weight: .bold))
+                    }
                 }
+                // Keep both the arrow and loading state square inside the glass button.
+                .frame(width: 28, height: 28)
             }
             .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .tint(.primary)
+            .foregroundStyle(.primary)
             .disabled(!canSend)
             .frame(minWidth: 44, minHeight: 44)
             .accessibilityLabel(isGenerating ? "Generating" : "Send request")

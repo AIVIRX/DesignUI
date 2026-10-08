@@ -6,12 +6,8 @@
 
 import SwiftUI
 
-class GridConfiguration {
-    static let shared = GridConfiguration()
-    
-    private init() {}
-    
-    var columns: [GridItem] {
+enum GridConfiguration {
+    static func columns(isCompact: Bool) -> [GridItem] {
         if PlatformLayoutContext.isMac {
         return [
             GridItem(.flexible(), spacing: 16),
@@ -20,7 +16,7 @@ class GridConfiguration {
             GridItem(.flexible(), spacing: 16),
             GridItem(.flexible(), spacing: 16)
         ]
-        } else if PlatformLayoutContext.isPhone {
+        } else if isCompact {
             return [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
         } else {
             return [GridItem(.adaptive(minimum: 250), spacing: 16)]

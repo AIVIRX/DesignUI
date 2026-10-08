@@ -21,7 +21,6 @@ struct SettingsView: View {
     
     private let appStoreURL = URL(string: "https://apps.apple.com/us/app/dock-ui-swiftui-snippets/id6496860953")!
     private let stringCatalogTranslateURL = URL(string: "https://apps.apple.com/us/app/string-catalog-translate/id6761640833?mt=12")!
-    private let screenshotStudioURL = URL(string: "https://apps.apple.com/us/app/app-screenshot-studio-mockup/id6786118135?mt=12")!
     private let metadataTranslatorURL = URL(string: "https://apps.apple.com/us/app/metadata-translator-aso/id6739471606")!
     private let websiteURL = URL(string: "https://dockui.com")!
     private let privacyURL = URL(string: "https://dockui.com/privacy")!
@@ -113,12 +112,6 @@ struct SettingsView: View {
                 subtitle: "Translate your app strings",
                 imageAssetName: "StringCatLogo",
                 url: stringCatalogTranslateURL
-            )
-            appPromoRow(
-                title: "ScreenBud: Screenshot Studio",
-                subtitle: "Create polished App Store screenshots",
-                imageAssetName: "screenshotStudio",
-                url: screenshotStudioURL
             )
             appPromoRow(
                 title: "Metadata Translator: ASO",

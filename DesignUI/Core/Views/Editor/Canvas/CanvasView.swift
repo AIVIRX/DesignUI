@@ -29,6 +29,11 @@ struct CanvasView: View {
     let enableScrollHandler: Bool
     @Environment(\.colorScheme) private var appColorScheme
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var isCompactLayout: Bool {
+        horizontalSizeClass == .compact
+    }
     
     // State for pan gesture
     @State private var currentOffset: CGSize = .zero
@@ -97,7 +102,7 @@ struct CanvasView: View {
         canvasContent(in: geometry)
             #if os(iOS)
             .background(IOSCanvasGestures(
-                canPan: PlatformLayoutContext.canPanBehindOverlayPanels || !canvasManager.isOverlayPanelOpen,
+                canPan: isCompactLayout || !canvasManager.isOverlayPanelOpen,
                 onPan: { translation, ended in
                     if ended {
                         currentOffset.width += translation.width
@@ -219,7 +224,7 @@ struct CanvasView: View {
             DragGesture()
                 .updating($dragOffset) { value, state, _ in
 #if os(iOS)
-                    let canPan = PlatformLayoutContext.canPanBehindOverlayPanels || !canvasManager.isOverlayPanelOpen
+                    let canPan = isCompactLayout || !canvasManager.isOverlayPanelOpen
 #else
                     let canPan = !canvasManager.isOverlayPanelOpen
 #endif
@@ -228,7 +233,7 @@ struct CanvasView: View {
                 }
                 .onEnded { value in
 #if os(iOS)
-                    let canPan = PlatformLayoutContext.canPanBehindOverlayPanels || !canvasManager.isOverlayPanelOpen
+                    let canPan = isCompactLayout || !canvasManager.isOverlayPanelOpen
 #else
                     let canPan = !canvasManager.isOverlayPanelOpen
 #endif
@@ -388,7 +393,7 @@ struct CanvasView: View {
                 #if os(iOS)
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 // On iPhone, minimize the sheet
-                if PlatformLayoutContext.isPhone {
+                if isCompactLayout {
                     NotificationCenter.default.post(name: .minimizeSheet, object: nil)
                 }
                 #elseif os(macOS)

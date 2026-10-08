@@ -1343,7 +1343,7 @@ class ImageGalleryManager: ObservableObject {
         }
         
         let format = UIGraphicsImageRendererFormat()
-        format.scale = UIScreen.main.scale
+        format.scale = image.scale
         format.opaque = true  // ← KEY FIX: Explicitly set opaque to true for images without transparency
         
         let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
@@ -1438,7 +1438,7 @@ class ImageGalleryManager: ObservableObject {
         }
     }
 
-    func loadThumbnailAsync(filename: String, maxPixelSize: Int = 220, completion: @escaping (PlatformImage?) -> Void) {
+    func loadThumbnailAsync(filename: String, maxPixelSize: Int = 220, displayScale: CGFloat, completion: @escaping (PlatformImage?) -> Void) {
         let cacheKey = "\(filename)#\(maxPixelSize)" as NSString
         if let cached = thumbnailCache.object(forKey: cacheKey) {
             completion(cached)
@@ -1471,7 +1471,7 @@ class ImageGalleryManager: ObservableObject {
                 return
             }
 
-            let thumbnail = self.downsampleImage(at: fileURL, maxPixelSize: maxPixelSize) ?? self.loadImage(filename: filename)
+            let thumbnail = self.downsampleImage(at: fileURL, maxPixelSize: maxPixelSize, displayScale: displayScale) ?? self.loadImage(filename: filename)
             if let thumbnail {
                 self.thumbnailCache.setObject(thumbnail, forKey: cacheKey)
                 self.persistThumbnailToDisk(thumbnail, filename: filename, maxPixelSize: maxPixelSize)
@@ -1503,7 +1503,7 @@ class ImageGalleryManager: ObservableObject {
         return cachedThumbnail
     }
 
-    private func downsampleImage(at url: URL, maxPixelSize: Int) -> PlatformImage? {
+    private func downsampleImage(at url: URL, maxPixelSize: Int, displayScale: CGFloat) -> PlatformImage? {
         let sourceOptions: CFDictionary = [kCGImageSourceShouldCache: false] as CFDictionary
         guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions) else {
             return nil
@@ -1523,7 +1523,7 @@ class ImageGalleryManager: ObservableObject {
         #if os(macOS)
         return NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
         #else
-        return UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up)
+        return UIImage(cgImage: cgImage, scale: displayScale, orientation: .up)
         #endif
     }
     

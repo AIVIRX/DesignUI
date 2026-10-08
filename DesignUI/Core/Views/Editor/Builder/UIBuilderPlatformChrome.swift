@@ -7,6 +7,9 @@ struct EditorShellCommands {
     let toggleLayers: () -> Void
     let openCanvasSettings: () -> Void
     let openLayers: () -> Void
+    let openAI: () -> Void
+    let openCodePreview: () -> Void
+    let saveScreenshot: () -> Void
     let duplicateSelection: () -> Void
     let deleteSelection: () -> Void
     let toggleInspector: () -> Void
@@ -69,10 +72,10 @@ struct MacEditorShell<
                     } label: {
                         Label("Add Component", systemImage: "plus")
                             .labelStyle(.iconOnly)
-                            .frame(width: 28, height: 28)
                     }
                     .menuIndicator(.hidden)
                     .help("Add Component")
+                    .accessibilityLabel("Add Component")
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -83,13 +86,15 @@ struct MacEditorShell<
         ToolbarItemGroup(placement: .navigation) {
             undoButton
             redoButton
+        }
+
+        ToolbarItemGroup(placement: .automatic) {
             deviceMenu()
             pageMenu()
             colorSchemeMenu()
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
-            Spacer()
             exportMenu()
             duplicateButton
             deleteButton
@@ -100,21 +105,21 @@ struct MacEditorShell<
     private var undoButton: some View {
         Button(action: commands.undo) {
             Image(systemName: "arrow.uturn.backward")
-                .font(.system(size: 14, weight: .medium))
         }
         .keyboardShortcut("z", modifiers: .command)
         .disabled(!commands.canUndo)
         .help("Undo")
+        .accessibilityLabel("Undo")
     }
 
     private var redoButton: some View {
         Button(action: commands.redo) {
             Image(systemName: "arrow.uturn.forward")
-                .font(.system(size: 14, weight: .medium))
         }
         .keyboardShortcut("z", modifiers: [.command, .shift])
         .disabled(!commands.canRedo)
         .help("Redo")
+        .accessibilityLabel("Redo")
     }
 
     private var duplicateButton: some View {
@@ -124,15 +129,17 @@ struct MacEditorShell<
         }
         .disabled(!commands.canEditSelection)
         .help("Duplicate Component")
+        .accessibilityLabel("Duplicate Component")
     }
 
     private var deleteButton: some View {
-        Button(action: commands.deleteSelection) {
+        Button(role: .destructive, action: commands.deleteSelection) {
             Label("Delete", systemImage: "trash")
                 .labelStyle(.iconOnly)
         }
         .disabled(!commands.canEditSelection)
         .help("Delete Component")
+        .accessibilityLabel("Delete Component")
     }
 
     private var inspectorButton: some View {
@@ -144,6 +151,7 @@ struct MacEditorShell<
             .labelStyle(.iconOnly)
         }
         .help(showInspector ? "Hide Inspector" : "Show Inspector")
+        .accessibilityLabel(showInspector ? "Hide Inspector" : "Show Inspector")
         .keyboardShortcut("i", modifiers: [.command, .option])
     }
 }
@@ -181,19 +189,16 @@ struct PadEditorShell<
                     sidebarContent()
                         .frame(width: panelWidth)
                         .transition(.move(edge: .leading).combined(with: .opacity))
-                        .padding()
+                        .padding(12)
                 }
 
-                Spacer()
+                Spacer(minLength: 0)
 
                 if showProperties {
                     propertiesContent()
                         .frame(width: panelWidth)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .trailing).combined(with: .opacity)
-                        ))
-                        .padding()
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                        .padding(12)
                 }
             }
         }
@@ -208,11 +213,13 @@ struct PadEditorShell<
             Button(action: commands.dismissEditor) {
                 Image(systemName: "chevron.left")
             }
+            .accessibilityLabel("Back")
 
             Button(action: commands.toggleLayers) {
                 Image(systemName: "sidebar.left")
             }
-            .help(showSidebar ? "Hide Layers Panel" : "Show Layers Panel")
+            .help(showSidebar ? "Hide Layers" : "Show Layers")
+            .accessibilityLabel(showSidebar ? "Hide Layers" : "Show Layers")
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
@@ -221,15 +228,7 @@ struct PadEditorShell<
             pageMenu()
             undoButton
             redoButton
-        }
-
-        ToolbarItemGroup(placement: .primaryAction) {
             exportMenu()
-        }
-
-        ToolbarItem(placement: .principal) {
-            Text(designName)
-                .font(.system(size: 14, weight: .semibold))
         }
     }
 
@@ -238,6 +237,7 @@ struct PadEditorShell<
             Image(systemName: "arrow.uturn.backward")
         }
         .disabled(!commands.canUndo)
+        .accessibilityLabel("Undo")
     }
 
     private var redoButton: some View {
@@ -245,6 +245,7 @@ struct PadEditorShell<
             Image(systemName: "arrow.uturn.forward")
         }
         .disabled(!commands.canRedo)
+        .accessibilityLabel("Redo")
     }
 }
 
@@ -253,43 +254,68 @@ struct PhoneEditorShell<CanvasContent: View, PageMenu: View>: View {
     let commands: EditorShellCommands
     @ViewBuilder let canvasContent: () -> CanvasContent
     @ViewBuilder let pageMenu: () -> PageMenu
+    @Environment(\.self) private var environment
+
+    private var usesSideToolbar: Bool {
+        if #available(iOS 27.1, *) {
+            return environment.toolbarVerticalEdge != nil
+        }
+        return false
+    }
 
     var body: some View {
-        GeometryReader { _ in
-            ZStack {
-                canvasContent()
-            }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar { toolbarContent }
+        canvasContent()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { toolbarContent }
     }
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarLeading) {
+            Button(action: commands.dismissEditor) {
+                Image(systemName: "chevron.backward")
+            }
+            .accessibilityLabel("Back")
+
             Button(action: commands.undo) {
                 Image(systemName: "arrow.uturn.backward")
             }
             .disabled(!commands.canUndo)
+            .accessibilityLabel("Undo")
 
             Button(action: commands.redo) {
                 Image(systemName: "arrow.uturn.forward")
             }
             .disabled(!commands.canRedo)
+            .accessibilityLabel("Redo")
         }
 
-        ToolbarItem(placement: .principal) {
-            pageMenu()
+        if !usesSideToolbar {
+            ToolbarItem(placement: .principal) {
+                pageMenu()
+            }
         }
 
         ToolbarItemGroup(placement: .topBarTrailing) {
-            Button(action: commands.openCanvasSettings) {
-                Image(systemName: "iphone")
+            if usesSideToolbar {
+                pageMenu()
             }
 
             Button(action: commands.openLayers) {
                 Image(systemName: layersIcon)
             }
+            .accessibilityLabel("Layers")
+
+            Menu {
+                Button("Ask AI", systemImage: "wand.and.stars", action: commands.openAI)
+                Button("Canvas Settings", systemImage: "iphone", action: commands.openCanvasSettings)
+                Divider()
+                Button("View Code", systemImage: "swift", action: commands.openCodePreview)
+                Button("Save as Screenshot", systemImage: "photo", action: commands.saveScreenshot)
+            } label: {
+                Label("More Editor Actions", systemImage: "ellipsis.circle")
+            }
+            .accessibilityLabel("More Editor Actions")
         }
     }
 }

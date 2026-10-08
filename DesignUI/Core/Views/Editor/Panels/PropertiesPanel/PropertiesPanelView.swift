@@ -19,6 +19,8 @@ struct PropertiesPanelView: View {
     var useNavigationStack: Bool = true
     var showNavigationTitle: Bool = true
     var showComponentActionsSection: Bool = true
+    var showComponentHeading: Bool = true
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     // Gallery Sheet State
     @State private var showImageGallery = false
@@ -71,6 +73,7 @@ struct PropertiesPanelView: View {
                             component: component,
                             canvasManager: canvasManager,
                             showComponentActions: showComponentActionsSection && component.type != .statusBar,
+                            showComponentHeading: showComponentHeading,
                             onDuplicateComponent: {
                                 guard let liveSelected = canvasManager.selectedComponent else { return }
                                 canvasManager.duplicateComponent(liveSelected)
@@ -122,10 +125,10 @@ struct PropertiesPanelView: View {
     }
         
     private var propertiesTitle: String {
-        if PlatformLayoutContext.isPhone {
+        if horizontalSizeClass == .compact {
             return "Properties"
         }
-        if PlatformLayoutContext.isPad {
+        if horizontalSizeClass == .regular {
             return ""
         }
         if let component = selectedComponent {
@@ -213,6 +216,7 @@ private struct FastInspectorView: View {
     @ObservedObject var component: UIComponent
     @ObservedObject var canvasManager: CanvasManager
     let showComponentActions: Bool
+    let showComponentHeading: Bool
     let onDuplicateComponent: () -> Void
     let onDeleteComponent: () -> Void
     @Binding var showGallery: Bool
@@ -220,6 +224,7 @@ private struct FastInspectorView: View {
     @Binding var showColorEditor: Bool
     @Binding var colorEditorModifierId: UUID?
     @Binding var colorEditorTitle: String
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var objectOpacityInput: String = "100"
     @State private var textInput: String = ""
     @State private var textFieldTextInput: String = ""
@@ -421,7 +426,7 @@ private struct FastInspectorView: View {
     }
 
     private var isPhone: Bool {
-        PlatformLayoutContext.isPhone
+        horizontalSizeClass == .compact
     }
 
     private var numericInputTitle: String {
@@ -3111,11 +3116,18 @@ private struct FastInspectorView: View {
         showActions: Bool = false,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let isComponentHeading = title == component.type.rawValue
+            || (title == "Symbol" && component.type.rawValue == "SF Symbol")
+        let showsHeading = showComponentHeading || !isComponentHeading
+
+        return VStack(alignment: .leading, spacing: 10) {
+            if showsHeading || showActions || plus != nil {
             HStack {
+                if showsHeading {
                 Text(title)
                     .font(.title3)
                     .fontWeight(.semibold)
+                }
                 Spacer()
                 if showActions {
                     Button(action: onDuplicateComponent) {
@@ -3154,6 +3166,7 @@ private struct FastInspectorView: View {
                     }
                     .buttonStyle(.plain)
                 }
+            }
             }
             content()
         }

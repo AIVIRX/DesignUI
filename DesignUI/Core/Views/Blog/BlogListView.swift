@@ -5,12 +5,12 @@
 //
 
 import SwiftUI
-import FluidGradient
 import SDWebImage
 import SDWebImageSwiftUI
 
 struct NewsListView: View {
     @StateObject var viewModel = NewsViewModel()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var columns: [GridItem] {
         return [GridItem(.adaptive(minimum: 300, maximum: 300))]
@@ -18,30 +18,50 @@ struct NewsListView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .center, spacing: 16) {
-                    NewsHeroHeaderView()
-                        .padding(.horizontal)
+            GeometryReader { geometry in
+                let threeColumns = usesThreeColumns(in: geometry)
+                let inset: CGFloat = threeColumns ? 16 : 0
+                let cardWidth = threeColumns ? max(1, (geometry.size.width - inset * 2 - 32) / 3) : nil
 
-                    NewsGridSection(
-                        posts: Array(viewModel.posts),
-                        columns: columns,
-                        isLoading: viewModel.isLoading,
-                        errorMessage: viewModel.errorMessage
-                    )
+                ScrollView {
+                    VStack(alignment: .center, spacing: 16) {
+                        NewsGridSection(
+                            posts: Array(viewModel.posts),
+                            columns: threeColumns
+                                ? Array(repeating: GridItem(.flexible(minimum: 0), spacing: 16), count: 3)
+                                : columns,
+                            isLoading: viewModel.isLoading,
+                            errorMessage: viewModel.errorMessage,
+                            cardWidth: cardWidth
+                        )
+                    }
+                    .padding(.horizontal, inset)
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                .refreshable {
+                    await viewModel.fetchNews()
+                }
+            }
+            .navigationTitle("News")
 #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
 #endif
-            }
-            .refreshable {
-                await viewModel.fetchNews()
-            }
             .task {
                 await fetchNewsIfNeeded()
             }
         }
+    }
+
+    private func usesThreeColumns(in geometry: GeometryProxy) -> Bool {
+#if os(iOS)
+        if #available(iOS 27.1, *) {
+            return UIDevice.current.userInterfaceIdiom == .phone
+                && horizontalSizeClass == .regular
+                && geometry.size.width > geometry.size.height
+                && !geometry.reservedRegions(kind: .division, options: .includeInactive).isEmpty
+        }
+#endif
+        return false
     }
 
     private func fetchNewsIfNeeded() async {
@@ -55,10 +75,11 @@ private struct NewsGridSection: View {
     let columns: [GridItem]
     let isLoading: Bool
     let errorMessage: String?
+    var cardWidth: CGFloat? = nil
 
     var body: some View {
         if !posts.isEmpty {
-            NewsPostsGrid(posts: posts, columns: columns)
+            NewsPostsGrid(posts: posts, columns: columns, cardWidth: cardWidth)
         } else if isLoading {
             ProgressView()
                 .padding(.top, 24)
@@ -71,11 +92,12 @@ private struct NewsGridSection: View {
 private struct NewsPostsGrid: View {
     let posts: [NewsPost]
     let columns: [GridItem]
+    var cardWidth: CGFloat? = nil
 
     var body: some View {
         LazyVGrid(columns: columns) {
             ForEach(posts) { post in
-                NewsPostGridLink(post: post)
+                NewsPostGridLink(post: post, cardWidth: cardWidth)
             }
         }
         .frame(maxWidth: 1800)
@@ -84,10 +106,11 @@ private struct NewsPostsGrid: View {
 
 private struct NewsPostGridLink: View {
     let post: NewsPost
+    var cardWidth: CGFloat? = nil
 
     var body: some View {
         NavigationLink(destination: NewsDetailView(post: post)) {
-            BlogGridCard(post: post)
+            BlogGridCard(post: post, preferredWidth: cardWidth)
                 .padding(.vertical, 5)
                 .animation(.easeInOut(duration: 0.15), value: post.id)
         }
@@ -111,33 +134,18 @@ private struct EmptyNewsStateView: View {
     }
 }
 
-struct NewsHeroHeaderView: View {
-    var body: some View {
-        VStack {
-            Text("Newsroom")
-                .font(.system(size: 44, weight: .bold, design: .rounded))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.primary, .primary.opacity(0.8)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        }
-        .frame(height: 160)
-    }
-}
-
 struct BlogGridCard: View {
     let post: NewsPost
+    var preferredWidth: CGFloat? = nil
     @State private var isHovered = false
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var cardWidth: CGFloat {
+        if let preferredWidth { return preferredWidth }
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return min(UIScreen.main.bounds.width * 0.9, 480)
+        if horizontalSizeClass == .compact {
+            return 280
         } else {
             // iPad: use same as Mac
             return 280
@@ -149,7 +157,7 @@ struct BlogGridCard: View {
     
     var cardHeight: CGFloat {
 #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom == .phone {
+        if horizontalSizeClass == .compact {
             return 220
         } else {
             // iPad: use same as Mac

@@ -5,7 +5,6 @@
 //
 
 import SwiftUI
-import FluidGradient
 #if os(macOS)
 import AppKit
 #else
@@ -19,8 +18,6 @@ struct DesignBrowserView: View {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var communityViewModel = LatestPostsViewModel()
     @Environment(\.openWindow) private var openWindow
-    @State private var showingNewDesignSheet = false
-    @State private var newDesignName = ""
     @State private var showingDeleteAlert = false
     @State private var designToDelete: DesignFile?
     @State private var showingRenameSheet = false
@@ -32,7 +29,7 @@ struct DesignBrowserView: View {
     
     // Free tier limit
     private let freeDesignLimit = 3
-    
+
     private var canCreateDesign: Bool {
         subscriptionManager.isSubscribed || designManager.designFiles.count < freeDesignLimit
     }
@@ -48,8 +45,6 @@ struct DesignBrowserView: View {
         browserScrollContent
             .modifier(
                 DesignBrowserChromeModifier(
-                    newDesignName: $newDesignName,
-                    showingNewDesignSheet: $showingNewDesignSheet,
                     showingDeleteAlert: $showingDeleteAlert,
                     showingRenameSheet: $showingRenameSheet,
                     renameText: $renameText,
@@ -59,8 +54,6 @@ struct DesignBrowserView: View {
                     subscriptionManager: subscriptionManager,
                     freeDesignLimit: freeDesignLimit,
                     onCreateNewTapped: handleCreateNewTapped,
-                    onCreateDesign: createDesign,
-                    onCancelNewDesign: resetNewDesignSheet,
                     onDeleteConfirmed: deletePendingDesign,
                     onRenameDesign: renamePendingDesign,
                     onCancelRename: resetRenameSheet,
@@ -70,28 +63,18 @@ struct DesignBrowserView: View {
     }
 
     private var browserScrollContent: some View {
-        GeometryReader { proxy in
-            let isCompact = horizontalSizeClass == .compact
-
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 28) {
-                        featuredHero(topInset: proxy.safeAreaInsets.top)
-                        refreshStatusBanner
-                        recentDesignsSection
-                        exploreSection
-                    }
-                    .padding(.bottom, 16)
-                }
-                .if(isCompact) { view in
-                    view.ignoresSafeArea(.container, edges: .top)
-                }
-                .scrollIndicators(.hidden)
-                .refreshable {
-                    await refreshHomeContent()
-                }
+        ScrollView {
+            VStack(spacing: 28) {
+                refreshStatusBanner
+                recentDesignsSection
+                exploreSection
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.top, 16)
+            .padding(.bottom, 16)
+        }
+        .scrollIndicators(.hidden)
+        .refreshable {
+            await refreshHomeContent()
         }
         .task {
             if communityViewModel.posts.isEmpty {
@@ -100,10 +83,6 @@ struct DesignBrowserView: View {
         }
     }
     
-    private func featuredHero(topInset: CGFloat) -> some View {
-        HeroHeaderView(onCreateNew: handleCreateNewTapped, topInset: topInset)
-    }
-
     @ViewBuilder
     private var refreshStatusBanner: some View {
         if communityViewModel.isRefreshing {
@@ -261,7 +240,7 @@ struct DesignBrowserView: View {
                         .foregroundColor(.secondary)
                         .padding(.horizontal)
                 } else {
-                    LazyVGrid(columns: GridConfiguration.shared.columns, spacing: 24) {
+                    LazyVGrid(columns: GridConfiguration.columns(isCompact: horizontalSizeClass == .compact), spacing: 24) {
                         ForEach(communityViewModel.posts) { post in
                             CommunityCards(
                                 post: post,
@@ -286,18 +265,10 @@ struct DesignBrowserView: View {
             showingLimitAlert = true
             return
         }
-        showingNewDesignSheet = true
-    }
-
-    private func createDesign(named name: String) {
-        let newDesign = designManager.createNewDesign(name: name)
+        // Naming is optional; start creating immediately and allow renaming later.
+        // The manager already generates a unique name for each untitled design.
+        let newDesign = designManager.createNewDesign(name: "Untitled")
         openDesign(newDesign)
-        resetNewDesignSheet()
-    }
-
-    private func resetNewDesignSheet() {
-        showingNewDesignSheet = false
-        newDesignName = ""
     }
 
     private func deletePendingDesign() {
@@ -378,8 +349,6 @@ struct DesignBrowserView: View {
 }
 
 private struct DesignBrowserChromeModifier: ViewModifier {
-    @Binding var newDesignName: String
-    @Binding var showingNewDesignSheet: Bool
     @Binding var showingDeleteAlert: Bool
     @Binding var showingRenameSheet: Bool
     @Binding var renameText: String
@@ -390,8 +359,6 @@ private struct DesignBrowserChromeModifier: ViewModifier {
 
     let freeDesignLimit: Int
     let onCreateNewTapped: () -> Void
-    let onCreateDesign: (String) -> Void
-    let onCancelNewDesign: () -> Void
     let onDeleteConfirmed: () -> Void
     let onRenameDesign: (String) -> Void
     let onCancelRename: () -> Void
@@ -405,7 +372,6 @@ private struct DesignBrowserChromeModifier: ViewModifier {
             .toolbarBackground(.hidden, for: .windowToolbar)
             .toolbar { toolbarContent }
             #endif
-            .sheet(isPresented: $showingNewDesignSheet) { newDesignSheet }
             .alert("Delete Design", isPresented: $showingDeleteAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive, action: onDeleteConfirmed)
@@ -454,17 +420,6 @@ private struct DesignBrowserChromeModifier: ViewModifier {
         #endif
     }
 
-    private var newDesignSheet: some View {
-        NewDesignSheet(
-            designName: $newDesignName,
-            onCreate: onCreateDesign,
-            onCancel: onCancelNewDesign
-        )
-        #if os(iOS)
-        .presentationDetents([.height(250)])
-        #endif
-    }
-
     private var renameDesignSheet: some View {
         RenameDesignSheet(
             designName: $renameText,
@@ -481,115 +436,6 @@ private struct DesignBrowserChromeModifier: ViewModifier {
             .environmentObject(PaywallManager.shared)
             .environmentObject(subscriptionManager)
     }
-}
-
-struct HeroHeaderView: View {
-    let onCreateNew: () -> Void
-    let topInset: CGFloat
-    @EnvironmentObject private var designManager: DesignManager
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    private let slide = HeroSlide(
-        title: "Design your next idea",
-        subtitle: "Open a recent design, keep iterating, or spin up something new in seconds.",
-        accent: Color(red: 0.22, green: 0.52, blue: 1.00),
-        accent2: Color(red: 0.31, green: 0.32, blue: 0.94),
-        accent3: Color(red: 0.06, green: 0.11, blue: 0.34),
-        cardSymbol: "rectangle.on.rectangle",
-        previewImageName: nil
-    )
-
-    var body: some View {
-        let isCompact = horizontalSizeClass == .compact
-        let heroHeight: CGFloat = isCompact ? 340 : 250
-
-        ZStack {
-            heroBackdrop(slide, isCompact: isCompact)
-                .stretchyBackground()
-                .frame(height: heroHeight + topInset)
-                .offset(y: -topInset)
-
-            heroSlide(slide, isCompact: isCompact, topInset: topInset)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: heroHeight)
-    }
-
-    private func heroSlide(_ slide: HeroSlide, isCompact: Bool, topInset: CGFloat) -> some View {
-        VStack(alignment: .center, spacing: 18) {
-            VStack(alignment: .center, spacing: 8) {
-                Text(slide.title)
-                    .font(.system(size: isCompact ? 30 : 42, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-                    .multilineTextAlignment(.center)
-
-                Text(slide.subtitle)
-                    .font(.system(size: isCompact ? 15 : 17, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.86))
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: isCompact ? .infinity : 620, alignment: .center)
-                    .multilineTextAlignment(.center)
-            }
-
-            Button(action: onCreateNew) {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus")
-                    Text("Create Design")
-                }
-                .font(.system(size: 15, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(red: 0.06, green: 0.20, blue: 0.34))
-                .padding(.horizontal, 18)
-                .padding(.vertical, 12)
-                .background(.white)
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 4)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.horizontal, isCompact ? 22 : 50)
-        .padding(.top, isCompact ? topInset + 54 : topInset)
-    }
-
-    private func heroBackdrop(_ slide: HeroSlide, isCompact: Bool) -> some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    slide.accent.opacity(0.92),
-                    slide.accent2.opacity(0.82),
-                    slide.accent3.opacity(0.72)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            FluidGradient(
-                blobs: [slide.accent2, slide.accent, slide.accent3],
-                speed: 0.35,
-                blur: 0.7
-            )
-            .blendMode(.screen)
-            .opacity(0.9)
-        }
-        .ignoresSafeArea()
-    }
-
-    private func assetImageExists(named name: String) -> Bool {
-        bundledPlatformImage(named: name) != nil
-    }
-
-}
-
-private struct HeroSlide {
-    let title: String
-    let subtitle: String
-    let accent: Color
-    let accent2: Color
-    let accent3: Color
-    let cardSymbol: String
-    let previewImageName: String?
 }
 
 struct DesignCardView: View {
@@ -773,53 +619,12 @@ struct ContinuePlayingCardView: View {
 
 private extension View {
     @ViewBuilder
-    func stretchyBackground() -> some View {
-        if #available(iOS 17.0, macOS 14.0, *) {
-            self
-                .visualEffect { effect, geometry in
-                    let scrollOffset = geometry.frame(in: .scrollView).minY
-                    let positiveOffset = max(0, scrollOffset)
-                    let currentHeight = max(geometry.size.height, 1)
-                    let newHeight = currentHeight + positiveOffset
-                    let scaleFactor = newHeight / currentHeight
-
-                    return effect.scaleEffect(
-                        x: scaleFactor,
-                        y: scaleFactor,
-                        anchor: .bottom
-                    )
-                }
-        } else {
-            self
-        }
-    }
-}
-
-private extension View {
-    @ViewBuilder
     func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
         if condition {
             transform(self)
         } else {
             self
         }
-    }
-}
-
-struct NewDesignSheet: View {
-    @Binding var designName: String
-    let onCreate: (String) -> Void
-    let onCancel: () -> Void
-
-    var body: some View {
-        DesignNameSheet(
-            title: "Create New Design",
-            actionTitle: "Create",
-            designName: $designName,
-            allowsEmptyName: true,
-            onConfirm: { onCreate($0.isEmpty ? "Untitled" : $0) },
-            onCancel: onCancel
-        )
     }
 }
 
