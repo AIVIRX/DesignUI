@@ -5,8 +5,6 @@
 //
 
 import SwiftUI
-import SDWebImage
-import SDWebImageSwiftUI
 
 struct NewsContentView: View {
     let blocks: [NewsBlock]
@@ -190,7 +188,7 @@ struct NewsContentView: View {
                     }
                 case .image:
                     if let urlString = block.url, let url = URL(string: urlString) {
-                        WebImage(url: url) { image in
+                        CachedRemoteImage(url: url) { image in
                             image
                                 .resizable()
                                 .scaledToFill()

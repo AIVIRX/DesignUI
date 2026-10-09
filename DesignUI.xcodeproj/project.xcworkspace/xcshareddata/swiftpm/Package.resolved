@@ -2,39 +2,12 @@
   "originHash" : "a36ad9a39b6a9082c8fad79a13f02b8391e47d25b974137849ea6333fa442dfb",
   "pins" : [
     {
-      "identity" : "fluidgradient",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Cindori/FluidGradient.git",
-      "state" : {
-        "revision" : "9ddda4cf23671ef0228e88681ec6210cb3e0d7f7",
-        "version" : "1.0.0"
-      }
-    },
-    {
       "identity" : "purchases-ios-spm",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RevenueCat/purchases-ios-spm.git",
       "state" : {
         "revision" : "4faa17c4a290954fbdbf8f8a6bf0f58e48a8256c",
         "version" : "5.90.2"
-      }
-    },
-    {
-      "identity" : "sdwebimage",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SDWebImage/SDWebImage.git",
-      "state" : {
-        "revision" : "2de3a496eaf6df9a1312862adcfd54acd73c39c0",
-        "version" : "5.21.7"
-      }
-    },
-    {
-      "identity" : "sdwebimageswiftui",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SDWebImage/SDWebImageSwiftUI.git",
-      "state" : {
-        "revision" : "0e331457ca9af2f0b08bcaa138a91ffb907b004f",
-        "version" : "3.1.4"
       }
     },
     {

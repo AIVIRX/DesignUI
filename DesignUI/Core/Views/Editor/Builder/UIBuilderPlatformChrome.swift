@@ -252,6 +252,7 @@ struct PadEditorShell<
 struct PhoneEditorShell<CanvasContent: View, PageMenu: View>: View {
     let layersIcon: String
     let commands: EditorShellCommands
+    let collapseHistory: Bool
     @ViewBuilder let canvasContent: () -> CanvasContent
     @ViewBuilder let pageMenu: () -> PageMenu
     @Environment(\.self) private var environment
@@ -277,17 +278,30 @@ struct PhoneEditorShell<CanvasContent: View, PageMenu: View>: View {
             }
             .accessibilityLabel("Back")
 
-            Button(action: commands.undo) {
-                Image(systemName: "arrow.uturn.backward")
-            }
-            .disabled(!commands.canUndo)
-            .accessibilityLabel("Undo")
+            if collapseHistory && !usesSideToolbar {
+                Menu {
+                    Button("Undo", systemImage: "arrow.uturn.backward", action: commands.undo)
+                        .disabled(!commands.canUndo)
+                    Button("Redo", systemImage: "arrow.uturn.forward", action: commands.redo)
+                        .disabled(!commands.canRedo)
+                } label: {
+                    Label("Edit History", systemImage: "arrow.uturn.backward")
+                }
+                .disabled(!commands.canUndo && !commands.canRedo)
+                .accessibilityLabel("Undo and Redo")
+            } else {
+                Button(action: commands.undo) {
+                    Image(systemName: "arrow.uturn.backward")
+                }
+                .disabled(!commands.canUndo)
+                .accessibilityLabel("Undo")
 
-            Button(action: commands.redo) {
-                Image(systemName: "arrow.uturn.forward")
+                Button(action: commands.redo) {
+                    Image(systemName: "arrow.uturn.forward")
+                }
+                .disabled(!commands.canRedo)
+                .accessibilityLabel("Redo")
             }
-            .disabled(!commands.canRedo)
-            .accessibilityLabel("Redo")
         }
 
         if !usesSideToolbar {

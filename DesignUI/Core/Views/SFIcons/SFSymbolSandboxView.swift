@@ -293,7 +293,7 @@ private struct SFSymbolDetailView: View {
     private var variableColorControl: some View {
         SFSymbolSliderControlRow(
             title: "Variable Color",
-            valueText: "\(Int(variableColorLevel * 100))%",
+            valueText: variableColorLevel.formatted(.percent.precision(.fractionLength(0))),
             value: $variableColorLevel,
             range: 0...1,
             step: 0.05,

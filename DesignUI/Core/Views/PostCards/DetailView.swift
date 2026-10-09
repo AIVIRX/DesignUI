@@ -1,6 +1,4 @@
 import SwiftUI
-import SDWebImage
-import SDWebImageSwiftUI
 import Supabase
 
 struct DetailWebImage: View {
@@ -11,7 +9,7 @@ struct DetailWebImage: View {
     }
     
     var body: some View {
-        WebImage(url: URL(string: url)) { image in
+        CachedRemoteImage(url: URL(string: url)) { image in
                 image
                     .renderingMode(.original)
                     .resizable()
@@ -24,8 +22,6 @@ struct DetailWebImage: View {
             ProgressView()
                 .frame(width: 30, height: 30)
         }
-        .indicator(.activity)
-        .transition(.fade(duration: 0.3))
     }
 }
 

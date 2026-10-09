@@ -5,8 +5,6 @@
 //
 
 import SwiftUI
-import SDWebImage
-import SDWebImageSwiftUI
 
 struct CommunityCards: View {
     let post: DesignPost
@@ -188,7 +186,7 @@ struct CommunityCards: View {
     }
     
     private var remoteImageOverlay: some View {
-        WebImage(url: URL(string: media)) { image in
+        CachedRemoteImage(url: URL(string: media)) { image in
             image
                 .renderingMode(.original)
                 .resizable()
@@ -201,8 +199,6 @@ struct CommunityCards: View {
             ProgressView()
                 .frame(width: 30, height: 30)
         }
-        .indicator(.activity)
-        .transition(.fade(duration: 0.3))
     }
     
     private var imageBorderOverlay: some View {

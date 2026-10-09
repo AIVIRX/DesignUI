@@ -598,7 +598,9 @@ struct UIBuilderView: View {
             .toolbarRole(.editor)
 #else
         content
-            .navigationTitle(designFile.name)
+            // Fold panels own their headers; a title here creates a second top bar
+            // above the native side toolbar and takes space away from the canvas.
+            .navigationTitle(hasFoldDivision ? "" : designFile.name)
 #endif
     }
 
@@ -944,6 +946,7 @@ struct UIBuilderView: View {
             PhoneEditorShell(
                 layersIcon: AppTab.layers.icon,
                 commands: editorShellCommands,
+                collapseHistory: !hasFoldDivision,
                 canvasContent: {
                     phoneEditorCanvas
                 },
@@ -1120,16 +1123,21 @@ struct UIBuilderView: View {
 
     private func inlinePhonePanelHeader(_ sheet: IOSSheet) -> some View {
         HStack(spacing: 16) {
-            if sheet == .properties {
+            if sheet == .layers && showComponentLibrary {
+                Button { showComponentLibrary = false } label: {
+                    Label("Back to Layers", systemImage: "chevron.backward")
+                        .labelStyle(.iconOnly)
+                }
+            } else if sheet == .properties {
                 Button { activeSheet = .layers } label: {
                     Label("Layers", systemImage: "chevron.backward")
                         .labelStyle(.iconOnly)
                 }
             }
-            Text(sheet == .layers ? "Layers" : sheet == .properties ? propertiesSheetTitle : "Canvas Settings")
+            Text(inlinePhonePanelTitle(sheet))
                 .font(.headline)
             Spacer()
-            if sheet == .layers {
+            if sheet == .layers && !showComponentLibrary {
                 Button {
                     componentLibraryMode = .add
                     showComponentLibrary = true
@@ -1155,22 +1163,22 @@ struct UIBuilderView: View {
         .padding(16)
     }
 
+    private func inlinePhonePanelTitle(_ sheet: IOSSheet) -> LocalizedStringKey {
+        switch sheet {
+        case .layers:
+            return showComponentLibrary ? (componentLibraryMode == .replace ? "Replace Component" : "Add Component") : "Layers"
+        case .properties:
+            return LocalizedStringKey(propertiesSheetTitle)
+        case .canvasSettings:
+            return "Canvas Settings"
+        }
+    }
+
     @ViewBuilder
     private func inlinePhonePanelContent(_ sheet: IOSSheet) -> some View {
         switch sheet {
         case .layers:
-            LayersPanelView(
-                canvasManager: canvasManager,
-                selectedComponent: $canvasManager.selectedComponent,
-                onLayerTapped: { _ in activeSheet = .properties },
-                showComponentLibrary: $showComponentLibrary,
-                componentLibraryMode: $componentLibraryMode,
-                onReplaceRequested: { component in
-                    canvasManager.selectedComponent = component
-                    componentLibraryMode = .replace
-                    showComponentLibrary = true
-                }
-            )
+            inlineLayersPanelContent
         case .properties:
             PropertiesPanelView(
                 selectedComponent: $canvasManager.selectedComponent,
@@ -1186,12 +1194,43 @@ struct UIBuilderView: View {
         }
     }
 
+    private var inlineLayersPanelContent: some View {
+        ZStack {
+            LayersPanelView(
+                canvasManager: canvasManager,
+                selectedComponent: $canvasManager.selectedComponent,
+                onLayerTapped: { _ in activeSheet = .properties },
+                showComponentLibrary: $showComponentLibrary,
+                componentLibraryMode: $componentLibraryMode,
+                onReplaceRequested: { component in
+                    canvasManager.selectedComponent = component
+                    componentLibraryMode = .replace
+                    showComponentLibrary = true
+                },
+                isInlinePanel: true
+            )
+            .opacity(showComponentLibrary ? 0 : 1)
+            .allowsHitTesting(!showComponentLibrary)
+            .accessibilityHidden(showComponentLibrary)
+
+            if showComponentLibrary {
+                ComponentLibraryView(
+                    selectedComponent: $canvasManager.selectedComponent,
+                    canvasManager: canvasManager,
+                    mode: componentLibraryMode,
+                    onComponentAdded: { showComponentLibrary = false }
+                )
+            }
+        }
+    }
+
     private func handlePhoneSheetChange(_ newValue: IOSSheet?) {
         let isOverlayOpen = !usesInlinePhonePanels && (newValue == .layers || newValue == .properties)
         canvasManager.isOverlayPanelOpen = isOverlayOpen
         canvasManager.isPropertiesSheetPresented = !usesInlinePhonePanels && newValue == .properties
         if newValue != .layers {
             showLayerPropertiesNavigation = false
+            showComponentLibrary = false
         }
     }
 
@@ -1624,79 +1663,21 @@ struct UIBuilderView: View {
     
     @ViewBuilder
     private var devicePresetMenuContent: some View {
-        Section("iPhone") {
-            ForEach(DevicePreset.iphones) { preset in
-                Button {
-                    canvasManager.setDevicePreset(preset)
-                } label: {
-                    HStack {
-                        Text(preset.rawValue)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
-        
+        DevicePresetMenuSection(title: "iPhone", presets: DevicePreset.iphones,
+                                selectedPreset: canvasManager.devicePreset,
+                                onSelect: canvasManager.setDevicePreset)
         Divider()
-        
-        Section("iPad") {
-            ForEach(DevicePreset.ipads) { preset in
-                Button {
-                    canvasManager.setDevicePreset(preset)
-                } label: {
-                    HStack {
-                        Text(preset.rawValue)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
-        
+        DevicePresetMenuSection(title: "iPad", presets: DevicePreset.ipads,
+                                selectedPreset: canvasManager.devicePreset,
+                                onSelect: canvasManager.setDevicePreset)
         Divider()
-        
-        Section("Widgets") {
-            ForEach(DevicePreset.widgets) { preset in
-                Button {
-                    canvasManager.setDevicePreset(preset)
-                } label: {
-                    HStack {
-                        Text(preset.rawValue)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
-        
+        DevicePresetMenuSection(title: "Widgets", presets: DevicePreset.widgets,
+                                selectedPreset: canvasManager.devicePreset,
+                                onSelect: canvasManager.setDevicePreset)
         Divider()
-        
-        Section("Custom") {
-            ForEach(DevicePreset.custom) { preset in
-                Button {
-                    canvasManager.setDevicePreset(preset)
-                } label: {
-                    HStack {
-                        Text(preset.rawValue)
-                        Spacer()
-                        if canvasManager.devicePreset == preset {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
+        DevicePresetMenuSection(title: "Custom", presets: DevicePreset.custom,
+                                selectedPreset: canvasManager.devicePreset,
+                                onSelect: canvasManager.setDevicePreset)
     }
     
     private var colorSchemeMenu: some View {
@@ -1962,7 +1943,8 @@ struct UIBuilderView: View {
             // Capture fresh screenshot for page thumbnail
             if let thumbnailData = CanvasExportRenderer.capturePNG(
                 components: canvasManager.components,
-                configuration: canvasExportConfiguration
+                configuration: canvasExportConfiguration,
+                previewMaxPixelSize: 800
             ) {
                 oldPage.thumbnail = thumbnailData
             }
@@ -3075,6 +3057,32 @@ struct UIBuilderView: View {
             return "rectangle.grid.1x2"
         case .custom:
             return "aspectratio"
+        }
+    }
+}
+
+private struct DevicePresetMenuSection: View {
+    let title: LocalizedStringKey
+    let presets: [DevicePreset]
+    let selectedPreset: DevicePreset
+    let onSelect: (DevicePreset) -> Void
+
+    var body: some View {
+        Section(title) {
+            ForEach(presets) { preset in
+                Button {
+                    onSelect(preset)
+                } label: {
+                    HStack {
+                        Text(preset.rawValue)
+                        Spacer()
+                        if selectedPreset == preset {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
         }
     }
 }

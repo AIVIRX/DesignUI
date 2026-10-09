@@ -76,6 +76,27 @@ class DesignPage: ObservableObject, Identifiable, Codable, Equatable {
         try container.encode(statusBarTopSafeArea, forKey: .statusBarTopSafeArea)
         try container.encodeIfPresent(statusBarComponent, forKey: .statusBarComponent)
     }
+
+    func persistenceSnapshot() -> PersistenceSnapshot {
+        PersistenceSnapshot(id: id, name: name,
+                            components: components.map { $0.persistenceSnapshot() },
+                            thumbnail: thumbnail, devicePreset: devicePreset,
+                            colorScheme: colorScheme, statusBarVisible: statusBarVisible,
+                            statusBarTopSafeArea: statusBarTopSafeArea,
+                            statusBarComponent: statusBarComponent?.persistenceSnapshot())
+    }
+
+    struct PersistenceSnapshot: Encodable {
+        let id: UUID
+        let name: String
+        let components: [UIComponent.PersistenceSnapshot]
+        let thumbnail: Data?
+        let devicePreset: String?
+        let colorScheme: String?
+        let statusBarVisible: Bool
+        let statusBarTopSafeArea: Bool
+        let statusBarComponent: UIComponent.PersistenceSnapshot?
+    }
         
     static func == (lhs: DesignPage, rhs: DesignPage) -> Bool {
         lhs.equalitySnapshot == rhs.equalitySnapshot

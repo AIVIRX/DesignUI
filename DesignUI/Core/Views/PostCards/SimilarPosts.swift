@@ -1,5 +1,4 @@
 import SwiftUI
-import SDWebImageSwiftUI
 
 struct SimilarPostsView: View {
     var currentPostId: String

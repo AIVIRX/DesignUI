@@ -5,8 +5,6 @@
 //
 
 import SwiftUI
-import SDWebImage
-import SDWebImageSwiftUI
 
 struct NewsDetailView: View {
     let post: NewsPost
@@ -64,7 +62,7 @@ struct NewsDetailView: View {
     private var featuredImageView: some View {
         if let imageUrl = post.image_url, let url = URL(string: imageUrl) {
             ZStack {
-                WebImage(url: url) { image in
+                CachedRemoteImage(url: url) { image in
                     image
                         .resizable()
                         .scaledToFill()

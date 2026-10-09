@@ -28,7 +28,8 @@ enum CanvasExportRenderer {
     @MainActor
     static func capturePNG(
         components: [UIComponent],
-        configuration: CanvasExportConfiguration
+        configuration: CanvasExportConfiguration,
+        previewMaxPixelSize: CGFloat? = nil
     ) -> Data? {
         let screenshotView = CanvasScreenshotView(
             components: components,
@@ -41,7 +42,8 @@ enum CanvasExportRenderer {
         return ScreenshotUtility.shared.captureThumbnail(
             of: screenshotView,
             size: configuration.deviceSize,
-            colorScheme: configuration.colorScheme
+            colorScheme: configuration.colorScheme,
+            maxPixelSize: previewMaxPixelSize
         )
     }
 
@@ -52,7 +54,7 @@ enum CanvasExportRenderer {
         designFile: DesignFile,
         page: DesignPage?
     ) -> Data? {
-        guard let thumbnailData = capturePNG(components: components, configuration: configuration) else {
+        guard let thumbnailData = capturePNG(components: components, configuration: configuration, previewMaxPixelSize: 800) else {
             return nil
         }
 

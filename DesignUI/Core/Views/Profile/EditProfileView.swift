@@ -1,5 +1,4 @@
 import SwiftUI
-import SDWebImageSwiftUI
 import PhotosUI
 import Supabase
 
@@ -157,11 +156,11 @@ struct EditProfileView: View {
                 }
                 #endif
             } else if let avatarUrl, let url = URL(string: avatarUrl) {
-                WebImage(url: url)
-                    .resizable()
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.2))
-                    .scaledToFill()
+                CachedRemoteImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    ProgressView()
+                }
                     .frame(width: 80, height: 80)
                     .clipShape(Circle())
             } else {

@@ -92,7 +92,7 @@ struct EditorLoadingOverlay: View {
                         .progressViewStyle(.linear)
                         .frame(maxWidth: 240)
                         .accessibilityLabel("Opening project")
-                        .accessibilityValue(Text(verbatim: "\(Int((progress * 100).rounded()))%"))
+                        .accessibilityValue(Text(progress, format: .percent.precision(.fractionLength(0))))
 
                     Text(message)
                         .font(.subheadline)

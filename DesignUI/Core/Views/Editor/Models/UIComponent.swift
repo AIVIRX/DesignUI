@@ -1138,6 +1138,32 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
     }
     
     func encode(to encoder: Encoder) throws {
+        try persistenceSnapshot().encode(to: encoder)
+    }
+
+    /// Copies the component tree without retaining observable editor models.
+    func persistenceSnapshot() -> PersistenceSnapshot {
+        PersistenceSnapshot(id: id, type: type, properties: properties,
+                            children: children.map { $0.persistenceSnapshot() },
+                            frame: frame, isVisible: isVisible, zIndex: zIndex,
+                            modifiers: modifiers, isOverlay: isOverlay,
+                            modifierId: modifierId, modifierType: modifierType)
+    }
+
+    struct PersistenceSnapshot: Encodable {
+        let id: UUID
+        let type: ComponentType
+        let properties: [ComponentProperty]
+        let children: [PersistenceSnapshot]
+        let frame: CGRect
+        let isVisible: Bool
+        let zIndex: Int
+        let modifiers: [ComponentModifier]
+        let isOverlay: Bool
+        let modifierId: UUID?
+        let modifierType: ModifierType?
+
+        func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         
         // Conditionally encode ID based on userInfo (for cleaner template exports)
@@ -1197,6 +1223,7 @@ class UIComponent: ObservableObject, Identifiable, Codable, Equatable {
         
         try container.encodeIfPresent(modifierId, forKey: .modifierId)
         try container.encodeIfPresent(modifierType, forKey: .modifierType)
+        }
     }
     
     static func == (lhs: UIComponent, rhs: UIComponent) -> Bool {

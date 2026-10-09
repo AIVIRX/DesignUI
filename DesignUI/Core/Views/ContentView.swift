@@ -58,7 +58,40 @@ struct ContentView: View {
                 }
             )
         ) {
-            OnboardingFlowView(
+            DockUIOnboardingView(onComplete: finishOnboarding)
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { designManager.currentDesign != nil },
+            set: { if !$0 { designManager.closeCurrentDesign() } }
+        )) {
+            if let currentDesign = designManager.currentDesign {
+                EditorLoadingView(designFile: currentDesign)
+                    .environmentObject(designManager)
+            }
+        }
+#endif
+        .sheet(isPresented: $paywallManager.isPresenting) {
+            CustomPaywallView()
+                .onDisappear {
+                    subscriptionManager.checkSubscriptionStatus()
+                }
+        }
+    }
+
+    private func finishOnboarding() {
+        hasSeenOnboarding = true
+        DispatchQueue.main.async {
+            paywallManager.present()
+        }
+    }
+}
+
+#if os(iOS)
+private struct DockUIOnboardingView: View {
+    let onComplete: () -> Void
+
+    var body: some View {
+        OnboardingFlowView(
                 title: "Welcome to DockUI",
                 description: "Build interfaces faster with smart components and real-time previews.",
                 logo: "AppLogo",
@@ -103,30 +136,9 @@ struct ContentView: View {
                     onSubmit: {
                         try? await Task.sleep(nanoseconds: 400_000_000)
                     },
-                    onComplete: {
-                        hasSeenOnboarding = true
-                        DispatchQueue.main.async {
-                            paywallManager.present()
-                        }
-                    }
+                    onComplete: onComplete
                 )
             )
         }
-        .fullScreenCover(isPresented: Binding(
-            get: { designManager.currentDesign != nil },
-            set: { if !$0 { designManager.closeCurrentDesign() } }
-        )) {
-            if let currentDesign = designManager.currentDesign {
-                EditorLoadingView(designFile: currentDesign)
-                    .environmentObject(designManager)
-            }
-        }
-#endif
-        .sheet(isPresented: $paywallManager.isPresenting) {
-            CustomPaywallView()
-                .onDisappear {
-                    subscriptionManager.checkSubscriptionStatus()
-                }
-        }
-    }
 }
+#endif

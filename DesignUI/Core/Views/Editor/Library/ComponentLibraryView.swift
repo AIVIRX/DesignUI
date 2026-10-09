@@ -75,6 +75,7 @@ struct ComponentLibraryView: View {
     @Binding var selectedComponent: UIComponent?
     @ObservedObject var canvasManager: CanvasManager
     var mode: ComponentLibraryMode = .add
+    var onComponentAdded: (() -> Void)? = nil
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showingPatterns = false
 
@@ -151,6 +152,7 @@ struct ComponentLibraryView: View {
     }
     
     private func addComponent(_ component: UIComponent) {
+        defer { onComponentAdded?() }
         if mode == .replace {
             guard let selected = selectedComponent else {
                 canvasManager.addComponent(component)

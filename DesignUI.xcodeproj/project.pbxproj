@@ -7,11 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EC26F3532F246D500035E1EA /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = EC26F3522F246D500035E1EA /* FluidGradient */; };
 		EC91C8AE2C5C3298000E20E3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC91C8AD2C5C3298000E20E3 /* StoreKit.framework */; };
 		ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA42EB06B5D00420663 /* RevenueCat */; };
 		ECB10DA72EB06B5D00420663 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECB10DA62EB06B5D00420663 /* RevenueCatUI */; };
-		ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */; };
 		ECD787CE2FC6594C0041F4DC /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = ECD787CD2FC6594C0041F4DC /* Auth */; };
 		ECD787D02FC6594C0041F4DC /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ECD787CF2FC6594C0041F4DC /* Supabase */; };
 /* End PBXBuildFile section */
@@ -41,8 +39,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC26F3532F246D500035E1EA /* FluidGradient in Frameworks */,
-				ECC5275C2E27146F00DAA548 /* SDWebImageSwiftUI in Frameworks */,
 				ECB10DA52EB06B5D00420663 /* RevenueCat in Frameworks */,
 				ECD787CE2FC6594C0041F4DC /* Auth in Frameworks */,
 				ECD787D02FC6594C0041F4DC /* Supabase in Frameworks */,
@@ -99,10 +95,8 @@
 			);
 			name = DesignUI;
 			packageProductDependencies = (
-				ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */,
 				ECB10DA42EB06B5D00420663 /* RevenueCat */,
 				ECB10DA62EB06B5D00420663 /* RevenueCatUI */,
-				EC26F3522F246D500035E1EA /* FluidGradient */,
 				ECD787CD2FC6594C0041F4DC /* Auth */,
 				ECD787CF2FC6594C0041F4DC /* Supabase */,
 			);
@@ -178,9 +172,7 @@
 			);
 			mainGroup = ECADF5F22BCAE9610096753A;
 			packageReferences = (
-				ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
-				EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */,
 				ECD787CC2FC6594C0041F4DC /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			productRefGroup = ECADF5FC2BCAE9610096753A /* Products */;
@@ -362,7 +354,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1525;
+				CURRENT_PROJECT_VERSION = 1530;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -408,7 +400,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 2026.9;
+				MARKETING_VERSION = 2026.10;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-function-bodies=100 -Xfrontend -warn-long-expression-type-checking=100";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
@@ -442,7 +434,7 @@
 				CODE_SIGN_ENTITLEMENTS = DesignUI/DesignUI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1525;
+				CURRENT_PROJECT_VERSION = 1530;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5C778DVBP3;
@@ -488,7 +480,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LOCALIZATION_EXPORT_SUPPORTED = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
-				MARKETING_VERSION = 2026.9;
+				MARKETING_VERSION = 2026.10;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Maicol.Dockui;
@@ -535,28 +527,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Cindori/FluidGradient.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
 		ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.45.0;
-			};
-		};
-		ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.1.3;
 			};
 		};
 		ECD787CC2FC6594C0041F4DC /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
@@ -566,15 +542,12 @@
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.5.1;
 			};
+			traits = (
+			);
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		EC26F3522F246D500035E1EA /* FluidGradient */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = EC26F3512F246D500035E1EA /* XCRemoteSwiftPackageReference "FluidGradient" */;
-			productName = FluidGradient;
-		};
 		ECB10DA42EB06B5D00420663 /* RevenueCat */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
@@ -584,11 +557,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ECB10DA32EB06B5D00420663 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCatUI;
-		};
-		ECC5275B2E27146F00DAA548 /* SDWebImageSwiftUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECC5275A2E27146F00DAA548 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
-			productName = SDWebImageSwiftUI;
 		};
 		ECD787CD2FC6594C0041F4DC /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;

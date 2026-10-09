@@ -24,6 +24,21 @@ class DesignFile: ObservableObject, Identifiable {
     let fileURL: URL
     
     private static let saveQueue = DispatchQueue(label: "com.designui.saveQueue", qos: .background)
+
+    /// Only value snapshots cross to the serial save queue, never live pages/components.
+    private struct SaveSnapshot: Encodable {
+        let id: UUID
+        let name: String
+        let pages: [DesignPage.PersistenceSnapshot]
+        let currentPageIndex: Int
+        let lastModified: Date
+        let thumbnail: Data?
+        let devicePreset: String?
+        let selectedDevicePreset: String?
+        let canvasColorScheme: String?
+        let statusBarVisible: Bool
+        let statusBarTopSafeArea: Bool
+    }
     
     private var autoSaveTimer: Timer?
     private var hasUnsavedChanges = false
@@ -191,6 +206,11 @@ class DesignFile: ObservableObject, Identifiable {
     }
 
     func save() {
+        // Capture published state on the UI thread before background serialization.
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [self] in save() }
+            return
+        }
         if isDeleted {
             debugLog("🛑 Skipping save for deleted file: \(name)")
             return
@@ -198,15 +218,12 @@ class DesignFile: ObservableObject, Identifiable {
         
         self.lastModified = Date()
         
-        do {
             debugLog("💾 Saving design to \(fileURL.path)")
-            
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(DesignFileData(
+
+            let snapshot = SaveSnapshot(
                 id: id,
                 name: name,
-                pages: pages,
+                pages: pages.map { $0.persistenceSnapshot() },
                 currentPageIndex: currentPageIndex,
                 lastModified: lastModified,
                 thumbnail: thumbnail,
@@ -215,13 +232,16 @@ class DesignFile: ObservableObject, Identifiable {
                 canvasColorScheme: canvasColorScheme,
                 statusBarVisible: statusBarVisible,
                 statusBarTopSafeArea: statusBarTopSafeArea
-            ))
+            )
             
             let fileURL = self.fileURL
             let name = self.name
             
             DesignFile.saveQueue.async {
                 do {
+                    let encoder = JSONEncoder()
+                    encoder.dateEncodingStrategy = .iso8601
+                    let data = try encoder.encode(snapshot)
                     let isiCloudFile = fileURL.path.contains("Mobile Documents") || fileURL.path.contains("iCloud~")
                     
                     if isiCloudFile {
@@ -256,9 +276,6 @@ class DesignFile: ObservableObject, Identifiable {
                 }
             }
             
-        } catch {
-            debugLog("❌ Failed to encode design file: \(error)")
-        }
     }
     
     static func load(from url: URL) -> DesignFile? {

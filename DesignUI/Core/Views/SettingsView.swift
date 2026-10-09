@@ -116,7 +116,7 @@ struct SettingsView: View {
             appPromoRow(
                 title: "Metadata Translator: ASO",
                 subtitle: "Localize App Store metadata",
-                imageAssetName: "metadataTranslator",
+                imageAssetName: "metadatatranslator",
                 url: metadataTranslatorURL
             )
         }

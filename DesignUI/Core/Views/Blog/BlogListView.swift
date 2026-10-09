@@ -5,8 +5,6 @@
 //
 
 import SwiftUI
-import SDWebImage
-import SDWebImageSwiftUI
 
 struct NewsListView: View {
     @StateObject var viewModel = NewsViewModel()
@@ -171,7 +169,7 @@ struct BlogGridCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let urlString = post.image_url, let url = URL(string: urlString) {
-                WebImage(url: url) { image in
+                CachedRemoteImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)

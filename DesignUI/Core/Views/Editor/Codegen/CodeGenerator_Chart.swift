@@ -1,18 +1,15 @@
 import SwiftUI
 
 extension CodeGenerator {
-    static func generateChartCode(component: UIComponent, indent: String, nextIndent: String) -> String {
-        let config = ChartConfiguration(component: component)
+    private static func chartDataDeclarations(config: ChartConfiguration, component: UIComponent, indent: String, nextIndent: String) -> [String] {
         func strings(_ values: [String]) -> String { "[" + values.map { String(reflecting: $0) }.joined(separator: ", ") + "]" }
         let values = "[" + config.samples.map { String($0.value) }.joined(separator: ", ") + "]"
-        let labels = strings(config.labels)
         let categories = strings(config.samples.map(\.label))
         let series = strings(config.samples.map { config.isDonut ? $0.label : ($0.series ?? "Value") })
         let positions = "[" + config.samples.map { String(config.labels.firstIndex(of: $0.label) ?? 0) }.joined(separator: ", ") + "]"
         let highlights = "[" + config.samples.map { $0.highlighted == true ? "true" : "false" }.joined(separator: ", ") + "]"
         let stackedValues = "[" + config.samples.map { String(config.stackedValue(for: $0)) }.joined(separator: ", ") + "]"
         let dimmed = "[" + config.samples.map { $0.highlighted == false ? "0.65" : "1.0" }.joined(separator: ", ") + "]"
-        let inner = nextIndent + "    "
         let palette = [chartColorCode(component: component), "Color.teal", "Color.orange", "Color.purple", "Color.pink", "Color.indigo", "Color.mint", "Color.brown"]
         let colors = "[" + config.groups.indices.map { palette[$0 % palette.count] }.joined(separator: ", ") + "]"
         var lines = [
@@ -29,6 +26,13 @@ extension CodeGenerator {
             if config.style == "Stacked Bar" { lines.append("\(nextIndent)let chartStackedValues: [Double] = \(stackedValues)") }
         }
         if config.isDonut { lines.append("\(nextIndent)let chartOpacities: [Double] = \(dimmed)") }
+        return lines
+    }
+
+    static func generateChartCode(component: UIComponent, indent: String, nextIndent: String) -> String {
+        let config = ChartConfiguration(component: component)
+        let inner = nextIndent + "    "
+        var lines = chartDataDeclarations(config: config, component: component, indent: indent, nextIndent: nextIndent)
         lines += ["\(indent)Chart {", "\(nextIndent)ForEach(0..<\(config.samples.count), id: \\.self) { index in"]
         lines += ["\(inner)let value: Double = chartValues[index]", "\(inner)let series: String = chartSeries[index]"]
         if config.isBar { lines.append("\(inner)let category = chartCategories[index]") }
@@ -57,6 +61,15 @@ extension CodeGenerator {
             }
         }
         lines.append("\(nextIndent)}")
+        lines += chartDecorationCode(config: config, indent: indent, nextIndent: nextIndent)
+        return lines.joined(separator: "\n")
+    }
+
+    private static func chartDecorationCode(config: ChartConfiguration, indent: String, nextIndent: String) -> [String] {
+        let inner = nextIndent + "    "
+        let escapedLabels: [String] = config.labels.map { String(reflecting: $0) }
+        let labels = "[" + escapedLabels.joined(separator: ", ") + "]"
+        var lines: [String] = []
         if config.showGoal && !config.isDonut {
             lines += ["\(nextIndent)RuleMark(y: .value(\"Goal\", \(config.goalValue)))", "\(nextIndent)    .foregroundStyle(Color.secondary)", "\(nextIndent)    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))", "\(nextIndent)    .annotation(position: .top, alignment: .trailing) { Text(\(String(reflecting: config.goalLabel))).font(.caption2).foregroundStyle(.secondary) }"]
         }
@@ -79,7 +92,7 @@ extension CodeGenerator {
             lines += ["\(inner)AxisValueLabel {", "\(inner)    if let value = axis.as(Double.self) { Text(\(String(reflecting: config.valuePrefix)) + value.formatted(.number.notation(.compactName)) + \(String(reflecting: config.valueSuffix))) }", "\(inner)}", "\(nextIndent)}", "\(indent)}"]
         } else { lines.append("\(indent).chartYAxis(.hidden)") }
         lines.append("\(indent)}")
-        return lines.joined(separator: "\n")
+        return lines
     }
 
     private static func chartColorCode(component: UIComponent) -> String {

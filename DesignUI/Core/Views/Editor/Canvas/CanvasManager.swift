@@ -26,8 +26,16 @@ class CanvasManager: ObservableObject {
     }
     
     @Published var selectedComponentIds: Set<UUID> = []
-    @Published var zoomLevel: CGFloat = 1.0
-    @Published var canvasOffset: CGSize = .zero
+    // Viewport changes must not invalidate every editor panel observing this manager.
+    let viewport = CanvasViewportState()
+    var zoomLevel: CGFloat {
+        get { viewport.zoomLevel }
+        set { viewport.zoomLevel = newValue }
+    }
+    var canvasOffset: CGSize {
+        get { viewport.canvasOffset }
+        set { viewport.canvasOffset = newValue }
+    }
     @Published var centerCanvasTrigger: Bool = false
     @Published var scrollToSelectionTrigger: Bool = false
     @Published var isTextInputActive: Bool = false

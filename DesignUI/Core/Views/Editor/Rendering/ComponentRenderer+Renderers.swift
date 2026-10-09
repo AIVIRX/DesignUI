@@ -1204,7 +1204,11 @@ extension View {
             return AnyView(view.multilineTextAlignment(textAlignment))
 
         case .glassEffect:
-            if isScreenshotCapture {
+            return applyGlassEffectModifier(modifier, to: view, component: component, colorScheme: colorScheme, isScreenshotCapture: isScreenshotCapture)
+        }
+    }
+
+    private func screenshotGlassEffectView(_ modifier: ComponentModifier, to view: AnyView, component: UIComponent, colorScheme: ColorScheme?) -> AnyView {
                 let hasExplicitTextColor = component.modifiers.contains { mod in
                     mod.type == .fill || mod.type == .foregroundColor || mod.type == .tint
                 }
@@ -1349,6 +1353,11 @@ extension View {
                 }
             }
 
+    private func applyGlassEffectModifier(_ modifier: ComponentModifier, to view: AnyView, component: UIComponent, colorScheme: ColorScheme?, isScreenshotCapture: Bool) -> AnyView {
+        if isScreenshotCapture {
+            return screenshotGlassEffectView(modifier, to: view, component: component, colorScheme: colorScheme)
+        }
+
             if #available(iOS 26.0, macOS 26.0, *) {
                 let hasExplicitTextColor = component.modifiers.contains { mod in
                     mod.type == .fill || mod.type == .foregroundColor || mod.type == .tint
@@ -1381,7 +1390,6 @@ extension View {
                 }
             }
             return view
-        }
     }
 
     private func glassEffectRenderedView<S: Shape>(baseView: AnyView, shape: S, useOverlayForShape: Bool, colorScheme: ColorScheme?, componentType: ComponentType, tintString: String) -> AnyView {

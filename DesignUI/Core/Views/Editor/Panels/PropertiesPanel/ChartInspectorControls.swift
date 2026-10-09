@@ -112,23 +112,11 @@ struct ChartDataEditor: View {
                     Text("Edit labels and values. Add a series name to compare groups; star a point to highlight it.")
                         .font(.subheadline).foregroundStyle(.secondary)
                     ForEach($rows) { $row in
-                        VStack(spacing: 8) {
-                            HStack {
-                                TextField("Label", text: $row.label)
-                                TextField("Value", value: $row.value, format: .number).frame(width: 90)
-                                Button { row.highlighted.toggle() } label: {
-                                    Image(systemName: row.highlighted ? "star.fill" : "star")
-                                }.accessibilityLabel("Highlight \(row.label)")
-                                Button(role: .destructive) { rows.removeAll { $0.id == row.id } } label: {
-                                    Image(systemName: "minus.circle")
-                                }.accessibilityLabel("Remove \(row.label)")
-                            }
-                            if !isDonut { TextField("Series (optional)", text: $row.series) }
+                        DataPointRow(row: $row, isDonut: isDonut) {
+                            removeRow(id: row.id)
                         }
-                        .padding(12)
-                        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
                     }
-                    Button("Add data point", systemImage: "plus") { rows.append(Row(label: "", value: 0, series: "", highlighted: false)) }
+                    Button("Add data point", systemImage: "plus", action: addRow)
                         .disabled(rows.count >= 60)
                     if !isValid {
                         Text(isDonut ? "Use distinct labels, nonnegative values and a total above zero." : "Every point needs a label and numeric value. Label and series pairs must be unique.")
@@ -140,11 +128,53 @@ struct ChartDataEditor: View {
             .navigationTitle("Chart Data")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Save") { onSave(samples); dismiss() }.disabled(!isValid) }
+                ToolbarItem(placement: .confirmationAction) { Button("Save", action: saveAndDismiss).disabled(!isValid) }
             }
         }
         #if os(macOS)
         .frame(minWidth: 440, idealWidth: 540, minHeight: 480, idealHeight: 640)
         #endif
+    }
+
+    private func addRow() {
+        rows.append(Row(label: "", value: 0, series: "", highlighted: false))
+    }
+
+    private func removeRow(id: UUID) {
+        rows.removeAll { $0.id == id }
+    }
+
+    private func saveAndDismiss() {
+        onSave(samples)
+        dismiss()
+    }
+
+    private struct DataPointRow: View {
+        @Binding var row: Row
+        let isDonut: Bool
+        let onRemove: () -> Void
+
+        var body: some View {
+            VStack(spacing: 8) {
+                HStack {
+                    TextField("Label", text: $row.label)
+                    TextField("Value", value: $row.value, format: .number)
+                        .frame(width: 90)
+                    Button { row.highlighted.toggle() } label: {
+                        Image(systemName: row.highlighted ? "star.fill" : "star")
+                    }
+                    .accessibilityLabel("Highlight \(row.label)")
+                    Button(role: .destructive, action: onRemove) {
+                        Image(systemName: "minus.circle")
+                    }
+                    .accessibilityLabel("Remove \(row.label)")
+                }
+                if !isDonut {
+                    TextField("Series (optional)", text: $row.series)
+                }
+            }
+            .padding(12)
+            .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
+        }
     }
 }

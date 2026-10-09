@@ -14,6 +14,7 @@ struct LayersPanelView: View {
     @Binding var showComponentLibrary: Bool
     @Binding var componentLibraryMode: ComponentLibraryMode
     var onReplaceRequested: ((UIComponent) -> Void)? = nil
+    var isInlinePanel = false
     @State private var expanded: Set<UUID> = []
     @State private var expandedOverlayFolders: Set<UUID> = [] // Track overlay folder expansion separately
     @State private var dragOverTarget: UUID?
@@ -29,7 +30,7 @@ struct LayersPanelView: View {
     }
 
     var body: some View {
-        if isRegularSizeClass {
+        if isRegularSizeClass || isInlinePanel {
             regularSizeView
         } else {
             phoneSizeView
@@ -47,7 +48,11 @@ struct LayersPanelView: View {
         let base = layersBaseView
 
 #if os(iOS)
-        if hSizeClass == .compact {
+        if isInlinePanel {
+            // The fold's parent panel owns component-library navigation.
+            base
+                .onReceive(dismissChildNavigationPublisher) { _ in showComponentLibrary = false }
+        } else if hSizeClass == .compact {
             base
                 .navigationDestination(isPresented: $showComponentLibrary) {
                     phoneComponentLibraryView

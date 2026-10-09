@@ -425,8 +425,14 @@ private struct FastInspectorView: View {
         }
     }
 
-    private var isPhone: Bool {
-        horizontalSizeClass == .compact
+    private var usesTouchInspectorControls: Bool {
+#if os(iOS)
+        // An unfolded phone can have regular width. Its controls should still
+        // support touch rather than switching to desktop-style numeric fields.
+        return UIDevice.current.userInterfaceIdiom == .phone || horizontalSizeClass == .compact
+#else
+        return false
+#endif
     }
 
     private var numericInputTitle: String {
@@ -1436,7 +1442,7 @@ private struct FastInspectorView: View {
     @ViewBuilder
     private var layoutFrameRow: some View {
         HStack(spacing: 10) {
-            if isPhone {
+            if usesTouchInspectorControls {
                 VStack(spacing: 8) {
                     mobileFrameSliderField(axis: "width")
                     mobileFrameSliderField(axis: "height")
@@ -1451,7 +1457,7 @@ private struct FastInspectorView: View {
     @ViewBuilder
     private var layoutPaddingRow: some View {
         HStack(spacing: 10) {
-            if isPhone {
+            if usesTouchInspectorControls {
                 VStack(spacing: 8) {
                     mobileSliderField(
                         title: "H Padding",
@@ -1500,7 +1506,7 @@ private struct FastInspectorView: View {
     @ViewBuilder
     private var layoutOffsetRow: some View {
         HStack(spacing: 10) {
-            if isPhone {
+            if usesTouchInspectorControls {
                 VStack(spacing: 8) {
                     mobileSliderField(
                         title: "X Offset",
@@ -1546,7 +1552,7 @@ private struct FastInspectorView: View {
     @ViewBuilder
     private var layoutOpacityAndCornerRow: some View {
         HStack(spacing: 10) {
-            if isPhone {
+            if usesTouchInspectorControls {
                 VStack(spacing: 8) {
                     mobileSliderField(
                         title: "Opacity",
@@ -2612,7 +2618,7 @@ private struct FastInspectorView: View {
     @ViewBuilder
     private func shadowValueControls(for effect: ComponentModifier) -> some View {
         HStack(spacing: 8) {
-            if isPhone {
+            if usesTouchInspectorControls {
                 shadowValueControlsPhone(for: effect)
             } else {
                 shadowValueControlsDesktop(for: effect)

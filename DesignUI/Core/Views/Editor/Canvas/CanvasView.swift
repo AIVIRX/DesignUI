@@ -6,6 +6,11 @@
 
 import SwiftUI
 
+final class CanvasViewportState: ObservableObject {
+    @Published var zoomLevel: CGFloat = 1.0
+    @Published var canvasOffset: CGSize = .zero
+}
+
 /// Used to pass the current stable zoom level to child views for sharp text rendering
 struct CanvasRenderScaleKey: EnvironmentKey {
     static let defaultValue: CGFloat = 1.0
@@ -20,6 +25,7 @@ extension EnvironmentValues {
 
 struct CanvasView: View {
     @ObservedObject var canvasManager: CanvasManager
+    @ObservedObject private var viewport: CanvasViewportState
     @Binding var selectedComponent: UIComponent?
     let selectedDevice: DevicePreset
     @Binding var baseZoomLevel: CGFloat
@@ -73,6 +79,7 @@ struct CanvasView: View {
         enableScrollHandler: Bool = true
     ) {
         self.canvasManager = canvasManager
+        self._viewport = ObservedObject(wrappedValue: canvasManager.viewport)
         self._selectedComponent = selectedComponent
         self.selectedDevice = selectedDevice
         self._baseZoomLevel = baseZoomLevel
@@ -127,7 +134,7 @@ struct CanvasView: View {
             .onAppear {
                 initializeZoom(geometry: geometry)
             }
-            .onChange(of: canvasManager.zoomLevel) { syncLocalZoom() }
+            .onChange(of: viewport.zoomLevel) { syncLocalZoom() }
             .onChange(of: selectedDevice) { _, _ in
                 beginCanvasTransition()
                 updateDeviceLayout(geometry: geometry)

@@ -2710,346 +2710,6 @@
         }
       }
     },
-    "%lld%%" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "en-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "en-PH" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "gu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "kk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "kn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "lt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ml" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "or" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "pa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        }
-      }
-    },
     "%llds" : {
       "localizations" : {
         "ar" : {
@@ -10871,7 +10531,158 @@
       }
     },
     "Ask AI" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "اسأل الذكاء الاصطناعي"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Pregunta a la IA"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zeptat se AI"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Spørg AI"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "KI fragen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ρωτήστε το AI"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ask AI"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ask AI"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ask AI"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ask AI"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ask AI"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Preguntar a la IA"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Preguntar a la IA"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Preguntar a la IA"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kysy tekoälyltä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Demander à l’IA"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "AI に質問"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "AI에게 묻기"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tanya AI"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Spør AI"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Vraag AI"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Opýtať sa AI"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Vprašaj AI"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fråga AI"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ถาม AI"
+          }
+        }
+      }
     },
     "Ask AI to perform edits..." : {
       "localizations" : {
@@ -11552,6 +11363,9 @@
           }
         }
       }
+    },
+    "Back to Layers" : {
+
     },
     "Bio" : {
       "localizations" : {
@@ -15294,10 +15108,312 @@
       }
     },
     "Close AI Prompt" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "إغلاق مطالبة الذكاء الاصطناعي"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tanca la sol·licitud d’IA"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zavřít výzvu AI"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Luk AI-prompt"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "KI-Eingabe schließen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Κλείσιμο προτροπής AI"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close AI Prompt"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close AI Prompt"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close AI Prompt"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close AI Prompt"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close AI Prompt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cerrar solicitud de IA"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cerrar indicación de IA"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cerrar solicitud de IA"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sulje tekoälykehote"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fermer l’invite IA"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "AIプロンプトを閉じる"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "AI 프롬프트 닫기"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tutup gesaan AI"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lukk KI-ledetekst"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sluit AI-prompt"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zavrieť výzvu AI"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zapri poziv AI"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Stäng AI-prompten"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ปิดพรอมต์ AI"
+          }
+        }
+      }
     },
     "Close Panel" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "إغلاق اللوحة"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tanca el tauler"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zavřít panel"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Luk panel"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Panel schließen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Κλείσιμο πίνακα"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close Panel"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close Panel"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close Panel"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close Panel"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Close Panel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cerrar panel"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cerrar panel"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cerrar panel"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sulje paneeli"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fermer le panneau"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "パネルを閉じる"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "패널 닫기"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tutup panel"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lukk panel"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sluit paneel"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zavrieť panel"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Zapri ploščo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Stäng panelen"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ปิดแผง"
+          }
+        }
+      }
     },
     "Code Snippet" : {
       "localizations" : {
@@ -18695,1029 +18811,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製 JSON"
-          }
-        }
-      }
-    },
-    "Create" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إنشاء"
-          }
-        },
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Създай"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "তৈরি করুন"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crea"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vytvořit"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opret"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erstellen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δημιουργία"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create"
-          }
-        },
-        "en-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create"
-          }
-        },
-        "en-PH" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Luo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer"
-          }
-        },
-        "gu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "બનાવો"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צור"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "बनाएँ"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kreiraj"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Létrehozás"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buat"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crea"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "作成"
-          }
-        },
-        "kk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Жаңа дизайн жасау"
-          }
-        },
-        "kn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ರಚಿಸಿ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "생성"
-          }
-        },
-        "lt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sukurti"
-          }
-        },
-        "ml" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "സൃഷ്ടിക്കുക"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "निर्माण करा"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cipta"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opprett"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creëren"
-          }
-        },
-        "or" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opprett"
-          }
-        },
-        "pa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ਬਣਾਓ"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utwórz"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Criar"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Criar"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creează"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Создать"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vytvoriť"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ustvari"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skapa"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δημιουργία"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "สร้าง"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oluştur"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Створити"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بنائیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tạo"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "创建"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "創建"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "創建"
-          }
-        }
-      }
-    },
-    "Create Design" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إنشاء تصميم"
-          }
-        },
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Създайте дизайн"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ডিজাইন তৈরি করুন"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear disseny"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vytvořit design"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opret design"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Design erstellen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δημιουργία Σχεδίου"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create Design"
-          }
-        },
-        "en-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create Design"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create Design"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create Design"
-          }
-        },
-        "en-PH" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create Design"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear diseño"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear diseño"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear diseño"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Luo suunnitelma"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un design"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un design"
-          }
-        },
-        "gu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ડિઝાઇન બનાવો"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צור עיצוב"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "डिज़ाइन बनाएं"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Izradi dizajn"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tervezés létrehozása"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buat Desain"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crea design"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "デザインを作成"
-          }
-        },
-        "kk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дизайн жасау"
-          }
-        },
-        "kn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ಡಿಸೈನ್ ರಚಿಸಿ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "디자인 만들기"
-          }
-        },
-        "lt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sukurti dizainą"
-          }
-        },
-        "ml" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ഡിസൈൻ സൃഷ്ടിക്കുക"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "डिझाइन तयार करा"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cipta Reka Bentuk"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opprett design"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ontwerp maken"
-          }
-        },
-        "or" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ဒီဇိုင်းဖန်တီးပါ"
-          }
-        },
-        "pa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ਡਿਜ਼ਾਈਨ ਬਣਾਓ"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utwórz projekt"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Criar Design"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Criar Design"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creează design"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Создать дизайн"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vytvoriť dizajn"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ustvari oblikovanje"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skapa design"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "డిజైన్ సృష్టించండి"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "రూపకల్పన సృష్టించండి"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "สร้างการออกแบบ"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tasarım Oluştur"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Створити дизайн"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ڈیزائن بنائیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tạo thiết kế"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "创建设计"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "創建設計"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "創建設計"
-          }
-        }
-      }
-    },
-    "Create New Design" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إنشاء تصميم جديد"
-          }
-        },
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Създай нов дизайн"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "নতুন ডিজাইন তৈরি করুন"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crea un nou disseny"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vytvořit nový design"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opret Nyt Design"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neues Design erstellen"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δημιουργία Νέου Σχεδίου"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create New Design"
-          }
-        },
-        "en-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create New Design"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create New Design"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create New Design"
-          }
-        },
-        "en-PH" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create New Design"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear nuevo diseño"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear nuevo diseño"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear nuevo diseño"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Luo uusi malli"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un nouveau design"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un nouveau design"
-          }
-        },
-        "gu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "નવી ડિઝાઇન બનાવો"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צור עיצוב חדש"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "नया डिज़ाइन बनाएँ"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kreiraj novi dizajn"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Új terv létrehozása"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buat Desain Baru"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crea Nuovo Design"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新しいデザインを作成"
-          }
-        },
-        "kk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сүйікті заттарды сақтау, құрылғылар арасында синхрондау және эксклюзивті мүмкіндіктерге қол жеткізу үшін есептік жазбаңызды жасаңыз."
-          }
-        },
-        "kn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ಹೊಸ ಡಿಸೈನ್ ರಚಿಸಿ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "새 디자인 만들기"
-          }
-        },
-        "lt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sukurti naują dizainą"
-          }
-        },
-        "ml" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "പുതിയ ഡിസൈൻ സൃഷ്ടിക്കുക"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "नवीन डिझाइन तयार करा"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cipta Reka Bentuk Baru"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opprett nytt design"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nieuw ontwerp maken"
-          }
-        },
-        "or" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opprett nytt design"
-          }
-        },
-        "pa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ਨਵਾਂ ਡਿਜ਼ਾਈਨ ਬਣਾਓ"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utwórz nowy projekt"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Criar Novo Design"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Criar Novo Design"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creează un nou design"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Создать новый дизайн"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vytvoriť nový dizajn"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ustvari novo oblikovanje"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skapa ny design"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δημιουργία Νέου Σχεδίου"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crear nuevo diseño"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "สร้างการออกแบบใหม่"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yeni Tasarım Oluştur"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Створити новий дизайн"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نیا ڈیزائن بنائیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tạo Thiết kế Mới"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "创建新设计"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "創建新設計"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "創建新設計"
           }
         }
       }
@@ -26861,6 +25954,9 @@
           }
         }
       }
+    },
+    "Edit History" : {
+
     },
     "Edit labels and values. Add a series name to compare groups; star a point to highlight it." : {
       "localizations" : {
@@ -36383,345 +35479,149 @@
       }
     },
     "Hide Layers" : {
-
-    },
-    "Hide Layers Panel" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "إخفاء لوحة الطبقات"
-          }
-        },
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скрий панела с слоеве"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "লেয়ার প্যানেল লুকান"
+            "state" : "machine_translated",
+            "value" : "إخفاء الطبقات"
           }
         },
         "ca" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Amagar el panell de capes"
+            "state" : "machine_translated",
+            "value" : "Amaga les capes"
           }
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skrýt panel vrstev"
+            "state" : "machine_translated",
+            "value" : "Skrýt vrstvy"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skjul lagpanel"
+            "state" : "machine_translated",
+            "value" : "Skjul lag"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ebenenpanel ausblenden"
+            "state" : "machine_translated",
+            "value" : "Ebenen ausblenden"
           }
         },
         "el" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Απόκρυψη Πίνακα Στρώσεων"
+            "state" : "machine_translated",
+            "value" : "Απόκρυψη στρωμάτων"
           }
         },
         "en-AU" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Hide Layers"
           }
         },
         "en-CA" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Hide Layers"
           }
         },
         "en-GB" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Hide Layers"
           }
         },
         "en-IN" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Hide Layers"
           }
         },
         "en-PH" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Hide Layers"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar Panel de Capas"
+            "state" : "machine_translated",
+            "value" : "Ocultar capas"
           }
         },
         "es-419" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar Panel de Capas"
+            "state" : "machine_translated",
+            "value" : "Ocultar capas"
           }
         },
         "es-US" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar panel de capas"
+            "state" : "machine_translated",
+            "value" : "Ocultar capas"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Piilota kerrospaneeli"
+            "state" : "machine_translated",
+            "value" : "Piilota tasot"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Masquer le panneau des calques"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Masquer le panneau des calques"
-          }
-        },
-        "gu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "લેયર્સ પેનલ છુપાવો"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הסתר פאנל שכבות"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "परतें पैनल छिपाएँ"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sakrij panel slojeva"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rétegek panel elrejtése"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sembunyikan Panel Lapisan"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nascondi pannello livelli"
+            "state" : "machine_translated",
+            "value" : "Masquer les calques"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "レイヤーパネルを隠す"
-          }
-        },
-        "kk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Қабаттар панелін жасыру"
-          }
-        },
-        "kn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ಪರಿಮಾಣಗಳನ್ನು ಮರೆಮಾಡಿ"
+            "state" : "machine_translated",
+            "value" : "レイヤーを非表示"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "레이어 패널 숨기기"
-          }
-        },
-        "lt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slėpti sluoksnių panelę"
-          }
-        },
-        "ml" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ലെയർസ് പാനൽ മറയ്ക്കുക"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "लेयर्स पॅनेल लपवा"
+            "state" : "machine_translated",
+            "value" : "레이어 숨기기"
           }
         },
         "ms" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sembunyikan Panel Lapisan"
+            "state" : "machine_translated",
+            "value" : "Sembunyikan Lapisan"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skjul lagpanelet"
+            "state" : "machine_translated",
+            "value" : "Skjul lag"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verberg Lagenpaneel"
-          }
-        },
-        "or" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paslėpti sluoksnių panelę"
-          }
-        },
-        "pa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ਲੇਅਰ ਪੈਨਲ ਛੁਪਾਓ"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ukryj panel warstw"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar Painel de Camadas"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar Painel de Camadas"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ascunde panoul de straturi"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скрыть панель слоев"
+            "state" : "machine_translated",
+            "value" : "Verberg lagen"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skryť panel vrstiev"
+            "state" : "machine_translated",
+            "value" : "Skryť vrstvy"
           }
         },
         "sl" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skrij ploščo plasti"
+            "state" : "machine_translated",
+            "value" : "Skrij plasti"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dölj lagerpanelen"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Απόκρυψη Πίνακα Στρώσεων"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar panel de capas"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ซ่อนแผงเลเยอร์"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Katmanlar Panelini Gizle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сховати панель шарів"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لیئرز پینل چھپائیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ẩn bảng lớp"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隐藏图层面板"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隱藏圖層面板"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隱藏圖層面板"
+            "state" : "machine_translated",
+            "value" : "Dölj lager"
           }
         }
       }
@@ -37745,6 +36645,9 @@
           }
         }
       }
+    },
+    "Image unavailable" : {
+
     },
     "Index" : {
       "localizations" : {
@@ -43187,7 +42090,152 @@
       }
     },
     "More Editor Actions" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "إجراءات إضافية للمحرر"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Més accions de l’editor"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Další akce editoru"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Flere redigeringshandlinger"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Weitere Editoraktionen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Περισσότερες ενέργειες επεξεργασίας"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "More Editor Actions"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "More Editor Actions"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "More Editor Actions"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "More Editor Actions"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "More Editor Actions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Más acciones del editor"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Más acciones del editor"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Más acciones del editor"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lisää editoritoimintoja"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Autres actions de l’éditeur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "その他のエディタアクション"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "추가 편집기 작업"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tindakan Editor Lain"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Flere redigeringshandlinger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Meer editoracties"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ďalšie akcie editora"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Več dejanj urejevalnika"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fler redigeringsåtgärder"
+          }
+        }
+      }
     },
     "My Designs" : {
       "localizations" : {
@@ -44205,347 +43253,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新聞"
-          }
-        }
-      }
-    },
-    "Newsroom" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "غرفة الأخبار"
-          }
-        },
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Новинарска стая"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "নিউজরুম"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala de notícies"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zpravodajství"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nyhedsrum"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nachrichtenraum"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δημοσιογραφικό Γραφείο"
-          }
-        },
-        "en-AU" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Newsroom"
-          }
-        },
-        "en-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Newsroom"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Newsroom"
-          }
-        },
-        "en-IN" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Newsroom"
-          }
-        },
-        "en-PH" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Newsroom"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala de Prensa"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala de Noticias"
-          }
-        },
-        "es-US" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala de noticias"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uutishuone"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salle de presse"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salle de presse"
-          }
-        },
-        "gu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "સમાચારકક્ષ"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "חדר חדשות"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "समाचार कक्ष"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Novinska soba"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hírszoba"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ruang Berita"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala stampa"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ニュースルーム"
-          }
-        },
-        "kk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Жаңалықтар бөлмесі"
-          }
-        },
-        "kn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ಸುದ್ದಿ ಕೋಣೆ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "뉴스룸"
-          }
-        },
-        "lt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Naujienų centras"
-          }
-        },
-        "ml" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "വാർത്താ മന്ദിരം"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "बातमी कक्ष"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bilik Berita"
-          }
-        },
-        "nb" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nyhetsrom"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nieuwsroom"
-          }
-        },
-        "or" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Naujienų kambarys"
-          }
-        },
-        "pa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ਖਬਰਾਂ ਦਾ ਕਮਰਾ"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Redakcja"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala de Notícias"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala de Notícias"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Centrul de știri"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Новостная лента"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tlačová miestnosť"
-          }
-        },
-        "sl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Novinarska soba"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nyhetsrum"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Δημοσιογραφείο"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala de noticias"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ห้องข่าว"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Haber Odası"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Новинна кімната"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نیوز روم"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Phòng tin tức"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新闻室"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新聞室"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新聞室"
           }
         }
       }
@@ -53391,13 +52098,448 @@
       }
     },
     "Properties" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "الخصائص"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Propietats"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Vlastnosti"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Egenskaber"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Eigenschaften"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ιδιότητες"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Properties"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Properties"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Properties"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Properties"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Properties"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Propiedades"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Propiedades"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Propiedades"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ominaisuudet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Propriétés"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "プロパティ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "속성"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sifat"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Egenskaper"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Eigenschappen"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Vlastnosti"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lastnosti"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Egenskaper"
+          }
+        }
+      }
     },
     "Publish to DockUI" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "النشر إلى DockUI"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publica a DockUI"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publikovat na DockUI"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Udgiv på DockUI"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Auf DockUI veröffentlichen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Δημοσίευση στο DockUI"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publish to DockUI"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publish to DockUI"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publish to DockUI"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publish to DockUI"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publish to DockUI"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicar en DockUI"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicar en DockUI"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicar en DockUI"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Julkaise DockUI:hin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publier sur DockUI"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "DockUIに公開"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Dock UI에 게시"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Terbitkan ke Dock UI"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publiser til Dock UI"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publiceer naar Dock UI"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publikovať do DockUI"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Objavi v DockUI"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicera till DockUI"
+          }
+        }
+      }
     },
     "Publishing to DockUI…" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "يجري النشر إلى DockUI…"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "S’està publicant a DockUI…"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publikování na DockUI…"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Udgiver på DockUI…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Wird auf DockUI veröffentlicht …"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Δημοσίευση στο DockUI…"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publishing to DockUI…"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publishing to DockUI…"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publishing to DockUI…"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publishing to DockUI…"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publishing to DockUI…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicando en DockUI…"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicando en DockUI…"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicando en DockUI…"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Julkaistaan DockUI:hin…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publication sur DockUI…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "DockUIに公開中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Dock UI에 게시 중…"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Menerbitkan ke Dock UI…"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publiserer til Dock UI…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publiceren naar Dock UI…"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publikujem do DockUI…"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Objavljanje v DockUI …"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Publicerar till DockUI…"
+          }
+        }
+      }
     },
     "px" : {
       "localizations" : {
@@ -57139,6 +56281,9 @@
         }
       }
     },
+    "Replace Component" : {
+
+    },
     "Replace…" : {
       "localizations" : {
         "ar" : {
@@ -58500,7 +57645,152 @@
       }
     },
     "Save Screenshot" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "حفظ لقطة الشاشة"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Desa la captura de pantalla"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Uložit snímek obrazovky"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Gem skærmbillede"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Screenshot speichern"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Αποθήκευση στιγμιότυπου οθόνης"
+          }
+        },
+        "en-AU" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Save Screenshot"
+          }
+        },
+        "en-CA" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Save Screenshot"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Save Screenshot"
+          }
+        },
+        "en-IN" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Save Screenshot"
+          }
+        },
+        "en-PH" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Save Screenshot"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Guardar captura de pantalla"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Guardar captura de pantalla"
+          }
+        },
+        "es-US" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Guardar captura de pantalla"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tallenna näyttökuva"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sauvegarder la capture d’écran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "スクリーンショットを保存"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "스크린샷 저장"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Simpan Tangkapan Layar"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lagre skjermbilde"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Bewaar schermafbeelding"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Uložiť snímku obrazovky"
+          }
+        },
+        "sl" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Shrani posnetek zaslona"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Spara skärmavbild"
+          }
+        }
+      }
     },
     "ScrollView" : {
       "localizations" : {
@@ -65303,345 +64593,149 @@
       }
     },
     "Show Layers" : {
-
-    },
-    "Show Layers Panel" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "عرض لوحة الطبقات"
-          }
-        },
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Покажи панела с слоеве"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "লেয়ার প্যানেল দেখান"
+            "state" : "machine_translated",
+            "value" : "عرض الطبقات"
           }
         },
         "ca" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra el panell de capes"
+            "state" : "machine_translated",
+            "value" : "Mostra les capes"
           }
         },
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zobrazit panel vrstev"
+            "state" : "machine_translated",
+            "value" : "Zobrazit vrstvy"
           }
         },
         "da" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vis lagpanel"
+            "state" : "machine_translated",
+            "value" : "Vis lag"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ebenenpanel anzeigen"
+            "state" : "machine_translated",
+            "value" : "Ebenen anzeigen"
           }
         },
         "el" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Εμφάνιση Πίνακα Επίπεδων"
+            "state" : "machine_translated",
+            "value" : "Εμφάνιση στρωμάτων"
           }
         },
         "en-AU" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Show Layers"
           }
         },
         "en-CA" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Show Layers"
           }
         },
         "en-GB" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Show Layers"
           }
         },
         "en-IN" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Show Layers"
           }
         },
         "en-PH" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Layers Panel"
+            "state" : "machine_translated",
+            "value" : "Show Layers"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar panel de capas"
+            "state" : "machine_translated",
+            "value" : "Mostrar capas"
           }
         },
         "es-419" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar Panel de Capas"
+            "state" : "machine_translated",
+            "value" : "Mostrar capas"
           }
         },
         "es-US" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar panel de capas"
+            "state" : "machine_translated",
+            "value" : "Mostrar capas"
           }
         },
         "fi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Näytä kerrospaneeli"
+            "state" : "machine_translated",
+            "value" : "Näytä tasot"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher le panneau des calques"
-          }
-        },
-        "fr-CA" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher le panneau des calques"
-          }
-        },
-        "gu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "લેયર્સ પેનલ બતાવો"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הצג פאנל שכבות"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "परतें पैनल दिखाएँ"
-          }
-        },
-        "hr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prikaži panel slojeva"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rétegek panel megjelenítése"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tampilkan Panel Lapisan"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra pannello livelli"
+            "state" : "machine_translated",
+            "value" : "Afficher les calques"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "レイヤーパネルを表示"
-          }
-        },
-        "kk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Қабаттар панелін көрсету"
-          }
-        },
-        "kn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ಫೈಂಡರ್‌ನಲ್ಲಿ ತೋರಿಸಿ"
+            "state" : "machine_translated",
+            "value" : "レイヤーを表示"
           }
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "레이어 패널 표시"
-          }
-        },
-        "lt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rodyti sluoksnių panelę"
-          }
-        },
-        "ml" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ലെയർസ് പാനൽ കാണിക്കുക"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "लेयर्स पॅनेल दर्शवा"
+            "state" : "machine_translated",
+            "value" : "레이어 표시"
           }
         },
         "ms" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tunjukkan Panel Lapisan"
+            "state" : "machine_translated",
+            "value" : "Tunjukkan Lapisan"
           }
         },
         "nb" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vis lagpanelet"
+            "state" : "machine_translated",
+            "value" : "Vis lag"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toon Lagenpaneel"
-          }
-        },
-        "or" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rodyti sluoksnių panelę"
-          }
-        },
-        "pa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ਲੇਅਰ ਪੈਨਲ ਦਿਖਾਓ"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pokaż panel warstw"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar Painel de Camadas"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar Painel de Camadas"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arată panoul de straturi"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показать панель слоев"
+            "state" : "machine_translated",
+            "value" : "Toon lagen"
           }
         },
         "sk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zobraziť panel vrstiev"
+            "state" : "machine_translated",
+            "value" : "Zobraziť vrstvy"
           }
         },
         "sl" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prikaži ploščo plasti"
+            "state" : "machine_translated",
+            "value" : "Pokaži plasti"
           }
         },
         "sv" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visa lagerpanelen"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Εμφάνιση Πίνακα Στρώσεων"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar panel de capas"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "แสดงแผงเลเยอร์"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Katmanlar Panelini Göster"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показати панель шарів"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لیئرز پینل دکھائیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hiện bảng lớp"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示图层面板"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示圖層面板"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示圖層面板"
+            "state" : "machine_translated",
+            "value" : "Visa lager"
           }
         }
       }
@@ -73806,6 +72900,9 @@
         }
       }
     },
+    "Undo and Redo" : {
+
+    },
     "Unit (km)" : {
       "localizations" : {
         "ar" : {
@@ -78567,5 +77664,5 @@
       }
     }
   },
-  "version" : "1.2"
+  "version" : "1.3"
 }
